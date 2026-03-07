@@ -1,16 +1,152 @@
-import { html, css, nothing, type PropertyValues } from 'lit';
+import { html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
+  BackendService,
   getAreaEntities,
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
+import './editor';
+
+// — Types & Constants —
+
+type LightType = 'simple' | 'dimmable' | 'color_temp' | 'rgb';
+
+interface LightInfo {
+  entity: HassEntity;
+  entityId: string;
+  name: string;
+  isOn: boolean;
+  type: LightType;
+  brightnessPct: number;
+  colorTempKelvin: number | null;
+  minKelvin: number;
+  maxKelvin: number;
+  rgbColor: [number, number, number] | null;
+}
+
+type LayoutItem =
+  | { kind: 'full'; light: LightInfo }
+  | { kind: 'compact-pair'; left: LightInfo; right: LightInfo | null };
+
+interface LightPreset {
+  key: string;
+  label: string;
+  dotColor: string;
+  brightness: number;
+  temp: number;
+  rgb: [number, number, number];
+}
+
+const TEMP_LABELS: [number, string, string][] = [
+  [3000, 'Chaud', '#ffd4a3'],
+  [4000, 'Chaud', '#ffedb3'],
+  [4800, 'Neutre', '#fff5e6'],
+  [9999, 'Froid', '#e0ecf5'],
+];
+
+const RGB_PRESETS: [number, number, number][] = [
+  [251, 191, 36],
+  [248, 113, 113],
+  [244, 114, 182],
+  [167, 139, 250],
+  [129, 140, 248],
+  [96, 165, 250],
+  [74, 222, 128],
+  [240, 240, 240],
+];
+
+const LIGHT_PRESETS: LightPreset[] = [
+  {
+    key: 'relax',
+    label: 'Relax',
+    dotColor: '#ff9d4d',
+    brightness: 50,
+    temp: 2700,
+    rgb: [251, 191, 36],
+  },
+  {
+    key: 'focus',
+    label: 'Focus',
+    dotColor: '#e0ecf5',
+    brightness: 100,
+    temp: 5500,
+    rgb: [96, 165, 250],
+  },
+  {
+    key: 'film',
+    label: 'Film',
+    dotColor: '#ff7b3a',
+    brightness: 25,
+    temp: 2400,
+    rgb: [248, 113, 113],
+  },
+  {
+    key: 'nuit',
+    label: 'Nuit',
+    dotColor: '#ffd4a3',
+    brightness: 10,
+    temp: 2200,
+    rgb: [167, 139, 250],
+  },
+];
+
+// — Helpers —
+
+function detectLightType(entity: HassEntity): LightType {
+  const modes = entity.attributes.supported_color_modes as string[] | undefined;
+  if (!modes || modes.length === 0) {
+    return entity.attributes.brightness !== undefined ? 'dimmable' : 'simple';
+  }
+  if (modes.some((m) => ['hs', 'rgb', 'rgbw', 'rgbww', 'xy'].includes(m))) return 'rgb';
+  if (modes.includes('color_temp')) return 'color_temp';
+  if (modes.includes('brightness')) return 'dimmable';
+  return 'simple';
+}
+
+function getTempInfo(kelvin: number): { label: string; color: string } {
+  for (const [max, label, color] of TEMP_LABELS) {
+    if (kelvin < max) return { label, color };
+  }
+  return { label: 'Froid', color: '#e0ecf5' };
+}
+
+function rgbToHex(rgb: [number, number, number]): string {
+  return '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
+}
+
+function rgbToRgba(rgb: [number, number, number], alpha: number): string {
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+}
+
+function rgbEqual(a: [number, number, number], b: [number, number, number]): boolean {
+  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+}
+
+// — Component —
 
 export class GlassLightCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-light-card-editor');
+  }
+
   @property({ attribute: false }) areaId?: string;
   @state() private _expandedEntity: string | null = null;
+  @state() private _activePresets = new Map<string, string>();
+  @state() private _dragValues = new Map<string, number>();
+  private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private _roomConfig: {
+    hidden_entities: string[];
+    entity_order: string[];
+    entity_layouts: Record<string, string>;
+  } | null = null;
+  private _roomConfigLoaded = false;
+  private _lastLoadedAreaId?: string;
+  private _backend?: BackendService;
+  private _cachedLights?: HassEntity[];
+  private _cachedLightsHassRef?: Record<string, HassEntity>;
 
   static styles = [
     glassTokens,
@@ -22,100 +158,190 @@ export class GlassLightCard extends BaseCard {
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
+      /* ── Card Header ── */
       .card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 8px;
-        padding: 0 4px;
+        margin-bottom: 6px;
+        padding: 0 6px;
       }
-      .card-label {
+      .card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-title {
         font-size: 9px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1.2px;
+        letter-spacing: 1.5px;
         color: var(--t4);
-        display: flex;
+      }
+      .card-count {
+        display: inline-flex;
         align-items: center;
-        gap: 6px;
-      }
-      .count-badge {
-        background: var(--s3);
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
         border-radius: var(--radius-full);
-        padding: 1px 7px;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 700;
-        color: var(--t2);
+        transition: all var(--t-med);
       }
-      .toggle-all-btn {
-        background: transparent;
-        border: none;
-        padding: 0;
-        font-family: inherit;
-        outline: none;
-        cursor: pointer;
-        width: 44px;
-        height: 24px;
-        border-radius: 12px;
-        position: relative;
-        transition: background var(--t-fast);
-      }
-      .toggle-all-btn.on {
-        background: rgba(251, 191, 36, 0.3);
-      }
-      .toggle-all-btn.off {
+      .card-count.none {
         background: var(--s2);
+        color: var(--t3);
       }
-      .toggle-thumb {
+      .card-count.some {
+        background: rgba(251, 191, 36, 0.15);
+        color: var(--c-warning);
+      }
+      .card-count.all {
+        background: rgba(251, 191, 36, 0.2);
+        color: var(--c-warning);
+      }
+
+      /* ── Toggle All ── */
+      .toggle-all {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        border-radius: 11px;
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        cursor: pointer;
+        transition: all var(--t-fast);
+        padding: 0;
+        outline: none;
+        font-family: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .toggle-all::after {
+        content: '';
         position: absolute;
-        top: 4px;
-        left: 4px;
-        width: 16px;
-        height: 16px;
+        top: 3px;
+        left: 3px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         background: var(--t3);
-        transition: transform var(--t-fast);
+        transition:
+          transform var(--t-fast),
+          background var(--t-fast),
+          box-shadow var(--t-fast);
       }
-      .toggle-all-btn.on .toggle-thumb {
-        transform: translateX(20px);
+      .toggle-all.on {
+        background: rgba(251, 191, 36, 0.2);
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+      .toggle-all.on::after {
+        transform: translateX(18px);
         background: var(--c-warning);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
       }
 
+      /* ── Card Body ── */
       .card {
         position: relative;
-        padding: 12px;
+        padding: 14px;
       }
-
-      .tint {
-        background: radial-gradient(ellipse at 50% 50%, var(--c-warning), transparent 70%);
-        opacity: 0;
-        transition: opacity var(--t-slow);
-      }
-      :host([lights-on]) .tint {
-        opacity: 0.12;
-      }
-
-      .light-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2px;
+      .card-inner {
         position: relative;
         z-index: 1;
       }
 
+      /* ── Tint (dynamic) ── */
+      .tint {
+        transition:
+          opacity var(--t-slow),
+          background var(--t-slow);
+      }
+
+      /* ── Lights Grid ── */
+      .lights-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+      }
+
+      /* ── Light Row ── */
       .light-row {
-        grid-column: span 2;
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 8px;
-        border-radius: var(--radius-md);
+        grid-column: 1 / -1;
+        padding: 8px 4px;
+        position: relative;
         transition: background var(--t-fast);
+        border-radius: var(--radius-md);
       }
       .light-row:hover {
         background: var(--s1);
       }
+      .light-row.compact {
+        grid-column: span 1;
+      }
+      .light-row.compact-right {
+        padding-left: 10px;
+      }
+      .light-row.compact-right::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(255, 255, 255, 0.08) 30%,
+          rgba(255, 255, 255, 0.08) 70%,
+          transparent
+        );
+      }
 
+      /* ── Icon Button ── */
+      .light-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        font-family: inherit;
+        color: var(--t3);
+        transition:
+          color var(--t-fast),
+          background var(--t-fast),
+          border-color var(--t-fast),
+          filter var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .light-icon-btn ha-icon {
+        --mdc-icon-size: 18px;
+      }
+      .light-icon-btn.on {
+        background: rgba(251, 191, 36, 0.1);
+        border-color: rgba(251, 191, 36, 0.15);
+        color: var(--c-warning);
+        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4));
+      }
+      .light-icon-btn.on.rgb {
+        background: var(--light-rgb-bg);
+        border-color: var(--light-rgb-border);
+        color: var(--light-rgb);
+        filter: drop-shadow(0 0 6px var(--light-rgb-glow));
+      }
+
+      /* ── Expand Button ── */
       .light-expand-btn {
         flex: 1;
         min-width: 0;
@@ -132,33 +358,7 @@ export class GlassLightCard extends BaseCard {
         cursor: pointer;
       }
 
-      .light-icon-btn {
-        background: var(--s2);
-        border: none;
-        border-radius: var(--radius-md);
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: var(--t3);
-        padding: 0;
-        font-family: inherit;
-        outline: none;
-        flex-shrink: 0;
-        transition:
-          color var(--t-fast),
-          background var(--t-fast);
-      }
-      .light-icon-btn.on {
-        color: var(--c-warning);
-        filter: drop-shadow(0 0 6px var(--c-warning));
-      }
-      .light-icon-btn ha-icon {
-        --mdc-icon-size: 20px;
-      }
-
+      /* ── Light Info ── */
       .light-info {
         flex: 1;
         min-width: 0;
@@ -166,79 +366,267 @@ export class GlassLightCard extends BaseCard {
       .light-name {
         font-size: 13px;
         font-weight: 600;
-        color: var(--t2);
+        color: var(--t1);
+        line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .light-sub {
-        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+      }
+      .light-brightness-text {
+        font-size: 10px;
+        font-weight: 500;
         color: var(--t3);
+        transition: color var(--t-med);
+      }
+      .light-row[data-on='true'] .light-brightness-text {
+        color: rgba(251, 191, 36, 0.55);
+      }
+      .light-row[data-on='true'][data-rgb] .light-brightness-text {
+        color: var(--light-rgb-sub, rgba(251, 191, 36, 0.55));
+      }
+      .light-temp-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        transition: background var(--t-med);
+      }
+      .light-temp-text {
+        font-size: 10px;
         font-weight: 400;
+        color: var(--t4);
       }
 
-      .status-dot {
+      /* ── Status Dot ── */
+      .light-dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
         flex-shrink: 0;
+        background: var(--t4);
+        transition: all var(--t-med);
       }
-      .status-dot.on {
+      .light-row[data-on='true'] .light-dot {
         background: var(--c-warning);
-        box-shadow: 0 0 6px var(--c-warning);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
       }
-      .status-dot.off {
-        background: var(--s3);
-      }
-
-      .control-fold {
-        padding: 0 8px;
+      .light-row[data-on='true'][data-rgb] .light-dot {
+        background: var(--light-rgb);
+        box-shadow: 0 0 8px var(--light-rgb-glow);
       }
 
-      .brightness-control {
+      /* ── Control Fold ── */
+      .ctrl-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+        grid-column: 1 / -1;
+      }
+      .ctrl-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity 0.25s var(--ease-std);
+      }
+      .ctrl-fold.open .ctrl-fold-inner {
+        opacity: 1;
+      }
+      .ctrl-panel {
+        padding: 6px 0 4px;
         display: flex;
-        align-items: center;
+        flex-direction: column;
         gap: 10px;
-        padding: 8px 0;
       }
-      .brightness-control ha-icon {
-        --mdc-icon-size: 16px;
-        color: var(--t4);
-        flex-shrink: 0;
+      .ctrl-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: rgba(251, 191, 36, 0.6);
       }
-      .brightness-slider {
-        flex: 1;
+      .ctrl-panel[data-rgb] .ctrl-label {
+        color: var(--light-rgb-sub, rgba(251, 191, 36, 0.6));
+      }
+
+      /* ── Slider ── */
+      .slider {
+        position: relative;
+        width: 100%;
         height: 36px;
-        appearance: none;
-        -webkit-appearance: none;
-        background: var(--s1);
         border-radius: var(--radius-lg);
-        outline: none;
+        background: var(--s1);
         border: 1px solid var(--b1);
+        overflow: hidden;
       }
-      .brightness-slider::-webkit-slider-thumb {
-        appearance: none;
-        -webkit-appearance: none;
+      .slider-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        border-radius: inherit;
+        pointer-events: none;
+      }
+      .slider-fill.warm {
+        background: linear-gradient(90deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.3));
+      }
+      .slider-fill.dynamic {
+        background: linear-gradient(
+          90deg,
+          var(--slider-fill-start, rgba(251, 191, 36, 0.15)),
+          var(--slider-fill-end, rgba(251, 191, 36, 0.3))
+        );
+      }
+      .slider-fill.temp-gradient {
+        width: 100% !important;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 179, 71, 0.2) 0%,
+          rgba(255, 245, 230, 0.15) 50%,
+          rgba(135, 206, 235, 0.2) 100%
+        );
+        opacity: 0.7;
+      }
+      .slider-thumb {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
         width: 8px;
         height: 20px;
         border-radius: 4px;
         background: rgba(255, 255, 255, 0.7);
-        cursor: pointer;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        pointer-events: none;
       }
-      .brightness-slider::-moz-range-thumb {
-        width: 8px;
-        height: 20px;
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.7);
-        border: none;
-        cursor: pointer;
-      }
-      .brightness-value {
-        font-size: 12px;
+      .slider-lbl {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        font-size: 11px;
         font-weight: 600;
         color: var(--t2);
-        min-width: 30px;
-        text-align: right;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .slider-lbl ha-icon {
+        --mdc-icon-size: 16px;
+        opacity: 0.6;
+      }
+      .slider-val {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--t3);
+        pointer-events: none;
+      }
+      .slider-native {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      /* ── Color Dots ── */
+      .color-dots-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 2px 0;
+      }
+      .cdot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        padding: 0;
+        outline: none;
+        background: none;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cdot::before {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        background: var(--cdot-color);
+      }
+      .cdot:hover {
+        transform: scale(1.15);
+      }
+      .cdot.active {
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      /* ── Preset Chips ── */
+      .preset-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--t3);
+        cursor: pointer;
+        outline: none;
+        transition: all var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .chip:hover {
+        background: var(--s3);
+        color: var(--t2);
+        border-color: var(--b3);
+      }
+      .chip.active {
+        border-color: rgba(251, 191, 36, 0.2);
+        background: rgba(251, 191, 36, 0.08);
+        color: rgba(251, 191, 36, 0.8);
+      }
+      .chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* Focus-visible ring */
+      .toggle-all:focus-visible,
+      .light-icon-btn:focus-visible,
+      .light-expand-btn:focus-visible,
+      .cdot:focus-visible,
+      .chip:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
       }
     `,
   ];
@@ -251,38 +639,205 @@ export class GlassLightCard extends BaseCard {
     return 3;
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    this._listen('room-config-changed', (payload) => {
+      const area = this.areaId || (this._config?.area as string | undefined);
+      if (area && payload.areaId === area) {
+        this._roomConfigLoaded = false;
+        this._cachedLights = undefined;
+        this._loadRoomConfig();
+      }
+    });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._throttleTimers.forEach((t) => clearTimeout(t));
+    this._throttleTimers.clear();
+    this._backend = undefined;
+  }
+
+  private async _loadRoomConfig() {
+    const area = this.areaId || (this._config?.area as string | undefined);
+    if (!area || !this.hass || this._roomConfigLoaded) return;
+    this._roomConfigLoaded = true;
+    this._lastLoadedAreaId = area;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{
+        hidden_entities: string[];
+        entity_order: string[];
+        entity_layouts: Record<string, string>;
+      } | null>('get_room', { area_id: area });
+      if (result) {
+        this._roomConfig = result;
+        this._cachedLights = undefined;
+        this.requestUpdate();
+      }
+    } catch {
+      // Backend not available
+    }
+  }
+
+  private _resetForNewArea() {
+    this._roomConfig = null;
+    this._roomConfigLoaded = false;
+    this._expandedEntity = null;
+    this._activePresets = new Map();
+    this._dragValues = new Map();
+    this._cachedLights = undefined;
+    this._throttleTimers.forEach((t) => clearTimeout(t));
+    this._throttleTimers.clear();
+  }
+
   protected getTrackedEntityIds(): string[] {
     return this._getLights().map((e) => e.entity_id);
   }
 
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
-    const lights = this._getLights();
-    const anyOn = lights.some((l) => l.state === 'on');
+
+    // Load room config from backend when areaId is available or changes
+    const area = this.areaId || (this._config?.area as string | undefined);
+    if (area && this.hass) {
+      if (this._lastLoadedAreaId !== area) {
+        this._resetForNewArea();
+      }
+      if (!this._roomConfigLoaded) {
+        this._loadRoomConfig();
+      }
+    }
+
+    // Invalidate lights cache when hass changes
+    if (changedProps.has('hass')) {
+      this._cachedLights = undefined;
+    }
+
+    const lights = this._getLightInfos();
+    const anyOn = lights.some((l) => l.isOn);
     if (anyOn) {
       this.setAttribute('lights-on', '');
     } else {
       this.removeAttribute('lights-on');
     }
+
+    // Clear stale drag values once HA state catches up
+    if (changedProps.has('hass') && this._dragValues.size > 0) {
+      let changed = false;
+      const next = new Map(this._dragValues);
+      for (const info of lights) {
+        const briKey = `bri:${info.entityId}`;
+        const briDrag = next.get(briKey);
+        if (briDrag !== undefined && Math.abs(info.brightnessPct - briDrag) <= 2) {
+          next.delete(briKey);
+          changed = true;
+        }
+        const tempKey = `temp:${info.entityId}`;
+        const tempDrag = next.get(tempKey);
+        if (
+          tempDrag !== undefined &&
+          info.colorTempKelvin !== null &&
+          Math.abs(info.colorTempKelvin - tempDrag) <= 50
+        ) {
+          next.delete(tempKey);
+          changed = true;
+        }
+      }
+      if (changed) this._dragValues = next;
+    }
   }
+
+  // — Data —
 
   private _getLights(): HassEntity[] {
     if (!this.hass) return [];
+    // Return cached result if hass.states reference hasn't changed
+    if (this._cachedLights && this._cachedLightsHassRef === this.hass.states) {
+      return this._cachedLights;
+    }
+    this._cachedLightsHassRef = this.hass.states;
+    const result = this._computeLights();
+    this._cachedLights = result;
+    return result;
+  }
 
-    if (this.areaId) {
-      return getAreaEntities(this.areaId, this.hass.entities, this.hass.devices)
-        .filter((e) => e.entity_id.startsWith('light.'))
+  private _computeLights(): HassEntity[] {
+    if (!this.hass) return [];
+    const area = this.areaId || (this._config?.area as string | undefined);
+    if (area) {
+      // Merge hidden_entities from Lovelace config and backend room config
+      const configHidden = (this._config?.hidden_entities as string[] | undefined) ?? [];
+      const backendHidden = this._roomConfig?.hidden_entities ?? [];
+      const hiddenSet = new Set<string>([...configHidden, ...backendHidden]);
+
+      const lights = getAreaEntities(area, this.hass.entities, this.hass.devices)
+        .filter((e) => e.entity_id.startsWith('light.') && !hiddenSet.has(e.entity_id))
         .map((e) => this.hass?.states[e.entity_id])
         .filter((s): s is HassEntity => s !== undefined);
-    }
 
+      // Apply custom order: Lovelace config takes priority, then backend
+      const configOrder = (this._config?.entity_order as string[] | undefined) ?? [];
+      const order = configOrder.length > 0 ? configOrder : (this._roomConfig?.entity_order ?? []);
+      if (order.length > 0) {
+        const orderMap = new Map<string, number>();
+        order.forEach((id, i) => orderMap.set(id, i));
+        lights.sort((a, b) => {
+          const aIdx = orderMap.get(a.entity_id);
+          const bIdx = orderMap.get(b.entity_id);
+          if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
+          if (aIdx !== undefined) return -1;
+          if (bIdx !== undefined) return 1;
+          return 0;
+        });
+      }
+      return lights;
+    }
     if (this._config?.entity) {
       const entity = this.hass.states[this._config.entity];
       return entity ? [entity] : [];
     }
-
     return [];
   }
+
+  private _getLightInfos(): LightInfo[] {
+    return this._getLights().map((entity) => this._buildLightInfo(entity));
+  }
+
+  private _buildLightInfo(entity: HassEntity): LightInfo {
+    const isOn = entity.state === 'on';
+    const type = detectLightType(entity);
+    const brightness = entity.attributes.brightness as number | undefined;
+    const brightnessPct =
+      isOn && brightness !== undefined ? Math.round((brightness / 255) * 100) : 0;
+
+    let colorTempKelvin: number | null = null;
+    const minKelvin = (entity.attributes.min_color_temp_kelvin as number) || 2000;
+    const maxKelvin = (entity.attributes.max_color_temp_kelvin as number) || 6500;
+    if (isOn && type === 'color_temp') {
+      colorTempKelvin = (entity.attributes.color_temp_kelvin as number) || null;
+    }
+
+    let rgbColor: [number, number, number] | null = null;
+    if (isOn && type === 'rgb') {
+      rgbColor = (entity.attributes.rgb_color as [number, number, number]) || null;
+    }
+
+    return {
+      entity,
+      entityId: entity.entity_id,
+      name: (entity.attributes.friendly_name as string) || entity.entity_id,
+      isOn,
+      type,
+      brightnessPct,
+      colorTempKelvin,
+      minKelvin,
+      maxKelvin,
+      rgbColor,
+    };
+  }
+
+  // — Actions —
 
   private _toggleLight(entityId: string) {
     this.hass?.callService('light', 'toggle', {}, { entity_id: entityId });
@@ -294,100 +849,450 @@ export class GlassLightCard extends BaseCard {
     const service = anyOn ? 'turn_off' : 'turn_on';
     const ids = lights.map((l) => l.entity_id);
     this.hass?.callService('light', service, {}, { entity_id: ids });
+    if (anyOn) {
+      this._expandedEntity = null;
+    }
+  }
+
+  private _toggleExpand(entityId: string, isOn: boolean) {
+    if (!isOn) return;
+    if (this._expandedEntity === entityId) {
+      this._expandedEntity = null;
+    } else {
+      this._expandedEntity = entityId;
+    }
+  }
+
+  private _onSliderInput(key: string, value: number, send: (v: number) => void) {
+    const next = new Map(this._dragValues);
+    next.set(key, value);
+    this._dragValues = next;
+
+    // Trailing throttle: always send the latest value at end of window
+    const existing = this._throttleTimers.get(key);
+    if (existing !== undefined) clearTimeout(existing);
+    this._throttleTimers.set(
+      key,
+      setTimeout(() => {
+        this._throttleTimers.delete(key);
+        send(this._dragValues.get(key) ?? value);
+      }, 100),
+    );
+  }
+
+  private _onSliderChange(key: string, value: number, send: (v: number) => void) {
+    send(value);
+    // Keep drag value until HA state catches up (cleared in updated())
+    const timer = this._throttleTimers.get(key);
+    if (timer !== undefined) clearTimeout(timer);
+    this._throttleTimers.delete(key);
   }
 
   private _setBrightness(entityId: string, value: number) {
     this.hass?.callService('light', 'turn_on', { brightness_pct: value }, { entity_id: entityId });
   }
 
-  private _toggleExpand(entityId: string) {
-    this._expandedEntity = this._expandedEntity === entityId ? null : entityId;
+  private _setColorTemp(entityId: string, kelvin: number) {
+    this.hass?.callService(
+      'light',
+      'turn_on',
+      { color_temp_kelvin: kelvin },
+      { entity_id: entityId },
+    );
   }
 
-  private _getBrightnessPct(entity: HassEntity): number {
-    const brightness = entity.attributes.brightness as number | undefined;
-    if (brightness === undefined) return 0;
-    return Math.round((brightness / 255) * 100);
+  private _setRgbColor(entityId: string, rgb: [number, number, number]) {
+    this.hass?.callService('light', 'turn_on', { rgb_color: rgb }, { entity_id: entityId });
   }
 
-  private _renderLightRow(entity: HassEntity) {
-    const isOn = entity.state === 'on';
-    const name = (entity.attributes.friendly_name as string) || entity.entity_id;
-    const brightnessPct = isOn ? this._getBrightnessPct(entity) : 0;
-    const isExpanded = this._expandedEntity === entity.entity_id;
+  private _applyPreset(info: LightInfo, preset: LightPreset) {
+    const data: Record<string, unknown> = { brightness_pct: preset.brightness };
+    if (info.type === 'color_temp') data.color_temp_kelvin = preset.temp;
+    if (info.type === 'rgb') data.rgb_color = preset.rgb;
+    this.hass?.callService('light', 'turn_on', data, { entity_id: info.entityId });
+    const next = new Map(this._activePresets);
+    next.set(info.entityId, preset.key);
+    this._activePresets = next;
+  }
+
+  // — Layout —
+
+  private _getEntityLayout(entityId: string): 'auto' | 'full' | 'compact' {
+    const configLayouts = (this._config?.entity_layouts as Record<string, string> | undefined) ?? {};
+    const backendLayouts = this._roomConfig?.entity_layouts ?? {};
+    const layout = configLayouts[entityId] || backendLayouts[entityId];
+    return (layout as 'auto' | 'full' | 'compact') || 'auto';
+  }
+
+  private _isCompact(light: LightInfo): boolean {
+    const layout = this._getEntityLayout(light.entityId);
+    if (layout === 'compact') return true;
+    if (layout === 'full') return false;
+    return light.type === 'simple';
+  }
+
+  private _buildLayout(lights: LightInfo[]): LayoutItem[] {
+    const items: LayoutItem[] = [];
+    let i = 0;
+    while (i < lights.length) {
+      const light = lights[i];
+      if (this._isCompact(light)) {
+        const next =
+          i + 1 < lights.length && this._isCompact(lights[i + 1]) ? lights[i + 1] : null;
+        items.push({ kind: 'compact-pair', left: light, right: next });
+        i += next ? 2 : 1;
+      } else {
+        items.push({ kind: 'full', light });
+        i++;
+      }
+    }
+    return items;
+  }
+
+  // — Tint —
+
+  private _computeTint(lights: LightInfo[]): { background: string; opacity: string } | null {
+    const onLights = lights.filter((l) => l.isOn);
+    if (onLights.length === 0) return null;
+    const ratio = onLights.length / lights.length;
+
+    let color = '#fbbf24';
+    const rgbLight = onLights.find((l) => l.type === 'rgb' && l.rgbColor);
+    if (rgbLight?.rgbColor) color = rgbToHex(rgbLight.rgbColor);
+
+    return {
+      background: `radial-gradient(ellipse at 30% 30%, ${color}, transparent 70%)`,
+      opacity: (ratio * 0.18).toFixed(3),
+    };
+  }
+
+  // — Sub text —
+
+  private _renderSubText(info: LightInfo): TemplateResult | TemplateResult[] | typeof nothing {
+    if (!info.isOn) {
+      return html`<span class="light-brightness-text">Éteint</span>`;
+    }
+    if (info.type === 'simple') {
+      return html`<span class="light-brightness-text">Allumé</span>`;
+    }
+
+    const parts: TemplateResult[] = [
+      html`<span class="light-brightness-text">${info.brightnessPct}%</span>`,
+    ];
+
+    if (info.type === 'color_temp' && info.colorTempKelvin) {
+      const ti = getTempInfo(info.colorTempKelvin);
+      parts.push(html`<span class="light-temp-dot" style="background:${ti.color}"></span>`);
+      parts.push(html`<span class="light-temp-text">${ti.label}</span>`);
+    }
+
+    if (info.type === 'rgb' && info.rgbColor) {
+      const hex = rgbToHex(info.rgbColor);
+      parts.push(html`<span class="light-temp-dot" style="background:${hex}"></span>`);
+      parts.push(html`<span class="light-temp-text">Couleur</span>`);
+    }
+
+    return parts;
+  }
+
+  // — Render: Light Row —
+
+  private _renderLightRow(info: LightInfo, compact: boolean, isRight: boolean): TemplateResult {
+    const rowClasses = ['light-row', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+      .filter(Boolean)
+      .join(' ');
+
+    const rgbStyle =
+      info.isOn && info.type === 'rgb' && info.rgbColor
+        ? `--light-rgb:${rgbToHex(info.rgbColor)};--light-rgb-bg:${rgbToRgba(info.rgbColor, 0.1)};--light-rgb-border:${rgbToRgba(info.rgbColor, 0.15)};--light-rgb-glow:${rgbToRgba(info.rgbColor, 0.4)};--light-rgb-sub:${rgbToRgba(info.rgbColor, 0.55)}`
+        : '';
+
+    const iconClasses = [
+      'light-icon-btn',
+      info.isOn ? 'on' : '',
+      info.isOn && info.rgbColor ? 'rgb' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     return html`
-      <div class="light-row">
+      <div
+        class=${rowClasses}
+        data-on=${info.isOn}
+        style=${rgbStyle}
+        ?data-rgb=${info.isOn && info.type === 'rgb' && !!info.rgbColor}
+      >
         <button
-          class="light-icon-btn ${isOn ? 'on' : ''}"
-          @click=${() => this._toggleLight(entity.entity_id)}
-          aria-label="Toggle ${name}"
+          class=${iconClasses}
+          style=${rgbStyle}
+          @click=${() => this._toggleLight(info.entityId)}
+          aria-label="Toggle ${info.name}"
         >
           <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
         </button>
         <button
           class="light-expand-btn"
-          @click=${() => this._toggleExpand(entity.entity_id)}
-          aria-label="Expand ${name} controls"
-          ${isOn ? html`aria-expanded=${isExpanded ? 'true' : 'false'}` : nothing}
+          @click=${() => this._toggleExpand(info.entityId, info.isOn)}
+          aria-label="${info.isOn ? `Expand ${info.name} controls` : info.name}"
+          aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
           <div class="light-info">
-            <div class="light-name">${name}</div>
-            ${isOn ? html`<div class="light-sub">${brightnessPct}%</div>` : nothing}
+            <div class="light-name">${info.name}</div>
+            <div class="light-sub">${this._renderSubText(info)}</div>
           </div>
-          <span class="status-dot ${isOn ? 'on' : 'off'}"></span>
+          <span class="light-dot"></span>
         </button>
       </div>
+    `;
+  }
 
-      <div class="fold ${isExpanded && isOn ? 'open' : ''}" style="grid-column: span 2">
-        <div class="fold-inner">
-          <div class="control-fold">
-            <div class="brightness-control">
-              <ha-icon .icon=${'mdi:brightness-6'}></ha-icon>
-              <input
-                type="range"
-                class="brightness-slider"
-                min="1"
-                max="100"
-                .value=${String(brightnessPct)}
-                @input=${(e: Event) => {
-                  const val = Number((e.target as HTMLInputElement).value);
-                  this._setBrightness(entity.entity_id, val);
-                }}
-              />
-              <span class="brightness-value">${brightnessPct}%</span>
-            </div>
+  // — Render: Control Fold —
+
+  private _getBrightnessFill(info: LightInfo): { fillClass: string; fillStyle: string } {
+    if (info.type === 'rgb' && info.rgbColor) {
+      const [r, g, b] = info.rgbColor;
+      return {
+        fillClass: 'dynamic',
+        fillStyle: `--slider-fill-start:rgba(${r},${g},${b},0.15);--slider-fill-end:rgba(${r},${g},${b},0.35)`,
+      };
+    }
+    if (info.type === 'color_temp' && info.colorTempKelvin) {
+      const ti = getTempInfo(info.colorTempKelvin);
+      const hex = ti.color;
+      // Parse hex to rgb for rgba
+      const hr = parseInt(hex.slice(1, 3), 16);
+      const hg = parseInt(hex.slice(3, 5), 16);
+      const hb = parseInt(hex.slice(5, 7), 16);
+      return {
+        fillClass: 'dynamic',
+        fillStyle: `--slider-fill-start:rgba(${hr},${hg},${hb},0.15);--slider-fill-end:rgba(${hr},${hg},${hb},0.35)`,
+      };
+    }
+    return { fillClass: 'warm', fillStyle: '' };
+  }
+
+  private _renderControlFold(info: LightInfo): TemplateResult {
+    const isExpanded = this._expandedEntity === info.entityId && info.isOn;
+    const isRgb = info.type === 'rgb';
+    const { fillClass, fillStyle } = this._getBrightnessFill(info);
+
+    return html`
+      <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
+        <div class="ctrl-fold-inner">
+          <div class="ctrl-panel" ?data-rgb=${isRgb}>
+            <span class="ctrl-label">${info.name}</span>
+
+            ${info.type !== 'simple'
+              ? this._renderSlider(
+                  `bri:${info.entityId}`,
+                  fillClass,
+                  info.brightnessPct,
+                  'mdi:brightness-6',
+                  'Intensité',
+                  (v) => `${v}%`,
+                  1,
+                  100,
+                  (v) => this._setBrightness(info.entityId, v),
+                  fillStyle,
+                )
+              : nothing}
+            ${info.type === 'color_temp' ? this._renderTempSlider(info) : nothing}
+            ${info.type === 'rgb' ? this._renderColorDots(info) : nothing}
+            ${this._renderPresetChips(info)}
           </div>
         </div>
       </div>
     `;
   }
 
-  render() {
-    const lights = this._getLights();
-    if (lights.length === 0) return nothing;
+  // — Render: Slider —
 
-    const onCount = lights.filter((l) => l.state === 'on').length;
+  private _renderSlider(
+    sliderKey: string,
+    fillClass: string,
+    value: number,
+    iconName: string,
+    label: string,
+    valTextFn: (v: number) => string,
+    min: number,
+    max: number,
+    onChange: (v: number) => void,
+    fillStyle = '',
+  ): TemplateResult {
+    const localVal = this._dragValues.get(sliderKey) ?? value;
+    const pct = ((localVal - min) / (max - min)) * 100;
+    const fillInline = fillStyle ? `width:${pct}%;${fillStyle}` : `width:${pct}%`;
+
+    return html`
+      <div class="slider">
+        <div class="slider-fill ${fillClass}" style=${fillInline}></div>
+        <div class="slider-thumb" style="left:${pct}%"></div>
+        <div class="slider-lbl">
+          <ha-icon .icon=${iconName}></ha-icon>
+          ${label}
+        </div>
+        <div class="slider-val">${valTextFn(localVal)}</div>
+        <input
+          type="range"
+          class="slider-native"
+          min=${min}
+          max=${max}
+          .value=${String(localVal)}
+          aria-label=${label}
+          @input=${(e: Event) => {
+            const v = Number((e.target as HTMLInputElement).value);
+            this._onSliderInput(sliderKey, v, onChange);
+          }}
+          @change=${(e: Event) => {
+            const v = Number((e.target as HTMLInputElement).value);
+            this._onSliderChange(sliderKey, v, onChange);
+          }}
+        />
+      </div>
+    `;
+  }
+
+  // — Render: Temp Slider —
+
+  private _renderTempSlider(info: LightInfo): TemplateResult {
+    const kelvin = info.colorTempKelvin || info.minKelvin;
+    const tempKey = `temp:${info.entityId}`;
+    const localKelvin = this._dragValues.get(tempKey) ?? kelvin;
+    const pct = Math.min(
+      Math.max(
+        ((localKelvin - info.minKelvin) / (info.maxKelvin - info.minKelvin)) * 100,
+        2,
+      ),
+      98,
+    );
+
+    return html`
+      <div class="slider">
+        <div class="slider-fill temp-gradient"></div>
+        <div class="slider-thumb" style="left:${pct}%"></div>
+        <div class="slider-lbl">
+          <ha-icon .icon=${'mdi:thermometer'}></ha-icon>
+          Température
+        </div>
+        <div class="slider-val">${localKelvin}K</div>
+        <input
+          type="range"
+          class="slider-native"
+          min=${info.minKelvin}
+          max=${info.maxKelvin}
+          .value=${String(localKelvin)}
+          aria-label="Température de couleur"
+          @input=${(e: Event) => {
+            const v = Number((e.target as HTMLInputElement).value);
+            this._onSliderInput(tempKey, v, (k) => this._setColorTemp(info.entityId, k));
+          }}
+          @change=${(e: Event) => {
+            const v = Number((e.target as HTMLInputElement).value);
+            this._onSliderChange(tempKey, v, (k) => this._setColorTemp(info.entityId, k));
+          }}
+        />
+      </div>
+    `;
+  }
+
+  // — Render: Color Dots —
+
+  private _renderColorDots(info: LightInfo): TemplateResult {
+    return html`
+      <div class="color-dots-row">
+        ${RGB_PRESETS.map((rgb) => {
+          const isActive = info.rgbColor ? rgbEqual(info.rgbColor, rgb) : false;
+          return html`
+            <button
+              class="cdot ${isActive ? 'active' : ''}"
+              style="--cdot-color:${rgbToHex(rgb)}"
+              @click=${() => this._setRgbColor(info.entityId, rgb)}
+              aria-label="Couleur ${rgbToHex(rgb)}"
+            ></button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  // — Render: Preset Chips —
+
+  private _renderPresetChips(info: LightInfo): TemplateResult {
+    const activeKey = this._activePresets.get(info.entityId);
+    return html`
+      <div class="preset-row">
+        ${LIGHT_PRESETS.map(
+          (preset) => html`
+            <button
+              class="chip ${activeKey === preset.key ? 'active' : ''}"
+              @click=${() => this._applyPreset(info, preset)}
+              aria-label="Preset ${preset.label}"
+            >
+              <span class="chip-dot" style="background:${preset.dotColor}"></span>
+              ${preset.label}
+            </button>
+          `,
+        )}
+      </div>
+    `;
+  }
+
+  // — Render: Grid —
+
+  private _renderGrid(lights: LightInfo[]): TemplateResult[] {
+    const layout = this._buildLayout(lights);
+    const results: TemplateResult[] = [];
+
+    for (const item of layout) {
+      if (item.kind === 'full') {
+        results.push(this._renderLightRow(item.light, false, false));
+        results.push(this._renderControlFold(item.light));
+      } else {
+        results.push(this._renderLightRow(item.left, true, false));
+        if (item.right) {
+          results.push(this._renderLightRow(item.right, true, true));
+        }
+        // No fold for simple lights (no controls)
+      }
+    }
+
+    return results;
+  }
+
+  // — Main Render —
+
+  render() {
+    const infos = this._getLightInfos();
+    if (infos.length === 0) return nothing;
+
+    const onCount = infos.filter((l) => l.isOn).length;
+    const total = infos.length;
     const anyOn = onCount > 0;
+    const countClass = onCount === 0 ? 'none' : onCount === total ? 'all' : 'some';
+
+    const tint = this._computeTint(infos);
 
     return html`
       <div class="card-header">
-        <span class="card-label">
-          LIGHTS
-          <span class="count-badge">${onCount}/${lights.length}</span>
-        </span>
+        <div class="card-header-left">
+          <span class="card-title">LIGHTS</span>
+          <span class="card-count ${countClass}">${onCount}/${total}</span>
+        </div>
         <button
-          class="toggle-all-btn ${anyOn ? 'on' : 'off'}"
+          class="toggle-all ${anyOn ? 'on' : ''}"
           @click=${() => this._toggleAll()}
           aria-label="${anyOn ? 'Turn off all lights' : 'Turn on all lights'}"
-        >
-          <span class="toggle-thumb"></span>
-        </button>
+        ></button>
       </div>
 
       <div class="card glass">
-        <div class="tint"></div>
-        <div class="light-grid">${lights.map((l) => this._renderLightRow(l))}</div>
+        <div
+          class="tint"
+          style=${tint ? `background:${tint.background};opacity:${tint.opacity}` : 'opacity:0'}
+        ></div>
+        <div class="card-inner">
+          <div class="lights-grid">${this._renderGrid(infos)}</div>
+        </div>
       </div>
     `;
   }

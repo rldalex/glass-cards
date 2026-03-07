@@ -168,8 +168,10 @@ export function getThemeManager(): ThemeManager {
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
+  import.meta.hot.dispose(async () => {
     _themeManager?.destroy();
     _themeManager = null;
+    const { removeHistoryIntercept } = await import('@glass-cards/event-bus');
+    removeHistoryIntercept();
   });
 }

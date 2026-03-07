@@ -5,6 +5,8 @@ export interface GlassEventMap {
   'ambient-update': { period: AmbientPeriod };
   'popup-open': { areaId: string; originRect?: DOMRect };
   'popup-close': undefined;
+  'navbar-config-changed': undefined;
+  'room-config-changed': { areaId: string };
 }
 
 type EventCallback<T = unknown> = (payload: T) => void;
@@ -39,27 +41,43 @@ export type { EventCallback };
 
 // History API monkey-patch — call once at startup
 let historyIntercepted = false;
+let origPush: typeof history.pushState | null = null;
+let origReplace: typeof history.replaceState | null = null;
+
+function _onPopState() {
+  bus.emit('location-changed', undefined);
+}
 
 export function installHistoryIntercept(): void {
   if (historyIntercepted) return;
   historyIntercepted = true;
 
-  const origPush = history.pushState;
-  const origReplace = history.replaceState;
+  const savedPush = history.pushState;
+  const savedReplace = history.replaceState;
+  origPush = savedPush;
+  origReplace = savedReplace;
 
   history.pushState = function (data: unknown, title: string, url?: string | URL | null) {
-    origPush.call(this, data, title, url);
+    savedPush.call(this, data, title, url);
     window.dispatchEvent(new Event('location-changed'));
     bus.emit('location-changed', undefined);
   };
 
   history.replaceState = function (data: unknown, title: string, url?: string | URL | null) {
-    origReplace.call(this, data, title, url);
+    savedReplace.call(this, data, title, url);
     window.dispatchEvent(new Event('location-changed'));
     bus.emit('location-changed', undefined);
   };
 
-  window.addEventListener('popstate', () => {
-    bus.emit('location-changed', undefined);
-  });
+  window.addEventListener('popstate', _onPopState);
+}
+
+export function removeHistoryIntercept(): void {
+  if (!historyIntercepted) return;
+  window.removeEventListener('popstate', _onPopState);
+  if (origPush) history.pushState = origPush;
+  if (origReplace) history.replaceState = origReplace;
+  origPush = null;
+  origReplace = null;
+  historyIntercepted = false;
 }

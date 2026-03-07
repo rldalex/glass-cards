@@ -14,7 +14,7 @@ class TestRoomConfig:
         """Test default room config."""
         room = RoomConfig(area_id="living_room")
         assert room.area_id == "living_room"
-        assert room.card_order == ["light", "media_player", "fan", "cover", "vacuum"]
+        assert room.card_order == []
         assert room.hidden_entities == []
         assert room.icon is None
         assert room.label is None
@@ -50,7 +50,7 @@ class TestRoomConfig:
         """Test deserialization with missing fields uses defaults."""
         room = RoomConfig.from_dict({"area_id": "garage"})
         assert room.area_id == "garage"
-        assert room.card_order == ["light", "media_player", "fan", "cover", "vacuum"]
+        assert room.card_order == []
         assert room.visible is True
 
     def test_roundtrip(self):

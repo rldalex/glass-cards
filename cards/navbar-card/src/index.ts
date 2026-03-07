@@ -3,11 +3,17 @@ import { state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import {
   BaseCard,
+  BackendService,
   getAreaEntities,
   type HomeAssistant,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import './editor';
+
+const DEFAULT_TEMP_HIGH = 24.0;
+const DEFAULT_TEMP_LOW = 17.0;
+const DEFAULT_HUMIDITY_THRESHOLD = 65;
 
 interface NavItem {
   areaId: string;
@@ -15,7 +21,9 @@ interface NavItem {
   icon: string;
   lightsOn: number;
   temperature: string | null;
+  tempValue: number | null;
   humidity: string | null;
+  humidityValue: number | null;
   mediaPlaying: boolean;
   entityIds: string[];
 }
@@ -30,9 +38,35 @@ interface AreaStructure {
 export class GlassNavbarCard extends BaseCard {
   @state() private _items: NavItem[] = [];
   @state() private _activeArea: string | null = null;
+  @state() private _scrollMask: 'none' | 'mask-right' | 'mask-left' | 'mask-both' = 'none';
   private _popup: HTMLElement | null = null;
+  private _ownsPopup = false;
   private _areaStructure: AreaStructure[] = [];
   private _lastAreaKeys = '';
+  private _lastEntitiesRef?: Record<string, unknown>;
+  private _cachedEntityFingerprint = '';
+  private _boundUpdateMask = this._updateNavMask.bind(this);
+  private _scrollEl: Element | null = null;
+  private _navbarConfig: {
+    room_order: string[];
+    hidden_rooms: string[];
+    show_lights?: boolean;
+    show_temperature?: boolean;
+    show_humidity?: boolean;
+    show_media?: boolean;
+    temp_high?: number;
+    temp_low?: number;
+    humidity_threshold?: number;
+  } | null = null;
+  private _configLoaded = false;
+  private _roomConfigs: Record<string, { icon?: string | null }> = {};
+  private _flipPositions = new Map<string, number>();
+  private _backend?: BackendService;
+  @state() private _editMode = false;
+
+  static getConfigElement() {
+    return document.createElement('glass-navbar-card-editor');
+  }
 
   static styles = [
     glassTokens,
@@ -69,20 +103,6 @@ export class GlassNavbarCard extends BaseCard {
         overflow-x: auto;
         scrollbar-width: none;
         flex: 1;
-        -webkit-mask-image: linear-gradient(
-          to right,
-          transparent 0,
-          black 12px,
-          black calc(100% - 12px),
-          transparent 100%
-        );
-        mask-image: linear-gradient(
-          to right,
-          transparent 0,
-          black 12px,
-          black calc(100% - 12px),
-          transparent 100%
-        );
         padding: 0 8px;
       }
       .nav-scroll::-webkit-scrollbar {
@@ -123,9 +143,142 @@ export class GlassNavbarCard extends BaseCard {
         flex-shrink: 0;
         transition: color var(--t-fast);
       }
-      .nav-item.lights-on ha-icon {
+
+      /* 1. Pulse-light: oscillating glow on lights-on icons */
+      .nav-item.has-light ha-icon {
         color: var(--c-warning);
-        filter: drop-shadow(0 0 6px var(--c-warning));
+        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+        animation: pulse-light 3s ease-in-out infinite;
+      }
+      @keyframes pulse-light {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+        }
+        50% {
+          filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.2));
+        }
+      }
+
+      /* 2. Humidity bar at bottom */
+      .nav-item.has-humidity::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 14px;
+        height: 3px;
+        border-radius: 2px;
+        background: var(--c-info);
+        opacity: 0.8;
+        box-shadow: 0 0 6px rgba(96, 165, 250, 0.4);
+      }
+
+      /* 3. Music icon bounce */
+      .nav-item.has-music ha-icon {
+        animation: pulse-music 0.8s ease-in-out infinite;
+      }
+      /* Combined: light glow + music bounce */
+      .nav-item.has-light.has-music ha-icon {
+        color: var(--c-warning);
+        animation:
+          pulse-light 3s ease-in-out infinite,
+          pulse-music 0.8s ease-in-out infinite;
+      }
+      @keyframes pulse-music {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        30% {
+          transform: scale(1.2);
+        }
+        50% {
+          transform: scale(0.95);
+        }
+        70% {
+          transform: scale(1.1);
+        }
+      }
+
+      /* 4. Temp badges (hot/cold) */
+      .nav-temp-badge {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--t-fast);
+      }
+      .nav-temp-badge ha-icon {
+        --mdc-icon-size: 10px;
+      }
+      .nav-item.has-temp-hot .nav-temp-badge {
+        opacity: 1;
+        color: var(--c-alert);
+        filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.6));
+        animation: pulse-temp-hot 2s infinite ease-in-out;
+      }
+      .nav-item.has-temp-cold .nav-temp-badge {
+        opacity: 1;
+        color: var(--c-info);
+        filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+        animation: pulse-temp-cold 2s infinite ease-in-out;
+      }
+      @keyframes pulse-temp-hot {
+        0%,
+        100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 0 transparent);
+        }
+        50% {
+          transform: scale(1.15);
+          filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.6));
+        }
+      }
+      @keyframes pulse-temp-cold {
+        0%,
+        100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 0 transparent);
+        }
+        50% {
+          transform: scale(1.15);
+          filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.6));
+        }
+      }
+
+      /* 5. Dynamic scroll masking */
+      .nav-scroll.mask-right {
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+        mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+      }
+      .nav-scroll.mask-left {
+        -webkit-mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+        mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+      }
+      .nav-scroll.mask-both {
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent 0%,
+          black 20px,
+          black calc(100% - 20px),
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to right,
+          transparent 0%,
+          black 20px,
+          black calc(100% - 20px),
+          transparent 100%
+        );
       }
 
       .nav-label-wrap {
@@ -149,67 +302,74 @@ export class GlassNavbarCard extends BaseCard {
         opacity: 1;
       }
 
-      .indicator {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-      }
-
-      .light-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--c-warning);
-        box-shadow: 0 0 6px var(--c-warning);
-      }
-
-      .temp-badge {
-        font-size: 8px;
-        font-weight: 700;
-        color: var(--t3);
-        background: var(--s2);
-        border-radius: var(--radius-full);
-        padding: 1px 4px;
-        position: absolute;
-        bottom: 4px;
-        right: 2px;
-      }
-
-      .music-pulse {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--c-accent);
-        animation: pulse-music 0.8s ease-in-out infinite alternate;
-      }
-
-      @keyframes pulse-music {
-        from {
-          transform: scale(1);
-        }
-        to {
-          transform: scale(1.4);
-        }
+      /* Focus-visible ring */
+      .nav-item:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
       }
     `,
   ];
 
   connectedCallback() {
     super.connectedCallback();
-    if (!this._popup) {
+    // Singleton popup — reuse existing if another navbar instance created one
+    const existing = document.querySelector('glass-room-popup') as HTMLElement | null;
+    if (existing) {
+      this._popup = existing;
+      this._ownsPopup = false;
+    } else {
       this._popup = document.createElement('glass-room-popup');
       document.body.appendChild(this._popup);
+      this._ownsPopup = true;
     }
 
     this._listen('popup-close', () => {
       this._activeArea = null;
     });
+
+    this._listen('navbar-config-changed', () => {
+      this._loadBackendConfig();
+    });
+
+    this._editMode = this._detectEditMode();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._popup?.remove();
+    if (this._ownsPopup) this._popup?.remove();
     this._popup = null;
+    this._ownsPopup = false;
+    if (this._scrollEl) {
+      this._scrollEl.removeEventListener('scroll', this._boundUpdateMask);
+      this._scrollEl = null;
+    }
+    this._backend = undefined;
+  }
+
+  protected firstUpdated(changedProps: PropertyValues) {
+    super.firstUpdated(changedProps);
+    this._attachScrollListener();
+  }
+
+  private _detectEditMode(): boolean {
+    let root = this.getRootNode() as ShadowRoot | Document;
+    while (root instanceof ShadowRoot) {
+      const host = root.host as HTMLElement & { lovelace?: { editMode?: boolean } };
+      if (host.tagName === 'HUI-CARD-OPTIONS') return true;
+      if (host.tagName === 'HUI-DIALOG-EDIT-CARD') return true;
+      if (host.tagName === 'HA-PANEL-LOVELACE' && host.lovelace?.editMode) return true;
+      root = host.getRootNode() as ShadowRoot | Document;
+    }
+    return false;
+  }
+
+  private _attachScrollListener() {
+    if (this._scrollEl) return;
+    const scroll = this.renderRoot.querySelector('.nav-scroll');
+    if (!scroll) return;
+    scroll.addEventListener('scroll', this._boundUpdateMask, { passive: true });
+    this._scrollEl = scroll;
+    this._updateNavMask();
   }
 
   setConfig(config: LovelaceCardConfig) {
@@ -227,35 +387,108 @@ export class GlassNavbarCard extends BaseCard {
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {
+      this._editMode = this._detectEditMode();
+      if (this._editMode) return;
+      if (!this._configLoaded) {
+        this._configLoaded = true;
+        this._loadBackendConfig();
+      }
       this._rebuildStructure();
       this._aggregateState();
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
     }
+    if (changedProps.has('_items')) {
+      this.updateComplete.then(() => {
+        this._attachScrollListener();
+        this._updateNavMask();
+        this._animateFlip();
+      });
+    }
+  }
+
+  private async _loadBackendConfig() {
+    if (!this.hass) return;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{
+        navbar: {
+          room_order: string[];
+          hidden_rooms: string[];
+          show_lights?: boolean;
+          show_temperature?: boolean;
+          show_humidity?: boolean;
+          show_media?: boolean;
+          temp_high?: number;
+          temp_low?: number;
+          humidity_threshold?: number;
+        };
+        rooms: Record<string, { icon?: string | null }>;
+      }>('get_config');
+      this._navbarConfig = result.navbar;
+      this._roomConfigs = result.rooms ?? {};
+      // Force rebuild with new config
+      this._lastAreaKeys = '';
+      this._rebuildStructure();
+      this._aggregateState();
+    } catch {
+      // Backend not available — use auto-discovery defaults
+    }
   }
 
   private _rebuildStructure() {
     if (!this.hass?.areas) return;
-    const entityFingerprint = Object.values(this.hass.entities)
-      .map((e) => `${e.entity_id}:${e.area_id ?? ''}`)
+    const configKey = this._navbarConfig
+      ? `${this._navbarConfig.room_order.join(',')}|${this._navbarConfig.hidden_rooms.join(',')}`
+      : '';
+    // Only recalculate entity fingerprint when entities registry reference changes
+    if (this.hass.entities !== this._lastEntitiesRef) {
+      this._lastEntitiesRef = this.hass.entities;
+      this._cachedEntityFingerprint = Object.values(this.hass.entities)
+        .map((e) => `${e.entity_id}:${e.area_id ?? ''}`)
+        .sort()
+        .join('|');
+    }
+    const entityFingerprint = this._cachedEntityFingerprint;
+    const iconKey = Object.entries(this._roomConfigs)
+      .map(([k, v]) => `${k}:${v.icon ?? ''}`)
       .sort()
-      .join('|');
-    const cacheKey = Object.keys(this.hass.areas).sort().join(',') + '||' + entityFingerprint;
+      .join(',');
+    const cacheKey =
+      Object.keys(this.hass.areas).sort().join(',') + '||' + entityFingerprint + '||' + configKey + '||' + iconKey;
     if (cacheKey === this._lastAreaKeys) return;
     this._lastAreaKeys = cacheKey;
 
-    this._areaStructure = [];
+    const hiddenSet = new Set(this._navbarConfig?.hidden_rooms ?? []);
+    const orderMap = new Map<string, number>();
+    (this._navbarConfig?.room_order ?? []).forEach((id, i) => orderMap.set(id, i));
+
+    const allAreas: AreaStructure[] = [];
     for (const area of Object.values(this.hass.areas)) {
+      if (hiddenSet.has(area.area_id)) continue;
       const areaEntities = getAreaEntities(area.area_id, this.hass.entities, this.hass.devices);
       if (areaEntities.length === 0) continue;
-      this._areaStructure.push({
+      const backendIcon = this._roomConfigs[area.area_id]?.icon;
+      allAreas.push({
         areaId: area.area_id,
         name: area.name,
-        icon: area.icon || 'mdi:home',
+        icon: backendIcon || area.icon || 'mdi:home',
         entityIds: areaEntities.map((e) => e.entity_id),
       });
     }
+
+    // Sort by backend order, then alphabetically
+    allAreas.sort((a, b) => {
+      const aOrder = orderMap.get(a.areaId);
+      const bOrder = orderMap.get(b.areaId);
+      if (aOrder !== undefined && bOrder !== undefined) return aOrder - bOrder;
+      if (aOrder !== undefined) return -1;
+      if (bOrder !== undefined) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    this._areaStructure = allAreas;
   }
 
   private _aggregateState() {
@@ -263,7 +496,9 @@ export class GlassNavbarCard extends BaseCard {
     const items: NavItem[] = this._areaStructure.map((area) => {
       let lightsOn = 0;
       let temperature: string | null = null;
+      let tempValue: number | null = null;
       let humidity: string | null = null;
+      let humidityValue: number | null = null;
       let mediaPlaying = false;
 
       for (const entityId of area.entityIds) {
@@ -274,16 +509,83 @@ export class GlassNavbarCard extends BaseCard {
         if (domain === 'light' && entity.state === 'on') lightsOn++;
         if (domain === 'sensor') {
           const dc = entity.attributes.device_class;
-          if (dc === 'temperature' && !temperature) temperature = `${entity.state}°`;
-          if (dc === 'humidity' && !humidity) humidity = `${entity.state}%`;
+          if (dc === 'temperature' && !temperature) {
+            temperature = `${entity.state}°`;
+            tempValue = parseFloat(entity.state);
+          }
+          if (dc === 'humidity' && !humidity) {
+            humidity = `${entity.state}%`;
+            humidityValue = parseFloat(entity.state);
+          }
         }
         if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
       }
 
-      return { ...area, lightsOn, temperature, humidity, mediaPlaying };
+      return { ...area, lightsOn, temperature, tempValue, humidity, humidityValue, mediaPlaying };
     });
 
+    // Only bubble lit rooms to front when no explicit backend order is set
+    const hasBackendOrder = (this._navbarConfig?.room_order?.length ?? 0) > 0;
+    if (!hasBackendOrder) {
+      items.sort((a, b) => {
+        const aLit = a.lightsOn > 0 ? 0 : 1;
+        const bLit = b.lightsOn > 0 ? 0 : 1;
+        return aLit - bLit;
+      });
+    }
+
+    // FLIP: capture current positions before DOM update
+    this._snapshotPositions();
+
     this._items = items;
+  }
+
+  private _snapshotPositions() {
+    this._flipPositions.clear();
+    const buttons = this.renderRoot.querySelectorAll<HTMLElement>('.nav-item[data-area]');
+    for (const btn of buttons) {
+      const areaId = btn.dataset.area;
+      if (!areaId) continue;
+      this._flipPositions.set(areaId, btn.getBoundingClientRect().left);
+    }
+  }
+
+  private _animateFlip() {
+    if (this._flipPositions.size === 0) return;
+    const buttons = this.renderRoot.querySelectorAll<HTMLElement>('.nav-item[data-area]');
+    for (const btn of buttons) {
+      const areaId = btn.dataset.area;
+      if (!areaId) continue;
+      const oldLeft = this._flipPositions.get(areaId);
+      if (oldLeft === undefined) continue;
+      const newLeft = btn.getBoundingClientRect().left;
+      const deltaX = oldLeft - newLeft;
+      if (Math.abs(deltaX) < 1) continue;
+      btn.animate(
+        [
+          { transform: `translateX(${deltaX}px)` },
+          { transform: 'translateX(0)' },
+        ],
+        { duration: 350, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+      );
+    }
+    this._flipPositions.clear();
+  }
+
+  private _updateNavMask() {
+    const scroll = this.renderRoot.querySelector('.nav-scroll') as HTMLElement | null;
+    if (!scroll) return;
+    const isScrollable = scroll.scrollWidth > scroll.offsetWidth;
+    if (!isScrollable) {
+      this._scrollMask = 'none';
+      return;
+    }
+    const isAtStart = scroll.scrollLeft <= 5;
+    const isAtEnd = scroll.scrollLeft + scroll.offsetWidth >= scroll.scrollWidth - 5;
+    if (isAtStart && isAtEnd) this._scrollMask = 'none';
+    else if (isAtStart) this._scrollMask = 'mask-right';
+    else if (isAtEnd) this._scrollMask = 'mask-left';
+    else this._scrollMask = 'mask-both';
   }
 
   private _handleNavClick(item: NavItem, e: Event) {
@@ -301,30 +603,54 @@ export class GlassNavbarCard extends BaseCard {
 
   private _renderNavItem(item: NavItem) {
     const isActive = this._activeArea === item.areaId;
+    const showLights = this._navbarConfig?.show_lights !== false;
+    const showTemp = this._navbarConfig?.show_temperature !== false;
+    const showHumidity = this._navbarConfig?.show_humidity !== false;
+    const showMedia = this._navbarConfig?.show_media !== false;
+    const tempHigh = this._navbarConfig?.temp_high ?? DEFAULT_TEMP_HIGH;
+    const tempLow = this._navbarConfig?.temp_low ?? DEFAULT_TEMP_LOW;
+    const humidityThreshold = this._navbarConfig?.humidity_threshold ?? DEFAULT_HUMIDITY_THRESHOLD;
+    const hasLight = showLights && item.lightsOn > 0;
+    const hasHumidity = showHumidity && item.humidityValue !== null && item.humidityValue >= humidityThreshold;
+    const hasMusic = showMedia && item.mediaPlaying;
+    const hasTempHot = showTemp && item.tempValue !== null && item.tempValue >= tempHigh;
+    const hasTempCold = showTemp && item.tempValue !== null && !hasTempHot && item.tempValue <= tempLow;
+
+    const classes = [
+      'nav-item',
+      isActive ? 'active' : '',
+      hasLight ? 'has-light' : '',
+      hasHumidity ? 'has-humidity' : '',
+      hasMusic ? 'has-music' : '',
+      hasTempHot ? 'has-temp-hot' : '',
+      hasTempCold ? 'has-temp-cold' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     return html`
       <button
-        class="nav-item ${isActive ? 'active' : ''} ${item.lightsOn > 0 ? 'lights-on' : ''}"
+        class=${classes}
+        data-area=${item.areaId}
         @click=${(e: Event) => this._handleNavClick(item, e)}
         aria-label=${item.name}
       >
+        <span class="nav-temp-badge">
+          <ha-icon .icon=${hasTempHot ? 'mdi:thermometer-high' : 'mdi:snowflake'}></ha-icon>
+        </span>
         <ha-icon .icon=${item.icon}></ha-icon>
         <span class="nav-label-wrap"><span class="nav-label">${item.name}</span></span>
-        ${item.lightsOn > 0
-          ? html`<span class="indicator"><span class="light-dot"></span></span>`
-          : item.mediaPlaying
-            ? html`<span class="indicator"><span class="music-pulse"></span></span>`
-            : nothing}
-        ${item.temperature ? html`<span class="temp-badge">${item.temperature}</span>` : nothing}
       </button>
     `;
   }
 
   render() {
-    if (this._items.length === 0) return nothing;
+    if (this._editMode || this._items.length === 0) return nothing;
 
+    const scrollClass = `nav-scroll${this._scrollMask !== 'none' ? ` ${this._scrollMask}` : ''}`;
     return html`
       <nav class="navbar glass glass-float">
-        <div class="nav-scroll">${this._items.map((item) => this._renderNavItem(item))}</div>
+        <div class=${scrollClass}>${this._items.map((item) => this._renderNavItem(item))}</div>
       </nav>
     `;
   }

@@ -7,8 +7,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
-    "postbuild": "node -e \"require('fs').cpSync('dist/glass-cards.js','custom_components/glass_cards/www/glass-cards.js')\"",
+    "build": "vite build && node scripts/build-panel.mjs",
+    "build:cards": "vite build",
+    "postbuild": "node scripts/copy-bundles.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

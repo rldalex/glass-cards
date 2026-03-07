@@ -6,3 +6,6 @@ import '../cards/popup-card/src/index';
 import '../cards/navbar-card/src/index';
 
 installHistoryIntercept();
+
+// Tell Lovelace to re-render now that our custom elements are defined
+window.dispatchEvent(new Event('ll-rebuild'));

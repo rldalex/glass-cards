@@ -87,6 +87,8 @@ export abstract class BaseCard extends LitElement {
   // Override in multi-entity cards to compare relevant entity states
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
+    // If other props changed alongside hass, always update
+    if (changedProps.size > 1) return true;
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
     if (!oldHass) return true;
     const entityIds = this.getTrackedEntityIds();
