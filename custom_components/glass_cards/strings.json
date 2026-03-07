@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Glass Cards",
-        "description": "Install Glass Cards to enable the UI framework."
+        "description": "Add Glass Cards to enable the neo-glassmorphism UI framework for your dashboard. The Navbar will auto-discover your Areas and entities."
       }
     },
     "abort": {

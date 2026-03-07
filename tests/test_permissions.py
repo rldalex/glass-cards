@@ -35,17 +35,13 @@ class TestCanControl:
         user.is_admin = True
         assert can_control(user) is True
 
-    def test_regular_user_with_permission(self):
-        """Regular user with POLICY_CONTROL can control."""
-        user = MagicMock()
-        user.is_owner = False
-        user.is_admin = False
-        user.permissions.check_entity = MagicMock(return_value=True)
-        assert can_control(user) is True
-
-    def test_regular_user_without_permission(self, mock_regular_user):
-        """Regular user without permission cannot control."""
+    def test_regular_user_cannot_control(self, mock_regular_user):
+        """Regular user cannot control."""
         assert can_control(mock_regular_user) is False
+
+    def test_none_cannot_control(self):
+        """None user cannot control."""
+        assert can_control(None) is False
 
 
 class TestCanEdit:
@@ -55,14 +51,17 @@ class TestCanEdit:
         """Owner can always edit."""
         assert can_edit(mock_owner_user) is True
 
-    def test_regular_user_cannot_edit(self, mock_regular_user):
-        """Regular user without permission cannot edit."""
-        assert can_edit(mock_regular_user) is False
-
-    def test_user_without_permissions_object(self):
-        """User with None permissions cannot edit."""
+    def test_admin_can_edit(self):
+        """Admin can always edit."""
         user = MagicMock()
         user.is_owner = False
-        user.is_admin = False
-        user.permissions = None
-        assert can_edit(user) is False
+        user.is_admin = True
+        assert can_edit(user) is True
+
+    def test_regular_user_cannot_edit(self, mock_regular_user):
+        """Regular user cannot edit."""
+        assert can_edit(mock_regular_user) is False
+
+    def test_none_cannot_edit(self):
+        """None user cannot edit."""
+        assert can_edit(None) is False

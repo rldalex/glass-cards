@@ -33,15 +33,16 @@ class RoomConfig:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RoomConfig:
         """Deserialize from dict."""
+        default_order = ["light", "media_player", "fan", "cover", "vacuum"]
+        raw_order = data.get("card_order", default_order)
+        raw_hidden = data.get("hidden_entities", [])
         return cls(
             area_id=data["area_id"],
-            card_order=data.get("card_order", [
-                "light", "media_player", "fan", "cover", "vacuum",
-            ]),
-            hidden_entities=data.get("hidden_entities", []),
-            icon=data.get("icon"),
-            label=data.get("label"),
-            visible=data.get("visible", True),
+            card_order=[str(x) for x in raw_order if isinstance(x, str)],
+            hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
+            icon=data.get("icon") if isinstance(data.get("icon"), str) else None,
+            label=data.get("label") if isinstance(data.get("label"), str) else None,
+            visible=bool(data.get("visible", True)),
         )
 
 
