@@ -3,9 +3,9 @@ import { state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import {
   BaseCard,
+  getAreaEntities,
   type HomeAssistant,
   type LovelaceCardConfig,
-  type EntityRegistryEntry,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
 
@@ -20,10 +20,19 @@ interface NavItem {
   entityIds: string[];
 }
 
+interface AreaStructure {
+  areaId: string;
+  name: string;
+  icon: string;
+  entityIds: string[];
+}
+
 export class GlassNavbarCard extends BaseCard {
   @state() private _items: NavItem[] = [];
   @state() private _activeArea: string | null = null;
   private _popup: HTMLElement | null = null;
+  private _areaStructure: AreaStructure[] = [];
+  private _lastAreaKeys = '';
 
   static styles = [
     glassTokens,
@@ -113,19 +122,24 @@ export class GlassNavbarCard extends BaseCard {
         flex-shrink: 0;
       }
 
+      .nav-label-wrap {
+        display: grid;
+        grid-template-columns: 0fr;
+        transition: grid-template-columns 0.35s var(--ease-out);
+        overflow: hidden;
+      }
+      .nav-item.active .nav-label-wrap {
+        grid-template-columns: 1fr;
+      }
       .nav-label {
         font-size: 11px;
         font-weight: 600;
         white-space: nowrap;
-        overflow: hidden;
-        max-width: 0;
+        min-width: 0;
         opacity: 0;
-        transition:
-          max-width 0.35s var(--ease-out),
-          opacity var(--t-fast);
+        transition: opacity var(--t-fast);
       }
       .nav-item.active .nav-label {
-        max-width: 80px;
         opacity: 1;
       }
 
@@ -176,8 +190,10 @@ export class GlassNavbarCard extends BaseCard {
 
   connectedCallback() {
     super.connectedCallback();
-    this._popup = document.createElement('glass-room-popup');
-    document.body.appendChild(this._popup);
+    if (!this._popup) {
+      this._popup = document.createElement('glass-room-popup');
+      document.body.appendChild(this._popup);
+    }
 
     this._listen('popup-close', () => {
       this._activeArea = null;
@@ -205,82 +221,59 @@ export class GlassNavbarCard extends BaseCard {
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {
-      this._discoverAreas();
+      this._rebuildStructure();
+      this._aggregateState();
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
     }
   }
 
-  private _discoverAreas() {
+  private _rebuildStructure() {
     if (!this.hass?.areas) return;
+    const areaKeys = Object.keys(this.hass.areas).sort().join(',');
+    if (areaKeys === this._lastAreaKeys) return;
+    this._lastAreaKeys = areaKeys;
 
-    const items: NavItem[] = [];
-
+    this._areaStructure = [];
     for (const area of Object.values(this.hass.areas)) {
-      const areaEntities = this._getAreaEntities(area.area_id);
+      const areaEntities = getAreaEntities(area.area_id, this.hass.entities, this.hass.devices);
       if (areaEntities.length === 0) continue;
+      this._areaStructure.push({
+        areaId: area.area_id,
+        name: area.name,
+        icon: area.icon || 'mdi:home',
+        entityIds: areaEntities.map((e) => e.entity_id),
+      });
+    }
+  }
 
+  private _aggregateState() {
+    if (!this.hass) return;
+    const items: NavItem[] = this._areaStructure.map((area) => {
       let lightsOn = 0;
       let temperature: string | null = null;
       let humidity: string | null = null;
       let mediaPlaying = false;
-      const entityIds: string[] = [];
 
-      for (const regEntry of areaEntities) {
-        const entity = this.hass.states[regEntry.entity_id];
+      for (const entityId of area.entityIds) {
+        const entity = this.hass?.states[entityId];
         if (!entity) continue;
+        const domain = entityId.split('.')[0];
 
-        const domain = regEntry.entity_id.split('.')[0];
-        entityIds.push(regEntry.entity_id);
-
-        if (domain === 'light' && entity.state === 'on') {
-          lightsOn++;
-        }
+        if (domain === 'light' && entity.state === 'on') lightsOn++;
         if (domain === 'sensor') {
           const dc = entity.attributes.device_class;
-          if (dc === 'temperature' && !temperature) {
-            temperature = `${entity.state}°`;
-          }
-          if (dc === 'humidity' && !humidity) {
-            humidity = `${entity.state}%`;
-          }
+          if (dc === 'temperature' && !temperature) temperature = `${entity.state}°`;
+          if (dc === 'humidity' && !humidity) humidity = `${entity.state}%`;
         }
-        if (domain === 'media_player' && entity.state === 'playing') {
-          mediaPlaying = true;
-        }
+        if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
       }
 
-      items.push({
-        areaId: area.area_id,
-        name: area.name,
-        icon: area.icon || 'mdi:home',
-        lightsOn,
-        temperature,
-        humidity,
-        mediaPlaying,
-        entityIds,
-      });
-    }
+      return { ...area, lightsOn, temperature, humidity, mediaPlaying };
+    });
 
     this._items = items;
-  }
-
-  private _getAreaEntities(areaId: string): EntityRegistryEntry[] {
-    if (!this.hass) return [];
-    return Object.values(this.hass.entities).filter((e) => {
-      if (e.disabled_by || e.hidden_by) return false;
-      return this._resolveAreaId(e) === areaId;
-    });
-  }
-
-  private _resolveAreaId(entry: EntityRegistryEntry): string | null {
-    if (entry.area_id) return entry.area_id;
-    if (entry.device_id && this.hass?.devices) {
-      const device = this.hass.devices[entry.device_id];
-      if (device?.area_id) return device.area_id;
-    }
-    return null;
   }
 
   private _handleNavClick(item: NavItem, e: Event) {
@@ -305,7 +298,7 @@ export class GlassNavbarCard extends BaseCard {
         aria-label=${item.name}
       >
         <ha-icon .icon=${item.icon}></ha-icon>
-        <span class="nav-label">${item.name}</span>
+        <span class="nav-label-wrap"><span class="nav-label">${item.name}</span></span>
         ${item.lightsOn > 0
           ? html`<span class="indicator"><span class="light-dot"></span></span>`
           : item.mediaPlaying

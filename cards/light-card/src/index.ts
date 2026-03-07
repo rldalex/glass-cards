@@ -2,9 +2,9 @@ import { html, css, nothing, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
+  getAreaEntities,
   type HassEntity,
   type LovelaceCardConfig,
-  type EntityRegistryEntry,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
 
@@ -111,6 +111,14 @@ export class GlassLightCard extends BaseCard {
         padding: 8px;
         border-radius: var(--radius-md);
         cursor: pointer;
+        background: transparent;
+        border: none;
+        font-family: inherit;
+        outline: none;
+        text-align: left;
+        color: inherit;
+        width: 100%;
+        box-sizing: border-box;
         transition: background var(--t-fast);
       }
       .light-row:hover {
@@ -255,12 +263,8 @@ export class GlassLightCard extends BaseCard {
     if (!this.hass) return [];
 
     if (this.areaId) {
-      return Object.values(this.hass.entities)
-        .filter((e) => {
-          if (e.disabled_by || e.hidden_by) return false;
-          if (!e.entity_id.startsWith('light.')) return false;
-          return this._resolveAreaId(e) === this.areaId;
-        })
+      return getAreaEntities(this.areaId, this.hass.entities, this.hass.devices)
+        .filter((e) => e.entity_id.startsWith('light.'))
         .map((e) => this.hass?.states[e.entity_id])
         .filter((s): s is HassEntity => s !== undefined);
     }
@@ -271,15 +275,6 @@ export class GlassLightCard extends BaseCard {
     }
 
     return [];
-  }
-
-  private _resolveAreaId(entry: EntityRegistryEntry): string | null {
-    if (entry.area_id) return entry.area_id;
-    if (entry.device_id && this.hass?.devices) {
-      const device = this.hass.devices[entry.device_id];
-      if (device?.area_id) return device.area_id;
-    }
-    return null;
   }
 
   private _toggleLight(entityId: string) {
@@ -315,7 +310,12 @@ export class GlassLightCard extends BaseCard {
     const isExpanded = this._expandedEntity === entity.entity_id;
 
     return html`
-      <div class="light-row" @click=${() => this._toggleExpand(entity.entity_id)}>
+      <button
+        class="light-row"
+        @click=${() => this._toggleExpand(entity.entity_id)}
+        aria-label="Expand ${name} controls"
+        aria-expanded=${isExpanded && isOn ? 'true' : 'false'}
+      >
         <button
           class="light-icon-btn ${isOn ? 'on' : ''}"
           @click=${(e: Event) => {
@@ -331,7 +331,7 @@ export class GlassLightCard extends BaseCard {
           ${isOn ? html`<div class="light-sub">${brightnessPct}%</div>` : nothing}
         </div>
         <span class="status-dot ${isOn ? 'on' : 'off'}"></span>
-      </div>
+      </button>
 
       <div class="fold ${isExpanded && isOn ? 'open' : ''}" style="grid-column: span 2">
         <div class="fold-inner">
@@ -344,7 +344,7 @@ export class GlassLightCard extends BaseCard {
                 min="1"
                 max="100"
                 .value=${String(brightnessPct)}
-                @change=${(e: Event) => {
+                @input=${(e: Event) => {
                   const val = Number((e.target as HTMLInputElement).value);
                   this._setBrightness(entity.entity_id, val);
                 }}

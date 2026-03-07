@@ -114,6 +114,37 @@ export abstract class BaseCard extends LitElement {
   }
 }
 
+// — Area Utilities —
+
+/**
+ * Resolve the area_id for an entity, falling back to its device's area_id.
+ */
+export function resolveEntityAreaId(
+  entry: EntityRegistryEntry,
+  devices?: Record<string, DeviceRegistryEntry>,
+): string | null {
+  if (entry.area_id) return entry.area_id;
+  if (entry.device_id && devices) {
+    const device = devices[entry.device_id];
+    if (device?.area_id) return device.area_id;
+  }
+  return null;
+}
+
+/**
+ * Get all visible entities belonging to a given area (including via device chain).
+ */
+export function getAreaEntities(
+  areaId: string,
+  entities: Record<string, EntityRegistryEntry>,
+  devices?: Record<string, DeviceRegistryEntry>,
+): EntityRegistryEntry[] {
+  return Object.values(entities).filter((e) => {
+    if (e.disabled_by || e.hidden_by) return false;
+    return resolveEntityAreaId(e, devices) === areaId;
+  });
+}
+
 // — BackendService —
 
 export class BackendService {

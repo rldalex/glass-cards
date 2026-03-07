@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
-import type { HomeAssistant, HassEntity, EntityRegistryEntry } from '@glass-cards/base-card';
+import { getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
 
 interface AreaMeta {
   name: string;
@@ -18,7 +18,7 @@ export class GlassRoomPopup extends LitElement {
   @state() private _areaId: string | null = null;
   @state() private _open = false;
   @state() private _scenesOpen = false;
-  // _originRect reserved for transform-origin animation (future enhancement)
+  private _pendingRaf?: number;
   private _busCleanups: (() => void)[] = [];
   private _boundKeydown = this._onKeydown.bind(this);
 
@@ -215,13 +215,18 @@ export class GlassRoomPopup extends LitElement {
   private _handleOpen(payload: { areaId: string; originRect?: DOMRect }) {
     this._areaId = payload.areaId;
     this._scenesOpen = false;
-    requestAnimationFrame(() => {
+    this._pendingRaf = requestAnimationFrame(() => {
+      this._pendingRaf = undefined;
       this._open = true;
       this.setAttribute('open', '');
     });
   }
 
   private _handleClose() {
+    if (this._pendingRaf !== undefined) {
+      cancelAnimationFrame(this._pendingRaf);
+      this._pendingRaf = undefined;
+    }
     this._open = false;
     this.removeAttribute('open');
     setTimeout(() => {
@@ -244,14 +249,14 @@ export class GlassRoomPopup extends LitElement {
     const area = this.hass.areas[this._areaId];
     if (!area) return null;
 
-    const areaEntities = this._getAreaEntities(this._areaId);
+    const areaEntities = getAreaEntities(this._areaId, this.hass.entities, this.hass.devices);
     let temperature: string | null = null;
     let humidity: string | null = null;
     const scenes: HassEntity[] = [];
     const domainSet = new Set<string>();
 
     for (const regEntry of areaEntities) {
-      const entityState = this.hass.states[regEntry.entity_id];
+      const entityState = this.hass?.states[regEntry.entity_id];
       if (!entityState) continue;
 
       const domain = regEntry.entity_id.split('.')[0];
@@ -281,23 +286,6 @@ export class GlassRoomPopup extends LitElement {
     };
   }
 
-  private _getAreaEntities(areaId: string): EntityRegistryEntry[] {
-    if (!this.hass) return [];
-    return Object.values(this.hass.entities).filter((e) => {
-      if (e.disabled_by || e.hidden_by) return false;
-      return this._resolveAreaId(e) === areaId;
-    });
-  }
-
-  private _resolveAreaId(entry: EntityRegistryEntry): string | null {
-    if (entry.area_id) return entry.area_id;
-    if (entry.device_id && this.hass?.devices) {
-      const device = this.hass.devices[entry.device_id];
-      if (device?.area_id) return device.area_id;
-    }
-    return null;
-  }
-
   private _activateScene(entityId: string) {
     this.hass?.callService('scene', 'turn_on', {}, { entity_id: entityId });
   }
@@ -307,79 +295,72 @@ export class GlassRoomPopup extends LitElement {
   }
 
   render() {
-    const meta = this._getAreaMeta();
     if (!this._areaId) return nothing;
+    const meta = this._getAreaMeta();
+    if (!meta) return nothing;
 
     return html`
       <div class="overlay" @click=${this._onOverlayClick}></div>
-      <div
-        class="dialog glass glass-float"
-        role="dialog"
-        aria-modal="true"
-        aria-label=${meta?.name || 'Room'}
-      >
-        ${meta
-          ? html`
-              <div class="header">
-                <div class="header-icon">
-                  <ha-icon .icon=${meta.icon}></ha-icon>
-                </div>
-                <div class="header-info">
-                  <div class="header-name">${meta.name}</div>
-                  <div class="header-meta">
-                    ${meta.temperature ? html`<span>${meta.temperature}</span>` : nothing}
-                    ${meta.humidity ? html`<span>${meta.humidity}</span>` : nothing}
+      <div class="dialog glass glass-float" role="dialog" aria-modal="true" aria-label=${meta.name}>
+        ${html`
+          <div class="header">
+            <div class="header-icon">
+              <ha-icon .icon=${meta.icon}></ha-icon>
+            </div>
+            <div class="header-info">
+              <div class="header-name">${meta.name}</div>
+              <div class="header-meta">
+                ${meta.temperature ? html`<span>${meta.temperature}</span>` : nothing}
+                ${meta.humidity ? html`<span>${meta.humidity}</span>` : nothing}
+              </div>
+            </div>
+            <button
+              class="close-btn"
+              @click=${() => bus.emit('popup-close', undefined)}
+              aria-label="Close"
+            >
+              <ha-icon .icon=${'mdi:close'}></ha-icon>
+            </button>
+          </div>
+
+          ${meta.scenes.length > 0
+            ? html`
+                <button
+                  class="scenes-toggle ${this._scenesOpen ? 'open' : ''}"
+                  @click=${() => (this._scenesOpen = !this._scenesOpen)}
+                  aria-expanded=${this._scenesOpen ? 'true' : 'false'}
+                >
+                  <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
+                  SCENES
+                </button>
+                <div class="fold ${this._scenesOpen ? 'open' : ''}">
+                  <div class="fold-inner">
+                    <div class="scene-chips">
+                      ${meta.scenes.map(
+                        (s) => html`
+                          <button
+                            class="scene-chip"
+                            @click=${() => this._activateScene(s.entity_id)}
+                            aria-label="Activate ${s.attributes.friendly_name || s.entity_id}"
+                          >
+                            ${s.attributes.friendly_name || s.entity_id}
+                          </button>
+                        `,
+                      )}
+                    </div>
                   </div>
                 </div>
-                <button
-                  class="close-btn"
-                  @click=${() => bus.emit('popup-close', undefined)}
-                  aria-label="Close"
-                >
-                  <ha-icon .icon=${'mdi:close'}></ha-icon>
-                </button>
-              </div>
+              `
+            : nothing}
 
-              ${meta.scenes.length > 0
-                ? html`
-                    <button
-                      class="scenes-toggle ${this._scenesOpen ? 'open' : ''}"
-                      @click=${() => (this._scenesOpen = !this._scenesOpen)}
-                    >
-                      <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-                      SCENES
-                    </button>
-                    <div class="fold ${this._scenesOpen ? 'open' : ''}">
-                      <div class="fold-inner">
-                        <div class="scene-chips">
-                          ${meta.scenes.map(
-                            (s) => html`
-                              <button
-                                class="scene-chip"
-                                @click=${() => this._activateScene(s.entity_id)}
-                              >
-                                ${s.attributes.friendly_name || s.entity_id}
-                              </button>
-                            `,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  `
-                : nothing}
-
-              <div class="cards">
-                ${this._hasDomain(meta.domains, 'light')
-                  ? html`
-                      <glass-light-card
-                        .hass=${this.hass}
-                        .areaId=${this._areaId}
-                      ></glass-light-card>
-                    `
-                  : nothing}
-              </div>
-            `
-          : nothing}
+          <div class="cards">
+            ${this._hasDomain(meta.domains, 'light')
+              ? html`
+                  <glass-light-card .hass=${this.hass} .areaId=${this._areaId}></glass-light-card>
+                `
+              : nothing}
+          </div>
+        `}
       </div>
     `;
   }
