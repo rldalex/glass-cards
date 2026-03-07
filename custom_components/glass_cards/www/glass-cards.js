@@ -630,6 +630,7 @@
       .nav-scroll {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 4px;
         overflow-x: auto;
         scrollbar-width: none;
