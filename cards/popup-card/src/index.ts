@@ -207,6 +207,10 @@ export class GlassRoomPopup extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    if (this._pendingRaf !== undefined) {
+      cancelAnimationFrame(this._pendingRaf);
+      this._pendingRaf = undefined;
+    }
     this._busCleanups.forEach((c) => c());
     this._busCleanups = [];
     document.removeEventListener('keydown', this._boundKeydown);

@@ -110,19 +110,26 @@ export class GlassLightCard extends BaseCard {
         gap: 10px;
         padding: 8px;
         border-radius: var(--radius-md);
-        cursor: pointer;
-        background: transparent;
-        border: none;
-        font-family: inherit;
-        outline: none;
-        text-align: left;
-        color: inherit;
-        width: 100%;
-        box-sizing: border-box;
         transition: background var(--t-fast);
       }
       .light-row:hover {
         background: var(--s1);
+      }
+
+      .light-expand-btn {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: none;
+        padding: 0;
+        font-family: inherit;
+        outline: none;
+        text-align: left;
+        color: inherit;
+        cursor: pointer;
       }
 
       .light-icon-btn {
@@ -310,28 +317,27 @@ export class GlassLightCard extends BaseCard {
     const isExpanded = this._expandedEntity === entity.entity_id;
 
     return html`
-      <button
-        class="light-row"
-        @click=${() => this._toggleExpand(entity.entity_id)}
-        aria-label="Expand ${name} controls"
-        aria-expanded=${isExpanded && isOn ? 'true' : 'false'}
-      >
+      <div class="light-row">
         <button
           class="light-icon-btn ${isOn ? 'on' : ''}"
-          @click=${(e: Event) => {
-            e.stopPropagation();
-            this._toggleLight(entity.entity_id);
-          }}
+          @click=${() => this._toggleLight(entity.entity_id)}
           aria-label="Toggle ${name}"
         >
           <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
         </button>
-        <div class="light-info">
-          <div class="light-name">${name}</div>
-          ${isOn ? html`<div class="light-sub">${brightnessPct}%</div>` : nothing}
-        </div>
-        <span class="status-dot ${isOn ? 'on' : 'off'}"></span>
-      </button>
+        <button
+          class="light-expand-btn"
+          @click=${() => this._toggleExpand(entity.entity_id)}
+          aria-label="Expand ${name} controls"
+          ${isOn ? html`aria-expanded=${isExpanded ? 'true' : 'false'}` : nothing}
+        >
+          <div class="light-info">
+            <div class="light-name">${name}</div>
+            ${isOn ? html`<div class="light-sub">${brightnessPct}%</div>` : nothing}
+          </div>
+          <span class="status-dot ${isOn ? 'on' : 'off'}"></span>
+        </button>
+      </div>
 
       <div class="fold ${isExpanded && isOn ? 'open' : ''}" style="grid-column: span 2">
         <div class="fold-inner">

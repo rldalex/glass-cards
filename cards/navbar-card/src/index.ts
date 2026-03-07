@@ -231,9 +231,13 @@ export class GlassNavbarCard extends BaseCard {
 
   private _rebuildStructure() {
     if (!this.hass?.areas) return;
-    const areaKeys = Object.keys(this.hass.areas).sort().join(',');
-    if (areaKeys === this._lastAreaKeys) return;
-    this._lastAreaKeys = areaKeys;
+    const entityFingerprint = Object.values(this.hass.entities)
+      .map((e) => `${e.entity_id}:${e.area_id ?? ''}`)
+      .sort()
+      .join('|');
+    const cacheKey = Object.keys(this.hass.areas).sort().join(',') + '||' + entityFingerprint;
+    if (cacheKey === this._lastAreaKeys) return;
+    this._lastAreaKeys = cacheKey;
 
     this._areaStructure = [];
     for (const area of Object.values(this.hass.areas)) {
