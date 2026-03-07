@@ -1,1 +1,3 @@
-// Glass Cards entry point
+import { installHistoryIntercept } from '@glass-cards/event-bus';
+
+installHistoryIntercept();

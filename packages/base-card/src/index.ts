@@ -1,1 +1,118 @@
-export {};
+import { LitElement, type PropertyValues } from 'lit';
+import { property } from 'lit/decorators.js';
+import { bus, type GlassEventMap } from '@glass-cards/event-bus';
+
+// — HA Types —
+
+export interface HassEntity {
+  entity_id: string;
+  state: string;
+  attributes: Record<string, unknown>;
+  last_changed: string;
+  last_updated: string;
+  context: { id: string; parent_id: string | null; user_id: string | null };
+}
+
+export interface HassConnection {
+  sendMessagePromise<T>(msg: Record<string, unknown>): Promise<T>;
+  subscribeMessage<T>(
+    callback: (msg: T) => void,
+    msg: Record<string, unknown>,
+  ): Promise<() => void>;
+}
+
+export interface HassUser {
+  name: string;
+  is_admin: boolean;
+  is_owner: boolean;
+}
+
+export interface HomeAssistant {
+  states: Record<string, HassEntity>;
+  callService(
+    domain: string,
+    service: string,
+    data?: Record<string, unknown>,
+    target?: { entity_id?: string | string[] },
+  ): Promise<void>;
+  connection: HassConnection;
+  localize(key: string, ...args: unknown[]): string;
+  language: string;
+  user: HassUser;
+  themes: { darkMode: boolean };
+}
+
+export interface LovelaceCardConfig {
+  type: string;
+  entity?: string;
+  [key: string]: unknown;
+}
+
+// — BaseCard —
+
+export abstract class BaseCard extends LitElement {
+  @property({ attribute: false }) hass?: HomeAssistant;
+  protected _config?: LovelaceCardConfig;
+  private _busCleanups: (() => void)[] = [];
+
+  setConfig(config: LovelaceCardConfig): void {
+    this._config = config;
+  }
+
+  // Override in multi-entity cards to compare relevant entity states
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!changedProps.has('hass')) return true;
+    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+    if (!oldHass) return true;
+    const entityIds = this.getTrackedEntityIds();
+    if (entityIds.length === 0) return true;
+    return entityIds.some((id) => oldHass.states[id] !== this.hass?.states[id]);
+  }
+
+  // Single-entity cards use _config.entity by default; override for multi-entity
+  protected getTrackedEntityIds(): string[] {
+    const entity = this._config?.entity;
+    return entity ? [entity] : [];
+  }
+
+  protected _listen<K extends keyof GlassEventMap>(
+    event: K,
+    callback: (payload: GlassEventMap[K]) => void,
+  ): void {
+    this._busCleanups.push(bus.on(event, callback));
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._busCleanups.forEach((cleanup) => cleanup());
+    this._busCleanups = [];
+  }
+}
+
+// — BackendService —
+
+export class BackendService {
+  private connection: HassConnection;
+
+  constructor(hass: HomeAssistant) {
+    this.connection = hass.connection;
+  }
+
+  send<T = unknown>(command: string, data: Record<string, unknown> = {}): Promise<T> {
+    return this.connection.sendMessagePromise<T>({
+      type: `glass_cards/${command}`,
+      ...data,
+    });
+  }
+
+  subscribe<T = unknown>(
+    command: string,
+    callback: (msg: T) => void,
+    data: Record<string, unknown> = {},
+  ): Promise<() => void> {
+    return this.connection.subscribeMessage<T>(callback, {
+      type: `glass_cards/${command}`,
+      ...data,
+    });
+  }
+}

@@ -23,11 +23,6 @@
       "@glass-cards/ui-core": ["./packages/ui-core/src"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "dev/**/*.ts",
-    "packages/*/src/**/*.ts",
-    "cards/*/src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "dev/**/*.ts", "packages/*/src/**/*.ts", "cards/*/src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,1 +1,175 @@
-export {};
+/// <reference types="vite/client" />
+import { css, type CSSResult } from 'lit';
+import { bus, type AmbientPeriod } from '@glass-cards/event-bus';
+
+// — Design Tokens —
+
+export const glassTokens: CSSResult = css`
+  :host {
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.6);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    --c-success: var(--success-color, #4ade80);
+    --c-alert: var(--error-color, #f87171);
+    --c-warning: var(--warning-color, #fbbf24);
+    --c-info: var(--info-color, #60a5fa);
+    --c-accent: var(--accent-color, #818cf8);
+    --c-purple: #a78bfa;
+  }
+`;
+
+// — Glass Mixins —
+
+export const glassMixin: CSSResult = css`
+  .glass {
+    border-radius: var(--radius-xl);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 8px 32px rgba(0, 0, 0, 0.25),
+      0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--b2);
+  }
+
+  .glass-float {
+    border-radius: var(--radius-xl);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    backdrop-filter: blur(50px) saturate(1.5);
+    -webkit-backdrop-filter: blur(50px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 20px 60px rgba(0, 0, 0, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--b2);
+  }
+
+  .tint {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity var(--t-slow);
+  }
+`;
+
+// — Fold Mixin —
+
+export const foldMixin: CSSResult = css`
+  .fold {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+  }
+  .fold.open {
+    grid-template-rows: 1fr;
+  }
+  .fold-inner {
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--t-fast);
+  }
+  .fold.open .fold-inner {
+    opacity: 1;
+  }
+`;
+
+// — Ambient Background —
+
+interface AmbientConfig {
+  body: string;
+  blobTop: string;
+  blobBottom: string;
+}
+
+const AMBIENT_THEMES: Record<AmbientPeriod, AmbientConfig> = {
+  morning: { body: '#0f1923', blobTop: '#1a6b8a', blobBottom: '#2d8a6e' },
+  day: { body: '#111827', blobTop: '#3b6fa0', blobBottom: '#4a90a0' },
+  evening: { body: '#1a1118', blobTop: '#8a4a2d', blobBottom: '#6b3a5a' },
+  night: { body: '#0a0e1a', blobTop: '#1a2040', blobBottom: '#2a1a3a' },
+};
+
+// — ThemeManager —
+
+export class ThemeManager {
+  private period: AmbientPeriod = 'day';
+  private cleanup?: () => void;
+
+  constructor() {
+    this.cleanup = bus.on('ambient-update', (payload) => {
+      this.period = payload.period;
+      this.applyAmbient();
+    });
+  }
+
+  get currentPeriod(): AmbientPeriod {
+    return this.period;
+  }
+
+  applyAmbient(period?: AmbientPeriod): void {
+    if (period) this.period = period;
+    const config = AMBIENT_THEMES[this.period];
+    const root = document.documentElement;
+    root.style.setProperty('--ambient-body', config.body);
+    root.style.setProperty('--ambient-blob-top', config.blobTop);
+    root.style.setProperty('--ambient-blob-bottom', config.blobBottom);
+  }
+
+  destroy(): void {
+    this.cleanup?.();
+  }
+}
+
+let _themeManager: ThemeManager | null = null;
+
+export function getThemeManager(): ThemeManager {
+  if (!_themeManager) {
+    _themeManager = new ThemeManager();
+  }
+  return _themeManager;
+}
+
+// HMR support — cleanup on module reload
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    _themeManager?.destroy();
+    _themeManager = null;
+  });
+}
