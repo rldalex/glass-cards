@@ -687,6 +687,11 @@
       .nav-item ha-icon {
         --mdc-icon-size: 22px;
         flex-shrink: 0;
+        transition: color var(--t-fast);
+      }
+      .nav-item.lights-on ha-icon {
+        color: var(--c-warning);
+        filter: drop-shadow(0 0 6px var(--c-warning));
       }
 
       .nav-label-wrap {
@@ -754,7 +759,7 @@
       }
     `]}connectedCallback(){super.connectedCallback(),this._popup||(this._popup=document.createElement("glass-room-popup"),document.body.appendChild(this._popup)),this._listen("popup-close",()=>{this._activeArea=null})}disconnectedCallback(){super.disconnectedCallback(),this._popup?.remove(),this._popup=null}setConfig(t){super.setConfig(t)}getCardSize(){return 0}getTrackedEntityIds(){return this._items.flatMap(t=>t.entityIds)}updated(t){super.updated(t),t.has("hass")&&this.hass&&(this._rebuildStructure(),this._aggregateState(),this._popup&&(this._popup.hass=this.hass))}_rebuildStructure(){if(!this.hass?.areas)return;const t=Object.values(this.hass.entities).map(t=>`${t.entity_id}:${t.area_id??""}`).sort().join("|"),e=Object.keys(this.hass.areas).sort().join(",")+"||"+t;if(e!==this._lastAreaKeys){this._lastAreaKeys=e,this._areaStructure=[];for(const t of Object.values(this.hass.areas)){const e=vt(t.area_id,this.hass.entities,this.hass.devices);0!==e.length&&this._areaStructure.push({areaId:t.area_id,name:t.name,icon:t.icon||"mdi:home",entityIds:e.map(t=>t.entity_id)})}}}_aggregateState(){if(!this.hass)return;const t=this._areaStructure.map(t=>{let e=0,s=null,i=null,n=!1;for(const r of t.entityIds){const t=this.hass?.states[r];if(!t)continue;const a=r.split(".")[0];if("light"===a&&"on"===t.state&&e++,"sensor"===a){const e=t.attributes.device_class;"temperature"!==e||s||(s=`${t.state}°`),"humidity"!==e||i||(i=`${t.state}%`)}"media_player"===a&&"playing"===t.state&&(n=!0)}return{...t,lightsOn:e,temperature:s,humidity:i,mediaPlaying:n}});this._items=t}_handleNavClick(e,s){const i=s.currentTarget.getBoundingClientRect();this._activeArea===e.areaId?(t.emit("popup-close",void 0),this._activeArea=null):(this._activeArea=e.areaId,t.emit("popup-open",{areaId:e.areaId,originRect:i}))}_renderNavItem(t){const e=this._activeArea===t.areaId;return q`
       <button
-        class="nav-item ${e?"active":""}"
+        class="nav-item ${e?"active":""} ${t.lightsOn>0?"lights-on":""}"
         @click=${e=>this._handleNavClick(t,e)}
         aria-label=${t.name}
       >

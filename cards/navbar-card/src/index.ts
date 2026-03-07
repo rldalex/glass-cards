@@ -121,6 +121,11 @@ export class GlassNavbarCard extends BaseCard {
       .nav-item ha-icon {
         --mdc-icon-size: 22px;
         flex-shrink: 0;
+        transition: color var(--t-fast);
+      }
+      .nav-item.lights-on ha-icon {
+        color: var(--c-warning);
+        filter: drop-shadow(0 0 6px var(--c-warning));
       }
 
       .nav-label-wrap {
@@ -298,7 +303,7 @@ export class GlassNavbarCard extends BaseCard {
     const isActive = this._activeArea === item.areaId;
     return html`
       <button
-        class="nav-item ${isActive ? 'active' : ''}"
+        class="nav-item ${isActive ? 'active' : ''} ${item.lightsOn > 0 ? 'lights-on' : ''}"
         @click=${(e: Event) => this._handleNavClick(item, e)}
         aria-label=${item.name}
       >
