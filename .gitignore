@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+# Keep the built JS inside custom_components for HACS
+!custom_components/glass_cards/www/glass-cards.js
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (kept local only)
+*.md
+templates/
+
+# Python
+__pycache__/
+*.pyc
+
+# Claude Code
+.claude/

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "paths": {
+      "@glass-cards/event-bus": ["./packages/event-bus/src"],
+      "@glass-cards/base-card": ["./packages/base-card/src"],
+      "@glass-cards/ui-core": ["./packages/ui-core/src"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "dev/**/*.ts",
+    "packages/*/src/**/*.ts",
+    "cards/*/src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
