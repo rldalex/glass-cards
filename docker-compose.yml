@@ -1,0 +1,17 @@
+services:
+  homeassistant:
+    container_name: glass-cards-ha
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    ports:
+      - '8123:8123'
+    volumes:
+      # HA config directory (persisted)
+      - ha-config:/config
+      # Mount custom component directly into HA
+      - ./custom_components/glass_cards:/config/custom_components/glass_cards:ro
+    environment:
+      - TZ=America/Toronto
+
+volumes:
+  ha-config:

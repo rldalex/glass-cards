@@ -6,7 +6,7 @@ requires-python = ">=3.13"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-pythonpath = ["."]
+pythonpath = [".", "tests/ha_stubs"]
 
 [tool.mypy]
 python_version = "3.13"
