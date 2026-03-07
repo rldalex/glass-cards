@@ -40,6 +40,8 @@ importers:
 
   cards/navbar-card: {}
 
+  cards/popup-card: {}
+
   packages/base-card: {}
 
   packages/event-bus: {}

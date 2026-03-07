@@ -40,12 +40,37 @@ export interface HomeAssistant {
   language: string;
   user: HassUser;
   themes: { darkMode: boolean };
+  areas: Record<string, AreaRegistryEntry>;
+  devices: Record<string, DeviceRegistryEntry>;
+  entities: Record<string, EntityRegistryEntry>;
 }
 
 export interface LovelaceCardConfig {
   type: string;
   entity?: string;
   [key: string]: unknown;
+}
+
+export interface AreaRegistryEntry {
+  area_id: string;
+  name: string;
+  icon: string | null;
+  picture: string | null;
+}
+
+export interface DeviceRegistryEntry {
+  id: string;
+  area_id: string | null;
+  name: string | null;
+}
+
+export interface EntityRegistryEntry {
+  entity_id: string;
+  area_id: string | null;
+  device_id: string | null;
+  platform: string;
+  disabled_by: string | null;
+  hidden_by: string | null;
 }
 
 // — BaseCard —
