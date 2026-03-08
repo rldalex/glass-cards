@@ -4,6 +4,8 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  isEntityVisibleNow,
+  type EntityScheduleMap,
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
@@ -134,6 +136,7 @@ export class GlassLightCard extends BaseCard {
   }
 
   @property({ attribute: false }) areaId?: string;
+  @property({ attribute: false }) visibleAreaIds?: string[];
   @state() private _expandedEntity: string | null = null;
   @state() private _activePresets = new Map<string, string>();
   @state() private _dragValues = new Map<string, number>();
@@ -148,6 +151,13 @@ export class GlassLightCard extends BaseCard {
   private _backend?: BackendService;
   private _cachedLights?: HassEntity[];
   private _cachedLightsHassRef?: Record<string, HassEntity>;
+  private _schedules: EntityScheduleMap | null = null;
+  private _schedulesLoaded = false;
+
+  private get _isDashboardMode(): boolean {
+    const area = this.areaId || (this._config?.area as string | undefined);
+    return !area && !this._config?.entity;
+  }
 
   static styles = [
     glassTokens,
@@ -646,6 +656,28 @@ export class GlassLightCard extends BaseCard {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
       }
+
+      /* ── Dashboard Mode ── */
+      .dashboard-row {
+        display: contents;
+        animation: dashRowIn 0.4s var(--ease-std) both;
+      }
+      .dashboard-row:nth-child(1) { animation-delay: 0ms; }
+      .dashboard-row:nth-child(2) { animation-delay: 50ms; }
+      .dashboard-row:nth-child(3) { animation-delay: 100ms; }
+      @keyframes dashRowIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .dashboard-overflow {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--t3);
+        text-align: center;
+        padding: 6px 0 2px;
+        letter-spacing: 0.3px;
+        grid-column: 1 / -1;
+      }
     `,
   ];
 
@@ -654,6 +686,10 @@ export class GlassLightCard extends BaseCard {
   }
 
   getCardSize() {
+    if (this._isDashboardMode) {
+      const count = this._getLights().length;
+      return count === 0 ? 1 : Math.min(count, 6) + 1;
+    }
     return 3;
   }
 
@@ -667,6 +703,11 @@ export class GlassLightCard extends BaseCard {
         this._loadRoomConfig();
       }
     });
+    this._listen('schedule-changed', () => {
+      this._schedulesLoaded = false;
+      this._cachedLights = undefined;
+      this._loadSchedules();
+    });
   }
 
   disconnectedCallback() {
@@ -674,6 +715,7 @@ export class GlassLightCard extends BaseCard {
     this._throttleTimers.forEach((t) => clearTimeout(t));
     this._throttleTimers.clear();
     this._backend = undefined;
+    this._schedulesLoaded = false;
   }
 
   private async _loadRoomConfig() {
@@ -698,6 +740,20 @@ export class GlassLightCard extends BaseCard {
     }
   }
 
+  private async _loadSchedules() {
+    if (!this.hass || this._schedulesLoaded) return;
+    this._schedulesLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<EntityScheduleMap>('get_schedules');
+      this._schedules = result;
+      this._cachedLights = undefined;
+      this.requestUpdate();
+    } catch {
+      this._schedulesLoaded = false;
+    }
+  }
+
   private _resetForNewArea() {
     this._roomConfig = null;
     this._roomConfigLoaded = false;
@@ -710,6 +766,15 @@ export class GlassLightCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
+    if (this._isDashboardMode && this.hass && this.visibleAreaIds?.length && this.hass.entities && this.hass.devices) {
+      const ids: string[] = [];
+      for (const aId of this.visibleAreaIds) {
+        for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
+          if (e.entity_id.startsWith('light.')) ids.push(e.entity_id);
+        }
+      }
+      return ids;
+    }
     return this._getLights().map((e) => e.entity_id);
   }
 
@@ -720,6 +785,12 @@ export class GlassLightCard extends BaseCard {
     if (changedProps.has('hass') && this.hass && this._backend && this._backend.connection !== this.hass.connection) {
       this._backend = undefined;
       this._roomConfigLoaded = false;
+      this._schedulesLoaded = false;
+    }
+
+    // Load schedules
+    if (this.hass && !this._schedulesLoaded) {
+      this._loadSchedules();
     }
 
     // Load room config from backend when areaId is available or changes
@@ -796,7 +867,7 @@ export class GlassLightCard extends BaseCard {
       const hiddenSet = new Set<string>([...configHidden, ...backendHidden]);
 
       const lights = getAreaEntities(area, this.hass.entities, this.hass.devices)
-        .filter((e) => e.entity_id.startsWith('light.') && !hiddenSet.has(e.entity_id))
+        .filter((e) => e.entity_id.startsWith('light.') && !hiddenSet.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules))
         .map((e) => this.hass?.states[e.entity_id])
         .filter((s): s is HassEntity => s !== undefined);
 
@@ -818,8 +889,27 @@ export class GlassLightCard extends BaseCard {
       return lights;
     }
     if (this._config?.entity) {
+      if (!isEntityVisibleNow(this._config.entity, this._schedules)) return [];
       const entity = this.hass.states[this._config.entity];
       return entity ? [entity] : [];
+    }
+    // Dashboard mode: ON lights from navbar-visible areas, sorted by name
+    if (this._isDashboardMode) {
+      const areas = this.visibleAreaIds;
+      if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
+      const areaEntityIds = new Set<string>();
+      for (const aId of areas) {
+        for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
+          if (e.entity_id.startsWith('light.')) areaEntityIds.add(e.entity_id);
+        }
+      }
+      return Object.values(this.hass.states)
+        .filter((e) => areaEntityIds.has(e.entity_id) && e.state === 'on' && isEntityVisibleNow(e.entity_id, this._schedules))
+        .sort((a, b) => {
+          const nameA = (a.attributes.friendly_name as string) || a.entity_id;
+          const nameB = (b.attributes.friendly_name as string) || b.entity_id;
+          return nameA.localeCompare(nameB);
+        });
     }
     return [];
   }
@@ -876,6 +966,13 @@ export class GlassLightCard extends BaseCard {
     if (anyOn) {
       this._expandedEntity = null;
     }
+  }
+
+  private _turnAllOff() {
+    const lights = this._getLights();
+    const ids = lights.map((l) => l.entity_id);
+    this.hass?.callService('light', 'turn_off', {}, { entity_id: ids });
+    this._expandedEntity = null;
   }
 
   private _toggleExpand(entityId: string, isOn: boolean) {
@@ -1285,9 +1382,81 @@ export class GlassLightCard extends BaseCard {
     return results;
   }
 
+  // — Dashboard Render —
+
+  private _renderDashboardGrid(visible: LightInfo[]): TemplateResult[] {
+    const results: TemplateResult[] = [];
+    let i = 0;
+    while (i < visible.length) {
+      const left = visible[i];
+      const right = i + 1 < visible.length ? visible[i + 1] : null;
+      if (right) {
+        // Compact pair
+        results.push(html`
+          ${this._renderLightRow(left, true, false)}
+          ${this._renderLightRow(right, true, true)}
+          ${this._renderControlFold(left)}
+          ${this._renderControlFold(right)}
+        `);
+        i += 2;
+      } else {
+        // Last odd light: full width
+        results.push(html`
+          ${this._renderLightRow(left, false, false)}
+          ${this._renderControlFold(left)}
+        `);
+        i++;
+      }
+    }
+    return results;
+  }
+
+  private _renderDashboard(): TemplateResult | typeof nothing {
+    const infos = this._getLightInfos();
+    if (infos.length === 0) return nothing;
+
+    const maxVisible = 6;
+    const visible = infos.slice(0, maxVisible);
+    const overflow = infos.length - maxVisible;
+    const tint = this._computeTint(infos);
+    const titleKey = infos.length === 1 ? 'light.dashboard_title_one' : 'light.dashboard_title';
+
+    return html`
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-title">${t(titleKey, { count: String(infos.length) })}</span>
+        </div>
+        <button
+          class="toggle-all on"
+          @click=${() => this._turnAllOff()}
+          aria-label="${t('light.dashboard_turn_all_off_aria')}"
+        ></button>
+      </div>
+
+      <div class="card glass">
+        <div
+          class="tint"
+          style=${tint ? `background:${tint.background};opacity:${tint.opacity}` : 'opacity:0'}
+        ></div>
+        <div class="card-inner">
+          <div class="lights-grid">
+            ${this._renderDashboardGrid(visible)}
+          </div>
+          ${overflow > 0
+            ? html`<div class="dashboard-overflow">
+                ${t('light.dashboard_overflow', { count: String(overflow) })}
+              </div>`
+            : nothing}
+        </div>
+      </div>
+    `;
+  }
+
   // — Main Render —
 
   render() {
+    if (this._isDashboardMode) return this._renderDashboard();
+
     const infos = this._getLightInfos();
     if (infos.length === 0) return nothing;
 

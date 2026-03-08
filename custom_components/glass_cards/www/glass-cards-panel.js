@@ -1,4 +1,4 @@
-!function(){"use strict";const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),a=new WeakMap;let s=class{constructor(e,t,a){if(this._$cssResult$=!0,a!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=e,this.t=t}get styleSheet(){let e=this.o;const i=this.t;if(t&&void 0===e){const t=void 0!==i&&1===i.length;t&&(e=a.get(i)),void 0===e&&((this.o=e=new CSSStyleSheet).replaceSync(this.cssText),t&&a.set(i,e))}return e}toString(){return this.cssText}};const o=(e,...t)=>{const a=1===e.length?e[0]:t.reduce((t,i,a)=>t+(e=>{if(!0===e._$cssResult$)return e.cssText;if("number"==typeof e)return e;throw Error("Value passed to 'css' function must be a 'css' function result: "+e+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+e[a+1],e[0]);return new s(a,e,i)},r=t?e=>e:e=>e instanceof CSSStyleSheet?(e=>{let t="";for(const i of e.cssRules)t+=i.cssText;return(e=>new s("string"==typeof e?e:e+"",void 0,i))(t)})(e):e,{is:n,defineProperty:d,getOwnPropertyDescriptor:l,getOwnPropertyNames:c,getOwnPropertySymbols:h,getPrototypeOf:p}=Object,u=globalThis,g=u.trustedTypes,_=g?g.emptyScript:"",m=u.reactiveElementPolyfillSupport,v=(e,t)=>e,b={toAttribute(e,t){switch(t){case Boolean:e=e?_:null;break;case Object:case Array:e=null==e?e:JSON.stringify(e)}return e},fromAttribute(e,t){let i=e;switch(t){case Boolean:i=null!==e;break;case Number:i=null===e?null:Number(e);break;case Object:case Array:try{i=JSON.parse(e)}catch(a){i=null}}return i}},f=(e,t)=>!n(e,t),w={attribute:!0,type:String,converter:b,reflect:!1,useDefault:!1,hasChanged:f};Symbol.metadata??=Symbol("metadata"),u.litPropertyMetadata??=new WeakMap;let y=class extends HTMLElement{static addInitializer(e){this._$Ei(),(this.l??=[]).push(e)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(e,t=w){if(t.state&&(t.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(e)&&((t=Object.create(t)).wrapped=!0),this.elementProperties.set(e,t),!t.noAccessor){const i=Symbol(),a=this.getPropertyDescriptor(e,i,t);void 0!==a&&d(this.prototype,e,a)}}static getPropertyDescriptor(e,t,i){const{get:a,set:s}=l(this.prototype,e)??{get(){return this[t]},set(e){this[t]=e}};return{get:a,set(t){const o=a?.call(this);s?.call(this,t),this.requestUpdate(e,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(e){return this.elementProperties.get(e)??w}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const e=p(this);e.finalize(),void 0!==e.l&&(this.l=[...e.l]),this.elementProperties=new Map(e.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const e=this.properties,t=[...c(e),...h(e)];for(const i of t)this.createProperty(i,e[i])}const e=this[Symbol.metadata];if(null!==e){const t=litPropertyMetadata.get(e);if(void 0!==t)for(const[e,i]of t)this.elementProperties.set(e,i)}this._$Eh=new Map;for(const[t,i]of this.elementProperties){const e=this._$Eu(t,i);void 0!==e&&this._$Eh.set(e,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(e){const t=[];if(Array.isArray(e)){const i=new Set(e.flat(1/0).reverse());for(const e of i)t.unshift(r(e))}else void 0!==e&&t.push(r(e));return t}static _$Eu(e,t){const i=t.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof e?e.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(e=>this.enableUpdating=e),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(e=>e(this))}addController(e){(this._$EO??=new Set).add(e),void 0!==this.renderRoot&&this.isConnected&&e.hostConnected?.()}removeController(e){this._$EO?.delete(e)}_$E_(){const e=new Map,t=this.constructor.elementProperties;for(const i of t.keys())this.hasOwnProperty(i)&&(e.set(i,this[i]),delete this[i]);e.size>0&&(this._$Ep=e)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,a)=>{if(t)i.adoptedStyleSheets=a.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(const t of a){const a=document.createElement("style"),s=e.litNonce;void 0!==s&&a.setAttribute("nonce",s),a.textContent=t.cssText,i.appendChild(a)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(e=>e.hostConnected?.())}enableUpdating(e){}disconnectedCallback(){this._$EO?.forEach(e=>e.hostDisconnected?.())}attributeChangedCallback(e,t,i){this._$AK(e,i)}_$ET(e,t){const i=this.constructor.elementProperties.get(e),a=this.constructor._$Eu(e,i);if(void 0!==a&&!0===i.reflect){const s=(void 0!==i.converter?.toAttribute?i.converter:b).toAttribute(t,i.type);this._$Em=e,null==s?this.removeAttribute(a):this.setAttribute(a,s),this._$Em=null}}_$AK(e,t){const i=this.constructor,a=i._$Eh.get(e);if(void 0!==a&&this._$Em!==a){const e=i.getPropertyOptions(a),s="function"==typeof e.converter?{fromAttribute:e.converter}:void 0!==e.converter?.fromAttribute?e.converter:b;this._$Em=a;const o=s.fromAttribute(t,e.type);this[a]=o??this._$Ej?.get(a)??o,this._$Em=null}}requestUpdate(e,t,i,a=!1,s){if(void 0!==e){const o=this.constructor;if(!1===a&&(s=this[e]),i??=o.getPropertyOptions(e),!((i.hasChanged??f)(s,t)||i.useDefault&&i.reflect&&s===this._$Ej?.get(e)&&!this.hasAttribute(o._$Eu(e,i))))return;this.C(e,t,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(e,t,{useDefault:i,reflect:a,wrapped:s},o){i&&!(this._$Ej??=new Map).has(e)&&(this._$Ej.set(e,o??t??this[e]),!0!==s||void 0!==o)||(this._$AL.has(e)||(this.hasUpdated||i||(t=void 0),this._$AL.set(e,t)),!0===a&&this._$Em!==e&&(this._$Eq??=new Set).add(e))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const e=this.scheduleUpdate();return null!=e&&await e,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[e,t]of this._$Ep)this[e]=t;this._$Ep=void 0}const e=this.constructor.elementProperties;if(e.size>0)for(const[t,i]of e){const{wrapped:e}=i,a=this[t];!0!==e||this._$AL.has(t)||void 0===a||this.C(t,void 0,i,a)}}let e=!1;const t=this._$AL;try{e=this.shouldUpdate(t),e?(this.willUpdate(t),this._$EO?.forEach(e=>e.hostUpdate?.()),this.update(t)):this._$EM()}catch(i){throw e=!1,this._$EM(),i}e&&this._$AE(t)}willUpdate(e){}_$AE(e){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(e)),this.updated(e)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(e){return!0}update(e){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(e){}firstUpdated(e){}};y.elementStyles=[],y.shadowRootOptions={mode:"open"},y[v("elementProperties")]=new Map,y[v("finalized")]=new Map,m?.({ReactiveElement:y}),(u.reactiveElementVersions??=[]).push("2.1.2");const x=globalThis,$=e=>e,k=x.trustedTypes,S=k?k.createPolicy("lit-html",{createHTML:e=>e}):void 0,C="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+A,R=`<${E}>`,P=document,T=()=>P.createComment(""),I=e=>null===e||"object"!=typeof e&&"function"!=typeof e,z=Array.isArray,O="[ \t\n\f\r]",D=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,L=/-->/g,H=/>/g,M=RegExp(`>|${O}(?:([^\\s"'>=/]+)(${O}*=${O}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),j=/'/g,U=/"/g,N=/^(?:script|style|textarea|title)$/i,V=(F=1,(e,...t)=>({_$litType$:F,strings:e,values:t})),K=Symbol.for("lit-noChange"),W=Symbol.for("lit-nothing"),B=new WeakMap,q=P.createTreeWalker(P,129);var F;function G(e,t){if(!z(e)||!e.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==S?S.createHTML(t):t}class X{constructor({strings:e,_$litType$:t},i){let a;this.parts=[];let s=0,o=0;const r=e.length-1,n=this.parts,[d,l]=((e,t)=>{const i=e.length-1,a=[];let s,o=2===t?"<svg>":3===t?"<math>":"",r=D;for(let n=0;n<i;n++){const t=e[n];let i,d,l=-1,c=0;for(;c<t.length&&(r.lastIndex=c,d=r.exec(t),null!==d);)c=r.lastIndex,r===D?"!--"===d[1]?r=L:void 0!==d[1]?r=H:void 0!==d[2]?(N.test(d[2])&&(s=RegExp("</"+d[2],"g")),r=M):void 0!==d[3]&&(r=M):r===M?">"===d[0]?(r=s??D,l=-1):void 0===d[1]?l=-2:(l=r.lastIndex-d[2].length,i=d[1],r=void 0===d[3]?M:'"'===d[3]?U:j):r===U||r===j?r=M:r===L||r===H?r=D:(r=M,s=void 0);const h=r===M&&e[n+1].startsWith("/>")?" ":"";o+=r===D?t+R:l>=0?(a.push(i),t.slice(0,l)+C+t.slice(l)+A+h):t+A+(-2===l?n:h)}return[G(e,o+(e[i]||"<?>")+(2===t?"</svg>":3===t?"</math>":"")),a]})(e,t);if(this.el=X.createElement(d,i),q.currentNode=this.el.content,2===t||3===t){const e=this.el.content.firstChild;e.replaceWith(...e.childNodes)}for(;null!==(a=q.nextNode())&&n.length<r;){if(1===a.nodeType){if(a.hasAttributes())for(const e of a.getAttributeNames())if(e.endsWith(C)){const t=l[o++],i=a.getAttribute(e).split(A),r=/([.?@])?(.*)/.exec(t);n.push({type:1,index:s,name:r[2],strings:i,ctor:"."===r[1]?ee:"?"===r[1]?te:"@"===r[1]?ie:Q}),a.removeAttribute(e)}else e.startsWith(A)&&(n.push({type:6,index:s}),a.removeAttribute(e));if(N.test(a.tagName)){const e=a.textContent.split(A),t=e.length-1;if(t>0){a.textContent=k?k.emptyScript:"";for(let i=0;i<t;i++)a.append(e[i],T()),q.nextNode(),n.push({type:2,index:++s});a.append(e[t],T())}}}else if(8===a.nodeType)if(a.data===E)n.push({type:2,index:s});else{let e=-1;for(;-1!==(e=a.data.indexOf(A,e+1));)n.push({type:7,index:s}),e+=A.length-1}s++}}static createElement(e,t){const i=P.createElement("template");return i.innerHTML=e,i}}function Y(e,t,i=e,a){if(t===K)return t;let s=void 0!==a?i._$Co?.[a]:i._$Cl;const o=I(t)?void 0:t._$litDirective$;return s?.constructor!==o&&(s?._$AO?.(!1),void 0===o?s=void 0:(s=new o(e),s._$AT(e,i,a)),void 0!==a?(i._$Co??=[])[a]=s:i._$Cl=s),void 0!==s&&(t=Y(e,s._$AS(e,t.values),s,a)),t}class J{constructor(e,t){this._$AV=[],this._$AN=void 0,this._$AD=e,this._$AM=t}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(e){const{el:{content:t},parts:i}=this._$AD,a=(e?.creationScope??P).importNode(t,!0);q.currentNode=a;let s=q.nextNode(),o=0,r=0,n=i[0];for(;void 0!==n;){if(o===n.index){let t;2===n.type?t=new Z(s,s.nextSibling,this,e):1===n.type?t=new n.ctor(s,n.name,n.strings,this,e):6===n.type&&(t=new ae(s,this,e)),this._$AV.push(t),n=i[++r]}o!==n?.index&&(s=q.nextNode(),o++)}return q.currentNode=P,a}p(e){let t=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(e,i,t),t+=i.strings.length-2):i._$AI(e[t])),t++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(e,t,i,a){this.type=2,this._$AH=W,this._$AN=void 0,this._$AA=e,this._$AB=t,this._$AM=i,this.options=a,this._$Cv=a?.isConnected??!0}get parentNode(){let e=this._$AA.parentNode;const t=this._$AM;return void 0!==t&&11===e?.nodeType&&(e=t.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,t=this){e=Y(this,e,t),I(e)?e===W||null==e||""===e?(this._$AH!==W&&this._$AR(),this._$AH=W):e!==this._$AH&&e!==K&&this._(e):void 0!==e._$litType$?this.$(e):void 0!==e.nodeType?this.T(e):(e=>z(e)||"function"==typeof e?.[Symbol.iterator])(e)?this.k(e):this._(e)}O(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}T(e){this._$AH!==e&&(this._$AR(),this._$AH=this.O(e))}_(e){this._$AH!==W&&I(this._$AH)?this._$AA.nextSibling.data=e:this.T(P.createTextNode(e)),this._$AH=e}$(e){const{values:t,_$litType$:i}=e,a="number"==typeof i?this._$AC(e):(void 0===i.el&&(i.el=X.createElement(G(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===a)this._$AH.p(t);else{const e=new J(a,this),i=e.u(this.options);e.p(t),this.T(i),this._$AH=e}}_$AC(e){let t=B.get(e.strings);return void 0===t&&B.set(e.strings,t=new X(e)),t}k(e){z(this._$AH)||(this._$AH=[],this._$AR());const t=this._$AH;let i,a=0;for(const s of e)a===t.length?t.push(i=new Z(this.O(T()),this.O(T()),this,this.options)):i=t[a],i._$AI(s),a++;a<t.length&&(this._$AR(i&&i._$AB.nextSibling,a),t.length=a)}_$AR(e=this._$AA.nextSibling,t){for(this._$AP?.(!1,!0,t);e!==this._$AB;){const t=$(e).nextSibling;$(e).remove(),e=t}}setConnected(e){void 0===this._$AM&&(this._$Cv=e,this._$AP?.(e))}}class Q{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(e,t,i,a,s){this.type=1,this._$AH=W,this._$AN=void 0,this.element=e,this.name=t,this._$AM=a,this.options=s,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=W}_$AI(e,t=this,i,a){const s=this.strings;let o=!1;if(void 0===s)e=Y(this,e,t,0),o=!I(e)||e!==this._$AH&&e!==K,o&&(this._$AH=e);else{const a=e;let r,n;for(e=s[0],r=0;r<s.length-1;r++)n=Y(this,a[i+r],t,r),n===K&&(n=this._$AH[r]),o||=!I(n)||n!==this._$AH[r],n===W?e=W:e!==W&&(e+=(n??"")+s[r+1]),this._$AH[r]=n}o&&!a&&this.j(e)}j(e){e===W?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,e??"")}}class ee extends Q{constructor(){super(...arguments),this.type=3}j(e){this.element[this.name]=e===W?void 0:e}}class te extends Q{constructor(){super(...arguments),this.type=4}j(e){this.element.toggleAttribute(this.name,!!e&&e!==W)}}class ie extends Q{constructor(e,t,i,a,s){super(e,t,i,a,s),this.type=5}_$AI(e,t=this){if((e=Y(this,e,t,0)??W)===K)return;const i=this._$AH,a=e===W&&i!==W||e.capture!==i.capture||e.once!==i.once||e.passive!==i.passive,s=e!==W&&(i===W||a);a&&this.element.removeEventListener(this.name,this,i),s&&this.element.addEventListener(this.name,this,e),this._$AH=e}handleEvent(e){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,e):this._$AH.handleEvent(e)}}class ae{constructor(e,t,i){this.element=e,this.type=6,this._$AN=void 0,this._$AM=t,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(e){Y(this,e)}}const se=x.litHtmlPolyfillSupport;se?.(X,Z),(x.litHtmlVersions??=[]).push("3.3.2");const oe=globalThis;class re extends y{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const e=super.createRenderRoot();return this.renderOptions.renderBefore??=e.firstChild,e}update(e){const t=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(e),this._$Do=((e,t,i)=>{const a=i?.renderBefore??t;let s=a._$litPart$;if(void 0===s){const e=i?.renderBefore??null;a._$litPart$=s=new Z(t.insertBefore(T(),e),e,void 0,i??{})}return s._$AI(e),s})(t,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return K}}re._$litElement$=!0,re.finalized=!0,oe.litElementHydrateSupport?.({LitElement:re});const ne=oe.litElementPolyfillSupport;ne?.({LitElement:re}),(oe.litElementVersions??=[]).push("4.2.2");const de={attribute:!0,type:String,converter:b,reflect:!1,hasChanged:f},le=(e=de,t,i)=>{const{kind:a,metadata:s}=i;let o=globalThis.litPropertyMetadata.get(s);if(void 0===o&&globalThis.litPropertyMetadata.set(s,o=new Map),"setter"===a&&((e=Object.create(e)).wrapped=!0),o.set(i.name,e),"accessor"===a){const{name:a}=i;return{set(i){const s=t.get.call(this);t.set.call(this,i),this.requestUpdate(a,s,e,!0,i)},init(t){return void 0!==t&&this.C(a,void 0,e,t),t}}}if("setter"===a){const{name:a}=i;return function(i){const s=this[a];t.call(this,i),this.requestUpdate(a,s,e,!0,i)}}throw Error("Unsupported decorator location: "+a)};function ce(e){return(t,i)=>"object"==typeof i?le(e,t,i):((e,t,i)=>{const a=t.hasOwnProperty(i);return t.constructor.createProperty(i,e),a?Object.getOwnPropertyDescriptor(t,i):void 0})(e,t,i)}function he(e){return ce({...e,state:!0,attribute:!1})}const pe=new class{constructor(){this.listeners=new Map}on(e,t){let i=this.listeners.get(e);return i||(i=new Set,this.listeners.set(e,i)),i.add(t),()=>this.off(e,t)}off(e,t){this.listeners.get(e)?.delete(t)}emit(e,t){this.listeners.get(e)?.forEach(e=>e(t))}},ue=o`
+!function(){"use strict";const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),a=new WeakMap;let r=class{constructor(e,t,a){if(this._$cssResult$=!0,a!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=e,this.t=t}get styleSheet(){let e=this.o;const i=this.t;if(t&&void 0===e){const t=void 0!==i&&1===i.length;t&&(e=a.get(i)),void 0===e&&((this.o=e=new CSSStyleSheet).replaceSync(this.cssText),t&&a.set(i,e))}return e}toString(){return this.cssText}};const s=(e,...t)=>{const a=1===e.length?e[0]:t.reduce((t,i,a)=>t+(e=>{if(!0===e._$cssResult$)return e.cssText;if("number"==typeof e)return e;throw Error("Value passed to 'css' function must be a 'css' function result: "+e+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+e[a+1],e[0]);return new r(a,e,i)},o=t?e=>e:e=>e instanceof CSSStyleSheet?(e=>{let t="";for(const i of e.cssRules)t+=i.cssText;return(e=>new r("string"==typeof e?e:e+"",void 0,i))(t)})(e):e,{is:n,defineProperty:d,getOwnPropertyDescriptor:c,getOwnPropertyNames:l,getOwnPropertySymbols:h,getPrototypeOf:p}=Object,u=globalThis,g=u.trustedTypes,_=g?g.emptyScript:"",m=u.reactiveElementPolyfillSupport,v=(e,t)=>e,b={toAttribute(e,t){switch(t){case Boolean:e=e?_:null;break;case Object:case Array:e=null==e?e:JSON.stringify(e)}return e},fromAttribute(e,t){let i=e;switch(t){case Boolean:i=null!==e;break;case Number:i=null===e?null:Number(e);break;case Object:case Array:try{i=JSON.parse(e)}catch(a){i=null}}return i}},f=(e,t)=>!n(e,t),w={attribute:!0,type:String,converter:b,reflect:!1,useDefault:!1,hasChanged:f};Symbol.metadata??=Symbol("metadata"),u.litPropertyMetadata??=new WeakMap;let y=class extends HTMLElement{static addInitializer(e){this._$Ei(),(this.l??=[]).push(e)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(e,t=w){if(t.state&&(t.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(e)&&((t=Object.create(t)).wrapped=!0),this.elementProperties.set(e,t),!t.noAccessor){const i=Symbol(),a=this.getPropertyDescriptor(e,i,t);void 0!==a&&d(this.prototype,e,a)}}static getPropertyDescriptor(e,t,i){const{get:a,set:r}=c(this.prototype,e)??{get(){return this[t]},set(e){this[t]=e}};return{get:a,set(t){const s=a?.call(this);r?.call(this,t),this.requestUpdate(e,s,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(e){return this.elementProperties.get(e)??w}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const e=p(this);e.finalize(),void 0!==e.l&&(this.l=[...e.l]),this.elementProperties=new Map(e.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const e=this.properties,t=[...l(e),...h(e)];for(const i of t)this.createProperty(i,e[i])}const e=this[Symbol.metadata];if(null!==e){const t=litPropertyMetadata.get(e);if(void 0!==t)for(const[e,i]of t)this.elementProperties.set(e,i)}this._$Eh=new Map;for(const[t,i]of this.elementProperties){const e=this._$Eu(t,i);void 0!==e&&this._$Eh.set(e,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(e){const t=[];if(Array.isArray(e)){const i=new Set(e.flat(1/0).reverse());for(const e of i)t.unshift(o(e))}else void 0!==e&&t.push(o(e));return t}static _$Eu(e,t){const i=t.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof e?e.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(e=>this.enableUpdating=e),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(e=>e(this))}addController(e){(this._$EO??=new Set).add(e),void 0!==this.renderRoot&&this.isConnected&&e.hostConnected?.()}removeController(e){this._$EO?.delete(e)}_$E_(){const e=new Map,t=this.constructor.elementProperties;for(const i of t.keys())this.hasOwnProperty(i)&&(e.set(i,this[i]),delete this[i]);e.size>0&&(this._$Ep=e)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,a)=>{if(t)i.adoptedStyleSheets=a.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(const t of a){const a=document.createElement("style"),r=e.litNonce;void 0!==r&&a.setAttribute("nonce",r),a.textContent=t.cssText,i.appendChild(a)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(e=>e.hostConnected?.())}enableUpdating(e){}disconnectedCallback(){this._$EO?.forEach(e=>e.hostDisconnected?.())}attributeChangedCallback(e,t,i){this._$AK(e,i)}_$ET(e,t){const i=this.constructor.elementProperties.get(e),a=this.constructor._$Eu(e,i);if(void 0!==a&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:b).toAttribute(t,i.type);this._$Em=e,null==r?this.removeAttribute(a):this.setAttribute(a,r),this._$Em=null}}_$AK(e,t){const i=this.constructor,a=i._$Eh.get(e);if(void 0!==a&&this._$Em!==a){const e=i.getPropertyOptions(a),r="function"==typeof e.converter?{fromAttribute:e.converter}:void 0!==e.converter?.fromAttribute?e.converter:b;this._$Em=a;const s=r.fromAttribute(t,e.type);this[a]=s??this._$Ej?.get(a)??s,this._$Em=null}}requestUpdate(e,t,i,a=!1,r){if(void 0!==e){const s=this.constructor;if(!1===a&&(r=this[e]),i??=s.getPropertyOptions(e),!((i.hasChanged??f)(r,t)||i.useDefault&&i.reflect&&r===this._$Ej?.get(e)&&!this.hasAttribute(s._$Eu(e,i))))return;this.C(e,t,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(e,t,{useDefault:i,reflect:a,wrapped:r},s){i&&!(this._$Ej??=new Map).has(e)&&(this._$Ej.set(e,s??t??this[e]),!0!==r||void 0!==s)||(this._$AL.has(e)||(this.hasUpdated||i||(t=void 0),this._$AL.set(e,t)),!0===a&&this._$Em!==e&&(this._$Eq??=new Set).add(e))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const e=this.scheduleUpdate();return null!=e&&await e,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[e,t]of this._$Ep)this[e]=t;this._$Ep=void 0}const e=this.constructor.elementProperties;if(e.size>0)for(const[t,i]of e){const{wrapped:e}=i,a=this[t];!0!==e||this._$AL.has(t)||void 0===a||this.C(t,void 0,i,a)}}let e=!1;const t=this._$AL;try{e=this.shouldUpdate(t),e?(this.willUpdate(t),this._$EO?.forEach(e=>e.hostUpdate?.()),this.update(t)):this._$EM()}catch(i){throw e=!1,this._$EM(),i}e&&this._$AE(t)}willUpdate(e){}_$AE(e){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(e)),this.updated(e)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(e){return!0}update(e){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(e){}firstUpdated(e){}};y.elementStyles=[],y.shadowRootOptions={mode:"open"},y[v("elementProperties")]=new Map,y[v("finalized")]=new Map,m?.({ReactiveElement:y}),(u.reactiveElementVersions??=[]).push("2.1.2");const x=globalThis,k=e=>e,$=x.trustedTypes,S=$?$.createPolicy("lit-html",{createHTML:e=>e}):void 0,E="$lit$",C=`lit$${Math.random().toFixed(9).slice(2)}$`,A="?"+C,D=`<${A}>`,T=document,M=()=>T.createComment(""),P=e=>null===e||"object"!=typeof e&&"function"!=typeof e,I=Array.isArray,R="[ \t\n\f\r]",z=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,L=/-->/g,O=/>/g,H=RegExp(`>|${R}(?:([^\\s"'>=/]+)(${R}*=${R}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),j=/'/g,U=/"/g,N=/^(?:script|style|textarea|title)$/i,V=(B=1,(e,...t)=>({_$litType$:B,strings:e,values:t})),K=Symbol.for("lit-noChange"),Y=Symbol.for("lit-nothing"),W=new WeakMap,q=T.createTreeWalker(T,129);var B;function F(e,t){if(!I(e)||!e.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==S?S.createHTML(t):t}class G{constructor({strings:e,_$litType$:t},i){let a;this.parts=[];let r=0,s=0;const o=e.length-1,n=this.parts,[d,c]=((e,t)=>{const i=e.length-1,a=[];let r,s=2===t?"<svg>":3===t?"<math>":"",o=z;for(let n=0;n<i;n++){const t=e[n];let i,d,c=-1,l=0;for(;l<t.length&&(o.lastIndex=l,d=o.exec(t),null!==d);)l=o.lastIndex,o===z?"!--"===d[1]?o=L:void 0!==d[1]?o=O:void 0!==d[2]?(N.test(d[2])&&(r=RegExp("</"+d[2],"g")),o=H):void 0!==d[3]&&(o=H):o===H?">"===d[0]?(o=r??z,c=-1):void 0===d[1]?c=-2:(c=o.lastIndex-d[2].length,i=d[1],o=void 0===d[3]?H:'"'===d[3]?U:j):o===U||o===j?o=H:o===L||o===O?o=z:(o=H,r=void 0);const h=o===H&&e[n+1].startsWith("/>")?" ":"";s+=o===z?t+D:c>=0?(a.push(i),t.slice(0,c)+E+t.slice(c)+C+h):t+C+(-2===c?n:h)}return[F(e,s+(e[i]||"<?>")+(2===t?"</svg>":3===t?"</math>":"")),a]})(e,t);if(this.el=G.createElement(d,i),q.currentNode=this.el.content,2===t||3===t){const e=this.el.content.firstChild;e.replaceWith(...e.childNodes)}for(;null!==(a=q.nextNode())&&n.length<o;){if(1===a.nodeType){if(a.hasAttributes())for(const e of a.getAttributeNames())if(e.endsWith(E)){const t=c[s++],i=a.getAttribute(e).split(C),o=/([.?@])?(.*)/.exec(t);n.push({type:1,index:r,name:o[2],strings:i,ctor:"."===o[1]?ee:"?"===o[1]?te:"@"===o[1]?ie:Q}),a.removeAttribute(e)}else e.startsWith(C)&&(n.push({type:6,index:r}),a.removeAttribute(e));if(N.test(a.tagName)){const e=a.textContent.split(C),t=e.length-1;if(t>0){a.textContent=$?$.emptyScript:"";for(let i=0;i<t;i++)a.append(e[i],M()),q.nextNode(),n.push({type:2,index:++r});a.append(e[t],M())}}}else if(8===a.nodeType)if(a.data===A)n.push({type:2,index:r});else{let e=-1;for(;-1!==(e=a.data.indexOf(C,e+1));)n.push({type:7,index:r}),e+=C.length-1}r++}}static createElement(e,t){const i=T.createElement("template");return i.innerHTML=e,i}}function X(e,t,i=e,a){if(t===K)return t;let r=void 0!==a?i._$Co?.[a]:i._$Cl;const s=P(t)?void 0:t._$litDirective$;return r?.constructor!==s&&(r?._$AO?.(!1),void 0===s?r=void 0:(r=new s(e),r._$AT(e,i,a)),void 0!==a?(i._$Co??=[])[a]=r:i._$Cl=r),void 0!==r&&(t=X(e,r._$AS(e,t.values),r,a)),t}class J{constructor(e,t){this._$AV=[],this._$AN=void 0,this._$AD=e,this._$AM=t}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(e){const{el:{content:t},parts:i}=this._$AD,a=(e?.creationScope??T).importNode(t,!0);q.currentNode=a;let r=q.nextNode(),s=0,o=0,n=i[0];for(;void 0!==n;){if(s===n.index){let t;2===n.type?t=new Z(r,r.nextSibling,this,e):1===n.type?t=new n.ctor(r,n.name,n.strings,this,e):6===n.type&&(t=new ae(r,this,e)),this._$AV.push(t),n=i[++o]}s!==n?.index&&(r=q.nextNode(),s++)}return q.currentNode=T,a}p(e){let t=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(e,i,t),t+=i.strings.length-2):i._$AI(e[t])),t++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(e,t,i,a){this.type=2,this._$AH=Y,this._$AN=void 0,this._$AA=e,this._$AB=t,this._$AM=i,this.options=a,this._$Cv=a?.isConnected??!0}get parentNode(){let e=this._$AA.parentNode;const t=this._$AM;return void 0!==t&&11===e?.nodeType&&(e=t.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,t=this){e=X(this,e,t),P(e)?e===Y||null==e||""===e?(this._$AH!==Y&&this._$AR(),this._$AH=Y):e!==this._$AH&&e!==K&&this._(e):void 0!==e._$litType$?this.$(e):void 0!==e.nodeType?this.T(e):(e=>I(e)||"function"==typeof e?.[Symbol.iterator])(e)?this.k(e):this._(e)}O(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}T(e){this._$AH!==e&&(this._$AR(),this._$AH=this.O(e))}_(e){this._$AH!==Y&&P(this._$AH)?this._$AA.nextSibling.data=e:this.T(T.createTextNode(e)),this._$AH=e}$(e){const{values:t,_$litType$:i}=e,a="number"==typeof i?this._$AC(e):(void 0===i.el&&(i.el=G.createElement(F(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===a)this._$AH.p(t);else{const e=new J(a,this),i=e.u(this.options);e.p(t),this.T(i),this._$AH=e}}_$AC(e){let t=W.get(e.strings);return void 0===t&&W.set(e.strings,t=new G(e)),t}k(e){I(this._$AH)||(this._$AH=[],this._$AR());const t=this._$AH;let i,a=0;for(const r of e)a===t.length?t.push(i=new Z(this.O(M()),this.O(M()),this,this.options)):i=t[a],i._$AI(r),a++;a<t.length&&(this._$AR(i&&i._$AB.nextSibling,a),t.length=a)}_$AR(e=this._$AA.nextSibling,t){for(this._$AP?.(!1,!0,t);e!==this._$AB;){const t=k(e).nextSibling;k(e).remove(),e=t}}setConnected(e){void 0===this._$AM&&(this._$Cv=e,this._$AP?.(e))}}class Q{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(e,t,i,a,r){this.type=1,this._$AH=Y,this._$AN=void 0,this.element=e,this.name=t,this._$AM=a,this.options=r,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=Y}_$AI(e,t=this,i,a){const r=this.strings;let s=!1;if(void 0===r)e=X(this,e,t,0),s=!P(e)||e!==this._$AH&&e!==K,s&&(this._$AH=e);else{const a=e;let o,n;for(e=r[0],o=0;o<r.length-1;o++)n=X(this,a[i+o],t,o),n===K&&(n=this._$AH[o]),s||=!P(n)||n!==this._$AH[o],n===Y?e=Y:e!==Y&&(e+=(n??"")+r[o+1]),this._$AH[o]=n}s&&!a&&this.j(e)}j(e){e===Y?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,e??"")}}class ee extends Q{constructor(){super(...arguments),this.type=3}j(e){this.element[this.name]=e===Y?void 0:e}}class te extends Q{constructor(){super(...arguments),this.type=4}j(e){this.element.toggleAttribute(this.name,!!e&&e!==Y)}}class ie extends Q{constructor(e,t,i,a,r){super(e,t,i,a,r),this.type=5}_$AI(e,t=this){if((e=X(this,e,t,0)??Y)===K)return;const i=this._$AH,a=e===Y&&i!==Y||e.capture!==i.capture||e.once!==i.once||e.passive!==i.passive,r=e!==Y&&(i===Y||a);a&&this.element.removeEventListener(this.name,this,i),r&&this.element.addEventListener(this.name,this,e),this._$AH=e}handleEvent(e){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,e):this._$AH.handleEvent(e)}}class ae{constructor(e,t,i){this.element=e,this.type=6,this._$AN=void 0,this._$AM=t,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(e){X(this,e)}}const re=x.litHtmlPolyfillSupport;re?.(G,Z),(x.litHtmlVersions??=[]).push("3.3.2");const se=globalThis;class oe extends y{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const e=super.createRenderRoot();return this.renderOptions.renderBefore??=e.firstChild,e}update(e){const t=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(e),this._$Do=((e,t,i)=>{const a=i?.renderBefore??t;let r=a._$litPart$;if(void 0===r){const e=i?.renderBefore??null;a._$litPart$=r=new Z(t.insertBefore(M(),e),e,void 0,i??{})}return r._$AI(e),r})(t,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return K}}oe._$litElement$=!0,oe.finalized=!0,se.litElementHydrateSupport?.({LitElement:oe});const ne=se.litElementPolyfillSupport;ne?.({LitElement:oe}),(se.litElementVersions??=[]).push("4.2.2");const de={attribute:!0,type:String,converter:b,reflect:!1,hasChanged:f},ce=(e=de,t,i)=>{const{kind:a,metadata:r}=i;let s=globalThis.litPropertyMetadata.get(r);if(void 0===s&&globalThis.litPropertyMetadata.set(r,s=new Map),"setter"===a&&((e=Object.create(e)).wrapped=!0),s.set(i.name,e),"accessor"===a){const{name:a}=i;return{set(i){const r=t.get.call(this);t.set.call(this,i),this.requestUpdate(a,r,e,!0,i)},init(t){return void 0!==t&&this.C(a,void 0,e,t),t}}}if("setter"===a){const{name:a}=i;return function(i){const r=this[a];t.call(this,i),this.requestUpdate(a,r,e,!0,i)}}throw Error("Unsupported decorator location: "+a)};function le(e){return(t,i)=>"object"==typeof i?ce(e,t,i):((e,t,i)=>{const a=t.hasOwnProperty(i);return t.constructor.createProperty(i,e),a?Object.getOwnPropertyDescriptor(t,i):void 0})(e,t,i)}function he(e){return le({...e,state:!0,attribute:!1})}const pe=new class{constructor(){this.listeners=new Map}on(e,t){let i=this.listeners.get(e);return i||(i=new Set,this.listeners.set(e,i)),i.add(t),()=>this.off(e,t)}off(e,t){this.listeners.get(e)?.delete(t)}emit(e,t){this.listeners.get(e)?.forEach(e=>e(t))}},ue=s`
   :host {
     --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -38,7 +38,7 @@
     --c-temp-hot: #f87171;
     --c-temp-cold: #60a5fa;
   }
-`,ge=o`
+`,ge=s`
   .glass {
     border-radius: var(--radius-xl);
     background: linear-gradient(
@@ -81,7 +81,7 @@
     z-index: 0;
     transition: opacity var(--t-slow);
   }
-`;o`
+`;s`
   .marquee {
     display: block;
     overflow: hidden;
@@ -103,7 +103,7 @@
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-`,o`
+`,s`
   .fold {
     display: grid;
     grid-template-rows: 0fr;
@@ -120,7 +120,7 @@
   .fold.open .fold-inner {
     opacity: 1;
   }
-`;const _e={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",preset_aria:"Ambiance {label}",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",preset_relax:"Relax",preset_focus:"Focus",preset_film:"Film",preset_night:"Nuit"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Barre de nav",tab_popup:"Popup Pièce",tab_light:"Carte Lumières",preview:"Aperçu",navbar_behavior:"Comportement",navbar_auto_sort:"Tri automatique",navbar_auto_sort_desc:"Les pièces actives remontent en premier",navbar_rooms_banner:"Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.",navbar_visible_rooms:"Pièces visibles",navbar_empty_rooms:"Pièces vides",navbar_empty_rooms_desc:"Ces pièces n'ont aucune entité assignée dans Home Assistant. Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.",navbar_indicators:"Indicateurs",navbar_indicators_desc:"Activez ou désactivez les indicateurs visuels sur la navbar.",navbar_ind_lights:"Lumières allumées",navbar_ind_lights_desc:"Glow doré sur l'icône",navbar_ind_temp:"Température",navbar_ind_temp_desc:"Badge chaud / froid",navbar_ind_humidity:"Humidité",navbar_ind_humidity_desc:"Barre bleue en bas",navbar_ind_media:"Média en lecture",navbar_ind_media_desc:"Bounce de l'icône",navbar_thresholds:"Seuils",navbar_thresholds_desc:"Définissez les seuils pour les alertes de température et d'humidité.",navbar_temp_high:"Température haute",navbar_temp_low:"Température basse",navbar_humidity_threshold:"Seuil humidité",navbar_choose_icon:"Choisir icône",navbar_change_icon_aria:"Changer l'icône de {name}",navbar_icon_label:"Icône — {name}",popup_room:"Pièce",popup_room_desc:"Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.",popup_internal_cards:"Cartes internes",popup_internal_cards_desc:"Ordonnez les cartes affichées dans le popup de cette pièce.",popup_scenes:"Scènes",popup_scenes_desc:"Réordonnez et masquez les scènes affichées en haut du popup.",popup_select_room:"Sélectionnez une pièce",light_room:"Pièce",light_room_desc:"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.",light_list_title:"Lumières",light_list_banner:"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.",light_no_lights:"Aucune lumière dans cette pièce.",light_no_visible:"Aucune lumière visible",light_select_room:"Sélectionnez une pièce",light_change_layout_aria:"Changer le layout",light_layout_compact:"COMPACT",light_layout_full:"PLEIN",domain_light:"Lumières",domain_light_desc:"Contrôle des lumières",domain_media_player:"Média",domain_media_player_desc:"Lecteurs multimédias",domain_climate:"Climat",domain_climate_desc:"Thermostats et climatisation",domain_fan:"Ventilateur",domain_fan_desc:"Ventilation",domain_cover:"Volets",domain_cover_desc:"Stores et volets roulants",domain_vacuum:"Aspirateur",domain_vacuum_desc:"Robots aspirateurs",tab_weather:"Carte Météo",weather_entity:"Entité météo",weather_entity_desc:"Sélectionnez l'entité météo à afficher sur la carte.",weather_metrics:"Métriques visibles",weather_metrics_desc:"Activez ou désactivez les métriques affichées sur la carte.",weather_forecasts:"Onglets prévisions",weather_forecasts_desc:"Activez ou désactivez les onglets de prévisions.",weather_metric_humidity:"Humidité",weather_metric_wind:"Vent",weather_metric_pressure:"Pression",weather_metric_uv:"UV",weather_metric_visibility:"Visibilité",weather_metric_sunrise:"Lever du soleil",weather_metric_sunset:"Coucher du soleil",weather_daily:"Prévisions 7 jours",weather_hourly:"Prévisions horaires",weather_select_entity:"Sélectionnez une entité météo",tab_dashboard:"Tableau de bord",dashboard_title:"Cartes du tableau de bord",dashboard_desc:"Activez ou désactivez les cartes affichées sur le tableau de bord Home Assistant.",dashboard_card_weather:"Carte Météo",dashboard_card_weather_desc:"Affiche la météo actuelle, prévisions et animations",dashboard_card_light:"Carte Lumières",dashboard_card_light_desc:"Contrôle des lumières par pièce"}},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",preset_aria:"Preset {label}",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",preset_relax:"Relax",preset_focus:"Focus",preset_film:"Film",preset_night:"Night"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Navbar",tab_popup:"Room Popup",tab_light:"Light Card",preview:"Preview",navbar_behavior:"Behavior",navbar_auto_sort:"Auto sort",navbar_auto_sort_desc:"Active rooms move to the top",navbar_rooms_banner:"Drag to reorder rooms. Toggle to hide.",navbar_visible_rooms:"Visible rooms",navbar_empty_rooms:"Empty rooms",navbar_empty_rooms_desc:"These rooms have no entities assigned in Home Assistant. Add devices to these areas for them to appear in the navbar.",navbar_indicators:"Indicators",navbar_indicators_desc:"Enable or disable visual indicators on the navbar.",navbar_ind_lights:"Lights on",navbar_ind_lights_desc:"Golden glow on icon",navbar_ind_temp:"Temperature",navbar_ind_temp_desc:"Hot / cold badge",navbar_ind_humidity:"Humidity",navbar_ind_humidity_desc:"Blue bar at bottom",navbar_ind_media:"Media playing",navbar_ind_media_desc:"Icon bounce",navbar_thresholds:"Thresholds",navbar_thresholds_desc:"Set thresholds for temperature and humidity alerts.",navbar_temp_high:"High temperature",navbar_temp_low:"Low temperature",navbar_humidity_threshold:"Humidity threshold",navbar_choose_icon:"Choose icon",navbar_change_icon_aria:"Change icon for {name}",navbar_icon_label:"Icon — {name}",popup_room:"Room",popup_room_desc:"Select a room to configure the order and visibility of its internal cards.",popup_internal_cards:"Internal cards",popup_internal_cards_desc:"Order the cards displayed in this room's popup.",popup_scenes:"Scenes",popup_scenes_desc:"Reorder and hide scenes shown at the top of the popup.",popup_select_room:"Select a room",light_room:"Room",light_room_desc:"Select a room to configure its lights: order, visibility and display mode.",light_list_title:"Lights",light_list_banner:"Drag to reorder. The layout button toggles between full width and compact.",light_no_lights:"No lights in this room.",light_no_visible:"No visible lights",light_select_room:"Select a room",light_change_layout_aria:"Change layout",light_layout_compact:"COMPACT",light_layout_full:"FULL",domain_light:"Lights",domain_light_desc:"Light control",domain_media_player:"Media",domain_media_player_desc:"Media players",domain_climate:"Climate",domain_climate_desc:"Thermostats and air conditioning",domain_fan:"Fan",domain_fan_desc:"Ventilation",domain_cover:"Covers",domain_cover_desc:"Blinds and shutters",domain_vacuum:"Vacuum",domain_vacuum_desc:"Robot vacuums",tab_weather:"Weather Card",weather_entity:"Weather entity",weather_entity_desc:"Select the weather entity to display on the card.",weather_metrics:"Visible metrics",weather_metrics_desc:"Enable or disable metrics shown on the card.",weather_forecasts:"Forecast tabs",weather_forecasts_desc:"Enable or disable forecast tabs.",weather_metric_humidity:"Humidity",weather_metric_wind:"Wind",weather_metric_pressure:"Pressure",weather_metric_uv:"UV",weather_metric_visibility:"Visibility",weather_metric_sunrise:"Sunrise",weather_metric_sunset:"Sunset",weather_daily:"7-day forecast",weather_hourly:"Hourly forecast",weather_select_entity:"Select a weather entity",tab_dashboard:"Dashboard",dashboard_title:"Dashboard cards",dashboard_desc:"Enable or disable the cards displayed on the Home Assistant dashboard.",dashboard_card_weather:"Weather Card",dashboard_card_weather_desc:"Current weather, forecasts and animations",dashboard_card_light:"Light Card",dashboard_card_light_desc:"Room-by-room light controls"}}},me="fr";let ve=me;function be(e){const t=e.slice(0,2).toLowerCase(),i=t in _e?t:me;return i!==ve&&(ve=i,!0)}function fe(){return ve}function we(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),s=-1===i?"":e.slice(i+1),o=_e[ve]??_e[me],r=_e[me],n=o?.[a]?.[s]??r?.[a]?.[s];let d="string"==typeof n?n:e;if(t)for(const[l,c]of Object.entries(t))d=d.replaceAll(`{${l}}`,String(c));return d}var ye=Object.defineProperty,xe=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&ye(t,i,o),o};class $e extends re{constructor(){super(...arguments),this._lang=fe(),this._busCleanups=[]}setConfig(e){this._config=e}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&be(this.hass.language)&&(this._lang=fe())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}_listen(e,t){this._busCleanups.push(pe.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[]}}function ke(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&function(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}(t,i)===e)}xe([ce({attribute:!1})],$e.prototype,"hass"),xe([he()],$e.prototype,"_lang");class Se{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}var Ce=Object.defineProperty,Ae=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&Ce(t,i,o),o};const Ee=["light","media_player","climate","fan","cover","vacuum"],Re={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",vacuum:"mdi:robot-vacuum"},Pe={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};const Te=["mdi:sofa","mdi:stove","mdi:bed","mdi:desk","mdi:shower","mdi:home","mdi:movie-open","mdi:music","mdi:wrench","mdi:flower","mdi:white-balance-sunny","mdi:weather-night","mdi:lightbulb","mdi:snowflake","mdi:fire","mdi:lock"];class Ie extends re{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=fe(),this._tab="dashboard",this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._cards=[],this._scenes=[],this._lights=[],this._lightRoom="",this._lightDropdownOpen=!1,this._iconPickerRoom=null,this._dropdownOpen=!1,this._toast=!1,this._saving=!1,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._showMedia=!0,this._autoSort=!0,this._tempHigh=24,this._tempLow=17,this._humidityThreshold=65,this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherDropdownOpen=!1,this._dashboardEnabledCards=["weather"],this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._loaded=!1,this._loading=!1,this._toastError=!1,this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this),this._boundUpdateScrollMask=this._updateScrollMask.bind(this),this._initialIcons=new Map,this._tabsEl=null}static{this.styles=[ue,ge,o`
+`;const _e={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",preset_aria:"Ambiance {label}",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",preset_relax:"Relax",preset_focus:"Focus",preset_film:"Film",preset_night:"Nuit",dashboard_title_one:"1 LUMIÈRE ALLUMÉE",dashboard_title:"{count} LUMIÈRES ALLUMÉES",dashboard_overflow:"et {count} autres…",dashboard_turn_all_off_aria:"Éteindre toutes les lumières de la maison"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Barre de nav",tab_popup:"Popup Pièce",tab_light:"Carte Lumières",preview:"Aperçu",navbar_behavior:"Comportement",navbar_auto_sort:"Tri automatique",navbar_auto_sort_desc:"Les pièces actives remontent en premier",navbar_rooms_banner:"Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.",navbar_visible_rooms:"Pièces visibles",navbar_empty_rooms:"Pièces vides",navbar_empty_rooms_desc:"Ces pièces n'ont aucune entité assignée dans Home Assistant. Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.",navbar_indicators:"Indicateurs",navbar_indicators_desc:"Activez ou désactivez les indicateurs visuels sur la navbar.",navbar_ind_lights:"Lumières allumées",navbar_ind_lights_desc:"Glow doré sur l'icône",navbar_ind_temp:"Température",navbar_ind_temp_desc:"Badge chaud / froid",navbar_ind_humidity:"Humidité",navbar_ind_humidity_desc:"Barre bleue en bas",navbar_ind_media:"Média en lecture",navbar_ind_media_desc:"Bounce de l'icône",navbar_thresholds:"Seuils",navbar_thresholds_desc:"Définissez les seuils pour les alertes de température et d'humidité.",navbar_temp_high:"Température haute",navbar_temp_low:"Température basse",navbar_humidity_threshold:"Seuil humidité",navbar_choose_icon:"Choisir icône",navbar_change_icon_aria:"Changer l'icône de {name}",navbar_icon_label:"Icône — {name}",popup_room:"Pièce",popup_room_desc:"Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.",popup_internal_cards:"Cartes internes",popup_internal_cards_desc:"Ordonnez les cartes affichées dans le popup de cette pièce.",popup_scenes:"Scènes",popup_scenes_desc:"Réordonnez et masquez les scènes affichées en haut du popup.",popup_select_room:"Sélectionnez une pièce",light_room:"Pièce",light_room_desc:"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.",light_list_title:"Lumières",light_list_banner:"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.",light_no_lights:"Aucune lumière dans cette pièce.",light_no_visible:"Aucune lumière visible",light_select_room:"Sélectionnez une pièce",light_change_layout_aria:"Changer le layout",light_layout_compact:"COMPACT",light_layout_full:"PLEIN",light_schedule_hint:"Appuyez sur l'icône calendrier de chaque lumière pour définir des périodes de visibilité.",light_schedule_aria:"Gérer la planification de visibilité de {name}",light_schedule_title:"Planification de visibilité",light_schedule_start:"Début",light_schedule_end:"Fin",light_schedule_recurring:"Annuel",light_schedule_add:"Ajouter une période",light_schedule_delete_aria:"Supprimer la période",light_schedule_no_date:"Choisir une date…",light_schedule_confirm:"Confirmer",light_dashboard_vs_room:"Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",domain_light:"Lumières",domain_light_desc:"Contrôle des lumières",domain_media_player:"Média",domain_media_player_desc:"Lecteurs multimédias",domain_climate:"Climat",domain_climate_desc:"Thermostats et climatisation",domain_fan:"Ventilateur",domain_fan_desc:"Ventilation",domain_cover:"Volets",domain_cover_desc:"Stores et volets roulants",domain_vacuum:"Aspirateur",domain_vacuum_desc:"Robots aspirateurs",tab_weather:"Carte Météo",weather_entity:"Entité météo",weather_entity_desc:"Sélectionnez l'entité météo à afficher sur la carte.",weather_metrics:"Métriques visibles",weather_metrics_desc:"Activez ou désactivez les métriques affichées sur la carte.",weather_forecasts:"Onglets prévisions",weather_forecasts_desc:"Activez ou désactivez les onglets de prévisions.",weather_metric_humidity:"Humidité",weather_metric_wind:"Vent",weather_metric_pressure:"Pression",weather_metric_uv:"UV",weather_metric_visibility:"Visibilité",weather_metric_sunrise:"Lever du soleil",weather_metric_sunset:"Coucher du soleil",weather_daily:"Prévisions 7 jours",weather_hourly:"Prévisions horaires",weather_select_entity:"Sélectionnez une entité météo",tab_dashboard:"Tableau de bord",dashboard_title:"Cartes du tableau de bord",dashboard_desc:"Activez ou désactivez les cartes affichées sur le tableau de bord Home Assistant.",dashboard_card_weather:"Carte Météo",dashboard_card_weather_desc:"Affiche la météo actuelle, prévisions et animations",dashboard_card_light:"Carte Lumières",dashboard_card_light_desc:"Contrôle des lumières par pièce"}},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",preset_aria:"Preset {label}",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",preset_relax:"Relax",preset_focus:"Focus",preset_film:"Film",preset_night:"Night",dashboard_title_one:"1 LIGHT ON",dashboard_title:"{count} LIGHTS ON",dashboard_overflow:"and {count} more…",dashboard_turn_all_off_aria:"Turn off all lights in the house"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Navbar",tab_popup:"Room Popup",tab_light:"Light Card",preview:"Preview",navbar_behavior:"Behavior",navbar_auto_sort:"Auto sort",navbar_auto_sort_desc:"Active rooms move to the top",navbar_rooms_banner:"Drag to reorder rooms. Toggle to hide.",navbar_visible_rooms:"Visible rooms",navbar_empty_rooms:"Empty rooms",navbar_empty_rooms_desc:"These rooms have no entities assigned in Home Assistant. Add devices to these areas for them to appear in the navbar.",navbar_indicators:"Indicators",navbar_indicators_desc:"Enable or disable visual indicators on the navbar.",navbar_ind_lights:"Lights on",navbar_ind_lights_desc:"Golden glow on icon",navbar_ind_temp:"Temperature",navbar_ind_temp_desc:"Hot / cold badge",navbar_ind_humidity:"Humidity",navbar_ind_humidity_desc:"Blue bar at bottom",navbar_ind_media:"Media playing",navbar_ind_media_desc:"Icon bounce",navbar_thresholds:"Thresholds",navbar_thresholds_desc:"Set thresholds for temperature and humidity alerts.",navbar_temp_high:"High temperature",navbar_temp_low:"Low temperature",navbar_humidity_threshold:"Humidity threshold",navbar_choose_icon:"Choose icon",navbar_change_icon_aria:"Change icon for {name}",navbar_icon_label:"Icon — {name}",popup_room:"Room",popup_room_desc:"Select a room to configure the order and visibility of its internal cards.",popup_internal_cards:"Internal cards",popup_internal_cards_desc:"Order the cards displayed in this room's popup.",popup_scenes:"Scenes",popup_scenes_desc:"Reorder and hide scenes shown at the top of the popup.",popup_select_room:"Select a room",light_room:"Room",light_room_desc:"Select a room to configure its lights: order, visibility and display mode.",light_list_title:"Lights",light_list_banner:"Drag to reorder. The layout button toggles between full width and compact.",light_no_lights:"No lights in this room.",light_no_visible:"No visible lights",light_select_room:"Select a room",light_change_layout_aria:"Change layout",light_layout_compact:"COMPACT",light_layout_full:"FULL",light_schedule_hint:"Tap the calendar icon on each light to set visibility periods.",light_schedule_aria:"Manage visibility schedule for {name}",light_schedule_title:"Visibility schedule",light_schedule_start:"Start",light_schedule_end:"End",light_schedule_recurring:"Annually",light_schedule_add:"Add period",light_schedule_delete_aria:"Delete period",light_schedule_no_date:"Select date…",light_schedule_confirm:"Confirm",light_dashboard_vs_room:"On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.",domain_light:"Lights",domain_light_desc:"Light control",domain_media_player:"Media",domain_media_player_desc:"Media players",domain_climate:"Climate",domain_climate_desc:"Thermostats and air conditioning",domain_fan:"Fan",domain_fan_desc:"Ventilation",domain_cover:"Covers",domain_cover_desc:"Blinds and shutters",domain_vacuum:"Vacuum",domain_vacuum_desc:"Robot vacuums",tab_weather:"Weather Card",weather_entity:"Weather entity",weather_entity_desc:"Select the weather entity to display on the card.",weather_metrics:"Visible metrics",weather_metrics_desc:"Enable or disable metrics shown on the card.",weather_forecasts:"Forecast tabs",weather_forecasts_desc:"Enable or disable forecast tabs.",weather_metric_humidity:"Humidity",weather_metric_wind:"Wind",weather_metric_pressure:"Pressure",weather_metric_uv:"UV",weather_metric_visibility:"Visibility",weather_metric_sunrise:"Sunrise",weather_metric_sunset:"Sunset",weather_daily:"7-day forecast",weather_hourly:"Hourly forecast",weather_select_entity:"Select a weather entity",tab_dashboard:"Dashboard",dashboard_title:"Dashboard cards",dashboard_desc:"Enable or disable the cards displayed on the Home Assistant dashboard.",dashboard_card_weather:"Weather Card",dashboard_card_weather_desc:"Current weather, forecasts and animations",dashboard_card_light:"Light Card",dashboard_card_light_desc:"Room-by-room light controls"}}},me="fr";let ve=me;function be(e){const t=e.slice(0,2).toLowerCase(),i=t in _e?t:me;return i!==ve&&(ve=i,!0)}function fe(){return ve}function we(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),r=-1===i?"":e.slice(i+1),s=_e[ve]??_e[me],o=_e[me],n=s?.[a]?.[r]??o?.[a]?.[r];let d="string"==typeof n?n:e;if(t)for(const[c,l]of Object.entries(t))d=d.replaceAll(`{${c}}`,String(l));return d}var ye=Object.defineProperty,xe=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ye(t,i,s),s};class ke extends oe{constructor(){super(...arguments),this._lang=fe(),this._busCleanups=[]}setConfig(e){this._config=e}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&be(this.hass.language)&&(this._lang=fe())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}_listen(e,t){this._busCleanups.push(pe.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[]}}function $e(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&function(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}(t,i)===e)}xe([le({attribute:!1})],ke.prototype,"hass"),xe([he()],ke.prototype,"_lang");class Se{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}var Ee=Object.defineProperty,Ce=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ee(t,i,s),s};const Ae=["light","media_player","climate","fan","cover","vacuum"],De={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",vacuum:"mdi:robot-vacuum"},Te={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};const Me=["mdi:sofa","mdi:stove","mdi:bed","mdi:desk","mdi:shower","mdi:home","mdi:movie-open","mdi:music","mdi:wrench","mdi:flower","mdi:white-balance-sunny","mdi:weather-night","mdi:lightbulb","mdi:snowflake","mdi:fire","mdi:lock"];class Pe extends oe{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=fe(),this._tab="dashboard",this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._cards=[],this._scenes=[],this._lights=[],this._lightRoom="",this._lightDropdownOpen=!1,this._iconPickerRoom=null,this._dropdownOpen=!1,this._toast=!1,this._saving=!1,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._showMedia=!0,this._autoSort=!0,this._tempHigh=24,this._tempLow=17,this._humidityThreshold=65,this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherDropdownOpen=!1,this._dashboardEnabledCards=["weather"],this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=2026,this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=2026,this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._loaded=!1,this._loading=!1,this._toastError=!1,this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this),this._boundUpdateScrollMask=this._updateScrollMask.bind(this),this._initialIcons=new Map,this._tabsEl=null}static{this.styles=[ue,ge,s`
       :host {
         display: block;
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1245,6 +1245,12 @@
         pointer-events: none;
         transition: opacity var(--t-slow);
       }
+      .preview-light-sched {
+        --mdc-icon-size: 10px;
+        color: var(--c-accent);
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
       .preview-light-layout-tag {
         font-size: 6px;
         font-weight: 700;
@@ -1622,6 +1628,481 @@
         outline-offset: 2px;
       }
 
+      /* ── Schedule button (btn-icon.xs pattern from kit) ── */
+      .schedule-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--t4);
+        cursor: pointer;
+        flex-shrink: 0;
+        padding: 0;
+        transition: all var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        --mdc-icon-size: 16px;
+      }
+      .schedule-btn.active {
+        color: var(--c-accent);
+        border-color: rgba(129,140,248,0.25);
+        background: rgba(129,140,248,0.12);
+      }
+      @media (hover: hover) {
+        .schedule-btn:hover {
+          background: var(--s4);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
+      .schedule-btn:active { transform: scale(0.96); }
+      .schedule-btn:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+
+      /* ── Item card wrapper ── */
+      .item-card {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--b1);
+        background: var(--s1);
+        transition: border-color var(--t-fast);
+      }
+      .item-card .item-row {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+      }
+      @media (hover: hover) {
+        .item-card:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+      }
+      .item-card.expanded {
+        border-color: var(--b2);
+      }
+      .item-card.expanded .item-row {
+        border-bottom: none;
+      }
+      .item-card .item-row.disabled {
+        opacity: 0.35;
+      }
+
+      /* ── Fold separator (from kit) ── */
+      .fold-sep {
+        height: 1px;
+        margin: 0 12px;
+        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .fold-sep.visible { opacity: 1; }
+
+      /* ── Schedule fold (CSS Grid 0fr/1fr from kit) ── */
+      .schedule-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .schedule-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .schedule-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .schedule-fold.open .schedule-fold-inner {
+        opacity: 1;
+      }
+      .schedule-body {
+        padding: 10px 12px 12px 36px;
+      }
+      .schedule-header {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t3);
+        margin-bottom: 8px;
+      }
+      .schedule-period {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--b1);
+      }
+      .schedule-period:last-of-type {
+        border-bottom: none;
+      }
+      .schedule-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .schedule-row-actions {
+        justify-content: space-between;
+        margin-bottom: 0;
+      }
+      .schedule-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--t3);
+        min-width: 36px;
+        flex-shrink: 0;
+      }
+      /* ── Input (from kit) ── */
+      .input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .input:focus { border-color: var(--b3); }
+      .input::placeholder { color: var(--t4); }
+      /* schedule-input removed — replaced by .datetime-display */
+
+      /* ── Check item (from kit) ── */
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        font-family: inherit;
+      }
+      .check-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid var(--b3);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--t-fast);
+        flex-shrink: 0;
+        --mdc-icon-size: 12px;
+      }
+      .check-box ha-icon {
+        opacity: 0;
+        transform: scale(0);
+        transition: all var(--t-fast);
+        color: #fff;
+      }
+      .check-item.checked .check-box {
+        background: var(--c-accent);
+        border-color: var(--c-accent);
+        box-shadow: 0 0 6px rgba(129,140,248,0.3);
+      }
+      .check-item.checked .check-box ha-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .check-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--t2);
+      }
+      .check-item.checked .check-label {
+        color: var(--t1);
+      }
+
+      /* ── Schedule delete (btn-icon.xs btn-alert from kit) ── */
+      .schedule-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(248,113,113,0.2);
+        background: rgba(248,113,113,0.1);
+        color: var(--c-alert);
+        cursor: pointer;
+        padding: 0;
+        --mdc-icon-size: 14px;
+        transition: all var(--t-fast);
+        outline: none;
+      }
+      @media (hover: hover) {
+        .schedule-delete:hover {
+          background: rgba(248,113,113,0.2);
+          border-color: rgba(248,113,113,0.3);
+        }
+      }
+      .schedule-delete:active { transform: scale(0.96); }
+
+      /* ── Schedule add & save (btn btn-sm from kit) ── */
+      .schedule-add {
+        width: 100%;
+        margin-top: 8px;
+        border-style: dashed;
+        --mdc-icon-size: 14px;
+      }
+      .schedule-save {
+        margin-top: 8px;
+        width: 100%;
+      }
+
+      /* ── Hint & explanation texts ── */
+      .schedule-hint,
+      .dashboard-vs-room {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 8px 10px;
+        background: var(--s1);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b1);
+        font-size: 11px;
+        line-height: 1.4;
+        color: var(--t3);
+        --mdc-icon-size: 14px;
+      }
+      .schedule-hint ha-icon,
+      .dashboard-vs-room ha-icon {
+        flex-shrink: 0;
+        margin-top: 1px;
+        color: var(--c-info);
+      }
+
+      /* ── DateTime display trigger ── */
+      .datetime-display {
+        flex: 1;
+        min-width: 0;
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t2);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color var(--t-fast);
+        text-align: left;
+        outline: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .datetime-display:hover { border-color: var(--b3); }
+      .datetime-display:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .datetime-display.empty { color: var(--t4); }
+
+      /* ── DateTime picker popup ── */
+      .picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        animation: picker-fade-in var(--t-fast) ease-out;
+      }
+      @keyframes picker-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .picker-popup {
+        width: 280px;
+        padding: 16px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--b2);
+        background: var(--s3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      }
+      .picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px 10px;
+      }
+      .picker-month {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--t1);
+      }
+      .picker-nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: none;
+        background: transparent;
+        color: var(--t3);
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        transition: all var(--t-fast);
+        --mdc-icon-size: 16px;
+      }
+      .picker-nav:hover { background: var(--s2); color: var(--t1); }
+      .picker-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+      }
+      .picker-day-label {
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--t4);
+        text-align: center;
+        padding: 4px 0;
+      }
+      .picker-day {
+        aspect-ratio: 1;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--t3);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        outline: none;
+        font-family: inherit;
+        padding: 0;
+      }
+      .picker-day:hover { background: var(--s2); color: var(--t1); }
+      .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
+      .picker-day.selected {
+        background: rgba(129,140,248,0.2);
+        color: var(--c-accent);
+        font-weight: 700;
+        border: 1px solid rgba(129,140,248,0.3);
+      }
+      .picker-day.range-start {
+        background: var(--c-accent);
+        color: #fff;
+        font-weight: 700;
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+      }
+      .picker-day.range-end {
+        background: var(--c-accent);
+        color: #fff;
+        font-weight: 700;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      }
+      .picker-day.range-start.range-end {
+        border-radius: var(--radius-sm);
+      }
+      .picker-day.in-range {
+        background: rgba(129,140,248,0.12);
+        color: var(--c-accent);
+        border-radius: 0;
+      }
+      .picker-day.other-month { opacity: 0.3; }
+
+      /* ── Picker phase indicator ── */
+      .picker-phase {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .picker-phase-btn {
+        padding: 4px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--b1);
+        background: transparent;
+        color: var(--t3);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        outline: none;
+      }
+      .picker-phase-btn.active {
+        background: rgba(129,140,248,0.15);
+        color: var(--c-accent);
+        border-color: rgba(129,140,248,0.3);
+      }
+
+      /* ── Time picker ── */
+      .picker-time-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--b1);
+      }
+      .picker-time-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .picker-time-label {
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--t4);
+      }
+      .time-input {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .time-digit {
+        width: 44px;
+        height: 40px;
+        text-align: center;
+        border-radius: 10px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .time-digit:focus { border-color: var(--c-accent); }
+      .time-sep {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--t3);
+      }
+
+      /* ── Picker confirm button ── */
+      .picker-confirm {
+        margin-top: 14px;
+        width: 100%;
+      }
+
       /* ── Save bar ── */
       .save-bar {
         margin-top: 16px;
@@ -1724,12 +2205,79 @@
       .config-panel {
         animation: panel-in 0.4s var(--ease-out) both;
       }
-    `]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,document.removeEventListener("click",this._boundCloseDropdowns),this._removeTabsScrollListener(),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),this._backend=void 0}_closeDropdownsOnOutsideClick(e){if(!this._dropdownOpen&&!this._lightDropdownOpen&&!this._weatherDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const s of a)if(t.includes(s))return;this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1}_setupTabsScrollListener(){if(this._tabsEl)return;const e=this.shadowRoot?.querySelector(".tabs");e&&(this._tabsEl=e,e.addEventListener("scroll",this._boundUpdateScrollMask,{passive:!0}),this._updateScrollMask())}_removeTabsScrollListener(){this._tabsEl&&(this._tabsEl.removeEventListener("scroll",this._boundUpdateScrollMask),this._tabsEl=null)}_updateScrollMask(){const e=this._tabsEl;if(!e)return;const t=e.scrollLeft<=5,i=e.scrollLeft+e.offsetWidth>=e.scrollWidth-5;e.classList.remove("mask-left","mask-right","mask-both"),t&&!i?e.classList.add("mask-right"):!t&&i?e.classList.add("mask-left"):t||i||e.classList.add("mask-both")}updated(e){super.updated(e),this._setupTabsScrollListener(),e.has("hass")&&(this.hass?.language&&be(this.hass.language)&&(this._lang=fe()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1),this.hass&&!this._loaded&&(this._loaded=!0,this._backend=new Se(this.hass),this._loadConfig()))}async _loadConfig(){if(this.hass&&!this._loading){this._loading=!0;try{await this._loadConfigInner()}finally{this._loading=!1}}}async _loadConfigInner(){if(!this.hass)return;const e=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let t={room_order:[],hidden_rooms:[],show_lights:!0,show_temperature:!0,show_humidity:!0,show_media:!0,auto_sort:!0,temp_high:24,temp_low:17,humidity_threshold:65},i={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0},a={enabled_cards:["weather"]};const s={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_config");t=e.navbar,Object.assign(s,e.rooms),e.weather&&(i=e.weather),e.dashboard&&(a=e.dashboard)}catch{}this._showLights=t.show_lights??!0,this._showTemperature=t.show_temperature??!0,this._showHumidity=t.show_humidity??!0,this._showMedia=t.show_media??!0,this._autoSort=t.auto_sort??!0,this._tempHigh=t.temp_high??24,this._tempLow=t.temp_low??17,this._humidityThreshold=t.humidity_threshold??65,this._weatherEntity=i.entity_id??"",this._weatherHiddenMetrics=i.hidden_metrics??[],this._weatherShowDaily=i.show_daily??!0,this._weatherShowHourly=i.show_hourly??!0,this._dashboardEnabledCards=a.enabled_cards??["weather"];const o=new Set(t.hidden_rooms),r=new Map;t.room_order.forEach((e,t)=>r.set(e,t));const n=this.hass;if(!n)return;const d=[],l=[];for(const c of e){const e=ke(c.area_id,n.entities,n.devices),t=s[c.area_id]?.icon,i=t||c.icon||"mdi:home";if(0===e.length){l.push({areaId:c.area_id,name:c.name,icon:i});continue}let a=0,r=null,h=null,p=null,u=null,g=!1;for(const s of e){const e=n.states[s.entity_id];if(!e)continue;const t=s.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||r||(r=`${e.state}°`,h=parseFloat(e.state)),"humidity"!==t||p||(p=`${e.state}%`,u=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(g=!0)}d.push({areaId:c.area_id,name:c.name,icon:i,entityCount:e.length,visible:!o.has(c.area_id),lightsOn:a,temperature:r,tempValue:h,humidity:p,humidityValue:u,mediaPlaying:g})}this._initialIcons.clear();for(const c of d)this._initialIcons.set(c.areaId,c.icon);d.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=r.get(e.areaId),a=r.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._rooms=d,this._emptyRooms=l,!this._selectedRoom&&d.length>0&&(this._selectedRoom=d[0].areaId),this._loadRoomCards()}async _loadRoomCards(){if(!this.hass||!this._selectedRoom)return this._cards=[],void(this._scenes=[]);const e=ke(this._selectedRoom,this.hass.entities,this.hass.devices);let t=null,i=new Set,a=new Set,s=[];try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_room",{area_id:this._selectedRoom});e&&(t=e.card_order.length>0?e.card_order:null,i=new Set(e.hidden_entities),a=new Set(e.hidden_scenes??[]),s=e.scene_order??[])}catch{}const o=this.hass,r=e.filter(e=>e.entity_id.startsWith("scene.")),n=new Map;s.forEach((e,t)=>n.set(e,t));const d=r.map(e=>{const t=o.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!a.has(e.entity_id)}});d.sort((e,t)=>{const i=n.get(e.entityId),a=n.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=d;const l=new Map;for(const p of e){if(i.has(p.entity_id))continue;const e=p.entity_id.split(".")[0];l.set(e,(l.get(e)||0)+1)}const c=t?[...t]:[...Ee],h=new Set(c);for(const p of l.keys())!h.has(p)&&Re[p]&&c.push(p);this._cards=c.filter(e=>(l.get(e)||0)>0||t&&t.includes(e)).map(e=>{const i=function(e){const t=Pe[e];return{nameKey:t?t.name:null,icon:Re[e]||"mdi:help-circle",descKey:t?t.desc:null}}(e),a=l.get(e)||0;return{id:e,nameKey:i.nameKey,icon:i.icon,descKey:i.descKey,count:a,visible:t?t.includes(e):a>0}})}_switchTab(e){this._tab=e,this._iconPickerRoom=null,this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,"light"===e&&!this._lightRoom&&this._rooms.length>0&&(this._lightRoom=this._rooms[0].areaId,this._loadRoomLights())}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("rooms"===i){const t=[...this._rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._rooms=t}else if("cards"===i){const t=[...this._cards],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cards=t}else if("scenes"===i){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t}else if("lights"===i){const t=[...this._lights],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._lights=t}this._dragIdx=null,this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_toggleRoomVisible(e){const t=this._rooms.map(t=>t.areaId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._rooms=[...i,...a]}_openIconPicker(e){this._iconPickerRoom=this._iconPickerRoom===e?null:e}_setRoomIcon(e,t){this._rooms=this._rooms.map(i=>i.areaId===e?{...i,icon:t}:i),this._iconPickerRoom=null}_toggleCardVisible(e){this._cards=this._cards.map(t=>t.id===e?{...t,visible:!t.visible}:t)}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_selectRoom(e){this._selectedRoom=e,this._dropdownOpen=!1,this._loadRoomCards()}async _saveNavbar(){const e=this._backend;if(e&&!this._saving){this._saving=!0;try{await e.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId),show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity,show_media:this._showMedia,auto_sort:this._autoSort,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold});const t=this._rooms.filter(e=>e.icon!==this._initialIcons.get(e.areaId)).map(t=>{const i=this.hass?.areas[t.areaId],a=i?.icon||"mdi:home",s=t.icon===a?null:t.icon;return e.send("set_room",{area_id:t.areaId,icon:s})});if(t.length>0&&await Promise.all(t),!this._mounted)return;this._showToast(),pe.emit("navbar-config-changed",void 0)}catch{this._showToast(!0)}this._saving=!1}}async _savePopup(){if(this._backend&&!this._saving&&this._selectedRoom){this._saving=!0;try{if(await this._backend.send("set_room",{area_id:this._selectedRoom,card_order:this._cards.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId)}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._selectedRoom})}catch{this._showToast(!0)}this._saving=!1}}_save(){"navbar"===this._tab?this._saveNavbar():"popup"===this._tab?this._savePopup():"light"===this._tab?this._saveLights():"weather"===this._tab?this._saveWeather():this._saveDashboard()}_selectLightRoom(e){this._lightRoom=e,this._lightDropdownOpen=!1,this._loadRoomLights()}async _loadRoomLights(){if(!this.hass||!this._lightRoom)return void(this._lights=[]);const e=ke(this._lightRoom,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let t=new Set,i=[],a={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_room",{area_id:this._lightRoom});e&&(t=new Set(e.hidden_entities),i=e.entity_order,a=e.entity_layouts)}catch{}const s=this.hass,o=new Map;i.forEach((e,t)=>o.set(e,t));const r=e.map(e=>{const i=s.states[e.entity_id],o="on"===i?.state,r=i?.attributes.brightness,n=o&&void 0!==r?Math.round(r/255*100):0;return{entityId:e.entity_id,name:i?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:o,brightnessPct:n,layout:a[e.entity_id]||"compact",visible:!t.has(e.entity_id)}});r.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=o.get(e.entityId),a=o.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=r}_toggleLightVisible(e){const t=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._lights=[...i,...a]}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}async _saveLights(){if(this._backend&&!this._saving&&this._lightRoom){this._saving=!0;try{let e=[];try{const t=await this._backend.send("get_room",{area_id:this._lightRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._lights.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._lights.filter(e=>!e.visible).map(e=>e.entityId),s={};for(const o of this._lights)"full"===o.layout&&(s[o.entityId]=o.layout);if(await this._backend.send("set_room",{area_id:this._lightRoom,entity_order:this._lights.map(e=>e.entityId),hidden_entities:[...i,...a],entity_layouts:s}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._lightRoom})}catch{this._showToast(!0)}this._saving=!1}}async _reset(){this._loaded=!0,await this._loadConfig(),this._lightRoom&&this._loadRoomLights()}_showToast(e=!1){void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastError=e,this._toast=!0,this._toastTimeout=setTimeout(()=>{this._toast=!1,this._toastTimeout=void 0},2e3)}_goBack(){history.back()}_renderNavbarPreview(){const e=[...this._rooms.filter(e=>e.visible)];return this._autoSort&&e.sort((e,t)=>(e.lightsOn>0?0:1)-(t.lightsOn>0?0:1)),V`
+    `]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,document.removeEventListener("click",this._boundCloseDropdowns),this._removeTabsScrollListener(),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),this._backend=void 0}_closeDropdownsOnOutsideClick(e){if(!this._dropdownOpen&&!this._lightDropdownOpen&&!this._weatherDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1}_setupTabsScrollListener(){if(this._tabsEl)return;const e=this.shadowRoot?.querySelector(".tabs");e&&(this._tabsEl=e,e.addEventListener("scroll",this._boundUpdateScrollMask,{passive:!0}),this._updateScrollMask())}_removeTabsScrollListener(){this._tabsEl&&(this._tabsEl.removeEventListener("scroll",this._boundUpdateScrollMask),this._tabsEl=null)}_updateScrollMask(){const e=this._tabsEl;if(!e)return;const t=e.scrollLeft<=5,i=e.scrollLeft+e.offsetWidth>=e.scrollWidth-5;e.classList.remove("mask-left","mask-right","mask-both"),t&&!i?e.classList.add("mask-right"):!t&&i?e.classList.add("mask-left"):t||i||e.classList.add("mask-both")}updated(e){super.updated(e),this._setupTabsScrollListener(),e.has("hass")&&(this.hass?.language&&be(this.hass.language)&&(this._lang=fe()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1),this.hass&&!this._loaded&&(this._loaded=!0,this._backend=new Se(this.hass),this._loadConfig()))}async _loadConfig(){if(this.hass&&!this._loading){this._loading=!0;try{await this._loadConfigInner()}finally{this._loading=!1}}}async _loadConfigInner(){if(!this.hass)return;const e=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let t={room_order:[],hidden_rooms:[],show_lights:!0,show_temperature:!0,show_humidity:!0,show_media:!0,auto_sort:!0,temp_high:24,temp_low:17,humidity_threshold:65},i={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0},a={enabled_cards:["weather"]};const r={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_config");t=e.navbar,Object.assign(r,e.rooms),e.weather&&(i=e.weather),e.dashboard&&(a=e.dashboard)}catch{}this._showLights=t.show_lights??!0,this._showTemperature=t.show_temperature??!0,this._showHumidity=t.show_humidity??!0,this._showMedia=t.show_media??!0,this._autoSort=t.auto_sort??!0,this._tempHigh=t.temp_high??24,this._tempLow=t.temp_low??17,this._humidityThreshold=t.humidity_threshold??65,this._weatherEntity=i.entity_id??"",this._weatherHiddenMetrics=i.hidden_metrics??[],this._weatherShowDaily=i.show_daily??!0,this._weatherShowHourly=i.show_hourly??!0,this._dashboardEnabledCards=a.enabled_cards??["weather"];const s=new Set(t.hidden_rooms),o=new Map;t.room_order.forEach((e,t)=>o.set(e,t));const n=this.hass;if(!n)return;const d=[],c=[];for(const l of e){const e=$e(l.area_id,n.entities,n.devices),t=r[l.area_id]?.icon,i=t||l.icon||"mdi:home";if(0===e.length){c.push({areaId:l.area_id,name:l.name,icon:i});continue}let a=0,o=null,h=null,p=null,u=null,g=!1;for(const r of e){const e=n.states[r.entity_id];if(!e)continue;const t=r.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||o||(o=`${e.state}°`,h=parseFloat(e.state)),"humidity"!==t||p||(p=`${e.state}%`,u=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(g=!0)}d.push({areaId:l.area_id,name:l.name,icon:i,entityCount:e.length,visible:!s.has(l.area_id),lightsOn:a,temperature:o,tempValue:h,humidity:p,humidityValue:u,mediaPlaying:g})}this._initialIcons.clear();for(const l of d)this._initialIcons.set(l.areaId,l.icon);d.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=o.get(e.areaId),a=o.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._rooms=d,this._emptyRooms=c,!this._selectedRoom&&d.length>0&&(this._selectedRoom=d[0].areaId),this._loadRoomCards()}async _loadRoomCards(){if(!this.hass||!this._selectedRoom)return this._cards=[],void(this._scenes=[]);const e=$e(this._selectedRoom,this.hass.entities,this.hass.devices);let t=null,i=new Set,a=new Set,r=[];try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_room",{area_id:this._selectedRoom});e&&(t=e.card_order.length>0?e.card_order:null,i=new Set(e.hidden_entities),a=new Set(e.hidden_scenes??[]),r=e.scene_order??[])}catch{}const s=this.hass,o=e.filter(e=>e.entity_id.startsWith("scene.")),n=new Map;r.forEach((e,t)=>n.set(e,t));const d=o.map(e=>{const t=s.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!a.has(e.entity_id)}});d.sort((e,t)=>{const i=n.get(e.entityId),a=n.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=d;const c=new Map;for(const p of e){if(i.has(p.entity_id))continue;const e=p.entity_id.split(".")[0];c.set(e,(c.get(e)||0)+1)}const l=t?[...t]:[...Ae],h=new Set(l);for(const p of c.keys())!h.has(p)&&De[p]&&l.push(p);this._cards=l.filter(e=>(c.get(e)||0)>0||t&&t.includes(e)).map(e=>{const i=function(e){const t=Te[e];return{nameKey:t?t.name:null,icon:De[e]||"mdi:help-circle",descKey:t?t.desc:null}}(e),a=c.get(e)||0;return{id:e,nameKey:i.nameKey,icon:i.icon,descKey:i.descKey,count:a,visible:t?t.includes(e):a>0}})}_switchTab(e){this._tab=e,this._iconPickerRoom=null,this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,"light"===e&&!this._lightRoom&&this._rooms.length>0&&(this._lightRoom=this._rooms[0].areaId,this._loadRoomLights())}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("rooms"===i){const t=[...this._rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._rooms=t}else if("cards"===i){const t=[...this._cards],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cards=t}else if("scenes"===i){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t}else if("lights"===i){const t=[...this._lights],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._lights=t}this._dragIdx=null,this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_toggleRoomVisible(e){const t=this._rooms.map(t=>t.areaId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._rooms=[...i,...a]}_openIconPicker(e){this._iconPickerRoom=this._iconPickerRoom===e?null:e}_setRoomIcon(e,t){this._rooms=this._rooms.map(i=>i.areaId===e?{...i,icon:t}:i),this._iconPickerRoom=null}_toggleCardVisible(e){this._cards=this._cards.map(t=>t.id===e?{...t,visible:!t.visible}:t)}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_selectRoom(e){this._selectedRoom=e,this._dropdownOpen=!1,this._loadRoomCards()}async _saveNavbar(){const e=this._backend;if(e&&!this._saving){this._saving=!0;try{await e.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId),show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity,show_media:this._showMedia,auto_sort:this._autoSort,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold});const t=this._rooms.filter(e=>e.icon!==this._initialIcons.get(e.areaId)).map(t=>{const i=this.hass?.areas[t.areaId],a=i?.icon||"mdi:home",r=t.icon===a?null:t.icon;return e.send("set_room",{area_id:t.areaId,icon:r})});if(t.length>0&&await Promise.all(t),!this._mounted)return;this._showToast(),pe.emit("navbar-config-changed",void 0)}catch{this._showToast(!0)}this._saving=!1}}async _savePopup(){if(this._backend&&!this._saving&&this._selectedRoom){this._saving=!0;try{if(await this._backend.send("set_room",{area_id:this._selectedRoom,card_order:this._cards.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId)}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._selectedRoom})}catch{this._showToast(!0)}this._saving=!1}}_save(){"navbar"===this._tab?this._saveNavbar():"popup"===this._tab?this._savePopup():"light"===this._tab?this._saveLights():"weather"===this._tab?this._saveWeather():this._saveDashboard()}_selectLightRoom(e){this._lightRoom=e,this._lightDropdownOpen=!1,this._loadRoomLights()}async _loadRoomLights(){if(!this.hass||!this._lightRoom)return void(this._lights=[]);const e=$e(this._lightRoom,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let t=new Set,i=[],a={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_room",{area_id:this._lightRoom});e&&(t=new Set(e.hidden_entities),i=e.entity_order,a=e.entity_layouts)}catch{}const r=this.hass,s=new Map;i.forEach((e,t)=>s.set(e,t));const o=e.map(e=>{const i=r.states[e.entity_id],s="on"===i?.state,o=i?.attributes.brightness,n=s&&void 0!==o?Math.round(o/255*100):0;return{entityId:e.entity_id,name:i?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:s,brightnessPct:n,layout:a[e.entity_id]||"compact",visible:!t.has(e.entity_id)}});o.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=s.get(e.entityId),a=s.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=o;try{if(this._backend){const e=await this._backend.send("get_schedules");this._schedulesLoaded=e??{},this._scheduleEdits=new Map;for(const t of o){const e=this._schedulesLoaded[t.entityId];this._scheduleEdits.set(t.entityId,e?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){const t=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._lights=[...i,...a]}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate()}_updateSchedulePeriod(e,t,i,a){const r=this._scheduleEdits.get(e)??[];r[t]&&(r[t]={...r[t],[i]:a},this._scheduleEdits.set(e,[...r]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this._backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{await this._backend.send("set_schedule",{entity_id:e,periods:t}),this._showToast(),pe.emit("schedule-changed",{entityId:e})}catch{this._showToast(!0)}}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T"),[a,r,s]=t.split("-").map(Number),[o,n]=(i??"00:00").split(":");return{year:a,month:r-1,day:s,hour:o,minute:n}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,r=i?this._parseDateTimeValue(i.end):null,s=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=s.getMonth(),this._pickerStartYear=s.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=s.getFullYear(),this._pickerMonth=s.getMonth()),r?(this._pickerEndDay=r.day,this._pickerEndMonth=r.month,this._pickerEndYear=r.year,this._pickerEndHour=r.hour,this._pickerEndMinute=r.minute):(this._pickerEndDay=null,this._pickerEndMonth=s.getMonth(),this._pickerEndYear=s.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?r?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,void(this._pickerEndDay=null)}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),r=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),s=String(r).padStart(2,"0");t.target.value=s,"startHour"===e?this._pickerStartHour=s:"startMinute"===e?this._pickerStartMinute=s:"endHour"===e?this._pickerEndHour=s:this._pickerEndMinute=s,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),r=String(this._pickerEndMonth+1).padStart(2,"0"),s=String(this._pickerEndDay).padStart(2,"0"),o=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${r}-${s}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",o),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),r=new Date(e,t,0).getDate(),s=new Date,o=s.getFullYear()===e&&s.getMonth()===t,n=s.getDate(),d=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,c=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,l=[],h=(e,t,i,a)=>{const r=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&o&&e===n,rangeStart:null!==d&&r===d,rangeEnd:null!==c&&r===c,inRange:null!==d&&null!==c&&r>d&&r<c}},p=0===t?11:t-1,u=0===t?e-1:e;for(let v=i-1;v>=0;v--)l.push(h(r-v,!0,u,p));for(let v=1;v<=a;v++)l.push(h(v,!1,e,t));const g=11===t?0:t+1,_=11===t?e+1:e,m=42-l.length;for(let v=1;v<=m;v++)l.push(h(v,!0,_,g));return l}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_renderDateTimePicker(){const e=this._getMonthDays(),t=this._getDayLabels(),i=null!==this._pickerStartDay&&null!==this._pickerEndDay;return V`
+      <div class="picker-overlay" @click=${e=>{e.target===e.currentTarget&&this._closePicker()}}>
+        <div class="picker-popup">
+          <div class="picker-phase">
+            <button
+              class="picker-phase-btn ${"start"===this._pickerPhase?"active":""}"
+              @click=${()=>{this._pickerPhase="start"}}
+            >${we("config.light_schedule_start")}</button>
+            <button
+              class="picker-phase-btn ${"end"===this._pickerPhase?"active":""}"
+              @click=${()=>{this._pickerPhase="end"}}
+            >${we("config.light_schedule_end")}</button>
+          </div>
+          <div class="picker-header">
+            <button class="picker-nav" @click=${()=>this._pickerPrevMonth()} aria-label="Previous month">
+              <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
+            </button>
+            <span class="picker-month">${this._getMonthLabel()}</span>
+            <button class="picker-nav" @click=${()=>this._pickerNextMonth()} aria-label="Next month">
+              <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
+            </button>
+          </div>
+          <div class="picker-grid">
+            ${t.map(e=>V`<span class="picker-day-label">${e}</span>`)}
+            ${e.map(e=>{const t=["picker-day",e.today?"today":"",e.rangeStart?"range-start":"",e.rangeEnd?"range-end":"",e.inRange?"in-range":"",e.otherMonth?"other-month":""].filter(Boolean).join(" ");return V`
+                <button class=${t} @click=${()=>this._pickerSelectDay(e.day,e.otherMonth)}>${e.day}</button>
+              `})}
+          </div>
+          <div class="picker-time-row">
+            <div class="picker-time-group">
+              <span class="picker-time-label">${we("config.light_schedule_start")}</span>
+              <div class="time-input">
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerStartHour}
+                  @change=${e=>this._pickerSetTime("startHour",e)}
+                />
+                <span class="time-sep">:</span>
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerStartMinute}
+                  @change=${e=>this._pickerSetTime("startMinute",e)}
+                />
+              </div>
+            </div>
+            <div class="picker-time-group">
+              <span class="picker-time-label">${we("config.light_schedule_end")}</span>
+              <div class="time-input">
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerEndHour}
+                  @change=${e=>this._pickerSetTime("endHour",e)}
+                />
+                <span class="time-sep">:</span>
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerEndMinute}
+                  @change=${e=>this._pickerSetTime("endMinute",e)}
+                />
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-sm btn-accent picker-confirm"
+            @click=${()=>this._pickerConfirm()}
+            ?disabled=${!i}
+          >
+            ${we("config.light_schedule_confirm")}
+          </button>
+        </div>
+      </div>
+    `}async _saveLights(){if(this._backend&&!this._saving&&this._lightRoom){this._saving=!0;try{let e=[];try{const t=await this._backend.send("get_room",{area_id:this._lightRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._lights.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._lights.filter(e=>!e.visible).map(e=>e.entityId),r={};for(const s of this._lights)"full"===s.layout&&(r[s.entityId]=s.layout);if(await this._backend.send("set_room",{area_id:this._lightRoom,entity_order:this._lights.map(e=>e.entityId),hidden_entities:[...i,...a],entity_layouts:r}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._lightRoom})}catch{this._showToast(!0)}this._saving=!1}}async _reset(){this._loaded=!0,await this._loadConfig(),this._lightRoom&&this._loadRoomLights()}_showToast(e=!1){void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastError=e,this._toast=!0,this._toastTimeout=setTimeout(()=>{this._toast=!1,this._toastTimeout=void 0},2e3)}_goBack(){history.back()}_renderNavbarPreview(){const e=[...this._rooms.filter(e=>e.visible)];return this._autoSort&&e.sort((e,t)=>(e.lightsOn>0?0:1)-(t.lightsOn>0?0:1)),V`
       <div class="preview-navbar">
-        ${e.map((e,t)=>{const i=this._showLights&&e.lightsOn>0,a=this._showHumidity&&null!==e.humidityValue&&e.humidityValue>=this._humidityThreshold,s=this._showMedia&&e.mediaPlaying,o=this._showTemperature&&null!==e.tempValue&&e.tempValue>=this._tempHigh,r=["preview-nav-item",0===t?"active-preview":"",i?"has-light":"",a?"has-humidity":"",s?"has-music":"",o?"has-temp-hot":"",this._showTemperature&&null!==e.tempValue&&!o&&e.tempValue<=this._tempLow?"has-temp-cold":""].filter(Boolean).join(" ");return V`
-            <div class=${r}>
+        ${e.map((e,t)=>{const i=this._showLights&&e.lightsOn>0,a=this._showHumidity&&null!==e.humidityValue&&e.humidityValue>=this._humidityThreshold,r=this._showMedia&&e.mediaPlaying,s=this._showTemperature&&null!==e.tempValue&&e.tempValue>=this._tempHigh,o=["preview-nav-item",0===t?"active-preview":"",i?"has-light":"",a?"has-humidity":"",r?"has-music":"",s?"has-temp-hot":"",this._showTemperature&&null!==e.tempValue&&!s&&e.tempValue<=this._tempLow?"has-temp-cold":""].filter(Boolean).join(" ");return V`
+            <div class=${o}>
               <span class="preview-temp-badge">
-                <ha-icon .icon=${o?"mdi:thermometer-high":"mdi:snowflake"}></ha-icon>
+                <ha-icon .icon=${s?"mdi:thermometer-high":"mdi:snowflake"}></ha-icon>
               </span>
               <ha-icon .icon=${e.icon}></ha-icon>
               <div class="preview-nav-label"><span>${e.name}</span></div>
@@ -1748,8 +2296,8 @@
           <div class="preview-popup-info">
             <div class="preview-popup-name">${e.name}</div>
             <div class="preview-popup-meta">
-              ${e.temperature?V`<span>${e.temperature}</span>`:W}
-              ${e.humidity?V`<span>${e.humidity}</span>`:W}
+              ${e.temperature?V`<span>${e.temperature}</span>`:Y}
+              ${e.humidity?V`<span>${e.humidity}</span>`:Y}
             </div>
           </div>
           <div class="preview-popup-close">
@@ -1763,7 +2311,7 @@
                 <span class="preview-scene-chip ${e.visible?"":"hidden-scene"}">${e.name}</span>
               `)}
           </div>
-        `:W}
+        `:Y}
 
         <div class="preview-popup-cards">
           ${this._cards.filter(e=>e.visible).map(e=>V`
@@ -1799,7 +2347,7 @@
               </div>
             `)}
           </div>
-        `:W}
+        `:Y}
 
         <div class="section-label">${we("config.navbar_behavior")}</div>
         <div class="feature-list">
@@ -1837,7 +2385,7 @@
               ${we("config.navbar_icon_label",{name:this._rooms.find(e=>e.areaId===this._iconPickerRoom)?.name||""})}
             </div>
             <div class="icon-picker-grid">
-              ${Te.map(e=>V`
+              ${Me.map(e=>V`
                   <button
                     class="icon-pick ${this._rooms.find(e=>e.areaId===this._iconPickerRoom)?.icon===e?"selected":""}"
                     @click=${()=>this._iconPickerRoom&&this._setRoomIcon(this._iconPickerRoom,e)}
@@ -1935,9 +2483,9 @@
           </button>
         </div>
       </div>
-    `}_renderRoomRow(e,t){const i=this._dragIdx===t&&"rooms"===this._dragContext,a=this._dropIdx===t&&"rooms"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
+    `}_renderRoomRow(e,t){const i=this._dragIdx===t&&"rooms"===this._dragContext,a=this._dropIdx===t&&"rooms"===this._dragContext,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
       <div
-        class=${s}
+        class=${r}
         draggable="true"
         @dragstart=${()=>this._onDragStart(t,"rooms")}
         @dragover=${e=>this._onDragOver(t,e)}
@@ -2015,7 +2563,7 @@
           <div class="item-list">
             ${this._scenes.map((e,t)=>this._renderSceneRow(e,t))}
           </div>
-        `:W}
+        `:Y}
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${()=>this._reset()}>${we("common.reset")}</button>
@@ -2028,9 +2576,9 @@
           </button>
         </div>
       </div>
-    `}_renderCardRow(e,t){const i=this._dragIdx===t&&"cards"===this._dragContext,a=this._dropIdx===t&&"cards"===this._dragContext,s=["item-row card-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
+    `}_renderCardRow(e,t){const i=this._dragIdx===t&&"cards"===this._dragContext,a=this._dropIdx===t&&"cards"===this._dragContext,r=["item-row card-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
       <div
-        class=${s}
+        class=${r}
         draggable="true"
         @dragstart=${()=>this._onDragStart(t,"cards")}
         @dragover=${e=>this._onDragOver(t,e)}
@@ -2057,9 +2605,9 @@
           aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.nameKey?we(e.nameKey):e.id}"
         ></button>
       </div>
-    `}_renderSceneRow(e,t){const i=this._dragIdx===t&&"scenes"===this._dragContext,a=this._dropIdx===t&&"scenes"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
+    `}_renderSceneRow(e,t){const i=this._dragIdx===t&&"scenes"===this._dragContext,a=this._dropIdx===t&&"scenes"===this._dragContext,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
       <div
-        class=${s}
+        class=${r}
         draggable="true"
         @dragstart=${()=>this._onDragStart(t,"scenes")}
         @dragover=${e=>this._onDragOver(t,e)}
@@ -2085,7 +2633,7 @@
           aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
         ></button>
       </div>
-    `}_renderLightPreview(){if(!this._lightRoom)return V`<div class="preview-empty">${we("config.light_select_room")}</div>`;if(0===this._lights.length)return V`<div class="preview-empty">${we("config.light_no_lights")}</div>`;const e=this._lights.filter(e=>e.visible),t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,s=0===t?"none":t===i?"all":"some";if(0===e.length)return V`<div class="preview-empty">${we("config.light_no_visible")}</div>`;const o=[],r=[];for(const l of e){"compact"===("full"===l.layout?"full":"compact")?(r.push(l),2===r.length&&(o.push({kind:"compact-pair",left:r[0],right:r[1]}),r.length=0)):(r.length>0&&(o.push({kind:"full",light:r[0]}),r.length=0),o.push({kind:"full",light:l}))}r.length>0&&o.push({kind:"full",light:r[0]});const n=a?.06:0,d=(e,t,i)=>{const a=["preview-light-row",t?"compact":"",i?"compact-right":"",e.visible?"":"hidden-light"].filter(Boolean).join(" ");return V`
+    `}_renderLightPreview(){if(!this._lightRoom)return V`<div class="preview-empty">${we("config.light_select_room")}</div>`;if(0===this._lights.length)return V`<div class="preview-empty">${we("config.light_no_lights")}</div>`;const e=this._lights.filter(e=>e.visible),t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,r=0===t?"none":t===i?"all":"some";if(0===e.length)return V`<div class="preview-empty">${we("config.light_no_visible")}</div>`;const s=[],o=[];for(const c of e){"compact"===("full"===c.layout?"full":"compact")?(o.push(c),2===o.length&&(s.push({kind:"compact-pair",left:o[0],right:o[1]}),o.length=0)):(o.length>0&&(s.push({kind:"full",light:o[0]}),o.length=0),s.push({kind:"full",light:c}))}o.length>0&&s.push({kind:"full",light:o[0]});const n=a?.06:0,d=(e,t,i)=>{const a=["preview-light-row",t?"compact":"",i?"compact-right":"",e.visible?"":"hidden-light"].filter(Boolean).join(" "),r=this._scheduleEdits.get(e.entityId),s=r?r.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0;return V`
         <div class=${a} data-on=${e.isOn}>
           <div class="preview-light-icon ${e.isOn?"on":""}">
             <ha-icon .icon=${"mdi:lightbulb"}></ha-icon>
@@ -2094,7 +2642,8 @@
             <div class="preview-light-name">${e.name}</div>
             <div class="preview-light-sub">${e.isOn?`${e.brightnessPct}%`:we("common.off")}</div>
           </div>
-          ${"full"===e.layout?V`<span class="preview-light-layout-tag">full</span>`:W}
+          ${s?V`<ha-icon class="preview-light-sched" .icon=${"mdi:calendar-clock"}></ha-icon>`:Y}
+          ${"full"===e.layout?V`<span class="preview-light-layout-tag">full</span>`:Y}
           <span class="preview-light-dot ${e.isOn?"on":""}"></span>
         </div>
       `};return V`
@@ -2102,7 +2651,7 @@
         <div class="preview-light-header">
           <div class="preview-light-header-left">
             <span class="preview-light-title">${we("light.title")}</span>
-            <span class="preview-light-count ${s}">${t}/${i}</span>
+            <span class="preview-light-count ${r}">${t}/${i}</span>
           </div>
           <div class="preview-light-toggle ${a?"on":""}"></div>
         </div>
@@ -2112,9 +2661,9 @@
             style="background:radial-gradient(ellipse at 30% 20%, rgba(251,191,36,0.12) 0%, transparent 70%);opacity:${n}"
           ></div>
           <div class="preview-light-grid">
-            ${o.map(e=>"full"===e.kind?d(e.light,!1,!1):V`
+            ${s.map(e=>"full"===e.kind?d(e.light,!1,!1):V`
                 ${d(e.left,!0,!1)}
-                ${e.right?d(e.right,!0,!0):W}
+                ${e.right?d(e.right,!0,!0):Y}
               `)}
           </div>
         </div>
@@ -2162,7 +2711,19 @@
             `:this._lightRoom?V`<div class="banner">
                 <ha-icon .icon=${"mdi:lightbulb-off-outline"}></ha-icon>
                 <span>${we("config.light_no_lights")}</span>
-              </div>`:W}
+              </div>`:Y}
+
+        ${this._lights.length>0?V`
+          <div class="section-desc schedule-hint">
+            <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
+            ${we("config.light_schedule_hint")}
+          </div>
+        `:Y}
+
+        <div class="section-desc dashboard-vs-room">
+          <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
+          ${we("config.light_dashboard_vs_room")}
+        </div>
 
         ${this._lightRoom?V`
           <div class="save-bar">
@@ -2175,43 +2736,101 @@
               ${this._saving?we("common.saving"):we("common.save")}
             </button>
           </div>
-        `:W}
+        `:Y}
       </div>
-    `}_renderLightRow(e,t){const i=this._dragIdx===t&&"lights"===this._dragContext,a=this._dropIdx===t&&"lights"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return V`
-      <div
-        class=${s}
-        draggable="true"
-        @dragstart=${()=>this._onDragStart(t,"lights")}
-        @dragover=${e=>this._onDragOver(t,e)}
-        @dragleave=${()=>this._onDragLeave()}
-        @drop=${e=>this._onDropGeneric(t,e)}
-        @dragend=${()=>this._onDragEnd()}
-      >
-        <span class="drag-handle">
-          <ha-icon .icon=${"mdi:drag"}></ha-icon>
-        </span>
-        <div class="item-info">
-          <span class="item-name">${e.name}</span>
-          <span class="item-meta">${e.entityId}</span>
-        </div>
-        <div class="light-state">
-          <span class="light-dot ${e.isOn?"on":""}"></span>
-        </div>
-        <button
-          class="layout-btn"
-          @click=${()=>this._cycleLightLayout(e.entityId)}
-          aria-label="${we("config.light_change_layout_aria")}"
-          title="${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+    `}_renderLightRow(e,t){const i=this._dragIdx===t&&"lights"===this._dragContext,a=this._dropIdx===t&&"lights"===this._dragContext,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),s=this._scheduleEdits.get(e.entityId),o=s?s.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0,n=this._scheduleExpandedEntity===e.entityId,d=["item-card",n?"expanded":""].filter(Boolean).join(" ");return V`
+      <div class=${d}>
+        <div
+          class=${r}
+          draggable="true"
+          @dragstart=${()=>this._onDragStart(t,"lights")}
+          @dragover=${e=>this._onDragOver(t,e)}
+          @dragleave=${()=>this._onDragLeave()}
+          @drop=${e=>this._onDropGeneric(t,e)}
+          @dragend=${()=>this._onDragEnd()}
         >
-          ${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+          <span class="drag-handle">
+            <ha-icon .icon=${"mdi:drag"}></ha-icon>
+          </span>
+          <div class="item-info">
+            <span class="item-name">${e.name}</span>
+            <span class="item-meta">${e.entityId}</span>
+          </div>
+          <div class="light-state">
+            <span class="light-dot ${e.isOn?"on":""}"></span>
+          </div>
+          <button
+            class="schedule-btn ${o?"active":""}"
+            @click=${()=>this._toggleScheduleExpand(e.entityId)}
+            aria-label="${we("config.light_schedule_aria",{name:e.name})}"
+            aria-expanded=${n?"true":"false"}
+            title="${we("config.light_schedule_title")}"
+          >
+            <ha-icon .icon=${"mdi:calendar-clock"}></ha-icon>
+          </button>
+          <button
+            class="layout-btn"
+            @click=${()=>this._cycleLightLayout(e.entityId)}
+            aria-label="${we("config.light_change_layout_aria")}"
+            title="${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+          >
+            ${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+          </button>
+          <button
+            class="toggle ${e.visible?"on":""}"
+            @click=${()=>this._toggleLightVisible(e.entityId)}
+            role="switch"
+            aria-checked=${e.visible?"true":"false"}
+            aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
+          ></button>
+        </div>
+        <div class="fold-sep ${n?"visible":""}"></div>
+        <div class="schedule-fold ${n?"open":""}">
+          <div class="schedule-fold-inner">
+            ${this._renderScheduleContent(e.entityId)}
+          </div>
+        </div>
+      </div>
+    `}_formatDateTimeShort(e){if(!e)return"";const[t,i]=e.split("T");if(!t)return e;const[a,r,s]=t.split("-");return`${s}/${r}/${a} ${i??"00:00"}`}_formatPeriodDisplay(e){if(!e.start&&!e.end)return"";const t=this._formatDateTimeShort(e.start),i=this._formatDateTimeShort(e.end);return t&&i?`${t}  →  ${i}`:t?`${t}  → …`:`…  →  ${i}`}_renderScheduleContent(e){const t=this._scheduleEdits.get(e)??[];return V`
+      <div class="schedule-body">
+        <div class="schedule-header">${we("config.light_schedule_title")}</div>
+        ${t.map((t,i)=>V`
+          <div class="schedule-period">
+            <div class="schedule-row">
+              <button
+                class="datetime-display ${t.start||t.end?"":"empty"}"
+                @click=${()=>this._openRangePicker(e,i)}
+              >
+                ${t.start||t.end?this._formatPeriodDisplay(t):we("config.light_schedule_no_date")}
+              </button>
+            </div>
+            <div class="schedule-row schedule-row-actions">
+              <button
+                class="check-item ${t.recurring?"checked":""}"
+                @click=${()=>this._toggleScheduleRecurring(e,i)}
+              >
+                <span class="check-box">
+                  <ha-icon .icon=${"mdi:check"}></ha-icon>
+                </span>
+                <span class="check-label">${we("config.light_schedule_recurring")}</span>
+              </button>
+              <button
+                class="btn-icon xs schedule-delete"
+                @click=${()=>this._removeSchedulePeriod(e,i)}
+                aria-label="${we("config.light_schedule_delete_aria")}"
+              >
+                <ha-icon .icon=${"mdi:delete-outline"}></ha-icon>
+              </button>
+            </div>
+          </div>
+        `)}
+        <button class="btn btn-sm schedule-add" @click=${()=>this._addSchedulePeriod(e)}>
+          <ha-icon .icon=${"mdi:plus"}></ha-icon>
+          ${we("config.light_schedule_add")}
         </button>
-        <button
-          class="toggle ${e.visible?"on":""}"
-          @click=${()=>this._toggleLightVisible(e.entityId)}
-          role="switch"
-          aria-checked=${e.visible?"true":"false"}
-          aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
-        ></button>
+        <button class="btn btn-sm btn-accent schedule-save" @click=${()=>this._saveSchedule(e)}>
+          ${we("common.save")}
+        </button>
       </div>
     `}_toggleDashboardCard(e){const t=new Set(this._dashboardEnabledCards);t.has(e)?t.delete(e):t.add(e),this._dashboardEnabledCards=[...t]}async _saveDashboard(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_dashboard",{enabled_cards:this._dashboardEnabledCards}),!this._mounted)return;this._showToast(),pe.emit("dashboard-config-changed",void 0)}catch{this._showToast(!0)}this._saving=!1}}async _loadDashboardConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.dashboard&&(this._dashboardEnabledCards=e.dashboard.enabled_cards??["weather"])}catch{}}_renderDashboardPreview(){const e=new Set(this._dashboardEnabledCards);return V`
       <div class="preview-dashboard">
@@ -2221,14 +2840,14 @@
               <ha-icon .icon=${"mdi:weather-partly-cloudy"}></ha-icon>
               <span>22°</span>
             </div>
-          `:W}
+          `:Y}
           ${e.has("light")?V`
             <div class="preview-dashboard-card light">
               <ha-icon .icon=${"mdi:lightbulb-group"}></ha-icon>
               <span>${we("light.title")}</span>
             </div>
-          `:W}
-          ${0===e.size?V`<div class="preview-dashboard-empty">—</div>`:W}
+          `:Y}
+          ${0===e.size?V`<div class="preview-dashboard-empty">—</div>`:Y}
         </div>
         <div class="preview-dashboard-navbar">
           <ha-icon .icon=${"mdi:sofa"}></ha-icon>
@@ -2274,16 +2893,16 @@
           </button>
         </div>
       </div>
-    `}_toggleWeatherMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}_selectWeatherEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}async _saveWeather(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_weather",{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly}),!this._mounted)return;this._showToast(),pe.emit("weather-config-changed",void 0)}catch{this._showToast(!0)}this._saving=!1}}_renderWeatherPreview(){if(!this._weatherEntity||!this.hass)return V`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const e=this.hass.states[this._weatherEntity];if(!e)return V`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const t=e.attributes,i=t.temperature??"--",a=t.temperature_unit??"°C",s=new Set(this._weatherHiddenMetrics),o=e.state||"sunny",r={sunny:"mdi:weather-sunny","clear-night":"mdi:weather-night",partlycloudy:"mdi:weather-partly-cloudy",cloudy:"mdi:weather-cloudy",fog:"mdi:weather-fog",rainy:"mdi:weather-rainy",pouring:"mdi:weather-pouring",snowy:"mdi:weather-snowy",windy:"mdi:weather-windy",lightning:"mdi:weather-lightning"}[o]||"mdi:weather-cloudy",n=we({sunny:"weather.cond_sunny","clear-night":"weather.cond_clear_night",partlycloudy:"weather.cond_partly_cloudy",cloudy:"weather.cond_cloudy",fog:"weather.cond_foggy",rainy:"weather.cond_rainy",pouring:"weather.cond_pouring",snowy:"weather.cond_snowy",windy:"weather.cond_windy",lightning:"weather.cond_lightning"}[o]||"weather.cond_cloudy"),d=new Date,l=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),c=String(d.getSeconds()).padStart(2,"0"),h=d.toLocaleDateString(this.hass.language||"fr",{weekday:"long",day:"numeric",month:"long"}),p=[];if(s.has("humidity")||null==t.humidity||p.push({key:"humidity",icon:"mdi:water-percent",val:`${t.humidity}%`}),s.has("wind")||null==t.wind_speed||p.push({key:"wind",icon:"mdi:weather-windy",val:`${Math.round(t.wind_speed)}`,unit:"km/h"}),s.has("pressure")||null==t.pressure||p.push({key:"pressure",icon:"mdi:gauge",val:`${Math.round(t.pressure)}`,unit:"hPa"}),s.has("uv")||null==t.uv_index||p.push({key:"uv",icon:"mdi:sun-wireless",val:`${Math.round(t.uv_index)}`,unit:"UV"}),s.has("visibility")||null==t.visibility||p.push({key:"visibility",icon:"mdi:eye-outline",val:`${t.visibility}`,unit:"km"}),!s.has("sunrise")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_rising;p.push({key:"sunrise",icon:"mdi:weather-sunset-up",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}if(!s.has("sunset")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_setting;p.push({key:"sunset",icon:"mdi:weather-sunset-down",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}const u=p.length<=2?p.length:p.length<=4?2:3;return V`
+    `}_toggleWeatherMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}_selectWeatherEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}async _saveWeather(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_weather",{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly}),!this._mounted)return;this._showToast(),pe.emit("weather-config-changed",void 0)}catch{this._showToast(!0)}this._saving=!1}}_renderWeatherPreview(){if(!this._weatherEntity||!this.hass)return V`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const e=this.hass.states[this._weatherEntity];if(!e)return V`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const t=e.attributes,i=t.temperature??"--",a=t.temperature_unit??"°C",r=new Set(this._weatherHiddenMetrics),s=e.state||"sunny",o={sunny:"mdi:weather-sunny","clear-night":"mdi:weather-night",partlycloudy:"mdi:weather-partly-cloudy",cloudy:"mdi:weather-cloudy",fog:"mdi:weather-fog",rainy:"mdi:weather-rainy",pouring:"mdi:weather-pouring",snowy:"mdi:weather-snowy",windy:"mdi:weather-windy",lightning:"mdi:weather-lightning"}[s]||"mdi:weather-cloudy",n=we({sunny:"weather.cond_sunny","clear-night":"weather.cond_clear_night",partlycloudy:"weather.cond_partly_cloudy",cloudy:"weather.cond_cloudy",fog:"weather.cond_foggy",rainy:"weather.cond_rainy",pouring:"weather.cond_pouring",snowy:"weather.cond_snowy",windy:"weather.cond_windy",lightning:"weather.cond_lightning"}[s]||"weather.cond_cloudy"),d=new Date,c=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),l=String(d.getSeconds()).padStart(2,"0"),h=d.toLocaleDateString(this.hass.language||"fr",{weekday:"long",day:"numeric",month:"long"}),p=[];if(r.has("humidity")||null==t.humidity||p.push({key:"humidity",icon:"mdi:water-percent",val:`${t.humidity}%`}),r.has("wind")||null==t.wind_speed||p.push({key:"wind",icon:"mdi:weather-windy",val:`${Math.round(t.wind_speed)}`,unit:"km/h"}),r.has("pressure")||null==t.pressure||p.push({key:"pressure",icon:"mdi:gauge",val:`${Math.round(t.pressure)}`,unit:"hPa"}),r.has("uv")||null==t.uv_index||p.push({key:"uv",icon:"mdi:sun-wireless",val:`${Math.round(t.uv_index)}`,unit:"UV"}),r.has("visibility")||null==t.visibility||p.push({key:"visibility",icon:"mdi:eye-outline",val:`${t.visibility}`,unit:"km"}),!r.has("sunrise")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_rising;p.push({key:"sunrise",icon:"mdi:weather-sunset-up",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}if(!r.has("sunset")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_setting;p.push({key:"sunset",icon:"mdi:weather-sunset-down",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}const u=p.length<=2?p.length:p.length<=4?2:3;return V`
       <div class="preview-weather">
         <div class="pw-header">
           <div class="pw-header-left">
-            <span class="pw-time">${l}<span class="pw-sec">:${c}</span></span>
+            <span class="pw-time">${c}<span class="pw-sec">:${l}</span></span>
             <span class="pw-date">${h}</span>
           </div>
           <div class="pw-header-right">
             <span class="pw-temp">${i}<span class="pw-temp-unit">${a}</span></span>
-            <span class="pw-cond"><ha-icon .icon=${r}></ha-icon>${n}</span>
+            <span class="pw-cond"><ha-icon .icon=${o}></ha-icon>${n}</span>
           </div>
         </div>
 
@@ -2295,18 +2914,18 @@
               <div class="pw-metric ${e.key}">
                 <ha-icon .icon=${e.icon}></ha-icon>
                 <span class="pw-metric-val">${e.val}</span>
-                ${e.unit?V`<span class="pw-metric-unit">${e.unit}</span>`:W}
+                ${e.unit?V`<span class="pw-metric-unit">${e.unit}</span>`:Y}
               </div>
             `)}
           </div>
-        `:W}
+        `:Y}
 
         ${this._weatherShowDaily||this._weatherShowHourly?V`
           <div class="pw-tabs">
-            ${this._weatherShowDaily?V`<span class="pw-tab active">${we("weather.daily_tab")}</span>`:W}
-            ${this._weatherShowHourly?V`<span class="pw-tab">${we("weather.hourly_tab")}</span>`:W}
+            ${this._weatherShowDaily?V`<span class="pw-tab active">${we("weather.daily_tab")}</span>`:Y}
+            ${this._weatherShowHourly?V`<span class="pw-tab">${we("weather.hourly_tab")}</span>`:Y}
           </div>
-        `:W}
+        `:Y}
       </div>
     `}_renderWeatherTab(){const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics);return V`
       <div class="tab-panel" id="panel-weather">
@@ -2481,7 +3100,9 @@
         </div>
       </div>
 
+      ${this._pickerOpen?this._renderDateTimePicker():Y}
+
       <div class="toast ${this._toast?"show":""} ${this._toastError?"error":""}">
         ${this._toastError?we("common.error_save"):we("common.config_saved")}
       </div>
-    `:W}}Ae([ce({attribute:!1})],Ie.prototype,"hass"),Ae([ce({type:Boolean})],Ie.prototype,"narrow"),Ae([he()],Ie.prototype,"_lang"),Ae([he()],Ie.prototype,"_tab"),Ae([he()],Ie.prototype,"_rooms"),Ae([he()],Ie.prototype,"_emptyRooms"),Ae([he()],Ie.prototype,"_selectedRoom"),Ae([he()],Ie.prototype,"_cards"),Ae([he()],Ie.prototype,"_scenes"),Ae([he()],Ie.prototype,"_lights"),Ae([he()],Ie.prototype,"_lightRoom"),Ae([he()],Ie.prototype,"_lightDropdownOpen"),Ae([he()],Ie.prototype,"_iconPickerRoom"),Ae([he()],Ie.prototype,"_dropdownOpen"),Ae([he()],Ie.prototype,"_toast"),Ae([he()],Ie.prototype,"_saving"),Ae([he()],Ie.prototype,"_showLights"),Ae([he()],Ie.prototype,"_showTemperature"),Ae([he()],Ie.prototype,"_showHumidity"),Ae([he()],Ie.prototype,"_showMedia"),Ae([he()],Ie.prototype,"_autoSort"),Ae([he()],Ie.prototype,"_tempHigh"),Ae([he()],Ie.prototype,"_tempLow"),Ae([he()],Ie.prototype,"_humidityThreshold"),Ae([he()],Ie.prototype,"_weatherEntity"),Ae([he()],Ie.prototype,"_weatherHiddenMetrics"),Ae([he()],Ie.prototype,"_weatherShowDaily"),Ae([he()],Ie.prototype,"_weatherShowHourly"),Ae([he()],Ie.prototype,"_weatherDropdownOpen"),Ae([he()],Ie.prototype,"_dashboardEnabledCards"),Ae([he()],Ie.prototype,"_dragIdx"),Ae([he()],Ie.prototype,"_dropIdx"),Ae([he()],Ie.prototype,"_toastError"),customElements.define("glass-config-panel",Ie)}();
+    `:Y}}Ce([le({attribute:!1})],Pe.prototype,"hass"),Ce([le({type:Boolean})],Pe.prototype,"narrow"),Ce([he()],Pe.prototype,"_lang"),Ce([he()],Pe.prototype,"_tab"),Ce([he()],Pe.prototype,"_rooms"),Ce([he()],Pe.prototype,"_emptyRooms"),Ce([he()],Pe.prototype,"_selectedRoom"),Ce([he()],Pe.prototype,"_cards"),Ce([he()],Pe.prototype,"_scenes"),Ce([he()],Pe.prototype,"_lights"),Ce([he()],Pe.prototype,"_lightRoom"),Ce([he()],Pe.prototype,"_lightDropdownOpen"),Ce([he()],Pe.prototype,"_iconPickerRoom"),Ce([he()],Pe.prototype,"_dropdownOpen"),Ce([he()],Pe.prototype,"_toast"),Ce([he()],Pe.prototype,"_saving"),Ce([he()],Pe.prototype,"_showLights"),Ce([he()],Pe.prototype,"_showTemperature"),Ce([he()],Pe.prototype,"_showHumidity"),Ce([he()],Pe.prototype,"_showMedia"),Ce([he()],Pe.prototype,"_autoSort"),Ce([he()],Pe.prototype,"_tempHigh"),Ce([he()],Pe.prototype,"_tempLow"),Ce([he()],Pe.prototype,"_humidityThreshold"),Ce([he()],Pe.prototype,"_weatherEntity"),Ce([he()],Pe.prototype,"_weatherHiddenMetrics"),Ce([he()],Pe.prototype,"_weatherShowDaily"),Ce([he()],Pe.prototype,"_weatherShowHourly"),Ce([he()],Pe.prototype,"_weatherDropdownOpen"),Ce([he()],Pe.prototype,"_dashboardEnabledCards"),Ce([he()],Pe.prototype,"_scheduleExpandedEntity"),Ce([he()],Pe.prototype,"_pickerOpen"),Ce([he()],Pe.prototype,"_pickerYear"),Ce([he()],Pe.prototype,"_pickerMonth"),Ce([he()],Pe.prototype,"_pickerStartDay"),Ce([he()],Pe.prototype,"_pickerStartMonth"),Ce([he()],Pe.prototype,"_pickerStartYear"),Ce([he()],Pe.prototype,"_pickerEndDay"),Ce([he()],Pe.prototype,"_pickerEndMonth"),Ce([he()],Pe.prototype,"_pickerEndYear"),Ce([he()],Pe.prototype,"_pickerStartHour"),Ce([he()],Pe.prototype,"_pickerStartMinute"),Ce([he()],Pe.prototype,"_pickerEndHour"),Ce([he()],Pe.prototype,"_pickerEndMinute"),Ce([he()],Pe.prototype,"_pickerPhase"),Ce([he()],Pe.prototype,"_dragIdx"),Ce([he()],Pe.prototype,"_dropIdx"),Ce([he()],Pe.prototype,"_toastError"),customElements.define("glass-config-panel",Pe)}();

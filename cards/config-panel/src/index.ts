@@ -6,6 +6,7 @@ import { t, setLanguage, getLanguage, type TranslationKey } from '@glass-cards/i
 import {
   BackendService,
   getAreaEntities,
+  type EntityScheduleMap,
   type HomeAssistant,
 } from '@glass-cards/base-card';
 
@@ -51,6 +52,12 @@ interface LightEntry {
   brightnessPct: number;
   layout: 'full' | 'compact';
   visible: boolean;
+}
+
+interface SchedulePeriodEdit {
+  start: string;
+  end: string;
+  recurring: boolean;
 }
 
 const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
@@ -132,6 +139,28 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
+
+  // Schedule config
+  @state() private _scheduleExpandedEntity: string | null = null;
+  private _scheduleEdits = new Map<string, SchedulePeriodEdit[]>();
+  private _schedulesLoaded: EntityScheduleMap = {};
+
+  // DateTime range picker popup
+  @state() private _pickerOpen = false;
+  private _pickerTarget: { entityId: string; periodIdx: number } | null = null;
+  @state() private _pickerYear = new Date().getFullYear();
+  @state() private _pickerMonth = new Date().getMonth();
+  @state() private _pickerStartDay: number | null = null;
+  @state() private _pickerStartMonth = 0;
+  @state() private _pickerStartYear = new Date().getFullYear();
+  @state() private _pickerEndDay: number | null = null;
+  @state() private _pickerEndMonth = 0;
+  @state() private _pickerEndYear = new Date().getFullYear();
+  @state() private _pickerStartHour = '00';
+  @state() private _pickerStartMinute = '00';
+  @state() private _pickerEndHour = '23';
+  @state() private _pickerEndMinute = '59';
+  @state() private _pickerPhase: 'start' | 'end' = 'start';
 
   // Drag state
   @state() private _dragIdx: number | null = null;
@@ -1275,6 +1304,12 @@ export class GlassConfigPanel extends LitElement {
         pointer-events: none;
         transition: opacity var(--t-slow);
       }
+      .preview-light-sched {
+        --mdc-icon-size: 10px;
+        color: var(--c-accent);
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
       .preview-light-layout-tag {
         font-size: 6px;
         font-weight: 700;
@@ -1650,6 +1685,485 @@ export class GlassConfigPanel extends LitElement {
       .layout-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
+      }
+
+      /* ── Schedule button (btn-icon.xs pattern from kit) ── */
+      .schedule-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--t4);
+        cursor: pointer;
+        flex-shrink: 0;
+        padding: 0;
+        transition: all var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        --mdc-icon-size: 16px;
+      }
+      .schedule-btn.active {
+        color: var(--c-accent);
+        border-color: rgba(129,140,248,0.25);
+        background: rgba(129,140,248,0.12);
+      }
+      @media (hover: hover) {
+        .schedule-btn:hover {
+          background: var(--s4);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
+      .schedule-btn:active { transform: scale(0.96); }
+      .schedule-btn:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+
+      /* ── Item card wrapper ── */
+      .item-card {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--b1);
+        background: var(--s1);
+        transition: border-color var(--t-fast);
+      }
+      .item-card .item-row {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+      }
+      @media (hover: hover) {
+        .item-card:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+      }
+      .item-card.expanded {
+        border-color: var(--b2);
+      }
+      .item-card.expanded .item-row {
+        border-bottom: none;
+      }
+      .item-card .item-row.disabled {
+        opacity: 0.35;
+      }
+
+      /* ── Fold separator (from kit) ── */
+      .fold-sep {
+        height: 1px;
+        margin: 0 12px;
+        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .fold-sep.visible { opacity: 1; }
+
+      /* ── Schedule fold (CSS Grid 0fr/1fr from kit) ── */
+      .schedule-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .schedule-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .schedule-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .schedule-fold.open .schedule-fold-inner {
+        opacity: 1;
+      }
+      .schedule-body {
+        padding: 10px 12px 12px 36px;
+      }
+      .schedule-header {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t3);
+        margin-bottom: 8px;
+      }
+      .schedule-period {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--b1);
+      }
+      .schedule-period:last-of-type {
+        border-bottom: none;
+      }
+      .schedule-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .schedule-row-actions {
+        justify-content: space-between;
+        margin-bottom: 0;
+      }
+      .schedule-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--t3);
+        min-width: 36px;
+        flex-shrink: 0;
+      }
+      /* ── Input (from kit) ── */
+      .input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .input:focus { border-color: var(--b3); }
+      .input::placeholder { color: var(--t4); }
+      /* schedule-input removed — replaced by .datetime-display */
+
+      /* ── Check item (from kit) ── */
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        font-family: inherit;
+      }
+      .check-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid var(--b3);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--t-fast);
+        flex-shrink: 0;
+        --mdc-icon-size: 12px;
+      }
+      .check-box ha-icon {
+        opacity: 0;
+        transform: scale(0);
+        transition: all var(--t-fast);
+        color: #fff;
+      }
+      .check-item.checked .check-box {
+        background: var(--c-accent);
+        border-color: var(--c-accent);
+        box-shadow: 0 0 6px rgba(129,140,248,0.3);
+      }
+      .check-item.checked .check-box ha-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .check-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--t2);
+      }
+      .check-item.checked .check-label {
+        color: var(--t1);
+      }
+
+      /* ── Schedule delete (btn-icon.xs btn-alert from kit) ── */
+      .schedule-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(248,113,113,0.2);
+        background: rgba(248,113,113,0.1);
+        color: var(--c-alert);
+        cursor: pointer;
+        padding: 0;
+        --mdc-icon-size: 14px;
+        transition: all var(--t-fast);
+        outline: none;
+      }
+      @media (hover: hover) {
+        .schedule-delete:hover {
+          background: rgba(248,113,113,0.2);
+          border-color: rgba(248,113,113,0.3);
+        }
+      }
+      .schedule-delete:active { transform: scale(0.96); }
+
+      /* ── Schedule add & save (btn btn-sm from kit) ── */
+      .schedule-add {
+        width: 100%;
+        margin-top: 8px;
+        border-style: dashed;
+        --mdc-icon-size: 14px;
+      }
+      .schedule-save {
+        margin-top: 8px;
+        width: 100%;
+      }
+
+      /* ── Hint & explanation texts ── */
+      .schedule-hint,
+      .dashboard-vs-room {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 8px 10px;
+        background: var(--s1);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b1);
+        font-size: 11px;
+        line-height: 1.4;
+        color: var(--t3);
+        --mdc-icon-size: 14px;
+      }
+      .schedule-hint ha-icon,
+      .dashboard-vs-room ha-icon {
+        flex-shrink: 0;
+        margin-top: 1px;
+        color: var(--c-info);
+      }
+
+      /* ── DateTime display trigger ── */
+      .datetime-display {
+        flex: 1;
+        min-width: 0;
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t2);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color var(--t-fast);
+        text-align: left;
+        outline: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .datetime-display:hover { border-color: var(--b3); }
+      .datetime-display:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .datetime-display.empty { color: var(--t4); }
+
+      /* ── DateTime picker popup ── */
+      .picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        animation: picker-fade-in var(--t-fast) ease-out;
+      }
+      @keyframes picker-fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .picker-popup {
+        width: 280px;
+        padding: 16px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--b2);
+        background: var(--s3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      }
+      .picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px 10px;
+      }
+      .picker-month {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--t1);
+      }
+      .picker-nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        border: none;
+        background: transparent;
+        color: var(--t3);
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        transition: all var(--t-fast);
+        --mdc-icon-size: 16px;
+      }
+      .picker-nav:hover { background: var(--s2); color: var(--t1); }
+      .picker-nav:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .picker-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+      }
+      .picker-day-label {
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--t4);
+        text-align: center;
+        padding: 4px 0;
+      }
+      .picker-day {
+        aspect-ratio: 1;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--t3);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        outline: none;
+        font-family: inherit;
+        padding: 0;
+      }
+      .picker-day:hover { background: var(--s2); color: var(--t1); }
+      .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
+      .picker-day.selected {
+        background: rgba(129,140,248,0.2);
+        color: var(--c-accent);
+        font-weight: 700;
+        border: 1px solid rgba(129,140,248,0.3);
+      }
+      .picker-day.range-start {
+        background: var(--c-accent);
+        color: #fff;
+        font-weight: 700;
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+      }
+      .picker-day.range-end {
+        background: var(--c-accent);
+        color: #fff;
+        font-weight: 700;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      }
+      .picker-day.range-start.range-end {
+        border-radius: var(--radius-sm);
+      }
+      .picker-day.in-range {
+        background: rgba(129,140,248,0.12);
+        color: var(--c-accent);
+        border-radius: 0;
+      }
+      .picker-day.other-month { opacity: 0.3; }
+
+      /* ── Picker phase indicator ── */
+      .picker-phase {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .picker-phase-btn {
+        padding: 4px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--b1);
+        background: transparent;
+        color: var(--t3);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        outline: none;
+      }
+      .picker-phase-btn.active {
+        background: rgba(129,140,248,0.15);
+        color: var(--c-accent);
+        border-color: rgba(129,140,248,0.3);
+      }
+
+      /* ── Time picker ── */
+      .picker-time-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--b1);
+      }
+      .picker-time-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .picker-time-label {
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--t4);
+      }
+      .time-input {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .time-digit {
+        width: 44px;
+        height: 40px;
+        text-align: center;
+        border-radius: 10px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .time-digit:focus { border-color: var(--c-accent); }
+      .time-sep {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--t3);
+      }
+
+      /* ── Picker confirm button ── */
+      .picker-confirm {
+        margin-top: 14px;
+        width: 100%;
       }
 
       /* ── Save bar ── */
@@ -2366,6 +2880,24 @@ export class GlassConfigPanel extends LitElement {
     });
 
     this._lights = lights;
+
+    // Load schedules
+    try {
+      if (this._backend) {
+        const schedules = await this._backend.send<EntityScheduleMap>('get_schedules');
+        this._schedulesLoaded = schedules ?? {};
+        this._scheduleEdits = new Map();
+        for (const l of lights) {
+          const sched = this._schedulesLoaded[l.entityId];
+          this._scheduleEdits.set(
+            l.entityId,
+            sched?.periods?.map((p) => ({ start: p.start, end: p.end, recurring: p.recurring ?? false })) ?? [],
+          );
+        }
+      }
+    } catch {
+      // Backend not available
+    }
   }
 
   private _toggleLightVisible(entityId: string) {
@@ -2381,6 +2913,356 @@ export class GlassConfigPanel extends LitElement {
     this._lights = this._lights.map((l) =>
       l.entityId === entityId ? { ...l, layout: l.layout === 'full' ? 'compact' : 'full' } : l,
     );
+  }
+
+  private _toggleScheduleExpand(entityId: string) {
+    this._scheduleExpandedEntity = this._scheduleExpandedEntity === entityId ? null : entityId;
+    // Initialize edit entries if not present
+    if (!this._scheduleEdits.has(entityId)) {
+      const sched = this._schedulesLoaded[entityId];
+      this._scheduleEdits.set(
+        entityId,
+        sched?.periods?.map((p) => ({ start: p.start, end: p.end, recurring: p.recurring ?? false })) ?? [],
+      );
+    }
+    this.requestUpdate();
+  }
+
+  private _addSchedulePeriod(entityId: string) {
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    periods.push({ start: '', end: '', recurring: false });
+    this._scheduleEdits.set(entityId, [...periods]);
+    this.requestUpdate();
+  }
+
+  private _removeSchedulePeriod(entityId: string, idx: number) {
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    periods.splice(idx, 1);
+    this._scheduleEdits.set(entityId, [...periods]);
+    this.requestUpdate();
+  }
+
+  private _updateSchedulePeriod(entityId: string, idx: number, field: 'start' | 'end', value: string) {
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    if (periods[idx]) {
+      periods[idx] = { ...periods[idx], [field]: value };
+      this._scheduleEdits.set(entityId, [...periods]);
+      this.requestUpdate();
+    }
+  }
+
+  private _toggleScheduleRecurring(entityId: string, idx: number) {
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    if (periods[idx]) {
+      periods[idx] = { ...periods[idx], recurring: !periods[idx].recurring };
+      this._scheduleEdits.set(entityId, [...periods]);
+      this.requestUpdate();
+    }
+  }
+
+  private async _saveSchedule(entityId: string) {
+    if (!this._backend) return;
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    const validPeriods = periods.filter((p) => p.start && p.end);
+    try {
+      await this._backend.send('set_schedule', {
+        entity_id: entityId,
+        periods: validPeriods,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('schedule-changed', { entityId });
+    } catch {
+      if (!this._mounted) return;
+      this._showToast(true);
+    }
+  }
+
+  // — DateTime range picker —
+
+  private _parseDateTimeValue(value: string): { year: number; month: number; day: number; hour: string; minute: string } | null {
+    if (!value) return null;
+    const [datePart, timePart] = value.split('T');
+    if (!datePart) return null;
+    const parts = datePart.split('-').map(Number);
+    if (parts.length < 3 || parts.some(isNaN)) return null;
+    const [y, m, d] = parts;
+    const [hh, mm] = (timePart ?? '00:00').split(':');
+    return { year: y, month: m - 1, day: d, hour: hh ?? '00', minute: mm ?? '00' };
+  }
+
+  private _openRangePicker(entityId: string, periodIdx: number) {
+    this._pickerTarget = { entityId, periodIdx };
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    const p = periods[periodIdx];
+    const startParsed = p ? this._parseDateTimeValue(p.start) : null;
+    const endParsed = p ? this._parseDateTimeValue(p.end) : null;
+    const now = new Date();
+
+    if (startParsed) {
+      this._pickerStartDay = startParsed.day;
+      this._pickerStartMonth = startParsed.month;
+      this._pickerStartYear = startParsed.year;
+      this._pickerStartHour = startParsed.hour;
+      this._pickerStartMinute = startParsed.minute;
+      this._pickerYear = startParsed.year;
+      this._pickerMonth = startParsed.month;
+    } else {
+      this._pickerStartDay = null;
+      this._pickerStartMonth = now.getMonth();
+      this._pickerStartYear = now.getFullYear();
+      this._pickerStartHour = '00';
+      this._pickerStartMinute = '00';
+      this._pickerYear = now.getFullYear();
+      this._pickerMonth = now.getMonth();
+    }
+
+    if (endParsed) {
+      this._pickerEndDay = endParsed.day;
+      this._pickerEndMonth = endParsed.month;
+      this._pickerEndYear = endParsed.year;
+      this._pickerEndHour = endParsed.hour;
+      this._pickerEndMinute = endParsed.minute;
+    } else {
+      this._pickerEndDay = null;
+      this._pickerEndMonth = now.getMonth();
+      this._pickerEndYear = now.getFullYear();
+      this._pickerEndHour = '23';
+      this._pickerEndMinute = '59';
+    }
+
+    this._pickerPhase = startParsed ? (endParsed ? 'start' : 'end') : 'start';
+    this._pickerOpen = true;
+  }
+
+  private _closePicker() {
+    this._pickerOpen = false;
+    this._pickerTarget = null;
+  }
+
+  private _pickerPrevMonth() {
+    if (this._pickerMonth === 0) { this._pickerMonth = 11; this._pickerYear--; }
+    else this._pickerMonth--;
+  }
+
+  private _pickerNextMonth() {
+    if (this._pickerMonth === 11) { this._pickerMonth = 0; this._pickerYear++; }
+    else this._pickerMonth++;
+  }
+
+  private _pickerSelectDay(day: number, isOtherMonth: boolean) {
+    if (isOtherMonth) return;
+    if (this._pickerPhase === 'start') {
+      this._pickerStartDay = day;
+      this._pickerStartMonth = this._pickerMonth;
+      this._pickerStartYear = this._pickerYear;
+      // Auto-advance to end selection
+      this._pickerPhase = 'end';
+      // If end is before new start, clear end
+      if (this._pickerEndDay !== null) {
+        const startTs = new Date(this._pickerStartYear, this._pickerStartMonth, day).getTime();
+        const endTs = new Date(this._pickerEndYear, this._pickerEndMonth, this._pickerEndDay).getTime();
+        if (endTs < startTs) {
+          this._pickerEndDay = null;
+        }
+      }
+    } else {
+      // Ensure end >= start
+      if (this._pickerStartDay !== null) {
+        const startTs = new Date(this._pickerStartYear, this._pickerStartMonth, this._pickerStartDay).getTime();
+        const endTs = new Date(this._pickerYear, this._pickerMonth, day).getTime();
+        if (endTs < startTs) {
+          this._pickerStartDay = day;
+          this._pickerStartMonth = this._pickerMonth;
+          this._pickerStartYear = this._pickerYear;
+          this._pickerEndDay = null;
+          this._pickerPhase = 'start';
+          return;
+        }
+      }
+      this._pickerEndDay = day;
+      this._pickerEndMonth = this._pickerMonth;
+      this._pickerEndYear = this._pickerYear;
+    }
+  }
+
+  private _pickerSetTime(which: 'startHour' | 'startMinute' | 'endHour' | 'endMinute', e: Event) {
+    const val = (e.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 2);
+    const isHour = which.includes('Hour');
+    const num = Math.min(isHour ? 23 : 59, Math.max(0, parseInt(val, 10) || 0));
+    const padded = String(num).padStart(2, '0');
+    (e.target as HTMLInputElement).value = padded;
+    if (which === 'startHour') this._pickerStartHour = padded;
+    else if (which === 'startMinute') this._pickerStartMinute = padded;
+    else if (which === 'endHour') this._pickerEndHour = padded;
+    else this._pickerEndMinute = padded;
+    this.requestUpdate();
+  }
+
+  private _pickerConfirm() {
+    if (!this._pickerTarget || this._pickerStartDay === null || this._pickerEndDay === null) return;
+    const { entityId, periodIdx } = this._pickerTarget;
+    const sm = String(this._pickerStartMonth + 1).padStart(2, '0');
+    const sd = String(this._pickerStartDay).padStart(2, '0');
+    const em = String(this._pickerEndMonth + 1).padStart(2, '0');
+    const ed = String(this._pickerEndDay).padStart(2, '0');
+    const startVal = `${this._pickerStartYear}-${sm}-${sd}T${this._pickerStartHour}:${this._pickerStartMinute}`;
+    const endVal = `${this._pickerEndYear}-${em}-${ed}T${this._pickerEndHour}:${this._pickerEndMinute}`;
+    this._updateSchedulePeriod(entityId, periodIdx, 'start', startVal);
+    this._updateSchedulePeriod(entityId, periodIdx, 'end', endVal);
+    this._closePicker();
+  }
+
+  private _toAbsDay(year: number, month: number, day: number): number {
+    return new Date(year, month, day).getTime();
+  }
+
+  private _getMonthDays(): Array<{ day: number; otherMonth: boolean; today: boolean; rangeStart: boolean; rangeEnd: boolean; inRange: boolean }> {
+    const year = this._pickerYear;
+    const month = this._pickerMonth;
+    const firstDay = new Date(year, month, 1).getDay();
+    const startOffset = (firstDay + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const now = new Date();
+    const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
+    const todayDate = now.getDate();
+
+    const startTs = this._pickerStartDay !== null ? this._toAbsDay(this._pickerStartYear, this._pickerStartMonth, this._pickerStartDay) : null;
+    const endTs = this._pickerEndDay !== null ? this._toAbsDay(this._pickerEndYear, this._pickerEndMonth, this._pickerEndDay) : null;
+
+    type DayInfo = { day: number; otherMonth: boolean; today: boolean; rangeStart: boolean; rangeEnd: boolean; inRange: boolean };
+    const days: DayInfo[] = [];
+
+    const classify = (d: number, isOther: boolean, absYear: number, absMonth: number): DayInfo => {
+      const ts = this._toAbsDay(absYear, absMonth, d);
+      const isStart = startTs !== null && ts === startTs;
+      const isEnd = endTs !== null && ts === endTs;
+      const isInRange = startTs !== null && endTs !== null && ts > startTs && ts < endTs;
+      return {
+        day: d, otherMonth: isOther,
+        today: !isOther && isCurrentMonth && d === todayDate,
+        rangeStart: isStart, rangeEnd: isEnd, inRange: isInRange,
+      };
+    };
+
+    // Previous month
+    const prevMonth = month === 0 ? 11 : month - 1;
+    const prevYear = month === 0 ? year - 1 : year;
+    for (let i = startOffset - 1; i >= 0; i--) {
+      days.push(classify(daysInPrevMonth - i, true, prevYear, prevMonth));
+    }
+    // Current month
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(classify(d, false, year, month));
+    }
+    // Next month
+    const nextMonth = month === 11 ? 0 : month + 1;
+    const nextYear = month === 11 ? year + 1 : year;
+    const remaining = 42 - days.length;
+    for (let d = 1; d <= remaining; d++) {
+      days.push(classify(d, true, nextYear, nextMonth));
+    }
+    return days;
+  }
+
+  private _getMonthLabel(): string {
+    const date = new Date(this._pickerYear, this._pickerMonth, 1);
+    const lang = this._lang === 'fr' ? 'fr-FR' : 'en-US';
+    const monthName = date.toLocaleDateString(lang, { month: 'long' });
+    return `${monthName.charAt(0).toUpperCase()}${monthName.slice(1)} ${this._pickerYear}`;
+  }
+
+  private _getDayLabels(): string[] {
+    if (this._lang === 'fr') return ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
+    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  }
+
+  private _renderDateTimePicker() {
+    const days = this._getMonthDays();
+    const dayLabels = this._getDayLabels();
+    const canConfirm = this._pickerStartDay !== null && this._pickerEndDay !== null;
+    return html`
+      <div class="picker-overlay"
+        @click=${(e: Event) => { if (e.target === e.currentTarget) this._closePicker(); }}
+        @keydown=${(e: KeyboardEvent) => { if (e.key === 'Escape') this._closePicker(); }}
+      >
+        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${t('config.light_schedule_title')}"
+          <div class="picker-phase">
+            <button
+              class="picker-phase-btn ${this._pickerPhase === 'start' ? 'active' : ''}"
+              @click=${() => { this._pickerPhase = 'start'; }}
+            >${t('config.light_schedule_start')}</button>
+            <button
+              class="picker-phase-btn ${this._pickerPhase === 'end' ? 'active' : ''}"
+              @click=${() => { this._pickerPhase = 'end'; }}
+            >${t('config.light_schedule_end')}</button>
+          </div>
+          <div class="picker-header">
+            <button class="picker-nav" @click=${() => this._pickerPrevMonth()} aria-label="${t('config.light_schedule_prev_month_aria')}"
+              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
+            </button>
+            <span class="picker-month">${this._getMonthLabel()}</span>
+            <button class="picker-nav" @click=${() => this._pickerNextMonth()} aria-label="${t('config.light_schedule_next_month_aria')}"
+              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
+            </button>
+          </div>
+          <div class="picker-grid">
+            ${dayLabels.map((l) => html`<span class="picker-day-label">${l}</span>`)}
+            ${days.map((d) => {
+              const cls = [
+                'picker-day',
+                d.today ? 'today' : '',
+                d.rangeStart ? 'range-start' : '',
+                d.rangeEnd ? 'range-end' : '',
+                d.inRange ? 'in-range' : '',
+                d.otherMonth ? 'other-month' : '',
+              ].filter(Boolean).join(' ');
+              return html`
+                <button class=${cls} @click=${() => this._pickerSelectDay(d.day, d.otherMonth)}>${d.day}</button>
+              `;
+            })}
+          </div>
+          <div class="picker-time-row">
+            <div class="picker-time-group">
+              <span class="picker-time-label">${t('config.light_schedule_start')}</span>
+              <div class="time-input">
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerStartHour}
+                  @change=${(e: Event) => this._pickerSetTime('startHour', e)}
+                />
+                <span class="time-sep">:</span>
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerStartMinute}
+                  @change=${(e: Event) => this._pickerSetTime('startMinute', e)}
+                />
+              </div>
+            </div>
+            <div class="picker-time-group">
+              <span class="picker-time-label">${t('config.light_schedule_end')}</span>
+              <div class="time-input">
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerEndHour}
+                  @change=${(e: Event) => this._pickerSetTime('endHour', e)}
+                />
+                <span class="time-sep">:</span>
+                <input type="text" class="time-digit" maxlength="2"
+                  .value=${this._pickerEndMinute}
+                  @change=${(e: Event) => this._pickerSetTime('endMinute', e)}
+                />
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-sm btn-accent picker-confirm"
+            @click=${() => this._pickerConfirm()}
+            ?disabled=${!canConfirm}
+          >
+            ${t('config.light_schedule_confirm')}
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   private async _saveLights() {
@@ -2987,6 +3869,10 @@ export class GlassConfigPanel extends LitElement {
         isRight ? 'compact-right' : '',
         !l.visible ? 'hidden-light' : '',
       ].filter(Boolean).join(' ');
+      const editPeriods = this._scheduleEdits.get(l.entityId);
+      const hasSched = editPeriods
+        ? editPeriods.some((p) => p.start && p.end)
+        : (this._schedulesLoaded[l.entityId]?.periods?.length ?? 0) > 0;
 
       return html`
         <div class=${classes} data-on=${l.isOn}>
@@ -2997,6 +3883,7 @@ export class GlassConfigPanel extends LitElement {
             <div class="preview-light-name">${l.name}</div>
             <div class="preview-light-sub">${l.isOn ? `${l.brightnessPct}%` : t('common.off')}</div>
           </div>
+          ${hasSched ? html`<ha-icon class="preview-light-sched" .icon=${'mdi:calendar-clock'}></ha-icon>` : nothing}
           ${l.layout === 'full' ? html`<span class="preview-light-layout-tag">full</span>` : nothing}
           <span class="preview-light-dot ${l.isOn ? 'on' : ''}"></span>
         </div>
@@ -3087,6 +3974,18 @@ export class GlassConfigPanel extends LitElement {
               </div>`
             : nothing}
 
+        ${this._lights.length > 0 ? html`
+          <div class="section-desc schedule-hint">
+            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+            ${t('config.light_schedule_hint')}
+          </div>
+        ` : nothing}
+
+        <div class="section-desc dashboard-vs-room">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          ${t('config.light_dashboard_vs_room')}
+        </div>
+
         ${this._lightRoom ? html`
           <div class="save-bar">
             <button class="btn btn-ghost" @click=${() => this._loadRoomLights()}>${t('common.reset')}</button>
@@ -3106,48 +4005,135 @@ export class GlassConfigPanel extends LitElement {
   private _renderLightRow(light: LightEntry, idx: number) {
     const isDragging = this._dragIdx === idx && this._dragContext === 'lights';
     const isDropTarget = this._dropIdx === idx && this._dragContext === 'lights';
-    const classes = [
+    const rowClasses = [
       'item-row',
       !light.visible ? 'disabled' : '',
       isDragging ? 'dragging' : '',
       isDropTarget ? 'drop-target' : '',
     ].filter(Boolean).join(' ');
+    const editPeriods = this._scheduleEdits.get(light.entityId);
+    const hasSchedule = editPeriods
+      ? editPeriods.some((p) => p.start && p.end)
+      : (this._schedulesLoaded[light.entityId]?.periods?.length ?? 0) > 0;
+    const isExpanded = this._scheduleExpandedEntity === light.entityId;
+    const wrapClasses = ['item-card', isExpanded ? 'expanded' : ''].filter(Boolean).join(' ');
 
     return html`
-      <div
-        class=${classes}
-        draggable="true"
-        @dragstart=${() => this._onDragStart(idx, 'lights')}
-        @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
-        @dragleave=${() => this._onDragLeave()}
-        @drop=${(e: DragEvent) => this._onDropGeneric(idx, e)}
-        @dragend=${() => this._onDragEnd()}
-      >
-        <span class="drag-handle">
-          <ha-icon .icon=${'mdi:drag'}></ha-icon>
-        </span>
-        <div class="item-info">
-          <span class="item-name">${light.name}</span>
-          <span class="item-meta">${light.entityId}</span>
-        </div>
-        <div class="light-state">
-          <span class="light-dot ${light.isOn ? 'on' : ''}"></span>
-        </div>
-        <button
-          class="layout-btn"
-          @click=${() => this._cycleLightLayout(light.entityId)}
-          aria-label="${t('config.light_change_layout_aria')}"
-          title="${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+      <div class=${wrapClasses}>
+        <div
+          class=${rowClasses}
+          draggable="true"
+          @dragstart=${() => this._onDragStart(idx, 'lights')}
+          @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
+          @dragleave=${() => this._onDragLeave()}
+          @drop=${(e: DragEvent) => this._onDropGeneric(idx, e)}
+          @dragend=${() => this._onDragEnd()}
         >
-          ${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+          <span class="drag-handle">
+            <ha-icon .icon=${'mdi:drag'}></ha-icon>
+          </span>
+          <div class="item-info">
+            <span class="item-name">${light.name}</span>
+            <span class="item-meta">${light.entityId}</span>
+          </div>
+          <div class="light-state">
+            <span class="light-dot ${light.isOn ? 'on' : ''}"></span>
+          </div>
+          <button
+            class="schedule-btn ${hasSchedule ? 'active' : ''}"
+            @click=${() => this._toggleScheduleExpand(light.entityId)}
+            aria-label="${t('config.light_schedule_aria', { name: light.name })}"
+            aria-expanded=${isExpanded ? 'true' : 'false'}
+            title="${t('config.light_schedule_title')}"
+          >
+            <ha-icon .icon=${'mdi:calendar-clock'}></ha-icon>
+          </button>
+          <button
+            class="layout-btn"
+            @click=${() => this._cycleLightLayout(light.entityId)}
+            aria-label="${t('config.light_change_layout_aria')}"
+            title="${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+          >
+            ${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+          </button>
+          <button
+            class="toggle ${light.visible ? 'on' : ''}"
+            @click=${() => this._toggleLightVisible(light.entityId)}
+            role="switch"
+            aria-checked=${light.visible ? 'true' : 'false'}
+            aria-label="${light.visible ? t('common.hide') : t('common.show')} ${light.name}"
+          ></button>
+        </div>
+        <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+        <div class="schedule-fold ${isExpanded ? 'open' : ''}">
+          <div class="schedule-fold-inner">
+            ${this._renderScheduleContent(light.entityId)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _formatDateTimeShort(value: string): string {
+    if (!value) return '';
+    const [datePart, timePart] = value.split('T');
+    if (!datePart) return value;
+    const [y, m, d] = datePart.split('-');
+    const time = timePart ?? '00:00';
+    return `${d}/${m}/${y} ${time}`;
+  }
+
+  private _formatPeriodDisplay(p: SchedulePeriodEdit): string {
+    if (!p.start && !p.end) return '';
+    const s = this._formatDateTimeShort(p.start);
+    const e = this._formatDateTimeShort(p.end);
+    if (s && e) return `${s}  →  ${e}`;
+    if (s) return `${s}  → …`;
+    return `…  →  ${e}`;
+  }
+
+  private _renderScheduleContent(entityId: string) {
+    const periods = this._scheduleEdits.get(entityId) ?? [];
+    return html`
+      <div class="schedule-body">
+        <div class="schedule-header">${t('config.light_schedule_title')}</div>
+        ${periods.map((p, idx) => html`
+          <div class="schedule-period">
+            <div class="schedule-row">
+              <button
+                class="datetime-display ${p.start || p.end ? '' : 'empty'}"
+                @click=${() => this._openRangePicker(entityId, idx)}
+              >
+                ${p.start || p.end ? this._formatPeriodDisplay(p) : t('config.light_schedule_no_date')}
+              </button>
+            </div>
+            <div class="schedule-row schedule-row-actions">
+              <button
+                class="check-item ${p.recurring ? 'checked' : ''}"
+                @click=${() => this._toggleScheduleRecurring(entityId, idx)}
+              >
+                <span class="check-box">
+                  <ha-icon .icon=${'mdi:check'}></ha-icon>
+                </span>
+                <span class="check-label">${t('config.light_schedule_recurring')}</span>
+              </button>
+              <button
+                class="btn-icon xs schedule-delete"
+                @click=${() => this._removeSchedulePeriod(entityId, idx)}
+                aria-label="${t('config.light_schedule_delete_aria')}"
+              >
+                <ha-icon .icon=${'mdi:delete-outline'}></ha-icon>
+              </button>
+            </div>
+          </div>
+        `)}
+        <button class="btn btn-sm schedule-add" @click=${() => this._addSchedulePeriod(entityId)}>
+          <ha-icon .icon=${'mdi:plus'}></ha-icon>
+          ${t('config.light_schedule_add')}
         </button>
-        <button
-          class="toggle ${light.visible ? 'on' : ''}"
-          @click=${() => this._toggleLightVisible(light.entityId)}
-          role="switch"
-          aria-checked=${light.visible ? 'true' : 'false'}
-          aria-label="${light.visible ? t('common.hide') : t('common.show')} ${light.name}"
-        ></button>
+        <button class="btn btn-sm btn-accent schedule-save" @click=${() => this._saveSchedule(entityId)}>
+          ${t('common.save')}
+        </button>
       </div>
     `;
   }
@@ -3635,6 +4621,8 @@ export class GlassConfigPanel extends LitElement {
                   : this._renderDashboardTab()}
         </div>
       </div>
+
+      ${this._pickerOpen ? this._renderDateTimePicker() : nothing}
 
       <div class="toast ${this._toast ? 'show' : ''} ${this._toastError ? 'error' : ''}">
         ${this._toastError ? t('common.error_save') : t('common.config_saved')}

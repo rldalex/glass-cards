@@ -167,6 +167,7 @@ class GlassWeatherCard extends BaseCard {
     .weather-card {
       position: relative;
       width: 100%; padding: 14px 14px 8px;
+      box-sizing: border-box;
     }
 
     .card-inner {
