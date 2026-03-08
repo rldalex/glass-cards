@@ -1005,6 +1005,7 @@ class GlassWeatherCard extends BaseCard {
     const feelsLike = attrs.apparent_temperature as number | undefined;
     const humidity = attrs.humidity as number | undefined;
     const windSpeed = attrs.wind_speed as number | undefined;
+    const windSpeedUnit = (attrs.wind_speed_unit as string | undefined) ?? 'km/h';
     const windBearing = attrs.wind_bearing as number | undefined;
     const pressure = attrs.pressure as number | undefined;
     const visibility = attrs.visibility as number | undefined;
@@ -1087,7 +1088,7 @@ class GlassWeatherCard extends BaseCard {
             ` : nothing}
 
             <!-- Metrics -->
-            ${this._renderMetrics(hidden, humidity, windSpeed, windBearing, pressure, uvIndex, visibility, sunrise, sunset)}
+            ${this._renderMetrics(hidden, humidity, windSpeed, windSpeedUnit, windBearing, pressure, uvIndex, visibility, sunrise, sunset)}
 
             <!-- Forecast -->
             ${this._renderForecasts(tempUnit)}
@@ -1102,6 +1103,7 @@ class GlassWeatherCard extends BaseCard {
     hidden: Set<string>,
     humidity: number | undefined,
     windSpeed: number | undefined,
+    windSpeedUnit: string,
     windBearing: number | undefined,
     pressure: number | undefined,
     uvIndex: number | undefined,
@@ -1121,7 +1123,7 @@ class GlassWeatherCard extends BaseCard {
       metrics.push(html`<div class="wc-metric wind">
         <ha-icon icon="mdi:weather-windy"></ha-icon>
         <span class="wc-metric-val">${Math.round(windSpeed)}</span>
-        <span class="wc-metric-unit">km/h</span>
+        <span class="wc-metric-unit">${windSpeedUnit}</span>
         <span class="wc-metric-dir">${bearingToDir(windBearing)}</span>
       </div>`);
     }
@@ -1189,7 +1191,7 @@ class GlassWeatherCard extends BaseCard {
         <div class="wc-fold-sep ${(this._activeTab === 'daily' && this._forecastDaily.length > 0) || (this._activeTab === 'hourly' && this._forecastHourly.length > 0) ? 'visible' : ''}"></div>
 
         ${showDaily ? html`
-          <div class="fold ${this._activeTab === 'daily' ? 'open' : ''}" id="wc-daily-panel" role="region">
+          <div class="fold ${this._activeTab === 'daily' ? 'open' : ''}" id="wc-daily-panel" role="region" aria-label="${t('weather.daily_tab')}" aria-hidden="${this._activeTab !== 'daily' ? 'true' : 'false'}">
             <div class="fold-inner">
               <div class="wc-daily-list">
                 ${this._forecastDaily.slice(0, 7).map((d, i) => {
@@ -1216,7 +1218,7 @@ class GlassWeatherCard extends BaseCard {
         ` : nothing}
 
         ${showHourly ? html`
-          <div class="fold ${this._activeTab === 'hourly' ? 'open' : ''}" id="wc-hourly-panel" role="region">
+          <div class="fold ${this._activeTab === 'hourly' ? 'open' : ''}" id="wc-hourly-panel" role="region" aria-label="${t('weather.hourly_tab')}" aria-hidden="${this._activeTab !== 'hourly' ? 'true' : 'false'}">
             <div class="fold-inner">
               <div class="wc-hourly-list">
                 ${this._forecastHourly.slice(0, 10).map((h, i) => {

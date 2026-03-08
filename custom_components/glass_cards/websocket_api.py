@@ -347,7 +347,7 @@ async def ws_set_schedule(
     else:
         valid_periods = [
             p for p in raw_periods
-            if not p["start"] or not p["end"] or p["start"] < p["end"]
+            if p["start"] and p["end"] and p["start"] < p["end"]
         ]
         periods = [
             VisibilityPeriod(

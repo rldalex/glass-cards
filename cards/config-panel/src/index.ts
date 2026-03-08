@@ -2859,8 +2859,9 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('navbar-config-changed', undefined);
     } catch {
       this._showToast(true);
+    } finally {
+      this._saving = false;
     }
-    this._saving = false;
   }
 
   private async _savePopup() {
@@ -2878,8 +2879,9 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('room-config-changed', { areaId: this._selectedRoom });
     } catch {
       this._showToast(true);
+    } finally {
+      this._saving = false;
     }
-    this._saving = false;
   }
 
   private _save() {
@@ -2925,9 +2927,9 @@ export class GlassConfigPanel extends LitElement {
         entity_layouts: Record<string, string>;
       } | null>('get_room', { area_id: this._lightRoom });
       if (result) {
-        hiddenEntities = new Set(result.hidden_entities);
-        entityOrder = result.entity_order;
-        entityLayouts = result.entity_layouts;
+        hiddenEntities = new Set(result.hidden_entities ?? []);
+        entityOrder = result.entity_order ?? [];
+        entityLayouts = result.entity_layouts ?? {};
       }
     } catch {
       // Backend not available
@@ -3272,7 +3274,7 @@ export class GlassConfigPanel extends LitElement {
         @click=${(e: Event) => { if (e.target === e.currentTarget) this._closePicker(); }}
         @keydown=${(e: KeyboardEvent) => { if (e.key === 'Escape') this._closePicker(); }}
       >
-        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${t('config.light_schedule_title')}"
+        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${t('config.light_schedule_title')}">
           <div class="picker-phase">
             <button
               class="picker-phase-btn ${this._pickerPhase === 'start' ? 'active' : ''}"
@@ -3284,11 +3286,11 @@ export class GlassConfigPanel extends LitElement {
             >${t('config.light_schedule_end')}</button>
           </div>
           <div class="picker-header">
-            <button class="picker-nav" @click=${() => this._pickerPrevMonth()} aria-label="${t('config.light_schedule_prev_month_aria')}"
+            <button class="picker-nav" @click=${() => this._pickerPrevMonth()} aria-label="${t('config.light_schedule_prev_month_aria')}">
               <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
             </button>
             <span class="picker-month">${this._getMonthLabel()}</span>
-            <button class="picker-nav" @click=${() => this._pickerNextMonth()} aria-label="${t('config.light_schedule_next_month_aria')}"
+            <button class="picker-nav" @click=${() => this._pickerNextMonth()} aria-label="${t('config.light_schedule_next_month_aria')}">
               <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </button>
           </div>
@@ -3384,8 +3386,9 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('room-config-changed', { areaId: this._lightRoom });
     } catch {
       this._showToast(true);
+    } finally {
+      this._saving = false;
     }
-    this._saving = false;
   }
 
   private async _reset() {
@@ -4244,8 +4247,9 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('dashboard-config-changed', undefined);
     } catch {
       this._showToast(true);
+    } finally {
+      this._saving = false;
     }
-    this._saving = false;
   }
 
   private async _loadDashboardConfig(): Promise<void> {
@@ -4370,8 +4374,9 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('weather-config-changed', undefined);
     } catch {
       this._showToast(true);
+    } finally {
+      this._saving = false;
     }
-    this._saving = false;
   }
 
   private _renderWeatherPreview() {
@@ -4497,8 +4502,12 @@ export class GlassConfigPanel extends LitElement {
 
     const cols = 3;
 
-    // Fake forecast data
-    const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    // Fake forecast data — use Intl for locale-aware day names
+    const lang = this.hass.language || 'fr';
+    const dayNames = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(2024, 0, i + 1); // Mon=1 Jan 2024
+      return new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(d);
+    });
     const fakeDailyIcons = ['mdi:weather-sunny', 'mdi:weather-partly-cloudy', 'mdi:weather-cloudy', 'mdi:weather-rainy', 'mdi:weather-partly-cloudy', 'mdi:weather-sunny', 'mdi:weather-cloudy'];
     const fakeDailyHighs = [baseTemp + 2, baseTemp + 1, baseTemp, baseTemp - 1, baseTemp + 1, baseTemp + 3, baseTemp];
     const fakeDailyLows = [baseTemp - 4, baseTemp - 3, baseTemp - 5, baseTemp - 6, baseTemp - 4, baseTemp - 2, baseTemp - 5];
