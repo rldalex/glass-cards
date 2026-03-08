@@ -4,7 +4,7 @@ import hashlib
 import os
 
 DOMAIN = "glass_cards"
-VERSION = "0.0.8"
+VERSION = "0.0.9"
 
 JS_PATH = "/glass_cards/glass-cards.js"
 PANEL_JS_PATH = "/glass_cards/glass-cards-panel.js"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -19,11 +20,37 @@ from .websocket_api import async_register_commands
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Set up Glass Cards — register WS commands once."""
     async_register_commands(hass)
     return True
+
+
+async def _register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
+    """Register JS as a Lovelace resource for companion app cache resilience.
+
+    The companion app caches the HTML page served by HA. Scripts loaded via
+    add_extra_js_url are embedded in that HTML, so they may not load on cold
+    starts. Lovelace resources are fetched via WebSocket and survive the cache.
+    """
+    try:
+        lovelace_data = hass.data.get("lovelace")
+        if lovelace_data is None:
+            return
+        resources = getattr(lovelace_data, "resources", None)
+        if resources is None:
+            return
+        # Check if already registered
+        for item in resources.async_items():
+            if JS_PATH in item.get("url", ""):
+                return
+        await resources.async_create_item({"res_type": "js", "url": url})
+        _LOGGER.debug("Registered glass-cards as Lovelace resource: %s", url)
+    except Exception:  # noqa: BLE001
+        _LOGGER.debug("Could not register Lovelace resource, falling back to add_extra_js_url")
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -40,8 +67,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Serve the main JS bundle
     js_path = os.path.join(www_dir, "glass-cards.js")
     if os.path.isfile(js_path):
+        js_url = get_js_url()
         static_paths.append(StaticPathConfig(JS_PATH, js_path, cache_headers=False))
-        add_extra_js_url(hass, get_js_url())
+        add_extra_js_url(hass, js_url)
+        # Also register as Lovelace resource for companion app compatibility
+        await _register_lovelace_resource(hass, js_url)
 
     # Serve the config panel JS bundle
     panel_js_path = os.path.join(www_dir, "glass-cards-panel.js")
