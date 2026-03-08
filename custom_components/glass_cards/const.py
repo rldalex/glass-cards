@@ -3,7 +3,7 @@
 import os
 
 DOMAIN = "glass_cards"
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 # Use file modification timestamp for cache-busting
 _www_dir = os.path.join(os.path.dirname(__file__), "www")
