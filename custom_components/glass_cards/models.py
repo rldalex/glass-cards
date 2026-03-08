@@ -5,6 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+VALID_WEATHER_METRICS = frozenset(
+    {"humidity", "wind", "pressure", "uv", "visibility", "sunrise", "sunset"}
+)
+
+VALID_DASHBOARD_CARDS = frozenset(
+    {"weather", "light"}
+)
+DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
+
 
 @dataclass
 class RoomConfig:
@@ -114,17 +123,78 @@ class NavbarConfig:
 
 
 @dataclass
+class WeatherConfig:
+    """Configuration for the weather card."""
+
+    entity_id: str = ""
+    hidden_metrics: list[str] = field(default_factory=list)
+    show_daily: bool = True
+    show_hourly: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "entity_id": self.entity_id,
+            "hidden_metrics": self.hidden_metrics,
+            "show_daily": self.show_daily,
+            "show_hourly": self.show_hourly,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> WeatherConfig:
+        """Deserialize from dict."""
+        raw_hidden = data.get("hidden_metrics", [])
+        return cls(
+            entity_id=str(data.get("entity_id", "")),
+            hidden_metrics=[
+                str(x) for x in raw_hidden
+                if isinstance(x, str) and x in VALID_WEATHER_METRICS
+            ],
+            show_daily=bool(data.get("show_daily", True)),
+            show_hourly=bool(data.get("show_hourly", True)),
+        )
+
+
+@dataclass
+class DashboardConfig:
+    """Configuration for dashboard card visibility."""
+
+    enabled_cards: list[str] = field(default_factory=lambda: list(DEFAULT_DASHBOARD_CARDS))
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "enabled_cards": self.enabled_cards,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> DashboardConfig:
+        """Deserialize from dict."""
+        raw = data.get("enabled_cards", list(DEFAULT_DASHBOARD_CARDS))
+        return cls(
+            enabled_cards=[
+                str(x) for x in raw
+                if isinstance(x, str) and x in VALID_DASHBOARD_CARDS
+            ],
+        )
+
+
+@dataclass
 class GlassCardsData:
     """Top-level data structure for Glass Cards."""
 
     navbar: NavbarConfig = field(default_factory=NavbarConfig)
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
+    weather: WeatherConfig = field(default_factory=WeatherConfig)
+    dashboard: DashboardConfig = field(default_factory=DashboardConfig)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "navbar": self.navbar.to_dict(),
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
+            "weather": self.weather.to_dict(),
+            "dashboard": self.dashboard.to_dict(),
         }
 
     @classmethod
@@ -136,4 +206,6 @@ class GlassCardsData:
                 k: RoomConfig.from_dict(v)
                 for k, v in data.get("rooms", {}).items()
             },
+            weather=WeatherConfig.from_dict(data.get("weather", {})),
+            dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
         )

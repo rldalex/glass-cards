@@ -16,6 +16,7 @@ type LocaleData = Record<string, Record<string, string>>;
 export type TranslationKey =
   | `common.${keyof typeof fr.common}`
   | `light.${keyof typeof fr.light}`
+  | `weather.${keyof typeof fr.weather}`
   | `popup.${keyof typeof fr.popup}`
   | `editor.${keyof typeof fr.editor}`
   | `config.${keyof typeof fr.config}`;

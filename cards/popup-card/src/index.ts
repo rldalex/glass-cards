@@ -158,19 +158,21 @@ export class GlassRoomPopup extends LitElement {
         }
       }
       .scene-dash {
-        width: 12px;
+        width: 16px;
         height: 3px;
         background: var(--t4);
         border-radius: 4px;
         margin-top: 6px;
         opacity: 0;
+        transform-origin: center;
+        transform: scaleX(0.75);
         transition:
           opacity 0.3s var(--ease-std),
-          width 0.3s var(--ease-std);
+          transform 0.3s var(--ease-std);
       }
       .scene-dash.visible {
         opacity: 1;
-        width: 16px;
+        transform: scaleX(1);
       }
       .header-info {
         flex: 1;
@@ -290,13 +292,25 @@ export class GlassRoomPopup extends LitElement {
 
   protected updated(changedProps: PropertyValues) {
     super.updated(changedProps);
-    if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
-      this._lang = getLanguage();
+    if (changedProps.has('hass') && this.hass) {
+      // Invalidate backend on WS reconnect
+      if (this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._roomConfigs.clear();
+      }
+      if (this.hass.language && setLanguage(this.hass.language)) {
+        this._lang = getLanguage();
+      }
     }
   }
 
   connectedCallback() {
     super.connectedCallback();
+    // Flush stale bus subscriptions from a previous connection cycle
+    if (this._busCleanups.length > 0) {
+      this._busCleanups.forEach((c) => c());
+      this._busCleanups = [];
+    }
     // Cancel any stale timers from a previous connection cycle
     if (this._pendingRaf !== undefined) {
       cancelAnimationFrame(this._pendingRaf);
@@ -373,13 +387,13 @@ export class GlassRoomPopup extends LitElement {
 
     // Brief peek: open scenes after 400ms, close after 1s
     this._peekTimeout = setTimeout(() => {
+      this._peekTimeout = undefined;
       if (!this._open) return;
       this._scenesOpen = true;
-      const inner = setTimeout(() => {
+      this._peekTimeout = setTimeout(() => {
+        this._peekTimeout = undefined;
         if (this._open) this._scenesOpen = false;
-        if (this._peekTimeout === inner) this._peekTimeout = undefined;
       }, 1000);
-      this._peekTimeout = inner;
     }, 400);
   }
 

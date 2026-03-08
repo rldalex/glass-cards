@@ -25,6 +25,8 @@ class TestGetConfig:
         result = mock_connection.send_result.call_args[0][1]
         assert "navbar" in result
         assert "rooms" in result
+        assert "dashboard" in result
+        assert result["dashboard"]["enabled_cards"] == ["weather"]
 
     @pytest.mark.asyncio
     async def test_unauthorized_user(self, hass_with_store, mock_connection, mock_regular_user):

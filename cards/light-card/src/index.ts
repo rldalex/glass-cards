@@ -157,6 +157,9 @@ export class GlassLightCard extends BaseCard {
     css`
       :host {
         display: block;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
@@ -712,6 +715,12 @@ export class GlassLightCard extends BaseCard {
 
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
+
+    // Invalidate backend on WS reconnect
+    if (changedProps.has('hass') && this.hass && this._backend && this._backend.connection !== this.hass.connection) {
+      this._backend = undefined;
+      this._roomConfigLoaded = false;
+    }
 
     // Load room config from backend when areaId is available or changes
     const area = this.areaId || (this._config?.area as string | undefined);
@@ -1317,12 +1326,3 @@ export class GlassLightCard extends BaseCard {
 
 customElements.define('glass-light-card', GlassLightCard);
 
-const windowWithCards = window as unknown as {
-  customCards?: { type: string; name: string; description: string }[];
-};
-windowWithCards.customCards = windowWithCards.customCards || [];
-windowWithCards.customCards.push({
-  type: 'glass-light-card',
-  name: 'Glass Light Card',
-  description: 'Neo-glassmorphism light control card',
-});

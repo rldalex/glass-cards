@@ -96,9 +96,10 @@ const ROOM_ICONS = [
 export class GlassConfigPanel extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @property({ type: Boolean }) narrow = false;
+  private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' = 'navbar';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -122,6 +123,16 @@ export class GlassConfigPanel extends LitElement {
   @state() private _tempLow = DEFAULT_TEMP_LOW;
   @state() private _humidityThreshold = DEFAULT_HUMIDITY_THRESHOLD;
 
+  // Weather config
+  @state() private _weatherEntity = '';
+  @state() private _weatherHiddenMetrics: string[] = [];
+  @state() private _weatherShowDaily = true;
+  @state() private _weatherShowHourly = true;
+  @state() private _weatherDropdownOpen = false;
+
+  // Dashboard config
+  @state() private _dashboardEnabledCards: string[] = ['weather'];
+
   // Drag state
   @state() private _dragIdx: number | null = null;
   @state() private _dropIdx: number | null = null;
@@ -133,6 +144,7 @@ export class GlassConfigPanel extends LitElement {
   private _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() private _toastError = false;
   private _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
+  private _boundUpdateScrollMask = this._updateScrollMask.bind(this);
   private _initialIcons = new Map<string, string | null>();
 
   static styles = [
@@ -248,9 +260,26 @@ export class GlassConfigPanel extends LitElement {
         border: 1px solid var(--b1);
         padding: 3px;
         margin-bottom: 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+      }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tabs.mask-right {
+        mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+      }
+      .tabs.mask-left {
+        mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+      }
+      .tabs.mask-both {
+        mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
       }
       .tab {
-        flex: 1;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1259,6 +1288,175 @@ export class GlassConfigPanel extends LitElement {
         flex-shrink: 0;
       }
 
+      /* ── Preview weather (realistic miniature) ── */
+      .preview-weather {
+        border-radius: var(--radius-lg);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.03) 50%,
+          rgba(255, 255, 255, 0.06) 100%
+        );
+        backdrop-filter: blur(50px) saturate(1.5);
+        -webkit-backdrop-filter: blur(50px) saturate(1.5);
+        box-shadow:
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+          0 20px 60px rgba(0, 0, 0, 0.4),
+          0 4px 16px rgba(0, 0, 0, 0.25);
+        border: 1px solid var(--b2);
+        padding: 10px;
+        overflow: hidden;
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      .pw-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .pw-header-left {
+        display: flex; flex-direction: column; gap: 1px;
+      }
+      .pw-time {
+        font-size: 16px; font-weight: 700; color: var(--t1); line-height: 1;
+      }
+      .pw-time .pw-sec {
+        font-size: 8px; font-weight: 400; color: var(--t4);
+      }
+      .pw-date { font-size: 7px; font-weight: 600; color: var(--t3); }
+      .pw-header-right {
+        display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+      }
+      .pw-temp {
+        font-size: 20px; font-weight: 700; color: var(--t1); line-height: 1;
+      }
+      .pw-temp-unit {
+        font-size: 8px; font-weight: 400; color: var(--t3); vertical-align: super;
+      }
+      .pw-cond {
+        display: flex; align-items: center; gap: 3px;
+        font-size: 7px; font-weight: 500; color: var(--t3);
+      }
+      .pw-cond ha-icon {
+        --mdc-icon-size: 10px; color: var(--t3);
+      }
+      .pw-spark {
+        height: 20px;
+        border-radius: var(--radius-sm);
+        background: linear-gradient(180deg, rgba(251,191,36,0.08) 0%, transparent 100%);
+        position: relative; overflow: hidden;
+      }
+      .pw-spark-line {
+        position: absolute; bottom: 4px; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(251,191,36,0.6), rgba(251,191,36,0.3));
+      }
+      .pw-metrics {
+        display: grid;
+        gap: 1px;
+        border-radius: var(--radius-sm);
+        background: var(--b1);
+        overflow: hidden;
+      }
+      .pw-metric {
+        display: flex; align-items: center; justify-content: center; gap: 2px;
+        padding: 3px 2px;
+        background: var(--s1);
+      }
+      .pw-metric ha-icon {
+        --mdc-icon-size: 8px;
+        width: 8px; height: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t4);
+      }
+      .pw-metric.humidity ha-icon { color: rgba(96,165,250,0.5); }
+      .pw-metric.wind ha-icon { color: rgba(110,231,183,0.5); }
+      .pw-metric.pressure ha-icon { color: rgba(148,163,184,0.5); }
+      .pw-metric.uv ha-icon { color: rgba(251,191,36,0.5); }
+      .pw-metric.visibility ha-icon { color: rgba(148,163,184,0.4); }
+      .pw-metric.sunrise ha-icon { color: rgba(251,191,36,0.4); }
+      .pw-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
+      .pw-metric-val { font-size: 7px; font-weight: 600; color: var(--t2); }
+      .pw-metric-unit { font-size: 6px; font-weight: 400; color: var(--t4); }
+      .pw-tabs {
+        display: flex; justify-content: center; gap: 4px;
+      }
+      .pw-tab {
+        font-size: 7px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+        color: var(--t4);
+        padding: 2px 6px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b1);
+        background: transparent;
+      }
+      .pw-tab.active {
+        color: var(--t1);
+        background: var(--s2);
+        border-color: var(--b2);
+      }
+
+      /* ── Preview dashboard ── */
+      .preview-dashboard {
+        border-radius: var(--radius-lg);
+        background: rgba(17, 24, 39, 0.6);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 80px;
+      }
+      .preview-dashboard-cards {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .preview-dashboard-navbar {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        padding: 4px 8px;
+        border-radius: var(--radius-md);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        margin-top: auto;
+      }
+      .preview-dashboard-navbar ha-icon {
+        --mdc-icon-size: 14px;
+        color: var(--t3);
+      }
+      .preview-dashboard-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
+        border: 1px solid var(--b1);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--t2);
+      }
+      .preview-dashboard-card ha-icon {
+        --mdc-icon-size: 16px;
+        color: var(--t3);
+      }
+      .preview-dashboard-card.weather ha-icon {
+        color: rgba(251, 191, 36, 0.7);
+      }
+      .preview-dashboard-card.light ha-icon {
+        color: rgba(251, 191, 36, 0.5);
+      }
+      .preview-dashboard-empty {
+        text-align: center;
+        color: var(--t4);
+        font-size: 11px;
+        padding: 16px 0;
+      }
+
       /* ── Feature toggles ── */
       .feature-list {
         display: flex;
@@ -1570,12 +1768,15 @@ export class GlassConfigPanel extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this._mounted = true;
     document.addEventListener('click', this._boundCloseDropdowns);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this._mounted = false;
     document.removeEventListener('click', this._boundCloseDropdowns);
+    this._removeTabsScrollListener();
     if (this._toastTimeout !== undefined) {
       clearTimeout(this._toastTimeout);
       this._toastTimeout = undefined;
@@ -1584,7 +1785,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -1594,13 +1795,50 @@ export class GlassConfigPanel extends LitElement {
     }
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
+    this._weatherDropdownOpen = false;
+  }
+
+  private _tabsEl: HTMLElement | null = null;
+
+  private _setupTabsScrollListener() {
+    if (this._tabsEl) return;
+    const el = this.shadowRoot?.querySelector<HTMLElement>('.tabs');
+    if (!el) return;
+    this._tabsEl = el;
+    el.addEventListener('scroll', this._boundUpdateScrollMask, { passive: true });
+    this._updateScrollMask();
+  }
+
+  private _removeTabsScrollListener() {
+    if (this._tabsEl) {
+      this._tabsEl.removeEventListener('scroll', this._boundUpdateScrollMask);
+      this._tabsEl = null;
+    }
+  }
+
+  private _updateScrollMask() {
+    const el = this._tabsEl;
+    if (!el) return;
+    const atStart = el.scrollLeft <= 5;
+    const atEnd = el.scrollLeft + el.offsetWidth >= el.scrollWidth - 5;
+    el.classList.remove('mask-left', 'mask-right', 'mask-both');
+    if (atStart && !atEnd) el.classList.add('mask-right');
+    else if (!atStart && atEnd) el.classList.add('mask-left');
+    else if (!atStart && !atEnd) el.classList.add('mask-both');
   }
 
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
+    this._setupTabsScrollListener();
     if (changedProps.has('hass')) {
       if (this.hass?.language && setLanguage(this.hass.language)) {
         this._lang = getLanguage();
+      }
+      // Invalidate backend on WS reconnect
+      if (this.hass && this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._loaded = false;
+        this._loading = false;
       }
       if (this.hass && !this._loaded) {
         this._loaded = true;
@@ -1613,6 +1851,15 @@ export class GlassConfigPanel extends LitElement {
   private async _loadConfig() {
     if (!this.hass || this._loading) return;
     this._loading = true;
+    try {
+    await this._loadConfigInner();
+    } finally {
+      this._loading = false;
+    }
+  }
+
+  private async _loadConfigInner() {
+    if (!this.hass) return;
 
     // Build rooms from HA areas
     const areas = Object.values(this.hass.areas).sort((a, b) =>
@@ -1632,15 +1879,28 @@ export class GlassConfigPanel extends LitElement {
       temp_low: DEFAULT_TEMP_LOW,
       humidity_threshold: DEFAULT_HUMIDITY_THRESHOLD,
     };
+    let weatherConfig = {
+      entity_id: '',
+      hidden_metrics: [] as string[],
+      show_daily: true,
+      show_hourly: true,
+    };
+    let dashboardConfig = {
+      enabled_cards: ['weather'] as string[],
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
       const result = await this._backend.send<{
         navbar: typeof navbarConfig;
         rooms: Record<string, { icon?: string | null }>;
+        weather: typeof weatherConfig;
+        dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
       Object.assign(roomConfigs, result.rooms);
+      if (result.weather) weatherConfig = result.weather;
+      if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
     }
@@ -1653,6 +1913,13 @@ export class GlassConfigPanel extends LitElement {
     this._tempHigh = navbarConfig.temp_high ?? DEFAULT_TEMP_HIGH;
     this._tempLow = navbarConfig.temp_low ?? DEFAULT_TEMP_LOW;
     this._humidityThreshold = navbarConfig.humidity_threshold ?? DEFAULT_HUMIDITY_THRESHOLD;
+
+    this._weatherEntity = weatherConfig.entity_id ?? '';
+    this._weatherHiddenMetrics = weatherConfig.hidden_metrics ?? [];
+    this._weatherShowDaily = weatherConfig.show_daily ?? true;
+    this._weatherShowHourly = weatherConfig.show_hourly ?? true;
+
+    this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
     const orderMap = new Map<string, number>();
@@ -1740,7 +2007,6 @@ export class GlassConfigPanel extends LitElement {
       this._selectedRoom = rooms[0].areaId;
     }
     this._loadRoomCards();
-    this._loading = false;
   }
 
   private async _loadRoomCards() {
@@ -1846,11 +2112,12 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
+    this._weatherDropdownOpen = false;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
       this._lightRoom = this._rooms[0].areaId;
       this._loadRoomLights();
@@ -1915,12 +2182,12 @@ export class GlassConfigPanel extends LitElement {
   // — Room actions —
 
   private _toggleRoomVisible(areaId: string) {
-    this._rooms = this._rooms.map((r) =>
+    const toggled = this._rooms.map((r) =>
       r.areaId === areaId ? { ...r, visible: !r.visible } : r,
-    ).sort((a, b) => {
-      if (a.visible !== b.visible) return a.visible ? -1 : 1;
-      return 0;
-    });
+    );
+    const visible = toggled.filter((r) => r.visible);
+    const hidden = toggled.filter((r) => !r.visible);
+    this._rooms = [...visible, ...hidden];
   }
 
   private _openIconPicker(areaId: string) {
@@ -1964,7 +2231,7 @@ export class GlassConfigPanel extends LitElement {
     this._saving = true;
     try {
       await backend.send('set_navbar', {
-        room_order: this._rooms.map((r) => r.areaId),
+        room_order: this._rooms.filter((r) => r.visible).map((r) => r.areaId),
         hidden_rooms: this._rooms.filter((r) => !r.visible).map((r) => r.areaId),
         show_lights: this._showLights,
         show_temperature: this._showTemperature,
@@ -1988,6 +2255,7 @@ export class GlassConfigPanel extends LitElement {
           });
         });
       if (iconSaves.length > 0) await Promise.all(iconSaves);
+      if (!this._mounted) return;
       this._showToast();
       bus.emit('navbar-config-changed', undefined);
     } catch {
@@ -2006,6 +2274,7 @@ export class GlassConfigPanel extends LitElement {
         hidden_scenes: this._scenes.filter((s) => !s.visible).map((s) => s.entityId),
         scene_order: this._scenes.map((s) => s.entityId),
       });
+      if (!this._mounted) return;
       this._showToast();
       bus.emit('room-config-changed', { areaId: this._selectedRoom });
     } catch {
@@ -2019,8 +2288,12 @@ export class GlassConfigPanel extends LitElement {
       this._saveNavbar();
     } else if (this._tab === 'popup') {
       this._savePopup();
-    } else {
+    } else if (this._tab === 'light') {
       this._saveLights();
+    } else if (this._tab === 'weather') {
+      this._saveWeather();
+    } else {
+      this._saveDashboard();
     }
   }
 
@@ -2096,12 +2369,12 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _toggleLightVisible(entityId: string) {
-    this._lights = this._lights.map((l) =>
+    const toggled = this._lights.map((l) =>
       l.entityId === entityId ? { ...l, visible: !l.visible } : l,
-    ).sort((a, b) => {
-      if (a.visible !== b.visible) return a.visible ? -1 : 1;
-      return 0;
-    });
+    );
+    const visible = toggled.filter((l) => l.visible);
+    const hidden = toggled.filter((l) => !l.visible);
+    this._lights = [...visible, ...hidden];
   }
 
   private _cycleLightLayout(entityId: string) {
@@ -2139,6 +2412,7 @@ export class GlassConfigPanel extends LitElement {
         hidden_entities: [...nonLightHidden, ...hiddenLights],
         entity_layouts: layouts,
       });
+      if (!this._mounted) return;
       this._showToast();
       bus.emit('room-config-changed', { areaId: this._lightRoom });
     } catch {
@@ -2878,6 +3152,399 @@ export class GlassConfigPanel extends LitElement {
     `;
   }
 
+  // — Dashboard config —
+
+  private _toggleDashboardCard(card: string) {
+    const set = new Set(this._dashboardEnabledCards);
+    if (set.has(card)) set.delete(card);
+    else set.add(card);
+    this._dashboardEnabledCards = [...set];
+  }
+
+  private async _saveDashboard() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_dashboard', {
+        enabled_cards: this._dashboardEnabledCards,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('dashboard-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    }
+    this._saving = false;
+  }
+
+  private async _loadDashboardConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        dashboard: { enabled_cards: string[] };
+      }>('get_config');
+      if (result?.dashboard) {
+        this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
+      }
+    } catch { /* ignore */ }
+  }
+
+  private _renderDashboardPreview() {
+    const enabled = new Set(this._dashboardEnabledCards);
+
+    return html`
+      <div class="preview-dashboard">
+        <div class="preview-dashboard-cards">
+          ${enabled.has('weather') ? html`
+            <div class="preview-dashboard-card weather">
+              <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+              <span>22°</span>
+            </div>
+          ` : nothing}
+          ${enabled.has('light') ? html`
+            <div class="preview-dashboard-card light">
+              <ha-icon .icon=${'mdi:lightbulb-group'}></ha-icon>
+              <span>${t('light.title')}</span>
+            </div>
+          ` : nothing}
+          ${enabled.size === 0 ? html`<div class="preview-dashboard-empty">—</div>` : nothing}
+        </div>
+        <div class="preview-dashboard-navbar">
+          <ha-icon .icon=${'mdi:sofa'}></ha-icon>
+          <ha-icon .icon=${'mdi:stove'}></ha-icon>
+          <ha-icon .icon=${'mdi:bed'}></ha-icon>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderDashboardTab() {
+    const CARDS = [
+      { key: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather' as const, descKey: 'config.dashboard_card_weather_desc' as const },
+      { key: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light' as const, descKey: 'config.dashboard_card_light_desc' as const },
+    ];
+
+    const enabledSet = new Set(this._dashboardEnabledCards);
+
+    return html`
+      <div class="tab-panel" id="panel-dashboard">
+        <div class="section-label">${t('config.dashboard_title')}</div>
+        <div class="section-desc">${t('config.dashboard_desc')}</div>
+        <div class="feature-list">
+          ${CARDS.map((c) => {
+            const enabled = enabledSet.has(c.key);
+            return html`
+              <button
+                class="feature-row"
+                @click=${() => this._toggleDashboardCard(c.key)}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${c.icon}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t(c.nameKey)}</div>
+                  <div class="feature-desc">${t(c.descKey)}</div>
+                </div>
+                <span
+                  class="toggle ${enabled ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${enabled ? 'true' : 'false'}
+                  aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(c.nameKey)}"
+                ></span>
+              </button>
+            `;
+          })}
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadDashboardConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // — Weather config —
+
+  private _toggleWeatherMetric(metric: string) {
+    const set = new Set(this._weatherHiddenMetrics);
+    if (set.has(metric)) set.delete(metric);
+    else set.add(metric);
+    this._weatherHiddenMetrics = [...set];
+  }
+
+  private _selectWeatherEntity(entityId: string) {
+    this._weatherEntity = entityId;
+    this._weatherDropdownOpen = false;
+  }
+
+  private async _saveWeather() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_weather', {
+        ...(this._weatherEntity ? { entity_id: this._weatherEntity } : {}),
+        hidden_metrics: this._weatherHiddenMetrics,
+        show_daily: this._weatherShowDaily,
+        show_hourly: this._weatherShowHourly,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('weather-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    }
+    this._saving = false;
+  }
+
+  private _renderWeatherPreview() {
+    if (!this._weatherEntity || !this.hass) {
+      return html`<div class="preview-empty">${t('config.weather_select_entity')}</div>`;
+    }
+
+    const entity = this.hass.states[this._weatherEntity];
+    if (!entity) {
+      return html`<div class="preview-empty">${t('config.weather_select_entity')}</div>`;
+    }
+
+    const attrs = entity.attributes;
+    const temp = attrs.temperature ?? '--';
+    const tempUnit = (attrs.temperature_unit as string | undefined) ?? '°C';
+    const hidden = new Set(this._weatherHiddenMetrics);
+    const condKey = entity.state || 'sunny';
+
+    const condIcons: Record<string, string> = {
+      'sunny': 'mdi:weather-sunny', 'clear-night': 'mdi:weather-night',
+      'partlycloudy': 'mdi:weather-partly-cloudy', 'cloudy': 'mdi:weather-cloudy',
+      'fog': 'mdi:weather-fog', 'rainy': 'mdi:weather-rainy',
+      'pouring': 'mdi:weather-pouring', 'snowy': 'mdi:weather-snowy',
+      'windy': 'mdi:weather-windy', 'lightning': 'mdi:weather-lightning',
+    };
+    const condNames: Record<string, string> = {
+      'sunny': 'weather.cond_sunny', 'clear-night': 'weather.cond_clear_night',
+      'partlycloudy': 'weather.cond_partly_cloudy', 'cloudy': 'weather.cond_cloudy',
+      'fog': 'weather.cond_foggy', 'rainy': 'weather.cond_rainy',
+      'pouring': 'weather.cond_pouring', 'snowy': 'weather.cond_snowy',
+      'windy': 'weather.cond_windy', 'lightning': 'weather.cond_lightning',
+    };
+    const condIcon = condIcons[condKey] || 'mdi:weather-cloudy';
+    const condText = t((condNames[condKey] || 'weather.cond_cloudy') as Parameters<typeof t>[0]);
+
+    // Time
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const secStr = String(now.getSeconds()).padStart(2, '0');
+    const dateStr = now.toLocaleDateString(this.hass.language || 'fr', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    // Metrics
+    type Metric = { key: string; icon: string; val: string; unit?: string };
+    const metrics: Metric[] = [];
+    if (!hidden.has('humidity') && attrs.humidity != null) metrics.push({ key: 'humidity', icon: 'mdi:water-percent', val: `${attrs.humidity}%` });
+    if (!hidden.has('wind') && attrs.wind_speed != null) metrics.push({ key: 'wind', icon: 'mdi:weather-windy', val: `${Math.round(attrs.wind_speed as number)}`, unit: 'km/h' });
+    if (!hidden.has('pressure') && attrs.pressure != null) metrics.push({ key: 'pressure', icon: 'mdi:gauge', val: `${Math.round(attrs.pressure as number)}`, unit: 'hPa' });
+    if (!hidden.has('uv') && attrs.uv_index != null) metrics.push({ key: 'uv', icon: 'mdi:sun-wireless', val: `${Math.round(attrs.uv_index as number)}`, unit: 'UV' });
+    if (!hidden.has('visibility') && attrs.visibility != null) metrics.push({ key: 'visibility', icon: 'mdi:eye-outline', val: `${attrs.visibility}`, unit: 'km' });
+    if (!hidden.has('sunrise')) {
+      const sunState = this.hass.states['sun.sun'];
+      const nextRising = sunState?.attributes.next_rising as string | undefined;
+      metrics.push({ key: 'sunrise', icon: 'mdi:weather-sunset-up', val: nextRising ? new Date(nextRising).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--' });
+    }
+    if (!hidden.has('sunset')) {
+      const sunState = this.hass.states['sun.sun'];
+      const nextSetting = sunState?.attributes.next_setting as string | undefined;
+      metrics.push({ key: 'sunset', icon: 'mdi:weather-sunset-down', val: nextSetting ? new Date(nextSetting).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--' });
+    }
+
+    const cols = metrics.length <= 2 ? metrics.length : metrics.length <= 4 ? 2 : 3;
+
+    return html`
+      <div class="preview-weather">
+        <div class="pw-header">
+          <div class="pw-header-left">
+            <span class="pw-time">${timeStr}<span class="pw-sec">:${secStr}</span></span>
+            <span class="pw-date">${dateStr}</span>
+          </div>
+          <div class="pw-header-right">
+            <span class="pw-temp">${temp}<span class="pw-temp-unit">${tempUnit}</span></span>
+            <span class="pw-cond"><ha-icon .icon=${condIcon}></ha-icon>${condText}</span>
+          </div>
+        </div>
+
+        <div class="pw-spark"><div class="pw-spark-line"></div></div>
+
+        ${metrics.length > 0 ? html`
+          <div class="pw-metrics" style="grid-template-columns: repeat(${cols}, 1fr);">
+            ${metrics.map((m) => html`
+              <div class="pw-metric ${m.key}">
+                <ha-icon .icon=${m.icon}></ha-icon>
+                <span class="pw-metric-val">${m.val}</span>
+                ${m.unit ? html`<span class="pw-metric-unit">${m.unit}</span>` : nothing}
+              </div>
+            `)}
+          </div>
+        ` : nothing}
+
+        ${this._weatherShowDaily || this._weatherShowHourly ? html`
+          <div class="pw-tabs">
+            ${this._weatherShowDaily ? html`<span class="pw-tab active">${t('weather.daily_tab')}</span>` : nothing}
+            ${this._weatherShowHourly ? html`<span class="pw-tab">${t('weather.hourly_tab')}</span>` : nothing}
+          </div>
+        ` : nothing}
+      </div>
+    `;
+  }
+
+  private _renderWeatherTab() {
+    const weatherEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('weather.')).sort()
+      : [];
+    const selectedEntity = weatherEntities.find((id) => id === this._weatherEntity);
+
+    const METRICS = [
+      { key: 'humidity', icon: 'mdi:water-percent', nameKey: 'config.weather_metric_humidity' as const },
+      { key: 'wind', icon: 'mdi:weather-windy', nameKey: 'config.weather_metric_wind' as const },
+      { key: 'pressure', icon: 'mdi:gauge', nameKey: 'config.weather_metric_pressure' as const },
+      { key: 'uv', icon: 'mdi:white-balance-sunny', nameKey: 'config.weather_metric_uv' as const },
+      { key: 'visibility', icon: 'mdi:eye', nameKey: 'config.weather_metric_visibility' as const },
+      { key: 'sunrise', icon: 'mdi:weather-sunset-up', nameKey: 'config.weather_metric_sunrise' as const },
+      { key: 'sunset', icon: 'mdi:weather-sunset-down', nameKey: 'config.weather_metric_sunset' as const },
+    ];
+
+    const hiddenSet = new Set(this._weatherHiddenMetrics);
+
+    return html`
+      <div class="tab-panel" id="panel-weather">
+        <div class="section-label">${t('config.weather_entity')}</div>
+        <div class="section-desc">${t('config.weather_entity_desc')}</div>
+        <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
+          <button
+            class="dropdown-trigger"
+            @click=${() => (this._weatherDropdownOpen = !this._weatherDropdownOpen)}
+            aria-expanded=${this._weatherDropdownOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+          >
+            <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+            <span>${selectedEntity || t('common.select')}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          <div class="dropdown-menu" role="listbox">
+            ${weatherEntities.map(
+              (id) => html`
+                <button
+                  class="dropdown-item ${id === this._weatherEntity ? 'active' : ''}"
+                  role="option"
+                  aria-selected=${id === this._weatherEntity ? 'true' : 'false'}
+                  @click=${() => this._selectWeatherEntity(id)}
+                >
+                  <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+                  ${id}
+                </button>
+              `,
+            )}
+          </div>
+        </div>
+
+        <div class="section-label">${t('config.weather_metrics')}</div>
+        <div class="section-desc">${t('config.weather_metrics_desc')}</div>
+        <div class="feature-list">
+          ${METRICS.map((m) => {
+            const visible = !hiddenSet.has(m.key);
+            return html`
+              <button
+                class="feature-row"
+                @click=${() => this._toggleWeatherMetric(m.key)}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${m.icon}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t(m.nameKey)}</div>
+                </div>
+                <span
+                  class="toggle ${visible ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${visible ? 'true' : 'false'}
+                  aria-label="${visible ? t('common.hide') : t('common.show')} ${t(m.nameKey)}"
+                ></span>
+              </button>
+            `;
+          })}
+        </div>
+
+        <div class="section-label">${t('config.weather_forecasts')}</div>
+        <div class="section-desc">${t('config.weather_forecasts_desc')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._weatherShowDaily = !this._weatherShowDaily; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:calendar-week'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.weather_daily')}</div>
+            </div>
+            <span
+              class="toggle ${this._weatherShowDaily ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._weatherShowDaily ? 'true' : 'false'}
+              aria-label="${this._weatherShowDaily ? t('common.hide') : t('common.show')} ${t('config.weather_daily')}"
+            ></span>
+          </button>
+          <button
+            class="feature-row"
+            @click=${() => { this._weatherShowHourly = !this._weatherShowHourly; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.weather_hourly')}</div>
+            </div>
+            <span
+              class="toggle ${this._weatherShowHourly ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._weatherShowHourly ? 'true' : 'false'}
+              aria-label="${this._weatherShowHourly ? t('common.hide') : t('common.show')} ${t('config.weather_hourly')}"
+            ></span>
+          </button>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadWeatherConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private async _loadWeatherConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean };
+      }>('get_config');
+      if (result?.weather) {
+        this._weatherEntity = result.weather.entity_id ?? '';
+        this._weatherHiddenMetrics = result.weather.hidden_metrics ?? [];
+        this._weatherShowDaily = result.weather.show_daily ?? true;
+        this._weatherShowHourly = result.weather.show_hourly ?? true;
+      }
+    } catch { /* ignore */ }
+  }
+
   // — Main render —
 
   render() {
@@ -2897,6 +3564,15 @@ export class GlassConfigPanel extends LitElement {
 
         <div class="glass config-panel">
           <div class="tabs" role="tablist">
+            <button
+              class="tab ${this._tab === 'dashboard' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'dashboard' ? 'true' : 'false'}
+              @click=${() => this._switchTab('dashboard')}
+            >
+              <ha-icon .icon=${'mdi:view-dashboard'}></ha-icon>
+              ${t('config.tab_dashboard')}
+            </button>
             <button
               class="tab ${this._tab === 'navbar' ? 'active' : ''}"
               role="tab"
@@ -2924,6 +3600,15 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:lightbulb-group'}></ha-icon>
               ${t('config.tab_light')}
             </button>
+            <button
+              class="tab ${this._tab === 'weather' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'weather' ? 'true' : 'false'}
+              @click=${() => this._switchTab('weather')}
+            >
+              <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+              ${t('config.tab_weather')}
+            </button>
           </div>
 
           <div class="preview-encart">
@@ -2932,14 +3617,22 @@ export class GlassConfigPanel extends LitElement {
               ? this._renderNavbarPreview()
               : this._tab === 'popup'
                 ? this._renderPopupPreview()
-                : this._renderLightPreview()}
+                : this._tab === 'light'
+                  ? this._renderLightPreview()
+                  : this._tab === 'weather'
+                    ? this._renderWeatherPreview()
+                    : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
             ? this._renderNavbarTab()
             : this._tab === 'popup'
               ? this._renderPopupTab()
-              : this._renderLightTab()}
+              : this._tab === 'light'
+                ? this._renderLightTab()
+                : this._tab === 'weather'
+                  ? this._renderWeatherTab()
+                  : this._renderDashboardTab()}
         </div>
       </div>
 

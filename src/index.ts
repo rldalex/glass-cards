@@ -5,6 +5,7 @@ import { getThemeManager } from '@glass-cards/ui-core';
 import '../cards/light-card/src/index';
 import '../cards/popup-card/src/index';
 import '../cards/navbar-card/src/index';
+import '../cards/weather-card/src/index';
 
 installHistoryIntercept();
 getThemeManager();

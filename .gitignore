@@ -32,6 +32,9 @@ templates/
 __pycache__/
 *.pyc
 
+# Docker HA test config
+ha-test-config/
+
 # Claude Code
 .claude/
 .mcp.json

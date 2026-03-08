@@ -43,6 +43,37 @@
     "activate_scene_aria": "Activer {name}"
   },
 
+  "weather": {
+    "title": "MÉTÉO",
+    "feels_like": "Ressenti {temp}°",
+    "humidity": "Humidité",
+    "wind": "Vent",
+    "pressure": "Pression",
+    "uv": "UV",
+    "visibility": "Visibilité",
+    "sunrise": "Lever du soleil",
+    "sunset": "Coucher du soleil",
+    "daily_tab": "7 jours",
+    "hourly_tab": "Horaire",
+    "today": "Auj.",
+    "now": "Actuel",
+    "cond_sunny": "Ensoleillé",
+    "cond_clear_night": "Nuit claire",
+    "cond_partly_cloudy": "Partiellement nuageux",
+    "cond_cloudy": "Couvert",
+    "cond_foggy": "Brouillard",
+    "cond_rainy": "Pluie",
+    "cond_pouring": "Pluie forte",
+    "cond_snowy": "Neige",
+    "cond_snowy_rainy": "Pluie verglaçante",
+    "cond_hail": "Grêle",
+    "cond_lightning": "Éclairs",
+    "cond_stormy": "Orage",
+    "cond_windy": "Venteux",
+    "cond_windy_variant": "Venteux nuageux",
+    "cond_exceptional": "Exceptionnel"
+  },
+
   "editor": {
     "redirect_message": "La configuration de Glass Cards se fait depuis le panneau dédié.",
     "open_config": "Ouvrir Glass Cards Config"
@@ -51,9 +82,9 @@
   "config": {
     "title": "Configuration",
     "brand": "GLASS CARDS",
-    "tab_navbar": "Navbar",
-    "tab_popup": "Room Popup",
-    "tab_light": "Light Card",
+    "tab_navbar": "Barre de nav",
+    "tab_popup": "Popup Pièce",
+    "tab_light": "Carte Lumières",
     "preview": "Aperçu",
 
     "navbar_behavior": "Comportement",
@@ -112,6 +143,32 @@
     "domain_cover": "Volets",
     "domain_cover_desc": "Stores et volets roulants",
     "domain_vacuum": "Aspirateur",
-    "domain_vacuum_desc": "Robots aspirateurs"
+    "domain_vacuum_desc": "Robots aspirateurs",
+
+    "tab_weather": "Carte Météo",
+    "weather_entity": "Entité météo",
+    "weather_entity_desc": "Sélectionnez l'entité météo à afficher sur la carte.",
+    "weather_metrics": "Métriques visibles",
+    "weather_metrics_desc": "Activez ou désactivez les métriques affichées sur la carte.",
+    "weather_forecasts": "Onglets prévisions",
+    "weather_forecasts_desc": "Activez ou désactivez les onglets de prévisions.",
+    "weather_metric_humidity": "Humidité",
+    "weather_metric_wind": "Vent",
+    "weather_metric_pressure": "Pression",
+    "weather_metric_uv": "UV",
+    "weather_metric_visibility": "Visibilité",
+    "weather_metric_sunrise": "Lever du soleil",
+    "weather_metric_sunset": "Coucher du soleil",
+    "weather_daily": "Prévisions 7 jours",
+    "weather_hourly": "Prévisions horaires",
+    "weather_select_entity": "Sélectionnez une entité météo",
+
+    "tab_dashboard": "Tableau de bord",
+    "dashboard_title": "Cartes du tableau de bord",
+    "dashboard_desc": "Activez ou désactivez les cartes affichées sur le tableau de bord Home Assistant.",
+    "dashboard_card_weather": "Carte Météo",
+    "dashboard_card_weather_desc": "Affiche la météo actuelle, prévisions et animations",
+    "dashboard_card_light": "Carte Lumières",
+    "dashboard_card_light_desc": "Contrôle des lumières par pièce"
   }
 }
