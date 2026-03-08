@@ -139,7 +139,12 @@ export class GlassNavbarCard extends BaseCard {
         overflow-x: auto;
         scrollbar-width: none;
         flex: 1;
-        padding: 0 8px;
+      }
+      .nav-scroll::before,
+      .nav-scroll::after {
+        content: '';
+        min-width: 8px;
+        flex-shrink: 0;
       }
       .nav-scroll::-webkit-scrollbar {
         display: none;
@@ -182,7 +187,7 @@ export class GlassNavbarCard extends BaseCard {
 
       /* 1. Pulse-light: oscillating glow on lights-on icons */
       .nav-item.has-light ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
         animation: pulse-light 3s ease-in-out infinite;
       }
@@ -217,7 +222,7 @@ export class GlassNavbarCard extends BaseCard {
       }
       /* Combined: light glow + music bounce */
       .nav-item.has-light.has-music ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         animation:
           pulse-light 3s ease-in-out infinite,
           pulse-music 0.8s ease-in-out infinite;

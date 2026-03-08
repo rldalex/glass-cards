@@ -134,7 +134,7 @@ export class GlassRoomPopup extends LitElement {
         transition: transform var(--t-fast);
       }
       .header-icon.has-light ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
       }
       .header-icon.has-music ha-icon {

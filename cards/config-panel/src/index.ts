@@ -777,7 +777,7 @@ export class GlassConfigPanel extends LitElement {
 
       /* Preview navbar — live indicators */
       .preview-nav-item.has-light ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
         animation: pulse-light 3s ease-in-out infinite;
       }
@@ -802,7 +802,7 @@ export class GlassConfigPanel extends LitElement {
         animation: pulse-music 0.8s ease-in-out infinite;
       }
       .preview-nav-item.has-light.has-music ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         animation: pulse-light 3s ease-in-out infinite, pulse-music 0.8s ease-in-out infinite;
       }
       @keyframes pulse-music {
@@ -895,7 +895,7 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 15px;
       }
       .preview-popup-icon-box.has-light ha-icon {
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.6));
       }
       .preview-popup-icon-box.has-music ha-icon {
@@ -1055,11 +1055,11 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-light-count.some {
         background: rgba(251, 191, 36, 0.15);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
       }
       .preview-light-count.all {
         background: rgba(251, 191, 36, 0.2);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
       }
       .preview-light-toggle {
         width: 28px;
@@ -1087,7 +1087,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-light-toggle.on::after {
         transform: translateX(14px);
-        background: var(--c-warning);
+        background: var(--c-light-glow);
         box-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
       }
       .preview-light-body {
@@ -1164,7 +1164,7 @@ export class GlassConfigPanel extends LitElement {
       .preview-light-icon.on {
         background: rgba(251, 191, 36, 0.1);
         border-color: rgba(251, 191, 36, 0.15);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
       }
       .preview-light-info {
@@ -1198,7 +1198,7 @@ export class GlassConfigPanel extends LitElement {
         transition: background var(--t-fast), box-shadow var(--t-fast);
       }
       .preview-light-dot.on {
-        background: var(--c-warning);
+        background: var(--c-light-glow);
         box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
       }
       .preview-light-tint {
@@ -1404,7 +1404,7 @@ export class GlassConfigPanel extends LitElement {
         background: var(--t4);
       }
       .light-dot.on {
-        background: var(--c-warning);
+        background: var(--c-light-glow);
         box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
       }
       .light-brightness {

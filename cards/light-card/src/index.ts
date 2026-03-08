@@ -196,11 +196,11 @@ export class GlassLightCard extends BaseCard {
       }
       .card-count.some {
         background: rgba(251, 191, 36, 0.15);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
       }
       .card-count.all {
         background: rgba(251, 191, 36, 0.2);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
       }
 
       /* ── Toggle All ── */
@@ -238,7 +238,7 @@ export class GlassLightCard extends BaseCard {
       }
       .toggle-all.on::after {
         transform: translateX(18px);
-        background: var(--c-warning);
+        background: var(--c-light-glow);
         box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
       }
 
@@ -331,7 +331,7 @@ export class GlassLightCard extends BaseCard {
       .light-icon-btn.on {
         background: rgba(251, 191, 36, 0.1);
         border-color: rgba(251, 191, 36, 0.15);
-        color: var(--c-warning);
+        color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4));
       }
       .light-icon-btn.on.rgb {
@@ -412,7 +412,7 @@ export class GlassLightCard extends BaseCard {
         transition: all var(--t-med);
       }
       .light-row[data-on='true'] .light-dot {
-        background: var(--c-warning);
+        background: var(--c-light-glow);
         box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
       }
       .light-row[data-on='true'][data-rgb] .light-dot {
