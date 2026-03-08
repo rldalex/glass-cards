@@ -219,9 +219,25 @@ class GlassWeatherCard extends BaseCard {
     .wc-cond-icon {
       --mdc-icon-size: 13px;
       width: 13px; height: 13px;
+      display: flex; align-items: center; justify-content: center;
       color: var(--t3);
       transition: color var(--t-med), filter var(--t-med);
     }
+    .wc-cond-icon.sunny { color: #fbbf24; filter: drop-shadow(0 0 4px rgba(251,191,36,0.35)); }
+    .wc-cond-icon.partly_cloudy { color: #fcd34d; }
+    .wc-cond-icon.cloudy { color: var(--t2); }
+    .wc-cond-icon.rainy { color: #60a5fa; filter: drop-shadow(0 0 4px rgba(96,165,250,0.3)); }
+    .wc-cond-icon.pouring { color: #3b82f6; filter: drop-shadow(0 0 4px rgba(59,130,246,0.4)); }
+    .wc-cond-icon.stormy { color: #a78bfa; filter: drop-shadow(0 0 4px rgba(167,139,250,0.35)); }
+    .wc-cond-icon.lightning { color: #c084fc; filter: drop-shadow(0 0 5px rgba(192,132,252,0.4)); }
+    .wc-cond-icon.snowy { color: #e0f2fe; }
+    .wc-cond-icon.snowy_rainy { color: #93c5fd; }
+    .wc-cond-icon.hail { color: #bae6fd; filter: drop-shadow(0 0 3px rgba(186,230,253,0.3)); }
+    .wc-cond-icon.foggy { color: var(--t3); }
+    .wc-cond-icon.windy { color: #6ee7b7; filter: drop-shadow(0 0 3px rgba(110,231,183,0.3)); }
+    .wc-cond-icon.windy_variant { color: #6ee7b7; }
+    .wc-cond-icon.clear_night { color: #818cf8; filter: drop-shadow(0 0 4px rgba(129,140,248,0.35)); }
+    .wc-cond-icon.exceptional { color: #fca5a5; filter: drop-shadow(0 0 4px rgba(252,165,165,0.3)); }
     .wc-cond-text {
       font-size: 10px; font-weight: 500; color: var(--t3);
     }
@@ -249,9 +265,11 @@ class GlassWeatherCard extends BaseCard {
     .wc-spark-line {
       fill: none; stroke-width: 2;
       stroke-linecap: round; stroke-linejoin: round;
+      transition: stroke var(--t-med), d var(--t-med);
     }
     .wc-spark-area {
       stroke: none;
+      transition: fill var(--t-med), d var(--t-med);
     }
     .wc-spark-labels {
       position: absolute; inset: 0;
@@ -319,11 +337,11 @@ class GlassWeatherCard extends BaseCard {
     .wc-fold-sep.visible { opacity: 1; }
 
     .wc-forecast-zone {
-      display: flex; flex-direction: column; gap: 0;
+      display: flex; flex-direction: column; gap: 4px;
     }
     .wc-fc-tabs {
       display: flex; gap: 3px;
-      margin: -2px auto 0; width: fit-content;
+      margin: 0 auto; width: fit-content;
     }
     .wc-fc-tab {
       padding: 3px 10px;
@@ -364,8 +382,24 @@ class GlassWeatherCard extends BaseCard {
     .wc-day-icon {
       --mdc-icon-size: 14px;
       width: 14px; height: 14px;
-      color: var(--t3); text-align: center;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
     }
+    .wc-day-icon.sunny, .wc-hour-icon.sunny { color: #fbbf24; }
+    .wc-day-icon.partly_cloudy, .wc-hour-icon.partly_cloudy { color: #fcd34d; }
+    .wc-day-icon.cloudy, .wc-hour-icon.cloudy { color: var(--t2); }
+    .wc-day-icon.rainy, .wc-hour-icon.rainy { color: #60a5fa; }
+    .wc-day-icon.pouring, .wc-hour-icon.pouring { color: #3b82f6; }
+    .wc-day-icon.stormy, .wc-hour-icon.stormy { color: #a78bfa; }
+    .wc-day-icon.lightning, .wc-hour-icon.lightning { color: #c084fc; }
+    .wc-day-icon.snowy, .wc-hour-icon.snowy { color: #e0f2fe; }
+    .wc-day-icon.snowy_rainy, .wc-hour-icon.snowy_rainy { color: #93c5fd; }
+    .wc-day-icon.hail, .wc-hour-icon.hail { color: #bae6fd; }
+    .wc-day-icon.foggy, .wc-hour-icon.foggy { color: var(--t3); }
+    .wc-day-icon.windy, .wc-hour-icon.windy { color: #6ee7b7; }
+    .wc-day-icon.windy_variant, .wc-hour-icon.windy_variant { color: #6ee7b7; }
+    .wc-day-icon.clear_night, .wc-hour-icon.clear_night { color: #818cf8; }
+    .wc-day-icon.exceptional, .wc-hour-icon.exceptional { color: #fca5a5; }
     .wc-day-cond {
       font-size: 10px; font-weight: 500; color: var(--t4);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -396,7 +430,8 @@ class GlassWeatherCard extends BaseCard {
     .wc-hour-icon {
       --mdc-icon-size: 14px;
       width: 14px; height: 14px;
-      color: var(--t3); text-align: center;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
     }
     .wc-hour-cond {
       font-size: 10px; font-weight: 500; color: var(--t4);
@@ -1018,7 +1053,7 @@ class GlassWeatherCard extends BaseCard {
                   <span class="wc-temp-unit">${tempUnit}</span>
                 </div>
                 <div class="wc-cond-row">
-                  <ha-icon .icon="${meta.icon}" class="wc-cond-icon"></ha-icon>
+                  <ha-icon .icon="${meta.icon}" class="wc-cond-icon ${cond}"></ha-icon>
                   <span class="wc-cond-text">${t(meta.textKey)}</span>
                 </div>
                 ${feelsLike != null ? html`<span class="wc-feels">${t('weather.feels_like', { temp: Math.round(feelsLike) })}</span>` : nothing}
@@ -1126,7 +1161,7 @@ class GlassWeatherCard extends BaseCard {
 
     if (metrics.length === 0) return nothing;
 
-    return html`<div class="wc-metrics" style="grid-template-columns: repeat(${Math.min(metrics.length, 3)}, 1fr);">
+    return html`<div class="wc-metrics">
       ${metrics}
     </div>`;
   }
@@ -1165,7 +1200,7 @@ class GlassWeatherCard extends BaseCard {
                   return html`
                     <div class="wc-day-row">
                       <span class="wc-day-label">${label}</span>
-                      <ha-icon .icon="${dm.icon}" class="wc-day-icon"></ha-icon>
+                      <ha-icon .icon="${dm.icon}" class="wc-day-icon ${dc}"></ha-icon>
                       <span class="wc-day-cond">${t(dm.textKey)}</span>
                       <div class="wc-day-temps">
                         <span class="wc-day-hi">${Math.round(d.temperature)}&deg;</span>
@@ -1192,7 +1227,7 @@ class GlassWeatherCard extends BaseCard {
                   return html`
                     <div class="wc-hour-row ${i === 0 ? 'now' : ''}">
                       <span class="wc-hour-time">${timeLabel}</span>
-                      <ha-icon .icon="${hm.icon}" class="wc-hour-icon"></ha-icon>
+                      <ha-icon .icon="${hm.icon}" class="wc-hour-icon ${hc}"></ha-icon>
                       <span class="wc-hour-cond">${t(hm.textKey)}</span>
                       <span class="wc-hour-temp">${Math.round(h.temperature)}${tempUnit}</span>
                       <span class="wc-hour-precip">${h.precipitation_probability != null && h.precipitation_probability > 0 ? h.precipitation_probability + '%' : ''}</span>

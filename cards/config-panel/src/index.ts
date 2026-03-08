@@ -1342,8 +1342,17 @@ export class GlassConfigPanel extends LitElement {
           0 20px 60px rgba(0, 0, 0, 0.4),
           0 4px 16px rgba(0, 0, 0, 0.25);
         border: 1px solid var(--b2);
-        padding: 10px;
         overflow: hidden;
+        position: relative;
+      }
+      .pw-tint {
+        position: absolute; inset: 0;
+        border-radius: inherit;
+        pointer-events: none; z-index: 0;
+      }
+      .pw-content {
+        position: relative; z-index: 1;
+        padding: 10px;
         display: flex; flex-direction: column; gap: 6px;
       }
       .pw-header {
@@ -1355,12 +1364,17 @@ export class GlassConfigPanel extends LitElement {
         display: flex; flex-direction: column; gap: 1px;
       }
       .pw-time {
-        font-size: 16px; font-weight: 700; color: var(--t1); line-height: 1;
+        font-size: 18px; font-weight: 300; color: var(--t1); line-height: 1;
+        font-variant-numeric: tabular-nums;
       }
       .pw-time .pw-sec {
         font-size: 8px; font-weight: 400; color: var(--t4);
       }
-      .pw-date { font-size: 7px; font-weight: 600; color: var(--t3); }
+      .pw-date {
+        font-size: 7px; color: var(--t3);
+        text-transform: capitalize;
+      }
+      .pw-date::first-letter { font-weight: 700; }
       .pw-header-right {
         display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
       }
@@ -1375,19 +1389,41 @@ export class GlassConfigPanel extends LitElement {
         font-size: 7px; font-weight: 500; color: var(--t3);
       }
       .pw-cond ha-icon {
-        --mdc-icon-size: 10px; color: var(--t3);
+        --mdc-icon-size: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t3);
       }
-      .pw-spark {
-        height: 20px;
+      .pw-feels {
+        font-size: 6px; color: var(--t4);
+      }
+      /* ── Sparkline ── */
+      .pw-spark-zone {
+        height: 44px; position: relative; overflow: hidden;
         border-radius: var(--radius-sm);
-        background: linear-gradient(180deg, rgba(251,191,36,0.08) 0%, transparent 100%);
-        position: relative; overflow: hidden;
       }
-      .pw-spark-line {
-        position: absolute; bottom: 4px; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, rgba(251,191,36,0.6), rgba(251,191,36,0.3));
+      .pw-spark-svg {
+        display: block; width: 100%; height: 100%;
       }
+      .pw-spark-now {
+        position: absolute; top: 0; bottom: 16px; width: 1px;
+        background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.5) 30%, rgba(255,255,255,0.5) 70%, transparent 100%);
+        transform: translateX(-50%);
+      }
+      .pw-spark-now-dot {
+        position: absolute; left: 50%; transform: translate(-50%, -50%);
+        width: 4px; height: 4px; border-radius: 50%;
+        background: white;
+        box-shadow: 0 0 4px rgba(255,255,255,0.8);
+      }
+      .pw-spark-labels {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 12px;
+      }
+      .pw-spark-lbl {
+        position: absolute; transform: translateX(-50%);
+        font-size: 5px; color: var(--t4);
+        font-variant-numeric: tabular-nums;
+      }
+      /* ── Metrics ── */
       .pw-metrics {
         display: grid;
         gap: 1px;
@@ -1397,12 +1433,12 @@ export class GlassConfigPanel extends LitElement {
       }
       .pw-metric {
         display: flex; align-items: center; justify-content: center; gap: 2px;
-        padding: 3px 2px;
+        padding: 4px 3px;
         background: var(--s1);
       }
       .pw-metric ha-icon {
-        --mdc-icon-size: 8px;
-        width: 8px; height: 8px;
+        --mdc-icon-size: 9px;
+        width: 9px; height: 9px;
         display: flex; align-items: center; justify-content: center;
         color: var(--t4);
       }
@@ -1414,7 +1450,12 @@ export class GlassConfigPanel extends LitElement {
       .pw-metric.sunrise ha-icon { color: rgba(251,191,36,0.4); }
       .pw-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
       .pw-metric-val { font-size: 7px; font-weight: 600; color: var(--t2); }
-      .pw-metric-unit { font-size: 6px; font-weight: 400; color: var(--t4); }
+      .pw-metric-unit { font-size: 5px; font-weight: 400; color: var(--t4); }
+      .pw-metric-dir { font-size: 6px; font-weight: 700; color: var(--t3); }
+      /* ── Forecast ── */
+      .pw-forecast-zone {
+        display: flex; flex-direction: column; gap: 4px;
+      }
       .pw-tabs {
         display: flex; justify-content: center; gap: 4px;
       }
@@ -1422,14 +1463,55 @@ export class GlassConfigPanel extends LitElement {
         font-size: 7px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
         color: var(--t4);
         padding: 2px 6px;
-        border-radius: var(--radius-sm);
+        border-radius: 100px;
         border: 1px solid var(--b1);
         background: transparent;
       }
       .pw-tab.active {
         color: var(--t1);
+        background: var(--s4);
+        border-color: var(--b3);
+      }
+      .pw-fold-sep {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+        opacity: 0.3;
+      }
+      .pw-daily-list {
+        display: flex; flex-direction: column; gap: 1px;
+      }
+      .pw-day-row {
+        display: grid;
+        grid-template-columns: 28px 14px 1fr 24px;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 4px;
+        border-radius: var(--radius-sm);
+      }
+      .pw-day-row.today {
         background: var(--s2);
-        border-color: var(--b2);
+      }
+      .pw-day-label {
+        font-size: 7px; font-weight: 600; color: var(--t3);
+      }
+      .pw-day-row.today .pw-day-label { color: var(--t2); }
+      .pw-day-icon {
+        --mdc-icon-size: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t3);
+      }
+      .pw-day-temps {
+        display: flex; align-items: baseline; gap: 3px;
+      }
+      .pw-day-high {
+        font-size: 7px; font-weight: 700; color: var(--t2);
+      }
+      .pw-day-low {
+        font-size: 6px; font-weight: 400; color: var(--t4);
+      }
+      .pw-day-precip {
+        font-size: 6px; color: rgba(96,165,250,0.5);
+        text-align: right;
       }
 
       /* ── Preview dashboard ── */
@@ -4322,8 +4404,23 @@ export class GlassConfigPanel extends LitElement {
       'pouring': 'weather.cond_pouring', 'snowy': 'weather.cond_snowy',
       'windy': 'weather.cond_windy', 'lightning': 'weather.cond_lightning',
     };
+    const condTints: Record<string, string> = {
+      'sunny': '#fbbf24', 'clear-night': '#6366f1', 'partlycloudy': '#94a3b8',
+      'cloudy': '#64748b', 'fog': '#94a3b8', 'rainy': '#3b82f6',
+      'pouring': '#2563eb', 'snowy': '#e2e8f0', 'windy': '#6ee7b3',
+      'lightning': '#a78bfa',
+    };
+    const condSparkStrokes: Record<string, string> = {
+      'sunny': 'rgba(251,191,36,0.8)', 'clear-night': 'rgba(129,140,248,0.7)',
+      'partlycloudy': 'rgba(148,163,184,0.6)', 'cloudy': 'rgba(100,116,139,0.6)',
+      'fog': 'rgba(148,163,184,0.5)', 'rainy': 'rgba(96,165,250,0.7)',
+      'pouring': 'rgba(59,130,246,0.8)', 'snowy': 'rgba(226,232,240,0.7)',
+      'windy': 'rgba(110,231,179,0.6)', 'lightning': 'rgba(167,139,250,0.8)',
+    };
     const condIcon = condIcons[condKey] || 'mdi:weather-cloudy';
     const condText = t((condNames[condKey] || 'weather.cond_cloudy') as Parameters<typeof t>[0]);
+    const tintColor = condTints[condKey] || '#64748b';
+    const sparkStroke = condSparkStrokes[condKey] || 'rgba(148,163,184,0.6)';
 
     // Time
     const now = new Date();
@@ -4331,11 +4428,59 @@ export class GlassConfigPanel extends LitElement {
     const secStr = String(now.getSeconds()).padStart(2, '0');
     const dateStr = now.toLocaleDateString(this.hass.language || 'fr', { weekday: 'long', day: 'numeric', month: 'long' });
 
+    // Feels like
+    const feelsLike = attrs.apparent_temperature ?? null;
+
+    // Sparkline SVG — fake curve based on temperature
+    const baseTemp = typeof temp === 'number' ? temp : 12;
+    const sparkPoints = [0, 0.5, 1.2, 0.8, -0.3, -1, -0.5, 0.2, 0.7, 1.5];
+    const sparkW = 348;
+    const sparkH = 44;
+    const sparkPad = 6;
+    const minV = Math.min(...sparkPoints);
+    const maxV = Math.max(...sparkPoints);
+    const rangeV = maxV - minV || 1;
+    const pts = sparkPoints.map((v, i) => ({
+      x: (i / (sparkPoints.length - 1)) * sparkW,
+      y: sparkPad + (1 - (v - minV) / rangeV) * (sparkH - sparkPad * 2),
+    }));
+    // Catmull-Rom to cubic bezier
+    let pathD = `M${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[Math.min(pts.length - 1, i + 2)];
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      pathD += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+    }
+    const areaD = pathD + ` L${sparkW},${sparkH} L0,${sparkH} Z`;
+    // Now marker position (~30% from left)
+    const nowFrac = 0.3;
+    const nowIdx = nowFrac * (sparkPoints.length - 1);
+    const nowIdxFloor = Math.floor(nowIdx);
+    const nowIdxCeil = Math.min(sparkPoints.length - 1, nowIdxFloor + 1);
+    const nowLerp = nowIdx - nowIdxFloor;
+    const nowV = sparkPoints[nowIdxFloor] + (sparkPoints[nowIdxCeil] - sparkPoints[nowIdxFloor]) * nowLerp;
+    const nowY = sparkPad + (1 - (nowV - minV) / rangeV) * (sparkH - sparkPad * 2);
+    // Hour labels
+    const currentHour = now.getHours();
+    const sparkLabels = sparkPoints.map((_, i) => {
+      const h = (currentHour + i) % 24;
+      return `${String(h).padStart(2, '0')}h`;
+    });
+
     // Metrics
-    type Metric = { key: string; icon: string; val: string; unit?: string };
+    type Metric = { key: string; icon: string; val: string; unit?: string; dir?: string };
     const metrics: Metric[] = [];
-    if (!hidden.has('humidity') && attrs.humidity != null) metrics.push({ key: 'humidity', icon: 'mdi:water-percent', val: `${attrs.humidity}%` });
-    if (!hidden.has('wind') && attrs.wind_speed != null) metrics.push({ key: 'wind', icon: 'mdi:weather-windy', val: `${Math.round(attrs.wind_speed as number)}`, unit: 'km/h' });
+    if (!hidden.has('humidity') && attrs.humidity != null) metrics.push({ key: 'humidity', icon: 'mdi:water-percent', val: `${attrs.humidity}`, unit: '%' });
+    if (!hidden.has('wind') && attrs.wind_speed != null) {
+      const dir = typeof attrs.wind_bearing === 'number' ? this._windBearingToDir(attrs.wind_bearing as number) : undefined;
+      metrics.push({ key: 'wind', icon: 'mdi:weather-windy', val: `${Math.round(attrs.wind_speed as number)}`, unit: 'km/h', dir });
+    }
     if (!hidden.has('pressure') && attrs.pressure != null) metrics.push({ key: 'pressure', icon: 'mdi:gauge', val: `${Math.round(attrs.pressure as number)}`, unit: 'hPa' });
     if (!hidden.has('uv') && attrs.uv_index != null) metrics.push({ key: 'uv', icon: 'mdi:sun-wireless', val: `${Math.round(attrs.uv_index as number)}`, unit: 'UV' });
     if (!hidden.has('visibility') && attrs.visibility != null) metrics.push({ key: 'visibility', icon: 'mdi:eye-outline', val: `${attrs.visibility}`, unit: 'km' });
@@ -4350,43 +4495,103 @@ export class GlassConfigPanel extends LitElement {
       metrics.push({ key: 'sunset', icon: 'mdi:weather-sunset-down', val: nextSetting ? new Date(nextSetting).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--' });
     }
 
-    const cols = metrics.length <= 2 ? metrics.length : metrics.length <= 4 ? 2 : 3;
+    const cols = 3;
+
+    // Fake forecast data
+    const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const fakeDailyIcons = ['mdi:weather-sunny', 'mdi:weather-partly-cloudy', 'mdi:weather-cloudy', 'mdi:weather-rainy', 'mdi:weather-partly-cloudy', 'mdi:weather-sunny', 'mdi:weather-cloudy'];
+    const fakeDailyHighs = [baseTemp + 2, baseTemp + 1, baseTemp, baseTemp - 1, baseTemp + 1, baseTemp + 3, baseTemp];
+    const fakeDailyLows = [baseTemp - 4, baseTemp - 3, baseTemp - 5, baseTemp - 6, baseTemp - 4, baseTemp - 2, baseTemp - 5];
+    const fakePrecip = [0, 10, 30, 60, 20, 0, 15];
+    const todayDow = now.getDay();
 
     return html`
       <div class="preview-weather">
-        <div class="pw-header">
-          <div class="pw-header-left">
-            <span class="pw-time">${timeStr}<span class="pw-sec">:${secStr}</span></span>
-            <span class="pw-date">${dateStr}</span>
+        <div class="pw-tint" style="background: radial-gradient(80% 20% at 75% 15%, ${tintColor}22 0%, transparent 70%);"></div>
+        <div class="pw-content">
+          <div class="pw-header">
+            <div class="pw-header-left">
+              <span class="pw-time">${timeStr}<span class="pw-sec">:${secStr}</span></span>
+              <span class="pw-date">${dateStr}</span>
+            </div>
+            <div class="pw-header-right">
+              <span class="pw-temp">${temp}<span class="pw-temp-unit">${tempUnit}</span></span>
+              <span class="pw-cond"><ha-icon .icon=${condIcon}></ha-icon>${condText}</span>
+              ${feelsLike != null ? html`<span class="pw-feels">${t('weather.feels_like', { temp: String(Math.round(feelsLike as number)) })}</span>` : nothing}
+            </div>
           </div>
-          <div class="pw-header-right">
-            <span class="pw-temp">${temp}<span class="pw-temp-unit">${tempUnit}</span></span>
-            <span class="pw-cond"><ha-icon .icon=${condIcon}></ha-icon>${condText}</span>
+
+          <div class="pw-spark-zone">
+            <svg class="pw-spark-svg" viewBox="0 0 ${sparkW} ${sparkH}" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="pw-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="${sparkStroke}" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="${sparkStroke}" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="${areaD}" fill="url(#pw-spark-fill)"/>
+              <path d="${pathD}" fill="none" stroke="${sparkStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="pw-spark-now" style="left: ${nowFrac * 100}%;">
+              <div class="pw-spark-now-dot" style="top: ${(nowY / sparkH) * 100}%;"></div>
+            </div>
+            <div class="pw-spark-labels">
+              ${sparkLabels.map((lbl, i) => i % 2 === 0 || i === sparkLabels.length - 1
+                ? html`<span class="pw-spark-lbl" style="left: ${(i / (sparkLabels.length - 1)) * 100}%;">${lbl}</span>`
+                : nothing
+              )}
+            </div>
           </div>
-        </div>
 
-        <div class="pw-spark"><div class="pw-spark-line"></div></div>
+          ${metrics.length > 0 ? html`
+            <div class="pw-metrics" style="grid-template-columns: repeat(${cols}, 1fr);">
+              ${metrics.map((m) => html`
+                <div class="pw-metric ${m.key}">
+                  <ha-icon .icon=${m.icon}></ha-icon>
+                  <span class="pw-metric-val">${m.val}</span>
+                  ${m.unit ? html`<span class="pw-metric-unit">${m.unit}</span>` : nothing}
+                  ${m.dir ? html`<span class="pw-metric-dir">${m.dir}</span>` : nothing}
+                </div>
+              `)}
+            </div>
+          ` : nothing}
 
-        ${metrics.length > 0 ? html`
-          <div class="pw-metrics" style="grid-template-columns: repeat(${cols}, 1fr);">
-            ${metrics.map((m) => html`
-              <div class="pw-metric ${m.key}">
-                <ha-icon .icon=${m.icon}></ha-icon>
-                <span class="pw-metric-val">${m.val}</span>
-                ${m.unit ? html`<span class="pw-metric-unit">${m.unit}</span>` : nothing}
+          ${this._weatherShowDaily || this._weatherShowHourly ? html`
+            <div class="pw-forecast-zone">
+              <div class="pw-tabs">
+                ${this._weatherShowDaily ? html`<span class="pw-tab active">${t('weather.daily_tab')}</span>` : nothing}
+                ${this._weatherShowHourly ? html`<span class="pw-tab">${t('weather.hourly_tab')}</span>` : nothing}
               </div>
-            `)}
-          </div>
-        ` : nothing}
-
-        ${this._weatherShowDaily || this._weatherShowHourly ? html`
-          <div class="pw-tabs">
-            ${this._weatherShowDaily ? html`<span class="pw-tab active">${t('weather.daily_tab')}</span>` : nothing}
-            ${this._weatherShowHourly ? html`<span class="pw-tab">${t('weather.hourly_tab')}</span>` : nothing}
-          </div>
-        ` : nothing}
+              <div class="pw-fold-sep"></div>
+              ${this._weatherShowDaily ? html`
+                <div class="pw-daily-list">
+                  ${fakeDailyIcons.slice(0, 5).map((icon, i) => {
+                    const dayIdx = (todayDow + i) % 7;
+                    const label = i === 0 ? t('weather.today') : dayNames[dayIdx];
+                    const high = Math.round(fakeDailyHighs[i]);
+                    const low = Math.round(fakeDailyLows[i]);
+                    const precip = fakePrecip[i];
+                    return html`
+                      <div class="pw-day-row ${i === 0 ? 'today' : ''}">
+                        <span class="pw-day-label">${label}</span>
+                        <ha-icon class="pw-day-icon" .icon=${icon}></ha-icon>
+                        <span class="pw-day-temps"><span class="pw-day-high">${high}°</span><span class="pw-day-low">${low}°</span></span>
+                        ${precip > 0 ? html`<span class="pw-day-precip">${precip}%</span>` : html`<span class="pw-day-precip"></span>`}
+                      </div>
+                    `;
+                  })}
+                </div>
+              ` : nothing}
+            </div>
+          ` : nothing}
+        </div>
       </div>
     `;
+  }
+
+  private _windBearingToDir(bearing: number): string {
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    return dirs[Math.round(bearing / 45) % 8];
   }
 
   private _renderWeatherTab() {
