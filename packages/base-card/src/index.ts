@@ -161,7 +161,7 @@ export function getAreaEntities(
 // — BackendService —
 
 export class BackendService {
-  private connection: HassConnection;
+  readonly connection: HassConnection;
 
   constructor(hass: HomeAssistant) {
     this.connection = hass.connection;

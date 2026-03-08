@@ -1,6 +1,7 @@
 """Tests for Glass Cards data models."""
 
 from custom_components.glass_cards.models import (
+    DashboardConfig,
     GlassCardsData,
     NavbarConfig,
     RoomConfig,
@@ -93,6 +94,24 @@ class TestNavbarConfig:
         navbar = NavbarConfig.from_dict({})
         assert navbar.room_order == []
         assert navbar.hidden_rooms == []
+
+
+class TestDashboardConfig:
+    """Tests for DashboardConfig."""
+
+    def test_default_values(self):
+        """Test default dashboard config."""
+        dashboard = DashboardConfig()
+        assert dashboard.enabled_cards == ["weather"]
+
+    def test_roundtrip_defaults(self):
+        """Constructor and from_dict({}) must produce the same result."""
+        assert DashboardConfig().to_dict() == DashboardConfig.from_dict({}).to_dict()
+
+    def test_from_dict_filters_invalid(self):
+        """Invalid card keys should be filtered out."""
+        dashboard = DashboardConfig.from_dict({"enabled_cards": ["weather", "invalid", "light"]})
+        assert dashboard.enabled_cards == ["weather", "light"]
 
 
 class TestGlassCardsData:

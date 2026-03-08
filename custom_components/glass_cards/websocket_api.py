@@ -6,13 +6,11 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
-from homeassistant.exceptions import Unauthorized
-
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, Unauthorized
 
 from .const import DOMAIN
 from .permissions import can_edit, can_read
-from .models import RoomConfig
+from .models import RoomConfig, VALID_WEATHER_METRICS, VALID_DASHBOARD_CARDS
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -27,6 +25,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_room)
     websocket_api.async_register_command(hass, ws_set_navbar)
     websocket_api.async_register_command(hass, ws_delete_room)
+    websocket_api.async_register_command(hass, ws_set_weather)
+    websocket_api.async_register_command(hass, ws_set_dashboard)
 
 
 def _get_store(hass: HomeAssistant) -> GlassCardsStore:
@@ -215,3 +215,62 @@ async def ws_delete_room(
     del store.data.rooms[area_id]
     await store.async_save()
     connection.send_result(msg["id"], {"deleted": area_id})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_weather",
+        vol.Optional("entity_id"): vol.All(str, vol.Strip, vol.Match(r"^weather\.\w+$")),
+        vol.Optional("hidden_metrics"): [vol.In(list(VALID_WEATHER_METRICS))],
+        vol.Optional("show_daily"): bool,
+        vol.Optional("show_hourly"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_set_weather(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the weather card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "entity_id" in msg:
+        store.data.weather.entity_id = msg["entity_id"]
+    if "hidden_metrics" in msg:
+        store.data.weather.hidden_metrics = msg["hidden_metrics"]
+    if "show_daily" in msg:
+        store.data.weather.show_daily = msg["show_daily"]
+    if "show_hourly" in msg:
+        store.data.weather.show_hourly = msg["show_hourly"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.weather.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_dashboard",
+        vol.Optional("enabled_cards"): [vol.In(list(VALID_DASHBOARD_CARDS))],
+    }
+)
+@websocket_api.async_response
+async def ws_set_dashboard(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the dashboard card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "enabled_cards" in msg:
+        store.data.dashboard.enabled_cards = msg["enabled_cards"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.dashboard.to_dict())

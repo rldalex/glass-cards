@@ -46,6 +46,15 @@ function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
   return 'night';
 }
 
+/** Maps dashboard config keys to custom element tag names */
+const DASHBOARD_CARD_MAP: Record<string, string> = {
+  weather: 'glass-weather-card',
+  light: 'glass-light-card',
+};
+
+/** Render order for dashboard cards */
+const DASHBOARD_CARD_ORDER = ['weather', 'light'];
+
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
 const DEFAULT_HUMIDITY_THRESHOLD = 65;
@@ -101,6 +110,8 @@ export class GlassNavbarCard extends BaseCard {
   private _configReady = false;
   private _lastAmbientPeriod: AmbientPeriod | null = null;
   @state() private _editMode = false;
+  @state() private _enabledCards: string[] = ['weather'];
+  private _dashboardCards = new Map<string, HTMLElement>();
 
   static getConfigElement() {
     return document.createElement('glass-navbar-card-editor');
@@ -112,8 +123,16 @@ export class GlassNavbarCard extends BaseCard {
     css`
       :host {
         display: block;
-        height: 0;
-        overflow: visible;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        padding-bottom: 80px; /* space for fixed navbar */
+      }
+
+      .dashboard-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .navbar {
@@ -383,6 +402,10 @@ export class GlassNavbarCard extends BaseCard {
       this._loadBackendConfig();
     });
 
+    this._listen('dashboard-config-changed', () => {
+      this._loadDashboardConfig();
+    });
+
     this._editMode = this._detectEditMode();
   }
 
@@ -395,6 +418,8 @@ export class GlassNavbarCard extends BaseCard {
       this._scrollEl.removeEventListener('scroll', this._boundUpdateMask);
       this._scrollEl = null;
     }
+    for (const card of this._dashboardCards.values()) card.remove();
+    this._dashboardCards.clear();
     this._backend = undefined;
   }
 
@@ -442,6 +467,11 @@ export class GlassNavbarCard extends BaseCard {
       if (this.hass.language) setLanguage(this.hass.language);
       this._editMode = this._detectEditMode();
       if (this._editMode) return;
+      // Invalidate backend on WS reconnect
+      if (this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._configLoaded = false;
+      }
       if (!this._configLoaded) {
         this._configLoaded = true;
         this._loadBackendConfig();
@@ -454,9 +484,14 @@ export class GlassNavbarCard extends BaseCard {
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
+      // Propagate hass to dashboard card children
+      for (const card of this._dashboardCards.values()) {
+        (card as unknown as { hass: HomeAssistant }).hass = this.hass;
+      }
     }
-    if (changedProps.has('_items')) {
+    if (changedProps.has('_items') || changedProps.has('_enabledCards')) {
       this.updateComplete.then(() => {
+        this._syncDashboardCards();
         this._attachScrollListener();
         this._updateNavMask();
         this._animateFlip();
@@ -481,9 +516,13 @@ export class GlassNavbarCard extends BaseCard {
           humidity_threshold?: number;
         };
         rooms: Record<string, { icon?: string | null }>;
+        dashboard: { enabled_cards: string[] };
       }>('get_config');
       this._navbarConfig = result.navbar;
       this._roomConfigs = result.rooms ?? {};
+      if (result.dashboard) {
+        this._enabledCards = result.dashboard.enabled_cards;
+      }
       // Force rebuild with new config
       this._configReady = true;
       this._lastAreaKeys = '';
@@ -495,6 +534,33 @@ export class GlassNavbarCard extends BaseCard {
       this._rebuildStructure();
       this._aggregateState();
     }
+  }
+
+  private async _loadDashboardConfig(): Promise<void> {
+    if (!this.hass) return;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{
+        dashboard: { enabled_cards: string[] };
+      }>('get_config');
+      if (result?.dashboard) {
+        this._enabledCards = result.dashboard.enabled_cards;
+      }
+    } catch {
+      // Backend not available — keep defaults
+    }
+  }
+
+  private _getOrCreateCard(tag: string): HTMLElement {
+    let card = this._dashboardCards.get(tag);
+    if (!card) {
+      card = document.createElement(tag);
+      this._dashboardCards.set(tag, card);
+    }
+    if (this.hass) {
+      (card as unknown as { hass: HomeAssistant }).hass = this.hass;
+    }
+    return card;
   }
 
   private _rebuildStructure() {
@@ -716,14 +782,50 @@ export class GlassNavbarCard extends BaseCard {
     `;
   }
 
-  render() {
-    if (this._editMode || this._items.length === 0) return nothing;
+  private _syncDashboardCards(): void {
+    const container = this.renderRoot.querySelector('.dashboard-cards') as HTMLElement | null;
+    if (!container) return;
 
+    const enabledSet = new Set(this._enabledCards);
+    const wanted = DASHBOARD_CARD_ORDER.filter((key) => enabledSet.has(key));
+
+    // Remove cards no longer enabled (collect first to avoid Map mutation during iteration)
+    const toRemove: string[] = [];
+    for (const [tag] of this._dashboardCards) {
+      const key = Object.entries(DASHBOARD_CARD_MAP).find(([, t]) => t === tag)?.[0];
+      if (!key || !enabledSet.has(key)) toRemove.push(tag);
+    }
+    for (const tag of toRemove) {
+      this._dashboardCards.get(tag)?.remove();
+      this._dashboardCards.delete(tag);
+    }
+
+    // Add/reorder enabled cards
+    let prevNode: Element | null = null;
+    for (const key of wanted) {
+      const tag = DASHBOARD_CARD_MAP[key];
+      if (!tag) continue;
+      const el = this._getOrCreateCard(tag);
+      const nextSibling: Element | null = prevNode ? prevNode.nextElementSibling : container.firstElementChild;
+      if (el !== nextSibling) {
+        container.insertBefore(el, nextSibling);
+      }
+      prevNode = el;
+    }
+  }
+
+  render() {
+    // Always render the dashboard-cards container — it holds imperatively managed children
+    // that would be destroyed if render() returned nothing
+    const showNavbar = !this._editMode && this._items.length > 0;
     const scrollClass = `nav-scroll${this._scrollMask !== 'none' ? ` ${this._scrollMask}` : ''}`;
     return html`
-      <nav class="navbar glass glass-float">
-        <div class=${scrollClass}>${this._items.map((item) => this._renderNavItem(item))}</div>
-      </nav>
+      <div class="dashboard-cards"></div>
+      ${showNavbar
+        ? html`<nav class="navbar glass glass-float">
+            <div class=${scrollClass}>${this._items.map((item) => this._renderNavItem(item))}</div>
+          </nav>`
+        : nothing}
     `;
   }
 }

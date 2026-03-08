@@ -43,6 +43,37 @@
     "activate_scene_aria": "Activate {name}"
   },
 
+  "weather": {
+    "title": "WEATHER",
+    "feels_like": "Feels like {temp}°",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "pressure": "Pressure",
+    "uv": "UV",
+    "visibility": "Visibility",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "daily_tab": "7 days",
+    "hourly_tab": "Hourly",
+    "today": "Today",
+    "now": "Now",
+    "cond_sunny": "Sunny",
+    "cond_clear_night": "Clear night",
+    "cond_partly_cloudy": "Partly cloudy",
+    "cond_cloudy": "Cloudy",
+    "cond_foggy": "Foggy",
+    "cond_rainy": "Rain",
+    "cond_pouring": "Heavy rain",
+    "cond_snowy": "Snow",
+    "cond_snowy_rainy": "Sleet",
+    "cond_hail": "Hail",
+    "cond_lightning": "Lightning",
+    "cond_stormy": "Stormy",
+    "cond_windy": "Windy",
+    "cond_windy_variant": "Windy cloudy",
+    "cond_exceptional": "Exceptional"
+  },
+
   "editor": {
     "redirect_message": "Glass Cards configuration is managed from the dedicated panel.",
     "open_config": "Open Glass Cards Config"
@@ -112,6 +143,32 @@
     "domain_cover": "Covers",
     "domain_cover_desc": "Blinds and shutters",
     "domain_vacuum": "Vacuum",
-    "domain_vacuum_desc": "Robot vacuums"
+    "domain_vacuum_desc": "Robot vacuums",
+
+    "tab_weather": "Weather Card",
+    "weather_entity": "Weather entity",
+    "weather_entity_desc": "Select the weather entity to display on the card.",
+    "weather_metrics": "Visible metrics",
+    "weather_metrics_desc": "Enable or disable metrics shown on the card.",
+    "weather_forecasts": "Forecast tabs",
+    "weather_forecasts_desc": "Enable or disable forecast tabs.",
+    "weather_metric_humidity": "Humidity",
+    "weather_metric_wind": "Wind",
+    "weather_metric_pressure": "Pressure",
+    "weather_metric_uv": "UV",
+    "weather_metric_visibility": "Visibility",
+    "weather_metric_sunrise": "Sunrise",
+    "weather_metric_sunset": "Sunset",
+    "weather_daily": "7-day forecast",
+    "weather_hourly": "Hourly forecast",
+    "weather_select_entity": "Select a weather entity",
+
+    "tab_dashboard": "Dashboard",
+    "dashboard_title": "Dashboard cards",
+    "dashboard_desc": "Enable or disable the cards displayed on the Home Assistant dashboard.",
+    "dashboard_card_weather": "Weather Card",
+    "dashboard_card_weather_desc": "Current weather, forecasts and animations",
+    "dashboard_card_light": "Light Card",
+    "dashboard_card_light_desc": "Room-by-room light controls"
   }
 }

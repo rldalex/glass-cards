@@ -266,6 +266,7 @@ export class ThemeManager {
     this.styleEl?.remove();
     this.styleEl = null;
     document.documentElement.style.removeProperty('background');
+    if (_themeManager === this) _themeManager = null;
   }
 }
 
