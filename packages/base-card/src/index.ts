@@ -1,6 +1,7 @@
 import { LitElement, type PropertyValues } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
+import { setLanguage, getLanguage } from '@glass-cards/i18n';
 
 // — HA Types —
 
@@ -77,6 +78,7 @@ export interface EntityRegistryEntry {
 
 export abstract class BaseCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
+  @state() protected _lang = getLanguage();
   protected _config?: LovelaceCardConfig;
   private _busCleanups: (() => void)[] = [];
 
@@ -91,9 +93,18 @@ export abstract class BaseCard extends LitElement {
     if (changedProps.size > 1) return true;
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
     if (!oldHass) return true;
+    // Detect language change
+    if (oldHass.language !== this.hass?.language) return true;
     const entityIds = this.getTrackedEntityIds();
     if (entityIds.length === 0) return true;
     return entityIds.some((id) => oldHass.states[id] !== this.hass?.states[id]);
+  }
+
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
+      this._lang = getLanguage();
+    }
   }
 
   // Single-entity cards use _config.entity by default; override for multi-entity

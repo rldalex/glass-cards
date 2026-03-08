@@ -8,6 +8,7 @@ export default defineConfig(({ command }) => ({
       '@glass-cards/event-bus': resolve(__dirname, 'packages/event-bus/src'),
       '@glass-cards/base-card': resolve(__dirname, 'packages/base-card/src'),
       '@glass-cards/ui-core': resolve(__dirname, 'packages/ui-core/src'),
+      '@glass-cards/i18n': resolve(__dirname, 'packages/i18n/src'),
     },
   },
   build: {

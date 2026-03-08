@@ -1,10 +1,19 @@
 import { LitElement, html, css } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { glassTokens } from '@glass-cards/ui-core';
+import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 import type { HomeAssistant, LovelaceCardConfig } from '@glass-cards/base-card';
 
 export class GlassLightCardEditor extends LitElement {
-  @property({ attribute: false }) hass?: HomeAssistant;
+  @property({ attribute: false })
+  set hass(value: HomeAssistant | undefined) {
+    this._hass = value;
+    if (value?.language && setLanguage(value.language)) this._lang = getLanguage();
+  }
+  get hass() { return this._hass; }
+  private _hass?: HomeAssistant;
+  @state() private _lang = getLanguage();
+
   _config?: LovelaceCardConfig;
 
   setConfig(config: LovelaceCardConfig): void {
@@ -28,8 +37,10 @@ export class GlassLightCardEditor extends LitElement {
         text-decoration: none;
         font-weight: 600;
       }
-      .redirect a:hover {
-        text-decoration: underline;
+      @media (hover: hover) {
+        .redirect a:hover {
+          text-decoration: underline;
+        }
       }
       ha-icon {
         --mdc-icon-size: 20px;
@@ -40,14 +51,15 @@ export class GlassLightCardEditor extends LitElement {
   ];
 
   protected render() {
+    void this._lang; // Trigger re-render on language change
     return html`
       <div class="redirect">
         <p>
           <ha-icon icon="mdi:cog"></ha-icon>
-          La configuration de Glass Cards se fait depuis le panneau dédié.
+          ${t('editor.redirect_message')}
         </p>
         <p>
-          <a href="/glass-cards">Ouvrir Glass Cards Config</a>
+          <a href="/glass-cards">${t('editor.open_config')}</a>
         </p>
       </div>
     `;

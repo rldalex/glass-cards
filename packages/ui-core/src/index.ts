@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { css, type CSSResult } from 'lit';
+import { css, html, type CSSResult, type TemplateResult } from 'lit';
 import { bus, type AmbientPeriod } from '@glass-cards/event-bus';
 
 // — Design Tokens —
@@ -92,6 +92,47 @@ export const glassMixin: CSSResult = css`
     transition: opacity var(--t-slow);
   }
 `;
+
+// — Marquee Mixin —
+
+export const marqueeMixin: CSSResult = css`
+  .marquee {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
+  .marquee .marquee-inner {
+    display: inline-block;
+    padding-right: 3em;
+    animation: marquee-scroll var(--marquee-duration, 8s) linear infinite;
+    will-change: transform;
+  }
+  .marquee .marquee-inner[aria-hidden] {
+    /* duplicate for seamless loop */
+  }
+  @keyframes marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+`;
+
+/**
+ * Render text with automatic marquee scrolling when too long.
+ * @param text — the text to display
+ * @param maxChars — character threshold above which marquee activates (default 18)
+ * @param duration — CSS animation duration (default '8s')
+ */
+export function marqueeText(
+  text: string,
+  maxChars = 18,
+  duration = '8s',
+): TemplateResult | string {
+  if (text.length <= maxChars) return text;
+  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0${text}\u00A0\u00A0\u00A0</span></span>`;
+}
 
 // — Fold Mixin —
 

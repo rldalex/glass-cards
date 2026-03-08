@@ -9,6 +9,7 @@ import {
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { setLanguage } from '@glass-cards/i18n';
 import './editor';
 
 function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
@@ -170,8 +171,10 @@ export class GlassNavbarCard extends BaseCard {
           background var(--t-fast),
           color var(--t-fast);
       }
-      .nav-item:hover {
-        background: var(--s2);
+      @media (hover: hover) {
+        .nav-item:hover {
+          background: var(--s2);
+        }
       }
       .nav-item.active {
         background: rgba(255, 255, 255, 0.1);
@@ -434,8 +437,9 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   updated(changedProps: PropertyValues) {
-    super.updated(changedProps);
+    // Update global language singleton without setting _lang (no re-render needed)
     if (changedProps.has('hass') && this.hass) {
+      if (this.hass.language) setLanguage(this.hass.language);
       this._editMode = this._detectEditMode();
       if (this._editMode) return;
       if (!this._configLoaded) {
