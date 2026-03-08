@@ -1,6 +1,6 @@
 import { html, css, nothing, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
-import { bus } from '@glass-cards/event-bus';
+import { bus, type AmbientPeriod } from '@glass-cards/event-bus';
 import {
   BaseCard,
   BackendService,
@@ -10,6 +10,40 @@ import {
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
 import './editor';
+
+function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
+  const sun = hass.states['sun.sun'];
+  if (!sun) {
+    // Fallback: time-based periods
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 10) return 'morning';
+    if (hour >= 10 && hour < 17) return 'day';
+    if (hour >= 17 && hour < 21) return 'evening';
+    return 'night';
+  }
+  const elevation = parseFloat(sun.attributes.elevation as string) || 0;
+  if (elevation > 20) return 'day';
+  if (elevation > 0) {
+    // Sun is low — determine if rising (morning) or setting (evening)
+    const nextSetting = Date.parse(sun.attributes.next_setting as string);
+    const nextRising = Date.parse(sun.attributes.next_rising as string);
+    // If next_setting is sooner than next_rising, sun is going down → evening
+    if (!isNaN(nextSetting) && !isNaN(nextRising)) {
+      return nextSetting < nextRising ? 'evening' : 'morning';
+    }
+    return sun.state === 'above_horizon' ? 'day' : 'night';
+  }
+  // elevation <= 0 — below horizon
+  // Distinguish deep night from twilight (dusk/dawn)
+  if (elevation > -6) {
+    const nextRising = Date.parse(sun.attributes.next_rising as string);
+    const nextSetting = Date.parse(sun.attributes.next_setting as string);
+    if (!isNaN(nextRising) && !isNaN(nextSetting)) {
+      return nextRising < nextSetting ? 'morning' : 'evening';
+    }
+  }
+  return 'night';
+}
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -54,6 +88,7 @@ export class GlassNavbarCard extends BaseCard {
     show_temperature?: boolean;
     show_humidity?: boolean;
     show_media?: boolean;
+    auto_sort?: boolean;
     temp_high?: number;
     temp_low?: number;
     humidity_threshold?: number;
@@ -62,6 +97,7 @@ export class GlassNavbarCard extends BaseCard {
   private _roomConfigs: Record<string, { icon?: string | null }> = {};
   private _flipPositions = new Map<string, number>();
   private _backend?: BackendService;
+  private _lastAmbientPeriod: AmbientPeriod | null = null;
   @state() private _editMode = false;
 
   static getConfigElement() {
@@ -381,7 +417,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    return this._items.flatMap((item) => item.entityIds);
+    return ['sun.sun', ...this._items.flatMap((item) => item.entityIds)];
   }
 
   updated(changedProps: PropertyValues) {
@@ -395,6 +431,7 @@ export class GlassNavbarCard extends BaseCard {
       }
       this._rebuildStructure();
       this._aggregateState();
+      this._updateAmbient();
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
@@ -524,9 +561,9 @@ export class GlassNavbarCard extends BaseCard {
       return { ...area, lightsOn, temperature, tempValue, humidity, humidityValue, mediaPlaying };
     });
 
-    // Only bubble lit rooms to front when no explicit backend order is set
-    const hasBackendOrder = (this._navbarConfig?.room_order?.length ?? 0) > 0;
-    if (!hasBackendOrder) {
+    // Stable sort: bubble lit rooms to front while preserving relative order
+    const autoSort = this._navbarConfig?.auto_sort !== false;
+    if (autoSort) {
       items.sort((a, b) => {
         const aLit = a.lightsOn > 0 ? 0 : 1;
         const bLit = b.lightsOn > 0 ? 0 : 1;
@@ -538,6 +575,15 @@ export class GlassNavbarCard extends BaseCard {
     this._snapshotPositions();
 
     this._items = items;
+  }
+
+  private _updateAmbient() {
+    if (!this.hass) return;
+    const period = computeAmbientPeriod(this.hass);
+    if (period !== this._lastAmbientPeriod) {
+      this._lastAmbientPeriod = period;
+      bus.emit('ambient-update', { period });
+    }
   }
 
   private _snapshotPositions() {

@@ -74,6 +74,7 @@ class NavbarConfig:
     show_temperature: bool = True
     show_humidity: bool = True
     show_media: bool = True
+    auto_sort: bool = True
     temp_high: float = 24.0
     temp_low: float = 17.0
     humidity_threshold: float = 65.0
@@ -87,6 +88,7 @@ class NavbarConfig:
             "show_temperature": self.show_temperature,
             "show_humidity": self.show_humidity,
             "show_media": self.show_media,
+            "auto_sort": self.auto_sort,
             "temp_high": self.temp_high,
             "temp_low": self.temp_low,
             "humidity_threshold": self.humidity_threshold,
@@ -104,6 +106,7 @@ class NavbarConfig:
             show_temperature=bool(data.get("show_temperature", True)),
             show_humidity=bool(data.get("show_humidity", True)),
             show_media=bool(data.get("show_media", True)),
+            auto_sort=bool(data.get("auto_sort", True)),
             temp_high=float(data.get("temp_high", 24.0)),
             temp_low=float(data.get("temp_low", 17.0)),
             humidity_threshold=float(data.get("humidity_threshold", 65.0)),

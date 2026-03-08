@@ -128,15 +128,54 @@ const AMBIENT_THEMES: Record<AmbientPeriod, AmbientConfig> = {
 
 // — ThemeManager —
 
+const AMBIENT_BG_ID = 'glass-cards-ambient-bg';
+
+const AMBIENT_STYLES = `
+  #${AMBIENT_BG_ID} {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #${AMBIENT_BG_ID}::before,
+  #${AMBIENT_BG_ID}::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.4;
+    transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #${AMBIENT_BG_ID}::before {
+    width: 600px;
+    height: 600px;
+    top: -200px;
+    right: -100px;
+    background: var(--ambient-blob-top, #3b6fa0);
+  }
+  #${AMBIENT_BG_ID}::after {
+    width: 500px;
+    height: 500px;
+    bottom: -150px;
+    left: -100px;
+    background: var(--ambient-blob-bottom, #4a90a0);
+  }
+`;
+
 export class ThemeManager {
   private period: AmbientPeriod = 'day';
   private cleanup?: () => void;
+  private ambientEl: HTMLElement | null = null;
+  private styleEl: HTMLStyleElement | null = null;
 
   constructor() {
     this.cleanup = bus.on('ambient-update', (payload) => {
       this.period = payload.period;
       this.applyAmbient();
     });
+    this._injectAmbientBg();
+    this.applyAmbient();
   }
 
   get currentPeriod(): AmbientPeriod {
@@ -150,10 +189,39 @@ export class ThemeManager {
     root.style.setProperty('--ambient-body', config.body);
     root.style.setProperty('--ambient-blob-top', config.blobTop);
     root.style.setProperty('--ambient-blob-bottom', config.blobBottom);
+    if (this.ambientEl) {
+      this.ambientEl.style.background = config.body;
+    }
+  }
+
+  private _injectAmbientBg(): void {
+    // Override HA's default background so our ambient div shows through
+    document.documentElement.style.background = 'transparent';
+
+    // Don't inject if already present (e.g. another instance)
+    if (document.getElementById(AMBIENT_BG_ID)) {
+      this.ambientEl = document.getElementById(AMBIENT_BG_ID);
+      return;
+    }
+
+    // Inject styles
+    this.styleEl = document.createElement('style');
+    this.styleEl.textContent = AMBIENT_STYLES;
+    document.head.appendChild(this.styleEl);
+
+    // Inject ambient div as first child of body
+    this.ambientEl = document.createElement('div');
+    this.ambientEl.id = AMBIENT_BG_ID;
+    document.body.prepend(this.ambientEl);
   }
 
   destroy(): void {
     this.cleanup?.();
+    this.ambientEl?.remove();
+    this.ambientEl = null;
+    this.styleEl?.remove();
+    this.styleEl = null;
+    document.documentElement.style.removeProperty('background');
   }
 }
 

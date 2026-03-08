@@ -146,6 +146,7 @@ async def ws_set_room(
         vol.Optional("show_temperature"): bool,
         vol.Optional("show_humidity"): bool,
         vol.Optional("show_media"): bool,
+        vol.Optional("auto_sort"): bool,
         vol.Optional("temp_high"): vol.Coerce(float),
         vol.Optional("temp_low"): vol.Coerce(float),
         vol.Optional("humidity_threshold"): vol.Coerce(float),
@@ -175,6 +176,8 @@ async def ws_set_navbar(
         store.data.navbar.show_humidity = msg["show_humidity"]
     if "show_media" in msg:
         store.data.navbar.show_media = msg["show_media"]
+    if "auto_sort" in msg:
+        store.data.navbar.auto_sort = msg["auto_sort"]
     if "temp_high" in msg:
         store.data.navbar.temp_high = msg["temp_high"]
     if "temp_low" in msg:

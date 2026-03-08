@@ -78,6 +78,7 @@ export class GlassConfigPanel extends LitElement {
 
   @state() private _tab: 'navbar' | 'popup' | 'light' = 'navbar';
   @state() private _rooms: RoomEntry[] = [];
+  @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
   @state() private _cards: CardEntry[] = [];
   @state() private _scenes: SceneEntry[] = [];
@@ -94,6 +95,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _showTemperature = true;
   @state() private _showHumidity = true;
   @state() private _showMedia = true;
+  @state() private _autoSort = true;
   @state() private _tempHigh = DEFAULT_TEMP_HIGH;
   @state() private _tempLow = DEFAULT_TEMP_LOW;
   @state() private _humidityThreshold = DEFAULT_HUMIDITY_THRESHOLD;
@@ -343,6 +345,13 @@ export class GlassConfigPanel extends LitElement {
       }
       .item-row.disabled {
         opacity: 0.35;
+      }
+      .empty-rooms .drag-handle {
+        visibility: hidden;
+      }
+      .empty-rooms .room-icon-btn {
+        pointer-events: none;
+        opacity: 0.4;
       }
       .item-row.dragging {
         opacity: 0.4;
@@ -1599,6 +1608,7 @@ export class GlassConfigPanel extends LitElement {
       show_temperature: true,
       show_humidity: true,
       show_media: true,
+      auto_sort: true,
       temp_high: DEFAULT_TEMP_HIGH,
       temp_low: DEFAULT_TEMP_LOW,
       humidity_threshold: DEFAULT_HUMIDITY_THRESHOLD,
@@ -1620,6 +1630,7 @@ export class GlassConfigPanel extends LitElement {
     this._showTemperature = navbarConfig.show_temperature ?? true;
     this._showHumidity = navbarConfig.show_humidity ?? true;
     this._showMedia = navbarConfig.show_media ?? true;
+    this._autoSort = navbarConfig.auto_sort ?? true;
     this._tempHigh = navbarConfig.temp_high ?? DEFAULT_TEMP_HIGH;
     this._tempLow = navbarConfig.temp_low ?? DEFAULT_TEMP_LOW;
     this._humidityThreshold = navbarConfig.humidity_threshold ?? DEFAULT_HUMIDITY_THRESHOLD;
@@ -1630,9 +1641,19 @@ export class GlassConfigPanel extends LitElement {
 
     const hass = this.hass;
     if (!hass) return;
-    const rooms: RoomEntry[] = areas.map((area) => {
+    const rooms: RoomEntry[] = [];
+    const emptyRooms: { areaId: string; name: string; icon: string }[] = [];
+
+    for (const area of areas) {
       const entities = getAreaEntities(area.area_id, hass.entities, hass.devices);
       const backendIcon = roomConfigs[area.area_id]?.icon;
+      const icon = backendIcon || area.icon || 'mdi:home';
+
+      // Separate empty rooms (no entities) — they won't appear in the navbar
+      if (entities.length === 0) {
+        emptyRooms.push({ areaId: area.area_id, name: area.name, icon });
+        continue;
+      }
 
       // Aggregate live state — same logic as navbar card
       let lightsOn = 0;
@@ -1662,10 +1683,10 @@ export class GlassConfigPanel extends LitElement {
         if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
       }
 
-      return {
+      rooms.push({
         areaId: area.area_id,
         name: area.name,
-        icon: backendIcon || area.icon || 'mdi:home',
+        icon,
         entityCount: entities.length,
         visible: !hiddenSet.has(area.area_id),
         lightsOn,
@@ -1674,8 +1695,8 @@ export class GlassConfigPanel extends LitElement {
         humidity,
         humidityValue,
         mediaPlaying,
-      };
-    });
+      });
+    }
 
     // Track initial icons for dirty-checking on save
     this._initialIcons.clear();
@@ -1694,6 +1715,7 @@ export class GlassConfigPanel extends LitElement {
     });
 
     this._rooms = rooms;
+    this._emptyRooms = emptyRooms;
     if (!this._selectedRoom && rooms.length > 0) {
       this._selectedRoom = rooms[0].areaId;
     }
@@ -1925,6 +1947,7 @@ export class GlassConfigPanel extends LitElement {
         show_temperature: this._showTemperature,
         show_humidity: this._showHumidity,
         show_media: this._showMedia,
+        auto_sort: this._autoSort,
         temp_high: this._tempHigh,
         temp_low: this._tempLow,
         humidity_threshold: this._humidityThreshold,
@@ -2128,7 +2151,14 @@ export class GlassConfigPanel extends LitElement {
 
   private _renderNavbarPreview() {
     // Only show visible rooms in preview (like the real navbar)
-    const visibleRooms = this._rooms.filter((r) => r.visible);
+    const visibleRooms = [...this._rooms.filter((r) => r.visible)];
+    if (this._autoSort) {
+      visibleRooms.sort((a, b) => {
+        const aLit = a.lightsOn > 0 ? 0 : 1;
+        const bLit = b.lightsOn > 0 ? 0 : 1;
+        return aLit - bLit;
+      });
+    }
     return html`
       <div class="preview-navbar">
         ${visibleRooms.map((room, idx) => {
@@ -2225,6 +2255,48 @@ export class GlassConfigPanel extends LitElement {
   private _renderNavbarTab() {
     return html`
       <div class="tab-panel" id="panel-navbar">
+
+        ${this._emptyRooms.length > 0 ? html`
+          <div class="section-label">Pièces vides</div>
+          <div class="section-desc">
+            Ces pièces n'ont aucune entité assignée dans Home Assistant.
+            Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.
+          </div>
+          <div class="item-list empty-rooms">
+            ${this._emptyRooms.map((room) => html`
+              <div class="item-row disabled">
+                <span class="drag-handle">
+                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                </span>
+                <div class="room-icon-btn">
+                  <ha-icon .icon=${room.icon}></ha-icon>
+                </div>
+                <div class="item-info">
+                  <span class="item-name">${room.name}</span>
+                  <span class="item-meta">0 entités</span>
+                </div>
+              </div>
+            `)}
+          </div>
+        ` : nothing}
+
+        <div class="section-label">Comportement</div>
+        <div class="feature-list">
+          <button
+            class="feature-row ${this._autoSort ? 'checked' : ''}"
+            @click=${() => { this._autoSort = !this._autoSort; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:sort-bool-ascending'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Tri automatique</div>
+              <div class="feature-desc">Les pièces actives remontent en premier</div>
+            </div>
+            <span class="check-box"><ha-icon .icon=${'mdi:check'}></ha-icon></span>
+          </button>
+        </div>
+
         <div class="banner">
           <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
           <span>Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.</span>
