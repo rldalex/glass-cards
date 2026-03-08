@@ -12,7 +12,7 @@ from homeassistant.components.frontend import (
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN, JS_URL, PANEL_JS_URL
+from .const import DOMAIN, JS_PATH, JS_URL, PANEL_JS_PATH, PANEL_JS_URL
 from .store import GlassCardsStore
 from .websocket_api import async_register_commands
 
@@ -40,14 +40,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Serve the main JS bundle
     js_path = os.path.join(www_dir, "glass-cards.js")
     if os.path.isfile(js_path):
-        static_paths.append(StaticPathConfig(JS_URL, js_path, cache_headers=False))
+        static_paths.append(StaticPathConfig(JS_PATH, js_path, cache_headers=False))
         add_extra_js_url(hass, JS_URL)
 
     # Serve the config panel JS bundle
     panel_js_path = os.path.join(www_dir, "glass-cards-panel.js")
     if os.path.isfile(panel_js_path):
         static_paths.append(
-            StaticPathConfig(PANEL_JS_URL, panel_js_path, cache_headers=False)
+            StaticPathConfig(PANEL_JS_PATH, panel_js_path, cache_headers=False)
         )
 
     if static_paths:
