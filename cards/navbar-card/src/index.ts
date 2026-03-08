@@ -97,6 +97,7 @@ export class GlassNavbarCard extends BaseCard {
   private _roomConfigs: Record<string, { icon?: string | null }> = {};
   private _flipPositions = new Map<string, number>();
   private _backend?: BackendService;
+  private _configReady = false;
   private _lastAmbientPeriod: AmbientPeriod | null = null;
   @state() private _editMode = false;
 
@@ -127,24 +128,23 @@ export class GlassNavbarCard extends BaseCard {
         align-items: center;
         padding: 0 6px;
         box-sizing: border-box;
-        z-index: 9990;
+        z-index: 9997;
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
       .nav-scroll {
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 4px;
         overflow-x: auto;
         scrollbar-width: none;
         flex: 1;
+        padding-block: 8px;
       }
       .nav-scroll::before,
       .nav-scroll::after {
         content: '';
-        min-width: 8px;
-        flex-shrink: 0;
+        flex: 1 0 8px;
       }
       .nav-scroll::-webkit-scrollbar {
         display: none;
@@ -159,7 +159,6 @@ export class GlassNavbarCard extends BaseCard {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
         padding: 0 10px;
         cursor: pointer;
         position: relative;
@@ -186,7 +185,7 @@ export class GlassNavbarCard extends BaseCard {
       }
 
       /* 1. Pulse-light: oscillating glow on lights-on icons */
-      .nav-item.has-light ha-icon {
+      .nav-item.has-light .nav-content > ha-icon {
         color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
         animation: pulse-light 3s ease-in-out infinite;
@@ -201,27 +200,36 @@ export class GlassNavbarCard extends BaseCard {
         }
       }
 
-      /* 2. Humidity bar at bottom */
-      .nav-item.has-humidity::after {
-        content: '';
+      .nav-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .nav-item.active .nav-content {
+        gap: 6px;
+      }
+
+      /* 2. Humidity bar centered on nav-content (icon + label, excludes badge) */
+      .humidity-bar {
         position: absolute;
-        bottom: 4px;
+        bottom: -6px;
         left: 50%;
         transform: translateX(-50%);
         width: 14px;
         height: 3px;
         border-radius: 2px;
-        background: var(--c-info);
+        background: var(--c-temp-cold);
         opacity: 0.8;
         box-shadow: 0 0 6px rgba(96, 165, 250, 0.4);
       }
 
       /* 3. Music icon bounce */
-      .nav-item.has-music ha-icon {
+      .nav-item.has-music .nav-content > ha-icon {
         animation: pulse-music 0.8s ease-in-out infinite;
       }
       /* Combined: light glow + music bounce */
-      .nav-item.has-light.has-music ha-icon {
+      .nav-item.has-light.has-music .nav-content > ha-icon {
         color: var(--c-light-glow);
         animation:
           pulse-light 3s ease-in-out infinite,
@@ -263,13 +271,13 @@ export class GlassNavbarCard extends BaseCard {
       }
       .nav-item.has-temp-hot .nav-temp-badge {
         opacity: 1;
-        color: var(--c-alert);
+        color: var(--c-temp-hot);
         filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.6));
         animation: pulse-temp-hot 2s infinite ease-in-out;
       }
       .nav-item.has-temp-cold .nav-temp-badge {
         opacity: 1;
-        color: var(--c-info);
+        color: var(--c-temp-cold);
         filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
         animation: pulse-temp-cold 2s infinite ease-in-out;
       }
@@ -434,8 +442,10 @@ export class GlassNavbarCard extends BaseCard {
         this._configLoaded = true;
         this._loadBackendConfig();
       }
-      this._rebuildStructure();
-      this._aggregateState();
+      if (this._configReady) {
+        this._rebuildStructure();
+        this._aggregateState();
+      }
       this._updateAmbient();
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
@@ -471,11 +481,15 @@ export class GlassNavbarCard extends BaseCard {
       this._navbarConfig = result.navbar;
       this._roomConfigs = result.rooms ?? {};
       // Force rebuild with new config
+      this._configReady = true;
       this._lastAreaKeys = '';
       this._rebuildStructure();
       this._aggregateState();
     } catch {
       // Backend not available — use auto-discovery defaults
+      this._configReady = true;
+      this._rebuildStructure();
+      this._aggregateState();
     }
   }
 
@@ -671,7 +685,6 @@ export class GlassNavbarCard extends BaseCard {
       'nav-item',
       isActive ? 'active' : '',
       hasLight ? 'has-light' : '',
-      hasHumidity ? 'has-humidity' : '',
       hasMusic ? 'has-music' : '',
       hasTempHot ? 'has-temp-hot' : '',
       hasTempCold ? 'has-temp-cold' : '',
@@ -685,12 +698,16 @@ export class GlassNavbarCard extends BaseCard {
         data-area=${item.areaId}
         @click=${(e: Event) => this._handleNavClick(item, e)}
         aria-label=${item.name}
+        aria-pressed=${isActive ? 'true' : 'false'}
       >
         <span class="nav-temp-badge">
           <ha-icon .icon=${hasTempHot ? 'mdi:thermometer-high' : 'mdi:snowflake'}></ha-icon>
         </span>
-        <ha-icon .icon=${item.icon}></ha-icon>
-        <span class="nav-label-wrap"><span class="nav-label">${item.name}</span></span>
+        <span class="nav-content">
+          <ha-icon .icon=${item.icon}></ha-icon>
+          <span class="nav-label-wrap"><span class="nav-label">${item.name}</span></span>
+          ${hasHumidity ? html`<span class="humidity-bar"></span>` : nothing}
+        </span>
       </button>
     `;
   }

@@ -40,11 +40,11 @@ export class GlassRoomPopup extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
     if (changedProps.size > 1) return true;
-    // Skip hass-only updates when popup is closed
-    if (!this._areaId) return false;
+    // Skip hass-only updates when popup is closed or closing
+    if (!this._open) return false;
     // Only re-render if entities in the active area changed
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-    if (!oldHass || !this.hass) return true;
+    if (!oldHass || !this.hass || !this._areaId) return true;
     const areaEntities = getAreaEntities(this._areaId, this.hass.entities, this.hass.devices);
     const newHass = this.hass;
     return areaEntities.some((e) => oldHass.states[e.entity_id] !== newHass.states[e.entity_id]);
@@ -55,9 +55,7 @@ export class GlassRoomPopup extends LitElement {
     glassMixin,
     css`
       :host {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
+        display: block;
         pointer-events: none;
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
@@ -65,6 +63,7 @@ export class GlassRoomPopup extends LitElement {
       .overlay {
         position: fixed;
         inset: 0;
+        z-index: 9995;
         background: rgba(0, 0, 0, 0.5);
         opacity: 0;
         transition: opacity 0.3s var(--ease-std);
@@ -79,6 +78,7 @@ export class GlassRoomPopup extends LitElement {
         position: fixed;
         bottom: 90px;
         left: 50%;
+        z-index: 9999;
         transform: translateX(-50%) scale(0.3);
         transform-origin: center bottom;
         width: calc(100vw - 16px);
@@ -354,9 +354,10 @@ export class GlassRoomPopup extends LitElement {
 
     // Brief peek: open scenes after 400ms, close after 1s
     this._peekTimeout = setTimeout(() => {
+      if (!this._open) return;
       this._scenesOpen = true;
       const inner = setTimeout(() => {
-        this._scenesOpen = false;
+        if (this._open) this._scenesOpen = false;
         if (this._peekTimeout === inner) this._peekTimeout = undefined;
       }, 1000);
       this._peekTimeout = inner;

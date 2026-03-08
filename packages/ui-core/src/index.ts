@@ -41,6 +41,8 @@ export const glassTokens: CSSResult = css`
     --c-accent: var(--accent-color, #818cf8);
     --c-purple: #a78bfa;
     --c-light-glow: #fbbf24;
+    --c-temp-hot: #f87171;
+    --c-temp-cold: #60a5fa;
   }
 `;
 

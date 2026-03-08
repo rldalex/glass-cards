@@ -830,13 +830,13 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-nav-item.has-temp-hot .preview-temp-badge {
         opacity: 1;
-        color: var(--c-alert);
+        color: var(--c-temp-hot);
         filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.6));
         animation: pulse-temp-hot 2s infinite ease-in-out;
       }
       .preview-nav-item.has-temp-cold .preview-temp-badge {
         opacity: 1;
-        color: var(--c-info);
+        color: var(--c-temp-cold);
         filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
         animation: pulse-temp-cold 2s infinite ease-in-out;
       }
@@ -1348,8 +1348,8 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 14px;
         color: var(--t2);
       }
-      .threshold-icon.hot ha-icon { color: var(--c-alert); }
-      .threshold-icon.cold ha-icon { color: var(--c-info); }
+      .threshold-icon.hot ha-icon { color: var(--c-temp-hot); }
+      .threshold-icon.cold ha-icon { color: var(--c-temp-cold); }
       .threshold-icon.humidity ha-icon { color: var(--c-info); }
       .threshold-label {
         flex: 1;
