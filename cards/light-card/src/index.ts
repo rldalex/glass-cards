@@ -917,18 +917,15 @@ export class GlassLightCard extends BaseCard {
 
   // — Layout —
 
-  private _getEntityLayout(entityId: string): 'auto' | 'full' | 'compact' {
+  private _getEntityLayout(entityId: string): 'full' | 'compact' {
     const configLayouts = (this._config?.entity_layouts as Record<string, string> | undefined) ?? {};
     const backendLayouts = this._roomConfig?.entity_layouts ?? {};
     const layout = configLayouts[entityId] || backendLayouts[entityId];
-    return (layout as 'auto' | 'full' | 'compact') || 'auto';
+    return (layout as 'full' | 'compact') === 'full' ? 'full' : 'compact';
   }
 
   private _isCompact(light: LightInfo): boolean {
-    const layout = this._getEntityLayout(light.entityId);
-    if (layout === 'compact') return true;
-    if (layout === 'full') return false;
-    return light.type === 'simple';
+    return this._getEntityLayout(light.entityId) === 'compact';
   }
 
   private _buildLayout(lights: LightInfo[]): LayoutItem[] {
@@ -939,8 +936,13 @@ export class GlassLightCard extends BaseCard {
       if (this._isCompact(light)) {
         const next =
           i + 1 < lights.length && this._isCompact(lights[i + 1]) ? lights[i + 1] : null;
-        items.push({ kind: 'compact-pair', left: light, right: next });
-        i += next ? 2 : 1;
+        if (next) {
+          items.push({ kind: 'compact-pair', left: light, right: next });
+          i += 2;
+        } else {
+          items.push({ kind: 'full', light });
+          i++;
+        }
       } else {
         items.push({ kind: 'full', light });
         i++;
