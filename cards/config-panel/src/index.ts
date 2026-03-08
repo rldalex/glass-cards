@@ -48,7 +48,7 @@ interface LightEntry {
   name: string;
   isOn: boolean;
   brightnessPct: number;
-  layout: 'auto' | 'full' | 'compact';
+  layout: 'full' | 'compact';
   visible: boolean;
 }
 
@@ -2053,13 +2053,14 @@ export class GlassConfigPanel extends LitElement {
         name: state?.attributes.friendly_name as string || e.entity_id.split('.')[1],
         isOn,
         brightnessPct,
-        layout: (entityLayouts[e.entity_id] as 'auto' | 'full' | 'compact') || 'auto',
+        layout: (entityLayouts[e.entity_id] as 'full' | 'compact') || 'compact',
         visible: !hiddenEntities.has(e.entity_id),
       };
     });
 
-    // Sort by backend order, then by name
+    // Sort: visible first, then by backend order, then by name
     lights.sort((a, b) => {
+      if (a.visible !== b.visible) return a.visible ? -1 : 1;
       const aIdx = orderMap.get(a.entityId);
       const bIdx = orderMap.get(b.entityId);
       if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
@@ -2074,17 +2075,15 @@ export class GlassConfigPanel extends LitElement {
   private _toggleLightVisible(entityId: string) {
     this._lights = this._lights.map((l) =>
       l.entityId === entityId ? { ...l, visible: !l.visible } : l,
-    );
+    ).sort((a, b) => {
+      if (a.visible !== b.visible) return a.visible ? -1 : 1;
+      return 0;
+    });
   }
 
   private _cycleLightLayout(entityId: string) {
-    const cycle: Record<string, 'auto' | 'full' | 'compact'> = {
-      auto: 'full',
-      full: 'compact',
-      compact: 'auto',
-    };
     this._lights = this._lights.map((l) =>
-      l.entityId === entityId ? { ...l, layout: cycle[l.layout] } : l,
+      l.entityId === entityId ? { ...l, layout: l.layout === 'full' ? 'compact' : 'full' } : l,
     );
   }
 
@@ -2107,7 +2106,7 @@ export class GlassConfigPanel extends LitElement {
 
       const layouts: Record<string, string> = {};
       for (const l of this._lights) {
-        if (l.layout !== 'auto') {
+        if (l.layout === 'full') {
           layouts[l.entityId] = l.layout;
         }
       }
@@ -2645,6 +2644,8 @@ export class GlassConfigPanel extends LitElement {
     const anyOn = onCount > 0;
     const countClass = onCount === 0 ? 'none' : onCount === total ? 'all' : 'some';
 
+    if (visibleLights.length === 0) return html`<div class="preview-empty">Aucune lumière visible</div>`;
+
     // Build layout: compact lights are paired, full/auto-on get full row
     type PItem =
       | { kind: 'full'; light: LightEntry }
@@ -2652,10 +2653,8 @@ export class GlassConfigPanel extends LitElement {
     const layout: PItem[] = [];
     const compactBuf: LightEntry[] = [];
 
-    for (const l of this._lights) {
-      const effectiveLayout = l.layout === 'auto'
-        ? (l.isOn ? 'full' : 'compact')
-        : l.layout;
+    for (const l of visibleLights) {
+      const effectiveLayout = l.layout === 'full' ? 'full' : 'compact';
       if (effectiveLayout === 'compact') {
         compactBuf.push(l);
         if (compactBuf.length === 2) {
@@ -2664,14 +2663,14 @@ export class GlassConfigPanel extends LitElement {
         }
       } else {
         if (compactBuf.length > 0) {
-          layout.push({ kind: 'compact-pair', left: compactBuf[0], right: null });
+          layout.push({ kind: 'full', light: compactBuf[0] });
           compactBuf.length = 0;
         }
         layout.push({ kind: 'full', light: l });
       }
     }
     if (compactBuf.length > 0) {
-      layout.push({ kind: 'compact-pair', left: compactBuf[0], right: null });
+      layout.push({ kind: 'full', light: compactBuf[0] });
     }
 
     // Tint: warm glow if any light is on
@@ -2694,7 +2693,7 @@ export class GlassConfigPanel extends LitElement {
             <div class="preview-light-name">${l.name}</div>
             <div class="preview-light-sub">${l.isOn ? `${l.brightnessPct}%` : 'Off'}</div>
           </div>
-          ${l.layout !== 'auto' ? html`<span class="preview-light-layout-tag">${l.layout}</span>` : nothing}
+          ${l.layout === 'full' ? html`<span class="preview-light-layout-tag">full</span>` : nothing}
           <span class="preview-light-dot ${l.isOn ? 'on' : ''}"></span>
         </div>
       `;
@@ -2771,7 +2770,7 @@ export class GlassConfigPanel extends LitElement {
           ? html`
               <div class="section-label">Lumières (${this._lights.length})</div>
               <div class="section-desc">
-                Glissez pour réordonner. Le bouton layout change l'affichage : auto, pleine largeur, ou compact.
+                Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.
               </div>
               <div class="item-list">
                 ${this._lights.map((light, idx) => this._renderLightRow(light, idx))}
@@ -2829,7 +2828,6 @@ export class GlassConfigPanel extends LitElement {
         </div>
         <div class="light-state">
           <span class="light-dot ${light.isOn ? 'on' : ''}"></span>
-          <span class="light-brightness">${light.isOn ? `${light.brightnessPct}%` : 'Off'}</span>
         </div>
         <button
           class="layout-btn"
@@ -2837,7 +2835,7 @@ export class GlassConfigPanel extends LitElement {
           aria-label="Changer le layout"
           title="Layout: ${light.layout}"
         >
-          ${light.layout}
+          ${light.layout === 'compact' ? 'COMPACT' : 'FULL'}
         </button>
         <button
           class="toggle ${light.visible ? 'on' : ''}"
