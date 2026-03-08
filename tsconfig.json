@@ -20,9 +20,10 @@
     "paths": {
       "@glass-cards/event-bus": ["./packages/event-bus/src"],
       "@glass-cards/base-card": ["./packages/base-card/src"],
-      "@glass-cards/ui-core": ["./packages/ui-core/src"]
+      "@glass-cards/ui-core": ["./packages/ui-core/src"],
+      "@glass-cards/i18n": ["./packages/i18n/src"]
     }
   },
-  "include": ["src/**/*.ts", "dev/**/*.ts", "packages/*/src/**/*.ts", "cards/*/src/**/*.ts"],
+  "include": ["src/**/*.ts", "dev/**/*.ts", "packages/*/src/**/*.ts", "packages/*/locales/*.json", "cards/*/src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -46,6 +46,8 @@ importers:
 
   packages/event-bus: {}
 
+  packages/i18n: {}
+
   packages/ui-core: {}
 
 packages:

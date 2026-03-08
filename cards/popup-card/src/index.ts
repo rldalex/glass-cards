@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
 import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
+import { t, setLanguage } from '@glass-cards/i18n';
 
 interface RoomConfig {
   icon?: string | null;
@@ -276,6 +277,13 @@ export class GlassRoomPopup extends LitElement {
     `,
   ];
 
+  protected updated(changedProps: PropertyValues) {
+    super.updated(changedProps);
+    if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
+      this.requestUpdate();
+    }
+  }
+
   connectedCallback() {
     super.connectedCallback();
     // Cancel any stale timers from a previous connection cycle
@@ -523,7 +531,7 @@ export class GlassRoomPopup extends LitElement {
                 ? 'has-music'
                 : ''}"
               @click=${() => hasScenes && (this._scenesOpen = !this._scenesOpen)}
-              aria-label=${hasScenes ? 'Toggle scenes' : meta.name}
+              aria-label=${hasScenes ? t('popup.toggle_scenes_aria') : meta.name}
               aria-expanded=${hasScenes ? (this._scenesOpen ? 'true' : 'false') : nothing}
             >
               <ha-icon .icon=${meta.icon}></ha-icon>
@@ -540,7 +548,7 @@ export class GlassRoomPopup extends LitElement {
           <button
             class="close-btn"
             @click=${() => bus.emit('popup-close', undefined)}
-            aria-label="Close"
+            aria-label="${t('popup.close_aria')}"
           >
             <ha-icon .icon=${'mdi:close'}></ha-icon>
           </button>
@@ -556,7 +564,7 @@ export class GlassRoomPopup extends LitElement {
                         <button
                           class="scene-chip ${this._activeSceneId === s.entity_id ? 'active' : ''}"
                           @click=${() => this._activateScene(s.entity_id)}
-                          aria-label="Activate ${s.attributes.friendly_name || s.entity_id}"
+                          aria-label="${t('popup.activate_scene_aria', { name: (s.attributes.friendly_name as string) || s.entity_id })}"
                         >
                           ${s.attributes.friendly_name || s.entity_id}
                         </button>

@@ -8,6 +8,7 @@ import {
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
+import { t } from '@glass-cards/i18n';
 import './editor';
 
 // — Types & Constants —
@@ -33,18 +34,18 @@ type LayoutItem =
 
 interface LightPreset {
   key: string;
-  label: string;
+  labelKey: 'light.preset_relax' | 'light.preset_focus' | 'light.preset_film' | 'light.preset_night';
   dotColor: string;
   brightness: number;
   temp: number;
   rgb: [number, number, number];
 }
 
-const TEMP_LABELS: [number, string, string][] = [
-  [3000, 'Chaud', '#ffd4a3'],
-  [4000, 'Chaud', '#ffedb3'],
-  [4800, 'Neutre', '#fff5e6'],
-  [9999, 'Froid', '#e0ecf5'],
+const TEMP_RANGES: [number, 'light.temp_warm' | 'light.temp_neutral' | 'light.temp_cold', string][] = [
+  [3000, 'light.temp_warm', '#ffd4a3'],
+  [4000, 'light.temp_warm', '#ffedb3'],
+  [4800, 'light.temp_neutral', '#fff5e6'],
+  [9999, 'light.temp_cold', '#e0ecf5'],
 ];
 
 const RGB_PRESETS: [number, number, number][] = [
@@ -61,7 +62,7 @@ const RGB_PRESETS: [number, number, number][] = [
 const LIGHT_PRESETS: LightPreset[] = [
   {
     key: 'relax',
-    label: 'Relax',
+    labelKey: 'light.preset_relax',
     dotColor: '#ff9d4d',
     brightness: 50,
     temp: 2700,
@@ -69,7 +70,7 @@ const LIGHT_PRESETS: LightPreset[] = [
   },
   {
     key: 'focus',
-    label: 'Focus',
+    labelKey: 'light.preset_focus',
     dotColor: '#e0ecf5',
     brightness: 100,
     temp: 5500,
@@ -77,7 +78,7 @@ const LIGHT_PRESETS: LightPreset[] = [
   },
   {
     key: 'film',
-    label: 'Film',
+    labelKey: 'light.preset_film',
     dotColor: '#ff7b3a',
     brightness: 25,
     temp: 2400,
@@ -85,7 +86,7 @@ const LIGHT_PRESETS: LightPreset[] = [
   },
   {
     key: 'nuit',
-    label: 'Nuit',
+    labelKey: 'light.preset_night',
     dotColor: '#ffd4a3',
     brightness: 10,
     temp: 2200,
@@ -107,10 +108,10 @@ function detectLightType(entity: HassEntity): LightType {
 }
 
 function getTempInfo(kelvin: number): { label: string; color: string } {
-  for (const [max, label, color] of TEMP_LABELS) {
-    if (kelvin < max) return { label, color };
+  for (const [max, key, color] of TEMP_RANGES) {
+    if (kelvin < max) return { label: t(key), color };
   }
-  return { label: 'Froid', color: '#e0ecf5' };
+  return { label: t('light.temp_cold'), color: '#e0ecf5' };
 }
 
 function rgbToHex(rgb: [number, number, number]): string {
@@ -972,10 +973,10 @@ export class GlassLightCard extends BaseCard {
 
   private _renderSubText(info: LightInfo): TemplateResult | TemplateResult[] | typeof nothing {
     if (!info.isOn) {
-      return html`<span class="light-brightness-text">Éteint</span>`;
+      return html`<span class="light-brightness-text">${t('common.off')}</span>`;
     }
     if (info.type === 'simple') {
-      return html`<span class="light-brightness-text">Allumé</span>`;
+      return html`<span class="light-brightness-text">${t('common.on')}</span>`;
     }
 
     const parts: TemplateResult[] = [
@@ -991,7 +992,7 @@ export class GlassLightCard extends BaseCard {
     if (info.type === 'rgb' && info.rgbColor) {
       const hex = rgbToHex(info.rgbColor);
       parts.push(html`<span class="light-temp-dot" style="background:${hex}"></span>`);
-      parts.push(html`<span class="light-temp-text">Couleur</span>`);
+      parts.push(html`<span class="light-temp-text">${t('light.color')}</span>`);
     }
 
     return parts;
@@ -1028,14 +1029,14 @@ export class GlassLightCard extends BaseCard {
           class=${iconClasses}
           style=${rgbStyle}
           @click=${() => this._toggleLight(info.entityId)}
-          aria-label="Toggle ${info.name}"
+          aria-label="${t('light.toggle_aria', { name: info.name })}"
         >
           <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
         </button>
         <button
           class="light-expand-btn"
           @click=${() => this._toggleExpand(info.entityId, info.isOn)}
-          aria-label="${info.isOn ? `Expand ${info.name} controls` : info.name}"
+          aria-label="${info.isOn ? t('light.expand_aria', { name: info.name }) : info.name}"
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
           <div class="light-info">
@@ -1090,7 +1091,7 @@ export class GlassLightCard extends BaseCard {
                   fillClass,
                   info.brightnessPct,
                   'mdi:brightness-6',
-                  'Intensité',
+                  t('light.intensity'),
                   (v) => `${v}%`,
                   1,
                   100,
@@ -1174,7 +1175,7 @@ export class GlassLightCard extends BaseCard {
         <div class="slider-thumb" style="left:${pct}%"></div>
         <div class="slider-lbl">
           <ha-icon .icon=${'mdi:thermometer'}></ha-icon>
-          Température
+          ${t('light.temperature')}
         </div>
         <div class="slider-val">${localKelvin}K</div>
         <input
@@ -1183,7 +1184,7 @@ export class GlassLightCard extends BaseCard {
           min=${info.minKelvin}
           max=${info.maxKelvin}
           .value=${String(localKelvin)}
-          aria-label="Température de couleur"
+          aria-label="${t('light.color_temp_label')}"
           @input=${(e: Event) => {
             const v = Number((e.target as HTMLInputElement).value);
             this._onSliderInput(tempKey, v, (k) => this._setColorTemp(info.entityId, k));
@@ -1209,7 +1210,7 @@ export class GlassLightCard extends BaseCard {
               class="cdot ${isActive ? 'active' : ''}"
               style="--cdot-color:${rgbToHex(rgb)}"
               @click=${() => this._setRgbColor(info.entityId, rgb)}
-              aria-label="Couleur ${rgbToHex(rgb)}"
+              aria-label="${t('light.color_aria', { hex: rgbToHex(rgb) })}"
             ></button>
           `;
         })}
@@ -1228,10 +1229,10 @@ export class GlassLightCard extends BaseCard {
             <button
               class="chip ${activeKey === preset.key ? 'active' : ''}"
               @click=${() => this._applyPreset(info, preset)}
-              aria-label="Preset ${preset.label}"
+              aria-label="${t('light.preset_aria', { label: t(preset.labelKey) })}"
             >
               <span class="chip-dot" style="background:${preset.dotColor}"></span>
-              ${preset.label}
+              ${t(preset.labelKey)}
             </button>
           `,
         )}
@@ -1277,13 +1278,13 @@ export class GlassLightCard extends BaseCard {
     return html`
       <div class="card-header">
         <div class="card-header-left">
-          <span class="card-title">LIGHTS</span>
+          <span class="card-title">${t('light.title')}</span>
           <span class="card-count ${countClass}">${onCount}/${total}</span>
         </div>
         <button
           class="toggle-all ${anyOn ? 'on' : ''}"
           @click=${() => this._toggleAll()}
-          aria-label="${anyOn ? 'Turn off all lights' : 'Turn on all lights'}"
+          aria-label="${anyOn ? t('light.toggle_all_on_aria') : t('light.toggle_all_off_aria')}"
         ></button>
       </div>
 

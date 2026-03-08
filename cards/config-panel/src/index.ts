@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { t, setLanguage, type TranslationKey } from '@glass-cards/i18n';
 import {
   BackendService,
   getAreaEntities,
@@ -54,14 +55,34 @@ interface LightEntry {
 
 const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
 
-const CARD_META: Record<string, { name: string; icon: string; description: string }> = {
-  light: { name: 'Lumières', icon: 'mdi:lightbulb-group', description: 'Contrôle des lumières' },
-  media_player: { name: 'Média', icon: 'mdi:speaker', description: 'Lecteurs multimédias' },
-  climate: { name: 'Climat', icon: 'mdi:thermostat', description: 'Thermostats et climatisation' },
-  fan: { name: 'Ventilateur', icon: 'mdi:fan', description: 'Ventilation' },
-  cover: { name: 'Volets', icon: 'mdi:blinds', description: 'Stores et volets roulants' },
-  vacuum: { name: 'Aspirateur', icon: 'mdi:robot-vacuum', description: 'Robots aspirateurs' },
+const CARD_ICONS: Record<string, string> = {
+  light: 'mdi:lightbulb-group',
+  media_player: 'mdi:speaker',
+  climate: 'mdi:thermostat',
+  fan: 'mdi:fan',
+  cover: 'mdi:blinds',
+  vacuum: 'mdi:robot-vacuum',
 };
+
+type DomainKey = 'light' | 'media_player' | 'climate' | 'fan' | 'cover' | 'vacuum';
+
+const DOMAIN_I18N_KEYS: Record<DomainKey, { name: TranslationKey; desc: TranslationKey }> = {
+  light: { name: 'config.domain_light', desc: 'config.domain_light_desc' },
+  media_player: { name: 'config.domain_media_player', desc: 'config.domain_media_player_desc' },
+  climate: { name: 'config.domain_climate', desc: 'config.domain_climate_desc' },
+  fan: { name: 'config.domain_fan', desc: 'config.domain_fan_desc' },
+  cover: { name: 'config.domain_cover', desc: 'config.domain_cover_desc' },
+  vacuum: { name: 'config.domain_vacuum', desc: 'config.domain_vacuum_desc' },
+};
+
+function getCardMeta(domain: string): { name: string; icon: string; description: string } {
+  const keys = DOMAIN_I18N_KEYS[domain as DomainKey];
+  return {
+    name: keys ? t(keys.name) : domain,
+    icon: CARD_ICONS[domain] || 'mdi:help-circle',
+    description: keys ? t(keys.desc) : '',
+  };
+}
 
 const ROOM_ICONS = [
   'mdi:sofa', 'mdi:stove', 'mdi:bed', 'mdi:desk',
@@ -1514,7 +1535,8 @@ export class GlassConfigPanel extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
     if (changedProps.size > 1) return true;
-    // Only re-render for hass if we haven't loaded yet
+    // Detect language change even after initial load
+    if (this.hass?.language && setLanguage(this.hass.language)) return true;
     return !this._loaded;
   }
 
@@ -1765,7 +1787,7 @@ export class GlassConfigPanel extends LitElement {
 
     // Add domains that have entities but aren't in the stored order
     for (const domain of domainCounts.keys()) {
-      if (!orderedSet.has(domain) && CARD_META[domain]) {
+      if (!orderedSet.has(domain) && CARD_ICONS[domain]) {
         orderedIds.push(domain);
       }
     }
@@ -1776,7 +1798,7 @@ export class GlassConfigPanel extends LitElement {
         return (domainCounts.get(id) || 0) > 0 || (storedOrder && storedOrder.includes(id));
       })
       .map((id) => {
-        const meta = CARD_META[id] || { name: id, icon: 'mdi:card-outline', description: '' };
+        const meta = getCardMeta(id);
         const count = domainCounts.get(id) || 0;
         return {
           id,
@@ -2161,7 +2183,7 @@ export class GlassConfigPanel extends LitElement {
 
   private _renderPopupPreview() {
     const room = this._rooms.find((r) => r.areaId === this._selectedRoom);
-    if (!room) return html`<div class="preview-empty">Sélectionnez une pièce</div>`;
+    if (!room) return html`<div class="preview-empty">${t('config.popup_select_room')}</div>`;
 
     const hasScenes = this._scenes.length > 0;
     const visibleScenes = this._scenes.filter((s) => s.visible);
@@ -2224,10 +2246,9 @@ export class GlassConfigPanel extends LitElement {
       <div class="tab-panel" id="panel-navbar">
 
         ${this._emptyRooms.length > 0 ? html`
-          <div class="section-label">Pièces vides</div>
+          <div class="section-label">${t('config.navbar_empty_rooms')}</div>
           <div class="section-desc">
-            Ces pièces n'ont aucune entité assignée dans Home Assistant.
-            Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.
+            ${t('config.navbar_empty_rooms_desc')}
           </div>
           <div class="item-list empty-rooms">
             ${this._emptyRooms.map((room) => html`
@@ -2240,14 +2261,14 @@ export class GlassConfigPanel extends LitElement {
                 </div>
                 <div class="item-info">
                   <span class="item-name">${room.name}</span>
-                  <span class="item-meta">0 entités</span>
+                  <span class="item-meta">0 ${t('common.entities')}</span>
                 </div>
               </div>
             `)}
           </div>
         ` : nothing}
 
-        <div class="section-label">Comportement</div>
+        <div class="section-label">${t('config.navbar_behavior')}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -2257,8 +2278,8 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:sort-bool-ascending'}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">Tri automatique</div>
-              <div class="feature-desc">Les pièces actives remontent en premier</div>
+              <div class="feature-name">${t('config.navbar_auto_sort')}</div>
+              <div class="feature-desc">${t('config.navbar_auto_sort_desc')}</div>
             </div>
             <span
               class="toggle ${this._autoSort ? 'on' : ''}"
@@ -2270,9 +2291,9 @@ export class GlassConfigPanel extends LitElement {
 
         <div class="banner">
           <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
-          <span>Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.</span>
+          <span>${t('config.navbar_rooms_banner')}</span>
         </div>
-        <div class="section-label">Pièces visibles</div>
+        <div class="section-label">${t('config.navbar_visible_rooms')}</div>
         <div class="item-list">
           ${this._rooms.map((room, idx) => this._renderRoomRow(room, idx))}
         </div>
@@ -2280,7 +2301,7 @@ export class GlassConfigPanel extends LitElement {
         <div class="icon-picker-fold ${this._iconPickerRoom ? 'open' : ''}">
           <div class="icon-picker-inner">
             <div class="section-label">
-              Icône — ${this._rooms.find((r) => r.areaId === this._iconPickerRoom)?.name || ''}
+              ${t('config.navbar_icon_label', { name: this._rooms.find((r) => r.areaId === this._iconPickerRoom)?.name || '' })}
             </div>
             <div class="icon-picker-grid">
               ${ROOM_ICONS.map(
@@ -2288,7 +2309,7 @@ export class GlassConfigPanel extends LitElement {
                   <button
                     class="icon-pick ${this._rooms.find((r) => r.areaId === this._iconPickerRoom)?.icon === icon ? 'selected' : ''}"
                     @click=${() => this._iconPickerRoom && this._setRoomIcon(this._iconPickerRoom, icon)}
-                    aria-label="Choisir icône"
+                    aria-label="${t('config.navbar_choose_icon')}"
                   >
                     <ha-icon .icon=${icon}></ha-icon>
                   </button>
@@ -2298,14 +2319,14 @@ export class GlassConfigPanel extends LitElement {
           </div>
         </div>
 
-        <div class="section-label">Indicateurs</div>
-        <div class="section-desc">Activez ou désactivez les indicateurs visuels sur la navbar.</div>
+        <div class="section-label">${t('config.navbar_indicators')}</div>
+        <div class="section-desc">${t('config.navbar_indicators_desc')}</div>
         <div class="feature-list">
           ${([
-            { key: 'lights' as const, icon: 'mdi:lightbulb', name: 'Lumières allumées', desc: 'Glow doré sur l\'icône' },
-            { key: 'temperature' as const, icon: 'mdi:thermometer', name: 'Température', desc: 'Badge chaud / froid' },
-            { key: 'humidity' as const, icon: 'mdi:water-percent', name: 'Humidité', desc: 'Barre bleue en bas' },
-            { key: 'media' as const, icon: 'mdi:music', name: 'Média en lecture', desc: 'Bounce de l\'icône' },
+            { key: 'lights' as const, icon: 'mdi:lightbulb', nameKey: 'config.navbar_ind_lights' as const, descKey: 'config.navbar_ind_lights_desc' as const },
+            { key: 'temperature' as const, icon: 'mdi:thermometer', nameKey: 'config.navbar_ind_temp' as const, descKey: 'config.navbar_ind_temp_desc' as const },
+            { key: 'humidity' as const, icon: 'mdi:water-percent', nameKey: 'config.navbar_ind_humidity' as const, descKey: 'config.navbar_ind_humidity_desc' as const },
+            { key: 'media' as const, icon: 'mdi:music', nameKey: 'config.navbar_ind_media' as const, descKey: 'config.navbar_ind_media_desc' as const },
           ] as const).map((feat) => {
             const stateMap = {
               lights: this._showLights,
@@ -2328,8 +2349,8 @@ export class GlassConfigPanel extends LitElement {
                   <ha-icon .icon=${feat.icon}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${feat.name}</div>
-                  <div class="feature-desc">${feat.desc}</div>
+                  <div class="feature-name">${t(feat.nameKey)}</div>
+                  <div class="feature-desc">${t(feat.descKey)}</div>
                 </div>
                 <span
                   class="toggle ${checked ? 'on' : ''}"
@@ -2341,21 +2362,21 @@ export class GlassConfigPanel extends LitElement {
           })}
         </div>
 
-        <div class="section-label">Seuils</div>
-        <div class="section-desc">Définissez les seuils pour les alertes de température et d'humidité.</div>
+        <div class="section-label">${t('config.navbar_thresholds')}</div>
+        <div class="section-desc">${t('config.navbar_thresholds_desc')}</div>
         <div class="threshold-list">
           <div class="threshold-row">
             <div class="threshold-icon hot">
               <ha-icon .icon=${'mdi:thermometer-high'}></ha-icon>
             </div>
-            <span class="threshold-label">Température haute</span>
+            <span class="threshold-label">${t('config.navbar_temp_high')}</span>
             <input
               class="threshold-input"
               type="number"
               step="0.5"
               .value=${String(this._tempHigh)}
               @change=${(e: Event) => { this._tempHigh = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_TEMP_HIGH; }}
-              aria-label="Seuil température haute"
+              aria-label="${t('config.navbar_temp_high')}"
             />
             <span class="threshold-unit">°C</span>
           </div>
@@ -2363,14 +2384,14 @@ export class GlassConfigPanel extends LitElement {
             <div class="threshold-icon cold">
               <ha-icon .icon=${'mdi:snowflake'}></ha-icon>
             </div>
-            <span class="threshold-label">Température basse</span>
+            <span class="threshold-label">${t('config.navbar_temp_low')}</span>
             <input
               class="threshold-input"
               type="number"
               step="0.5"
               .value=${String(this._tempLow)}
               @change=${(e: Event) => { this._tempLow = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_TEMP_LOW; }}
-              aria-label="Seuil température basse"
+              aria-label="${t('config.navbar_temp_low')}"
             />
             <span class="threshold-unit">°C</span>
           </div>
@@ -2378,27 +2399,27 @@ export class GlassConfigPanel extends LitElement {
             <div class="threshold-icon humidity">
               <ha-icon .icon=${'mdi:water-percent'}></ha-icon>
             </div>
-            <span class="threshold-label">Seuil humidité</span>
+            <span class="threshold-label">${t('config.navbar_humidity_threshold')}</span>
             <input
               class="threshold-input"
               type="number"
               step="1"
               .value=${String(this._humidityThreshold)}
               @change=${(e: Event) => { this._humidityThreshold = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_HUMIDITY_THRESHOLD; }}
-              aria-label="Seuil humidité"
+              aria-label="${t('config.navbar_humidity_threshold')}"
             />
             <span class="threshold-unit">%</span>
           </div>
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this._reset()}>Réinitialiser</button>
+          <button class="btn btn-ghost" @click=${() => this._reset()}>${t('common.reset')}</button>
           <button
             class="btn btn-accent"
             @click=${() => this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving ? 'Enregistrement...' : 'Enregistrer'}
+            ${this._saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>
@@ -2433,20 +2454,20 @@ export class GlassConfigPanel extends LitElement {
         <button
           class="room-icon-btn"
           @click=${() => this._openIconPicker(room.areaId)}
-          aria-label="Changer l'icône de ${room.name}"
+          aria-label="${t('config.navbar_change_icon_aria', { name: room.name })}"
         >
           <ha-icon .icon=${room.icon}></ha-icon>
         </button>
         <div class="item-info">
           <span class="item-name">${room.name}</span>
-          <span class="item-meta">${room.entityCount} entités</span>
+          <span class="item-meta">${room.entityCount} ${t('common.entities')}</span>
         </div>
         <button
           class="toggle ${room.visible ? 'on' : ''}"
           @click=${() => this._toggleRoomVisible(room.areaId)}
           role="switch"
           aria-checked=${room.visible ? 'true' : 'false'}
-          aria-label="${room.visible ? 'Masquer' : 'Afficher'} ${room.name}"
+          aria-label="${room.visible ? t('common.hide') : t('common.show')} ${room.name}"
         ></button>
       </div>
     `;
@@ -2459,9 +2480,9 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-popup">
-        <div class="section-label">Pièce</div>
+        <div class="section-label">${t('config.popup_room')}</div>
         <div class="section-desc">
-          Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.
+          ${t('config.popup_room_desc')}
         </div>
         <div class="dropdown ${this._dropdownOpen ? 'open' : ''}">
           <button
@@ -2471,7 +2492,7 @@ export class GlassConfigPanel extends LitElement {
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${selectedRoomObj?.icon || 'mdi:home'}></ha-icon>
-            <span>${selectedRoomObj?.name || 'Sélectionner...'}</span>
+            <span>${selectedRoomObj?.name || t('common.select')}</span>
             <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -2491,18 +2512,18 @@ export class GlassConfigPanel extends LitElement {
           </div>
         </div>
 
-        <div class="section-label">Cartes internes</div>
+        <div class="section-label">${t('config.popup_internal_cards')}</div>
         <div class="section-desc">
-          Ordonnez les cartes affichées dans le popup de cette pièce.
+          ${t('config.popup_internal_cards_desc')}
         </div>
         <div class="item-list">
           ${this._cards.map((card, idx) => this._renderCardRow(card, idx))}
         </div>
 
         ${this._scenes.length > 0 ? html`
-          <div class="section-label">Scènes (${this._scenes.length})</div>
+          <div class="section-label">${t('config.popup_scenes')} (${this._scenes.length})</div>
           <div class="section-desc">
-            Réordonnez et masquez les scènes affichées en haut du popup.
+            ${t('config.popup_scenes_desc')}
           </div>
           <div class="item-list">
             ${this._scenes.map((scene, idx) => this._renderSceneRow(scene, idx))}
@@ -2510,13 +2531,13 @@ export class GlassConfigPanel extends LitElement {
         ` : nothing}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this._reset()}>Réinitialiser</button>
+          <button class="btn btn-ghost" @click=${() => this._reset()}>${t('common.reset')}</button>
           <button
             class="btn btn-accent"
             @click=${() => this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving ? 'Enregistrement...' : 'Enregistrer'}
+            ${this._saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </div>
@@ -2561,7 +2582,7 @@ export class GlassConfigPanel extends LitElement {
           @click=${() => this._toggleCardVisible(card.id)}
           role="switch"
           aria-checked=${card.visible ? 'true' : 'false'}
-          aria-label="${card.visible ? 'Masquer' : 'Afficher'} ${card.name}"
+          aria-label="${card.visible ? t('common.hide') : t('common.show')} ${card.name}"
         ></button>
       </div>
     `;
@@ -2602,7 +2623,7 @@ export class GlassConfigPanel extends LitElement {
           @click=${() => this._toggleSceneVisible(scene.entityId)}
           role="switch"
           aria-checked=${scene.visible ? 'true' : 'false'}
-          aria-label="${scene.visible ? 'Masquer' : 'Afficher'} ${scene.name}"
+          aria-label="${scene.visible ? t('common.hide') : t('common.show')} ${scene.name}"
         ></button>
       </div>
     `;
@@ -2611,8 +2632,8 @@ export class GlassConfigPanel extends LitElement {
   // — Render: Light tab —
 
   private _renderLightPreview() {
-    if (!this._lightRoom) return html`<div class="preview-empty">Sélectionnez une pièce</div>`;
-    if (this._lights.length === 0) return html`<div class="preview-empty">Aucune lumière</div>`;
+    if (!this._lightRoom) return html`<div class="preview-empty">${t('config.light_select_room')}</div>`;
+    if (this._lights.length === 0) return html`<div class="preview-empty">${t('config.light_no_lights')}</div>`;
 
     const visibleLights = this._lights.filter((l) => l.visible);
     const onCount = visibleLights.filter((l) => l.isOn).length;
@@ -2620,7 +2641,7 @@ export class GlassConfigPanel extends LitElement {
     const anyOn = onCount > 0;
     const countClass = onCount === 0 ? 'none' : onCount === total ? 'all' : 'some';
 
-    if (visibleLights.length === 0) return html`<div class="preview-empty">Aucune lumière visible</div>`;
+    if (visibleLights.length === 0) return html`<div class="preview-empty">${t('config.light_no_visible')}</div>`;
 
     // Build layout: compact lights are paired, full/auto-on get full row
     type PItem =
@@ -2667,7 +2688,7 @@ export class GlassConfigPanel extends LitElement {
           </div>
           <div class="preview-light-info">
             <div class="preview-light-name">${l.name}</div>
-            <div class="preview-light-sub">${l.isOn ? `${l.brightnessPct}%` : 'Off'}</div>
+            <div class="preview-light-sub">${l.isOn ? `${l.brightnessPct}%` : t('common.off')}</div>
           </div>
           ${l.layout === 'full' ? html`<span class="preview-light-layout-tag">full</span>` : nothing}
           <span class="preview-light-dot ${l.isOn ? 'on' : ''}"></span>
@@ -2679,7 +2700,7 @@ export class GlassConfigPanel extends LitElement {
       <div class="preview-light">
         <div class="preview-light-header">
           <div class="preview-light-header-left">
-            <span class="preview-light-title">LIGHTS</span>
+            <span class="preview-light-title">${t('light.title')}</span>
             <span class="preview-light-count ${countClass}">${onCount}/${total}</span>
           </div>
           <div class="preview-light-toggle ${anyOn ? 'on' : ''}"></div>
@@ -2710,9 +2731,9 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-light">
-        <div class="section-label">Pièce</div>
+        <div class="section-label">${t('config.light_room')}</div>
         <div class="section-desc">
-          Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.
+          ${t('config.light_room_desc')}
         </div>
         <div class="dropdown ${this._lightDropdownOpen ? 'open' : ''}">
           <button
@@ -2722,7 +2743,7 @@ export class GlassConfigPanel extends LitElement {
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${selectedRoomObj?.icon || 'mdi:home'}></ha-icon>
-            <span>${selectedRoomObj?.name || 'Sélectionner...'}</span>
+            <span>${selectedRoomObj?.name || t('common.select')}</span>
             <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -2744,9 +2765,9 @@ export class GlassConfigPanel extends LitElement {
 
         ${this._lights.length > 0
           ? html`
-              <div class="section-label">Lumières (${this._lights.length})</div>
+              <div class="section-label">${t('config.light_list_title')} (${this._lights.length})</div>
               <div class="section-desc">
-                Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.
+                ${t('config.light_list_banner')}
               </div>
               <div class="item-list">
                 ${this._lights.map((light, idx) => this._renderLightRow(light, idx))}
@@ -2755,19 +2776,19 @@ export class GlassConfigPanel extends LitElement {
           : this._lightRoom
             ? html`<div class="banner">
                 <ha-icon .icon=${'mdi:lightbulb-off-outline'}></ha-icon>
-                <span>Aucune lumière dans cette pièce.</span>
+                <span>${t('config.light_no_lights')}</span>
               </div>`
             : nothing}
 
         ${this._lightRoom ? html`
           <div class="save-bar">
-            <button class="btn btn-ghost" @click=${() => this._loadRoomLights()}>Réinitialiser</button>
+            <button class="btn btn-ghost" @click=${() => this._loadRoomLights()}>${t('common.reset')}</button>
             <button
               class="btn btn-accent"
               @click=${() => this._save()}
               ?disabled=${this._saving}
             >
-              ${this._saving ? 'Enregistrement...' : 'Enregistrer'}
+              ${this._saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         ` : nothing}
@@ -2808,7 +2829,7 @@ export class GlassConfigPanel extends LitElement {
         <button
           class="layout-btn"
           @click=${() => this._cycleLightLayout(light.entityId)}
-          aria-label="Changer le layout"
+          aria-label="${t('config.light_change_layout_aria')}"
           title="Layout: ${light.layout}"
         >
           ${light.layout === 'compact' ? 'COMPACT' : 'FULL'}
@@ -2818,7 +2839,7 @@ export class GlassConfigPanel extends LitElement {
           @click=${() => this._toggleLightVisible(light.entityId)}
           role="switch"
           aria-checked=${light.visible ? 'true' : 'false'}
-          aria-label="${light.visible ? 'Masquer' : 'Afficher'} ${light.name}"
+          aria-label="${light.visible ? t('common.hide') : t('common.show')} ${light.name}"
         ></button>
       </div>
     `;
@@ -2833,11 +2854,11 @@ export class GlassConfigPanel extends LitElement {
       <div class="ambient-bg"></div>
       <div class="page-wrap">
         <div class="page-header">
-          <button class="page-back" @click=${() => this._goBack()} aria-label="Retour">
+          <button class="page-back" @click=${() => this._goBack()} aria-label="${t('common.back')}">
             <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
           </button>
-          <span class="page-title">Configuration</span>
-          <span class="page-subtitle">Glass Cards</span>
+          <span class="page-title">${t('config.title')}</span>
+          <span class="page-subtitle">${t('config.brand')}</span>
         </div>
 
         <div class="glass config-panel">
@@ -2849,7 +2870,7 @@ export class GlassConfigPanel extends LitElement {
               @click=${() => this._switchTab('navbar')}
             >
               <ha-icon .icon=${'mdi:dock-bottom'}></ha-icon>
-              Navbar
+              ${t('config.tab_navbar')}
             </button>
             <button
               class="tab ${this._tab === 'popup' ? 'active' : ''}"
@@ -2858,7 +2879,7 @@ export class GlassConfigPanel extends LitElement {
               @click=${() => this._switchTab('popup')}
             >
               <ha-icon .icon=${'mdi:card-outline'}></ha-icon>
-              Room Popup
+              ${t('config.tab_popup')}
             </button>
             <button
               class="tab ${this._tab === 'light' ? 'active' : ''}"
@@ -2867,12 +2888,12 @@ export class GlassConfigPanel extends LitElement {
               @click=${() => this._switchTab('light')}
             >
               <ha-icon .icon=${'mdi:lightbulb-group'}></ha-icon>
-              Light Card
+              ${t('config.tab_light')}
             </button>
           </div>
 
           <div class="preview-encart">
-            <div class="preview-label">Aperçu</div>
+            <div class="preview-label">${t('config.preview')}</div>
             ${this._tab === 'navbar'
               ? this._renderNavbarPreview()
               : this._tab === 'popup'
@@ -2889,7 +2910,7 @@ export class GlassConfigPanel extends LitElement {
       </div>
 
       <div class="toast ${this._toast ? 'show' : ''} ${this._toastError ? 'error' : ''}">
-        ${this._toastError ? 'Erreur de sauvegarde' : 'Configuration sauvegardée'}
+        ${this._toastError ? t('common.error_save') : t('common.config_saved')}
       </div>
     `;
   }
