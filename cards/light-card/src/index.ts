@@ -277,8 +277,10 @@ export class GlassLightCard extends BaseCard {
         transition: background var(--t-fast);
         border-radius: var(--radius-md);
       }
-      .light-row:hover {
-        background: var(--s1);
+      @media (hover: hover) {
+        .light-row:hover {
+          background: var(--s1);
+        }
       }
       .light-row.compact {
         grid-column: span 1;
@@ -570,8 +572,13 @@ export class GlassLightCard extends BaseCard {
         border-radius: 50%;
         background: var(--cdot-color);
       }
-      .cdot:hover {
-        transform: scale(1.15);
+      @media (hover: hover) {
+        .cdot:hover {
+          transform: scale(1.15);
+        }
+      }
+      .cdot:active {
+        transform: scale(1.1);
       }
       .cdot.active {
         border-color: rgba(255, 255, 255, 0.6);
@@ -602,10 +609,15 @@ export class GlassLightCard extends BaseCard {
         transition: all var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
-      .chip:hover {
+      @media (hover: hover) {
+        .chip:hover {
+          background: var(--s3);
+          color: var(--t2);
+          border-color: var(--b3);
+        }
+      }
+      .chip:active {
         background: var(--s3);
-        color: var(--t2);
-        border-color: var(--b3);
       }
       .chip.active {
         border-color: rgba(251, 191, 36, 0.2);

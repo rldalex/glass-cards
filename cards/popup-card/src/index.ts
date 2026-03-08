@@ -203,7 +203,12 @@ export class GlassRoomPopup extends LitElement {
         transition: background var(--t-fast);
         flex-shrink: 0;
       }
-      .close-btn:hover {
+      @media (hover: hover) {
+        .close-btn:hover {
+          background: var(--s3);
+        }
+      }
+      .close-btn:active {
         background: var(--s3);
       }
 
@@ -256,10 +261,15 @@ export class GlassRoomPopup extends LitElement {
           border-color var(--t-fast),
           color var(--t-fast);
       }
-      .scene-chip:hover {
+      @media (hover: hover) {
+        .scene-chip:hover {
+          background: var(--s3);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
+      .scene-chip:active {
         background: var(--s3);
-        border-color: var(--b3);
-        color: var(--t1);
       }
       .scene-chip.active {
         background: rgba(255, 255, 255, 0.12);
