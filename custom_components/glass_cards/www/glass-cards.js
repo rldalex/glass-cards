@@ -256,8 +256,10 @@
         transition: background var(--t-fast);
         border-radius: var(--radius-md);
       }
-      .light-row:hover {
-        background: var(--s1);
+      @media (hover: hover) {
+        .light-row:hover {
+          background: var(--s1);
+        }
       }
       .light-row.compact {
         grid-column: span 1;
@@ -549,8 +551,13 @@
         border-radius: 50%;
         background: var(--cdot-color);
       }
-      .cdot:hover {
-        transform: scale(1.15);
+      @media (hover: hover) {
+        .cdot:hover {
+          transform: scale(1.15);
+        }
+      }
+      .cdot:active {
+        transform: scale(1.1);
       }
       .cdot.active {
         border-color: rgba(255, 255, 255, 0.6);
@@ -581,10 +588,15 @@
         transition: all var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
-      .chip:hover {
+      @media (hover: hover) {
+        .chip:hover {
+          background: var(--s3);
+          color: var(--t2);
+          border-color: var(--b3);
+        }
+      }
+      .chip:active {
         background: var(--s3);
-        color: var(--t2);
-        border-color: var(--b3);
       }
       .chip.active {
         border-color: rgba(251, 191, 36, 0.2);
@@ -884,7 +896,12 @@
         transition: background var(--t-fast);
         flex-shrink: 0;
       }
-      .close-btn:hover {
+      @media (hover: hover) {
+        .close-btn:hover {
+          background: var(--s3);
+        }
+      }
+      .close-btn:active {
         background: var(--s3);
       }
 
@@ -937,10 +954,15 @@
           border-color var(--t-fast),
           color var(--t-fast);
       }
-      .scene-chip:hover {
+      @media (hover: hover) {
+        .scene-chip:hover {
+          background: var(--s3);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
+      .scene-chip:active {
         background: var(--s3);
-        border-color: var(--b3);
-        color: var(--t1);
       }
       .scene-chip.active {
         background: rgba(255, 255, 255, 0.12);
@@ -1102,8 +1124,10 @@
           background var(--t-fast),
           color var(--t-fast);
       }
-      .nav-item:hover {
-        background: var(--s2);
+      @media (hover: hover) {
+        .nav-item:hover {
+          background: var(--s2);
+        }
       }
       .nav-item.active {
         background: rgba(255, 255, 255, 0.1);

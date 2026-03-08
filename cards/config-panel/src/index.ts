@@ -206,8 +206,10 @@ export class GlassConfigPanel extends LitElement {
         transition: background var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
-      .page-back:hover {
-        background: var(--s3);
+      @media (hover: hover) {
+        .page-back:hover {
+          background: var(--s3);
+        }
       }
       .page-back:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -268,8 +270,10 @@ export class GlassConfigPanel extends LitElement {
         outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      .tab:hover {
-        color: var(--t2);
+      @media (hover: hover) {
+        .tab:hover {
+          color: var(--t2);
+        }
       }
       .tab:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -360,9 +364,11 @@ export class GlassConfigPanel extends LitElement {
         user-select: none;
         -webkit-user-select: none;
       }
-      .item-row:hover {
-        background: var(--s2);
-        border-color: var(--b2);
+      @media (hover: hover) {
+        .item-row:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
       }
       .item-row.disabled {
         opacity: 0.35;
@@ -399,8 +405,10 @@ export class GlassConfigPanel extends LitElement {
         border-radius: 4px;
         transition: color var(--t-fast);
       }
-      .drag-handle:hover {
-        color: var(--t3);
+      @media (hover: hover) {
+        .drag-handle:hover {
+          color: var(--t3);
+        }
       }
       .drag-handle:active {
         cursor: grabbing;
@@ -433,9 +441,11 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 16px;
         color: var(--t2);
       }
-      .room-icon-btn:hover {
-        background: var(--s3);
-        border-color: var(--b2);
+      @media (hover: hover) {
+        .room-icon-btn:hover {
+          background: var(--s3);
+          border-color: var(--b2);
+        }
       }
       .room-icon-btn:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -565,9 +575,11 @@ export class GlassConfigPanel extends LitElement {
         outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      .dropdown-trigger:hover {
-        background: var(--s3);
-        border-color: var(--b3);
+      @media (hover: hover) {
+        .dropdown-trigger:hover {
+          background: var(--s3);
+          border-color: var(--b3);
+        }
       }
       .dropdown-trigger:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -625,9 +637,11 @@ export class GlassConfigPanel extends LitElement {
         text-align: left;
         -webkit-tap-highlight-color: transparent;
       }
-      .dropdown-item:hover {
-        background: var(--s3);
-        color: var(--t1);
+      @media (hover: hover) {
+        .dropdown-item:hover {
+          background: var(--s3);
+          color: var(--t1);
+        }
       }
       .dropdown-item:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -685,9 +699,11 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 18px;
         color: var(--t2);
       }
-      .icon-pick:hover {
-        background: var(--s3);
-        border-color: var(--b2);
+      @media (hover: hover) {
+        .icon-pick:hover {
+          background: var(--s3);
+          border-color: var(--b2);
+        }
       }
       .icon-pick:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1265,8 +1281,10 @@ export class GlassConfigPanel extends LitElement {
         text-align: left;
         -webkit-tap-highlight-color: transparent;
       }
-      .feature-row:hover {
-        background: var(--s1);
+      @media (hover: hover) {
+        .feature-row:hover {
+          background: var(--s1);
+        }
       }
       .feature-row:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1423,10 +1441,12 @@ export class GlassConfigPanel extends LitElement {
         flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
       }
-      .layout-btn:hover {
-        background: var(--s3);
-        color: var(--t2);
-        border-color: var(--b3);
+      @media (hover: hover) {
+        .layout-btn:hover {
+          background: var(--s3);
+          color: var(--t2);
+          border-color: var(--b3);
+        }
       }
       .layout-btn:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1463,10 +1483,12 @@ export class GlassConfigPanel extends LitElement {
         border-radius: 12px;
         font-size: 12px;
       }
-      .btn:hover {
-        background: var(--s4);
-        border-color: var(--b3);
-        color: var(--t1);
+      @media (hover: hover) {
+        .btn:hover {
+          background: var(--s4);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
       }
       .btn:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1477,9 +1499,11 @@ export class GlassConfigPanel extends LitElement {
         background: rgba(129, 140, 248, 0.12);
         color: var(--c-accent);
       }
-      .btn-accent:hover {
-        background: rgba(129, 140, 248, 0.2);
-        border-color: rgba(129, 140, 248, 0.35);
+      @media (hover: hover) {
+        .btn-accent:hover {
+          background: rgba(129, 140, 248, 0.2);
+          border-color: rgba(129, 140, 248, 0.35);
+        }
       }
       .btn-accent:disabled {
         opacity: 0.4;
@@ -1489,8 +1513,10 @@ export class GlassConfigPanel extends LitElement {
         border-color: transparent;
         background: transparent;
       }
-      .btn-ghost:hover {
-        background: var(--s2);
+      @media (hover: hover) {
+        .btn-ghost:hover {
+          background: var(--s2);
+        }
       }
 
       /* ── Toast ── */
