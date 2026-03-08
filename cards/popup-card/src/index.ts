@@ -3,7 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
 import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
-import { t, setLanguage } from '@glass-cards/i18n';
+import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 
 interface RoomConfig {
   icon?: string | null;
@@ -25,6 +25,7 @@ interface AreaMeta {
 
 export class GlassRoomPopup extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
+  @state() private _lang = getLanguage();
   @state() private _areaId: string | null = null;
   @state() private _open = false;
   @state() private _scenesOpen = false;
@@ -290,7 +291,7 @@ export class GlassRoomPopup extends LitElement {
   protected updated(changedProps: PropertyValues) {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
-      this.requestUpdate();
+      this._lang = getLanguage();
     }
   }
 
@@ -524,6 +525,7 @@ export class GlassRoomPopup extends LitElement {
   }
 
   render() {
+    void this._lang; // Trigger re-render on language change
     if (!this._areaId) return nothing;
     const meta = this._getAreaMeta();
     if (!meta) return nothing;

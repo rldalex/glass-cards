@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
-import { t, setLanguage, type TranslationKey } from '@glass-cards/i18n';
+import { t, setLanguage, getLanguage, type TranslationKey } from '@glass-cards/i18n';
 import {
   BackendService,
   getAreaEntities,
@@ -31,9 +31,9 @@ const DEFAULT_HUMIDITY_THRESHOLD = 65;
 
 interface CardEntry {
   id: string;
-  name: string;
+  nameKey: TranslationKey | null;
   icon: string;
-  description: string;
+  descKey: TranslationKey | null;
   count: number;
   visible: boolean;
 }
@@ -75,12 +75,12 @@ const DOMAIN_I18N_KEYS: Record<DomainKey, { name: TranslationKey; desc: Translat
   vacuum: { name: 'config.domain_vacuum', desc: 'config.domain_vacuum_desc' },
 };
 
-function getCardMeta(domain: string): { name: string; icon: string; description: string } {
+function getCardMeta(domain: string): { nameKey: TranslationKey | null; icon: string; descKey: TranslationKey | null } {
   const keys = DOMAIN_I18N_KEYS[domain as DomainKey];
   return {
-    name: keys ? t(keys.name) : domain,
+    nameKey: keys ? keys.name : null,
     icon: CARD_ICONS[domain] || 'mdi:help-circle',
-    description: keys ? t(keys.desc) : '',
+    descKey: keys ? keys.desc : null,
   };
 }
 
@@ -97,6 +97,7 @@ export class GlassConfigPanel extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @property({ type: Boolean }) narrow = false;
 
+  @state() private _lang = getLanguage();
   @state() private _tab: 'navbar' | 'popup' | 'light' = 'navbar';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
@@ -1561,8 +1562,9 @@ export class GlassConfigPanel extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
     if (changedProps.size > 1) return true;
-    // Detect language change even after initial load
-    if (this.hass?.language && setLanguage(this.hass.language)) return true;
+    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+    // Detect language change (pure check, no side effects)
+    if (oldHass && oldHass.language !== this.hass?.language) return true;
     return !this._loaded;
   }
 
@@ -1596,10 +1598,15 @@ export class GlassConfigPanel extends LitElement {
 
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
-    if (changedProps.has('hass') && this.hass && !this._loaded) {
-      this._loaded = true;
-      this._backend = new BackendService(this.hass);
-      this._loadConfig();
+    if (changedProps.has('hass')) {
+      if (this.hass?.language && setLanguage(this.hass.language)) {
+        this._lang = getLanguage();
+      }
+      if (this.hass && !this._loaded) {
+        this._loaded = true;
+        this._backend = new BackendService(this.hass);
+        this._loadConfig();
+      }
     }
   }
 
@@ -1828,9 +1835,9 @@ export class GlassConfigPanel extends LitElement {
         const count = domainCounts.get(id) || 0;
         return {
           id,
-          name: meta.name,
+          nameKey: meta.nameKey,
           icon: meta.icon,
-          description: meta.description,
+          descKey: meta.descKey,
           count,
           visible: storedOrder ? storedOrder.includes(id) : count > 0,
         };
@@ -2255,7 +2262,7 @@ export class GlassConfigPanel extends LitElement {
             (card) => html`
               <div class="preview-card-slot">
                 <ha-icon .icon=${card.icon}></ha-icon>
-                <span class="preview-card-slot-name">${card.name}</span>
+                <span class="preview-card-slot-name">${card.nameKey ? t(card.nameKey) : card.id}</span>
                 <span class="preview-card-slot-count">${card.count}</span>
               </div>
             `,
@@ -2599,8 +2606,8 @@ export class GlassConfigPanel extends LitElement {
           <ha-icon .icon=${card.icon}></ha-icon>
         </div>
         <div class="item-info">
-          <span class="item-name">${card.name}</span>
-          <span class="item-meta">${card.description}</span>
+          <span class="item-name">${card.nameKey ? t(card.nameKey) : card.id}</span>
+          <span class="item-meta">${card.descKey ? t(card.descKey) : ''}</span>
         </div>
         <span class="card-count">${card.count}</span>
         <button
@@ -2608,7 +2615,7 @@ export class GlassConfigPanel extends LitElement {
           @click=${() => this._toggleCardVisible(card.id)}
           role="switch"
           aria-checked=${card.visible ? 'true' : 'false'}
-          aria-label="${card.visible ? t('common.hide') : t('common.show')} ${card.name}"
+          aria-label="${card.visible ? t('common.hide') : t('common.show')} ${card.nameKey ? t(card.nameKey) : card.id}"
         ></button>
       </div>
     `;
@@ -2856,9 +2863,9 @@ export class GlassConfigPanel extends LitElement {
           class="layout-btn"
           @click=${() => this._cycleLightLayout(light.entityId)}
           aria-label="${t('config.light_change_layout_aria')}"
-          title="Layout: ${light.layout}"
+          title="${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
         >
-          ${light.layout === 'compact' ? 'COMPACT' : 'FULL'}
+          ${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
         </button>
         <button
           class="toggle ${light.visible ? 'on' : ''}"
@@ -2874,6 +2881,7 @@ export class GlassConfigPanel extends LitElement {
   // — Main render —
 
   render() {
+    void this._lang; // Trigger re-render on language change
     if (!this.hass) return nothing;
 
     return html`

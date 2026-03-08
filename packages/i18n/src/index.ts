@@ -22,10 +22,12 @@ export type TranslationKey =
 
 /* ── Locale key validation ── */
 
-// Compile-time check: en.json must have the same structure as fr.json.
-// If a key is missing in en.json, TypeScript will error here.
+// Compile-time check: both locales must have identical structure.
+// Missing keys in either direction will produce a TypeScript error.
 const _enCheck: typeof fr = en;
+const _frCheck: typeof en = fr;
 void _enCheck;
+void _frCheck;
 
 /* ── Locale registry ── */
 

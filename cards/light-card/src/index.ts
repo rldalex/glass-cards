@@ -7,7 +7,7 @@ import {
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -153,6 +153,7 @@ export class GlassLightCard extends BaseCard {
     glassTokens,
     glassMixin,
     foldMixin,
+    marqueeMixin,
     css`
       :host {
         display: block;
@@ -285,6 +286,8 @@ export class GlassLightCard extends BaseCard {
       }
       .light-row.compact {
         grid-column: span 1;
+        min-width: 0;
+        overflow: hidden;
       }
       .light-row.compact-right {
         padding-left: 10px;
@@ -373,7 +376,6 @@ export class GlassLightCard extends BaseCard {
         line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
       }
       .light-sub {
         display: flex;
@@ -1052,7 +1054,7 @@ export class GlassLightCard extends BaseCard {
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
           <div class="light-info">
-            <div class="light-name">${info.name}</div>
+            <div class="light-name">${marqueeText(info.name)}</div>
             <div class="light-sub">${this._renderSubText(info)}</div>
           </div>
           <span class="light-dot"></span>

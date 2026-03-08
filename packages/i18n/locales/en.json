@@ -98,6 +98,8 @@
     "light_no_visible": "No visible lights",
     "light_select_room": "Select a room",
     "light_change_layout_aria": "Change layout",
+    "light_layout_compact": "COMPACT",
+    "light_layout_full": "FULL",
 
     "domain_light": "Lights",
     "domain_light_desc": "Light control",

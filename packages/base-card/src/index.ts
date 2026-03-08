@@ -1,7 +1,7 @@
 import { LitElement, type PropertyValues } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
-import { setLanguage } from '@glass-cards/i18n';
+import { setLanguage, getLanguage } from '@glass-cards/i18n';
 
 // — HA Types —
 
@@ -78,6 +78,7 @@ export interface EntityRegistryEntry {
 
 export abstract class BaseCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
+  @state() protected _lang = getLanguage();
   protected _config?: LovelaceCardConfig;
   private _busCleanups: (() => void)[] = [];
 
@@ -102,7 +103,7 @@ export abstract class BaseCard extends LitElement {
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
-      this.requestUpdate();
+      this._lang = getLanguage();
     }
   }
 

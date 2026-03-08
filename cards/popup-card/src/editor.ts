@@ -1,17 +1,18 @@
 import { LitElement, html, css } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { glassTokens } from '@glass-cards/ui-core';
-import { t, setLanguage } from '@glass-cards/i18n';
+import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 import type { HomeAssistant, LovelaceCardConfig } from '@glass-cards/base-card';
 
 export class GlassRoomPopupEditor extends LitElement {
   @property({ attribute: false })
   set hass(value: HomeAssistant | undefined) {
     this._hass = value;
-    if (value?.language && setLanguage(value.language)) this.requestUpdate();
+    if (value?.language && setLanguage(value.language)) this._lang = getLanguage();
   }
   get hass() { return this._hass; }
   private _hass?: HomeAssistant;
+  @state() private _lang = getLanguage();
 
   _config?: LovelaceCardConfig;
 
@@ -36,8 +37,10 @@ export class GlassRoomPopupEditor extends LitElement {
         text-decoration: none;
         font-weight: 600;
       }
-      .redirect a:hover {
-        text-decoration: underline;
+      @media (hover: hover) {
+        .redirect a:hover {
+          text-decoration: underline;
+        }
       }
       ha-icon {
         --mdc-icon-size: 20px;
@@ -48,6 +51,7 @@ export class GlassRoomPopupEditor extends LitElement {
   ];
 
   protected render() {
+    void this._lang; // Trigger re-render on language change
     return html`
       <div class="redirect">
         <p>

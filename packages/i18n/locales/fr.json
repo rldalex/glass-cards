@@ -17,7 +17,7 @@
   },
 
   "light": {
-    "title": "LIGHTS",
+    "title": "LUMIÈRES",
     "intensity": "Intensité",
     "temperature": "Température",
     "color": "Couleur",
@@ -98,6 +98,8 @@
     "light_no_visible": "Aucune lumière visible",
     "light_select_room": "Sélectionnez une pièce",
     "light_change_layout_aria": "Changer le layout",
+    "light_layout_compact": "COMPACT",
+    "light_layout_full": "PLEIN",
 
     "domain_light": "Lumières",
     "domain_light_desc": "Contrôle des lumières",
