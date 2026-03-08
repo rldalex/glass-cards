@@ -21,7 +21,7 @@ import '../cards/popup-card/src/index';
 import '../cards/navbar-card/src/index';
 import '../cards/weather-card/src/index';
 
-_gcLog('elements registered: ' + [
+_gcLog('elements defined: ' + [
   'glass-navbar-card', 'glass-room-popup', 'glass-light-card',
   'glass-weather-card',
 ].map(n => n + '=' + !!customElements.get(n)).join(', '));
@@ -29,65 +29,70 @@ _gcLog('elements registered: ' + [
 installHistoryIntercept();
 getThemeManager();
 
-// Lovelace lives deep in the shadow DOM. Find the hui-root if it exists.
-function _findHuiRoot(): Element | null {
-  try {
-    return document.querySelector('home-assistant')
-      ?.shadowRoot?.querySelector('home-assistant-main')
-      ?.shadowRoot?.querySelector('ha-panel-lovelace')
-      ?.shadowRoot?.querySelector('hui-root') ?? null;
-  } catch { return null; }
-}
-
-// Check if any of our cards are showing as error cards (hui-error-card)
-function _hasErrorCards(): boolean {
-  try {
-    const huiRoot = _findHuiRoot();
-    if (!huiRoot?.shadowRoot) return false;
-    const errors = huiRoot.shadowRoot.querySelectorAll('hui-error-card');
-    return errors.length > 0;
-  } catch { return false; }
+// Check if any of our glass-cards elements are actually rendered in the DOM.
+// Traverses shadow roots to find them inside Lovelace's nested shadow DOM.
+function _findGlassElements(root: Document | ShadowRoot, depth = 0): number {
+  if (depth > 10) return 0;
+  let count = 0;
+  const tags = ['glass-navbar-card', 'glass-light-card', 'glass-weather-card'];
+  for (const tag of tags) {
+    count += root.querySelectorAll(tag).length;
+  }
+  // Traverse into shadow roots
+  const allElements = root.querySelectorAll('*');
+  for (const el of allElements) {
+    if (el.shadowRoot) {
+      count += _findGlassElements(el.shadowRoot, depth + 1);
+    }
+    if (count > 0) return count; // Early exit
+  }
+  return count;
 }
 
 // Tell Lovelace to re-render now that our custom elements are defined.
 function fireRebuild() {
-  const huiRoot = _findHuiRoot();
-  _gcLog('fireRebuild, huiRoot=' + !!huiRoot);
+  _gcLog('fireRebuild');
   window.dispatchEvent(new Event('ll-rebuild'));
 }
 
-// Retry fireRebuild with increasing delays until Lovelace is found
-// and no error cards remain, or max retries reached.
-function fireRebuildWithRetry() {
-  const delays = [0, 200, 500, 1000, 2000, 4000];
-  let attempt = 0;
+// Guard against multiple reload loops — use sessionStorage to track
+const RELOAD_KEY = 'gc_reload_ts';
 
-  function tryRebuild() {
-    fireRebuild();
-    attempt++;
-    if (attempt < delays.length) {
-      // Check after a short delay if error cards are still present
-      setTimeout(() => {
-        if (_hasErrorCards() || !_findHuiRoot()) {
-          _gcLog('retry #' + attempt + ', errorCards=' + _hasErrorCards() + ', huiRoot=' + !!_findHuiRoot());
-          tryRebuild();
-        } else {
-          _gcLog('cards OK after attempt #' + attempt);
-        }
-      }, delays[attempt]);
-    }
+function scheduleRebuilds() {
+  // Fire ll-rebuild at multiple fixed intervals
+  const delays = [0, 300, 800, 1500, 3000];
+  for (const delay of delays) {
+    setTimeout(fireRebuild, delay);
   }
 
-  tryRebuild();
+  // After 5s, check if our cards are actually rendered. If not, reload once.
+  setTimeout(() => {
+    const found = _findGlassElements(document);
+    _gcLog('render check: found=' + found + ' glass elements');
+    if (found === 0) {
+      // Only reload if we haven't reloaded in the last 15s
+      const lastReload = parseInt(sessionStorage.getItem(RELOAD_KEY) ?? '0', 10);
+      const now = Date.now();
+      if (now - lastReload > 15000) {
+        _gcLog('no glass elements found, forcing reload');
+        sessionStorage.setItem(RELOAD_KEY, String(now));
+        location.reload();
+      } else {
+        _gcLog('skipping reload (already reloaded recently)');
+      }
+    } else {
+      _gcLog('cards rendered OK');
+    }
+  }, 5000);
 }
 
-// Fire rebuild after a short delay to let Lovelace initialize
+// Fire rebuild after DOM is ready
 if (document.readyState === 'loading') {
   _gcLog('waiting DOMContentLoaded');
-  document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(fireRebuildWithRetry));
+  document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(scheduleRebuilds));
 } else {
-  _gcLog('DOM ready, scheduling rAF');
-  requestAnimationFrame(fireRebuildWithRetry);
+  _gcLog('DOM ready, scheduling rebuilds');
+  requestAnimationFrame(scheduleRebuilds);
 }
 
 // Re-fire rebuild when HA reconnects (mobile app resume from background).
@@ -95,6 +100,6 @@ window.addEventListener('connection-status', (e: Event) => {
   const detail = (e as CustomEvent).detail;
   _gcLog('connection-status: ' + detail);
   if (detail === 'connected') {
-    setTimeout(fireRebuildWithRetry, 300);
+    setTimeout(scheduleRebuilds, 300);
   }
 });
