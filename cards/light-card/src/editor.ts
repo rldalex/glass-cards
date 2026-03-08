@@ -66,4 +66,6 @@ export class GlassLightCardEditor extends LitElement {
   }
 }
 
-customElements.define('glass-light-card-editor', GlassLightCardEditor);
+if (!customElements.get('glass-light-card-editor')) {
+  customElements.define('glass-light-card-editor', GlassLightCardEditor);
+}

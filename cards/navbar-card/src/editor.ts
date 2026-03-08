@@ -66,4 +66,6 @@ export class GlassNavbarCardEditor extends LitElement {
   }
 }
 
-customElements.define('glass-navbar-card-editor', GlassNavbarCardEditor);
+if (!customElements.get('glass-navbar-card-editor')) {
+  customElements.define('glass-navbar-card-editor', GlassNavbarCardEditor);
+}

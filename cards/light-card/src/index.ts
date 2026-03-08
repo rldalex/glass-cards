@@ -1493,5 +1493,7 @@ export class GlassLightCard extends BaseCard {
   }
 }
 
-customElements.define('glass-light-card', GlassLightCard);
+if (!customElements.get('glass-light-card')) {
+  customElements.define('glass-light-card', GlassLightCard);
+}
 
