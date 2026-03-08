@@ -5,6 +5,7 @@ node_modules/
 dist/
 # Keep the built JS inside custom_components for HACS
 !custom_components/glass_cards/www/glass-cards.js
+!custom_components/glass_cards/www/glass-cards-panel.js
 
 # TypeScript
 *.tsbuildinfo
