@@ -4,13 +4,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.glass_cards.models import RoomConfig
+from custom_components.glass_cards.models import EntitySchedule, RoomConfig, VisibilityPeriod
 from custom_components.glass_cards.websocket_api import (
     ws_delete_room,
     ws_get_config,
     ws_get_room,
+    ws_get_schedules,
     ws_set_navbar,
     ws_set_room,
+    ws_set_schedule,
 )
 
 
@@ -157,3 +159,135 @@ class TestDeleteRoom:
             {"id": 10, "type": "glass_cards/delete_room", "area_id": "nope"},
         )
         mock_connection.send_error.assert_called_once()
+
+
+class TestGetSchedules:
+    """Tests for ws_get_schedules."""
+
+    @pytest.mark.asyncio
+    async def test_returns_empty(self, hass_with_store, mock_connection):
+        """Should return empty dict when no schedules."""
+        await ws_get_schedules(
+            hass_with_store, mock_connection,
+            {"id": 11, "type": "glass_cards/get_schedules"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_returns_schedules(self, hass_with_store, mock_connection, mock_store):
+        """Should return serialized schedules."""
+        mock_store._data.entity_schedules["light.sapin"] = EntitySchedule(
+            entity_id="light.sapin",
+            periods=[VisibilityPeriod(start="2026-12-01T18:00", end="2027-01-15T23:59", recurring=True)],
+        )
+        await ws_get_schedules(
+            hass_with_store, mock_connection,
+            {"id": 12, "type": "glass_cards/get_schedules"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert "light.sapin" in result
+        assert result["light.sapin"]["periods"][0]["recurring"] is True
+
+    @pytest.mark.asyncio
+    async def test_unauthorized(self, hass_with_store, mock_connection):
+        """Non-readable user should raise Unauthorized."""
+        mock_connection.user = None
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_get_schedules(
+                hass_with_store, mock_connection,
+                {"id": 13, "type": "glass_cards/get_schedules"},
+            )
+
+    @pytest.mark.asyncio
+    async def test_regular_user_can_read(self, hass_with_store, mock_connection, mock_regular_user):
+        """Authenticated non-admin user should be able to read schedules."""
+        mock_connection.user = mock_regular_user
+        await ws_get_schedules(
+            hass_with_store, mock_connection,
+            {"id": 14, "type": "glass_cards/get_schedules"},
+        )
+        mock_connection.send_result.assert_called_once()
+        result = mock_connection.send_result.call_args[0][1]
+        assert result == {}
+
+
+class TestSetSchedule:
+    """Tests for ws_set_schedule."""
+
+    @pytest.mark.asyncio
+    async def test_set_schedule(self, hass_with_store, mock_connection, mock_store):
+        """Should create a schedule."""
+        await ws_set_schedule(
+            hass_with_store, mock_connection,
+            {
+                "id": 14,
+                "type": "glass_cards/set_schedule",
+                "entity_id": "light.sapin",
+                "periods": [
+                    {"start": "2026-12-01T18:00", "end": "2027-01-15T23:59", "recurring": True},
+                ],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_id"] == "light.sapin"
+        assert len(result["periods"]) == 1
+        assert result["periods"][0]["recurring"] is True
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_clear_schedule(self, hass_with_store, mock_connection, mock_store):
+        """Empty periods should remove the schedule."""
+        mock_store._data.entity_schedules["light.sapin"] = EntitySchedule(
+            entity_id="light.sapin",
+            periods=[VisibilityPeriod(start="2026-12-01T18:00", end="2027-01-15T23:59")],
+        )
+        await ws_set_schedule(
+            hass_with_store, mock_connection,
+            {
+                "id": 15,
+                "type": "glass_cards/set_schedule",
+                "entity_id": "light.sapin",
+                "periods": [],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["periods"] == []
+        assert "light.sapin" not in mock_store._data.entity_schedules
+
+    @pytest.mark.asyncio
+    async def test_multiple_periods(self, hass_with_store, mock_connection, mock_store):
+        """Should store multiple periods."""
+        await ws_set_schedule(
+            hass_with_store, mock_connection,
+            {
+                "id": 16,
+                "type": "glass_cards/set_schedule",
+                "entity_id": "light.guirlande",
+                "periods": [
+                    {"start": "2026-12-01T00:00", "end": "2027-01-31T23:59", "recurring": True},
+                    {"start": "2026-06-21T20:00", "end": "2026-06-22T02:00", "recurring": False},
+                ],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert len(result["periods"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_unauthorized(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-edit user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_set_schedule(
+                hass_with_store, mock_connection,
+                {
+                    "id": 17,
+                    "type": "glass_cards/set_schedule",
+                    "entity_id": "light.x",
+                    "periods": [],
+                },
+            )

@@ -9,6 +9,7 @@ export interface GlassEventMap {
   'room-config-changed': { areaId: string };
   'weather-config-changed': undefined;
   'dashboard-config-changed': undefined;
+  'schedule-changed': { entityId: string };
 }
 
 type EventCallback<T = unknown> = (payload: T) => void;

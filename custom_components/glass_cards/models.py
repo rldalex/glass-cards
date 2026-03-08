@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
+
+_ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$")
 
 VALID_WEATHER_METRICS = frozenset(
     {"humidity", "wind", "pressure", "uv", "visibility", "sunrise", "sunset"}
@@ -13,6 +16,62 @@ VALID_DASHBOARD_CARDS = frozenset(
     {"weather", "light"}
 )
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
+
+
+@dataclass
+class VisibilityPeriod:
+    """A date+time visibility period for an entity."""
+
+    start: str  # ISO 8601 "2026-12-01T18:00" or "MM-DDThh:mm" for recurring
+    end: str
+    recurring: bool = False
+
+    def __post_init__(self) -> None:
+        if self.start and not _ISO_RE.match(self.start):
+            self.start = ""
+        if self.end and not _ISO_RE.match(self.end):
+            self.end = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {"start": self.start, "end": self.end, "recurring": self.recurring}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> VisibilityPeriod:
+        """Deserialize from dict."""
+        return cls(
+            start=str(data.get("start", "")),
+            end=str(data.get("end", "")),
+            recurring=bool(data.get("recurring", False)),
+        )
+
+
+@dataclass
+class EntitySchedule:
+    """Visibility schedule for a single entity."""
+
+    entity_id: str
+    periods: list[VisibilityPeriod] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "entity_id": self.entity_id,
+            "periods": [p.to_dict() for p in self.periods],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EntitySchedule:
+        """Deserialize from dict."""
+        raw_periods = data.get("periods", [])
+        return cls(
+            entity_id=str(data.get("entity_id", "")),
+            periods=[
+                VisibilityPeriod.from_dict(p)
+                for p in raw_periods
+                if isinstance(p, dict)
+            ],
+        )
 
 
 @dataclass
@@ -187,6 +246,7 @@ class GlassCardsData:
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
     weather: WeatherConfig = field(default_factory=WeatherConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
+    entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -195,6 +255,9 @@ class GlassCardsData:
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
             "weather": self.weather.to_dict(),
             "dashboard": self.dashboard.to_dict(),
+            "entity_schedules": {
+                k: v.to_dict() for k, v in self.entity_schedules.items()
+            },
         }
 
     @classmethod
@@ -208,4 +271,9 @@ class GlassCardsData:
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
+            entity_schedules={
+                k: EntitySchedule.from_dict({**v, "entity_id": k})
+                for k, v in data.get("entity_schedules", {}).items()
+                if isinstance(v, dict)
+            },
         )

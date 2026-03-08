@@ -34,7 +34,11 @@
     "preset_relax": "Relax",
     "preset_focus": "Focus",
     "preset_film": "Film",
-    "preset_night": "Night"
+    "preset_night": "Night",
+    "dashboard_title_one": "1 LIGHT ON",
+    "dashboard_title": "{count} LIGHTS ON",
+    "dashboard_overflow": "and {count} more…",
+    "dashboard_turn_all_off_aria": "Turn off all lights in the house"
   },
 
   "popup": {
@@ -131,6 +135,19 @@
     "light_change_layout_aria": "Change layout",
     "light_layout_compact": "COMPACT",
     "light_layout_full": "FULL",
+    "light_schedule_hint": "Tap the calendar icon on each light to set visibility periods.",
+    "light_schedule_aria": "Manage visibility schedule for {name}",
+    "light_schedule_title": "Visibility schedule",
+    "light_schedule_start": "Start",
+    "light_schedule_end": "End",
+    "light_schedule_recurring": "Annually",
+    "light_schedule_add": "Add period",
+    "light_schedule_delete_aria": "Delete period",
+    "light_schedule_no_date": "Select date…",
+    "light_schedule_confirm": "Confirm",
+    "light_schedule_prev_month_aria": "Previous month",
+    "light_schedule_next_month_aria": "Next month",
+    "light_dashboard_vs_room": "On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.",
 
     "domain_light": "Lights",
     "domain_light_desc": "Light control",

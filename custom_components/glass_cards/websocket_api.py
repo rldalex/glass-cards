@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime as dt_cls
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
@@ -10,7 +11,13 @@ from homeassistant.exceptions import HomeAssistantError, Unauthorized
 
 from .const import DOMAIN
 from .permissions import can_edit, can_read
-from .models import RoomConfig, VALID_WEATHER_METRICS, VALID_DASHBOARD_CARDS
+from .models import (
+    EntitySchedule,
+    RoomConfig,
+    VisibilityPeriod,
+    VALID_DASHBOARD_CARDS,
+    VALID_WEATHER_METRICS,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -27,6 +34,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_room)
     websocket_api.async_register_command(hass, ws_set_weather)
     websocket_api.async_register_command(hass, ws_set_dashboard)
+    websocket_api.async_register_command(hass, ws_get_schedules)
+    websocket_api.async_register_command(hass, ws_set_schedule)
 
 
 def _get_store(hass: HomeAssistant) -> GlassCardsStore:
@@ -274,3 +283,84 @@ async def ws_set_dashboard(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.dashboard.to_dict())
+
+
+def _validate_iso_datetime(value: str) -> str:
+    """Validate ISO datetime string YYYY-MM-DDTHH:MM."""
+    try:
+        dt_cls.strptime(value, "%Y-%m-%dT%H:%M")
+    except (ValueError, TypeError) as exc:
+        raise vol.Invalid(f"Invalid datetime: {value!r}") from exc
+    return value
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "glass_cards/get_schedules"}
+)
+@websocket_api.async_response
+async def ws_get_schedules(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Return all entity visibility schedules."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    connection.send_result(
+        msg["id"],
+        {k: v.to_dict() for k, v in store.data.entity_schedules.items()},
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_schedule",
+        vol.Required("entity_id"): vol.All(str, vol.Match(r"^[a-z_]+\.[a-z0-9_]+$")),
+        vol.Required("periods"): [
+            {
+                vol.Required("start"): vol.All(str, _validate_iso_datetime),
+                vol.Required("end"): vol.All(str, _validate_iso_datetime),
+                vol.Optional("recurring", default=False): bool,
+            }
+        ],
+    }
+)
+@websocket_api.async_response
+async def ws_set_schedule(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Set visibility schedule for an entity."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    entity_id: str = msg["entity_id"]
+    raw_periods: list[dict[str, Any]] = msg["periods"]
+
+    if not raw_periods:
+        # Empty periods = remove schedule
+        store.data.entity_schedules.pop(entity_id, None)
+    else:
+        valid_periods = [
+            p for p in raw_periods
+            if not p["start"] or not p["end"] or p["start"] < p["end"]
+        ]
+        periods = [
+            VisibilityPeriod(
+                start=p["start"], end=p["end"], recurring=p.get("recurring", False)
+            )
+            for p in valid_periods
+        ]
+        store.data.entity_schedules[entity_id] = EntitySchedule(
+            entity_id=entity_id, periods=periods
+        )
+
+    await store.async_save()
+    schedule = store.data.entity_schedules.get(entity_id)
+    connection.send_result(
+        msg["id"], schedule.to_dict() if schedule else {"entity_id": entity_id, "periods": []}
+    )

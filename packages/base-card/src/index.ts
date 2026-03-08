@@ -158,6 +158,50 @@ export function getAreaEntities(
   });
 }
 
+// — Visibility Schedule Types —
+
+export interface VisibilityPeriod {
+  start: string; // "2026-12-01T18:00"
+  end: string;
+  recurring?: boolean;
+}
+
+export interface EntitySchedule {
+  entity_id: string;
+  periods: VisibilityPeriod[];
+}
+
+export type EntityScheduleMap = Record<string, EntitySchedule>;
+
+/**
+ * Check if an entity is currently visible based on its schedule.
+ * Returns true if no schedule exists or if at least one period is active now.
+ */
+export function isEntityVisibleNow(
+  entityId: string,
+  schedules: EntityScheduleMap | null | undefined,
+): boolean {
+  if (!schedules) return true;
+  const schedule = schedules[entityId];
+  if (!schedule || schedule.periods.length === 0) return true;
+
+  const now = new Date();
+  return schedule.periods.some((p) => {
+    const start = new Date(p.start);
+    const end = new Date(p.end);
+    end.setSeconds(59, 999);
+    if (p.recurring) {
+      const sNow = new Date(now.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes());
+      const eNow = new Date(now.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
+      if (sNow > eNow) {
+        return now >= sNow || now <= eNow;
+      }
+      return now >= sNow && now <= eNow;
+    }
+    return now >= start && now <= end;
+  });
+}
+
 // — BackendService —
 
 export class BackendService {

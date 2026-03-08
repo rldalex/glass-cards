@@ -34,7 +34,11 @@
     "preset_relax": "Relax",
     "preset_focus": "Focus",
     "preset_film": "Film",
-    "preset_night": "Nuit"
+    "preset_night": "Nuit",
+    "dashboard_title_one": "1 LUMIÈRE ALLUMÉE",
+    "dashboard_title": "{count} LUMIÈRES ALLUMÉES",
+    "dashboard_overflow": "et {count} autres…",
+    "dashboard_turn_all_off_aria": "Éteindre toutes les lumières de la maison"
   },
 
   "popup": {
@@ -131,6 +135,19 @@
     "light_change_layout_aria": "Changer le layout",
     "light_layout_compact": "COMPACT",
     "light_layout_full": "PLEIN",
+    "light_schedule_hint": "Appuyez sur l'icône calendrier de chaque lumière pour définir des périodes de visibilité.",
+    "light_schedule_aria": "Gérer la planification de visibilité de {name}",
+    "light_schedule_title": "Planification de visibilité",
+    "light_schedule_start": "Début",
+    "light_schedule_end": "Fin",
+    "light_schedule_recurring": "Annuel",
+    "light_schedule_add": "Ajouter une période",
+    "light_schedule_delete_aria": "Supprimer la période",
+    "light_schedule_no_date": "Choisir une date…",
+    "light_schedule_confirm": "Confirmer",
+    "light_schedule_prev_month_aria": "Mois précédent",
+    "light_schedule_next_month_aria": "Mois suivant",
+    "light_dashboard_vs_room": "Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",
 
     "domain_light": "Lumières",
     "domain_light_desc": "Contrôle des lumières",
