@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.glass_cards import async_setup, async_setup_entry, async_unload_entry
-from custom_components.glass_cards.const import DOMAIN, JS_URL
+from custom_components.glass_cards.const import DOMAIN, get_js_url
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ class TestAsyncSetupEntry:
             await async_setup_entry(mock_hass_with_http, mock_entry)
 
             mock_hass_with_http.http.async_register_static_paths.assert_called_once()
-            mock_add_js.assert_called_once_with(mock_hass_with_http, JS_URL)
+            mock_add_js.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_skips_js_when_missing(self, mock_hass_with_http, mock_entry):

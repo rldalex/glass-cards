@@ -1,18 +1,37 @@
 """Constants for Glass Cards integration."""
 
+import hashlib
 import os
 
 DOMAIN = "glass_cards"
 VERSION = "0.0.4"
 
-# Use file modification timestamp for cache-busting
-_www_dir = os.path.join(os.path.dirname(__file__), "www")
-_js_mtime = int(os.path.getmtime(os.path.join(_www_dir, "glass-cards.js"))) if os.path.isfile(os.path.join(_www_dir, "glass-cards.js")) else 0
-_panel_mtime = int(os.path.getmtime(os.path.join(_www_dir, "glass-cards-panel.js"))) if os.path.isfile(os.path.join(_www_dir, "glass-cards-panel.js")) else 0
-
 JS_PATH = "/glass_cards/glass-cards.js"
-JS_URL = f"{JS_PATH}?v={_js_mtime}"
 PANEL_JS_PATH = "/glass_cards/glass-cards-panel.js"
-PANEL_JS_URL = f"{PANEL_JS_PATH}?v={_panel_mtime}"
 STORAGE_KEY = "glass_cards"
 STORAGE_VERSION = 1
+
+
+def _file_hash(path: str) -> str:
+    """Return a short hash of the file contents for cache-busting."""
+    if not os.path.isfile(path):
+        return "0"
+    try:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()[:8]  # noqa: S324
+    except OSError:
+        return "0"
+
+
+def get_js_url() -> str:
+    """Return the JS bundle URL with a content-hash for cache-busting."""
+    www_dir = os.path.join(os.path.dirname(__file__), "www")
+    h = _file_hash(os.path.join(www_dir, "glass-cards.js"))
+    return f"{JS_PATH}?v={h}"
+
+
+def get_panel_js_url() -> str:
+    """Return the panel JS bundle URL with a content-hash for cache-busting."""
+    www_dir = os.path.join(os.path.dirname(__file__), "www")
+    h = _file_hash(os.path.join(www_dir, "glass-cards-panel.js"))
+    return f"{PANEL_JS_PATH}?v={h}"
