@@ -62,6 +62,9 @@ interface SchedulePeriodEdit {
 
 const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
 
+// Domains with an actual card implementation — others are planned for later phases
+const IMPLEMENTED_CARDS = new Set(['light']);
+
 const CARD_ICONS: Record<string, string> = {
   light: 'mdi:lightbulb-group',
   media_player: 'mdi:speaker',
@@ -2607,8 +2610,8 @@ export class GlassConfigPanel extends LitElement {
 
     this._cards = orderedIds
       .filter((id) => {
-        // Only show card types that have entities OR are in stored order
-        return (domainCounts.get(id) || 0) > 0 || (storedOrder && storedOrder.includes(id));
+        // Only show domains that have entities AND an implemented card
+        return (domainCounts.get(id) || 0) > 0 && IMPLEMENTED_CARDS.has(id);
       })
       .map((id) => {
         const meta = getCardMeta(id);
