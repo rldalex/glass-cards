@@ -1280,44 +1280,8 @@ export class GlassConfigPanel extends LitElement {
         color: var(--t3);
         margin-top: 1px;
       }
-      .check-box {
-        width: 18px;
-        height: 18px;
-        border-radius: 4px;
-        border: 2px solid var(--b3);
-        background: transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast),
-          box-shadow var(--t-fast);
-      }
-      .check-box ha-icon {
-        --mdc-icon-size: 12px;
-        color: #fff;
-        opacity: 0;
-        transform: scale(0);
-        transition:
-          opacity var(--t-fast),
-          transform var(--t-fast);
-      }
-      .feature-row.checked .check-box {
-        background: var(--c-accent);
-        border-color: var(--c-accent);
-        box-shadow: 0 0 6px rgba(129, 140, 248, 0.3);
-      }
-      .feature-row.checked .check-box ha-icon {
-        opacity: 1;
-        transform: scale(1);
-      }
-      .feature-row.checked .feature-name {
+      .feature-row .feature-name {
         color: var(--t1);
-      }
-      .feature-row:not(.checked) .feature-name {
-        color: var(--t2);
       }
 
       /* ── Threshold inputs ── */
@@ -1704,8 +1668,9 @@ export class GlassConfigPanel extends LitElement {
       this._initialIcons.set(room.areaId, room.icon);
     }
 
-    // Sort by backend order, then alphabetically
+    // Sort by backend order, then alphabetically; visible rooms first
     rooms.sort((a, b) => {
+      if (a.visible !== b.visible) return a.visible ? -1 : 1;
       const aOrder = orderMap.get(a.areaId);
       const bOrder = orderMap.get(b.areaId);
       if (aOrder !== undefined && bOrder !== undefined) return aOrder - bOrder;
@@ -1897,7 +1862,10 @@ export class GlassConfigPanel extends LitElement {
   private _toggleRoomVisible(areaId: string) {
     this._rooms = this._rooms.map((r) =>
       r.areaId === areaId ? { ...r, visible: !r.visible } : r,
-    );
+    ).sort((a, b) => {
+      if (a.visible !== b.visible) return a.visible ? -1 : 1;
+      return 0;
+    });
   }
 
   private _openIconPicker(areaId: string) {
@@ -2282,7 +2250,7 @@ export class GlassConfigPanel extends LitElement {
         <div class="section-label">Comportement</div>
         <div class="feature-list">
           <button
-            class="feature-row ${this._autoSort ? 'checked' : ''}"
+            class="feature-row"
             @click=${() => { this._autoSort = !this._autoSort; }}
           >
             <div class="feature-icon">
@@ -2292,7 +2260,11 @@ export class GlassConfigPanel extends LitElement {
               <div class="feature-name">Tri automatique</div>
               <div class="feature-desc">Les pièces actives remontent en premier</div>
             </div>
-            <span class="check-box"><ha-icon .icon=${'mdi:check'}></ha-icon></span>
+            <span
+              class="toggle ${this._autoSort ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._autoSort ? 'true' : 'false'}
+            ></span>
           </button>
         </div>
 
@@ -2344,7 +2316,7 @@ export class GlassConfigPanel extends LitElement {
             const checked = stateMap[feat.key];
             return html`
               <button
-                class="feature-row ${checked ? 'checked' : ''}"
+                class="feature-row"
                 @click=${() => {
                   if (feat.key === 'lights') this._showLights = !this._showLights;
                   else if (feat.key === 'temperature') this._showTemperature = !this._showTemperature;
@@ -2359,7 +2331,11 @@ export class GlassConfigPanel extends LitElement {
                   <div class="feature-name">${feat.name}</div>
                   <div class="feature-desc">${feat.desc}</div>
                 </div>
-                <span class="check-box"><ha-icon .icon=${'mdi:check'}></ha-icon></span>
+                <span
+                  class="toggle ${checked ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${checked ? 'true' : 'false'}
+                ></span>
               </button>
             `;
           })}
