@@ -27,14 +27,14 @@
     "toggle_all_on_aria": "Éteindre toutes les lumières",
     "toggle_all_off_aria": "Allumer toutes les lumières",
     "color_aria": "Couleur {hex}",
-    "preset_aria": "Ambiance {label}",
+    "color_picker_aria": "Ouvrir la roue chromatique",
+    "color_picker_title": "Choisir une couleur",
+    "effect_off": "Éteint",
+    "effect_candle": "Bougie",
+    "effect_fire": "Feu",
     "temp_warm": "Chaud",
     "temp_neutral": "Neutre",
     "temp_cold": "Froid",
-    "preset_relax": "Relax",
-    "preset_focus": "Focus",
-    "preset_film": "Film",
-    "preset_night": "Nuit",
     "dashboard_title_one": "1 LUMIÈRE ALLUMÉE",
     "dashboard_title": "{count} LUMIÈRES ALLUMÉES",
     "dashboard_overflow": "et {count} autres…",
@@ -147,6 +147,8 @@
     "light_schedule_confirm": "Confirmer",
     "light_schedule_prev_month_aria": "Mois précédent",
     "light_schedule_next_month_aria": "Mois suivant",
+    "light_show_header": "Afficher l'en-tête",
+    "light_show_header_desc": "Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte",
     "light_dashboard_vs_room": "Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",
 
     "domain_light": "Lumières",
@@ -179,6 +181,8 @@
     "weather_daily": "Prévisions 7 jours",
     "weather_hourly": "Prévisions horaires",
     "weather_select_entity": "Sélectionnez une entité météo",
+    "weather_show_header": "Afficher l'en-tête",
+    "weather_show_header_desc": "Titre et localisation au-dessus de la carte",
 
     "tab_dashboard": "Tableau de bord",
     "dashboard_title": "Cartes du tableau de bord",
@@ -186,6 +190,7 @@
     "dashboard_card_weather": "Carte Météo",
     "dashboard_card_weather_desc": "Affiche la météo actuelle, prévisions et animations",
     "dashboard_card_light": "Carte Lumières",
-    "dashboard_card_light_desc": "Contrôle des lumières par pièce"
+    "dashboard_card_light_desc": "Affiche les lumières allumées avec contrôle rapide",
+    "dashboard_light_auto": "Les lumières allumées s'affichent automatiquement sur le tableau de bord."
   }
 }

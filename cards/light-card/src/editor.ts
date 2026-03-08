@@ -37,7 +37,7 @@ export class GlassLightCardEditor extends LitElement {
         text-decoration: none;
         font-weight: 600;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .redirect a:hover {
           text-decoration: underline;
         }

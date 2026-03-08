@@ -190,7 +190,7 @@ export class GlassNavbarCard extends BaseCard {
           background var(--t-fast),
           color var(--t-fast);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
           background: var(--s2);
         }

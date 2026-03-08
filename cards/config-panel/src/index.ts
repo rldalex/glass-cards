@@ -138,7 +138,11 @@ export class GlassConfigPanel extends LitElement {
   @state() private _weatherHiddenMetrics: string[] = [];
   @state() private _weatherShowDaily = true;
   @state() private _weatherShowHourly = true;
+  @state() private _weatherShowHeader = true;
   @state() private _weatherDropdownOpen = false;
+
+  // Light card config
+  @state() private _lightShowHeader = true;
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
@@ -251,7 +255,7 @@ export class GlassConfigPanel extends LitElement {
         transition: background var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .page-back:hover {
           background: var(--s3);
         }
@@ -332,7 +336,7 @@ export class GlassConfigPanel extends LitElement {
         outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .tab:hover {
           color: var(--t2);
         }
@@ -426,7 +430,7 @@ export class GlassConfigPanel extends LitElement {
         user-select: none;
         -webkit-user-select: none;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .item-row:hover {
           background: var(--s2);
           border-color: var(--b2);
@@ -467,7 +471,7 @@ export class GlassConfigPanel extends LitElement {
         border-radius: 4px;
         transition: color var(--t-fast);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .drag-handle:hover {
           color: var(--t3);
         }
@@ -503,7 +507,7 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 16px;
         color: var(--t2);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .room-icon-btn:hover {
           background: var(--s3);
           border-color: var(--b2);
@@ -637,7 +641,7 @@ export class GlassConfigPanel extends LitElement {
         outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .dropdown-trigger:hover {
           background: var(--s3);
           border-color: var(--b3);
@@ -699,7 +703,7 @@ export class GlassConfigPanel extends LitElement {
         text-align: left;
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .dropdown-item:hover {
           background: var(--s3);
           color: var(--t1);
@@ -761,7 +765,7 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 18px;
         color: var(--t2);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .icon-pick:hover {
           background: var(--s3);
           border-color: var(--b2);
@@ -1327,6 +1331,21 @@ export class GlassConfigPanel extends LitElement {
       }
 
       /* ── Preview weather (realistic miniature) ── */
+      .preview-weather-wrap {
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .pw-card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 4px;
+      }
+      .pw-card-title {
+        font-size: 7px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1.2px;
+        color: var(--t4);
+      }
+      .pw-card-location {
+        font-size: 7px; font-weight: 500; color: var(--t3);
+      }
       .preview-weather {
         border-radius: var(--radius-lg);
         background: linear-gradient(
@@ -1600,7 +1619,7 @@ export class GlassConfigPanel extends LitElement {
         text-align: left;
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .feature-row:hover {
           background: var(--s1);
         }
@@ -1640,6 +1659,26 @@ export class GlassConfigPanel extends LitElement {
       }
       .feature-row .feature-name {
         color: var(--t1);
+      }
+      .feature-sub {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .feature-sub.open { grid-template-rows: 1fr; }
+      .feature-sub-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity 0.2s var(--ease-std);
+      }
+      .feature-sub.open .feature-sub-inner {
+        opacity: 1;
+        transition-delay: 0.08s;
+      }
+      .feature-sub-content {
+        margin-left: 24px;
+        padding-left: 14px;
+        border-left: 2px solid var(--b2);
       }
 
       /* ── Threshold inputs ── */
@@ -1760,7 +1799,7 @@ export class GlassConfigPanel extends LitElement {
         flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .layout-btn:hover {
           background: var(--s3);
           color: var(--t2);
@@ -1796,7 +1835,7 @@ export class GlassConfigPanel extends LitElement {
         border-color: rgba(129,140,248,0.25);
         background: rgba(129,140,248,0.12);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .schedule-btn:hover {
           background: var(--s4);
           border-color: var(--b3);
@@ -1822,7 +1861,7 @@ export class GlassConfigPanel extends LitElement {
         border-radius: 0;
         background: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .item-card:hover {
           background: var(--s2);
           border-color: var(--b2);
@@ -1983,7 +2022,7 @@ export class GlassConfigPanel extends LitElement {
         transition: all var(--t-fast);
         outline: none;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .schedule-delete:hover {
           background: rgba(248,113,113,0.2);
           border-color: rgba(248,113,113,0.3);
@@ -2046,7 +2085,9 @@ export class GlassConfigPanel extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .datetime-display:hover { border-color: var(--b3); }
+      @media (hover: hover) and (pointer: fine) {
+        .datetime-display:hover { border-color: var(--b3); }
+      }
       .datetime-display:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2104,7 +2145,9 @@ export class GlassConfigPanel extends LitElement {
         transition: all var(--t-fast);
         --mdc-icon-size: 16px;
       }
-      .picker-nav:hover { background: var(--s2); color: var(--t1); }
+      @media (hover: hover) and (pointer: fine) {
+        .picker-nav:hover { background: var(--s2); color: var(--t1); }
+      }
       .picker-nav:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2140,7 +2183,9 @@ export class GlassConfigPanel extends LitElement {
         font-family: inherit;
         padding: 0;
       }
-      .picker-day:hover { background: var(--s2); color: var(--t1); }
+      @media (hover: hover) and (pointer: fine) {
+        .picker-day:hover { background: var(--s2); color: var(--t1); }
+      }
       .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
       .picker-day.selected {
         background: rgba(129,140,248,0.2);
@@ -2281,7 +2326,7 @@ export class GlassConfigPanel extends LitElement {
         border-radius: 12px;
         font-size: 12px;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .btn:hover {
           background: var(--s4);
           border-color: var(--b3);
@@ -2297,7 +2342,7 @@ export class GlassConfigPanel extends LitElement {
         background: rgba(129, 140, 248, 0.12);
         color: var(--c-accent);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .btn-accent:hover {
           background: rgba(129, 140, 248, 0.2);
           border-color: rgba(129, 140, 248, 0.35);
@@ -2311,7 +2356,7 @@ export class GlassConfigPanel extends LitElement {
         border-color: transparent;
         background: transparent;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .btn-ghost:hover {
           background: var(--s2);
         }
@@ -2483,9 +2528,13 @@ export class GlassConfigPanel extends LitElement {
       hidden_metrics: [] as string[],
       show_daily: true,
       show_hourly: true,
+      show_header: true,
     };
     let dashboardConfig = {
       enabled_cards: ['weather'] as string[],
+    };
+    let lightCardConfig = {
+      show_header: true,
     };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
@@ -2494,11 +2543,13 @@ export class GlassConfigPanel extends LitElement {
         navbar: typeof navbarConfig;
         rooms: Record<string, { icon?: string | null }>;
         weather: typeof weatherConfig;
+        light_card: typeof lightCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
       Object.assign(roomConfigs, result.rooms);
       if (result.weather) weatherConfig = result.weather;
+      if (result.light_card) lightCardConfig = result.light_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -2517,7 +2568,9 @@ export class GlassConfigPanel extends LitElement {
     this._weatherHiddenMetrics = weatherConfig.hidden_metrics ?? [];
     this._weatherShowDaily = weatherConfig.show_daily ?? true;
     this._weatherShowHourly = weatherConfig.show_hourly ?? true;
+    this._weatherShowHeader = weatherConfig.show_header ?? true;
 
+    this._lightShowHeader = lightCardConfig.show_header ?? true;
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
@@ -3027,6 +3080,7 @@ export class GlassConfigPanel extends LitElement {
     periods.splice(idx, 1);
     this._scheduleEdits.set(entityId, [...periods]);
     this.requestUpdate();
+    this._saveSchedule(entityId);
   }
 
   private _updateSchedulePeriod(entityId: string, idx: number, field: 'start' | 'end', value: string) {
@@ -3353,9 +3407,20 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private async _saveLights() {
-    if (!this._backend || this._saving || !this._lightRoom) return;
+    if (!this._backend || this._saving) return;
     this._saving = true;
     try {
+      // Save light card global config
+      await this._backend.send('set_light_config', {
+        show_header: this._lightShowHeader,
+      });
+      bus.emit('light-config-changed', undefined);
+
+      if (!this._lightRoom) {
+        if (!this._mounted) return;
+        this._showToast();
+        return;
+      }
       // Load existing hidden_entities to preserve non-light hidden entries
       let existingHidden: string[] = [];
       try {
@@ -3980,13 +4045,15 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="preview-light">
-        <div class="preview-light-header">
-          <div class="preview-light-header-left">
-            <span class="preview-light-title">${t('light.title')}</span>
-            <span class="preview-light-count ${countClass}">${onCount}/${total}</span>
+        ${this._lightShowHeader ? html`
+          <div class="preview-light-header">
+            <div class="preview-light-header-left">
+              <span class="preview-light-title">${t('light.title')}</span>
+              <span class="preview-light-count ${countClass}">${onCount}/${total}</span>
+            </div>
+            <div class="preview-light-toggle ${anyOn ? 'on' : ''}"></div>
           </div>
-          <div class="preview-light-toggle ${anyOn ? 'on' : ''}"></div>
-        </div>
+        ` : nothing}
         <div class="preview-light-body">
           <div
             class="preview-light-tint"
@@ -4013,6 +4080,27 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-light">
+        <div class="section-label">${t('config.navbar_behavior')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._lightShowHeader = !this._lightShowHeader; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.light_show_header')}</div>
+              <div class="feature-desc">${t('config.light_show_header_desc')}</div>
+            </div>
+            <span
+              class="toggle ${this._lightShowHeader ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._lightShowHeader ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
         <div class="section-label">${t('config.light_room')}</div>
         <div class="section-desc">
           ${t('config.light_room_desc')}
@@ -4242,9 +4330,17 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_dashboard', {
         enabled_cards: this._dashboardEnabledCards,
       });
+      await this._backend.send('set_light_config', {
+        show_header: this._lightShowHeader,
+      });
+      await this._backend.send('set_weather', {
+        show_header: this._weatherShowHeader,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
+      bus.emit('light-config-changed', undefined);
+      bus.emit('weather-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {
@@ -4327,6 +4423,56 @@ export class GlassConfigPanel extends LitElement {
                   aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(c.nameKey)}"
                 ></span>
               </button>
+              ${c.key === 'light' ? html`
+                <div class="feature-sub ${enabled ? 'open' : ''}">
+                  <div class="feature-sub-inner">
+                    <div class="feature-sub-content">
+                      <button
+                        class="feature-row"
+                        @click=${(e: Event) => { e.stopPropagation(); this._lightShowHeader = !this._lightShowHeader; }}
+                      >
+                        <div class="feature-icon">
+                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                        </div>
+                        <div class="feature-text">
+                          <div class="feature-name">${t('config.light_show_header')}</div>
+                          <div class="feature-desc">${t('config.light_show_header_desc')}</div>
+                        </div>
+                        <span
+                          class="toggle ${this._lightShowHeader ? 'on' : ''}"
+                          role="switch"
+                          aria-checked=${this._lightShowHeader ? 'true' : 'false'}
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ` : nothing}
+              ${c.key === 'weather' ? html`
+                <div class="feature-sub ${enabled ? 'open' : ''}">
+                  <div class="feature-sub-inner">
+                    <div class="feature-sub-content">
+                      <button
+                        class="feature-row"
+                        @click=${(e: Event) => { e.stopPropagation(); this._weatherShowHeader = !this._weatherShowHeader; }}
+                      >
+                        <div class="feature-icon">
+                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                        </div>
+                        <div class="feature-text">
+                          <div class="feature-name">${t('config.weather_show_header')}</div>
+                          <div class="feature-desc">${t('config.weather_show_header_desc')}</div>
+                        </div>
+                        <span
+                          class="toggle ${this._weatherShowHeader ? 'on' : ''}"
+                          role="switch"
+                          aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
+                        ></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ` : nothing}
             `;
           })}
         </div>
@@ -4368,6 +4514,7 @@ export class GlassConfigPanel extends LitElement {
         hidden_metrics: this._weatherHiddenMetrics,
         show_daily: this._weatherShowDaily,
         show_hourly: this._weatherShowHourly,
+        show_header: this._weatherShowHeader,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -4515,6 +4662,13 @@ export class GlassConfigPanel extends LitElement {
     const todayDow = now.getDay();
 
     return html`
+      <div class="preview-weather-wrap">
+        ${this._weatherShowHeader ? html`
+          <div class="pw-card-header">
+            <span class="pw-card-title">${t('weather.title')}</span>
+            <span class="pw-card-location">${entity.attributes.friendly_name ?? ''}</span>
+          </div>
+        ` : nothing}
       <div class="preview-weather">
         <div class="pw-tint" style="background: radial-gradient(80% 20% at 75% 15%, ${tintColor}22 0%, transparent 70%);"></div>
         <div class="pw-content">
@@ -4595,6 +4749,7 @@ export class GlassConfigPanel extends LitElement {
           ` : nothing}
         </div>
       </div>
+      </div>
     `;
   }
 
@@ -4623,6 +4778,27 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-weather">
+        <div class="section-label">${t('config.navbar_behavior')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._weatherShowHeader = !this._weatherShowHeader; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.weather_show_header')}</div>
+              <div class="feature-desc">${t('config.weather_show_header_desc')}</div>
+            </div>
+            <span
+              class="toggle ${this._weatherShowHeader ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
         <div class="section-label">${t('config.weather_entity')}</div>
         <div class="section-desc">${t('config.weather_entity_desc')}</div>
         <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
@@ -4737,13 +4913,14 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean };
+        weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean; show_header: boolean };
       }>('get_config');
       if (result?.weather) {
         this._weatherEntity = result.weather.entity_id ?? '';
         this._weatherHiddenMetrics = result.weather.hidden_metrics ?? [];
         this._weatherShowDaily = result.weather.show_daily ?? true;
         this._weatherShowHourly = result.weather.show_hourly ?? true;
+        this._weatherShowHeader = result.weather.show_header ?? true;
       }
     } catch { /* ignore */ }
   }

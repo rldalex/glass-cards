@@ -97,6 +97,7 @@ interface WeatherBackendConfig {
   hidden_metrics: string[];
   show_daily: boolean;
   show_hourly: boolean;
+  show_header: boolean;
 }
 
 // ================================================================
@@ -115,7 +116,7 @@ class GlassWeatherCard extends BaseCard {
 
   // — Config from backend —
   private _weatherConfig: WeatherBackendConfig = {
-    entity_id: '', hidden_metrics: [], show_daily: true, show_hourly: true,
+    entity_id: '', hidden_metrics: [], show_daily: true, show_hourly: true, show_header: true,
   };
   // — Canvas animation —
   private _canvas: HTMLCanvasElement | null = null;
@@ -166,7 +167,7 @@ class GlassWeatherCard extends BaseCard {
 
     .weather-card {
       position: relative;
-      width: 100%; padding: 14px 14px 8px;
+      width: 100%; padding: 14px 14px 6px;
       box-sizing: border-box;
     }
 
@@ -338,13 +339,14 @@ class GlassWeatherCard extends BaseCard {
 
     .wc-forecast-zone {
       display: flex; flex-direction: column; gap: 4px;
+      margin-top: 2px;
     }
     .wc-fc-tabs {
       display: flex; gap: 3px;
       margin: 0 auto; width: fit-content;
     }
     .wc-fc-tab {
-      padding: 3px 10px;
+      padding: 4px 12px;
       border: 1px solid var(--b1);
       border-radius: var(--radius-full);
       background: transparent; color: var(--t4);
@@ -358,7 +360,7 @@ class GlassWeatherCard extends BaseCard {
     .wc-fc-tab.active {
       background: var(--s4); border-color: var(--b3); color: var(--t1);
     }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .wc-fc-tab:hover { background: var(--s2); color: var(--t3); }
     }
 
@@ -446,7 +448,7 @@ class GlassWeatherCard extends BaseCard {
       text-align: right;
     }
 
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .wc-day-row:hover, .wc-hour-row:hover { background: var(--s1); }
     }
 
@@ -991,7 +993,7 @@ class GlassWeatherCard extends BaseCard {
     const ws = this._getWeatherState();
     if (!ws) {
       return html`<div class="weather-card-wrap">
-        <div class="card-header"><span class="card-title">${t('weather.title')}</span></div>
+        ${this._weatherConfig.show_header ? html`<div class="card-header"><span class="card-title">${t('weather.title')}</span></div>` : nothing}
         <div class="glass weather-card"><div class="card-inner" style="padding:20px;text-align:center;color:var(--t3);font-size:11px;">${t('common.no_entity')}</div></div>
       </div>`;
     }
@@ -1030,10 +1032,12 @@ class GlassWeatherCard extends BaseCard {
 
     return html`
       <div class="weather-card-wrap">
-        <div class="card-header">
-          <span class="card-title">${t('weather.title')}</span>
-          <span class="card-location">${friendlyName}</span>
-        </div>
+        ${this._weatherConfig.show_header ? html`
+          <div class="card-header">
+            <span class="card-title">${t('weather.title')}</span>
+            <span class="card-location">${friendlyName}</span>
+          </div>
+        ` : nothing}
 
         <div class="glass weather-card">
           <div class="tint" style="${tintStyle}"></div>

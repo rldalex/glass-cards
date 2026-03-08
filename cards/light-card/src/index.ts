@@ -34,66 +34,11 @@ type LayoutItem =
   | { kind: 'full'; light: LightInfo }
   | { kind: 'compact-pair'; left: LightInfo; right: LightInfo | null };
 
-interface LightPreset {
-  key: string;
-  labelKey: 'light.preset_relax' | 'light.preset_focus' | 'light.preset_film' | 'light.preset_night';
-  dotColor: string;
-  brightness: number;
-  temp: number;
-  rgb: [number, number, number];
-}
-
 const TEMP_RANGES: [number, 'light.temp_warm' | 'light.temp_neutral' | 'light.temp_cold', string][] = [
   [3000, 'light.temp_warm', '#ffd4a3'],
   [4000, 'light.temp_warm', '#ffedb3'],
   [4800, 'light.temp_neutral', '#fff5e6'],
   [9999, 'light.temp_cold', '#e0ecf5'],
-];
-
-const RGB_PRESETS: [number, number, number][] = [
-  [251, 191, 36],
-  [248, 113, 113],
-  [244, 114, 182],
-  [167, 139, 250],
-  [129, 140, 248],
-  [96, 165, 250],
-  [74, 222, 128],
-  [240, 240, 240],
-];
-
-const LIGHT_PRESETS: LightPreset[] = [
-  {
-    key: 'relax',
-    labelKey: 'light.preset_relax',
-    dotColor: '#ff9d4d',
-    brightness: 50,
-    temp: 2700,
-    rgb: [251, 191, 36],
-  },
-  {
-    key: 'focus',
-    labelKey: 'light.preset_focus',
-    dotColor: '#e0ecf5',
-    brightness: 100,
-    temp: 5500,
-    rgb: [96, 165, 250],
-  },
-  {
-    key: 'film',
-    labelKey: 'light.preset_film',
-    dotColor: '#ff7b3a',
-    brightness: 25,
-    temp: 2400,
-    rgb: [248, 113, 113],
-  },
-  {
-    key: 'nuit',
-    labelKey: 'light.preset_night',
-    dotColor: '#ffd4a3',
-    brightness: 10,
-    temp: 2200,
-    rgb: [167, 139, 250],
-  },
 ];
 
 // — Helpers —
@@ -124,9 +69,53 @@ function rgbToRgba(rgb: [number, number, number], alpha: number): string {
   return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
 }
 
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+const COLOR_DOTS: [number, number, number][] = [
+  [251, 191, 36],
+  [248, 113, 113],
+  [244, 114, 182],
+  [167, 139, 250],
+  [129, 140, 248],
+  [96, 165, 250],
+  [74, 222, 128],
+  [240, 240, 240],
+];
+
 function rgbEqual(a: [number, number, number], b: [number, number, number]): boolean {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 }
+
+function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } {
+  const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6 * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  const sat = d === 0 ? 0 : d / (1 - Math.abs(max + min - 1));
+  const dist = Math.min(sat, 1);
+  // Match canvas coordinate system: 0=right, clockwise, Y-down
+  const rad = (h * Math.PI) / 180;
+  return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };
+}
+
+const ALLOWED_EFFECTS = ['off', 'candle', 'fire'] as const;
 
 // — Component —
 
@@ -138,8 +127,12 @@ export class GlassLightCard extends BaseCard {
   @property({ attribute: false }) areaId?: string;
   @property({ attribute: false }) visibleAreaIds?: string[];
   @state() private _expandedEntity: string | null = null;
-  @state() private _activePresets = new Map<string, string>();
   @state() private _dragValues = new Map<string, number>();
+  @state() private _colorPickerEntity: string | null = null;
+  @state() private _colorPickerRgb: [number, number, number] | null = null;
+  @state() private _colorPickerPos: { x: number; y: number } | null = null;
+  @state() private _showHeader = true;
+  private _lightConfigLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private _roomConfig: {
     hidden_entities: string[];
@@ -292,7 +285,7 @@ export class GlassLightCard extends BaseCard {
         transition: background var(--t-fast);
         border-radius: var(--radius-md);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .light-row:hover {
           background: var(--s1);
         }
@@ -456,6 +449,15 @@ export class GlassLightCard extends BaseCard {
       .ctrl-fold.open .ctrl-fold-inner {
         opacity: 1;
       }
+      .fold-sep {
+        height: 1px;
+        margin: 0 12px;
+        background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
+        opacity: 0;
+        transition: opacity 0.25s var(--ease-std);
+        grid-column: 1 / -1;
+      }
+      .fold-sep.visible { opacity: 1; }
       .ctrl-panel {
         padding: 6px 0 4px;
         display: flex;
@@ -480,7 +482,7 @@ export class GlassLightCard extends BaseCard {
         border-radius: var(--radius-lg);
         background: var(--s1);
         border: 1px solid var(--b1);
-        overflow: hidden;
+        overflow: visible;
       }
       .slider-fill {
         position: absolute;
@@ -489,6 +491,7 @@ export class GlassLightCard extends BaseCard {
         height: 100%;
         border-radius: inherit;
         pointer-events: none;
+        overflow: hidden;
       }
       .slider-fill.warm {
         background: linear-gradient(90deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.3));
@@ -561,8 +564,8 @@ export class GlassLightCard extends BaseCard {
         appearance: none;
       }
 
-      /* ── Color Dots ── */
-      .color-dots-row {
+      /* ── Color Controls ── */
+      .color-row {
         display: flex;
         gap: 8px;
         align-items: center;
@@ -588,63 +591,132 @@ export class GlassLightCard extends BaseCard {
         border-radius: 50%;
         background: var(--cdot-color);
       }
-      @media (hover: hover) {
-        .cdot:hover {
-          transform: scale(1.15);
-        }
+      @media (hover: hover) and (pointer: fine) {
+        .cdot:hover { transform: scale(1.15); }
       }
-      .cdot:active {
-        transform: scale(1.1);
+      .cdot:active { transform: scale(1.1); }
+      .cdot.active { border-color: rgba(255, 255, 255, 0.6); }
+      .color-picker-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        background: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: all var(--t-fast);
+        flex-shrink: 0;
+        position: relative;
       }
-      .cdot.active {
-        border-color: rgba(255, 255, 255, 0.6);
+      .color-picker-btn::before {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        background: conic-gradient(
+          hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
+          hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
+        );
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .color-picker-btn:hover { transform: scale(1.15); }
       }
 
-      /* ── Preset Chips ── */
-      .preset-row {
+      /* ── Color Picker Popup ── */
+      .color-picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
         display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-      .chip {
-        display: inline-flex;
         align-items: center;
-        gap: 5px;
-        padding: 5px 10px;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        animation: cpFadeIn 0.2s ease;
+      }
+      @keyframes cpFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .color-picker-dialog {
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+        backdrop-filter: blur(40px) saturate(1.4);
+        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-xl);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+        max-width: 300px;
+        width: 90vw;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      }
+      .color-picker-dialog .cp-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t3);
+      }
+      .cp-wheel-wrap {
+        position: relative;
+        width: 220px;
+        height: 220px;
+      }
+      .cp-wheel-wrap canvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        cursor: crosshair;
+      }
+      .cp-cursor {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
+        pointer-events: none;
+        transform: translate(-50%, calc(-50% - 28px));
+        transition: left 0.05s, top 0.05s;
+      }
+      .cp-cursor::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 10px;
+        background: rgba(255,255,255,0.5);
+        border-radius: 1px;
+      }
+      .cp-preview {
+        width: 100%;
+        height: 36px;
         border-radius: var(--radius-md);
         border: 1px solid var(--b2);
-        background: var(--s1);
+      }
+      .cp-close {
         font-family: inherit;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        color: var(--t3);
+        color: var(--t2);
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-md);
+        padding: 8px 24px;
         cursor: pointer;
         outline: none;
-        transition: all var(--t-fast);
         -webkit-tap-highlight-color: transparent;
-      }
-      @media (hover: hover) {
-        .chip:hover {
-          background: var(--s3);
-          color: var(--t2);
-          border-color: var(--b3);
-        }
-      }
-      .chip:active {
-        background: var(--s3);
-      }
-      .chip.active {
-        border-color: rgba(251, 191, 36, 0.2);
-        background: rgba(251, 191, 36, 0.08);
-        color: rgba(251, 191, 36, 0.8);
-      }
-      .chip-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
       }
 
       /* Focus-visible ring */
@@ -652,7 +724,7 @@ export class GlassLightCard extends BaseCard {
       .light-icon-btn:focus-visible,
       .light-expand-btn:focus-visible,
       .cdot:focus-visible,
-      .chip:focus-visible {
+      .color-picker-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
       }
@@ -693,8 +765,17 @@ export class GlassLightCard extends BaseCard {
     return 3;
   }
 
+  private _onDocClick = (e: MouseEvent) => {
+    if (!this._expandedEntity) return;
+    const path = e.composedPath();
+    if (!path.includes(this)) {
+      this._expandedEntity = null;
+    }
+  };
+
   connectedCallback() {
     super.connectedCallback();
+    document.addEventListener('click', this._onDocClick, true);
     this._listen('room-config-changed', (payload) => {
       const area = this.areaId || (this._config?.area as string | undefined);
       if (area && payload.areaId === area) {
@@ -708,10 +789,15 @@ export class GlassLightCard extends BaseCard {
       this._cachedLights = undefined;
       this._loadSchedules();
     });
+    this._listen('light-config-changed', () => {
+      this._lightConfigLoaded = false;
+      this._loadLightConfig();
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    document.removeEventListener('click', this._onDocClick, true);
     this._throttleTimers.forEach((t) => clearTimeout(t));
     this._throttleTimers.clear();
     this._backend = undefined;
@@ -754,11 +840,26 @@ export class GlassLightCard extends BaseCard {
     }
   }
 
+  private async _loadLightConfig() {
+    if (!this.hass || this._lightConfigLoaded) return;
+    this._lightConfigLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{
+        light_card: { show_header: boolean };
+      }>('get_config');
+      if (result?.light_card) {
+        this._showHeader = result.light_card.show_header ?? true;
+      }
+    } catch {
+      // Backend not available
+    }
+  }
+
   private _resetForNewArea() {
     this._roomConfig = null;
     this._roomConfigLoaded = false;
     this._expandedEntity = null;
-    this._activePresets = new Map();
     this._dragValues = new Map();
     this._cachedLights = undefined;
     this._throttleTimers.forEach((t) => clearTimeout(t));
@@ -791,6 +892,11 @@ export class GlassLightCard extends BaseCard {
     // Load schedules
     if (this.hass && !this._schedulesLoaded) {
       this._loadSchedules();
+    }
+
+    // Load light card config
+    if (this.hass && !this._lightConfigLoaded) {
+      this._loadLightConfig();
     }
 
     // Load room config from backend when areaId is available or changes
@@ -840,6 +946,15 @@ export class GlassLightCard extends BaseCard {
         }
       }
       if (changed) this._dragValues = next;
+    }
+
+    // Draw color wheel canvas when picker opens
+    if (this._colorPickerEntity) {
+      const canvas = this.renderRoot.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
+      if (canvas && !canvas.dataset.drawn) {
+        this._drawColorWheel(canvas);
+        canvas.dataset.drawn = '1';
+      }
     }
   }
 
@@ -1026,14 +1141,88 @@ export class GlassLightCard extends BaseCard {
     this.hass?.callService('light', 'turn_on', { rgb_color: rgb }, { entity_id: entityId });
   }
 
-  private _applyPreset(info: LightInfo, preset: LightPreset) {
-    const data: Record<string, unknown> = { brightness_pct: preset.brightness };
-    if (info.type === 'color_temp') data.color_temp_kelvin = preset.temp;
-    if (info.type === 'rgb') data.rgb_color = preset.rgb;
-    this.hass?.callService('light', 'turn_on', data, { entity_id: info.entityId });
-    const next = new Map(this._activePresets);
-    next.set(info.entityId, preset.key);
-    this._activePresets = next;
+  private _setEffect(entityId: string, effect: string) {
+    this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
+  }
+
+  private _openColorPicker(entityId: string, currentRgb: [number, number, number] | null) {
+    this._colorPickerEntity = entityId;
+    this._colorPickerRgb = currentRgb ?? [255, 255, 255];
+    this._colorPickerPos = currentRgb ? rgbToWheelPos(currentRgb) : null;
+  }
+
+  private _closeColorPicker() {
+    this._colorPickerEntity = null;
+    this._colorPickerRgb = null;
+    this._colorPickerPos = null;
+  }
+
+  private _wheelCanvas: HTMLCanvasElement | null = null;
+
+  private _onWheelInteraction(e: MouseEvent | TouchEvent) {
+    const canvas = this._wheelCanvas;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left - rect.width / 2;
+    const y = clientY - rect.top - rect.height / 2;
+    const radius = rect.width / 2;
+    const dist = Math.sqrt(x * x + y * y);
+    if (dist > radius) return;
+
+    // Canvas arc() uses clockwise angles with 0=right, Y-down
+    const angle = Math.atan2(y, x); // radians, canvas coordinate system
+    const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
+    const sat = Math.min(dist / radius, 1);
+    const rgb = hslToRgb(hue, sat, 0.5);
+
+    const pctX = x / radius * 50 + 50;
+    const pctY = y / radius * 50 + 50;
+    this._colorPickerPos = { x: pctX, y: pctY };
+    this._colorPickerRgb = rgb;
+
+    // Throttled live preview
+    if (this._colorPickerEntity) {
+      const key = `cp:${this._colorPickerEntity}`;
+      const existing = this._throttleTimers.get(key);
+      if (existing !== undefined) clearTimeout(existing);
+      this._throttleTimers.set(
+        key,
+        setTimeout(() => {
+          this._throttleTimers.delete(key);
+          if (this._colorPickerEntity && this._colorPickerRgb) {
+            this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+          }
+        }, 150),
+      );
+    }
+  }
+
+  private _drawColorWheel(canvas: HTMLCanvasElement) {
+    const size = 440; // 2x for retina
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2;
+
+    for (let angle = 0; angle < 360; angle++) {
+      const startAngle = ((angle - 1) * Math.PI) / 180;
+      const endAngle = ((angle + 1) * Math.PI) / 180;
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      gradient.addColorStop(0, `hsl(${angle}, 0%, 100%)`);
+      gradient.addColorStop(0.5, `hsl(${angle}, 100%, 50%)`);
+      gradient.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
   }
 
   // — Layout —
@@ -1194,12 +1383,27 @@ export class GlassLightCard extends BaseCard {
     return { fillClass: 'warm', fillStyle: '' };
   }
 
+  private _getFoldColor(info: LightInfo): string {
+    if (info.rgbColor) return `rgba(${info.rgbColor[0]},${info.rgbColor[1]},${info.rgbColor[2]},0.3)`;
+    if (info.type === 'color_temp' && info.colorTempKelvin) {
+      const { color } = getTempInfo(info.colorTempKelvin);
+      // Parse hex to rgba
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},0.3)`;
+    }
+    return 'rgba(251,191,36,0.25)';
+  }
+
   private _renderControlFold(info: LightInfo): TemplateResult {
     const isExpanded = this._expandedEntity === info.entityId && info.isOn;
     const isRgb = info.type === 'rgb';
     const { fillClass, fillStyle } = this._getBrightnessFill(info);
+    const foldColor = this._getFoldColor(info);
 
     return html`
+      <div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           <div class="ctrl-panel" ?data-rgb=${isRgb}>
@@ -1220,9 +1424,115 @@ export class GlassLightCard extends BaseCard {
                 )
               : nothing}
             ${info.type === 'color_temp' ? this._renderTempSlider(info) : nothing}
-            ${info.type === 'rgb' ? this._renderColorDots(info) : nothing}
-            ${this._renderPresetChips(info)}
+            ${info.type === 'rgb' ? this._renderColorRow(info) : nothing}
+            ${this._renderEffectChips(info)}
           </div>
+        </div>
+      </div>
+      <div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
+    `;
+  }
+
+  // — Render: Color Row —
+
+  private _renderColorRow(info: LightInfo): TemplateResult {
+    return html`
+      <div class="color-row">
+        ${COLOR_DOTS.map((rgb) => {
+          const isActive = info.rgbColor ? rgbEqual(info.rgbColor, rgb) : false;
+          return html`
+            <button
+              class="cdot ${isActive ? 'active' : ''}"
+              style="--cdot-color:${rgbToHex(rgb)}"
+              @click=${() => this._setRgbColor(info.entityId, rgb)}
+              aria-label="${t('light.color_aria', { hex: rgbToHex(rgb) })}"
+            ></button>
+          `;
+        })}
+        <button
+          class="color-picker-btn"
+          @click=${() => this._openColorPicker(info.entityId, info.rgbColor)}
+          aria-label="${t('light.color_picker_aria')}"
+        ></button>
+      </div>
+    `;
+  }
+
+  // — Render: Effect Chips —
+
+  private _renderEffectChips(info: LightInfo): TemplateResult | typeof nothing {
+    const effects = info.entity.attributes.effect_list as string[] | undefined;
+    if (!effects || effects.length === 0) return nothing;
+    const available = ALLOWED_EFFECTS.filter((e) => e === 'off' || effects.includes(e));
+    if (available.length <= 1) return nothing;
+    const currentEffect = (info.entity.attributes.effect as string | undefined)?.toLowerCase();
+
+    return html`
+      <div class="color-row" style="flex-wrap:wrap">
+        ${available.map(
+          (effect) => html`
+            <button
+              class="cdot effect-chip ${currentEffect === effect || (!currentEffect && effect === 'off') ? 'active' : ''}"
+              @click=${() => this._setEffect(info.entityId, effect === 'off' ? 'None' : effect)}
+              aria-label="${t(`light.effect_${effect}`)}"
+              style="width:auto;height:auto;border-radius:var(--radius-md);padding:4px 8px;font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t3);border:1px solid var(--b2);background:var(--s1)"
+            >${t(`light.effect_${effect}`)}</button>
+          `,
+        )}
+      </div>
+    `;
+  }
+
+  // — Render: Color Picker Popup —
+
+  private _renderColorPicker(): TemplateResult | typeof nothing {
+    if (!this._colorPickerEntity || !this._colorPickerRgb) return nothing;
+    const rgb = this._colorPickerRgb;
+
+    return html`
+      <div class="color-picker-overlay" @click=${(e: Event) => {
+        if ((e.target as HTMLElement).classList.contains('color-picker-overlay')) this._closeColorPicker();
+      }}>
+        <div class="color-picker-dialog">
+          <span class="cp-title">${t('light.color_picker_title')}</span>
+          <div class="cp-wheel-wrap">
+            <canvas
+              @mousedown=${(e: MouseEvent) => {
+                this._wheelCanvas = e.currentTarget as HTMLCanvasElement;
+                this._onWheelInteraction(e);
+                const onMove = (me: MouseEvent) => this._onWheelInteraction(me);
+                const onUp = () => {
+                  window.removeEventListener('mousemove', onMove);
+                  window.removeEventListener('mouseup', onUp);
+                  if (this._colorPickerEntity && this._colorPickerRgb) {
+                    this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+                  }
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+              }}
+              @touchstart=${(e: TouchEvent) => {
+                e.preventDefault();
+                this._wheelCanvas = e.currentTarget as HTMLCanvasElement;
+                this._onWheelInteraction(e);
+                const onMove = (te: TouchEvent) => { te.preventDefault(); this._onWheelInteraction(te); };
+                const onEnd = () => {
+                  window.removeEventListener('touchmove', onMove);
+                  window.removeEventListener('touchend', onEnd);
+                  if (this._colorPickerEntity && this._colorPickerRgb) {
+                    this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+                  }
+                };
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onEnd);
+              }}
+            ></canvas>
+            <div class="cp-cursor" style="left:${this._colorPickerPos?.x ?? 50}%;top:${this._colorPickerPos?.y ?? 50}%;background:${rgbToHex(rgb)}"></div>
+          </div>
+          <div class="cp-preview" style="background:${rgbToHex(rgb)}"></div>
+          <button class="cp-close" @click=${() => this._closeColorPicker()}>
+            ${t('common.close')}
+          </button>
         </div>
       </div>
     `;
@@ -1318,48 +1628,6 @@ export class GlassLightCard extends BaseCard {
     `;
   }
 
-  // — Render: Color Dots —
-
-  private _renderColorDots(info: LightInfo): TemplateResult {
-    return html`
-      <div class="color-dots-row">
-        ${RGB_PRESETS.map((rgb) => {
-          const isActive = info.rgbColor ? rgbEqual(info.rgbColor, rgb) : false;
-          return html`
-            <button
-              class="cdot ${isActive ? 'active' : ''}"
-              style="--cdot-color:${rgbToHex(rgb)}"
-              @click=${() => this._setRgbColor(info.entityId, rgb)}
-              aria-label="${t('light.color_aria', { hex: rgbToHex(rgb) })}"
-            ></button>
-          `;
-        })}
-      </div>
-    `;
-  }
-
-  // — Render: Preset Chips —
-
-  private _renderPresetChips(info: LightInfo): TemplateResult {
-    const activeKey = this._activePresets.get(info.entityId);
-    return html`
-      <div class="preset-row">
-        ${LIGHT_PRESETS.map(
-          (preset) => html`
-            <button
-              class="chip ${activeKey === preset.key ? 'active' : ''}"
-              @click=${() => this._applyPreset(info, preset)}
-              aria-label="${t('light.preset_aria', { label: t(preset.labelKey) })}"
-            >
-              <span class="chip-dot" style="background:${preset.dotColor}"></span>
-              ${t(preset.labelKey)}
-            </button>
-          `,
-        )}
-      </div>
-    `;
-  }
-
   // — Render: Grid —
 
   private _renderGrid(lights: LightInfo[]): TemplateResult[] {
@@ -1375,7 +1643,10 @@ export class GlassLightCard extends BaseCard {
         if (item.right) {
           results.push(this._renderLightRow(item.right, true, true));
         }
-        // No fold for simple lights (no controls)
+        results.push(this._renderControlFold(item.left));
+        if (item.right) {
+          results.push(this._renderControlFold(item.right));
+        }
       }
     }
 
@@ -1422,16 +1693,18 @@ export class GlassLightCard extends BaseCard {
     const titleKey = infos.length === 1 ? 'light.dashboard_title_one' : 'light.dashboard_title';
 
     return html`
-      <div class="card-header">
-        <div class="card-header-left">
-          <span class="card-title">${t(titleKey, { count: String(infos.length) })}</span>
+      ${this._showHeader ? html`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${t(titleKey, { count: String(infos.length) })}</span>
+          </div>
+          <button
+            class="toggle-all on"
+            @click=${() => this._turnAllOff()}
+            aria-label="${t('light.dashboard_turn_all_off_aria')}"
+          ></button>
         </div>
-        <button
-          class="toggle-all on"
-          @click=${() => this._turnAllOff()}
-          aria-label="${t('light.dashboard_turn_all_off_aria')}"
-        ></button>
-      </div>
+      ` : nothing}
 
       <div class="card glass">
         <div
@@ -1449,6 +1722,7 @@ export class GlassLightCard extends BaseCard {
             : nothing}
         </div>
       </div>
+      ${this._renderColorPicker()}
     `;
   }
 
@@ -1468,17 +1742,19 @@ export class GlassLightCard extends BaseCard {
     const tint = this._computeTint(infos);
 
     return html`
-      <div class="card-header">
-        <div class="card-header-left">
-          <span class="card-title">${t('light.title')}</span>
-          <span class="card-count ${countClass}">${onCount}/${total}</span>
+      ${this._showHeader ? html`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${t('light.title')}</span>
+            <span class="card-count ${countClass}">${onCount}/${total}</span>
+          </div>
+          <button
+            class="toggle-all ${anyOn ? 'on' : ''}"
+            @click=${() => this._toggleAll()}
+            aria-label="${anyOn ? t('light.toggle_all_on_aria') : t('light.toggle_all_off_aria')}"
+          ></button>
         </div>
-        <button
-          class="toggle-all ${anyOn ? 'on' : ''}"
-          @click=${() => this._toggleAll()}
-          aria-label="${anyOn ? t('light.toggle_all_on_aria') : t('light.toggle_all_off_aria')}"
-        ></button>
-      </div>
+      ` : nothing}
 
       <div class="card glass">
         <div
@@ -1489,6 +1765,7 @@ export class GlassLightCard extends BaseCard {
           <div class="lights-grid">${this._renderGrid(infos)}</div>
         </div>
       </div>
+      ${this._renderColorPicker()}
     `;
   }
 }

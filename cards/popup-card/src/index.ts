@@ -207,7 +207,7 @@ export class GlassRoomPopup extends LitElement {
         transition: background var(--t-fast);
         flex-shrink: 0;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .close-btn:hover {
           background: var(--s3);
         }
@@ -265,7 +265,7 @@ export class GlassRoomPopup extends LitElement {
           border-color var(--t-fast),
           color var(--t-fast);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .scene-chip:hover {
           background: var(--s3);
           border-color: var(--b3);

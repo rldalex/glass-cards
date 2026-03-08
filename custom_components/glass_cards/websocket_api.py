@@ -33,6 +33,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_navbar)
     websocket_api.async_register_command(hass, ws_delete_room)
     websocket_api.async_register_command(hass, ws_set_weather)
+    websocket_api.async_register_command(hass, ws_set_light_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
@@ -233,6 +234,7 @@ async def ws_delete_room(
         vol.Optional("hidden_metrics"): [vol.In(list(VALID_WEATHER_METRICS))],
         vol.Optional("show_daily"): bool,
         vol.Optional("show_hourly"): bool,
+        vol.Optional("show_header"): bool,
     }
 )
 @websocket_api.async_response
@@ -255,9 +257,36 @@ async def ws_set_weather(
         store.data.weather.show_daily = msg["show_daily"]
     if "show_hourly" in msg:
         store.data.weather.show_hourly = msg["show_hourly"]
+    if "show_header" in msg:
+        store.data.weather.show_header = msg["show_header"]
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.weather.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_light_config",
+        vol.Optional("show_header"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_set_light_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the light card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.light_card.show_header = msg["show_header"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.light_card.to_dict())
 
 
 @websocket_api.websocket_command(

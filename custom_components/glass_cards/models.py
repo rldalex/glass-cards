@@ -189,6 +189,7 @@ class WeatherConfig:
     hidden_metrics: list[str] = field(default_factory=list)
     show_daily: bool = True
     show_hourly: bool = True
+    show_header: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -197,6 +198,7 @@ class WeatherConfig:
             "hidden_metrics": self.hidden_metrics,
             "show_daily": self.show_daily,
             "show_hourly": self.show_hourly,
+            "show_header": self.show_header,
         }
 
     @classmethod
@@ -211,7 +213,24 @@ class WeatherConfig:
             ],
             show_daily=bool(data.get("show_daily", True)),
             show_hourly=bool(data.get("show_hourly", True)),
+            show_header=bool(data.get("show_header", True)),
         )
+
+
+@dataclass
+class LightCardConfig:
+    """Configuration for the light card."""
+
+    show_header: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {"show_header": self.show_header}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> LightCardConfig:
+        """Deserialize from dict."""
+        return cls(show_header=bool(data.get("show_header", True)))
 
 
 @dataclass
@@ -245,6 +264,7 @@ class GlassCardsData:
     navbar: NavbarConfig = field(default_factory=NavbarConfig)
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
     weather: WeatherConfig = field(default_factory=WeatherConfig)
+    light_card: LightCardConfig = field(default_factory=LightCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
@@ -254,6 +274,7 @@ class GlassCardsData:
             "navbar": self.navbar.to_dict(),
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
             "weather": self.weather.to_dict(),
+            "light_card": self.light_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -270,6 +291,7 @@ class GlassCardsData:
                 for k, v in data.get("rooms", {}).items()
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
+            light_card=LightCardConfig.from_dict(data.get("light_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})
