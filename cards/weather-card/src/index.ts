@@ -528,6 +528,10 @@ class GlassWeatherCard extends BaseCard {
     this._configLoadingInProgress = false;
   }
 
+  protected _collapseExpanded(): void {
+    if (this._activeTab !== null) this._activeTab = null;
+  }
+
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {

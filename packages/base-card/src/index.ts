@@ -111,11 +111,14 @@ export abstract class BaseCard extends LitElement {
     return entity ? [entity] : [];
   }
 
+  private _boundDocClick = this._handleDocumentClick.bind(this);
+
   connectedCallback(): void {
     super.connectedCallback();
     // Flush stale bus subscriptions from a previous connection cycle
     this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
+    document.addEventListener('click', this._boundDocClick, true);
   }
 
   protected _listen<K extends keyof GlassEventMap>(
@@ -129,6 +132,17 @@ export abstract class BaseCard extends LitElement {
     super.disconnectedCallback();
     this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
+    document.removeEventListener('click', this._boundDocClick, true);
+  }
+
+  private _handleDocumentClick(e: Event): void {
+    const path = e.composedPath();
+    if (!path.includes(this)) this._collapseExpanded();
+  }
+
+  /** Override in subclasses to collapse any expanded/fold state on outside click. */
+  protected _collapseExpanded(): void {
+    // no-op — subclasses override
   }
 }
 

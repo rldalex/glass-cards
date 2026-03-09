@@ -402,6 +402,10 @@ class GlassCoverCard extends BaseCard {
     this._throttleTimers.clear();
   }
 
+  protected _collapseExpanded(): void {
+    if (this._expanded !== null) this._expanded = null;
+  }
+
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {

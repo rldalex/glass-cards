@@ -372,6 +372,10 @@ export class GlassRoomPopup extends LitElement {
     document.removeEventListener('keydown', this._boundKeydown);
   }
 
+  protected _collapseExpanded(): void {
+    if (this._scenesOpen) this._scenesOpen = false;
+  }
+
   private _handleOpen(payload: { areaId: string; originRect?: DOMRect }) {
     // Cancel stale close timeout from previous room
     if (this._closeTimeout !== undefined) {

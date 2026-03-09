@@ -520,6 +520,11 @@ class GlassSpotifyCard extends BaseCard {
     this._configLoadingInProgress = false;
   }
 
+  protected _collapseExpanded(): void {
+    if (this._foldOpen) this._foldOpen = false;
+    if (this._drilldown) { this._drilldown = null; this._view = this._searchQuery ? 'search' : 'library'; }
+  }
+
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {

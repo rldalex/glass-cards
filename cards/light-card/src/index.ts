@@ -766,17 +766,13 @@ export class GlassLightCard extends BaseCard {
     return 3;
   }
 
-  private _onDocClick = (e: MouseEvent) => {
-    if (!this._expandedEntity) return;
-    const path = e.composedPath();
-    if (!path.includes(this)) {
-      this._expandedEntity = null;
-    }
-  };
+  protected _collapseExpanded(): void {
+    if (this._expandedEntity !== null) this._expandedEntity = null;
+    if (this._colorPickerEntity !== null) { this._colorPickerEntity = null; this._colorPickerPos = null; }
+  }
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener('click', this._onDocClick, true);
     this._listen('room-config-changed', (payload) => {
       const area = this.areaId || (this._config?.area as string | undefined);
       if (area && payload.areaId === area) {
@@ -798,7 +794,6 @@ export class GlassLightCard extends BaseCard {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener('click', this._onDocClick, true);
     this._cancelWheelDrag?.();
     this._cancelWheelDrag = undefined;
     this._wheelCanvas = null;
