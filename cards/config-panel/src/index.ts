@@ -5813,6 +5813,4 @@ export class GlassConfigPanel extends LitElement {
   }
 }
 
-if (!customElements.get('glass-config-panel')) {
-  customElements.define('glass-config-panel', GlassConfigPanel);
-}
+try { customElements.define('glass-config-panel', GlassConfigPanel); } catch { /* scoped registry */ }

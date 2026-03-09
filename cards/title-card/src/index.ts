@@ -303,6 +303,4 @@ class GlassTitleCard extends BaseCard {
   }
 }
 
-if (!customElements.get('glass-title-card')) {
-  customElements.define('glass-title-card', GlassTitleCard);
-}
+try { customElements.define('glass-title-card', GlassTitleCard); } catch { /* already registered */ }

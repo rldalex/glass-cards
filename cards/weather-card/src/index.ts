@@ -1253,7 +1253,5 @@ class GlassWeatherCard extends BaseCard {
   }
 }
 
-if (!customElements.get('glass-weather-card')) {
-  customElements.define('glass-weather-card', GlassWeatherCard);
-}
+try { customElements.define('glass-weather-card', GlassWeatherCard); } catch { /* scoped registry */ }
 

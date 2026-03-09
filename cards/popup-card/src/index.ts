@@ -610,6 +610,4 @@ export class GlassRoomPopup extends LitElement {
   }
 }
 
-if (!customElements.get('glass-room-popup')) {
-  customElements.define('glass-room-popup', GlassRoomPopup);
-}
+try { customElements.define('glass-room-popup', GlassRoomPopup); } catch { /* scoped registry */ }

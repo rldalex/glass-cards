@@ -867,9 +867,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 }
 
-if (!customElements.get('glass-navbar-card')) {
-  customElements.define('glass-navbar-card', GlassNavbarCard);
-}
+try { customElements.define('glass-navbar-card', GlassNavbarCard); } catch { /* already registered */ }
 
 // Lovelace card registration
 const windowWithCards = window as unknown as {
