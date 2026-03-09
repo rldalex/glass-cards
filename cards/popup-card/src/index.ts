@@ -17,6 +17,7 @@ interface AreaMeta {
   icon: string;
   temperature: string | null;
   humidity: string | null;
+  sensorUnavailable: boolean;
   hasLight: boolean;
   hasMusic: boolean;
   scenes: HassEntity[];
@@ -194,6 +195,11 @@ export class GlassRoomPopup extends LitElement {
         font-size: 12px;
         color: var(--t3);
         font-weight: 500;
+      }
+      .sensor-warn {
+        color: var(--c-warning, #f59e0b);
+        font-size: 10px;
+        font-style: italic;
       }
       .close-btn {
         background: transparent;
@@ -475,6 +481,7 @@ export class GlassRoomPopup extends LitElement {
     const areaEntities = getAreaEntities(this._areaId, this.hass.entities, this.hass.devices);
     let temperature: string | null = null;
     let humidity: string | null = null;
+    let sensorUnavailable = false;
     let hasLight = false;
     let hasMusic = false;
     const scenes: HassEntity[] = [];
@@ -490,13 +497,19 @@ export class GlassRoomPopup extends LitElement {
       if (domain === 'light' && entityState.state === 'on') hasLight = true;
       if (domain === 'media_player' && entityState.state === 'playing') hasMusic = true;
 
-      if (domain === 'sensor' && entityState.state !== 'unavailable' && entityState.state !== 'unknown') {
+      if (domain === 'sensor') {
         const dc = entityState.attributes.device_class;
-        if (dc === 'temperature' && !temperature) {
-          temperature = `${entityState.state}${entityState.attributes.unit_of_measurement || '°C'}`;
+        const isUnavail = entityState.state === 'unavailable' || entityState.state === 'unknown';
+        if ((dc === 'temperature' || dc === 'humidity') && isUnavail) {
+          sensorUnavailable = true;
         }
-        if (dc === 'humidity' && !humidity) {
-          humidity = `${entityState.state}%`;
+        if (!isUnavail) {
+          if (dc === 'temperature' && !temperature) {
+            temperature = `${entityState.state}${entityState.attributes.unit_of_measurement || '°C'}`;
+          }
+          if (dc === 'humidity' && !humidity) {
+            humidity = `${entityState.state}%`;
+          }
         }
       }
       if (domain === 'scene') {
@@ -526,6 +539,7 @@ export class GlassRoomPopup extends LitElement {
       icon: customIcon,
       temperature,
       humidity,
+      sensorUnavailable,
       hasLight,
       hasMusic,
       scenes: filteredScenes,
@@ -593,6 +607,7 @@ export class GlassRoomPopup extends LitElement {
             <div class="header-meta">
               ${meta.temperature ? html`<span>${meta.temperature}</span>` : nothing}
               ${meta.humidity ? html`<span>${meta.humidity}</span>` : nothing}
+              ${meta.sensorUnavailable && !meta.temperature && !meta.humidity ? html`<span class="sensor-warn">${t('popup.sensor_unavailable')}</span>` : nothing}
             </div>
           </div>
           <button

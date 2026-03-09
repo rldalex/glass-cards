@@ -44,7 +44,8 @@
   "popup": {
     "close_aria": "Fermer",
     "toggle_scenes_aria": "Afficher/masquer les scènes",
-    "activate_scene_aria": "Activer {name}"
+    "activate_scene_aria": "Activer {name}",
+    "sensor_unavailable": "Capteur indisponible"
   },
 
   "weather": {

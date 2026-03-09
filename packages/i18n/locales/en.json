@@ -44,7 +44,8 @@
   "popup": {
     "close_aria": "Close",
     "toggle_scenes_aria": "Toggle scenes",
-    "activate_scene_aria": "Activate {name}"
+    "activate_scene_aria": "Activate {name}",
+    "sensor_unavailable": "Sensor unavailable"
   },
 
   "weather": {
