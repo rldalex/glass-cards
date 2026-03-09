@@ -490,7 +490,7 @@ export class GlassRoomPopup extends LitElement {
       if (domain === 'light' && entityState.state === 'on') hasLight = true;
       if (domain === 'media_player' && entityState.state === 'playing') hasMusic = true;
 
-      if (domain === 'sensor') {
+      if (domain === 'sensor' && entityState.state !== 'unavailable' && entityState.state !== 'unknown') {
         const dc = entityState.attributes.device_class;
         if (dc === 'temperature' && !temperature) {
           temperature = `${entityState.state}${entityState.attributes.unit_of_measurement || '°C'}`;

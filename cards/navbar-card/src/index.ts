@@ -686,7 +686,7 @@ export class GlassNavbarCard extends BaseCard {
         const domain = entityId.split('.')[0];
 
         if (domain === 'light' && entity.state === 'on') lightsOn++;
-        if (domain === 'sensor') {
+        if (domain === 'sensor' && entity.state !== 'unavailable' && entity.state !== 'unknown') {
           const dc = entity.attributes.device_class;
           if (dc === 'temperature' && !temperature) {
             temperature = `${entity.state}°`;
