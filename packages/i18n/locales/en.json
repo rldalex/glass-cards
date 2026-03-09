@@ -146,7 +146,8 @@
     "not_configured": "Spotify integration not configured",
     "no_entity": "Configure the Spotify entity in the configuration panel",
     "open_config": "Open configuration",
-    "back": "Back"
+    "back": "Back",
+    "toggle_library": "Show library"
   },
 
   "editor": {

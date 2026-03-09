@@ -146,7 +146,8 @@
     "not_configured": "Intégration Spotify non configurée",
     "no_entity": "Configurez l'entité Spotify dans le panneau de configuration",
     "open_config": "Ouvrir la configuration",
-    "back": "Retour"
+    "back": "Retour",
+    "toggle_library": "Afficher la bibliothèque"
   },
 
   "editor": {

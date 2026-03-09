@@ -112,6 +112,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _error: string | null = null;
   @state() private _libraryLoading = false;
   @state() private _spotifyConfigured: boolean | null = null;
+  @state() private _foldOpen = false;
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
@@ -138,7 +139,7 @@ class GlassSpotifyCard extends BaseCard {
     .card-title ha-icon { color: #1DB954; --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
 
     .spotify-card { position: relative; width: 100%; padding: 14px; box-sizing: border-box; overflow: hidden; }
-    .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
+    .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0; }
 
     .tint {
       position: absolute; inset: 0; border-radius: inherit;
@@ -151,7 +152,7 @@ class GlassSpotifyCard extends BaseCard {
     .search-row { display: flex; gap: 6px; align-items: center; }
     .search-input-wrap { position: relative; flex: 1; }
     .search-input {
-      width: 100%; height: 36px; padding: 0 12px 0 34px;
+      width: 100%; height: 36px; padding: 0 36px 0 34px;
       border-radius: var(--radius-lg); background: var(--s2);
       border: 1px solid var(--b2); color: var(--t1);
       font-family: inherit; font-size: 12px; font-weight: 500;
@@ -166,7 +167,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     .search-icon ha-icon { --mdc-icon-size: 16px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
     .search-clear {
-      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+      position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
       width: 24px; height: 24px; border-radius: 6px;
       background: transparent; border: none;
       display: none; align-items: center; justify-content: center;
@@ -176,6 +177,51 @@ class GlassSpotifyCard extends BaseCard {
     .search-clear ha-icon { --mdc-icon-size: 14px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .search-clear:hover { background: var(--s3); } }
     .search-clear:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+    /* Fold toggle arrow (inside search bar) */
+    .search-toggle {
+      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+      width: 24px; height: 24px; border-radius: 6px;
+      background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      transition: all var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .search-toggle ha-icon {
+      --mdc-icon-size: 14px; color: var(--t4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform var(--t-fast), color var(--t-fast);
+    }
+    @media (hover: hover) { .search-toggle:hover { background: var(--s3); } }
+    @media (hover: hover) { .search-toggle:hover ha-icon { color: var(--t2); } }
+    .search-toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .search-toggle.open ha-icon { transform: rotate(180deg); color: #1DB954; }
+
+    /* Content fold (CSS Grid 0fr/1fr) */
+    .sp-fold {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .sp-fold.open { grid-template-rows: 1fr; }
+    .sp-fold-inner {
+      overflow: hidden; opacity: 0; min-height: 0;
+      transition: opacity var(--t-fast) 0s;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .sp-fold.open .sp-fold-inner { padding-top: 10px; }
+    .sp-fold.open .sp-fold-inner {
+      opacity: 1;
+      transition: opacity var(--t-fast) 0.1s;
+    }
+
+    /* Fold separator */
+    .sp-fold-sep {
+      height: 1px; margin: 2px 12px 0;
+      background: linear-gradient(90deg, transparent, rgba(29,185,84,0.15), transparent);
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    .sp-fold.open + .sp-fold-sep { opacity: 1; }
 
     /* Tabs */
     .tab-bar {
@@ -560,6 +606,8 @@ class GlassSpotifyCard extends BaseCard {
       this._searchOffset = 0;
       return;
     }
+    // Auto-open fold when typing
+    if (!this._foldOpen) this._foldOpen = true;
     this._view = 'search';
     this._debounceTimer = window.setTimeout(() => this._doSearch(false), 300);
   }
@@ -569,6 +617,7 @@ class GlassSpotifyCard extends BaseCard {
     this._view = 'library';
     this._searchResults = { tracks: [], playlists: [], shows: [] };
     this._searchOffset = 0;
+    this._foldOpen = false;
   }
 
   private async _doSearch(append: boolean): Promise<void> {
@@ -809,10 +858,15 @@ class GlassSpotifyCard extends BaseCard {
           ? this._renderDrilldown()
           : html`
             ${this._renderSearch()}
-            ${this._renderTabs()}
-            <div class="content-area">
-              ${this._view === 'search' ? this._renderSearchResults() : this._renderLibrary()}
+            <div class="sp-fold ${this._foldOpen ? 'open' : ''}">
+              <div class="sp-fold-inner">
+                ${this._renderTabs()}
+                <div class="content-area">
+                  ${this._view === 'search' ? this._renderSearchResults() : this._renderLibrary()}
+                </div>
+              </div>
             </div>
+            <div class="sp-fold-sep"></div>
           `}
       `)}
       ${showSpeakerPicker ? this._renderSpeakerPicker() : nothing}
@@ -855,6 +909,13 @@ class GlassSpotifyCard extends BaseCard {
             @click=${this._clearSearch}
           >
             <ha-icon .icon=${'mdi:close'}></ha-icon>
+          </button>
+          <button
+            class="search-toggle ${this._foldOpen ? 'open' : ''}"
+            aria-label=${t('spotify.toggle_library')}
+            @click=${() => { this._foldOpen = !this._foldOpen; }}
+          >
+            <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
         </div>
       </div>
