@@ -797,7 +797,11 @@ class GlassSpotifyCard extends BaseCard {
           };
         })
         .sort((a, b) => {
-          // Playing first, then paused, then idle
+          if (filterByVisible) {
+            // Respect configured order from visible_speakers
+            return visibleSet.indexOf(a.entityId) - visibleSet.indexOf(b.entityId);
+          }
+          // No config: playing first, then paused, then idle
           const order = (s: string) => s === 'playing' ? 0 : s === 'paused' ? 1 : 2;
           return order(a.state) - order(b.state);
         });

@@ -212,7 +212,7 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() private _dragIdx: number | null = null;
   @state() private _dropIdx: number | null = null;
-  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' = 'rooms';
+  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' = 'rooms';
 
   private _backend?: BackendService;
   private _loaded = false;
@@ -3254,7 +3254,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Drag & Drop —
 
-  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards') {
+  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers') {
     this._dragIdx = idx;
     this._dragContext = context;
   }
@@ -6527,23 +6527,69 @@ export class GlassConfigPanel extends LitElement {
 
         <div class="section-label">${t('config.spotify_speakers')}</div>
         <div class="section-desc">${t('config.spotify_speakers_desc')}</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          ${(this.hass ? Object.entries(this.hass.states).filter(([id]) => id.startsWith('media_player.')).sort(([a], [b]) => a.localeCompare(b)) : []).map(([id, entity]) => {
-            const isChecked = this._spotifyVisibleSpeakers.includes(id);
-            const name = (entity.attributes.friendly_name as string) ?? id;
-            return html`
-              <button
-                class="check-item ${isChecked ? 'checked' : ''}"
-                @click=${() => this._toggleSpotifySpeaker(id)}
-                role="checkbox"
-                aria-checked=${isChecked ? 'true' : 'false'}
-              >
-                <span class="check-box"><ha-icon .icon=${'mdi:check'}></ha-icon></span>
-                <span class="check-label">${name}</span>
-              </button>
-            `;
-          })}
-        </div>
+        ${(() => {
+          const allSpeakers = this.hass
+            ? Object.entries(this.hass.states)
+                .filter(([id]) => id.startsWith('media_player.'))
+                .map(([id, entity]) => ({
+                  entityId: id,
+                  name: (entity.attributes.friendly_name as string) ?? id,
+                  visible: this._spotifyVisibleSpeakers.includes(id),
+                }))
+            : [];
+          // Selected speakers in order, then unselected sorted alphabetically
+          const selected = this._spotifyVisibleSpeakers
+            .map((id) => allSpeakers.find((s) => s.entityId === id))
+            .filter((s): s is NonNullable<typeof s> => !!s);
+          const unselected = allSpeakers
+            .filter((s) => !s.visible)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          const ordered = [...selected, ...unselected];
+
+          return html`
+            <div class="item-list">
+              ${ordered.map((sp, idx) => {
+                const isSelected = sp.visible;
+                const isDragging = this._dragIdx === idx && this._dragContext === 'speakers';
+                const isDropTarget = this._dropIdx === idx && this._dragContext === 'speakers';
+                const rowClasses = [
+                  'item-row',
+                  !isSelected ? 'disabled' : '',
+                  isDragging ? 'dragging' : '',
+                  isDropTarget ? 'drop-target' : '',
+                ].filter(Boolean).join(' ');
+                return html`
+                  <div
+                    class=${rowClasses}
+                    draggable=${isSelected ? 'true' : 'false'}
+                    @dragstart=${() => { if (isSelected) this._onDragStart(idx, 'speakers'); }}
+                    @dragover=${(e: DragEvent) => { if (isSelected) this._onDragOver(idx, e); }}
+                    @dragleave=${() => this._onDragLeave()}
+                    @drop=${(e: DragEvent) => this._onDropSpeaker(idx, e)}
+                    @dragend=${() => this._onDragEnd()}
+                  >
+                    ${isSelected ? html`
+                      <span class="drag-handle">
+                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                      </span>
+                    ` : html`<span style="width:24px;"></span>`}
+                    <div class="item-info">
+                      <span class="item-name">${sp.name}</span>
+                      <span class="item-meta">${sp.entityId}</span>
+                    </div>
+                    <button
+                      class="toggle ${isSelected ? 'on' : ''}"
+                      @click=${() => this._toggleSpotifySpeaker(sp.entityId)}
+                      role="switch"
+                      aria-checked=${isSelected ? 'true' : 'false'}
+                      aria-label="${isSelected ? t('common.hide') : t('common.show')} ${sp.name}"
+                    ></button>
+                  </div>
+                `;
+              })}
+            </div>
+          `;
+        })()}
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this._loadSpotifyConfig()}>${t('common.reset')}</button>
@@ -6565,6 +6611,27 @@ export class GlassConfigPanel extends LitElement {
     } else {
       this._spotifyVisibleSpeakers = [...this._spotifyVisibleSpeakers, entityId];
     }
+  }
+
+  private _onDropSpeaker(idx: number, e: DragEvent) {
+    e.preventDefault();
+    if (this._dragIdx === null || this._dragIdx === idx || this._dragContext !== 'speakers') {
+      this._dragIdx = null;
+      this._dropIdx = null;
+      return;
+    }
+    // Reorder within visible_speakers only
+    const arr = [...this._spotifyVisibleSpeakers];
+    if (this._dragIdx >= arr.length || idx >= arr.length) {
+      this._dragIdx = null;
+      this._dropIdx = null;
+      return;
+    }
+    const [moved] = arr.splice(this._dragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._spotifyVisibleSpeakers = arr;
+    this._dragIdx = null;
+    this._dropIdx = null;
   }
 
   // — Title card config —
