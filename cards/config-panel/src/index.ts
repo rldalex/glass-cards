@@ -1994,9 +1994,11 @@ export class GlassConfigPanel extends LitElement {
         transition-delay: 0.08s;
       }
       .feature-sub-content {
-        margin-left: 24px;
-        padding-left: 14px;
-        border-left: 2px solid var(--b2);
+        margin: 4px 0 0;
+        padding: 8px 10px;
+        border-radius: var(--radius-md);
+        background: var(--s1);
+        border: 1px solid var(--b1);
       }
 
       /* ── Threshold inputs ── */
@@ -5345,44 +5347,46 @@ export class GlassConfigPanel extends LitElement {
             ].filter(Boolean).join(' ');
 
             return html`
-              <div
-                class=${rowClasses}
-                draggable="true"
-                @dragstart=${() => this._onDragStart(idx, 'dashboard_cards')}
-                @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
-                @dragleave=${() => this._onDragLeave()}
-                @drop=${(ev: DragEvent) => this._onDropDashboardCard(idx, ev)}
-                @dragend=${() => this._onDragEnd()}
-              >
-                <span class="drag-handle">
-                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                </span>
-                <div class="feature-icon">
-                  <ha-icon .icon=${meta.icon}></ha-icon>
-                </div>
-                <div class="item-info">
-                  <span class="item-name">${t(meta.nameKey)}</span>
-                  <span class="item-meta">${t(meta.descKey)}</span>
-                </div>
-                ${meta.hasSub && enabled ? html`
+              <div>
+                <div
+                  class=${rowClasses}
+                  draggable="true"
+                  @dragstart=${() => this._onDragStart(idx, 'dashboard_cards')}
+                  @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                  @dragleave=${() => this._onDragLeave()}
+                  @drop=${(ev: DragEvent) => this._onDropDashboardCard(idx, ev)}
+                  @dragend=${() => this._onDragEnd()}
+                >
+                  <span class="drag-handle">
+                    <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                  </span>
+                  <div class="feature-icon">
+                    <ha-icon .icon=${meta.icon}></ha-icon>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">${t(meta.nameKey)}</span>
+                    <span class="item-meta">${t(meta.descKey)}</span>
+                  </div>
+                  ${meta.hasSub && enabled ? html`
+                    <button
+                      class="btn-icon xs"
+                      aria-label=${expanded ? t('common.hide') : t('common.show')}
+                      aria-expanded=${expanded ? 'true' : 'false'}
+                      @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardExpand(key); }}
+                    >
+                      <ha-icon .icon=${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+                    </button>
+                  ` : nothing}
                   <button
-                    class="btn-icon xs"
-                    aria-label=${expanded ? t('common.hide') : t('common.show')}
-                    aria-expanded=${expanded ? 'true' : 'false'}
-                    @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardExpand(key); }}
-                  >
-                    <ha-icon .icon=${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
-                  </button>
-                ` : nothing}
-                <button
-                  class="toggle ${enabled ? 'on' : ''}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardCard(key); }}
-                  role="switch"
-                  aria-checked=${enabled ? 'true' : 'false'}
-                  aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(meta.nameKey)}"
-                ></button>
+                    class="toggle ${enabled ? 'on' : ''}"
+                    @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardCard(key); }}
+                    role="switch"
+                    aria-checked=${enabled ? 'true' : 'false'}
+                    aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(meta.nameKey)}"
+                  ></button>
+                </div>
+                ${this._renderDashboardCardSub(key, enabled, expanded)}
               </div>
-              ${this._renderDashboardCardSub(key, enabled, expanded)}
             `;
           })}
         </div>

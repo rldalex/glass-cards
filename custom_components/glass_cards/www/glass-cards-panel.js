@@ -1892,9 +1892,11 @@
         transition-delay: 0.08s;
       }
       .feature-sub-content {
-        margin-left: 24px;
-        padding-left: 14px;
-        border-left: 2px solid var(--b2);
+        margin: 4px 0 0;
+        padding: 8px 10px;
+        border-radius: var(--radius-md);
+        background: var(--s1);
+        border: 1px solid var(--b1);
       }
 
       /* ── Threshold inputs ── */
@@ -3551,44 +3553,46 @@
         <div class="section-desc">${ye("config.dashboard_desc")}</div>
         <div class="item-list">
           ${this._dashboardCardOrder.map((i,o)=>{const a=e[i];if(!a)return q;const s=t.has(i),r=this._dragIdx===o&&"dashboard_cards"===this._dragContext,n=this._dropIdx===o&&"dashboard_cards"===this._dragContext,d=this._dashboardExpanded.has(i),c=["item-row",s?"":"disabled",r?"dragging":"",n?"drop-target":""].filter(Boolean).join(" ");return V`
-              <div
-                class=${c}
-                draggable="true"
-                @dragstart=${()=>this._onDragStart(o,"dashboard_cards")}
-                @dragover=${e=>this._onDragOver(o,e)}
-                @dragleave=${()=>this._onDragLeave()}
-                @drop=${e=>this._onDropDashboardCard(o,e)}
-                @dragend=${()=>this._onDragEnd()}
-              >
-                <span class="drag-handle">
-                  <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                </span>
-                <div class="feature-icon">
-                  <ha-icon .icon=${a.icon}></ha-icon>
-                </div>
-                <div class="item-info">
-                  <span class="item-name">${ye(a.nameKey)}</span>
-                  <span class="item-meta">${ye(a.descKey)}</span>
-                </div>
-                ${a.hasSub&&s?V`
+              <div>
+                <div
+                  class=${c}
+                  draggable="true"
+                  @dragstart=${()=>this._onDragStart(o,"dashboard_cards")}
+                  @dragover=${e=>this._onDragOver(o,e)}
+                  @dragleave=${()=>this._onDragLeave()}
+                  @drop=${e=>this._onDropDashboardCard(o,e)}
+                  @dragend=${()=>this._onDragEnd()}
+                >
+                  <span class="drag-handle">
+                    <ha-icon .icon=${"mdi:drag"}></ha-icon>
+                  </span>
+                  <div class="feature-icon">
+                    <ha-icon .icon=${a.icon}></ha-icon>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">${ye(a.nameKey)}</span>
+                    <span class="item-meta">${ye(a.descKey)}</span>
+                  </div>
+                  ${a.hasSub&&s?V`
+                    <button
+                      class="btn-icon xs"
+                      aria-label=${ye(d?"common.hide":"common.show")}
+                      aria-expanded=${d?"true":"false"}
+                      @click=${e=>{e.stopPropagation(),this._toggleDashboardExpand(i)}}
+                    >
+                      <ha-icon .icon=${d?"mdi:chevron-up":"mdi:chevron-down"}></ha-icon>
+                    </button>
+                  `:q}
                   <button
-                    class="btn-icon xs"
-                    aria-label=${ye(d?"common.hide":"common.show")}
-                    aria-expanded=${d?"true":"false"}
-                    @click=${e=>{e.stopPropagation(),this._toggleDashboardExpand(i)}}
-                  >
-                    <ha-icon .icon=${d?"mdi:chevron-up":"mdi:chevron-down"}></ha-icon>
-                  </button>
-                `:q}
-                <button
-                  class="toggle ${s?"on":""}"
-                  @click=${e=>{e.stopPropagation(),this._toggleDashboardCard(i)}}
-                  role="switch"
-                  aria-checked=${s?"true":"false"}
-                  aria-label="${ye(s?"common.hide":"common.show")} ${ye(a.nameKey)}"
-                ></button>
+                    class="toggle ${s?"on":""}"
+                    @click=${e=>{e.stopPropagation(),this._toggleDashboardCard(i)}}
+                    role="switch"
+                    aria-checked=${s?"true":"false"}
+                    aria-label="${ye(s?"common.hide":"common.show")} ${ye(a.nameKey)}"
+                  ></button>
+                </div>
+                ${this._renderDashboardCardSub(i,s,d)}
               </div>
-              ${this._renderDashboardCardSub(i,s,d)}
             `})}
         </div>
 
