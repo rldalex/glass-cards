@@ -3533,6 +3533,12 @@
               <span>${ye("cover.title")}</span>
             </div>
           `:q}
+          ${e.has("spotify")?V`
+            <div class="preview-dashboard-card spotify">
+              <ha-icon .icon=${"mdi:spotify"}></ha-icon>
+              <span>${ye("spotify.title")}</span>
+            </div>
+          `:q}
           ${0===e.size?V`<div class="preview-dashboard-empty">—</div>`:q}
         </div>
         <div class="preview-dashboard-navbar">

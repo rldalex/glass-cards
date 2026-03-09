@@ -5257,6 +5257,12 @@ export class GlassConfigPanel extends LitElement {
               <span>${t('cover.title')}</span>
             </div>
           ` : nothing}
+          ${enabled.has('spotify') ? html`
+            <div class="preview-dashboard-card spotify">
+              <ha-icon .icon=${'mdi:spotify'}></ha-icon>
+              <span>${t('spotify.title')}</span>
+            </div>
+          ` : nothing}
           ${enabled.size === 0 ? html`<div class="preview-dashboard-empty">—</div>` : nothing}
         </div>
         <div class="preview-dashboard-navbar">
