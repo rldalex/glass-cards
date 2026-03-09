@@ -111,6 +111,7 @@ export class GlassNavbarCard extends BaseCard {
   private _dashboardLoading = false;
   private _roomConfigs: Record<string, { icon?: string | null }> = {};
   private _flipPositions = new Map<string, number>();
+  private _litTimestamps = new Map<string, number>();
   private _backend?: BackendService;
   private _configReady = false;
   private _lastAmbientPeriod: AmbientPeriod | null = null;
@@ -703,13 +704,32 @@ export class GlassNavbarCard extends BaseCard {
       return { ...area, lightsOn, temperature, tempValue, humidity, humidityValue, mediaPlaying };
     });
 
-    // Stable sort: bubble lit rooms to front while preserving relative order
+    // Track when each room was last lit (most recent first)
+    const now = Date.now();
+    for (const item of items) {
+      if (item.lightsOn > 0) {
+        if (!this._litTimestamps.has(item.areaId)) {
+          this._litTimestamps.set(item.areaId, now);
+        }
+      } else {
+        this._litTimestamps.delete(item.areaId);
+      }
+    }
+
+    // Stable sort: lit rooms first, most recently lit leftmost
     const autoSort = this._navbarConfig?.auto_sort !== false;
     if (autoSort) {
       items.sort((a, b) => {
         const aLit = a.lightsOn > 0 ? 0 : 1;
         const bLit = b.lightsOn > 0 ? 0 : 1;
-        return aLit - bLit;
+        if (aLit !== bLit) return aLit - bLit;
+        if (aLit === 0) {
+          // Both lit: most recently lit first
+          const aTs = this._litTimestamps.get(a.areaId) ?? 0;
+          const bTs = this._litTimestamps.get(b.areaId) ?? 0;
+          return bTs - aTs;
+        }
+        return 0;
       });
     }
 
