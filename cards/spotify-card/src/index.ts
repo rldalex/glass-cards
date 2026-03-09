@@ -53,7 +53,8 @@ interface DrilldownState {
 
 // — Helpers —
 
-function getImage(item: SpotifyItem, size = 300): string {
+function getImage(item: SpotifyItem | null | undefined, size = 300): string {
+  if (!item) return '';
   const images = item.images ?? item.album?.images ?? [];
   if (images.length === 0) return '';
   // Pick closest to requested size
@@ -61,9 +62,9 @@ function getImage(item: SpotifyItem, size = 300): string {
   return sorted[0]?.url ?? '';
 }
 
-function getArtistNames(item: SpotifyItem): string {
-  if (item.artists?.length) return item.artists.map((a) => a.name).join(', ');
-  return '';
+function getArtistNames(item: SpotifyItem | null | undefined): string {
+  if (!item || !item.artists?.length) return '';
+  return item.artists.map((a) => a.name).join(', ');
 }
 
 function typeIcon(type: string): string {
@@ -535,11 +536,11 @@ class GlassSpotifyCard extends BaseCard {
         this._backend.send<{ items: SpotifyItem[]; total: number }>('spotify_browse', { category: 'saved_tracks', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
         this._backend.send<{ items: SpotifyItem[] }>('spotify_browse', { category: 'saved_shows', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
       ]);
-      this._playlists = playlists?.items ?? [];
-      this._recentlyPlayed = recent?.items ?? [];
-      this._savedTracks = saved?.items ?? [];
+      this._playlists = (playlists?.items ?? []).filter(Boolean) as SpotifyItem[];
+      this._recentlyPlayed = (recent?.items ?? []).filter(Boolean) as SpotifyItem[];
+      this._savedTracks = (saved?.items ?? []).filter(Boolean) as SpotifyItem[];
       // Shows are wrapped: { show: {...} }
-      this._savedShows = (shows?.items ?? []).map((item) => item.show ?? item);
+      this._savedShows = (shows?.items ?? []).filter(Boolean).map((item) => item.show ?? item);
     } catch (e) {
       this._handleApiError(e);
     } finally {
@@ -594,9 +595,9 @@ class GlassSpotifyCard extends BaseCard {
       // Discard stale results
       if (version !== this._searchVersion) return;
 
-      const tracks = result?.tracks?.items ?? [];
-      const playlists = result?.playlists?.items ?? [];
-      const shows = result?.shows?.items ?? [];
+      const tracks = (result?.tracks?.items ?? []).filter(Boolean) as SpotifyItem[];
+      const playlists = (result?.playlists?.items ?? []).filter(Boolean) as SpotifyItem[];
+      const shows = (result?.shows?.items ?? []).filter(Boolean) as SpotifyItem[];
 
       if (append) {
         this._searchResults = {
@@ -958,18 +959,22 @@ class GlassSpotifyCard extends BaseCard {
     `;
   }
 
-  private _renderResultRow(item: SpotifyItem, type: string): TemplateResult {
+  private _renderResultRow(item: SpotifyItem, type: string): TemplateResult | typeof nothing {
+    if (!item) return nothing;
     const img = getImage(item, 64);
     const artist = getArtistNames(item) || (item.owner?.display_name ?? '');
     const isRound = type === 'show' || type === 'episode';
     return html`
-      <button
+      <div
         class="result-row"
+        role="button"
+        tabindex="0"
         @click=${() => {
           if (type === 'playlist') this._openDrilldown('playlist', item.id, item.name);
           else if (type === 'album') this._openDrilldown('album', item.id, item.name);
           else this._openPicker(item);
         }}
+        @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
       >
         <div class="result-art ${isRound ? 'round' : ''}">
           ${img
@@ -990,7 +995,7 @@ class GlassSpotifyCard extends BaseCard {
         >
           <ha-icon .icon=${'mdi:play'}></ha-icon>
         </button>
-      </button>
+      </div>
     `;
   }
 
