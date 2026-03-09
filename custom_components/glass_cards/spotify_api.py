@@ -251,12 +251,13 @@ async def spotify_get_album(hass: HomeAssistant, album_id: str) -> dict[str, Any
 
 
 async def spotify_get_artist_top_tracks(
-    hass: HomeAssistant, artist_id: str, market: str = "FR"
+    hass: HomeAssistant, artist_id: str, market: str | None = None
 ) -> dict[str, Any]:
     """Get an artist's top tracks."""
+    resolved_market = market or hass.config.country or "US"
     result = await spotify_request(
         hass, "GET", f"/artists/{artist_id}/top-tracks",
-        params={"market": market},
+        params={"market": resolved_market},
     )
     return result or {"tracks": []}
 

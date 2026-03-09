@@ -410,6 +410,7 @@ class GlassCoverCard extends BaseCard {
         this._configLoaded = false;
         this._configLoading = false;
         this._roomConfig = null;
+        this._roomLoading = false;
       }
       if (!this._configLoaded && !this._configLoading) {
         this._backend = new BackendService(this.hass);
@@ -442,6 +443,7 @@ class GlassCoverCard extends BaseCard {
       }
       this._configLoaded = true;
       this._configLoading = false;
+      if (this.areaId) this._loadRoomConfig(this.areaId);
       this.requestUpdate();
     } catch {
       this._configLoading = false;

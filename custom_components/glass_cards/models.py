@@ -459,6 +459,7 @@ class GlassCardsData:
             rooms={
                 k: RoomConfig.from_dict(v)
                 for k, v in data.get("rooms", {}).items()
+                if isinstance(v, dict)
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),

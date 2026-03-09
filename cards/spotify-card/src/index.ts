@@ -104,6 +104,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _searchLoading = false;
   @state() private _searchOffset = 0;
   @state() private _searchHasMore = false;
+  private _searchVersion = 0;
   @state() private _drilldown: DrilldownState | null = null;
   @state() private _speakers: { entityId: string; name: string; state: string; mediaTitle: string | null }[] = [];
   @state() private _pickerItem: SpotifyItem | null = null;
@@ -556,6 +557,7 @@ class GlassSpotifyCard extends BaseCard {
 
   private async _doSearch(append: boolean): Promise<void> {
     if (!this._backend || !this._searchQuery) return;
+    const version = ++this._searchVersion;
     this._searchLoading = true;
     this._error = null;
     const offset = append ? this._searchOffset : 0;
@@ -573,6 +575,9 @@ class GlassSpotifyCard extends BaseCard {
         limit: 12,
         offset,
       });
+
+      // Discard stale results
+      if (version !== this._searchVersion) return;
 
       const tracks = result?.tracks?.items ?? [];
       const playlists = result?.playlists?.items ?? [];
@@ -593,21 +598,23 @@ class GlassSpotifyCard extends BaseCard {
       const loadedResults = this._searchResults.tracks.length + this._searchResults.playlists.length + this._searchResults.shows.length;
       this._searchHasMore = loadedResults < totalResults;
     } catch (e) {
+      if (version !== this._searchVersion) return;
       this._handleApiError(e);
     } finally {
-      this._searchLoading = false;
+      if (version === this._searchVersion) this._searchLoading = false;
     }
   }
 
   // — Drilldown —
 
   private async _openDrilldown(type: 'playlist' | 'album', id: string, title: string): Promise<void> {
+    if (!this._backend) return;
     this._view = 'drilldown';
     this._drilldown = { title, type, id, items: [], total: 0, offset: 0, loading: true };
     this._error = null;
     try {
       const category = type === 'playlist' ? 'playlist_tracks' : 'album_tracks';
-      const result = await this._backend!.send<{ items: SpotifyItem[]; total: number }>(
+      const result = await this._backend.send<{ items: SpotifyItem[]; total: number }>(
         'spotify_browse',
         { category, content_id: id, limit: 20, offset: 0, sort_order: this._spotifyConfig.sort_order },
       );
@@ -708,6 +715,7 @@ class GlassSpotifyCard extends BaseCard {
       );
       const recommended = result?.tracks ?? [];
       for (const rec of recommended) {
+        if (!this._backend) break;
         const recUri = rec.uri ?? `spotify:track:${rec.id}`;
         try {
           await this._backend.send('spotify_add_to_queue', { uri: recUri });
@@ -842,7 +850,7 @@ class GlassSpotifyCard extends BaseCard {
           <button
             class="tab-btn ${this._tab === tab.id ? 'active' : ''}"
             aria-label=${t(tab.labelKey as Parameters<typeof t>[0])}
-            @click=${() => { this._tab = tab.id; if (this._searchQuery) this._doSearch(false); }}
+            @click=${() => { this._tab = tab.id; if (this._searchQuery) { this._searchOffset = 0; this._doSearch(false); } }}
           >
             <ha-icon .icon=${tab.icon}></ha-icon>
             <span>${t(tab.labelKey as Parameters<typeof t>[0])}</span>

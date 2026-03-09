@@ -3123,8 +3123,9 @@ export class GlassConfigPanel extends LitElement {
       return;
     }
 
+    const targetRoom = this._selectedRoom;
     const entities = getAreaEntities(
-      this._selectedRoom,
+      targetRoom,
       this.hass.entities,
       this.hass.devices,
     );
@@ -3142,7 +3143,8 @@ export class GlassConfigPanel extends LitElement {
         hidden_scenes: string[];
         scene_order: string[];
         visible?: boolean;
-      } | null>('get_room', { area_id: this._selectedRoom });
+      } | null>('get_room', { area_id: targetRoom });
+      if (this._selectedRoom !== targetRoom) return;
       if (result) {
         storedOrder = result.card_order.length > 0 ? result.card_order : null;
         hiddenEntities = new Set(result.hidden_entities);
@@ -3438,7 +3440,8 @@ export class GlassConfigPanel extends LitElement {
       return;
     }
 
-    const entities = getAreaEntities(this._lightRoom, this.hass.entities, this.hass.devices);
+    const targetRoom = this._lightRoom;
+    const entities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
     const lightEntities = entities.filter((e) => e.entity_id.startsWith('light.'));
 
     // Load room config from backend
@@ -3451,7 +3454,8 @@ export class GlassConfigPanel extends LitElement {
         hidden_entities: string[];
         entity_order: string[];
         entity_layouts: Record<string, string>;
-      } | null>('get_room', { area_id: this._lightRoom });
+      } | null>('get_room', { area_id: targetRoom });
+      if (this._lightRoom !== targetRoom) return;
       if (result) {
         hiddenEntities = new Set(result.hidden_entities ?? []);
         entityOrder = result.entity_order ?? [];
@@ -3887,11 +3891,11 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_light_config', {
         show_header: this._lightShowHeader,
       });
-      bus.emit('light-config-changed', undefined);
 
       if (!this._lightRoom) {
         if (!this._mounted) return;
         this._showToast();
+        bus.emit('light-config-changed', undefined);
         return;
       }
       // Load existing hidden_entities to preserve non-light hidden entries
@@ -3931,10 +3935,9 @@ export class GlassConfigPanel extends LitElement {
 
   private async _reset() {
     this._loaded = false;
-    this._loading = false;
     await this._loadConfig();
     if (this._lightRoom) {
-      this._loadRoomLights();
+      await this._loadRoomLights();
     }
   }
 
@@ -4906,11 +4909,23 @@ export class GlassConfigPanel extends LitElement {
 
       // Save room-level cover config if a room is selected
       if (this._coverRoom && this._coverRoomEntities.length > 0) {
-        const hiddenEntities = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+        // Load existing hidden_entities to preserve non-cover hidden entries
+        let existingHidden: string[] = [];
+        try {
+          const existing = await this._backend.send<{
+            hidden_entities: string[];
+          } | null>('get_room', { area_id: this._coverRoom });
+          if (existing) existingHidden = existing.hidden_entities ?? [];
+        } catch { /* ignore */ }
+
+        const coverEntityIds = new Set(this._coverRoomEntities.map((e) => e.entityId));
+        const nonCoverHidden = existingHidden.filter((id) => !coverEntityIds.has(id));
+        const hiddenCovers = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
         const entityOrder = this._coverRoomEntities.map((e) => e.entityId);
+
         await this._backend.send('set_room', {
           area_id: this._coverRoom,
-          hidden_entities: hiddenEntities,
+          hidden_entities: [...nonCoverHidden, ...hiddenCovers],
           entity_order: entityOrder,
         });
       }
@@ -5363,11 +5378,19 @@ export class GlassConfigPanel extends LitElement {
     try {
       const result = await this._backend.send<{
         dashboard: { enabled_cards: string[]; card_order?: string[] };
+        light_card?: { show_header?: boolean };
+        weather?: { show_header?: boolean };
+        cover_card?: { show_header?: boolean };
+        spotify_card?: { show_header?: boolean };
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
         this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'cover', 'spotify'];
       }
+      this._lightShowHeader = result?.light_card?.show_header ?? true;
+      this._weatherShowHeader = result?.weather?.show_header ?? true;
+      this._coverShowHeader = result?.cover_card?.show_header ?? true;
+      this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
     } catch { /* ignore */ }
   }
 
@@ -6480,8 +6503,8 @@ export class GlassConfigPanel extends LitElement {
           }
         }
       } catch { /* ignore */ } finally {
-        if (this.shadowRoot!.contains(picker)) {
-          this.shadowRoot!.removeChild(picker);
+        if (this.shadowRoot?.contains(picker)) {
+          this.shadowRoot.removeChild(picker);
         }
         this._iconLoading = false;
       }

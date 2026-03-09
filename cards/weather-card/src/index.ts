@@ -572,6 +572,7 @@ class GlassWeatherCard extends BaseCard {
       }
       this._configLoaded = true;
       this._configLoadingInProgress = false;
+      this._subscribedEntity = '';
       this.requestUpdate();
     } catch {
       this._configLoadingInProgress = false;

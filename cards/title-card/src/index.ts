@@ -270,13 +270,17 @@ class GlassTitleCard extends BaseCard {
       this.hass.callService('input_boolean', 'toggle', {}, { entity_id: eid });
     } else if (eid.startsWith('scene.')) {
       this.hass.callService('scene', 'turn_on', {}, { entity_id: eid });
+      // Scenes don't change state — trigger animation directly
+      this._cycling = true;
+      this._cycleTimer = window.setTimeout(() => { this._cycling = false; }, 300);
+      return;
     } else {
       return;
     }
 
     this._lastModeId = this._getActiveMode()?.id ?? null;
     this._pendingCycle = true;
-    // Safety: clear pendingCycle if state never changes (e.g. scene entities)
+    // Safety: clear pendingCycle if state never changes
     this._pendingTimer = window.setTimeout(() => { this._pendingCycle = false; }, 2000);
   }
 

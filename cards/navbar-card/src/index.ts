@@ -471,7 +471,11 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _attachScrollListener() {
-    if (this._scrollEl) return;
+    if (this._scrollEl && this.renderRoot.contains(this._scrollEl)) return;
+    if (this._scrollEl) {
+      this._scrollEl.removeEventListener('scroll', this._boundUpdateMask);
+      this._scrollEl = null;
+    }
     const scroll = this.renderRoot.querySelector('.nav-scroll');
     if (!scroll) return;
     scroll.addEventListener('scroll', this._boundUpdateMask, { passive: true });
@@ -577,7 +581,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private async _loadDashboardConfig(): Promise<void> {
-    if (!this.hass || this._dashboardLoading) return;
+    if (!this.hass || this._dashboardLoading || this._configLoading) return;
     this._dashboardLoading = true;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);

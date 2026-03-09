@@ -824,11 +824,9 @@ export class GlassLightCard extends BaseCard {
       } | null>('get_room', { area_id: area });
       const currentArea = this.areaId || (this._config?.area as string | undefined);
       if (currentArea !== area) return;
-      if (result) {
-        this._roomConfig = result;
-        this._cachedLights = undefined;
-        this.requestUpdate();
-      }
+      this._roomConfig = result;
+      this._cachedLights = undefined;
+      this.requestUpdate();
     } catch {
       // Backend not available
     }

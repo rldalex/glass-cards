@@ -450,10 +450,10 @@ def _handle_spotify_error(
     if isinstance(exc, SpotifyNotConfiguredError):
         connection.send_error(msg_id, "spotify_not_configured", str(exc))
     elif isinstance(exc, SpotifyAPIError):
-        error_data = {"status": exc.status}
+        retry_msg = str(exc)
         if exc.retry_after is not None:
-            error_data["retry_after"] = exc.retry_after
-        connection.send_error(msg_id, "spotify_api_error", str(exc))
+            retry_msg = f"{exc} (retry_after={exc.retry_after})"
+        connection.send_error(msg_id, "spotify_api_error", retry_msg)
     else:
         connection.send_error(msg_id, "unknown_error", str(exc))
 
@@ -687,7 +687,7 @@ async def ws_spotify_add_to_queue(
     msg: dict[str, Any],
 ) -> None:
     """Add a track or episode to the Spotify queue."""
-    if not can_read(connection.user):
+    if not can_edit(connection.user):
         raise Unauthorized()
 
     try:

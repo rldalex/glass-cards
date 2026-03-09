@@ -398,12 +398,12 @@ export class GlassRoomPopup extends LitElement {
     if (this._peekedRooms.has(areaId)) return;
     const meta = this._getAreaMeta();
     if (!meta || meta.scenes.length === 0) return;
-    this._peekedRooms.add(areaId);
 
     // Brief peek: open scenes after 400ms, close after 1s
     this._peekTimeout = setTimeout(() => {
       this._peekTimeout = undefined;
-      if (!this._open) return;
+      if (!this._open || this._areaId !== areaId) return;
+      this._peekedRooms.add(areaId);
       this._scenesOpen = true;
       this._peekTimeout = setTimeout(() => {
         this._peekTimeout = undefined;
