@@ -1848,6 +1848,97 @@ export class GlassConfigPanel extends LitElement {
         text-align: right;
       }
 
+      /* ── Preview Spotify card ── */
+      .preview-spotify-wrap {
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .ps-card-header {
+        display: flex; align-items: center; gap: 4px;
+        padding: 0 4px;
+      }
+      .ps-card-header ha-icon {
+        --mdc-icon-size: 10px; color: #1DB954;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ps-card-title {
+        font-size: 7px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1.2px;
+        color: var(--t4);
+      }
+      .preview-spotify {
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+        backdrop-filter: blur(50px) saturate(1.5);
+        -webkit-backdrop-filter: blur(50px) saturate(1.5);
+        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 20px 60px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+        border: 1px solid var(--b2);
+        overflow: hidden;
+        padding: 8px;
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      .ps-search {
+        display: flex; align-items: center; gap: 4px;
+        background: var(--s3); border-radius: 100px;
+        padding: 3px 8px;
+      }
+      .ps-search ha-icon {
+        --mdc-icon-size: 10px; color: var(--t4);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ps-search-text {
+        font-size: 7px; color: var(--t4); flex: 1;
+      }
+      .ps-tabs {
+        display: flex; gap: 3px;
+      }
+      .ps-tab {
+        font-size: 6px; font-weight: 600; letter-spacing: 0.3px;
+        color: var(--t4);
+        padding: 2px 5px;
+        border-radius: 100px;
+        border: 1px solid var(--b1);
+        background: transparent;
+      }
+      .ps-tab.active {
+        color: var(--t1);
+        background: var(--s4);
+        border-color: var(--b3);
+      }
+      .ps-section-label {
+        font-size: 6px; font-weight: 700; color: var(--t3);
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 2px 0 1px;
+      }
+      .ps-item-row {
+        display: flex; align-items: center; gap: 6px;
+        padding: 2px 0;
+      }
+      .ps-item-art {
+        width: 20px; height: 20px; border-radius: 3px;
+        background: var(--s3); flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ps-item-art ha-icon {
+        --mdc-icon-size: 10px; color: var(--t4);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ps-item-info {
+        flex: 1; min-width: 0;
+      }
+      .ps-item-name {
+        font-size: 7px; font-weight: 600; color: var(--t2);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .ps-item-meta {
+        font-size: 6px; color: var(--t4);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .ps-item-play {
+        --mdc-icon-size: 12px; color: #1DB954; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0.6;
+      }
+
       /* ── Preview dashboard ── */
       .preview-dashboard {
         border-radius: var(--radius-lg);
@@ -5250,12 +5341,16 @@ export class GlassConfigPanel extends LitElement {
         dashboard_entities: orderedDashCovers,
         presets: this._coverPresets,
       });
+      await this._backend.send('set_spotify_config', {
+        show_header: this._spotifyShowHeader,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
       bus.emit('light-config-changed', undefined);
       bus.emit('weather-config-changed', undefined);
       bus.emit('cover-config-changed', undefined);
+      bus.emit('spotify-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {
@@ -5318,7 +5413,7 @@ export class GlassConfigPanel extends LitElement {
       weather: { icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', descKey: 'config.dashboard_card_weather_desc', hasSub: true },
       light: { icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', descKey: 'config.dashboard_card_light_desc', hasSub: true },
       cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
-      spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: false },
+      spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
     };
 
     const enabledSet = new Set(this._dashboardEnabledCards);
@@ -5534,6 +5629,34 @@ export class GlassConfigPanel extends LitElement {
                   `;
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (key === 'spotify') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._spotifyShowHeader = !this._spotifyShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.spotify_show_header')}</div>
+                  <div class="feature-desc">${t('config.spotify_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._spotifyShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._spotifyShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
             </div>
           </div>
         </div>
@@ -5995,7 +6118,6 @@ export class GlassConfigPanel extends LitElement {
     this._saving = true;
     try {
       await this._backend.send('set_spotify_config', {
-        show_header: this._spotifyShowHeader,
         entity_id: this._spotifyEntity,
         sort_order: this._spotifySortOrder,
         max_items_per_section: this._spotifyMaxItems,
@@ -6043,36 +6165,51 @@ export class GlassConfigPanel extends LitElement {
       return html`<div class="preview-empty">${t('config.spotify_select_entity')}</div>`;
     }
 
-    const attrs = entity.attributes;
-    const title = (attrs.media_title as string | undefined) ?? '—';
-    const artist = (attrs.media_artist as string | undefined) ?? '—';
-    const albumArt = attrs.entity_picture as string | undefined;
-    const isPlaying = entity.state === 'playing';
+    const tabs = [
+      { id: 'all', label: t('spotify.tab_all'), active: true },
+      { id: 'tracks', label: t('spotify.tab_tracks'), active: false },
+      { id: 'playlists', label: t('spotify.tab_playlists'), active: false },
+      { id: 'podcasts', label: t('spotify.tab_podcasts'), active: false },
+    ];
+
+    const mockItems = [
+      { name: 'Daily Mix 1', meta: t('spotify.type_playlist'), icon: 'mdi:playlist-music' },
+      { name: t('spotify.saved_tracks'), meta: '128 ' + t('spotify.tracks_count', { count: '' }).trim(), icon: 'mdi:heart' },
+      { name: 'Discover Weekly', meta: t('spotify.type_playlist'), icon: 'mdi:playlist-music' },
+    ];
 
     return html`
-      <div class="preview-spotify" style="
-        display: flex; align-items: center; gap: 12px;
-        padding: 16px; border-radius: var(--radius-lg);
-        background: var(--s2); border: 1px solid var(--b1);
-      ">
-        ${albumArt
-          ? html`<img src=${albumArt} alt="" style="
-              width: 56px; height: 56px; border-radius: var(--radius-md);
-              object-fit: cover; flex-shrink: 0;
-            " />`
-          : html`<div style="
-              width: 56px; height: 56px; border-radius: var(--radius-md);
-              background: var(--s3); display: flex; align-items: center; justify-content: center;
-              flex-shrink: 0;
-            "><ha-icon .icon=${'mdi:spotify'} style="color: #1DB954; --mdc-icon-size: 28px;"></ha-icon></div>`}
-        <div style="min-width: 0; flex: 1;">
-          <div style="font-size: 14px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</div>
-          <div style="font-size: 12px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${artist}</div>
+      <div class="preview-spotify-wrap">
+        ${this._spotifyShowHeader ? html`
+          <div class="ps-card-header">
+            <ha-icon .icon=${'mdi:spotify'}></ha-icon>
+            <span class="ps-card-title">${t('spotify.title')}</span>
+          </div>
+        ` : nothing}
+        <div class="preview-spotify">
+          <div class="ps-search">
+            <ha-icon .icon=${'mdi:magnify'}></ha-icon>
+            <span class="ps-search-text">${t('spotify.search_placeholder')}</span>
+          </div>
+          <div class="ps-tabs">
+            ${tabs.map((tab) => html`
+              <span class="ps-tab ${tab.active ? 'active' : ''}">${tab.label}</span>
+            `)}
+          </div>
+          <div class="ps-section-label">${t('spotify.my_playlists')}</div>
+          ${mockItems.map((item) => html`
+            <div class="ps-item-row">
+              <div class="ps-item-art">
+                <ha-icon .icon=${item.icon}></ha-icon>
+              </div>
+              <div class="ps-item-info">
+                <div class="ps-item-name">${item.name}</div>
+                <div class="ps-item-meta">${item.meta}</div>
+              </div>
+              <ha-icon class="ps-item-play" .icon=${'mdi:play-circle'}></ha-icon>
+            </div>
+          `)}
         </div>
-        <ha-icon .icon=${isPlaying ? 'mdi:pause-circle' : 'mdi:play-circle'} style="
-          color: #1DB954; --mdc-icon-size: 32px; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-        "></ha-icon>
       </div>
     `;
   }
@@ -6154,27 +6291,6 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-spotify">
-        <div class="section-label">${t('config.spotify_show_header')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            @click=${() => { this._spotifyShowHeader = !this._spotifyShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.spotify_show_header')}</div>
-              <div class="feature-desc">${t('config.spotify_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._spotifyShowHeader ? 'on' : ''}"
-              role="switch"
-              aria-checked=${this._spotifyShowHeader ? 'true' : 'false'}
-            ></span>
-          </button>
-        </div>
-
         <div class="section-label">${t('config.spotify_entity')}</div>
         <div class="section-desc">${t('config.spotify_entity_desc')}</div>
         <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
