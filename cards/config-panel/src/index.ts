@@ -176,6 +176,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _spotifyEntity = '';
   @state() private _spotifySortOrder: 'recent_first' | 'oldest_first' = 'recent_first';
   @state() private _spotifyDropdownOpen = false;
+  @state() private _spotifyMaxItems = 6;
   @state() private _spotifyConfigured: boolean | null = null; // null = checking
 
   // Dashboard config
@@ -2851,6 +2852,7 @@ export class GlassConfigPanel extends LitElement {
       show_header: true,
       entity_id: '',
       sort_order: 'recent_first' as 'recent_first' | 'oldest_first',
+      max_items_per_section: 6,
     };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
@@ -2906,6 +2908,7 @@ export class GlassConfigPanel extends LitElement {
     this._spotifyShowHeader = spotifyCardConfig.show_header ?? true;
     this._spotifyEntity = spotifyCardConfig.entity_id ?? '';
     this._spotifySortOrder = spotifyCardConfig.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
+    this._spotifyMaxItems = spotifyCardConfig.max_items_per_section ?? 6;
     this._checkSpotifyStatus();
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
@@ -5893,6 +5896,7 @@ export class GlassConfigPanel extends LitElement {
         show_header: this._spotifyShowHeader,
         entity_id: this._spotifyEntity,
         sort_order: this._spotifySortOrder,
+        max_items_per_section: this._spotifyMaxItems,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -5908,12 +5912,13 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        spotify_card: { show_header: boolean; entity_id: string; sort_order: string };
+        spotify_card: { show_header: boolean; entity_id: string; sort_order: string; max_items_per_section: number };
       }>('get_config');
       if (result?.spotify_card) {
         this._spotifyShowHeader = result.spotify_card.show_header ?? true;
         this._spotifyEntity = result.spotify_card.entity_id ?? '';
         this._spotifySortOrder = result.spotify_card.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
+        this._spotifyMaxItems = result.spotify_card.max_items_per_section ?? 6;
       }
     } catch { /* ignore */ }
   }
@@ -6133,6 +6138,23 @@ export class GlassConfigPanel extends LitElement {
               aria-checked=${this._spotifySortOrder === 'oldest_first' ? 'true' : 'false'}
             ></span>
           </button>
+        </div>
+
+        <div class="section-label">${t('config.spotify_max_items')}</div>
+        <div class="section-desc">${t('config.spotify_max_items_desc')}</div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+          <input
+            type="range"
+            min="1"
+            max="20"
+            .value=${String(this._spotifyMaxItems)}
+            @input=${(e: Event) => { this._spotifyMaxItems = parseInt((e.target as HTMLInputElement).value, 10); }}
+            style="flex: 1; accent-color: #1DB954;"
+          />
+          <span style="
+            font-size: 13px; font-weight: 600; color: var(--t1);
+            min-width: 28px; text-align: center;
+          ">${this._spotifyMaxItems}</span>
         </div>
 
         <div class="save-bar">

@@ -116,6 +116,39 @@
     "cycle_aria": "Changer de mode"
   },
 
+  "spotify": {
+    "title": "Spotify",
+    "search_placeholder": "Rechercher un titre, artiste, podcast…",
+    "tab_all": "Tout",
+    "tab_tracks": "Titres",
+    "tab_playlists": "Playlists",
+    "tab_podcasts": "Podcasts",
+    "my_playlists": "Mes playlists",
+    "recently_played": "Écoutes récentes",
+    "saved_tracks": "Titres likés",
+    "followed_podcasts": "Podcasts suivis",
+    "tracks_count": "{count} titres",
+    "episodes_count": "{count} épisodes",
+    "type_track": "Titre",
+    "type_playlist": "Playlist",
+    "type_album": "Album",
+    "type_podcast": "Podcast",
+    "play_on": "Jouer sur…",
+    "play_aria": "Jouer {name}",
+    "available": "Disponible",
+    "paused": "En pause",
+    "no_results": "Aucun résultat pour « {query} »",
+    "no_content": "Aucun contenu",
+    "load_more": "Voir plus",
+    "loading": "Chargement…",
+    "error_api": "Erreur Spotify",
+    "error_rate_limit": "Trop de requêtes, réessayez dans {seconds}s",
+    "not_configured": "Intégration Spotify non configurée",
+    "no_entity": "Configurez l'entité Spotify dans le panneau de configuration",
+    "open_config": "Ouvrir la configuration",
+    "back": "Retour"
+  },
+
   "editor": {
     "redirect_message": "La configuration de Glass Cards se fait depuis le panneau dédié.",
     "open_config": "Ouvrir Glass Cards Config"
@@ -281,6 +314,8 @@
     "spotify_sort_recent": "Plus récent en premier",
     "spotify_sort_oldest": "Plus ancien en premier",
     "spotify_select_entity": "Sélectionnez un lecteur Spotify",
+    "spotify_max_items": "Éléments par section",
+    "spotify_max_items_desc": "Nombre maximum d'éléments affichés par section (playlists, titres récents, etc.).",
     "spotify_not_configured": "Intégration Spotify non configurée",
     "spotify_setup_guide": "Pour utiliser la carte Spotify, vous devez d'abord configurer l'intégration Spotify officielle dans Home Assistant.",
     "spotify_setup_step1": "Allez dans Paramètres → Appareils et services",

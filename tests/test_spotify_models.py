@@ -15,6 +15,7 @@ class TestSpotifyCardConfig:
         assert config.show_header is True
         assert config.entity_id == ""
         assert config.sort_order == "recent_first"
+        assert config.max_items_per_section == 6
 
     def test_to_dict(self):
         """Test serialization."""
@@ -22,12 +23,14 @@ class TestSpotifyCardConfig:
             show_header=False,
             entity_id="media_player.spotify_john",
             sort_order="oldest_first",
+            max_items_per_section=10,
         )
         data = config.to_dict()
         assert data == {
             "show_header": False,
             "entity_id": "media_player.spotify_john",
             "sort_order": "oldest_first",
+            "max_items_per_section": 10,
         }
 
     def test_from_dict(self):
@@ -47,11 +50,18 @@ class TestSpotifyCardConfig:
         assert config.show_header is True
         assert config.entity_id == ""
         assert config.sort_order == "recent_first"
+        assert config.max_items_per_section == 6
 
     def test_from_dict_invalid_sort_order(self):
         """Invalid sort_order should fallback to recent_first."""
         config = SpotifyCardConfig.from_dict({"sort_order": "invalid"})
         assert config.sort_order == "recent_first"
+
+    def test_max_items_clamped(self):
+        """max_items_per_section should be clamped to 1-50."""
+        assert SpotifyCardConfig.from_dict({"max_items_per_section": 0}).max_items_per_section == 1
+        assert SpotifyCardConfig.from_dict({"max_items_per_section": 100}).max_items_per_section == 50
+        assert SpotifyCardConfig.from_dict({"max_items_per_section": "bad"}).max_items_per_section == 6
 
     def test_roundtrip(self):
         """Test serialize -> deserialize roundtrip."""

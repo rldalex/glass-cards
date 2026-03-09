@@ -21,6 +21,7 @@ export type TranslationKey =
   | `title_card.${keyof typeof fr.title_card}`
   | `editor.${keyof typeof fr.editor}`
   | `cover.${keyof typeof fr.cover}`
+  | `spotify.${keyof typeof fr.spotify}`
   | `config.${keyof typeof fr.config}`;
 
 /* ── Locale key validation ── */

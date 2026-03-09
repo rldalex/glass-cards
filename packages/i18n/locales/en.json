@@ -116,6 +116,39 @@
     "cycle_aria": "Change mode"
   },
 
+  "spotify": {
+    "title": "Spotify",
+    "search_placeholder": "Search for a track, artist, podcast…",
+    "tab_all": "All",
+    "tab_tracks": "Tracks",
+    "tab_playlists": "Playlists",
+    "tab_podcasts": "Podcasts",
+    "my_playlists": "My playlists",
+    "recently_played": "Recently played",
+    "saved_tracks": "Liked songs",
+    "followed_podcasts": "Followed podcasts",
+    "tracks_count": "{count} tracks",
+    "episodes_count": "{count} episodes",
+    "type_track": "Track",
+    "type_playlist": "Playlist",
+    "type_album": "Album",
+    "type_podcast": "Podcast",
+    "play_on": "Play on…",
+    "play_aria": "Play {name}",
+    "available": "Available",
+    "paused": "Paused",
+    "no_results": "No results for \"{query}\"",
+    "no_content": "No content",
+    "load_more": "Load more",
+    "loading": "Loading…",
+    "error_api": "Spotify error",
+    "error_rate_limit": "Too many requests, try again in {seconds}s",
+    "not_configured": "Spotify integration not configured",
+    "no_entity": "Configure the Spotify entity in the configuration panel",
+    "open_config": "Open configuration",
+    "back": "Back"
+  },
+
   "editor": {
     "redirect_message": "Glass Cards configuration is managed from the dedicated panel.",
     "open_config": "Open Glass Cards Config"
@@ -281,6 +314,8 @@
     "spotify_sort_recent": "Most recent first",
     "spotify_sort_oldest": "Oldest first",
     "spotify_select_entity": "Select a Spotify player",
+    "spotify_max_items": "Items per section",
+    "spotify_max_items_desc": "Maximum number of items displayed per section (playlists, recent tracks, etc.).",
     "spotify_not_configured": "Spotify integration not configured",
     "spotify_setup_guide": "To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.",
     "spotify_setup_step1": "Go to Settings → Devices & services",

@@ -233,6 +233,17 @@ async def spotify_get_saved_albums(
     return result or {"items": [], "total": 0}
 
 
+async def spotify_get_saved_shows(
+    hass: HomeAssistant, limit: int = 20, offset: int = 0
+) -> dict[str, Any]:
+    """Get user's saved/followed podcasts (shows)."""
+    result = await spotify_request(
+        hass, "GET", "/me/shows",
+        params={"limit": min(limit, 50), "offset": offset},
+    )
+    return result or {"items": [], "total": 0}
+
+
 async def spotify_get_album(hass: HomeAssistant, album_id: str) -> dict[str, Any]:
     """Get an album's details and tracks."""
     result = await spotify_request(hass, "GET", f"/albums/{album_id}")

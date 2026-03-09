@@ -52,10 +52,11 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
   light: 'glass-light-card',
   cover: 'glass-cover-card',
   title: 'glass-title-card',
+  spotify: 'glass-spotify-card',
 };
 
 /** Render order for dashboard cards */
-const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light', 'cover'];
+const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light', 'cover', 'spotify'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;

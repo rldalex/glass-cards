@@ -36,6 +36,7 @@ from .spotify_api import (
     spotify_get_recently_played,
     spotify_get_recommendations,
     spotify_get_saved_albums,
+    spotify_get_saved_shows,
     spotify_get_saved_tracks,
     spotify_search,
 )
@@ -432,7 +433,7 @@ async def ws_set_dashboard(
 
 
 VALID_BROWSE_CATEGORIES = frozenset({
-    "playlists", "recently_played", "saved_tracks", "saved_albums",
+    "playlists", "recently_played", "saved_tracks", "saved_albums", "saved_shows",
     "playlist_tracks", "album_tracks", "artist_top_tracks", "recommendations",
 })
 
@@ -497,6 +498,7 @@ async def ws_spotify_status(
             None, "", vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))
         ),
         vol.Optional("sort_order"): vol.In(list(VALID_SORT_ORDERS)),
+        vol.Optional("max_items_per_section"): vol.All(int, vol.Range(min=1, max=50)),
     }
 )
 @websocket_api.async_response
@@ -517,6 +519,8 @@ async def ws_set_spotify_config(
         store.data.spotify_card.entity_id = msg["entity_id"] or ""
     if "sort_order" in msg:
         store.data.spotify_card.sort_order = msg["sort_order"]
+    if "max_items_per_section" in msg:
+        store.data.spotify_card.max_items_per_section = msg["max_items_per_section"]
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.spotify_card.to_dict())
@@ -598,6 +602,8 @@ async def ws_spotify_browse(
             result = await spotify_get_saved_tracks(hass, limit=limit, offset=offset)
         elif category == "saved_albums":
             result = await spotify_get_saved_albums(hass, limit=limit, offset=offset)
+        elif category == "saved_shows":
+            result = await spotify_get_saved_shows(hass, limit=limit, offset=offset)
         elif category == "playlist_tracks":
             if not content_id:
                 connection.send_error(
