@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing, type PropertyValues } from 'lit';
+import { LitElement, html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
@@ -181,6 +181,8 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
+  @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify'];
+  @state() private _dashboardCollapsed = new Set<string>();
 
   // Schedule config
   @state() private _scheduleExpandedEntity: string | null = null;
@@ -207,7 +209,7 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() private _dragIdx: number | null = null;
   @state() private _dropIdx: number | null = null;
-  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' = 'rooms';
+  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' = 'rooms';
 
   private _backend?: BackendService;
   private _loaded = false;
@@ -2834,6 +2836,7 @@ export class GlassConfigPanel extends LitElement {
     };
     let dashboardConfig = {
       enabled_cards: ['weather'] as string[],
+      card_order: ['title', 'weather', 'light', 'cover', 'spotify'] as string[],
     };
     let lightCardConfig = {
       show_header: true,
@@ -2912,6 +2915,7 @@ export class GlassConfigPanel extends LitElement {
     this._checkSpotifyStatus();
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'cover', 'spotify'];
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
     const orderMap = new Map<string, number>();
@@ -3130,7 +3134,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Drag & Drop —
 
-  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers') {
+  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards') {
     this._dragIdx = idx;
     this._dragContext = context;
   }
@@ -5182,12 +5186,35 @@ export class GlassConfigPanel extends LitElement {
     this._dashboardEnabledCards = [...set];
   }
 
+  private _toggleDashboardCollapse(card: string) {
+    const next = new Set(this._dashboardCollapsed);
+    if (next.has(card)) next.delete(card);
+    else next.add(card);
+    this._dashboardCollapsed = next;
+  }
+
+  private _onDropDashboardCard(idx: number, e: DragEvent) {
+    e.preventDefault();
+    if (this._dragIdx === null || this._dragIdx === idx || this._dragContext !== 'dashboard_cards') {
+      this._dragIdx = null;
+      this._dropIdx = null;
+      return;
+    }
+    const arr = [...this._dashboardCardOrder];
+    const [moved] = arr.splice(this._dragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._dashboardCardOrder = arr;
+    this._dragIdx = null;
+    this._dropIdx = null;
+  }
+
   private async _saveDashboard() {
     if (!this._backend || this._saving) return;
     this._saving = true;
     try {
       await this._backend.send('set_dashboard', {
         enabled_cards: this._dashboardEnabledCards,
+        card_order: this._dashboardCardOrder,
       });
       await this._backend.send('set_light_config', {
         show_header: this._lightShowHeader,
@@ -5220,50 +5247,41 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        dashboard: { enabled_cards: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[] };
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'cover', 'spotify'];
       }
     } catch { /* ignore */ }
   }
 
   private _renderDashboardPreview() {
     const enabled = new Set(this._dashboardEnabledCards);
+    const CARD_META: Record<string, { icon: string; label: string; titleStyle?: string }> = {
+      title: { icon: 'mdi:format-title', label: this._titleText || t('config.title_title_placeholder'), titleStyle: 'font-size:11px;font-weight:700;color:var(--t1);' },
+      weather: { icon: 'mdi:weather-partly-cloudy', label: t('weather.title') },
+      light: { icon: 'mdi:lightbulb-group', label: t('light.title') },
+      cover: { icon: 'mdi:blinds', label: t('cover.title') },
+      spotify: { icon: 'mdi:spotify', label: t('spotify.title') },
+    };
+    const ordered = this._dashboardCardOrder.filter((k) => enabled.has(k));
 
     return html`
       <div class="preview-dashboard">
         <div class="preview-dashboard-cards">
-          ${enabled.has('title') ? html`
-            <div class="preview-dashboard-card title">
-              <span style="font-size:11px;font-weight:700;color:var(--t1);">${this._titleText || t('config.title_title_placeholder')}</span>
-            </div>
-          ` : nothing}
-          ${enabled.has('weather') ? html`
-            <div class="preview-dashboard-card weather">
-              <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-              <span>${t('weather.title')}</span>
-            </div>
-          ` : nothing}
-          ${enabled.has('light') ? html`
-            <div class="preview-dashboard-card light">
-              <ha-icon .icon=${'mdi:lightbulb-group'}></ha-icon>
-              <span>${t('light.title')}</span>
-            </div>
-          ` : nothing}
-          ${enabled.has('cover') ? html`
-            <div class="preview-dashboard-card cover">
-              <ha-icon .icon=${'mdi:blinds'}></ha-icon>
-              <span>${t('cover.title')}</span>
-            </div>
-          ` : nothing}
-          ${enabled.has('spotify') ? html`
-            <div class="preview-dashboard-card spotify">
-              <ha-icon .icon=${'mdi:spotify'}></ha-icon>
-              <span>${t('spotify.title')}</span>
-            </div>
-          ` : nothing}
-          ${enabled.size === 0 ? html`<div class="preview-dashboard-empty">—</div>` : nothing}
+          ${ordered.length === 0 ? html`<div class="preview-dashboard-empty">—</div>` : nothing}
+          ${ordered.map((key) => {
+            const meta = CARD_META[key];
+            if (!meta) return nothing;
+            return html`
+              <div class="preview-dashboard-card ${key}">
+                ${meta.titleStyle
+                  ? html`<span style=${meta.titleStyle}>${meta.label}</span>`
+                  : html`<ha-icon .icon=${meta.icon}></ha-icon><span>${meta.label}</span>`}
+              </div>
+            `;
+          })}
         </div>
         <div class="preview-dashboard-navbar">
           <ha-icon .icon=${'mdi:sofa'}></ha-icon>
@@ -5275,13 +5293,13 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _renderDashboardTab() {
-    const CARDS = [
-      { key: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title' as const, descKey: 'config.dashboard_card_title_desc' as const },
-      { key: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather' as const, descKey: 'config.dashboard_card_weather_desc' as const },
-      { key: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light' as const, descKey: 'config.dashboard_card_light_desc' as const },
-      { key: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover' as const, descKey: 'config.dashboard_card_cover_desc' as const },
-      { key: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify' as const, descKey: 'config.dashboard_card_spotify_desc' as const },
-    ];
+    const CARD_META: Record<string, { icon: string; nameKey: Parameters<typeof t>[0]; descKey: Parameters<typeof t>[0]; hasSub: boolean }> = {
+      title: { icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', descKey: 'config.dashboard_card_title_desc', hasSub: false },
+      weather: { icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', descKey: 'config.dashboard_card_weather_desc', hasSub: true },
+      light: { icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', descKey: 'config.dashboard_card_light_desc', hasSub: true },
+      cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
+      spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: false },
+    };
 
     const enabledSet = new Set(this._dashboardEnabledCards);
 
@@ -5289,147 +5307,61 @@ export class GlassConfigPanel extends LitElement {
       <div class="tab-panel" id="panel-dashboard">
         <div class="section-label">${t('config.dashboard_title')}</div>
         <div class="section-desc">${t('config.dashboard_desc')}</div>
-        <div class="feature-list">
-          ${CARDS.map((c) => {
-            const enabled = enabledSet.has(c.key);
+        <div class="item-list">
+          ${this._dashboardCardOrder.map((key, idx) => {
+            const meta = CARD_META[key];
+            if (!meta) return nothing;
+            const enabled = enabledSet.has(key);
+            const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_cards';
+            const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_cards';
+            const collapsed = this._dashboardCollapsed.has(key);
+            const rowClasses = [
+              'item-row',
+              !enabled ? 'disabled' : '',
+              isDragging ? 'dragging' : '',
+              isDropTarget ? 'drop-target' : '',
+            ].filter(Boolean).join(' ');
+
             return html`
-              <button
-                class="feature-row"
-                @click=${() => this._toggleDashboardCard(c.key)}
+              <div
+                class=${rowClasses}
+                draggable="true"
+                @dragstart=${() => this._onDragStart(idx, 'dashboard_cards')}
+                @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                @dragleave=${() => this._onDragLeave()}
+                @drop=${(ev: DragEvent) => this._onDropDashboardCard(idx, ev)}
+                @dragend=${() => this._onDragEnd()}
               >
-                <div class="feature-icon">
-                  <ha-icon .icon=${c.icon}></ha-icon>
+                <span class="drag-handle">
+                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                </span>
+                <div class="feature-icon" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                  <ha-icon .icon=${meta.icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 </div>
-                <div class="feature-text">
-                  <div class="feature-name">${t(c.nameKey)}</div>
-                  <div class="feature-desc">${t(c.descKey)}</div>
+                <div class="item-info" style="flex:1;">
+                  <span class="item-name">${t(meta.nameKey)}</span>
+                  <span class="item-meta">${t(meta.descKey)}</span>
                 </div>
-                <span
+                ${meta.hasSub && enabled ? html`
+                  <button
+                    class="btn-icon xs"
+                    aria-label=${collapsed ? t('common.show') : t('common.hide')}
+                    aria-expanded=${!collapsed ? 'true' : 'false'}
+                    @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardCollapse(key); }}
+                    style="margin-right:4px;"
+                  >
+                    <ha-icon .icon=${collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                  </button>
+                ` : nothing}
+                <button
                   class="toggle ${enabled ? 'on' : ''}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardCard(key); }}
                   role="switch"
                   aria-checked=${enabled ? 'true' : 'false'}
-                  aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(c.nameKey)}"
-                ></span>
-              </button>
-              ${c.key === 'light' ? html`
-                <div class="feature-sub ${enabled ? 'open' : ''}">
-                  <div class="feature-sub-inner">
-                    <div class="feature-sub-content">
-                      <button
-                        class="feature-row"
-                        @click=${(e: Event) => { e.stopPropagation(); this._lightShowHeader = !this._lightShowHeader; }}
-                      >
-                        <div class="feature-icon">
-                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-                        </div>
-                        <div class="feature-text">
-                          <div class="feature-name">${t('config.light_show_header')}</div>
-                          <div class="feature-desc">${t('config.light_show_header_desc')}</div>
-                        </div>
-                        <span
-                          class="toggle ${this._lightShowHeader ? 'on' : ''}"
-                          role="switch"
-                          aria-checked=${this._lightShowHeader ? 'true' : 'false'}
-                        ></span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ` : nothing}
-              ${c.key === 'weather' ? html`
-                <div class="feature-sub ${enabled ? 'open' : ''}">
-                  <div class="feature-sub-inner">
-                    <div class="feature-sub-content">
-                      <button
-                        class="feature-row"
-                        @click=${(e: Event) => { e.stopPropagation(); this._weatherShowHeader = !this._weatherShowHeader; }}
-                      >
-                        <div class="feature-icon">
-                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-                        </div>
-                        <div class="feature-text">
-                          <div class="feature-name">${t('config.weather_show_header')}</div>
-                          <div class="feature-desc">${t('config.weather_show_header_desc')}</div>
-                        </div>
-                        <span
-                          class="toggle ${this._weatherShowHeader ? 'on' : ''}"
-                          role="switch"
-                          aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
-                        ></span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ` : nothing}
-              ${c.key === 'cover' ? html`
-                <div class="feature-sub ${enabled ? 'open' : ''}">
-                  <div class="feature-sub-inner">
-                    <div class="feature-sub-content">
-                      <button
-                        class="feature-row"
-                        @click=${(e: Event) => { e.stopPropagation(); this._coverShowHeader = !this._coverShowHeader; }}
-                      >
-                        <div class="feature-icon">
-                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-                        </div>
-                        <div class="feature-text">
-                          <div class="feature-name">${t('config.cover_show_header')}</div>
-                          <div class="feature-desc">${t('config.cover_show_header_desc')}</div>
-                        </div>
-                        <span
-                          class="toggle ${this._coverShowHeader ? 'on' : ''}"
-                          role="switch"
-                          aria-checked=${this._coverShowHeader ? 'true' : 'false'}
-                        ></span>
-                      </button>
-                      <div class="section-label" style="margin-top:10px;">${t('config.cover_dashboard_entities')}</div>
-                      <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
-                      <div class="item-list">
-                        ${this._coverDashboardOrder.map((entityId, idx) => {
-                          const allCovers = this._getAllCoverEntities();
-                          const cv = allCovers.find((c) => c.entityId === entityId);
-                          if (!cv) return nothing;
-                          const sel = this._coverDashboardEntities.includes(cv.entityId);
-                          const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_covers';
-                          const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_covers';
-                          const rowClasses = [
-                            'item-row',
-                            !sel ? 'disabled' : '',
-                            isDragging ? 'dragging' : '',
-                            isDropTarget ? 'drop-target' : '',
-                          ].filter(Boolean).join(' ');
-                          return html`
-                            <div
-                              class=${rowClasses}
-                              draggable="true"
-                              @dragstart=${() => this._onDragStart(idx, 'dashboard_covers')}
-                              @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
-                              @dragleave=${() => this._onDragLeave()}
-                              @drop=${(ev: DragEvent) => this._onDropDashboardCover(idx, ev)}
-                              @dragend=${() => this._onDragEnd()}
-                            >
-                              <span class="drag-handle">
-                                <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                              </span>
-                              <div class="item-info">
-                                <span class="item-name">${cv.name}</span>
-                                <span class="item-meta">${cv.entityId}</span>
-                              </div>
-                              <button
-                                class="toggle ${sel ? 'on' : ''}"
-                                @click=${(e: Event) => { e.stopPropagation(); this._toggleCoverDashboardEntity(cv.entityId); }}
-                                role="switch"
-                                aria-checked=${sel ? 'true' : 'false'}
-                                aria-label="${sel ? t('common.hide') : t('common.show')} ${cv.name}"
-                              ></button>
-                            </div>
-                          `;
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ` : nothing}
+                  aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(meta.nameKey)}"
+                ></button>
+              </div>
+              ${this._renderDashboardCardSub(key, enabled, collapsed)}
             `;
           })}
         </div>
@@ -5446,6 +5378,140 @@ export class GlassConfigPanel extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _renderDashboardCardSub(key: string, enabled: boolean, collapsed: boolean): TemplateResult | typeof nothing {
+    const open = enabled && !collapsed;
+
+    if (key === 'light') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._lightShowHeader = !this._lightShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.light_show_header')}</div>
+                  <div class="feature-desc">${t('config.light_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._lightShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._lightShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (key === 'weather') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._weatherShowHeader = !this._weatherShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.weather_show_header')}</div>
+                  <div class="feature-desc">${t('config.weather_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._weatherShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (key === 'cover') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._coverShowHeader = !this._coverShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.cover_show_header')}</div>
+                  <div class="feature-desc">${t('config.cover_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._coverShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._coverShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
+              <div class="section-label" style="margin-top:10px;">${t('config.cover_dashboard_entities')}</div>
+              <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
+              <div class="item-list">
+                ${this._coverDashboardOrder.map((entityId, idx) => {
+                  const allCovers = this._getAllCoverEntities();
+                  const cv = allCovers.find((c) => c.entityId === entityId);
+                  if (!cv) return nothing;
+                  const sel = this._coverDashboardEntities.includes(cv.entityId);
+                  const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_covers';
+                  const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_covers';
+                  const rowClasses = [
+                    'item-row',
+                    !sel ? 'disabled' : '',
+                    isDragging ? 'dragging' : '',
+                    isDropTarget ? 'drop-target' : '',
+                  ].filter(Boolean).join(' ');
+                  return html`
+                    <div
+                      class=${rowClasses}
+                      draggable="true"
+                      @dragstart=${() => this._onDragStart(idx, 'dashboard_covers')}
+                      @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                      @dragleave=${() => this._onDragLeave()}
+                      @drop=${(ev: DragEvent) => this._onDropDashboardCover(idx, ev)}
+                      @dragend=${() => this._onDragEnd()}
+                    >
+                      <span class="drag-handle">
+                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                      </span>
+                      <div class="item-info">
+                        <span class="item-name">${cv.name}</span>
+                        <span class="item-meta">${cv.entityId}</span>
+                      </div>
+                      <button
+                        class="toggle ${sel ? 'on' : ''}"
+                        @click=${(e: Event) => { e.stopPropagation(); this._toggleCoverDashboardEntity(cv.entityId); }}
+                        role="switch"
+                        aria-checked=${sel ? 'true' : 'false'}
+                        aria-label="${sel ? t('common.hide') : t('common.show')} ${cv.name}"
+                      ></button>
+                    </div>
+                  `;
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return nothing;
   }
 
   // — Weather config —

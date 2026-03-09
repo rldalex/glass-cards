@@ -411,6 +411,7 @@ async def ws_set_title_config(
     {
         vol.Required("type"): "glass_cards/set_dashboard",
         vol.Optional("enabled_cards"): [vol.In(list(VALID_DASHBOARD_CARDS))],
+        vol.Optional("card_order"): [vol.In(list(VALID_DASHBOARD_CARDS))],
     }
 )
 @websocket_api.async_response
@@ -427,6 +428,8 @@ async def ws_set_dashboard(
 
     if "enabled_cards" in msg:
         store.data.dashboard.enabled_cards = msg["enabled_cards"]
+    if "card_order" in msg:
+        store.data.dashboard.card_order = msg["card_order"]
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.dashboard.to_dict())

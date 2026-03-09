@@ -55,8 +55,8 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
   spotify: 'glass-spotify-card',
 };
 
-/** Render order for dashboard cards */
-const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light', 'cover', 'spotify'];
+/** Default render order for dashboard cards */
+const DEFAULT_CARD_ORDER = ['title', 'weather', 'light', 'cover', 'spotify'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -116,6 +116,7 @@ export class GlassNavbarCard extends BaseCard {
   private _lastAmbientPeriod: AmbientPeriod | null = null;
   @state() private _editMode = false;
   @state() private _enabledCards: string[] = ['weather'];
+  private _cardOrder: string[] = DEFAULT_CARD_ORDER;
   private _dashboardCards = new Map<string, HTMLElement>();
 
   static getConfigElement() {
@@ -550,12 +551,13 @@ export class GlassNavbarCard extends BaseCard {
           humidity_threshold?: number;
         };
         rooms: Record<string, { icon?: string | null }>;
-        dashboard: { enabled_cards: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[] };
       }>('get_config');
       this._navbarConfig = result.navbar;
       this._roomConfigs = result.rooms ?? {};
       if (result.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
+        this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
       }
       // Force rebuild with new config
       this._configLoaded = true;
@@ -580,10 +582,11 @@ export class GlassNavbarCard extends BaseCard {
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
-        dashboard: { enabled_cards: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[] };
       }>('get_config');
       if (result?.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
+        this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
       }
     } catch {
       // Backend not available — keep defaults
@@ -838,7 +841,7 @@ export class GlassNavbarCard extends BaseCard {
     if (!container) return;
 
     const enabledSet = new Set(this._enabledCards);
-    const wanted = DASHBOARD_CARD_ORDER.filter((key) => enabledSet.has(key));
+    const wanted = this._cardOrder.filter((key) => enabledSet.has(key));
 
     // Remove cards no longer enabled (collect first to avoid Map mutation during iteration)
     const toRemove: string[] = [];

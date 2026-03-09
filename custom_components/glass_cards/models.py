@@ -23,6 +23,7 @@ VALID_MODE_COLORS = frozenset(
     {"neutral", "success", "warning", "info", "accent", "alert"}
 )
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "cover", "spotify"]
 
 
 @dataclass
@@ -386,25 +387,37 @@ class SpotifyCardConfig:
 
 @dataclass
 class DashboardConfig:
-    """Configuration for dashboard card visibility."""
+    """Configuration for dashboard card visibility and order."""
 
     enabled_cards: list[str] = field(default_factory=lambda: list(DEFAULT_DASHBOARD_CARDS))
+    card_order: list[str] = field(default_factory=lambda: list(DEFAULT_CARD_ORDER))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "enabled_cards": self.enabled_cards,
+            "card_order": self.card_order,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DashboardConfig:
         """Deserialize from dict."""
         raw = data.get("enabled_cards", list(DEFAULT_DASHBOARD_CARDS))
+        raw_order = data.get("card_order", list(DEFAULT_CARD_ORDER))
+        order = [
+            str(x) for x in raw_order
+            if isinstance(x, str) and x in VALID_DASHBOARD_CARDS
+        ]
+        # Append any valid cards missing from the order
+        for c in DEFAULT_CARD_ORDER:
+            if c not in order:
+                order.append(c)
         return cls(
             enabled_cards=[
                 str(x) for x in raw
                 if isinstance(x, str) and x in VALID_DASHBOARD_CARDS
             ],
+            card_order=order,
         )
 
 
