@@ -48,6 +48,7 @@ export type { EventCallback };
 let historyIntercepted = false;
 let origPush: typeof history.pushState | null = null;
 let origReplace: typeof history.replaceState | null = null;
+let _dispatching = false;
 
 function _onPopState() {
   bus.emit('location-changed', undefined);
@@ -64,14 +65,26 @@ export function installHistoryIntercept(): void {
 
   history.pushState = function (data: unknown, title: string, url?: string | URL | null) {
     savedPush.call(this, data, title, url);
-    window.dispatchEvent(new Event('location-changed'));
-    bus.emit('location-changed', undefined);
+    if (_dispatching) return;
+    _dispatching = true;
+    try {
+      window.dispatchEvent(new Event('location-changed'));
+      bus.emit('location-changed', undefined);
+    } finally {
+      _dispatching = false;
+    }
   };
 
   history.replaceState = function (data: unknown, title: string, url?: string | URL | null) {
     savedReplace.call(this, data, title, url);
-    window.dispatchEvent(new Event('location-changed'));
-    bus.emit('location-changed', undefined);
+    if (_dispatching) return;
+    _dispatching = true;
+    try {
+      window.dispatchEvent(new Event('location-changed'));
+      bus.emit('location-changed', undefined);
+    } finally {
+      _dispatching = false;
+    }
   };
 
   window.addEventListener('popstate', _onPopState);
