@@ -13,7 +13,8 @@
     "error_save": "Save error",
     "config_saved": "Configuration saved",
     "entities": "entities",
-    "no_entity": "No entity"
+    "no_entity": "No entity",
+    "delete": "Delete"
   },
 
   "light": {
@@ -35,8 +36,7 @@
     "temp_warm": "Warm",
     "temp_neutral": "Neutral",
     "temp_cold": "Cold",
-    "dashboard_title_one": "1 LIGHT ON",
-    "dashboard_title": "{count} LIGHTS ON",
+    "dashboard_title": "LIGHTS ON",
     "dashboard_overflow": "and {count} more…",
     "dashboard_turn_all_off_aria": "Turn off all lights in the house"
   },
@@ -76,6 +76,37 @@
     "cond_windy": "Windy",
     "cond_windy_variant": "Windy cloudy",
     "cond_exceptional": "Exceptional"
+  },
+
+  "cover": {
+    "title": "COVERS",
+    "open": "Open",
+    "closed": "Closed",
+    "opening": "Opening…",
+    "closing": "Closing…",
+    "position": "Position",
+    "tilt": "Tilt",
+    "stop_aria": "Stop {name}",
+    "open_aria": "Open {name}",
+    "close_aria": "Close {name}",
+    "toggle_aria": "Toggle {name}",
+    "expand_aria": "Expand {name} controls",
+    "open_all_aria": "Open all covers",
+    "close_all_aria": "Close all covers",
+    "preset_open": "Open",
+    "preset_closed": "Closed",
+    "dashboard_title_one": "1 COVER OPEN",
+    "dashboard_title": "{count} COVERS OPEN",
+    "dc_shutter": "Shutter",
+    "dc_blind": "Blind",
+    "dc_curtain": "Curtain",
+    "dc_garage": "Garage",
+    "dc_gate": "Gate",
+    "dc_door": "Door",
+    "dc_awning": "Awning",
+    "dc_shade": "Shade",
+    "dc_window": "Window",
+    "dc_damper": "Damper"
   },
 
   "title_card": {
@@ -219,6 +250,25 @@
     "dashboard_card_weather_desc": "Current weather, forecasts and animations",
     "dashboard_card_light": "Light Card",
     "dashboard_card_light_desc": "Shows active lights with quick controls",
-    "dashboard_light_auto": "Active lights are automatically displayed on the dashboard."
+    "dashboard_light_auto": "Active lights are automatically displayed on the dashboard.",
+    "dashboard_card_cover": "Cover Card",
+    "dashboard_card_cover_desc": "Shows selected covers with position controls",
+
+    "tab_cover": "Cover Card",
+    "cover_show_header": "Show header",
+    "cover_show_header_desc": "Title, counter and open/close all buttons above the card",
+    "cover_dashboard_entities": "Dashboard covers",
+    "cover_dashboard_entities_desc": "Select which covers to display on the dashboard. All selected covers are shown regardless of their state.",
+    "cover_dashboard_no_entities": "No cover entities selected for the dashboard.",
+    "cover_room": "Room",
+    "cover_room_desc": "Select a room to configure its covers: order and visibility.",
+    "cover_list_title": "Covers",
+    "cover_list_banner": "Drag to reorder. Toggle to hide.",
+    "cover_no_covers": "No covers in this room.",
+    "cover_select_room": "Select a room",
+    "cover_presets": "Favorite positions",
+    "cover_presets_desc": "Configure the quick position buttons displayed under each cover.",
+    "cover_preset_add": "Add",
+    "cover_preset_placeholder": "0–100"
   }
 }

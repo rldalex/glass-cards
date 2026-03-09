@@ -285,7 +285,11 @@ class GlassTitleCard extends BaseCard {
   protected render() {
     void this._lang; // track i18n reactivity
     const title = this._titleConfig.title;
-    if (!title) return nothing;
+    if (!title) {
+      this.style.display = 'none';
+      return nothing;
+    }
+    this.style.display = '';
 
     const hasMode = !!this._titleConfig.mode_entity;
     const activeMode = hasMode ? this._getActiveMode() : null;

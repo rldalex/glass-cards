@@ -50,11 +50,12 @@ function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
 const DASHBOARD_CARD_MAP: Record<string, string> = {
   weather: 'glass-weather-card',
   light: 'glass-light-card',
+  cover: 'glass-cover-card',
   title: 'glass-title-card',
 };
 
 /** Render order for dashboard cards */
-const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light'];
+const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light', 'cover'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -446,6 +447,8 @@ export class GlassNavbarCard extends BaseCard {
     for (const card of this._dashboardCards.values()) card.remove();
     this._dashboardCards.clear();
     this._backend = undefined;
+    this._configLoaded = false;
+    this._configLoading = false;
   }
 
   protected firstUpdated(changedProps: PropertyValues) {
@@ -509,8 +512,7 @@ export class GlassNavbarCard extends BaseCard {
         this._backend = undefined;
         this._configLoaded = false;
       }
-      if (!this._configLoaded) {
-        this._configLoaded = true;
+      if (!this._configLoaded && !this._configLoading) {
         this._loadBackendConfig();
       }
       if (this._configReady) {
@@ -555,12 +557,14 @@ export class GlassNavbarCard extends BaseCard {
         this._enabledCards = result.dashboard.enabled_cards;
       }
       // Force rebuild with new config
+      this._configLoaded = true;
       this._configReady = true;
       this._lastAreaKeys = '';
       this._rebuildStructure();
       this._aggregateState();
     } catch {
       // Backend not available — use auto-discovery defaults
+      this._configLoaded = true;
       this._configReady = true;
       this._rebuildStructure();
       this._aggregateState();

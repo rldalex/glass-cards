@@ -136,6 +136,10 @@ export class GlassRoomPopup extends LitElement {
         outline: none;
         transition: transform var(--t-fast);
       }
+      .header-icon ha-icon,
+      .close-btn ha-icon {
+        display: flex; align-items: center; justify-content: center;
+      }
       .header-icon.has-light ha-icon {
         color: var(--c-light-glow);
         filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
@@ -547,7 +551,8 @@ export class GlassRoomPopup extends LitElement {
     switch (domain) {
       case 'light':
         return html`<glass-light-card .hass=${this.hass} .areaId=${this._areaId}></glass-light-card>`;
-      // Future domain cards will be added here
+      case 'cover':
+        return html`<glass-cover-card .hass=${this.hass} .areaId=${this._areaId}></glass-cover-card>`;
       default:
         return nothing;
     }

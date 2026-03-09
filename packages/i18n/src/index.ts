@@ -20,6 +20,7 @@ export type TranslationKey =
   | `popup.${keyof typeof fr.popup}`
   | `title_card.${keyof typeof fr.title_card}`
   | `editor.${keyof typeof fr.editor}`
+  | `cover.${keyof typeof fr.cover}`
   | `config.${keyof typeof fr.config}`;
 
 /* ── Locale key validation ── */

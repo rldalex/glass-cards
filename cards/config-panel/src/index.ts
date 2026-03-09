@@ -63,7 +63,7 @@ interface SchedulePeriodEdit {
 const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
 
 // Domains with an actual card implementation — others are planned for later phases
-const IMPLEMENTED_CARDS = new Set(['light']);
+const IMPLEMENTED_CARDS = new Set(['light', 'cover']);
 
 const CARD_ICONS: Record<string, string> = {
   light: 'mdi:lightbulb-group',
@@ -110,7 +110,7 @@ export class GlassConfigPanel extends LitElement {
   private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'dashboard' = 'dashboard';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -161,6 +161,16 @@ export class GlassConfigPanel extends LitElement {
   // Light card config
   @state() private _lightShowHeader = true;
 
+  // Cover card config
+  @state() private _coverShowHeader = true;
+  @state() private _coverDashboardEntities: string[] = [];
+  @state() private _coverDashboardOrder: string[] = [];
+  @state() private _coverPresets: number[] = [0, 25, 50, 75, 100];
+  @state() private _coverRoom = '';
+  @state() private _coverRoomDropdownOpen = false;
+  @state() private _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
+  @state() private _coverPresetInput = '';
+
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
 
@@ -189,7 +199,7 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() private _dragIdx: number | null = null;
   @state() private _dropIdx: number | null = null;
-  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' = 'rooms';
+  private _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' = 'rooms';
 
   private _backend?: BackendService;
   private _loaded = false;
@@ -2709,7 +2719,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleModeDropdownOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleModeDropdownOpen && !this._coverRoomDropdownOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -2721,6 +2731,7 @@ export class GlassConfigPanel extends LitElement {
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
     this._titleModeDropdownOpen = false;
+    this._coverRoomDropdownOpen = false;
   }
 
   private _tabsEl: HTMLElement | null = null;
@@ -2824,6 +2835,11 @@ export class GlassConfigPanel extends LitElement {
       mode_entity: '',
       modes: [] as { id: string; label: string; icon: string; color: string }[],
     };
+    let coverCardConfig = {
+      show_header: true,
+      dashboard_entities: [] as string[],
+      presets: [0, 25, 50, 75, 100] as number[],
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -2833,6 +2849,7 @@ export class GlassConfigPanel extends LitElement {
         weather: typeof weatherConfig;
         light_card: typeof lightCardConfig;
         title_card: typeof titleCardConfig;
+        cover_card: typeof coverCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
@@ -2840,6 +2857,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.weather) weatherConfig = result.weather;
       if (result.light_card) lightCardConfig = result.light_card;
       if (result.title_card) titleCardConfig = result.title_card;
+      if (result.cover_card) coverCardConfig = result.cover_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -2865,6 +2883,11 @@ export class GlassConfigPanel extends LitElement {
     this._titleText = titleCardConfig.title ?? '';
     this._titleModeEntity = titleCardConfig.mode_entity ?? '';
     this._titleModes = titleCardConfig.modes ?? [];
+
+    this._coverShowHeader = coverCardConfig.show_header ?? true;
+    this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
+    this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
+    this._initCoverDashboardOrder();
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
 
@@ -3059,24 +3082,32 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'dashboard') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
     this._titleModeDropdownOpen = false;
+    this._coverRoomDropdownOpen = false;
     this._iconPopupModeIdx = null;
     this._colorPickerModeIdx = null;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
       this._lightRoom = this._rooms[0].areaId;
       this._loadRoomLights();
     }
+    if (tab === 'cover' && !this._coverRoom && this._rooms.length > 0) {
+      this._coverRoom = this._rooms[0].areaId;
+      this._loadRoomCovers();
+    }
+    if ((tab === 'cover' || tab === 'dashboard') && this._coverDashboardOrder.length === 0) {
+      this._initCoverDashboardOrder();
+    }
   }
 
   // — Drag & Drop —
 
-  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights') {
+  private _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers') {
     this._dragIdx = idx;
     this._dragContext = context;
   }
@@ -3246,6 +3277,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveWeather();
     } else if (this._tab === 'title') {
       this._saveTitle();
+    } else if (this._tab === 'cover') {
+      this._saveCover();
     } else {
       this._saveDashboard();
     }
@@ -4615,6 +4648,506 @@ export class GlassConfigPanel extends LitElement {
     `;
   }
 
+  // — Cover card config —
+
+  private _selectCoverRoom(areaId: string) {
+    this._coverRoom = areaId;
+    this._coverRoomDropdownOpen = false;
+    this._loadRoomCovers();
+  }
+
+  private async _loadRoomCovers() {
+    if (!this._backend || !this._coverRoom || !this.hass) return;
+    const targetRoom = this._coverRoom;
+    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
+    const coverIds = areaEntities
+      .filter((e) => e.entity_id.startsWith('cover.'))
+      .map((e) => e.entity_id);
+
+    // Load room config for hidden_entities / entity_order
+    let roomConfig: { hidden_entities?: string[]; entity_order?: string[] } | null = null;
+    try {
+      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>('get_room', { area_id: targetRoom });
+    } catch { /* ignore */ }
+
+    // Discard stale result if room changed during async call
+    if (this._coverRoom !== targetRoom) return;
+
+    const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
+    const order = roomConfig?.entity_order ?? [];
+
+    // Sort by order
+    const sorted = [...coverIds].sort((a, b) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return 0;
+    });
+
+    this._coverRoomEntities = sorted.map((id) => {
+      const entity = this.hass?.states[id];
+      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      const dc = (entity?.attributes?.device_class as string) || 'shutter';
+      return { entityId: id, name, visible: !hiddenSet.has(id), deviceClass: dc };
+    });
+  }
+
+  private _toggleCoverEntityVisibility(entityId: string) {
+    const toggled = this._coverRoomEntities.map((e) =>
+      e.entityId === entityId ? { ...e, visible: !e.visible } : e,
+    );
+    const visible = toggled.filter((e) => e.visible);
+    const hidden = toggled.filter((e) => !e.visible);
+    this._coverRoomEntities = [...visible, ...hidden];
+  }
+
+  private _getAllCoverEntities(): { entityId: string; name: string }[] {
+    if (!this.hass) return [];
+    const covers: { entityId: string; name: string }[] = [];
+    for (const [id, entity] of Object.entries(this.hass.states)) {
+      if (!id.startsWith('cover.')) continue;
+      const name = (entity.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      covers.push({ entityId: id, name });
+    }
+    return covers.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _toggleCoverDashboardEntity(entityId: string) {
+    const set = new Set(this._coverDashboardEntities);
+    if (set.has(entityId)) set.delete(entityId);
+    else set.add(entityId);
+    this._coverDashboardEntities = [...set];
+    // Re-sort _coverDashboardOrder: selected first, then unselected
+    const newSet = new Set(this._coverDashboardEntities);
+    const selected = this._coverDashboardOrder.filter((id) => newSet.has(id));
+    const unselected = this._coverDashboardOrder.filter((id) => !newSet.has(id));
+    this._coverDashboardOrder = [...selected, ...unselected];
+  }
+
+  private _initCoverDashboardOrder() {
+    const all = this._getAllCoverEntities().map((c) => c.entityId);
+    const selSet = new Set(this._coverDashboardEntities);
+    // Keep existing order for entities already in _coverDashboardEntities, then append new ones
+    const ordered = this._coverDashboardEntities.filter((id) => all.includes(id));
+    const remaining = all.filter((id) => !selSet.has(id));
+    this._coverDashboardOrder = [...ordered, ...remaining];
+  }
+
+  private _onDropDashboardCover(idx: number, e: DragEvent) {
+    e.preventDefault();
+    if (this._dragIdx === null || this._dragIdx === idx || this._dragContext !== 'dashboard_covers') {
+      this._dragIdx = null;
+      this._dropIdx = null;
+      return;
+    }
+    const arr = [...this._coverDashboardOrder];
+    const [moved] = arr.splice(this._dragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._coverDashboardOrder = arr;
+    this._dragIdx = null;
+    this._dropIdx = null;
+  }
+
+  private async _saveCover() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      // Save global cover config — ordered dashboard entities (selected ones in order)
+      const orderedDashboardEntities = this._coverDashboardOrder.filter((id) =>
+        this._coverDashboardEntities.includes(id),
+      );
+      await this._backend.send('set_cover_config', {
+        show_header: this._coverShowHeader,
+        dashboard_entities: orderedDashboardEntities,
+        presets: this._coverPresets,
+      });
+
+      // Save room-level cover config if a room is selected
+      if (this._coverRoom && this._coverRoomEntities.length > 0) {
+        const hiddenEntities = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+        const entityOrder = this._coverRoomEntities.map((e) => e.entityId);
+        await this._backend.send('set_room', {
+          area_id: this._coverRoom,
+          hidden_entities: hiddenEntities,
+          entity_order: entityOrder,
+        });
+      }
+
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('cover-config-changed', undefined);
+      if (this._coverRoom) bus.emit('room-config-changed', { areaId: this._coverRoom });
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  private _renderCoverPreview() {
+    const entities = this._coverRoomEntities.filter((e) => e.visible);
+    const DC_ICONS: Record<string, [string, string]> = {
+      shutter: ['mdi:window-shutter-open', 'mdi:window-shutter'],
+      blind: ['mdi:blinds-open', 'mdi:blinds'],
+      curtain: ['mdi:curtains', 'mdi:curtains'],
+      garage: ['mdi:garage-open', 'mdi:garage'],
+      gate: ['mdi:gate-open', 'mdi:gate'],
+      door: ['mdi:door-open', 'mdi:door-closed'],
+    };
+    // Pick the first entity with real HA state as the "expanded" one
+    const expandedEntity = entities.length > 0 ? entities[0] : null;
+    const expandedHaState = expandedEntity ? this.hass?.states[expandedEntity.entityId] : null;
+    const expandedIsOpen = expandedHaState?.state === 'open' || expandedHaState?.state === 'opening';
+    const expandedPos = expandedHaState?.attributes.current_position as number | undefined;
+    const expandedFeatures = (expandedHaState?.attributes.supported_features as number) || 0;
+    const hasPosition = !!(expandedFeatures & 4); // SET_POSITION
+    const posVal = expandedPos ?? (expandedIsOpen ? 100 : 0);
+    const openCount = entities.filter((e) => {
+      const s = this.hass?.states[e.entityId];
+      return s?.state === 'open' || s?.state === 'opening';
+    }).length;
+
+    return html`
+      <div class="preview-cover">
+        ${this._coverShowHeader ? html`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('cover.title')}</span>
+              <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:8px;background:${openCount > 0 ? 'rgba(167,139,250,0.15)' : 'var(--s2)'};color:${openCount > 0 ? '#a78bfa' : 'var(--t3)'};">${openCount}/${entities.length}</span>
+            </div>
+            <div style="display:flex;gap:3px;">
+              <div style="width:18px;height:18px;border-radius:4px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
+                <ha-icon .icon=${'mdi:arrow-up'} style="--mdc-icon-size:10px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+              </div>
+              <div style="width:18px;height:18px;border-radius:4px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
+                <ha-icon .icon=${'mdi:arrow-down'} style="--mdc-icon-size:10px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+              </div>
+            </div>
+          </div>
+        ` : nothing}
+        <div class="preview-cover-card glass" style="padding:8px 10px;display:flex;flex-direction:column;gap:2px;position:relative;">
+          <!-- Tint -->
+          <div style="position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#a78bfa,transparent 70%);opacity:${entities.length > 0 ? (openCount / entities.length * 0.18).toFixed(3) : '0'};"></div>
+          ${entities.length === 0 ? html`
+            <div style="padding:8px;text-align:center;font-size:10px;color:var(--t4);">—</div>
+          ` : nothing}
+          ${entities.slice(0, 3).map((e, idx) => {
+            const icons = DC_ICONS[e.deviceClass] || DC_ICONS.shutter;
+            const entity = this.hass?.states[e.entityId];
+            const isOpen = entity?.state === 'open' || entity?.state === 'opening';
+            const pos = entity?.attributes.current_position as number | undefined;
+            const isExpanded = idx === 0;
+            return html`
+              <!-- Row -->
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;">
+                <div style="width:22px;height:22px;border-radius:6px;background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
+                  <ha-icon .icon=${icons[isOpen ? 0 : 1]} style="--mdc-icon-size:13px;color:${isOpen ? '#a78bfa' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${isOpen ? 'filter:drop-shadow(0 0 4px rgba(167,139,250,0.4));' : ''}"></ha-icon>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</div>
+                  <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
+                    <span style="font-size:8px;color:${isOpen ? 'rgba(167,139,250,0.6)' : 'var(--t4)'};">${isOpen ? t('cover.open') : t('cover.closed')}</span>
+                  </div>
+                </div>
+                ${pos !== undefined ? html`
+                  <span style="font-size:12px;font-weight:700;color:${isOpen ? '#a78bfa' : 'var(--t3)'};font-variant-numeric:tabular-nums;">${pos}<span style="font-size:8px;font-weight:500;">%</span></span>
+                ` : nothing}
+                <div style="width:6px;height:6px;border-radius:50%;background:${isOpen ? '#a78bfa' : 'var(--t4)'};${isOpen ? 'box-shadow:0 0 6px rgba(167,139,250,0.4);' : ''}"></div>
+              </div>
+              ${isExpanded ? html`
+                <!-- Expanded controls for first entity -->
+                <div style="height:1px;margin:0 8px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.25),transparent);"></div>
+                <div style="padding:4px 2px;display:flex;flex-direction:column;gap:6px;position:relative;z-index:1;">
+                  <span style="font-size:8px;font-weight:600;letter-spacing:0.5px;color:rgba(167,139,250,0.6);text-transform:uppercase;">${e.name}</span>
+                  <!-- Transport -->
+                  <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+                    <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
+                      <ha-icon .icon=${'mdi:arrow-up'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    </div>
+                    <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
+                      <ha-icon .icon=${'mdi:stop'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    </div>
+                    <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
+                      <ha-icon .icon=${'mdi:arrow-down'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    </div>
+                  </div>
+                  <!-- Position slider -->
+                  ${hasPosition ? html`
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <ha-icon .icon=${icons[1]} style="--mdc-icon-size:12px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                      <div style="flex:1;height:22px;border-radius:var(--radius-lg);background:var(--s1);border:1px solid var(--b1);position:relative;overflow:hidden;">
+                        <div style="position:absolute;top:0;left:0;height:100%;width:${posVal}%;border-radius:inherit;background:linear-gradient(90deg,rgba(167,139,250,0.15),rgba(167,139,250,0.25));"></div>
+                        <div style="position:absolute;top:50%;left:${posVal}%;transform:translate(-50%,-50%);width:5px;height:14px;border-radius:3px;background:rgba(255,255,255,0.7);"></div>
+                        <span style="position:absolute;top:50%;right:6px;transform:translateY(-50%);font-size:9px;font-weight:600;color:var(--t3);">${posVal}%</span>
+                      </div>
+                      <ha-icon .icon=${icons[0]} style="--mdc-icon-size:12px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    </div>
+                  ` : nothing}
+                  <!-- Presets -->
+                  <div style="height:1px;background:var(--b1);"></div>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    ${this._coverPresets.map((p) => {
+                      const isActive = posVal === p;
+                      const pIsOpen = p >= 50;
+                      const label = p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`;
+                      return html`
+                        <span style="
+                          display:inline-flex;align-items:center;gap:3px;
+                          padding:3px 7px;border-radius:var(--radius-md);
+                          border:1px solid ${isActive ? 'rgba(167,139,250,0.15)' : 'var(--b2)'};
+                          background:${isActive ? 'rgba(167,139,250,0.1)' : 'var(--s1)'};
+                          font-size:9px;font-weight:600;
+                          color:${isActive ? '#a78bfa' : 'var(--t3)'};
+                        ">
+                          <ha-icon .icon=${icons[pIsOpen ? 0 : 1]} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                          ${label}
+                        </span>
+                      `;
+                    })}
+                  </div>
+                </div>
+                <div style="height:1px;margin:0 8px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.25),transparent);"></div>
+              ` : nothing}
+            `;
+          })}
+          ${entities.length > 3 ? html`
+            <div style="font-size:9px;color:var(--t4);text-align:center;padding-top:2px;position:relative;z-index:1;">+${entities.length - 3}</div>
+          ` : nothing}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderCoverTab() {
+    if (!this.hass) return nothing;
+
+    const currentRoom = this._rooms.find((r) => r.areaId === this._coverRoom);
+
+    return html`
+      <div class="tab-panel" id="panel-cover">
+        <div class="section-label">${t('config.navbar_behavior')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._coverShowHeader = !this._coverShowHeader; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.cover_show_header')}</div>
+              <div class="feature-desc">${t('config.cover_show_header_desc')}</div>
+            </div>
+            <span
+              class="toggle ${this._coverShowHeader ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._coverShowHeader ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
+        <!-- Per-room cover config -->
+        <div class="section-label">${t('config.cover_room')}</div>
+        <div class="section-desc">${t('config.cover_room_desc')}</div>
+
+        <!-- Room selector dropdown -->
+        <div class="dropdown ${this._coverRoomDropdownOpen ? 'open' : ''}">
+          <button
+            class="dropdown-trigger"
+            @click=${() => { this._coverRoomDropdownOpen = !this._coverRoomDropdownOpen; }}
+            aria-expanded=${this._coverRoomDropdownOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+          >
+            <ha-icon .icon=${currentRoom?.icon || 'mdi:home'}></ha-icon>
+            <span>${currentRoom?.name || t('common.select')}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          <div class="dropdown-menu" role="listbox">
+            ${this._rooms.map((r) => html`
+              <button
+                class="dropdown-item ${r.areaId === this._coverRoom ? 'active' : ''}"
+                role="option"
+                aria-selected=${r.areaId === this._coverRoom ? 'true' : 'false'}
+                @click=${() => this._selectCoverRoom(r.areaId)}
+              >
+                <ha-icon .icon=${r.icon}></ha-icon>
+                ${r.name}
+              </button>
+            `)}
+          </div>
+        </div>
+
+        ${this._coverRoom ? html`
+          ${this._coverRoomEntities.length > 0 ? html`
+            <div class="section-label">${t('config.cover_list_title')} (${this._coverRoomEntities.length})</div>
+            <div class="section-desc">${t('config.cover_list_banner')}</div>
+            <div class="item-list">
+              ${this._coverRoomEntities.map((e, idx) => {
+                const isDragging = this._dragIdx === idx && this._dragContext === 'covers';
+                const isDropTarget = this._dropIdx === idx && this._dragContext === 'covers';
+                const rowClasses = [
+                  'item-row',
+                  !e.visible ? 'disabled' : '',
+                  isDragging ? 'dragging' : '',
+                  isDropTarget ? 'drop-target' : '',
+                ].filter(Boolean).join(' ');
+                return html`
+                  <div
+                    class=${rowClasses}
+                    draggable="true"
+                    @dragstart=${() => this._onDragStart(idx, 'covers')}
+                    @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                    @dragleave=${() => this._onDragLeave()}
+                    @drop=${(ev: DragEvent) => this._onDropCover(idx, ev)}
+                    @dragend=${() => this._onDragEnd()}
+                  >
+                    <span class="drag-handle">
+                      <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                    </span>
+                    <div class="item-info">
+                      <span class="item-name">${e.name}</span>
+                      <span class="item-meta">${e.entityId}</span>
+                    </div>
+                    <button
+                      class="toggle ${e.visible ? 'on' : ''}"
+                      @click=${() => this._toggleCoverEntityVisibility(e.entityId)}
+                      role="switch"
+                      aria-checked=${e.visible ? 'true' : 'false'}
+                      aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                    ></button>
+                  </div>
+                `;
+              })}
+            </div>
+          ` : html`
+            <div class="banner">
+              <ha-icon .icon=${'mdi:blinds-open'}></ha-icon>
+              <span>${t('config.cover_no_covers')}</span>
+            </div>
+          `}
+        ` : nothing}
+
+        <!-- Preset config -->
+        <div class="section-label">${t('config.cover_presets')}</div>
+        <div class="section-desc">${t('config.cover_presets_desc')}</div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+          ${this._coverPresets.map((p) => {
+            const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
+            return html`
+              <span style="
+                display:inline-flex;align-items:center;gap:4px;
+                padding:5px 10px;border-radius:var(--radius-md);
+                border:1px solid var(--b2);background:var(--s1);
+                font-size:11px;font-weight:600;color:var(--t2);
+              ">
+                <ha-icon .icon=${pIcon} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
+                <button
+                  style="
+                    background:none;border:none;cursor:pointer;padding:0;
+                    display:flex;align-items:center;justify-content:center;
+                    color:var(--t4);transition:color var(--t-fast);
+                  "
+                  @click=${() => this._removeCoverPreset(p)}
+                  aria-label="${t('common.delete')} ${p}%"
+                >
+                  <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                </button>
+              </span>
+            `;
+          })}
+          <span style="display:inline-flex;align-items:center;gap:4px;">
+            <input
+              class="input"
+              type="number"
+              min="0"
+              max="100"
+              step="5"
+              .value=${this._coverPresetInput}
+              @input=${(e: Event) => { this._coverPresetInput = (e.target as HTMLInputElement).value; }}
+              @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._addCoverPreset(); }}
+              placeholder=${t('config.cover_preset_placeholder')}
+              style="width:64px;font-size:11px;padding:5px 8px;"
+            />
+            <button
+              style="
+                display:inline-flex;align-items:center;gap:4px;
+                padding:5px 10px;border-radius:var(--radius-md);
+                border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
+                font-size:11px;font-weight:600;color:var(--c-accent);
+                cursor:pointer;font-family:inherit;
+                opacity:${this._coverPresetInput ? '1' : '0.4'};
+                pointer-events:${this._coverPresetInput ? 'auto' : 'none'};
+                transition:opacity var(--t-fast);
+              "
+              @click=${() => this._addCoverPreset()}
+            >
+              <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              ${t('config.cover_preset_add')}
+            </button>
+          </span>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._resetCover()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private _onDropCover(idx: number, e: DragEvent) {
+    e.preventDefault();
+    if (this._dragIdx === null || this._dragIdx === idx || this._dragContext !== 'covers') {
+      this._dragIdx = null;
+      this._dropIdx = null;
+      return;
+    }
+    const arr = [...this._coverRoomEntities];
+    const [moved] = arr.splice(this._dragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._coverRoomEntities = arr;
+    this._dragIdx = null;
+    this._dropIdx = null;
+  }
+
+  private async _resetCover() {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        cover_card?: { show_header: boolean; dashboard_entities: string[]; presets: number[] };
+      }>('get_config');
+      if (result?.cover_card) {
+        this._coverShowHeader = result.cover_card.show_header ?? true;
+        this._coverDashboardEntities = result.cover_card.dashboard_entities ?? [];
+        this._coverPresets = result.cover_card.presets ?? [0, 25, 50, 75, 100];
+        this._initCoverDashboardOrder();
+      }
+    } catch { /* ignore */ }
+    await this._loadRoomCovers();
+  }
+
+  private _addCoverPreset() {
+    const val = parseInt(this._coverPresetInput, 10);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    if (this._coverPresets.includes(val)) { this._coverPresetInput = ''; return; }
+    this._coverPresets = [...this._coverPresets, val].sort((a, b) => a - b);
+    this._coverPresetInput = '';
+  }
+
+  private _removeCoverPreset(val: number) {
+    this._coverPresets = this._coverPresets.filter((p) => p !== val);
+  }
+
   // — Dashboard config —
 
   private _toggleDashboardCard(card: string) {
@@ -4637,11 +5170,20 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_weather', {
         show_header: this._weatherShowHeader,
       });
+      const orderedDashCovers = this._coverDashboardOrder.filter((id) =>
+        this._coverDashboardEntities.includes(id),
+      );
+      await this._backend.send('set_cover_config', {
+        show_header: this._coverShowHeader,
+        dashboard_entities: orderedDashCovers,
+        presets: this._coverPresets,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
       bus.emit('light-config-changed', undefined);
       bus.emit('weather-config-changed', undefined);
+      bus.emit('cover-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {
@@ -4684,6 +5226,12 @@ export class GlassConfigPanel extends LitElement {
               <span>${t('light.title')}</span>
             </div>
           ` : nothing}
+          ${enabled.has('cover') ? html`
+            <div class="preview-dashboard-card cover">
+              <ha-icon .icon=${'mdi:blinds'}></ha-icon>
+              <span>${t('cover.title')}</span>
+            </div>
+          ` : nothing}
           ${enabled.size === 0 ? html`<div class="preview-dashboard-empty">—</div>` : nothing}
         </div>
         <div class="preview-dashboard-navbar">
@@ -4700,6 +5248,7 @@ export class GlassConfigPanel extends LitElement {
       { key: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title' as const, descKey: 'config.dashboard_card_title_desc' as const },
       { key: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather' as const, descKey: 'config.dashboard_card_weather_desc' as const },
       { key: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light' as const, descKey: 'config.dashboard_card_light_desc' as const },
+      { key: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover' as const, descKey: 'config.dashboard_card_cover_desc' as const },
     ];
 
     const enabledSet = new Set(this._dashboardEnabledCards);
@@ -4776,6 +5325,75 @@ export class GlassConfigPanel extends LitElement {
                           aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
                         ></span>
                       </button>
+                    </div>
+                  </div>
+                </div>
+              ` : nothing}
+              ${c.key === 'cover' ? html`
+                <div class="feature-sub ${enabled ? 'open' : ''}">
+                  <div class="feature-sub-inner">
+                    <div class="feature-sub-content">
+                      <button
+                        class="feature-row"
+                        @click=${(e: Event) => { e.stopPropagation(); this._coverShowHeader = !this._coverShowHeader; }}
+                      >
+                        <div class="feature-icon">
+                          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                        </div>
+                        <div class="feature-text">
+                          <div class="feature-name">${t('config.cover_show_header')}</div>
+                          <div class="feature-desc">${t('config.cover_show_header_desc')}</div>
+                        </div>
+                        <span
+                          class="toggle ${this._coverShowHeader ? 'on' : ''}"
+                          role="switch"
+                          aria-checked=${this._coverShowHeader ? 'true' : 'false'}
+                        ></span>
+                      </button>
+                      <div class="section-label" style="margin-top:10px;">${t('config.cover_dashboard_entities')}</div>
+                      <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
+                      <div class="item-list">
+                        ${this._coverDashboardOrder.map((entityId, idx) => {
+                          const allCovers = this._getAllCoverEntities();
+                          const cv = allCovers.find((c) => c.entityId === entityId);
+                          if (!cv) return nothing;
+                          const sel = this._coverDashboardEntities.includes(cv.entityId);
+                          const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_covers';
+                          const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_covers';
+                          const rowClasses = [
+                            'item-row',
+                            !sel ? 'disabled' : '',
+                            isDragging ? 'dragging' : '',
+                            isDropTarget ? 'drop-target' : '',
+                          ].filter(Boolean).join(' ');
+                          return html`
+                            <div
+                              class=${rowClasses}
+                              draggable="true"
+                              @dragstart=${() => this._onDragStart(idx, 'dashboard_covers')}
+                              @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                              @dragleave=${() => this._onDragLeave()}
+                              @drop=${(ev: DragEvent) => this._onDropDashboardCover(idx, ev)}
+                              @dragend=${() => this._onDragEnd()}
+                            >
+                              <span class="drag-handle">
+                                <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                              </span>
+                              <div class="item-info">
+                                <span class="item-name">${cv.name}</span>
+                                <span class="item-meta">${cv.entityId}</span>
+                              </div>
+                              <button
+                                class="toggle ${sel ? 'on' : ''}"
+                                @click=${(e: Event) => { e.stopPropagation(); this._toggleCoverDashboardEntity(cv.entityId); }}
+                                role="switch"
+                                aria-checked=${sel ? 'true' : 'false'}
+                                aria-label="${sel ? t('common.hide') : t('common.show')} ${cv.name}"
+                              ></button>
+                            </div>
+                          `;
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -5815,6 +6433,15 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
               ${t('config.tab_weather')}
             </button>
+            <button
+              class="tab ${this._tab === 'cover' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'cover' ? 'true' : 'false'}
+              @click=${() => this._switchTab('cover')}
+            >
+              <ha-icon .icon=${'mdi:blinds'}></ha-icon>
+              ${t('config.tab_cover')}
+            </button>
           </div>
 
           <div class="preview-encart">
@@ -5829,7 +6456,9 @@ export class GlassConfigPanel extends LitElement {
                     ? this._renderWeatherPreview()
                     : this._tab === 'title'
                       ? this._renderTitlePreview()
-                      : this._renderDashboardPreview()}
+                      : this._tab === 'cover'
+                        ? this._renderCoverPreview()
+                        : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -5842,7 +6471,9 @@ export class GlassConfigPanel extends LitElement {
                   ? this._renderWeatherTab()
                   : this._tab === 'title'
                     ? this._renderTitleTab()
-                    : this._renderDashboardTab()}
+                    : this._tab === 'cover'
+                      ? this._renderCoverTab()
+                      : this._renderDashboardTab()}
         </div>
       </div>
 

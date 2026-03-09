@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title"}
+    {"weather", "light", "title", "cover"}
 )
 
 VALID_MODE_COLORS = frozenset(
@@ -310,6 +310,47 @@ class LightCardConfig:
         return cls(show_header=bool(data.get("show_header", True)))
 
 
+DEFAULT_COVER_PRESETS: list[int] = [0, 25, 50, 75, 100]
+
+
+@dataclass
+class CoverCardConfig:
+    """Configuration for the cover card."""
+
+    show_header: bool = True
+    dashboard_entities: list[str] = field(default_factory=list)
+    presets: list[int] = field(default_factory=lambda: list(DEFAULT_COVER_PRESETS))
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "dashboard_entities": self.dashboard_entities,
+            "presets": self.presets,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CoverCardConfig:
+        """Deserialize from dict."""
+        raw_entities = data.get("dashboard_entities", [])
+        raw_presets = data.get("presets")
+        presets = list(DEFAULT_COVER_PRESETS)
+        if isinstance(raw_presets, list):
+            presets = [
+                x for x in raw_presets
+                if isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 100
+            ]
+            if not presets:
+                presets = list(DEFAULT_COVER_PRESETS)
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            dashboard_entities=[
+                str(x) for x in raw_entities if isinstance(x, str)
+            ],
+            presets=presets,
+        )
+
+
 @dataclass
 class DashboardConfig:
     """Configuration for dashboard card visibility."""
@@ -342,6 +383,7 @@ class GlassCardsData:
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
     weather: WeatherConfig = field(default_factory=WeatherConfig)
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
+    cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
@@ -353,6 +395,7 @@ class GlassCardsData:
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
             "weather": self.weather.to_dict(),
             "light_card": self.light_card.to_dict(),
+            "cover_card": self.cover_card.to_dict(),
             "title_card": self.title_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
@@ -371,6 +414,7 @@ class GlassCardsData:
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
+            cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={

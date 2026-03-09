@@ -13,7 +13,8 @@
     "error_save": "Erreur de sauvegarde",
     "config_saved": "Configuration sauvegardée",
     "entities": "entités",
-    "no_entity": "Aucune entité"
+    "no_entity": "Aucune entité",
+    "delete": "Supprimer"
   },
 
   "light": {
@@ -35,8 +36,7 @@
     "temp_warm": "Chaud",
     "temp_neutral": "Neutre",
     "temp_cold": "Froid",
-    "dashboard_title_one": "1 LUMIÈRE ALLUMÉE",
-    "dashboard_title": "{count} LUMIÈRES ALLUMÉES",
+    "dashboard_title": "LUMIÈRES ALLUMÉES",
     "dashboard_overflow": "et {count} autres…",
     "dashboard_turn_all_off_aria": "Éteindre toutes les lumières de la maison"
   },
@@ -76,6 +76,37 @@
     "cond_windy": "Venteux",
     "cond_windy_variant": "Venteux nuageux",
     "cond_exceptional": "Exceptionnel"
+  },
+
+  "cover": {
+    "title": "VOLETS",
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "opening": "Ouverture…",
+    "closing": "Fermeture…",
+    "position": "Position",
+    "tilt": "Inclinaison",
+    "stop_aria": "Arrêter {name}",
+    "open_aria": "Ouvrir {name}",
+    "close_aria": "Fermer {name}",
+    "toggle_aria": "Basculer {name}",
+    "expand_aria": "Développer les contrôles de {name}",
+    "open_all_aria": "Ouvrir tous les volets",
+    "close_all_aria": "Fermer tous les volets",
+    "preset_open": "Ouvert",
+    "preset_closed": "Fermé",
+    "dashboard_title_one": "1 VOLET OUVERT",
+    "dashboard_title": "{count} VOLETS OUVERTS",
+    "dc_shutter": "Volet",
+    "dc_blind": "Store",
+    "dc_curtain": "Rideau",
+    "dc_garage": "Garage",
+    "dc_gate": "Portail",
+    "dc_door": "Porte",
+    "dc_awning": "Auvent",
+    "dc_shade": "Store",
+    "dc_window": "Fenêtre",
+    "dc_damper": "Clapet"
   },
 
   "title_card": {
@@ -219,6 +250,25 @@
     "dashboard_card_weather_desc": "Affiche la météo actuelle, prévisions et animations",
     "dashboard_card_light": "Carte Lumières",
     "dashboard_card_light_desc": "Affiche les lumières allumées avec contrôle rapide",
-    "dashboard_light_auto": "Les lumières allumées s'affichent automatiquement sur le tableau de bord."
+    "dashboard_light_auto": "Les lumières allumées s'affichent automatiquement sur le tableau de bord.",
+    "dashboard_card_cover": "Carte Volets",
+    "dashboard_card_cover_desc": "Affiche les volets sélectionnés avec contrôle de position",
+
+    "tab_cover": "Carte Volets",
+    "cover_show_header": "Afficher l'en-tête",
+    "cover_show_header_desc": "Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",
+    "cover_dashboard_entities": "Volets du tableau de bord",
+    "cover_dashboard_entities_desc": "Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.",
+    "cover_dashboard_no_entities": "Aucun volet sélectionné pour le tableau de bord.",
+    "cover_room": "Pièce",
+    "cover_room_desc": "Sélectionnez une pièce pour configurer ses volets : ordre et visibilité.",
+    "cover_list_title": "Volets",
+    "cover_list_banner": "Glissez pour réordonner. Désactivez ceux à masquer.",
+    "cover_no_covers": "Aucun volet dans cette pièce.",
+    "cover_select_room": "Sélectionnez une pièce",
+    "cover_presets": "Positions favorites",
+    "cover_presets_desc": "Configurez les boutons de position rapide affichés sous chaque volet.",
+    "cover_preset_add": "Ajouter",
+    "cover_preset_placeholder": "0–100"
   }
 }

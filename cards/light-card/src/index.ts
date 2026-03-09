@@ -194,8 +194,8 @@ export class GlassLightCard extends BaseCard {
         height: 18px;
         padding: 0 5px;
         border-radius: var(--radius-full);
-        font-size: 9px;
-        font-weight: 700;
+        font-size: 10px;
+        font-weight: 600;
         transition: all var(--t-med);
       }
       .card-count.none {
@@ -339,6 +339,7 @@ export class GlassLightCard extends BaseCard {
       }
       .light-icon-btn ha-icon {
         --mdc-icon-size: 18px;
+        display: flex; align-items: center; justify-content: center;
       }
       .light-icon-btn.on {
         background: rgba(251, 191, 36, 0.1);
@@ -805,6 +806,8 @@ export class GlassLightCard extends BaseCard {
     this._throttleTimers.clear();
     this._backend = undefined;
     this._schedulesLoaded = false;
+    this._lightConfigLoaded = false;
+    this._roomConfigLoaded = false;
   }
 
   private async _loadRoomConfig() {
@@ -1033,6 +1036,28 @@ export class GlassLightCard extends BaseCard {
         });
     }
     return [];
+  }
+
+  /** Total number of lights across visible areas (on + off) — dashboard mode only. */
+  private _dashboardTotalCache?: number;
+  private _dashboardTotalEntitiesRef?: unknown;
+
+  private _getDashboardLightTotal(): number {
+    if (!this.hass || !this.hass.entities || !this.hass.devices) return 0;
+    if (this._dashboardTotalCache !== undefined && this._dashboardTotalEntitiesRef === this.hass.entities) {
+      return this._dashboardTotalCache;
+    }
+    const areas = this.visibleAreaIds;
+    if (!areas || areas.length === 0) return 0;
+    const ids = new Set<string>();
+    for (const aId of areas) {
+      for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
+        if (e.entity_id.startsWith('light.')) ids.add(e.entity_id);
+      }
+    }
+    this._dashboardTotalEntitiesRef = this.hass.entities;
+    this._dashboardTotalCache = ids.size;
+    return ids.size;
   }
 
   private _getLightInfos(): LightInfo[] {
@@ -1719,16 +1744,21 @@ export class GlassLightCard extends BaseCard {
     const visible = infos.slice(0, maxVisible);
     const overflow = infos.length - maxVisible;
     const tint = this._computeTint(infos);
-    const titleKey = infos.length === 1 ? 'light.dashboard_title_one' : 'light.dashboard_title';
+    const onCount = infos.length;
+    const totalLights = Math.max(this._getDashboardLightTotal(), onCount);
+    const countClass = onCount === totalLights ? 'all' : 'some';
 
     return html`
       ${this._showHeader ? html`
         <div class="card-header">
           <div class="card-header-left">
-            <span class="card-title">${t(titleKey, { count: String(infos.length) })}</span>
+            <span class="card-title">${t('light.dashboard_title')}</span>
+            <span class="card-count ${countClass}">${onCount}/${totalLights}</span>
           </div>
           <button
             class="toggle-all on"
+            role="switch"
+            aria-checked="true"
             @click=${() => this._turnAllOff()}
             aria-label="${t('light.dashboard_turn_all_off_aria')}"
           ></button>
@@ -1759,10 +1789,18 @@ export class GlassLightCard extends BaseCard {
 
   render() {
     void this._lang;
-    if (this._isDashboardMode) return this._renderDashboard();
+    if (this._isDashboardMode) {
+      const result = this._renderDashboard();
+      this.style.display = result === nothing ? 'none' : '';
+      return result;
+    }
 
     const infos = this._getLightInfos();
-    if (infos.length === 0) return nothing;
+    if (infos.length === 0) {
+      this.style.display = 'none';
+      return nothing;
+    }
+    this.style.display = '';
 
     const onCount = infos.filter((l) => l.isOn).length;
     const total = infos.length;
@@ -1781,6 +1819,8 @@ export class GlassLightCard extends BaseCard {
           <button
             class="toggle-all ${anyOn ? 'on' : ''}"
             @click=${() => this._toggleAll()}
+            role="switch"
+            aria-checked=${anyOn ? 'true' : 'false'}
             aria-label="${anyOn ? t('light.toggle_all_on_aria') : t('light.toggle_all_off_aria')}"
           ></button>
         </div>

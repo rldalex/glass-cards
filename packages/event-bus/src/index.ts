@@ -10,6 +10,7 @@ export interface GlassEventMap {
   'weather-config-changed': undefined;
   'dashboard-config-changed': undefined;
   'light-config-changed': undefined;
+  'cover-config-changed': undefined;
   'title-config-changed': undefined;
   'schedule-changed': { entityId: string };
 }

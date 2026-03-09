@@ -12,6 +12,7 @@ from homeassistant.exceptions import HomeAssistantError, Unauthorized
 from .const import DOMAIN
 from .permissions import can_edit, can_read
 from .models import (
+    DEFAULT_COVER_PRESETS,
     EntitySchedule,
     RoomConfig,
     TitleModeEntry,
@@ -36,6 +37,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_room)
     websocket_api.async_register_command(hass, ws_set_weather)
     websocket_api.async_register_command(hass, ws_set_light_config)
+    websocket_api.async_register_command(hass, ws_set_cover_config)
     websocket_api.async_register_command(hass, ws_set_title_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
     websocket_api.async_register_command(hass, ws_get_schedules)
@@ -290,6 +292,49 @@ async def ws_set_light_config(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.light_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_cover_config",
+        vol.Optional("show_header"): bool,
+        vol.Optional("dashboard_entities"): [
+            vol.All(str, vol.Match(r"^cover\.[\w-]+$"))
+        ],
+        vol.Optional("presets"): vol.All(
+            [vol.All(vol.Coerce(int), vol.Range(min=0, max=100))],
+            vol.Length(min=1),
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_set_cover_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the cover card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.cover_card.show_header = msg["show_header"]
+    if "dashboard_entities" in msg:
+        seen: set[str] = set()
+        deduped_entities: list[str] = []
+        for eid in msg["dashboard_entities"]:
+            if eid not in seen:
+                seen.add(eid)
+                deduped_entities.append(eid)
+        store.data.cover_card.dashboard_entities = deduped_entities
+    if "presets" in msg:
+        deduped = sorted(set(msg["presets"]))
+        store.data.cover_card.presets = deduped if deduped else list(DEFAULT_COVER_PRESETS)
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.cover_card.to_dict())
 
 
 @websocket_api.websocket_command(

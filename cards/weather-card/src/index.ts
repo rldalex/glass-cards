@@ -524,6 +524,8 @@ class GlassWeatherCard extends BaseCard {
     this._canvas = null;
     this._ctx = null;
     this._backend = undefined;
+    this._configLoaded = false;
+    this._configLoadingInProgress = false;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -535,8 +537,7 @@ class GlassWeatherCard extends BaseCard {
         this._configLoaded = false;
         this._unsubForecasts();
       }
-      if (!this._configLoaded) {
-        this._configLoaded = true;
+      if (!this._configLoaded && !this._configLoadingInProgress) {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
@@ -569,8 +570,10 @@ class GlassWeatherCard extends BaseCard {
       if (result?.weather) {
         this._weatherConfig = result.weather;
       }
+      this._configLoaded = true;
+      this._configLoadingInProgress = false;
       this.requestUpdate();
-    } catch { /* ignore */ } finally {
+    } catch {
       this._configLoadingInProgress = false;
     }
   }
