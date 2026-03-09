@@ -128,6 +128,8 @@ export class GlassNavbarCard extends BaseCard {
         max-width: 500px;
         margin: 0 auto;
         padding-bottom: 80px; /* space for fixed navbar */
+        overflow-x: hidden;
+        box-sizing: border-box;
       }
 
       .dashboard-cards {
