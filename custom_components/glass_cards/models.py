@@ -7,13 +7,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 _ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$")
+_HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 VALID_WEATHER_METRICS = frozenset(
     {"humidity", "wind", "pressure", "uv", "visibility", "sunrise", "sunset"}
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light"}
+    {"weather", "light", "title"}
+)
+
+VALID_MODE_COLORS = frozenset(
+    {"neutral", "success", "warning", "info", "accent", "alert"}
 )
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
 
@@ -22,7 +27,7 @@ DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
 class VisibilityPeriod:
     """A date+time visibility period for an entity."""
 
-    start: str  # ISO 8601 "2026-12-01T18:00" or "MM-DDThh:mm" for recurring
+    start: str  # ISO 8601 "YYYY-MM-DDThh:mm"
     end: str
     recurring: bool = False
 
@@ -218,6 +223,70 @@ class WeatherConfig:
 
 
 @dataclass
+class TitleModeEntry:
+    """A single mode entry for the title card."""
+
+    id: str
+    label: str = ""
+    icon: str = ""
+    color: str = "neutral"
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {"id": self.id, "label": self.label, "icon": self.icon, "color": self.color}
+
+    @staticmethod
+    def _validate_color(color: str) -> str:
+        """Accept predefined color names or #rrggbb hex values."""
+        if color in VALID_MODE_COLORS:
+            return color
+        if _HEX_COLOR_RE.match(color):
+            return color.lower()
+        return "neutral"
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> TitleModeEntry:
+        """Deserialize from dict."""
+        return cls(
+            id=str(data.get("id", "")),
+            label=str(data.get("label", "")),
+            icon=str(data.get("icon", "")),
+            color=cls._validate_color(str(data.get("color", "neutral"))),
+        )
+
+
+@dataclass
+class TitleCardConfig:
+    """Configuration for the title card."""
+
+    title: str = ""
+    mode_entity: str = ""
+    modes: list[TitleModeEntry] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "title": self.title,
+            "mode_entity": self.mode_entity,
+            "modes": [m.to_dict() for m in self.modes],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> TitleCardConfig:
+        """Deserialize from dict."""
+        raw_modes = data.get("modes", [])
+        return cls(
+            title=str(data.get("title", "")),
+            mode_entity=str(data.get("mode_entity", "")),
+            modes=[
+                TitleModeEntry.from_dict(m)
+                for m in raw_modes
+                if isinstance(m, dict)
+            ],
+        )
+
+
+@dataclass
 class LightCardConfig:
     """Configuration for the light card."""
 
@@ -265,6 +334,7 @@ class GlassCardsData:
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
     weather: WeatherConfig = field(default_factory=WeatherConfig)
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
+    title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
@@ -275,6 +345,7 @@ class GlassCardsData:
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
             "weather": self.weather.to_dict(),
             "light_card": self.light_card.to_dict(),
+            "title_card": self.title_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -292,6 +363,7 @@ class GlassCardsData:
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
+            title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})

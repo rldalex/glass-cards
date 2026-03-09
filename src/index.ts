@@ -6,6 +6,7 @@ import '../cards/light-card/src/index';
 import '../cards/popup-card/src/index';
 import '../cards/navbar-card/src/index';
 import '../cards/weather-card/src/index';
+import '../cards/title-card/src/index';
 
 installHistoryIntercept();
 getThemeManager();

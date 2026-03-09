@@ -81,7 +81,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     if static_paths:
-        await hass.http.async_register_static_paths(static_paths)
+        try:
+            await hass.http.async_register_static_paths(static_paths)
+        except ValueError:
+            _LOGGER.debug("Static paths already registered, skipping")
 
     # Register sidebar panel (skip if already registered from a previous setup)
     if os.path.isfile(panel_js_path) and "glass-cards" not in hass.data.get("frontend_panels", {}):

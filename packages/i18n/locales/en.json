@@ -78,6 +78,12 @@
     "cond_exceptional": "Exceptional"
   },
 
+  "title_card": {
+    "mode_label": "Mode:",
+    "mode_none": "None",
+    "cycle_aria": "Change mode"
+  },
+
   "editor": {
     "redirect_message": "Glass Cards configuration is managed from the dedicated panel.",
     "open_config": "Open Glass Cards Config"
@@ -183,6 +189,25 @@
     "weather_select_entity": "Select a weather entity",
     "weather_show_header": "Show header",
     "weather_show_header_desc": "Title and location above the card",
+
+    "tab_title": "Title Card",
+    "title_title": "Title text",
+    "title_title_desc": "Main text displayed on the card.",
+    "title_title_placeholder": "My Home",
+    "title_mode_entity": "Mode entity",
+    "title_mode_entity_desc": "Select an input_select or input_boolean to cycle modes.",
+    "title_select_entity": "Select an entity",
+    "title_modes": "Mode configuration",
+    "title_modes_desc": "Customize the label, icon and color for each mode option.",
+    "title_mode_label": "Label",
+    "title_mode_icon": "Icon",
+    "title_mode_color": "Color",
+    "title_color_picker_title": "Choose a color",
+    "title_color_picker_aria": "Open color wheel",
+    "title_no_modes": "Select a mode entity first.",
+
+    "dashboard_card_title": "Title Card",
+    "dashboard_card_title_desc": "Title text with optional mode selector",
 
     "tab_dashboard": "Dashboard",
     "dashboard_title": "Dashboard cards",

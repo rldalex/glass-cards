@@ -276,6 +276,24 @@ class TestSetSchedule:
         assert len(result["periods"]) == 2
 
     @pytest.mark.asyncio
+    async def test_all_periods_invalid_returns_error(self, hass_with_store, mock_connection, mock_store):
+        """Should return error when all periods have start >= end."""
+        await ws_set_schedule(
+            hass_with_store, mock_connection,
+            {
+                "id": 18,
+                "type": "glass_cards/set_schedule",
+                "entity_id": "light.sapin",
+                "periods": [
+                    {"start": "2026-12-31T23:59", "end": "2026-01-01T00:00"},
+                ],
+            },
+        )
+        mock_connection.send_error.assert_called_once()
+        mock_connection.send_result.assert_not_called()
+        mock_store._store.async_save.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_unauthorized(self, hass_with_store, mock_connection, mock_regular_user):
         """Non-edit user should raise Unauthorized."""
         mock_connection.user = mock_regular_user

@@ -101,6 +101,7 @@ const ROOM_ICONS = [
   'mdi:lightbulb', 'mdi:snowflake', 'mdi:fire', 'mdi:lock',
 ];
 
+
 // — Component —
 
 export class GlassConfigPanel extends LitElement {
@@ -109,7 +110,7 @@ export class GlassConfigPanel extends LitElement {
   private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'dashboard' = 'dashboard';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -140,6 +141,21 @@ export class GlassConfigPanel extends LitElement {
   @state() private _weatherShowHourly = true;
   @state() private _weatherShowHeader = true;
   @state() private _weatherDropdownOpen = false;
+
+  // Title card config
+  @state() private _titleText = '';
+  @state() private _titleModeEntity = '';
+  @state() private _titleModes: { id: string; label: string; icon: string; color: string }[] = [];
+  @state() private _titleModeDropdownOpen = false;
+  @state() private _iconPopupModeIdx: number | null = null;
+  @state() private _iconSearch = '';
+  private _iconList: string[] = [];
+
+  // Title color picker
+  @state() private _colorPickerModeIdx: number | null = null;
+  @state() private _colorPickerHex: string = '#ffffff';
+  @state() private _colorPickerPos: { x: number; y: number } = { x: 50, y: 50 };
+  private _cpCanvas: HTMLCanvasElement | null = null;
 
   // Light card config
   @state() private _lightShowHeader = true;
@@ -187,6 +203,9 @@ export class GlassConfigPanel extends LitElement {
     glassTokens,
     glassMixin,
     css`
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
       :host {
         display: block;
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -266,6 +285,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .page-back ha-icon {
         --mdc-icon-size: 18px;
+        display: flex; align-items: center; justify-content: center;
       }
       .page-title {
         font-size: 16px;
@@ -352,6 +372,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .tab ha-icon {
         --mdc-icon-size: 14px;
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Tab panel animation ── */
@@ -406,6 +427,7 @@ export class GlassConfigPanel extends LitElement {
         --mdc-icon-size: 16px;
         color: var(--c-info);
         flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Item rows ── */
@@ -481,6 +503,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .drag-handle ha-icon {
         --mdc-icon-size: 14px;
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Room icon button ── */
@@ -506,6 +529,7 @@ export class GlassConfigPanel extends LitElement {
       .room-icon-btn ha-icon {
         --mdc-icon-size: 16px;
         color: var(--t2);
+        display: flex; align-items: center; justify-content: center;
       }
       @media (hover: hover) and (pointer: fine) {
         .room-icon-btn:hover {
@@ -533,6 +557,7 @@ export class GlassConfigPanel extends LitElement {
       .card-icon-box ha-icon {
         --mdc-icon-size: 18px;
         color: var(--t2);
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Item info ── */
@@ -653,6 +678,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .dropdown-trigger ha-icon {
         --mdc-icon-size: 16px;
+        display: flex; align-items: center; justify-content: center;
       }
       .dropdown-trigger .arrow {
         margin-left: auto;
@@ -718,6 +744,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .dropdown-item ha-icon {
         --mdc-icon-size: 16px;
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Icon picker ── */
@@ -764,6 +791,7 @@ export class GlassConfigPanel extends LitElement {
       .icon-pick ha-icon {
         --mdc-icon-size: 18px;
         color: var(--t2);
+        display: flex; align-items: center; justify-content: center;
       }
       @media (hover: hover) and (pointer: fine) {
         .icon-pick:hover {
@@ -845,6 +873,7 @@ export class GlassConfigPanel extends LitElement {
       .preview-nav-item ha-icon {
         --mdc-icon-size: 18px;
         flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-nav-item.hidden-preview {
         opacity: 0.2;
@@ -996,6 +1025,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-popup-icon-box ha-icon {
         --mdc-icon-size: 15px;
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-popup-icon-box.has-light ha-icon {
         color: var(--c-light-glow);
@@ -1049,6 +1079,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-popup-close ha-icon {
         --mdc-icon-size: 10px;
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* Preview popup scenes */
@@ -1093,6 +1124,7 @@ export class GlassConfigPanel extends LitElement {
       .preview-card-slot ha-icon {
         --mdc-icon-size: 14px;
         color: var(--t3);
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-card-slot-name {
         font-size: 10px;
@@ -1263,6 +1295,7 @@ export class GlassConfigPanel extends LitElement {
       }
       .preview-light-icon ha-icon {
         --mdc-icon-size: 12px;
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-light-icon.on {
         background: rgba(251, 191, 36, 0.1);
@@ -1346,6 +1379,245 @@ export class GlassConfigPanel extends LitElement {
       .pw-card-location {
         font-size: 7px; font-weight: 500; color: var(--t3);
       }
+
+      /* ── Preview title card ── */
+      .preview-title-card {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 4px; padding: 8px 12px; text-align: center;
+      }
+      .preview-title-text {
+        font-size: 16px; font-weight: 700; color: var(--t1);
+        letter-spacing: -0.3px; line-height: 1.2;
+        display: flex; align-items: center; gap: 10px;
+        width: 100%;
+      }
+      .preview-title-text::before, .preview-title-text::after {
+        content: ''; flex: 1; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--b3));
+      }
+      .preview-title-text::after {
+        background: linear-gradient(90deg, var(--b3), transparent);
+      }
+      .preview-title-mode {
+        display: flex; align-items: center; gap: 4px;
+        font-size: 9px;
+      }
+      .preview-title-mode ha-icon {
+        display: flex; align-items: center; justify-content: center;
+      }
+      .preview-title-dot {
+        width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      }
+
+      /* ── Title config styles ── */
+      .title-section-gap {
+        height: 12px;
+      }
+      .title-modes-list {
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .title-mode-row {
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 12px; border-radius: var(--radius-md);
+        background: var(--s1); border: 1px solid var(--b1);
+      }
+      .title-mode-id {
+        font-size: 10px; font-weight: 700; color: var(--t3);
+        text-transform: uppercase; letter-spacing: 0.5px;
+      }
+      .title-color-row {
+        display: flex; align-items: center; gap: 8px;
+      }
+      .title-color-label {
+        font-size: 10px; color: var(--t4); white-space: nowrap;
+      }
+      .title-color-chips {
+        display: flex; gap: 6px; align-items: center;
+      }
+      .title-color-chip {
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 2px solid transparent; cursor: pointer;
+        transition: all var(--t-fast); outline: none;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .title-color-chip:hover { transform: scale(1.1); }
+      }
+      .title-color-chip.neutral { background: var(--t4); }
+      .title-color-chip.success { background: var(--c-success); }
+      .title-color-chip.warning { background: var(--c-warning); }
+      .title-color-chip.info { background: var(--c-info); }
+      .title-color-chip.accent { background: var(--c-accent); }
+      .title-color-chip.alert { background: var(--c-alert); }
+      .title-color-chip.active { border-color: var(--t1); transform: scale(1.15); }
+
+      /* ── Title mode icon picker ── */
+      .title-mode-fields-row {
+        display: flex; gap: 8px; align-items: center;
+      }
+      .title-mode-fields-row .input { flex: 1; min-width: 0; }
+      .title-icon-btn {
+        width: 44px; align-self: stretch; flex-shrink: 0;
+        border-radius: 12px; border: 1px solid var(--b2);
+        background: var(--s1); cursor: pointer; outline: none;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0; font-family: inherit;
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      .title-icon-btn ha-icon {
+        --mdc-icon-size: 20px;
+        color: var(--t3);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .title-icon-btn.has-icon { border-color: var(--b3); }
+      .title-icon-btn.has-icon ha-icon { color: var(--t1); }
+      @media (hover: hover) and (pointer: fine) {
+        .title-icon-btn:hover { background: var(--s3); border-color: var(--b3); }
+      }
+      .title-icon-btn:focus-visible {
+        outline: 2px solid var(--c-accent); outline-offset: -2px;
+      }
+
+      /* ── Icon picker popup (glass) ── */
+      .icon-popup-overlay {
+        position: fixed; inset: 0; z-index: 10000;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex; align-items: center; justify-content: center;
+        padding: 24px;
+        animation: fade-in 0.15s ease-out;
+      }
+      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+      .icon-popup {
+        width: 100%; max-width: 400px; max-height: 70vh;
+        display: flex; flex-direction: column;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+        backdrop-filter: blur(40px) saturate(1.4);
+        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+        border: 1px solid var(--b2);
+        overflow: hidden;
+        animation: popup-in 0.2s var(--ease-out);
+      }
+      @keyframes popup-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      .icon-popup-header {
+        padding: 14px 16px 10px;
+        display: flex; flex-direction: column; gap: 10px;
+        border-bottom: 1px solid var(--b1);
+      }
+      .icon-popup-title {
+        font-size: 11px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 1px; color: var(--t3);
+      }
+      .icon-popup-search {
+        width: 100%; padding: 10px 14px; border-radius: 12px;
+        border: 1px solid var(--b2); background: var(--s1);
+        color: var(--t1); font-family: inherit; font-size: 13px;
+        outline: none; transition: border-color var(--t-fast);
+        box-sizing: border-box;
+      }
+      .icon-popup-search:focus { border-color: var(--b3); }
+      .icon-popup-search::placeholder { color: var(--t4); }
+      .icon-popup-grid-wrap {
+        flex: 1; overflow-y: auto; padding: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--s3) transparent;
+      }
+      .icon-popup-grid {
+        display: grid; grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+      }
+      .icon-popup-grid .icon-pick {
+        aspect-ratio: 1; width: 100%;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .icon-popup-grid .icon-pick ha-icon {
+        display: flex; align-items: center; justify-content: center;
+      }
+      .icon-popup-empty {
+        padding: 24px; text-align: center;
+        font-size: 12px; color: var(--t4);
+      }
+
+      /* ── Color picker popup (glass) ── */
+      .cp-overlay {
+        position: fixed; inset: 0; z-index: 10001;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        animation: cpFadeIn 0.2s ease;
+      }
+      @keyframes cpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .cp-dialog {
+        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+        backdrop-filter: blur(40px) saturate(1.4); -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        border: 1px solid var(--b2); border-radius: var(--radius-xl);
+        padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 14px;
+        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25);
+        max-width: 300px; width: 90vw;
+      }
+      .cp-dialog .cp-title {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1px; color: var(--t3);
+      }
+      .cp-wheel-wrap {
+        position: relative; width: 220px; height: 220px;
+      }
+      .cp-wheel-wrap canvas {
+        width: 100%; height: 100%; border-radius: 50%; cursor: crosshair;
+      }
+      .cp-cursor {
+        position: absolute; width: 22px; height: 22px; border-radius: 50%;
+        border: 3px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
+        pointer-events: none; transform: translate(-50%, -50%);
+        transition: left 0.05s, top 0.05s;
+      }
+      .cp-preview {
+        width: 100%; height: 32px; border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+      }
+      .cp-hex {
+        font-size: 12px; font-weight: 600; color: var(--t2);
+        font-family: monospace; letter-spacing: 0.5px;
+      }
+      .cp-confirm {
+        font-family: inherit; font-size: 12px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.8px; color: var(--t2);
+        background: var(--s2); border: 1px solid var(--b2);
+        border-radius: var(--radius-md); padding: 8px 24px;
+        cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .cp-confirm:hover { background: var(--s3); border-color: var(--b3); }
+      }
+      .cp-confirm:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+
+      /* Color picker button (rainbow ring) */
+      .title-color-picker-btn {
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 2px solid transparent; cursor: pointer; padding: 0;
+        outline: none; background: none; -webkit-tap-highlight-color: transparent;
+        transition: all var(--t-fast); flex-shrink: 0;
+        position: relative;
+      }
+      .title-color-picker-btn::before {
+        content: ''; position: absolute; inset: -2px; border-radius: 50%;
+        background: conic-gradient(
+          hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
+          hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
+        );
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .title-color-picker-btn:hover { transform: scale(1.15); }
+      }
+      .title-color-picker-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+      .title-color-chip.custom {
+        border: 2px solid var(--b3);
+      }
+      .title-color-chip.custom.active {
+        border-color: var(--t1); transform: scale(1.15);
+      }
+
       .preview-weather {
         border-radius: var(--radius-lg);
         background: linear-gradient(
@@ -1562,6 +1834,7 @@ export class GlassConfigPanel extends LitElement {
       .preview-dashboard-navbar ha-icon {
         --mdc-icon-size: 14px;
         color: var(--t3);
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-dashboard-card {
         display: flex;
@@ -1582,6 +1855,7 @@ export class GlassConfigPanel extends LitElement {
       .preview-dashboard-card ha-icon {
         --mdc-icon-size: 16px;
         color: var(--t3);
+        display: flex; align-items: center; justify-content: center;
       }
       .preview-dashboard-card.weather ha-icon {
         color: rgba(251, 191, 36, 0.7);
@@ -1642,6 +1916,7 @@ export class GlassConfigPanel extends LitElement {
       .feature-icon ha-icon {
         --mdc-icon-size: 14px;
         color: var(--t2);
+        display: flex; align-items: center; justify-content: center;
       }
       .feature-text {
         flex: 1;
@@ -1708,6 +1983,7 @@ export class GlassConfigPanel extends LitElement {
       .threshold-icon ha-icon {
         --mdc-icon-size: 14px;
         color: var(--t2);
+        display: flex; align-items: center; justify-content: center;
       }
       .threshold-icon.hot ha-icon { color: var(--c-temp-hot); }
       .threshold-icon.cold ha-icon { color: var(--c-temp-cold); }
@@ -2063,6 +2339,7 @@ export class GlassConfigPanel extends LitElement {
         flex-shrink: 0;
         margin-top: 1px;
         color: var(--c-info);
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── DateTime display trigger ── */
@@ -2429,7 +2706,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleModeDropdownOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -2440,6 +2717,7 @@ export class GlassConfigPanel extends LitElement {
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
+    this._titleModeDropdownOpen = false;
   }
 
   private _tabsEl: HTMLElement | null = null;
@@ -2484,8 +2762,7 @@ export class GlassConfigPanel extends LitElement {
         this._loaded = false;
         this._loading = false;
       }
-      if (this.hass && !this._loaded) {
-        this._loaded = true;
+      if (this.hass && !this._loaded && !this._loading) {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
@@ -2496,7 +2773,10 @@ export class GlassConfigPanel extends LitElement {
     if (!this.hass || this._loading) return;
     this._loading = true;
     try {
-    await this._loadConfigInner();
+      await this._loadConfigInner();
+      this._loaded = true;
+    } catch {
+      this._loaded = false;
     } finally {
       this._loading = false;
     }
@@ -2536,6 +2816,11 @@ export class GlassConfigPanel extends LitElement {
     let lightCardConfig = {
       show_header: true,
     };
+    let titleCardConfig = {
+      title: '',
+      mode_entity: '',
+      modes: [] as { id: string; label: string; icon: string; color: string }[],
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -2544,12 +2829,14 @@ export class GlassConfigPanel extends LitElement {
         rooms: Record<string, { icon?: string | null }>;
         weather: typeof weatherConfig;
         light_card: typeof lightCardConfig;
+        title_card: typeof titleCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
       Object.assign(roomConfigs, result.rooms);
       if (result.weather) weatherConfig = result.weather;
       if (result.light_card) lightCardConfig = result.light_card;
+      if (result.title_card) titleCardConfig = result.title_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -2571,6 +2858,11 @@ export class GlassConfigPanel extends LitElement {
     this._weatherShowHeader = weatherConfig.show_header ?? true;
 
     this._lightShowHeader = lightCardConfig.show_header ?? true;
+
+    this._titleText = titleCardConfig.title ?? '';
+    this._titleModeEntity = titleCardConfig.mode_entity ?? '';
+    this._titleModes = titleCardConfig.modes ?? [];
+
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
@@ -2764,12 +3056,15 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'dashboard') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
+    this._titleModeDropdownOpen = false;
+    this._iconPopupModeIdx = null;
+    this._colorPickerModeIdx = null;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
       this._lightRoom = this._rooms[0].areaId;
       this._loadRoomLights();
@@ -2946,6 +3241,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveLights();
     } else if (this._tab === 'weather') {
       this._saveWeather();
+    } else if (this._tab === 'title') {
+      this._saveTitle();
     } else {
       this._saveDashboard();
     }
@@ -3457,7 +3754,8 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private async _reset() {
-    this._loaded = true;
+    this._loaded = false;
+    this._loading = false;
     await this._loadConfig();
     if (this._lightRoom) {
       this._loadRoomLights();
@@ -4366,10 +4664,15 @@ export class GlassConfigPanel extends LitElement {
     return html`
       <div class="preview-dashboard">
         <div class="preview-dashboard-cards">
+          ${enabled.has('title') ? html`
+            <div class="preview-dashboard-card title">
+              <span style="font-size:11px;font-weight:700;color:var(--t1);">${this._titleText || t('config.title_title_placeholder')}</span>
+            </div>
+          ` : nothing}
           ${enabled.has('weather') ? html`
             <div class="preview-dashboard-card weather">
               <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-              <span>22°</span>
+              <span>${t('weather.title')}</span>
             </div>
           ` : nothing}
           ${enabled.has('light') ? html`
@@ -4391,6 +4694,7 @@ export class GlassConfigPanel extends LitElement {
 
   private _renderDashboardTab() {
     const CARDS = [
+      { key: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title' as const, descKey: 'config.dashboard_card_title_desc' as const },
       { key: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather' as const, descKey: 'config.dashboard_card_weather_desc' as const },
       { key: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light' as const, descKey: 'config.dashboard_card_light_desc' as const },
     ];
@@ -4925,6 +5229,475 @@ export class GlassConfigPanel extends LitElement {
     } catch { /* ignore */ }
   }
 
+  // — Title card config —
+
+  private async _saveTitle() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_title_config', {
+        title: this._titleText,
+        mode_entity: this._titleModeEntity || null,
+        modes: this._titleModes,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('title-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  private async _loadTitleConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        title_card: { title: string; mode_entity: string; modes: { id: string; label: string; icon: string; color: string }[] };
+      }>('get_config');
+      if (result?.title_card) {
+        this._titleText = result.title_card.title ?? '';
+        this._titleModeEntity = result.title_card.mode_entity ?? '';
+        this._titleModes = result.title_card.modes ?? [];
+      }
+    } catch { /* ignore */ }
+  }
+
+  private _selectTitleModeEntity(entityId: string) {
+    this._titleModeEntity = entityId;
+    this._titleModeDropdownOpen = false;
+    // Auto-populate modes from input_select options
+    if (entityId.startsWith('input_select.') && this.hass) {
+      const entity = this.hass.states[entityId];
+      if (entity) {
+        const options = (entity.attributes.options as string[] | undefined) ?? [];
+        // Keep existing mode configs for matching IDs, add new ones
+        const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
+        this._titleModes = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
+      }
+    } else if (!entityId) {
+      this._titleModes = [];
+    }
+  }
+
+  private _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) {
+    const modes = [...this._titleModes];
+    if (!modes[idx]) return;
+    modes[idx] = { ...modes[idx], [field]: value };
+    this._titleModes = modes;
+  }
+
+  private _iconLoading = false;
+
+  private async _openIconPopup(modeIdx: number) {
+    if (this._iconLoading) return;
+    if (this._iconList.length === 0) {
+      this._iconLoading = true;
+      // Try to get the full MDI list from HA via a temporary ha-icon-picker
+      const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
+      picker.hass = this.hass;
+      picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
+      try {
+        this.shadowRoot!.appendChild(picker);
+        await new Promise((r) => setTimeout(r, 50));
+        const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
+        if (gp?.getItems) {
+          const items = await gp.getItems();
+          if (items?.length) {
+            this._iconList = items.map((i) => i.id);
+          }
+        }
+      } catch { /* ignore */ } finally {
+        if (this.shadowRoot!.contains(picker)) {
+          this.shadowRoot!.removeChild(picker);
+        }
+        this._iconLoading = false;
+      }
+    }
+    if (modeIdx < this._titleModes.length) {
+      this._iconSearch = '';
+      this._iconPopupModeIdx = modeIdx;
+    }
+  }
+
+  private _getFilteredIcons(): string[] {
+    const query = this._iconSearch.toLowerCase().trim();
+    const list = this._iconList;
+    if (!query) return list.slice(0, 120);
+    return list.filter((icon) => icon.toLowerCase().includes(query)).slice(0, 120);
+  }
+
+  private _renderIconPopup() {
+    if (this._iconPopupModeIdx === null) return nothing;
+    const icons = this._getFilteredIcons();
+    const currentIcon = this._titleModes[this._iconPopupModeIdx]?.icon ?? '';
+
+    return html`
+      <div class="icon-popup-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) this._iconPopupModeIdx = null; }}>
+        <div class="icon-popup">
+          <div class="icon-popup-header">
+            <span class="icon-popup-title">${t('config.title_mode_icon')}</span>
+            <input
+              class="icon-popup-search"
+              type="text"
+              placeholder=${'mdi:...'}
+              .value=${this._iconSearch}
+              @input=${(e: Event) => { this._iconSearch = (e.target as HTMLInputElement).value; }}
+            />
+          </div>
+          <div class="icon-popup-grid-wrap">
+            ${icons.length > 0 ? html`
+              <div class="icon-popup-grid">
+                ${icons.map((icon) => html`
+                  <button
+                    class="icon-pick ${icon === currentIcon ? 'selected' : ''}"
+                    @click=${() => {
+                      this._updateTitleMode(this._iconPopupModeIdx!, 'icon', icon);
+                      this._iconPopupModeIdx = null;
+                    }}
+                    aria-label=${icon}
+                  >
+                    <ha-icon .icon=${icon}></ha-icon>
+                  </button>
+                `)}
+              </div>
+            ` : html`<div class="icon-popup-empty">Aucune icône trouvée</div>`}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderTitlePreview() {
+    const title = this._titleText;
+    if (!title) {
+      return html`<div class="preview-empty">${t('config.title_title_placeholder')}</div>`;
+    }
+
+    // Get active mode if entity is configured
+    let activeLabel = '';
+    let activeIcon = '';
+    let activeColor = 'neutral';
+    if (this._titleModeEntity && this.hass) {
+      const entity = this.hass.states[this._titleModeEntity];
+      if (entity && this._titleModeEntity.startsWith('input_select.')) {
+        const currentOption = entity.state;
+        const modeConfig = this._titleModes.find((m) => m.id === currentOption);
+        activeLabel = modeConfig?.label || currentOption;
+        activeIcon = modeConfig?.icon || '';
+        activeColor = modeConfig?.color || 'neutral';
+      }
+    }
+
+    const COLOR_MAP: Record<string, string> = {
+      success: 'var(--c-success)', warning: 'var(--c-warning)',
+      info: 'var(--c-info)', accent: 'var(--c-accent)',
+      alert: 'var(--c-alert)', neutral: 'var(--t3)',
+    };
+    const DOT_MAP: Record<string, string> = {
+      success: 'var(--c-success)', warning: 'var(--c-warning)',
+      info: 'var(--c-info)', accent: 'var(--c-accent)',
+      alert: 'var(--c-alert)', neutral: 'var(--t4)',
+    };
+
+    return html`
+      <div class="preview-title-card">
+        <div class="preview-title-text">${title}</div>
+        ${activeLabel ? html`
+          <div class="preview-title-mode">
+            <div class="preview-title-dot" style="background:${DOT_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t4)')};"></div>
+            ${activeIcon ? html`<ha-icon .icon=${activeIcon} style="--mdc-icon-size:12px;color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};"></ha-icon>` : nothing}
+            <span style="color:var(--t4);font-size:9px;">Mode :</span>
+            <span style="color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};font-size:9px;font-weight:600;">${activeLabel}</span>
+            <ha-icon .icon=${'mdi:chevron-right'} style="--mdc-icon-size:11px;color:var(--t4);"></ha-icon>
+          </div>
+        ` : nothing}
+      </div>
+    `;
+  }
+
+  // — Title color picker (chromatic wheel) —
+
+  private _openColorPicker(modeIdx: number) {
+    if (modeIdx >= this._titleModes.length) return;
+    const currentColor = this._titleModes[modeIdx].color;
+    if (currentColor.startsWith('#') && currentColor.length === 7) {
+      this._colorPickerHex = currentColor;
+      this._colorPickerPos = this._hexToWheelPos(currentColor);
+    } else {
+      this._colorPickerHex = '#ffffff';
+      this._colorPickerPos = { x: 50, y: 50 };
+    }
+    this._colorPickerModeIdx = modeIdx;
+    this.updateComplete.then(() => {
+      const canvas = this.shadowRoot?.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
+      if (canvas) {
+        this._cpCanvas = canvas;
+        this._drawColorWheel(canvas);
+      }
+    });
+  }
+
+  private _closeColorPicker() {
+    this._colorPickerModeIdx = null;
+    this._cpCanvas = null;
+  }
+
+  private _applyColorPicker() {
+    if (this._colorPickerModeIdx !== null && this._colorPickerModeIdx < this._titleModes.length) {
+      this._updateTitleMode(this._colorPickerModeIdx, 'color', this._colorPickerHex);
+    }
+    this._closeColorPicker();
+  }
+
+  private _onCpWheel(e: MouseEvent | TouchEvent) {
+    const canvas = this._cpCanvas;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left - rect.width / 2;
+    const y = clientY - rect.top - rect.height / 2;
+    const radius = rect.width / 2;
+    const dist = Math.sqrt(x * x + y * y);
+    if (dist > radius) return;
+    const angle = Math.atan2(y, x);
+    const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
+    const sat = Math.min(dist / radius, 1);
+    const rgb = this._hslToRgb(hue, sat, 0.5);
+    this._colorPickerHex = '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
+    this._colorPickerPos = { x: x / radius * 50 + 50, y: y / radius * 50 + 50 };
+  }
+
+  private _drawColorWheel(canvas: HTMLCanvasElement) {
+    const size = 440;
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const cx = size / 2, cy = size / 2, r = size / 2;
+    for (let angle = 0; angle < 360; angle++) {
+      const start = ((angle - 1) * Math.PI) / 180;
+      const end = ((angle + 1) * Math.PI) / 180;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, `hsl(${angle}, 0%, 100%)`);
+      grad.addColorStop(0.5, `hsl(${angle}, 100%, 50%)`);
+      grad.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, end);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }
+
+  private _hslToRgb(h: number, s: number, l: number): [number, number, number] {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; }
+    else if (h < 120) { r = x; g = c; }
+    else if (h < 180) { g = c; b = x; }
+    else if (h < 240) { g = x; b = c; }
+    else if (h < 300) { r = x; b = c; }
+    else { r = c; b = x; }
+    return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+  }
+
+  private _hexToWheelPos(hex: string): { x: number; y: number } {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d + 6) % 6 * 60;
+      else if (max === g) h = ((b - r) / d + 2) * 60;
+      else h = ((r - g) / d + 4) * 60;
+    }
+    const sat = d === 0 ? 0 : d / (1 - Math.abs(max + min - 1));
+    const dist = Math.min(sat, 1);
+    const rad = (h * Math.PI) / 180;
+    return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };
+  }
+
+  private _renderColorPicker() {
+    if (this._colorPickerModeIdx === null) return nothing;
+    const hex = this._colorPickerHex;
+    return html`
+      <div class="cp-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) this._closeColorPicker(); }}>
+        <div class="cp-dialog">
+          <span class="cp-title">${t('config.title_color_picker_title')}</span>
+          <div class="cp-wheel-wrap">
+            <canvas
+              @mousedown=${(e: MouseEvent) => {
+                this._onCpWheel(e);
+                const onMove = (me: MouseEvent) => this._onCpWheel(me);
+                const onUp = () => {
+                  window.removeEventListener('mousemove', onMove);
+                  window.removeEventListener('mouseup', onUp);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+              }}
+              @touchstart=${(e: TouchEvent) => {
+                e.preventDefault();
+                this._onCpWheel(e);
+                const onMove = (te: TouchEvent) => { te.preventDefault(); this._onCpWheel(te); };
+                const onEnd = () => {
+                  window.removeEventListener('touchmove', onMove);
+                  window.removeEventListener('touchend', onEnd);
+                };
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onEnd);
+              }}
+            ></canvas>
+            <div class="cp-cursor" style="left:${this._colorPickerPos.x}%;top:${this._colorPickerPos.y}%;background:${hex}"></div>
+          </div>
+          <div class="cp-preview" style="background:${hex}"></div>
+          <span class="cp-hex">${hex}</span>
+          <button class="cp-confirm" @click=${() => this._applyColorPicker()}>
+            ${t('common.select')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderTitleTab() {
+    const modeEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.') || id.startsWith('input_boolean.')).sort()
+      : [];
+    const selectedEntity = modeEntities.find((id) => id === this._titleModeEntity);
+
+    const COLORS = ['neutral', 'success', 'warning', 'info', 'accent', 'alert'];
+
+    return html`
+      <div class="tab-panel" id="panel-title">
+        <div class="section-label">${t('config.title_title')}</div>
+        <div class="section-desc">${t('config.title_title_desc')}</div>
+        <input
+          class="input"
+          type="text"
+          .value=${this._titleText}
+          placeholder=${t('config.title_title_placeholder')}
+          @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
+        />
+
+        <div class="title-section-gap"></div>
+
+        <div class="section-label">${t('config.title_mode_entity')}</div>
+        <div class="section-desc">${t('config.title_mode_entity_desc')}</div>
+        <div class="dropdown ${this._titleModeDropdownOpen ? 'open' : ''}">
+          <button
+            class="dropdown-trigger"
+            @click=${() => (this._titleModeDropdownOpen = !this._titleModeDropdownOpen)}
+            aria-expanded=${this._titleModeDropdownOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+          >
+            <ha-icon .icon=${this._titleModeEntity ? 'mdi:form-select' : 'mdi:help-circle-outline'}></ha-icon>
+            <span>${selectedEntity || t('config.title_select_entity')}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          <div class="dropdown-menu" role="listbox">
+            <button
+              class="dropdown-item ${!this._titleModeEntity ? 'active' : ''}"
+              role="option"
+              aria-selected=${!this._titleModeEntity ? 'true' : 'false'}
+              @click=${() => this._selectTitleModeEntity('')}
+            >
+              <ha-icon .icon=${'mdi:close'}></ha-icon>
+              ${t('title_card.mode_none')}
+            </button>
+            ${modeEntities.map(
+              (id) => html`
+                <button
+                  class="dropdown-item ${id === this._titleModeEntity ? 'active' : ''}"
+                  role="option"
+                  aria-selected=${id === this._titleModeEntity ? 'true' : 'false'}
+                  @click=${() => this._selectTitleModeEntity(id)}
+                >
+                  <ha-icon .icon=${id.startsWith('input_select.') ? 'mdi:form-select' : 'mdi:toggle-switch'}></ha-icon>
+                  ${id}
+                </button>
+              `,
+            )}
+          </div>
+        </div>
+
+        ${this._titleModes.length > 0 ? html`
+          <div class="title-section-gap"></div>
+
+          <div class="section-label">${t('config.title_modes')}</div>
+          <div class="section-desc">${t('config.title_modes_desc')}</div>
+          <div class="title-modes-list">
+            ${this._titleModes.map((mode, idx) => html`
+              <div class="title-mode-row">
+                <span class="title-mode-id">${mode.id}</span>
+                <div class="title-mode-fields-row">
+                  <input
+                    class="input"
+                    type="text"
+                    placeholder=${t('config.title_mode_label')}
+                    .value=${mode.label}
+                    @input=${(e: Event) => this._updateTitleMode(idx, 'label', (e.target as HTMLInputElement).value)}
+                  />
+                  <button
+                    class="title-icon-btn ${mode.icon ? 'has-icon' : ''}"
+                    @click=${() => this._openIconPopup(idx)}
+                    aria-label="${t('config.title_mode_icon')}"
+                  >
+                    <ha-icon .icon=${mode.icon || 'mdi:emoticon-outline'}></ha-icon>
+                  </button>
+                </div>
+                <div class="title-color-row">
+                  <span class="title-color-label">${t('config.title_mode_color')}</span>
+                  <div class="title-color-chips">
+                    ${COLORS.map((c) => html`
+                      <button
+                        class="title-color-chip ${c} ${mode.color === c ? 'active' : ''}"
+                        @click=${() => this._updateTitleMode(idx, 'color', c)}
+                        aria-label="${t('config.title_mode_color')}: ${c}"
+                      ></button>
+                    `)}
+                    ${mode.color.startsWith('#') ? html`
+                      <button
+                        class="title-color-chip custom active"
+                        style="background:${mode.color}"
+                        @click=${() => this._openColorPicker(idx)}
+                        aria-label="${t('config.title_color_picker_aria')}"
+                      ></button>
+                    ` : nothing}
+                    <button
+                      class="title-color-picker-btn"
+                      @click=${() => this._openColorPicker(idx)}
+                      aria-label="${t('config.title_color_picker_aria')}"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            `)}
+          </div>
+        ` : nothing}
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadTitleConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   // — Main render —
 
   render() {
@@ -4952,6 +5725,15 @@ export class GlassConfigPanel extends LitElement {
             >
               <ha-icon .icon=${'mdi:view-dashboard'}></ha-icon>
               ${t('config.tab_dashboard')}
+            </button>
+            <button
+              class="tab ${this._tab === 'title' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'title' ? 'true' : 'false'}
+              @click=${() => this._switchTab('title')}
+            >
+              <ha-icon .icon=${'mdi:format-title'}></ha-icon>
+              ${t('config.tab_title')}
             </button>
             <button
               class="tab ${this._tab === 'navbar' ? 'active' : ''}"
@@ -5001,7 +5783,9 @@ export class GlassConfigPanel extends LitElement {
                   ? this._renderLightPreview()
                   : this._tab === 'weather'
                     ? this._renderWeatherPreview()
-                    : this._renderDashboardPreview()}
+                    : this._tab === 'title'
+                      ? this._renderTitlePreview()
+                      : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -5012,11 +5796,15 @@ export class GlassConfigPanel extends LitElement {
                 ? this._renderLightTab()
                 : this._tab === 'weather'
                   ? this._renderWeatherTab()
-                  : this._renderDashboardTab()}
+                  : this._tab === 'title'
+                    ? this._renderTitleTab()
+                    : this._renderDashboardTab()}
         </div>
       </div>
 
       ${this._pickerOpen ? this._renderDateTimePicker() : nothing}
+      ${this._renderIconPopup()}
+      ${this._renderColorPicker()}
 
       <div class="toast ${this._toast ? 'show' : ''} ${this._toastError ? 'error' : ''}">
         ${this._toastError ? t('common.error_save') : t('common.config_saved')}

@@ -18,6 +18,7 @@ export type TranslationKey =
   | `light.${keyof typeof fr.light}`
   | `weather.${keyof typeof fr.weather}`
   | `popup.${keyof typeof fr.popup}`
+  | `title_card.${keyof typeof fr.title_card}`
   | `editor.${keyof typeof fr.editor}`
   | `config.${keyof typeof fr.config}`;
 

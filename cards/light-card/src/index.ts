@@ -540,6 +540,7 @@ export class GlassLightCard extends BaseCard {
       .slider-lbl ha-icon {
         --mdc-icon-size: 16px;
         opacity: 0.6;
+        display: flex; align-items: center; justify-content: center;
       }
       .slider-val {
         position: absolute;
@@ -887,6 +888,7 @@ export class GlassLightCard extends BaseCard {
       this._backend = undefined;
       this._roomConfigLoaded = false;
       this._schedulesLoaded = false;
+      this._lightConfigLoaded = false;
     }
 
     // Load schedules
@@ -1729,6 +1731,7 @@ export class GlassLightCard extends BaseCard {
   // — Main Render —
 
   render() {
+    void this._lang;
     if (this._isDashboardMode) return this._renderDashboard();
 
     const infos = this._getLightInfos();

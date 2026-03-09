@@ -78,6 +78,12 @@
     "cond_exceptional": "Exceptionnel"
   },
 
+  "title_card": {
+    "mode_label": "Mode :",
+    "mode_none": "Aucun",
+    "cycle_aria": "Changer de mode"
+  },
+
   "editor": {
     "redirect_message": "La configuration de Glass Cards se fait depuis le panneau dédié.",
     "open_config": "Ouvrir Glass Cards Config"
@@ -183,6 +189,25 @@
     "weather_select_entity": "Sélectionnez une entité météo",
     "weather_show_header": "Afficher l'en-tête",
     "weather_show_header_desc": "Titre et localisation au-dessus de la carte",
+
+    "tab_title": "Carte Titre",
+    "title_title": "Texte du titre",
+    "title_title_desc": "Texte principal affiché sur la carte.",
+    "title_title_placeholder": "Ma Maison",
+    "title_mode_entity": "Entité mode",
+    "title_mode_entity_desc": "Sélectionnez un input_select ou input_boolean pour les modes.",
+    "title_select_entity": "Sélectionnez une entité",
+    "title_modes": "Configuration des modes",
+    "title_modes_desc": "Personnalisez le libellé, l'icône et la couleur de chaque mode.",
+    "title_mode_label": "Libellé",
+    "title_mode_icon": "Icône",
+    "title_mode_color": "Couleur",
+    "title_color_picker_title": "Choisir une couleur",
+    "title_color_picker_aria": "Ouvrir la roue chromatique",
+    "title_no_modes": "Sélectionnez d'abord une entité mode.",
+
+    "dashboard_card_title": "Carte Titre",
+    "dashboard_card_title_desc": "Texte titre avec sélecteur de mode optionnel",
 
     "tab_dashboard": "Tableau de bord",
     "dashboard_title": "Cartes du tableau de bord",

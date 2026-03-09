@@ -14,8 +14,10 @@ from .permissions import can_edit, can_read
 from .models import (
     EntitySchedule,
     RoomConfig,
+    TitleModeEntry,
     VisibilityPeriod,
     VALID_DASHBOARD_CARDS,
+    VALID_MODE_COLORS,
     VALID_WEATHER_METRICS,
 )
 
@@ -34,6 +36,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_room)
     websocket_api.async_register_command(hass, ws_set_weather)
     websocket_api.async_register_command(hass, ws_set_light_config)
+    websocket_api.async_register_command(hass, ws_set_title_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
@@ -291,6 +294,51 @@ async def ws_set_light_config(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "glass_cards/set_title_config",
+        vol.Optional("title"): str,
+        vol.Optional("mode_entity"): vol.Any(
+            None, "", vol.All(str, vol.Match(r"^[a-z_]+\.[a-z0-9_]+$"))
+        ),
+        vol.Optional("modes"): [
+            {
+                vol.Required("id"): str,
+                vol.Optional("label", default=""): str,
+                vol.Optional("icon", default=""): str,
+                vol.Optional("color", default="neutral"): vol.Any(
+                    vol.In(list(VALID_MODE_COLORS)),
+                    vol.Match(r"^#[0-9a-fA-F]{6}$"),
+                ),
+            }
+        ],
+    }
+)
+@websocket_api.async_response
+async def ws_set_title_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the title card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "title" in msg:
+        store.data.title_card.title = msg["title"]
+    if "mode_entity" in msg:
+        store.data.title_card.mode_entity = msg["mode_entity"] or ""
+    if "modes" in msg:
+        store.data.title_card.modes = [
+            TitleModeEntry.from_dict(m) for m in msg["modes"]
+        ]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.title_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "glass_cards/set_dashboard",
         vol.Optional("enabled_cards"): [vol.In(list(VALID_DASHBOARD_CARDS))],
     }
@@ -372,21 +420,33 @@ async def ws_set_schedule(
 
     if not raw_periods:
         # Empty periods = remove schedule
-        store.data.entity_schedules.pop(entity_id, None)
-    else:
-        valid_periods = [
-            p for p in raw_periods
-            if p["start"] and p["end"] and p["start"] < p["end"]
-        ]
-        periods = [
-            VisibilityPeriod(
-                start=p["start"], end=p["end"], recurring=p.get("recurring", False)
-            )
-            for p in valid_periods
-        ]
-        store.data.entity_schedules[entity_id] = EntitySchedule(
-            entity_id=entity_id, periods=periods
+        removed = store.data.entity_schedules.pop(entity_id, None)
+        if removed is not None:
+            await store.async_save()
+        connection.send_result(
+            msg["id"], {"entity_id": entity_id, "periods": []}
         )
+        return
+
+    valid_periods = [
+        p for p in raw_periods
+        if p["start"] and p["end"] and p["start"] < p["end"]
+    ]
+    if not valid_periods:
+        connection.send_error(
+            msg["id"], "invalid_input",
+            "All periods were rejected (start must be before end)"
+        )
+        return
+    periods = [
+        VisibilityPeriod(
+            start=p["start"], end=p["end"], recurring=p.get("recurring", False)
+        )
+        for p in valid_periods
+    ]
+    store.data.entity_schedules[entity_id] = EntitySchedule(
+        entity_id=entity_id, periods=periods
+    )
 
     await store.async_save()
     schedule = store.data.entity_schedules.get(entity_id)

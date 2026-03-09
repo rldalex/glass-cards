@@ -9,7 +9,7 @@ import {
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
-import { setLanguage } from '@glass-cards/i18n';
+import { t } from '@glass-cards/i18n';
 import './editor';
 
 function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
@@ -50,10 +50,11 @@ function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
 const DASHBOARD_CARD_MAP: Record<string, string> = {
   weather: 'glass-weather-card',
   light: 'glass-light-card',
+  title: 'glass-title-card',
 };
 
 /** Render order for dashboard cards */
-const DASHBOARD_CARD_ORDER = ['weather', 'light'];
+const DASHBOARD_CARD_ORDER = ['title', 'weather', 'light'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -204,6 +205,7 @@ export class GlassNavbarCard extends BaseCard {
         --mdc-icon-size: 22px;
         flex-shrink: 0;
         transition: color var(--t-fast);
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* 1. Pulse-light: oscillating glow on lights-on icons */
@@ -378,6 +380,25 @@ export class GlassNavbarCard extends BaseCard {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
       }
+
+      /* Settings button — always last in scroll */
+      .nav-settings {
+        margin-left: auto;
+      }
+      .nav-settings ha-icon {
+        --mdc-icon-size: 20px;
+        color: var(--t4);
+        transition: color var(--t-fast);
+        display: flex; align-items: center; justify-content: center;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .nav-settings:hover ha-icon {
+          color: var(--t2);
+        }
+      }
+      .nav-settings:active ha-icon {
+        color: var(--t1);
+      }
     `,
   ];
 
@@ -462,9 +483,15 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   updated(changedProps: PropertyValues) {
-    // Update global language singleton without setting _lang (no re-render needed)
+    super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {
-      if (this.hass.language) setLanguage(this.hass.language);
+      // Always propagate hass to imperatively managed children
+      if (this._popup) {
+        (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
+      }
+      for (const card of this._dashboardCards.values()) {
+        (card as unknown as { hass: HomeAssistant }).hass = this.hass;
+      }
       this._editMode = this._detectEditMode();
       if (this._editMode) return;
       // Invalidate backend on WS reconnect
@@ -481,13 +508,6 @@ export class GlassNavbarCard extends BaseCard {
         this._aggregateState();
       }
       this._updateAmbient();
-      if (this._popup) {
-        (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
-      }
-      // Propagate hass to dashboard card children
-      for (const card of this._dashboardCards.values()) {
-        (card as unknown as { hass: HomeAssistant }).hass = this.hass;
-      }
     }
     if (changedProps.has('_items') || changedProps.has('_enabledCards')) {
       this.updateComplete.then(() => {
@@ -797,7 +817,7 @@ export class GlassNavbarCard extends BaseCard {
     // Remove cards no longer enabled (collect first to avoid Map mutation during iteration)
     const toRemove: string[] = [];
     for (const [tag] of this._dashboardCards) {
-      const key = Object.entries(DASHBOARD_CARD_MAP).find(([, t]) => t === tag)?.[0];
+      const key = Object.entries(DASHBOARD_CARD_MAP).find(([, cardTag]) => cardTag === tag)?.[0];
       if (!key || !enabledSet.has(key)) toRemove.push(tag);
     }
     for (const tag of toRemove) {
@@ -820,6 +840,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   render() {
+    void this._lang;
     // Always render the dashboard-cards container — it holds imperatively managed children
     // that would be destroyed if render() returned nothing
     const showNavbar = !this._editMode && this._items.length > 0;
@@ -828,7 +849,18 @@ export class GlassNavbarCard extends BaseCard {
       <div class="dashboard-cards"></div>
       ${showNavbar
         ? html`<nav class="navbar glass glass-float">
-            <div class=${scrollClass}>${this._items.map((item) => this._renderNavItem(item))}</div>
+            <div class=${scrollClass}>
+              ${this._items.map((item) => this._renderNavItem(item))}
+              <button
+                class="nav-item nav-settings"
+                @click=${() => { history.pushState(null, '', '/glass-cards'); window.dispatchEvent(new Event('location-changed')); }}
+                aria-label=${t('config.title')}
+              >
+                <span class="nav-content">
+                  <ha-icon .icon=${'mdi:cog'}></ha-icon>
+                </span>
+              </button>
+            </div>
           </nav>`
         : nothing}
     `;
