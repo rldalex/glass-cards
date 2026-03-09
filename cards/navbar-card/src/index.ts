@@ -53,10 +53,11 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
   cover: 'glass-cover-card',
   title: 'glass-title-card',
   spotify: 'glass-spotify-card',
+  media: 'glass-media-card',
 };
 
 /** Default render order for dashboard cards */
-const DEFAULT_CARD_ORDER = ['title', 'weather', 'light', 'cover', 'spotify'];
+const DEFAULT_CARD_ORDER = ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;

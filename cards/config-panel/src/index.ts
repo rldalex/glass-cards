@@ -63,7 +63,7 @@ interface SchedulePeriodEdit {
 const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
 
 // Domains with an actual card implementation — others are planned for later phases
-const IMPLEMENTED_CARDS = new Set(['light', 'cover']);
+const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'cover']);
 
 const CARD_ICONS: Record<string, string> = {
   light: 'mdi:lightbulb-group',
@@ -110,7 +110,7 @@ export class GlassConfigPanel extends LitElement {
   private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'dashboard' = 'dashboard';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -172,6 +172,10 @@ export class GlassConfigPanel extends LitElement {
   @state() private _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
   @state() private _coverPresetInput = '';
   @state() private _coverEntityPresetInput: Record<string, string> = {};
+
+  // Media card config
+  @state() private _mediaShowHeader = true;
+  @state() private _mediaExtraEntities: Record<string, string[]> = {};
 
   // Spotify config
   @state() private _spotifyShowHeader = true;
@@ -1194,6 +1198,114 @@ export class GlassConfigPanel extends LitElement {
         text-align: center;
         padding: 12px 0;
       }
+
+      /* Variant picker */
+      .variant-picker {
+        display: flex; gap: 6px; margin-top: 6px;
+      }
+
+      /* Preview media hero card */
+      .media-preview {
+        position: relative; overflow: hidden;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        border: 1px solid var(--b2);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+        min-height: 180px;
+        display: flex; flex-direction: column;
+        padding: 10px 12px;
+      }
+      .mp-deco {
+        position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      }
+      .mp-deco::before {
+        content: ''; position: absolute;
+        width: 120px; height: 120px; border-radius: 50%;
+        top: -40px; right: -25px;
+        background: radial-gradient(circle, rgba(255,255,255,0.04), transparent 70%);
+      }
+      .mp-deco::after {
+        content: ''; position: absolute;
+        width: 90px; height: 90px; border-radius: 50%;
+        bottom: -25px; left: -20px;
+        background: radial-gradient(circle, rgba(255,255,255,0.02), transparent 70%);
+      }
+      .mp-top {
+        display: flex; align-items: center; justify-content: space-between;
+        position: relative; z-index: 1;
+      }
+      .mp-speaker {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 7px 2px 4px;
+        border-radius: 9999px;
+        background: var(--s1); border: 1px solid var(--b1);
+        font-size: 8px; font-weight: 600; color: var(--t3);
+      }
+      .mp-speaker ha-icon { --mdc-icon-size: 10px; display: flex; align-items: center; justify-content: center; }
+      .mp-eq {
+        display: flex; align-items: flex-end; gap: 1.5px;
+        height: 10px; margin-left: 4px;
+      }
+      .mp-eq-bar {
+        width: 2px; border-radius: 1px;
+        background: rgba(129,140,248,0.7);
+        animation: mp-eq-bounce 0.8s ease-in-out infinite alternate;
+      }
+      .mp-eq-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
+      .mp-eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; }
+      .mp-eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; }
+      @keyframes mp-eq-bounce { 0% { height: 20%; } 100% { height: 100%; } }
+      .mp-spacer { flex: 1; }
+      .mp-track {
+        position: relative; z-index: 1;
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .mp-track-title {
+        font-size: 14px; font-weight: 700; color: var(--t1); line-height: 1.15;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+      }
+      .mp-track-artist {
+        font-size: 10px; font-weight: 500; color: var(--t2);
+      }
+      .mp-track-meta {
+        display: flex; align-items: center; gap: 6px; margin-top: 1px;
+      }
+      .mp-track-time { font-size: 8px; color: var(--t4); font-variant-numeric: tabular-nums; }
+      .mp-track-source {
+        font-size: 6px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.4px; color: var(--t4);
+        padding: 1px 4px; border-radius: 3px; background: var(--s2);
+      }
+      .mp-progress {
+        position: relative; width: 100%; height: 3px;
+        border-radius: 1.5px; background: var(--s2); margin-top: 6px;
+      }
+      .mp-progress-fill {
+        position: absolute; top: 0; left: 0; height: 100%; width: 67%;
+        border-radius: inherit;
+        background: rgba(129,140,248,0.8);
+        box-shadow: 0 0 6px rgba(129,140,248,0.4);
+      }
+      .mp-transport {
+        position: relative; z-index: 1;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        margin-top: 8px;
+      }
+      .mp-btn {
+        width: 24px; height: 24px; border-radius: 6px;
+        background: transparent; border: none;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t3); padding: 0;
+      }
+      .mp-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
+      .mp-btn.skip { width: 28px; height: 28px; }
+      .mp-btn.skip ha-icon { --mdc-icon-size: 18px; }
+      .mp-btn.main {
+        width: 34px; height: 34px; border-radius: 10px;
+        background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.15);
+        color: rgba(129,140,248,0.8);
+      }
+      .mp-btn.main ha-icon { --mdc-icon-size: 18px; }
 
       /* Preview light card */
       .preview-light {
@@ -2973,6 +3085,13 @@ export class GlassConfigPanel extends LitElement {
       max_items_per_section: 6,
       visible_speakers: [] as string[],
     };
+    let mediaCardConfig = {
+      variant: 'list' as string,
+      dashboard_variant: 'list' as string,
+      room_variants: {} as Record<string, string>,
+      extra_entities: {} as Record<string, string[]>,
+      show_header: true,
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -2984,6 +3103,7 @@ export class GlassConfigPanel extends LitElement {
         title_card: typeof titleCardConfig;
         cover_card: typeof coverCardConfig;
         spotify_card: typeof spotifyCardConfig;
+        media_card: typeof mediaCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
@@ -2993,6 +3113,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.title_card) titleCardConfig = result.title_card;
       if (result.cover_card) coverCardConfig = result.cover_card;
       if (result.spotify_card) spotifyCardConfig = result.spotify_card;
+      if (result.media_card) mediaCardConfig = result.media_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -3032,8 +3153,11 @@ export class GlassConfigPanel extends LitElement {
     this._spotifyVisibleSpeakers = spotifyCardConfig.visible_speakers ?? [];
     this._checkSpotifyStatus();
 
+    this._mediaShowHeader = mediaCardConfig.show_header ?? true;
+    this._mediaExtraEntities = mediaCardConfig.extra_entities ?? {};
+
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'cover', 'spotify'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
     const orderMap = new Map<string, number>();
@@ -3228,7 +3352,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'dashboard') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
@@ -3428,6 +3552,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveCover();
     } else if (this._tab === 'spotify') {
       this._saveSpotify();
+    } else if (this._tab === 'media') {
+      this._saveMedia();
     } else {
       this._saveDashboard();
     }
@@ -5427,6 +5553,118 @@ export class GlassConfigPanel extends LitElement {
     this._coverEntityPresets = ep;
   }
 
+  // — Media card config —
+
+  private async _saveMedia() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_media_config', {
+        show_header: this._mediaShowHeader,
+        extra_entities: this._mediaExtraEntities,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('media-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  private async _loadMediaConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        media_card: { show_header: boolean; extra_entities: Record<string, string[]> };
+      }>('get_config');
+      if (result?.media_card) {
+        this._mediaShowHeader = result.media_card.show_header ?? true;
+        this._mediaExtraEntities = result.media_card.extra_entities ?? {};
+      }
+    } catch { /* ignore */ }
+  }
+
+  private _renderMediaPreview() {
+    return html`
+      <div class="preview-card media-preview">
+        <div class="mp-deco"></div>
+        <!-- Top bar -->
+        <div class="mp-top">
+          <div class="mp-speaker">
+            <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+            <span>Salon</span>
+            <div class="mp-eq">
+              <div class="mp-eq-bar"></div>
+              <div class="mp-eq-bar"></div>
+              <div class="mp-eq-bar"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Spacer -->
+        <div class="mp-spacer"></div>
+        <!-- Track info -->
+        <div class="mp-track">
+          <div class="mp-track-title">Blinding Lights</div>
+          <div class="mp-track-artist">The Weeknd</div>
+          <div class="mp-track-meta">
+            <span class="mp-track-time">2:14 / 3:20</span>
+            <span class="mp-track-source">Spotify</span>
+          </div>
+        </div>
+        <!-- Progress -->
+        <div class="mp-progress">
+          <div class="mp-progress-fill"></div>
+        </div>
+        <!-- Transport -->
+        <div class="mp-transport">
+          <div class="mp-btn"><ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon></div>
+          <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-previous'}></ha-icon></div>
+          <div class="mp-btn main"><ha-icon .icon=${'mdi:pause'}></ha-icon></div>
+          <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-next'}></ha-icon></div>
+          <div class="mp-btn"><ha-icon .icon=${'mdi:repeat'}></ha-icon></div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderMediaTab() {
+    return html`
+      <div class="tab-panel" id="panel-media">
+        <!-- Show header toggle -->
+        <button
+          class="feature-row"
+          @click=${() => { this._mediaShowHeader = !this._mediaShowHeader; }}
+        >
+          <div class="feature-icon">
+            <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+          </div>
+          <div class="feature-text">
+            <div class="feature-name">${t('config.media_show_header')}</div>
+            <div class="feature-desc">${t('config.media_show_header_desc')}</div>
+          </div>
+          <span
+            class="toggle ${this._mediaShowHeader ? 'on' : ''}"
+            role="switch"
+            aria-checked=${this._mediaShowHeader ? 'true' : 'false'}
+          ></span>
+        </button>
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadMediaConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   // — Dashboard config —
 
   private _toggleDashboardCard(card: string) {
@@ -5484,6 +5722,9 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_spotify_config', {
         show_header: this._spotifyShowHeader,
       });
+      await this._backend.send('set_media_config', {
+        show_header: this._mediaShowHeader,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
@@ -5491,6 +5732,7 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('weather-config-changed', undefined);
       bus.emit('cover-config-changed', undefined);
       bus.emit('spotify-config-changed', undefined);
+      bus.emit('media-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {
@@ -5507,15 +5749,17 @@ export class GlassConfigPanel extends LitElement {
         weather?: { show_header?: boolean };
         cover_card?: { show_header?: boolean };
         spotify_card?: { show_header?: boolean };
+        media_card?: { show_header?: boolean };
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'cover', 'spotify'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
       }
       this._lightShowHeader = result?.light_card?.show_header ?? true;
       this._weatherShowHeader = result?.weather?.show_header ?? true;
       this._coverShowHeader = result?.cover_card?.show_header ?? true;
       this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
+      this._mediaShowHeader = result?.media_card?.show_header ?? true;
     } catch { /* ignore */ }
   }
 
@@ -5525,6 +5769,7 @@ export class GlassConfigPanel extends LitElement {
       title: { icon: 'mdi:format-title', label: this._titleText || t('config.title_title_placeholder'), titleStyle: 'font-size:11px;font-weight:700;color:var(--t1);' },
       weather: { icon: 'mdi:weather-partly-cloudy', label: t('weather.title') },
       light: { icon: 'mdi:lightbulb-group', label: t('light.title') },
+      media: { icon: 'mdi:speaker', label: t('media.title') },
       cover: { icon: 'mdi:blinds', label: t('cover.title') },
       spotify: { icon: 'mdi:spotify', label: t('spotify.title') },
     };
@@ -5562,6 +5807,7 @@ export class GlassConfigPanel extends LitElement {
       light: { icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', descKey: 'config.dashboard_card_light_desc', hasSub: true },
       cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
       spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
+      media: { icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', descKey: 'config.dashboard_card_media_desc', hasSub: true },
     };
 
     const enabledSet = new Set(this._dashboardEnabledCards);
@@ -5803,6 +6049,34 @@ export class GlassConfigPanel extends LitElement {
                   class="toggle ${this._spotifyShowHeader ? 'on' : ''}"
                   role="switch"
                   aria-checked=${this._spotifyShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (key === 'media') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._mediaShowHeader = !this._mediaShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.media_show_header')}</div>
+                  <div class="feature-desc">${t('config.media_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._mediaShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._mediaShowHeader ? 'true' : 'false'}
                 ></span>
               </button>
             </div>
@@ -7219,6 +7493,15 @@ export class GlassConfigPanel extends LitElement {
               ${t('config.tab_weather')}
             </button>
             <button
+              class="tab ${this._tab === 'media' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'media' ? 'true' : 'false'}
+              @click=${() => this._switchTab('media')}
+            >
+              <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+              ${t('config.tab_media')}
+            </button>
+            <button
               class="tab ${this._tab === 'cover' ? 'active' : ''}"
               role="tab"
               aria-selected=${this._tab === 'cover' ? 'true' : 'false'}
@@ -7250,11 +7533,13 @@ export class GlassConfigPanel extends LitElement {
                     ? this._renderWeatherPreview()
                     : this._tab === 'title'
                       ? this._renderTitlePreview()
-                      : this._tab === 'cover'
-                        ? this._renderCoverPreview()
-                        : this._tab === 'spotify'
-                          ? this._renderSpotifyPreview()
-                          : this._renderDashboardPreview()}
+                      : this._tab === 'media'
+                        ? this._renderMediaPreview()
+                        : this._tab === 'cover'
+                          ? this._renderCoverPreview()
+                          : this._tab === 'spotify'
+                            ? this._renderSpotifyPreview()
+                            : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -7267,11 +7552,13 @@ export class GlassConfigPanel extends LitElement {
                   ? this._renderWeatherTab()
                   : this._tab === 'title'
                     ? this._renderTitleTab()
-                    : this._tab === 'cover'
-                      ? this._renderCoverTab()
-                      : this._tab === 'spotify'
-                        ? this._renderSpotifyTab()
-                        : this._renderDashboardTab()}
+                    : this._tab === 'media'
+                      ? this._renderMediaTab()
+                      : this._tab === 'cover'
+                        ? this._renderCoverTab()
+                        : this._tab === 'spotify'
+                          ? this._renderSpotifyTab()
+                          : this._renderDashboardTab()}
         </div>
       </div>
 

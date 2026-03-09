@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify"}
+    {"weather", "light", "title", "cover", "spotify", "media"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -22,8 +22,10 @@ VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
 VALID_MODE_COLORS = frozenset(
     {"neutral", "success", "warning", "info", "accent", "alert"}
 )
+VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
+
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "cover", "spotify"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "cover", "spotify"]
 
 
 @dataclass
@@ -409,6 +411,57 @@ class SpotifyCardConfig:
 
 
 @dataclass
+class MediaCardConfig:
+    """Configuration for the media player card."""
+
+    variant: str = "list"
+    dashboard_variant: str = "list"
+    room_variants: dict[str, str] = field(default_factory=dict)
+    extra_entities: dict[str, list[str]] = field(default_factory=dict)
+    show_header: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "variant": self.variant,
+            "dashboard_variant": self.dashboard_variant,
+            "room_variants": self.room_variants,
+            "extra_entities": self.extra_entities,
+            "show_header": self.show_header,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MediaCardConfig:
+        """Deserialize from dict."""
+        raw_variant = str(data.get("variant", "list"))
+        raw_dash_variant = str(data.get("dashboard_variant", "list"))
+        raw_room_variants = data.get("room_variants", {})
+        raw_extra = data.get("extra_entities", {})
+
+        room_variants: dict[str, str] = {}
+        if isinstance(raw_room_variants, dict):
+            for k, v in raw_room_variants.items():
+                if isinstance(k, str) and isinstance(v, str) and v in VALID_MEDIA_VARIANTS:
+                    room_variants[k] = v
+
+        extra_entities: dict[str, list[str]] = {}
+        if isinstance(raw_extra, dict):
+            for k, v in raw_extra.items():
+                if isinstance(k, str) and isinstance(v, list):
+                    valid = [str(x) for x in v if isinstance(x, str)]
+                    if valid:
+                        extra_entities[k] = valid
+
+        return cls(
+            variant=raw_variant if raw_variant in VALID_MEDIA_VARIANTS else "list",
+            dashboard_variant=raw_dash_variant if raw_dash_variant in VALID_MEDIA_VARIANTS else "list",
+            room_variants=room_variants,
+            extra_entities=extra_entities,
+            show_header=bool(data.get("show_header", True)),
+        )
+
+
+@dataclass
 class DashboardConfig:
     """Configuration for dashboard card visibility and order."""
 
@@ -455,6 +508,7 @@ class GlassCardsData:
     cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
+    media_card: MediaCardConfig = field(default_factory=MediaCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
@@ -468,6 +522,7 @@ class GlassCardsData:
             "cover_card": self.cover_card.to_dict(),
             "title_card": self.title_card.to_dict(),
             "spotify_card": self.spotify_card.to_dict(),
+            "media_card": self.media_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -489,6 +544,7 @@ class GlassCardsData:
             cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
+            media_card=MediaCardConfig.from_dict(data.get("media_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})

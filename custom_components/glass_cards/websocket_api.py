@@ -25,6 +25,7 @@ from .models import (
     TitleModeEntry,
     VisibilityPeriod,
     VALID_DASHBOARD_CARDS,
+    VALID_MEDIA_VARIANTS,
     VALID_MODE_COLORS,
     VALID_SORT_ORDERS,
     VALID_WEATHER_METRICS,
@@ -65,6 +66,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_light_config)
     websocket_api.async_register_command(hass, ws_set_cover_config)
     websocket_api.async_register_command(hass, ws_set_title_config)
+    websocket_api.async_register_command(hass, ws_set_media_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
     websocket_api.async_register_command(hass, ws_spotify_status)
     websocket_api.async_register_command(hass, ws_set_spotify_config)
@@ -425,6 +427,57 @@ async def ws_set_title_config(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.title_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_media_config",
+        vol.Optional("variant"): vol.In(list(VALID_MEDIA_VARIANTS)),
+        vol.Optional("dashboard_variant"): vol.In(list(VALID_MEDIA_VARIANTS)),
+        vol.Optional("room_variants"): {
+            str: vol.In(list(VALID_MEDIA_VARIANTS)),
+        },
+        vol.Optional("extra_entities"): {
+            str: [vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))],
+        },
+        vol.Optional("show_header"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_set_media_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the media card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "variant" in msg:
+        store.data.media_card.variant = msg["variant"]
+    if "dashboard_variant" in msg:
+        store.data.media_card.dashboard_variant = msg["dashboard_variant"]
+    if "room_variants" in msg:
+        store.data.media_card.room_variants = msg["room_variants"]
+    if "extra_entities" in msg:
+        ep: dict[str, list[str]] = {}
+        for area_id, entities in msg["extra_entities"].items():
+            seen: set[str] = set()
+            deduped: list[str] = []
+            for eid in entities:
+                if eid not in seen:
+                    seen.add(eid)
+                    deduped.append(eid)
+            if deduped:
+                ep[area_id] = deduped
+        store.data.media_card.extra_entities = ep
+    if "show_header" in msg:
+        store.data.media_card.show_header = msg["show_header"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.media_card.to_dict())
 
 
 @websocket_api.websocket_command(

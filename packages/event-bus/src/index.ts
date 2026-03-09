@@ -13,6 +13,7 @@ export interface GlassEventMap {
   'cover-config-changed': undefined;
   'title-config-changed': undefined;
   'spotify-config-changed': undefined;
+  'media-config-changed': undefined;
   'schedule-changed': { entityId: string };
 }
 

@@ -9,6 +9,7 @@ import '../cards/weather-card/src/index';
 import '../cards/cover-card/src/index';
 import '../cards/title-card/src/index';
 import '../cards/spotify-card/src/index';
+import '../cards/media-card/src/index';
 
 installHistoryIntercept();
 getThemeManager();
