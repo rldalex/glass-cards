@@ -156,6 +156,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _colorPickerHex: string = '#ffffff';
   @state() private _colorPickerPos: { x: number; y: number } = { x: 50, y: 50 };
   private _cpCanvas: HTMLCanvasElement | null = null;
+  private _cancelColorDrag: (() => void) | undefined;
 
   // Light card config
   @state() private _lightShowHeader = true;
@@ -2702,6 +2703,8 @@ export class GlassConfigPanel extends LitElement {
       clearTimeout(this._toastTimeout);
       this._toastTimeout = undefined;
     }
+    this._cancelColorDrag?.();
+    this._cancelColorDrag = undefined;
     this._backend = undefined;
   }
 
@@ -5267,15 +5270,26 @@ export class GlassConfigPanel extends LitElement {
   private _selectTitleModeEntity(entityId: string) {
     this._titleModeEntity = entityId;
     this._titleModeDropdownOpen = false;
-    // Auto-populate modes from input_select options
+    // Auto-populate modes from input_select options or scene entity
     if (entityId.startsWith('input_select.') && this.hass) {
       const entity = this.hass.states[entityId];
       if (entity) {
         const options = (entity.attributes.options as string[] | undefined) ?? [];
-        // Keep existing mode configs for matching IDs, add new ones
         const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
         this._titleModes = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
       }
+    } else if (entityId.startsWith('input_boolean.') && this.hass) {
+      const suffix = entityId.split('.')[1] ?? entityId;
+      const entity = this.hass.states[entityId];
+      const name = (entity?.attributes.friendly_name as string | undefined) || suffix;
+      const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
+      this._titleModes = [existingMap.get(suffix) ?? { id: suffix, label: name, icon: 'mdi:toggle-switch', color: 'success' }];
+    } else if (entityId.startsWith('scene.') && this.hass) {
+      const suffix = entityId.split('.')[1] ?? entityId;
+      const entity = this.hass.states[entityId];
+      const name = (entity?.attributes.friendly_name as string | undefined) || suffix;
+      const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
+      this._titleModes = [existingMap.get(suffix) ?? { id: suffix, label: name, icon: 'mdi:palette', color: 'accent' }];
     } else if (!entityId) {
       this._titleModes = [];
     }
@@ -5347,8 +5361,18 @@ export class GlassConfigPanel extends LitElement {
             />
           </div>
           <div class="icon-popup-grid-wrap">
-            ${icons.length > 0 ? html`
+            ${icons.length > 0 || !this._iconSearch ? html`
               <div class="icon-popup-grid">
+                <button
+                  class="icon-pick ${currentIcon === '' ? 'selected' : ''}"
+                  @click=${() => {
+                    this._updateTitleMode(this._iconPopupModeIdx!, 'icon', '');
+                    this._iconPopupModeIdx = null;
+                  }}
+                  aria-label=${t('config.title_no_icon')}
+                >
+                  <ha-icon .icon=${'mdi:cancel'} style="opacity:0.4;"></ha-icon>
+                </button>
                 ${icons.map((icon) => html`
                   <button
                     class="icon-pick ${icon === currentIcon ? 'selected' : ''}"
@@ -5362,7 +5386,7 @@ export class GlassConfigPanel extends LitElement {
                   </button>
                 `)}
               </div>
-            ` : html`<div class="icon-popup-empty">Aucune icône trouvée</div>`}
+            ` : html`<div class="icon-popup-empty">${t('config.title_no_icons_found')}</div>`}
           </div>
         </div>
       </div>
@@ -5387,6 +5411,18 @@ export class GlassConfigPanel extends LitElement {
         activeLabel = modeConfig?.label || currentOption;
         activeIcon = modeConfig?.icon || '';
         activeColor = modeConfig?.color || 'neutral';
+      } else if (entity && this._titleModeEntity.startsWith('input_boolean.')) {
+        const suffix = this._titleModeEntity.split('.')[1] ?? this._titleModeEntity;
+        const modeConfig = this._titleModes.find((m) => m.id === suffix);
+        activeLabel = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
+        activeIcon = modeConfig?.icon || '';
+        activeColor = entity.state === 'on' ? (modeConfig?.color || 'success') : 'neutral';
+      } else if (entity && this._titleModeEntity.startsWith('scene.')) {
+        const suffix = this._titleModeEntity.split('.')[1] ?? this._titleModeEntity;
+        const modeConfig = this._titleModes.find((m) => m.id === suffix);
+        activeLabel = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
+        activeIcon = modeConfig?.icon || '';
+        activeColor = modeConfig?.color || 'accent';
       }
     }
 
@@ -5408,7 +5444,7 @@ export class GlassConfigPanel extends LitElement {
           <div class="preview-title-mode">
             <div class="preview-title-dot" style="background:${DOT_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t4)')};"></div>
             ${activeIcon ? html`<ha-icon .icon=${activeIcon} style="--mdc-icon-size:12px;color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};"></ha-icon>` : nothing}
-            <span style="color:var(--t4);font-size:9px;">Mode :</span>
+            <span style="color:var(--t4);font-size:9px;">${this._titleModeEntity?.startsWith('scene.') ? t('title_card.scene_label') : t('title_card.mode_label')}</span>
             <span style="color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};font-size:9px;font-weight:600;">${activeLabel}</span>
             <ha-icon .icon=${'mdi:chevron-right'} style="--mdc-icon-size:11px;color:var(--t4);"></ha-icon>
           </div>
@@ -5440,6 +5476,8 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _closeColorPicker() {
+    this._cancelColorDrag?.();
+    this._cancelColorDrag = undefined;
     this._colorPickerModeIdx = null;
     this._cpCanvas = null;
   }
@@ -5535,25 +5573,31 @@ export class GlassConfigPanel extends LitElement {
           <div class="cp-wheel-wrap">
             <canvas
               @mousedown=${(e: MouseEvent) => {
+                this._cancelColorDrag?.();
                 this._onCpWheel(e);
                 const onMove = (me: MouseEvent) => this._onCpWheel(me);
                 const onUp = () => {
                   window.removeEventListener('mousemove', onMove);
                   window.removeEventListener('mouseup', onUp);
+                  this._cancelColorDrag = undefined;
                 };
                 window.addEventListener('mousemove', onMove);
                 window.addEventListener('mouseup', onUp);
+                this._cancelColorDrag = onUp;
               }}
               @touchstart=${(e: TouchEvent) => {
+                this._cancelColorDrag?.();
                 e.preventDefault();
                 this._onCpWheel(e);
                 const onMove = (te: TouchEvent) => { te.preventDefault(); this._onCpWheel(te); };
                 const onEnd = () => {
                   window.removeEventListener('touchmove', onMove);
                   window.removeEventListener('touchend', onEnd);
+                  this._cancelColorDrag = undefined;
                 };
                 window.addEventListener('touchmove', onMove, { passive: false });
                 window.addEventListener('touchend', onEnd);
+                this._cancelColorDrag = onEnd;
               }}
             ></canvas>
             <div class="cp-cursor" style="left:${this._colorPickerPos.x}%;top:${this._colorPickerPos.y}%;background:${hex}"></div>
@@ -5570,7 +5614,7 @@ export class GlassConfigPanel extends LitElement {
 
   private _renderTitleTab() {
     const modeEntities = this.hass
-      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.') || id.startsWith('input_boolean.')).sort()
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.') || id.startsWith('input_boolean.') || id.startsWith('scene.')).sort()
       : [];
     const selectedEntity = modeEntities.find((id) => id === this._titleModeEntity);
 
@@ -5621,7 +5665,7 @@ export class GlassConfigPanel extends LitElement {
                   aria-selected=${id === this._titleModeEntity ? 'true' : 'false'}
                   @click=${() => this._selectTitleModeEntity(id)}
                 >
-                  <ha-icon .icon=${id.startsWith('input_select.') ? 'mdi:form-select' : 'mdi:toggle-switch'}></ha-icon>
+                  <ha-icon .icon=${id.startsWith('scene.') ? 'mdi:palette' : id.startsWith('input_boolean.') ? 'mdi:toggle-switch' : 'mdi:form-select'}></ha-icon>
                   ${id}
                 </button>
               `,

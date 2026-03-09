@@ -80,7 +80,7 @@ export abstract class BaseCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() protected _lang = getLanguage();
   protected _config?: LovelaceCardConfig;
-  private _busCleanups: (() => void)[] = [];
+  protected _busCleanups: (() => void)[] = [];
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
@@ -89,8 +89,6 @@ export abstract class BaseCard extends LitElement {
   // Override in multi-entity cards to compare relevant entity states
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
-    // If other props changed alongside hass, always update
-    if (changedProps.size > 1) return true;
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
     if (!oldHass) return true;
     // Detect language change
@@ -111,6 +109,13 @@ export abstract class BaseCard extends LitElement {
   protected getTrackedEntityIds(): string[] {
     const entity = this._config?.entity;
     return entity ? [entity] : [];
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // Flush stale bus subscriptions from a previous connection cycle
+    this._busCleanups.forEach((cleanup) => cleanup());
+    this._busCleanups = [];
   }
 
   protected _listen<K extends keyof GlassEventMap>(
@@ -192,10 +197,9 @@ export function isEntityVisibleNow(
     end.setSeconds(59, 999);
     if (p.recurring) {
       const sNow = new Date(now.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes());
-      const eNow = new Date(now.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
-      if (sNow > eNow) {
-        return now >= sNow || now <= eNow;
-      }
+      let eNow = new Date(now.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
+      // Cross-year recurring window: advance end to next year
+      if (sNow > eNow) eNow = new Date(now.getFullYear() + 1, end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
       return now >= sNow && now <= eNow;
     }
     return now >= start && now <= end;

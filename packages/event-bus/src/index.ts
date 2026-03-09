@@ -37,7 +37,8 @@ class EventBus {
   }
 
   emit<K extends keyof GlassEventMap>(event: K, payload: GlassEventMap[K]): void {
-    this.listeners.get(event)?.forEach((cb) => cb(payload));
+    const set = this.listeners.get(event);
+    if (set) for (const cb of [...set]) cb(payload);
   }
 }
 
@@ -92,10 +93,10 @@ export function installHistoryIntercept(): void {
 
 export function removeHistoryIntercept(): void {
   if (!historyIntercepted) return;
+  historyIntercepted = false;
   window.removeEventListener('popstate', _onPopState);
   if (origPush) history.pushState = origPush;
   if (origReplace) history.replaceState = origReplace;
   origPush = null;
   origReplace = null;
-  historyIntercepted = false;
 }

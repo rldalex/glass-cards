@@ -105,6 +105,8 @@ export class GlassNavbarCard extends BaseCard {
     humidity_threshold?: number;
   } | null = null;
   private _configLoaded = false;
+  private _configLoading = false;
+  private _dashboardLoading = false;
   private _roomConfigs: Record<string, { icon?: string | null }> = {};
   private _flipPositions = new Map<string, number>();
   private _backend?: BackendService;
@@ -484,16 +486,22 @@ export class GlassNavbarCard extends BaseCard {
     return ['sun.sun', ...this._items.flatMap((item) => item.entityIds)];
   }
 
-  updated(changedProps: PropertyValues) {
-    super.updated(changedProps);
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (changedProps.has('hass') && this.hass) {
-      // Always propagate hass to imperatively managed children
+      // Always propagate hass to child cards even if navbar itself doesn't need re-render
       if (this._popup) {
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
       for (const card of this._dashboardCards.values()) {
         (card as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
+    }
+    return super.shouldUpdate(changedProps);
+  }
+
+  updated(changedProps: PropertyValues) {
+    super.updated(changedProps);
+    if (changedProps.has('hass') && this.hass) {
       this._editMode = this._detectEditMode();
       if (this._editMode) return;
       // Invalidate backend on WS reconnect
@@ -522,7 +530,8 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private async _loadBackendConfig() {
-    if (!this.hass) return;
+    if (!this.hass || this._configLoading) return;
+    this._configLoading = true;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
@@ -555,11 +564,14 @@ export class GlassNavbarCard extends BaseCard {
       this._configReady = true;
       this._rebuildStructure();
       this._aggregateState();
+    } finally {
+      this._configLoading = false;
     }
   }
 
   private async _loadDashboardConfig(): Promise<void> {
-    if (!this.hass) return;
+    if (!this.hass || this._dashboardLoading) return;
+    this._dashboardLoading = true;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
@@ -570,6 +582,8 @@ export class GlassNavbarCard extends BaseCard {
       }
     } catch {
       // Backend not available — keep defaults
+    } finally {
+      this._dashboardLoading = false;
     }
   }
 
@@ -686,6 +700,11 @@ export class GlassNavbarCard extends BaseCard {
         return aLit - bLit;
       });
     }
+
+    // Only update if order or data changed
+    const itemKey = items.map((i) => `${i.areaId}:${i.lightsOn}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
+    const oldKey = this._items.map((i) => `${i.areaId}:${i.lightsOn}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
+    if (itemKey === oldKey) return;
 
     // FLIP: capture current positions before DOM update
     this._snapshotPositions();

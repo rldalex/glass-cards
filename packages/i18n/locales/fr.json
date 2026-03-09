@@ -80,6 +80,7 @@
 
   "title_card": {
     "mode_label": "Mode :",
+    "scene_label": "Scène :",
     "mode_none": "Aucun",
     "cycle_aria": "Changer de mode"
   },
@@ -195,7 +196,7 @@
     "title_title_desc": "Texte principal affiché sur la carte.",
     "title_title_placeholder": "Ma Maison",
     "title_mode_entity": "Entité mode",
-    "title_mode_entity_desc": "Sélectionnez un input_select ou input_boolean pour les modes.",
+    "title_mode_entity_desc": "Sélectionnez un input_select, input_boolean ou une scène pour les modes.",
     "title_select_entity": "Sélectionnez une entité",
     "title_modes": "Configuration des modes",
     "title_modes_desc": "Personnalisez le libellé, l'icône et la couleur de chaque mode.",
@@ -205,6 +206,8 @@
     "title_color_picker_title": "Choisir une couleur",
     "title_color_picker_aria": "Ouvrir la roue chromatique",
     "title_no_modes": "Sélectionnez d'abord une entité mode.",
+    "title_no_icons_found": "Aucune icône trouvée",
+    "title_no_icon": "Aucune",
 
     "dashboard_card_title": "Carte Titre",
     "dashboard_card_title_desc": "Texte titre avec sélecteur de mode optionnel",

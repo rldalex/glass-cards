@@ -119,7 +119,7 @@ class RoomConfig:
         raw_hidden_scenes = data.get("hidden_scenes", [])
         raw_scene_order = data.get("scene_order", [])
         return cls(
-            area_id=data["area_id"],
+            area_id=str(data.get("area_id", "")),
             card_order=[str(x) for x in raw_order if isinstance(x, str)],
             hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
             entity_order=[str(x) for x in raw_entity_order if isinstance(x, str)],
@@ -167,6 +167,14 @@ class NavbarConfig:
             "humidity_threshold": self.humidity_threshold,
         }
 
+    @staticmethod
+    def _safe_float(value: Any, default: float) -> float:
+        """Convert to float, returning default on failure."""
+        try:
+            return float(value) if value is not None else default
+        except (ValueError, TypeError):
+            return default
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> NavbarConfig:
         """Deserialize from dict."""
@@ -180,9 +188,9 @@ class NavbarConfig:
             show_humidity=bool(data.get("show_humidity", True)),
             show_media=bool(data.get("show_media", True)),
             auto_sort=bool(data.get("auto_sort", True)),
-            temp_high=float(data.get("temp_high", 24.0)),
-            temp_low=float(data.get("temp_low", 17.0)),
-            humidity_threshold=float(data.get("humidity_threshold", 65.0)),
+            temp_high=cls._safe_float(data.get("temp_high"), 24.0),
+            temp_low=cls._safe_float(data.get("temp_low"), 17.0),
+            humidity_threshold=cls._safe_float(data.get("humidity_threshold"), 65.0),
         )
 
 

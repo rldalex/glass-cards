@@ -137,6 +137,7 @@ class GlassWeatherCard extends BaseCard {
   private _unsubHourly: (() => void) | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
+  private _configLoadingInProgress = false;
 
   // — Styles —
 
@@ -559,7 +560,8 @@ class GlassWeatherCard extends BaseCard {
   // — Backend config —
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend) return;
+    if (!this._backend || this._configLoadingInProgress) return;
+    this._configLoadingInProgress = true;
     try {
       const result = await this._backend.send<{
         weather: WeatherBackendConfig;
@@ -568,7 +570,9 @@ class GlassWeatherCard extends BaseCard {
         this._weatherConfig = result.weather;
       }
       this.requestUpdate();
-    } catch { /* ignore */ }
+    } catch { /* ignore */ } finally {
+      this._configLoadingInProgress = false;
+    }
   }
 
   // — Forecast subscriptions —
@@ -649,6 +653,11 @@ class GlassWeatherCard extends BaseCard {
   // — Canvas animation —
 
   private _initCanvas(): void {
+    // Cleanup prior observer and animation loop to prevent leaks on re-init
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
+    this._stopAnimation();
+
     this._canvas = this.renderRoot.querySelector<HTMLCanvasElement>('.wc-anim');
     if (!this._canvas) return;
     this._ctx = this._canvas.getContext('2d');

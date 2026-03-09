@@ -653,10 +653,9 @@ export class GlassLightCard extends BaseCard {
         flex-direction: column;
         align-items: center;
         gap: 16px;
-        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.15);
         max-width: 300px;
         width: 90vw;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       }
       .color-picker-dialog .cp-title {
         font-size: 11px;
@@ -799,6 +798,9 @@ export class GlassLightCard extends BaseCard {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._onDocClick, true);
+    this._cancelWheelDrag?.();
+    this._cancelWheelDrag = undefined;
+    this._wheelCanvas = null;
     this._throttleTimers.forEach((t) => clearTimeout(t));
     this._throttleTimers.clear();
     this._backend = undefined;
@@ -817,6 +819,8 @@ export class GlassLightCard extends BaseCard {
         entity_order: string[];
         entity_layouts: Record<string, string>;
       } | null>('get_room', { area_id: area });
+      const currentArea = this.areaId || (this._config?.area as string | undefined);
+      if (currentArea !== area) return;
       if (result) {
         this._roomConfig = result;
         this._cachedLights = undefined;
@@ -1119,8 +1123,11 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _onSliderChange(key: string, value: number, send: (v: number) => void) {
+    // Persist the exact committed value so stale-clear logic compares correctly
+    const next = new Map(this._dragValues);
+    next.set(key, value);
+    this._dragValues = next;
     send(value);
-    // Keep drag value until HA state catches up (cleared in updated())
     const timer = this._throttleTimers.get(key);
     if (timer !== undefined) clearTimeout(timer);
     this._throttleTimers.delete(key);
@@ -1144,7 +1151,11 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _setEffect(entityId: string, effect: string) {
-    this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
+    if (effect === 'off') {
+      this.hass?.callService('light', 'turn_on', {}, { entity_id: entityId });
+    } else {
+      this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
+    }
   }
 
   private _openColorPicker(entityId: string, currentRgb: [number, number, number] | null) {
@@ -1154,12 +1165,16 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _closeColorPicker() {
+    this._cancelWheelDrag?.();
+    this._cancelWheelDrag = undefined;
+    this._wheelCanvas = null;
     this._colorPickerEntity = null;
     this._colorPickerRgb = null;
     this._colorPickerPos = null;
   }
 
   private _wheelCanvas: HTMLCanvasElement | null = null;
+  private _cancelWheelDrag?: () => void;
 
   private _onWheelInteraction(e: MouseEvent | TouchEvent) {
     const canvas = this._wheelCanvas;
@@ -1475,7 +1490,7 @@ export class GlassLightCard extends BaseCard {
           (effect) => html`
             <button
               class="cdot effect-chip ${currentEffect === effect || (!currentEffect && effect === 'off') ? 'active' : ''}"
-              @click=${() => this._setEffect(info.entityId, effect === 'off' ? 'None' : effect)}
+              @click=${() => this._setEffect(info.entityId, effect)}
               aria-label="${t(`light.effect_${effect}`)}"
               style="width:auto;height:auto;border-radius:var(--radius-md);padding:4px 8px;font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t3);border:1px solid var(--b2);background:var(--s1)"
             >${t(`light.effect_${effect}`)}</button>
@@ -1504,14 +1519,19 @@ export class GlassLightCard extends BaseCard {
                 this._onWheelInteraction(e);
                 const onMove = (me: MouseEvent) => this._onWheelInteraction(me);
                 const onUp = () => {
-                  window.removeEventListener('mousemove', onMove);
-                  window.removeEventListener('mouseup', onUp);
+                  cleanup();
                   if (this._colorPickerEntity && this._colorPickerRgb) {
                     this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
                   }
                 };
+                const cleanup = () => {
+                  window.removeEventListener('mousemove', onMove);
+                  window.removeEventListener('mouseup', onUp);
+                  this._cancelWheelDrag = undefined;
+                };
                 window.addEventListener('mousemove', onMove);
                 window.addEventListener('mouseup', onUp);
+                this._cancelWheelDrag = cleanup;
               }}
               @touchstart=${(e: TouchEvent) => {
                 e.preventDefault();
@@ -1519,14 +1539,21 @@ export class GlassLightCard extends BaseCard {
                 this._onWheelInteraction(e);
                 const onMove = (te: TouchEvent) => { te.preventDefault(); this._onWheelInteraction(te); };
                 const onEnd = () => {
-                  window.removeEventListener('touchmove', onMove);
-                  window.removeEventListener('touchend', onEnd);
+                  cleanup();
                   if (this._colorPickerEntity && this._colorPickerRgb) {
                     this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
                   }
                 };
+                const cleanup = () => {
+                  window.removeEventListener('touchmove', onMove);
+                  window.removeEventListener('touchend', onEnd);
+                  window.removeEventListener('touchcancel', onEnd);
+                  this._cancelWheelDrag = undefined;
+                };
                 window.addEventListener('touchmove', onMove, { passive: false });
                 window.addEventListener('touchend', onEnd);
+                window.addEventListener('touchcancel', onEnd);
+                this._cancelWheelDrag = cleanup;
               }}
             ></canvas>
             <div class="cp-cursor" style="left:${this._colorPickerPos?.x ?? 50}%;top:${this._colorPickerPos?.y ?? 50}%;background:${rgbToHex(rgb)}"></div>

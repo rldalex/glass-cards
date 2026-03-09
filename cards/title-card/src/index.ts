@@ -52,6 +52,8 @@ class GlassTitleCard extends BaseCard {
   private _loadVersion = 0;
   private _lastModeId: string | null = null;
   private _pendingCycle = false;
+  private _cycleTimer = 0;
+  private _pendingTimer = 0;
 
   static styles = [glassTokens, css`
     :host {
@@ -145,7 +147,11 @@ class GlassTitleCard extends BaseCard {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this._backend = undefined;
+    this._configLoaded = false;
+    this._configLoading = false;
     this._loadVersion++;
+    clearTimeout(this._cycleTimer);
+    clearTimeout(this._pendingTimer);
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -170,7 +176,7 @@ class GlassTitleCard extends BaseCard {
           this._lastModeId = currentId;
           this._cycling = true;
           this._pendingCycle = false;
-          setTimeout(() => { this._cycling = false; }, 300);
+          this._cycleTimer = window.setTimeout(() => { this._cycling = false; }, 300);
         }
       }
     }
@@ -195,6 +201,7 @@ class GlassTitleCard extends BaseCard {
         this._titleConfig = result.title_card;
       }
       this._configLoaded = true;
+      this._configLoading = false;
       this.requestUpdate();
     } catch {
       if (version === this._loadVersion) {
@@ -209,29 +216,44 @@ class GlassTitleCard extends BaseCard {
     const eid = this._titleConfig.mode_entity;
     if (!eid || !this.hass) return null;
 
-    const entity = this.hass.states[eid];
-    if (!entity) return null;
-
     if (eid.startsWith('input_select.')) {
+      const entity = this.hass.states[eid];
+      if (!entity) return null;
       const currentOption = entity.state;
       const modeConfig = this._titleConfig.modes.find((m) => m.id === currentOption);
       return {
         id: currentOption,
         label: modeConfig?.label || currentOption,
-        icon: modeConfig?.icon || 'mdi:circle-medium',
+        icon: modeConfig?.icon || '',
         color: modeConfig?.color || 'neutral',
       };
     }
 
     if (eid.startsWith('input_boolean.')) {
-      if (entity.state !== 'on') return null;
+      const entity = this.hass.states[eid];
+      if (!entity) return null;
+      const isOn = entity.state === 'on';
+      const suffix = eid.split('.')[1] ?? eid;
+      const modeConfig = this._titleConfig.modes.find((m) => m.id === suffix);
+      const baseName = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
+      return {
+        id: suffix,
+        label: baseName,
+        icon: modeConfig?.icon || '',
+        color: isOn ? (modeConfig?.color || 'success') : 'neutral',
+      };
+    }
+
+    if (eid.startsWith('scene.')) {
+      const entity = this.hass.states[eid];
+      if (!entity) return null;
       const suffix = eid.split('.')[1] ?? eid;
       const modeConfig = this._titleConfig.modes.find((m) => m.id === suffix);
       return {
         id: suffix,
         label: modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix,
-        icon: modeConfig?.icon || 'mdi:toggle-switch',
-        color: modeConfig?.color || 'success',
+        icon: modeConfig?.icon || '',
+        color: modeConfig?.color || 'accent',
       };
     }
 
@@ -240,26 +262,22 @@ class GlassTitleCard extends BaseCard {
 
   private _cycleMode() {
     const eid = this._titleConfig.mode_entity;
-    if (!eid || !this.hass) return;
+    if (!eid || !this.hass || this._pendingCycle) return;
 
     if (eid.startsWith('input_select.')) {
-      this.hass.callService('input_select', 'select_next', {
-        entity_id: eid, cycle: true,
-      });
+      this.hass.callService('input_select', 'select_next', { cycle: true }, { entity_id: eid });
     } else if (eid.startsWith('input_boolean.')) {
-      this.hass.callService('input_boolean', 'toggle', {
-        entity_id: eid,
-      });
+      this.hass.callService('input_boolean', 'toggle', {}, { entity_id: eid });
     } else if (eid.startsWith('scene.')) {
-      this.hass.callService('scene', 'turn_on', {
-        entity_id: eid,
-      });
+      this.hass.callService('scene', 'turn_on', {}, { entity_id: eid });
+    } else {
+      return;
     }
 
     this._lastModeId = this._getActiveMode()?.id ?? null;
     this._pendingCycle = true;
     // Safety: clear pendingCycle if state never changes (e.g. scene entities)
-    setTimeout(() => { this._pendingCycle = false; }, 2000);
+    this._pendingTimer = window.setTimeout(() => { this._pendingCycle = false; }, 2000);
   }
 
   // — Render —
@@ -284,12 +302,12 @@ class GlassTitleCard extends BaseCard {
             aria-label=${t('title_card.cycle_aria')}
           >
             <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
-            ${activeMode ? html`
+            ${activeMode?.icon ? html`
               <span class="mode-icon">
                 <ha-icon .icon=${activeMode.icon}></ha-icon>
               </span>
             ` : nothing}
-            <span class="mode-label">${t('title_card.mode_label')}</span>
+            <span class="mode-label">${this._titleConfig.mode_entity?.startsWith('scene.') ? t('title_card.scene_label') : t('title_card.mode_label')}</span>
             <span class="mode-value ${this._cycling ? 'cycling' : ''}" style="color:${colors.text};">
               ${activeMode?.label ?? t('title_card.mode_none')}
             </span>

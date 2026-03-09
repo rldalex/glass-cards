@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { bus } from '@glass-cards/event-bus';
+import { bus, type GlassEventMap } from '@glass-cards/event-bus';
 import { glassTokens, glassMixin } from '@glass-cards/ui-core';
 import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
@@ -34,10 +34,11 @@ export class GlassRoomPopup extends LitElement {
   private _peekTimeout?: ReturnType<typeof setTimeout>;
   private _closeTimeout?: ReturnType<typeof setTimeout>;
   private _peekedRooms = new Set<string>();
-  private _busCleanups: (() => void)[] = [];
   private _boundKeydown = this._onKeydown.bind(this);
   private _roomConfigs = new Map<string, RoomConfig | null>();
+  private _loadingRooms = new Set<string>();
   private _backend?: BackendService;
+  private _busCleanups: (() => void)[] = [];
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
@@ -297,6 +298,7 @@ export class GlassRoomPopup extends LitElement {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._roomConfigs.clear();
+        this._loadingRooms.clear();
       }
       if (this.hass.language && setLanguage(this.hass.language)) {
         this._lang = getLanguage();
@@ -304,13 +306,18 @@ export class GlassRoomPopup extends LitElement {
     }
   }
 
+  private _listen<K extends keyof GlassEventMap>(
+    event: K,
+    callback: (payload: GlassEventMap[K]) => void,
+  ): void {
+    this._busCleanups.push(bus.on(event, callback));
+  }
+
   connectedCallback() {
     super.connectedCallback();
     // Flush stale bus subscriptions from a previous connection cycle
-    if (this._busCleanups.length > 0) {
-      this._busCleanups.forEach((c) => c());
-      this._busCleanups = [];
-    }
+    this._busCleanups.forEach((cleanup) => cleanup());
+    this._busCleanups = [];
     // Cancel any stale timers from a previous connection cycle
     if (this._pendingRaf !== undefined) {
       cancelAnimationFrame(this._pendingRaf);
@@ -324,20 +331,18 @@ export class GlassRoomPopup extends LitElement {
       clearTimeout(this._closeTimeout);
       this._closeTimeout = undefined;
     }
-    this._busCleanups.push(
-      bus.on('popup-open', (payload) => this._handleOpen(payload)),
-      bus.on('popup-close', () => this._handleClose()),
-      bus.on('room-config-changed', (payload) => {
-        this._roomConfigs.delete(payload.areaId);
-        this._peekedRooms.delete(payload.areaId);
-        if (this._areaId === payload.areaId) this._loadRoomConfig(payload.areaId);
-      }),
-      bus.on('navbar-config-changed', () => {
-        // Icons are saved per-room via set_room, so clear all cached configs
-        this._roomConfigs.clear();
-        if (this._areaId) this._loadRoomConfig(this._areaId);
-      }),
-    );
+    this._listen('popup-open', (payload) => this._handleOpen(payload));
+    this._listen('popup-close', () => this._handleClose());
+    this._listen('room-config-changed', (payload) => {
+      this._roomConfigs.delete(payload.areaId);
+      this._peekedRooms.delete(payload.areaId);
+      if (this._areaId === payload.areaId) this._loadRoomConfig(payload.areaId);
+    });
+    this._listen('navbar-config-changed', () => {
+      this._roomConfigs.clear();
+      this._loadingRooms.clear();
+      if (this._areaId) this._loadRoomConfig(this._areaId);
+    });
     document.addEventListener('keydown', this._boundKeydown);
   }
 
@@ -356,13 +361,19 @@ export class GlassRoomPopup extends LitElement {
       this._closeTimeout = undefined;
     }
     this._peekedRooms.clear();
-    this._busCleanups.forEach((c) => c());
+    this._loadingRooms.clear();
+    this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
     this._backend = undefined;
     document.removeEventListener('keydown', this._boundKeydown);
   }
 
   private _handleOpen(payload: { areaId: string; originRect?: DOMRect }) {
+    // Cancel stale close timeout from previous room
+    if (this._closeTimeout !== undefined) {
+      clearTimeout(this._closeTimeout);
+      this._closeTimeout = undefined;
+    }
     // Cancel stale peek animation from previous room
     if (this._peekTimeout !== undefined) {
       clearTimeout(this._peekTimeout);
@@ -427,14 +438,18 @@ export class GlassRoomPopup extends LitElement {
       if (this._open && this._areaId === areaId) this._maybePeekScenes(areaId);
       return;
     }
+    if (this._loadingRooms.has(areaId)) return;
+    this._loadingRooms.add(areaId);
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<RoomConfig | null>('get_room', { area_id: areaId });
       this._roomConfigs.set(areaId, result);
-      this.requestUpdate();
+      if (this._areaId === areaId) this.requestUpdate();
     } catch {
       // Backend not available — cache null to avoid retrying
       this._roomConfigs.set(areaId, null);
+    } finally {
+      this._loadingRooms.delete(areaId);
     }
     // Trigger peek after config is resolved
     if (this._open && this._areaId === areaId) this._maybePeekScenes(areaId);

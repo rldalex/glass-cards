@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { css, html, type CSSResult, type TemplateResult } from 'lit';
-import { bus, type AmbientPeriod } from '@glass-cards/event-bus';
+import { bus, removeHistoryIntercept, type AmbientPeriod } from '@glass-cards/event-bus';
 
 // — Design Tokens —
 
@@ -152,6 +152,7 @@ export const foldMixin: CSSResult = css`
   }
   .fold.open .fold-inner {
     opacity: 1;
+    transition-delay: 0.1s;
   }
 `;
 
@@ -282,10 +283,9 @@ export function getThemeManager(): ThemeManager {
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {
-  import.meta.hot.dispose(async () => {
+  import.meta.hot.dispose(() => {
     _themeManager?.destroy();
     _themeManager = null;
-    const { removeHistoryIntercept } = await import('@glass-cards/event-bus');
     removeHistoryIntercept();
   });
 }

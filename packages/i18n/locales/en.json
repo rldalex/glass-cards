@@ -80,6 +80,7 @@
 
   "title_card": {
     "mode_label": "Mode:",
+    "scene_label": "Scene:",
     "mode_none": "None",
     "cycle_aria": "Change mode"
   },
@@ -195,7 +196,7 @@
     "title_title_desc": "Main text displayed on the card.",
     "title_title_placeholder": "My Home",
     "title_mode_entity": "Mode entity",
-    "title_mode_entity_desc": "Select an input_select or input_boolean to cycle modes.",
+    "title_mode_entity_desc": "Select an input_select, input_boolean, or scene for modes.",
     "title_select_entity": "Select an entity",
     "title_modes": "Mode configuration",
     "title_modes_desc": "Customize the label, icon and color for each mode option.",
@@ -205,6 +206,8 @@
     "title_color_picker_title": "Choose a color",
     "title_color_picker_aria": "Open color wheel",
     "title_no_modes": "Select a mode entity first.",
+    "title_no_icons_found": "No icons found",
+    "title_no_icon": "None",
 
     "dashboard_card_title": "Title Card",
     "dashboard_card_title_desc": "Title text with optional mode selector",
