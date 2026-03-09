@@ -4281,17 +4281,17 @@
         <div class="section-desc">${ye("config.spotify_speakers_desc")}</div>
         ${(()=>{const e=this.hass?Object.entries(this.hass.states).filter(([e])=>e.startsWith("media_player.")).map(([e,t])=>({entityId:e,name:t.attributes.friendly_name??e,visible:this._spotifyVisibleSpeakers.includes(e)})):[],t=[...this._spotifyVisibleSpeakers.map(t=>e.find(e=>e.entityId===t)).filter(e=>!!e),...e.filter(e=>!e.visible).sort((e,t)=>e.name.localeCompare(t.name))];return U`
             <div class="item-list">
-              ${t.map((e,t)=>{const i=e.visible,s=this._dragIdx===t&&"speakers"===this._dragContext,a=this._dropIdx===t&&"speakers"===this._dragContext,o=["item-row",i?"":"disabled",s?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return U`
+              ${t.map(e=>{const t=e.visible,i=t?this._spotifyVisibleSpeakers.indexOf(e.entityId):-1,s=this._dragIdx===i&&-1!==i&&"speakers"===this._dragContext,a=this._dropIdx===i&&-1!==i&&"speakers"===this._dragContext,o=["item-row",t?"":"disabled",s?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return U`
                   <div
                     class=${o}
-                    draggable=${i?"true":"false"}
-                    @dragstart=${()=>{i&&this._onDragStart(t,"speakers")}}
-                    @dragover=${e=>{i&&this._onDragOver(t,e)}}
+                    draggable=${t?"true":"false"}
+                    @dragstart=${()=>{t&&-1!==i&&this._onDragStart(i,"speakers")}}
+                    @dragover=${e=>{t&&-1!==i&&this._onDragOver(i,e)}}
                     @dragleave=${()=>this._onDragLeave()}
-                    @drop=${e=>this._onDropSpeaker(t,e)}
+                    @drop=${e=>{t&&-1!==i&&this._onDropSpeaker(i,e)}}
                     @dragend=${()=>this._onDragEnd()}
                   >
-                    ${i?U`
+                    ${t?U`
                       <span class="drag-handle">
                         <ha-icon .icon=${"mdi:drag"}></ha-icon>
                       </span>
@@ -4301,11 +4301,11 @@
                       <span class="item-meta">${e.entityId}</span>
                     </div>
                     <button
-                      class="toggle ${i?"on":""}"
+                      class="toggle ${t?"on":""}"
                       @click=${()=>this._toggleSpotifySpeaker(e.entityId)}
                       role="switch"
-                      aria-checked=${i?"true":"false"}
-                      aria-label="${ye(i?"common.hide":"common.show")} ${e.name}"
+                      aria-checked=${t?"true":"false"}
+                      aria-label="${ye(t?"common.hide":"common.show")} ${e.name}"
                     ></button>
                   </div>
                 `})}

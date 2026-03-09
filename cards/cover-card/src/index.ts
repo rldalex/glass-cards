@@ -138,6 +138,9 @@ class GlassCoverCard extends BaseCard {
   private _roomLoading = false;
   private _lastAreaId: string | undefined;
   private _throttleTimers = new Map<string, number>();
+  private _sliderCleanups: (() => void)[] = [];
+  private _coversCache: CoverInfo[] | null = null;
+  private _coversCacheKey = '';
 
   static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, css`
     :host {
@@ -383,14 +386,14 @@ class GlassCoverCard extends BaseCard {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._listen('cover-config-changed', () => this._loadConfig());
+    this._listen('cover-config-changed', () => { this._coversCacheKey = ''; this._loadConfig(); });
     this._listen('room-config-changed', (payload) => {
       if (this.areaId && payload.areaId === this.areaId) {
         this._roomConfig = null;
+        this._coversCacheKey = '';
         this._loadRoomConfig(this.areaId);
       }
     });
-    this._listen('dashboard-config-changed', () => this._loadConfig());
   }
 
   disconnectedCallback(): void {
@@ -401,6 +404,8 @@ class GlassCoverCard extends BaseCard {
     this._roomLoading = false;
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
+    for (const cleanup of this._sliderCleanups) cleanup();
+    this._sliderCleanups = [];
   }
 
   protected _collapseExpanded(): void {
@@ -504,13 +509,23 @@ class GlassCoverCard extends BaseCard {
       entityIds = this._coverConfig.dashboard_entities;
     }
 
-    return entityIds
+    // Build fingerprint to cache results
+    const fp = entityIds.map((id) => {
+      const e = this.hass?.states[id];
+      return e ? `${id}:${e.state}:${e.attributes.current_position}:${e.attributes.current_tilt_position}` : id;
+    }).join('|');
+
+    if (fp === this._coversCacheKey && this._coversCache) return this._coversCache;
+
+    this._coversCache = entityIds
       .map((id) => {
         const entity = this.hass?.states[id];
         if (!entity) return null;
         return buildCoverInfo(id, entity);
       })
       .filter((c): c is CoverInfo => c !== null);
+    this._coversCacheKey = fp;
+    return this._coversCache;
   }
 
   // — Actions —
@@ -603,6 +618,8 @@ class GlassCoverCard extends BaseCard {
     e.stopPropagation();
     const slider = e.currentTarget as HTMLElement;
     slider.setPointerCapture(e.pointerId);
+    const ac = new AbortController();
+    const { signal } = ac;
 
     const update = (evt: PointerEvent) => {
       const rect = slider.getBoundingClientRect();
@@ -616,15 +633,15 @@ class GlassCoverCard extends BaseCard {
 
     update(e);
 
-    const onMove = (evt: PointerEvent) => update(evt);
-    const cleanup = () => {
-      slider.removeEventListener('pointermove', onMove);
-      slider.removeEventListener('pointerup', cleanup);
-      slider.removeEventListener('pointercancel', cleanup);
+    const done = () => {
+      ac.abort();
+      try { slider.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+      this._sliderCleanups = this._sliderCleanups.filter((c) => c !== done);
     };
-    slider.addEventListener('pointermove', onMove);
-    slider.addEventListener('pointerup', cleanup);
-    slider.addEventListener('pointercancel', cleanup);
+    this._sliderCleanups.push(done);
+    slider.addEventListener('pointermove', (evt) => update(evt as PointerEvent), { signal });
+    slider.addEventListener('pointerup', done, { signal });
+    slider.addEventListener('pointercancel', done, { signal });
   }
 
   // — Render —
@@ -700,13 +717,13 @@ class GlassCoverCard extends BaseCard {
           <div class="cv-dot"></div>
         </button>
       </div>
-      ${isExpanded ? html`<div class="fold-sep visible"></div>` : nothing}
+      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           ${this._renderControls(cv)}
         </div>
       </div>
-      ${isExpanded ? html`<div class="fold-sep visible"></div>` : nothing}
+      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
     `;
   }
 

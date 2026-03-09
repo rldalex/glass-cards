@@ -6548,10 +6548,11 @@ export class GlassConfigPanel extends LitElement {
 
           return html`
             <div class="item-list">
-              ${ordered.map((sp, idx) => {
+              ${ordered.map((sp) => {
                 const isSelected = sp.visible;
-                const isDragging = this._dragIdx === idx && this._dragContext === 'speakers';
-                const isDropTarget = this._dropIdx === idx && this._dragContext === 'speakers';
+                const visIdx = isSelected ? this._spotifyVisibleSpeakers.indexOf(sp.entityId) : -1;
+                const isDragging = this._dragIdx === visIdx && visIdx !== -1 && this._dragContext === 'speakers';
+                const isDropTarget = this._dropIdx === visIdx && visIdx !== -1 && this._dragContext === 'speakers';
                 const rowClasses = [
                   'item-row',
                   !isSelected ? 'disabled' : '',
@@ -6562,10 +6563,10 @@ export class GlassConfigPanel extends LitElement {
                   <div
                     class=${rowClasses}
                     draggable=${isSelected ? 'true' : 'false'}
-                    @dragstart=${() => { if (isSelected) this._onDragStart(idx, 'speakers'); }}
-                    @dragover=${(e: DragEvent) => { if (isSelected) this._onDragOver(idx, e); }}
+                    @dragstart=${() => { if (isSelected && visIdx !== -1) this._onDragStart(visIdx, 'speakers'); }}
+                    @dragover=${(e: DragEvent) => { if (isSelected && visIdx !== -1) this._onDragOver(visIdx, e); }}
                     @dragleave=${() => this._onDragLeave()}
-                    @drop=${(e: DragEvent) => this._onDropSpeaker(idx, e)}
+                    @drop=${(e: DragEvent) => { if (isSelected && visIdx !== -1) this._onDropSpeaker(visIdx, e); }}
                     @dragend=${() => this._onDragEnd()}
                   >
                     ${isSelected ? html`

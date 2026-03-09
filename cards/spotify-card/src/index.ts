@@ -123,6 +123,7 @@ class GlassSpotifyCard extends BaseCard {
   private _backend: BackendService | undefined;
   private _configLoaded = false;
   private _configLoadingInProgress = false;
+  private _loadVersion = 0;
   private _debounceTimer = 0;
 
   // — Styles —
@@ -416,7 +417,7 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Speaker picker overlay */
     .picker-backdrop {
-      position: fixed; inset: 0; z-index: 200;
+      position: fixed; inset: 0; z-index: 10000;
       background: rgba(0,0,0,0.5);
       display: flex; align-items: flex-end; justify-content: center;
       padding: 16px; padding-bottom: 80px;
@@ -560,6 +561,7 @@ class GlassSpotifyCard extends BaseCard {
   }
 
   protected _collapseExpanded(): void {
+    if (this._view === 'speaker_picker') { this._closePicker(); return; }
     if (this._foldOpen) this._foldOpen = false;
     if (this._drilldown) { this._drilldown = null; this._view = this._searchQuery ? 'search' : 'library'; }
   }
@@ -583,22 +585,24 @@ class GlassSpotifyCard extends BaseCard {
   private async _loadConfig(): Promise<void> {
     if (!this._backend || this._configLoadingInProgress) return;
     this._configLoadingInProgress = true;
+    const version = ++this._loadVersion;
     try {
       const result = await this._backend.send<{
         spotify_card: SpotifyBackendConfig;
       }>('get_config');
+      if (version !== this._loadVersion) return;
       if (result?.spotify_card) {
         this._spotifyConfig = result.spotify_card;
       }
       this._configLoaded = true;
-      this._configLoadingInProgress = false;
-      // Check Spotify status
       await this._checkSpotifyStatus();
-      // Load library data
+      if (version !== this._loadVersion) return;
       if (this._spotifyConfigured) this._loadLibrary();
       this.requestUpdate();
     } catch {
-      this._configLoadingInProgress = false;
+      // swallow
+    } finally {
+      if (version === this._loadVersion) this._configLoadingInProgress = false;
     }
   }
 

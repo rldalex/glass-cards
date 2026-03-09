@@ -10,6 +10,13 @@ from homeassistant.components import websocket_api
 from homeassistant.exceptions import HomeAssistantError, Unauthorized
 
 from .const import DOMAIN
+
+
+def _strict_int(value: Any) -> int:
+    """Coerce to int but reject booleans."""
+    if isinstance(value, bool):
+        raise vol.Invalid("Expected int, got bool")
+    return int(value)
 from .permissions import can_edit, can_read
 from .models import (
     DEFAULT_COVER_PRESETS,
@@ -327,12 +334,12 @@ async def ws_set_light_config(
             vol.All(str, vol.Match(r"^cover\.[\w-]+$"))
         ],
         vol.Optional("presets"): vol.All(
-            [vol.All(vol.Coerce(int), vol.Range(min=0, max=100))],
+            [vol.All(_strict_int, vol.Range(min=0, max=100))],
             vol.Length(min=1),
         ),
         vol.Optional("entity_presets"): {
             vol.All(str, vol.Match(r"^cover\.[\w-]+$")): vol.All(
-                [vol.All(vol.Coerce(int), vol.Range(min=0, max=100))],
+                [vol.All(_strict_int, vol.Range(min=0, max=100))],
                 vol.Length(min=1),
             ),
         },

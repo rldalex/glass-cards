@@ -401,7 +401,7 @@ class SpotifyCardConfig:
             show_header=bool(data.get("show_header", True)),
             entity_id=str(data.get("entity_id", "")),
             sort_order=raw_sort if raw_sort in VALID_SORT_ORDERS else "recent_first",
-            max_items_per_section=max(1, min(50, int(raw_max))) if isinstance(raw_max, (int, float)) else 6,
+            max_items_per_section=max(1, min(50, int(raw_max))) if isinstance(raw_max, (int, float)) and not isinstance(raw_max, bool) else 6,
             visible_speakers=[
                 str(x) for x in raw_speakers if isinstance(x, str)
             ] if isinstance(raw_speakers, list) else [],
