@@ -144,6 +144,17 @@ export abstract class BaseCard extends LitElement {
   protected _collapseExpanded(): void {
     // no-op — subclasses override
   }
+
+  /**
+   * Scroll this card to the top of the viewport.
+   * Useful on input focus to keep content visible above the mobile keyboard.
+   * Uses a short delay to wait for the virtual keyboard to appear.
+   */
+  protected _scrollToTop(): void {
+    setTimeout(() => {
+      this.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 300);
+  }
 }
 
 // — Area Utilities —

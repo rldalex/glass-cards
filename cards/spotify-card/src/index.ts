@@ -907,6 +907,7 @@ class GlassSpotifyCard extends BaseCard {
             placeholder=${t('spotify.search_placeholder')}
             .value=${this._searchQuery}
             @input=${this._onSearchInput}
+            @focus=${() => { if (!this._foldOpen) this._foldOpen = true; this._scrollToTop(); }}
           />
           <button
             class="search-clear ${this._searchQuery ? 'visible' : ''}"
