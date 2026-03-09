@@ -106,7 +106,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _searchHasMore = false;
   private _searchVersion = 0;
   @state() private _drilldown: DrilldownState | null = null;
-  @state() private _speakers: { entityId: string; name: string; state: string; mediaTitle: string | null }[] = [];
+  @state() private _speakers: { entityId: string; name: string; state: string; mediaTitle: string | null; icon: string }[] = [];
   @state() private _pickerItem: SpotifyItem | null = null;
   @state() private _error: string | null = null;
   @state() private _libraryLoading = false;
@@ -287,7 +287,22 @@ class GlassSpotifyCard extends BaseCard {
     }
     @media (hover: hover) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
     .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
-    .playlist-art ha-icon { --mdc-icon-size: 32px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .playlist-art ha-icon { --mdc-icon-size: 32px; color: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; }
+
+    .playlist-art-play {
+      position: absolute; bottom: 6px; right: 6px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1DB954;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: translateY(4px);
+      transition: all var(--t-fast);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    .playlist-art-play ha-icon { --mdc-icon-size: 14px; color: #000; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) {
+      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
+    }
 
     .playlist-name {
       font-size: 10px; font-weight: 600; color: var(--t2); line-height: 1.3;
@@ -666,12 +681,20 @@ class GlassSpotifyCard extends BaseCard {
     if (this.hass) {
       this._speakers = Object.entries(this.hass.states)
         .filter(([id]) => id.startsWith('media_player.'))
-        .map(([id, entity]) => ({
-          entityId: id,
-          name: (entity.attributes.friendly_name as string) ?? id,
-          state: entity.state,
-          mediaTitle: (entity.attributes.media_title as string | undefined) ?? null,
-        }))
+        .map(([id, entity]) => {
+          const dc = (entity.attributes.device_class as string | undefined) ?? '';
+          let icon = 'mdi:speaker';
+          if (dc === 'tv' || id.includes('tv')) icon = 'mdi:television';
+          else if (dc === 'receiver') icon = 'mdi:audio-video';
+          else if (id.includes('nest') || id.includes('hub') || id.includes('echo_show')) icon = 'mdi:tablet';
+          return {
+            entityId: id,
+            name: (entity.attributes.friendly_name as string) ?? id,
+            state: entity.state,
+            mediaTitle: (entity.attributes.media_title as string | undefined) ?? null,
+            icon,
+          };
+        })
         .sort((a, b) => {
           // Playing first, then paused, then idle
           const order = (s: string) => s === 'playing' ? 0 : s === 'paused' ? 1 : 2;
@@ -923,10 +946,11 @@ class GlassSpotifyCard extends BaseCard {
         aria-label=${pl.name}
         @click=${() => this._openDrilldown('playlist', pl.id, pl.name)}
       >
-        <div class="playlist-art">
+        <div class="playlist-art" style=${img ? '' : 'background:#3040a0'}>
           ${img
             ? html`<img src=${img} alt="" loading="lazy" />`
             : html`<ha-icon .icon=${'mdi:playlist-music'}></ha-icon>`}
+          <div class="playlist-art-play"><ha-icon .icon=${'mdi:play'}></ha-icon></div>
         </div>
         <div class="playlist-name">${pl.name}</div>
         ${count > 0 ? html`<div class="playlist-count">${t('spotify.tracks_count', { count: String(count) })}</div>` : nothing}
@@ -1072,7 +1096,7 @@ class GlassSpotifyCard extends BaseCard {
             ${this._speakers.map((sp) => html`
               <button class="picker-speaker" @click=${() => this._playOnSpeaker(sp.entityId)}>
                 <div class="picker-speaker-icon">
-                  <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+                  <ha-icon .icon=${sp.icon}></ha-icon>
                 </div>
                 <div class="picker-speaker-name">${sp.name}</div>
                 <div class="picker-speaker-status ${sp.state === 'playing' ? 'playing' : ''}">
