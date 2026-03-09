@@ -11,6 +11,7 @@ interface SpotifyBackendConfig {
   show_header: boolean;
   sort_order: 'recent_first' | 'oldest_first';
   max_items_per_section: number;
+  visible_speakers: string[];
 }
 
 interface SpotifyImage {
@@ -109,6 +110,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _drilldown: DrilldownState | null = null;
   @state() private _speakers: { entityId: string; name: string; state: string; mediaTitle: string | null; icon: string }[] = [];
   @state() private _pickerItem: SpotifyItem | null = null;
+  @state() private _selectedSpeakers = new Set<string>();
   @state() private _error: string | null = null;
   @state() private _libraryLoading = false;
   @state() private _spotifyConfigured: boolean | null = null;
@@ -116,7 +118,7 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
-    entity_id: '', show_header: true, sort_order: 'recent_first', max_items_per_section: 6,
+    entity_id: '', show_header: true, sort_order: 'recent_first', max_items_per_section: 6, visible_speakers: [],
   };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
@@ -417,7 +419,8 @@ class GlassSpotifyCard extends BaseCard {
       position: fixed; inset: 0; z-index: 200;
       background: rgba(0,0,0,0.5);
       display: flex; align-items: flex-end; justify-content: center;
-      padding: 16px; opacity: 0; pointer-events: none;
+      padding: 16px; padding-bottom: 80px;
+      opacity: 0; pointer-events: none;
       transition: opacity 0.2s ease;
     }
     .picker-backdrop.visible { opacity: 1; pointer-events: auto; }
@@ -425,6 +428,8 @@ class GlassSpotifyCard extends BaseCard {
     .speaker-picker {
       width: 100%; max-width: 400px;
       padding: 16px;
+      max-height: calc(100dvh - 160px);
+      display: flex; flex-direction: column;
       transform: translateY(20px);
       transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
     }
@@ -457,7 +462,12 @@ class GlassSpotifyCard extends BaseCard {
     .picker-track-title { font-size: 12px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .picker-track-artist { font-size: 10px; font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .picker-speakers { display: flex; flex-direction: column; gap: 4px; }
+    .picker-speakers {
+      display: flex; flex-direction: column; gap: 4px;
+      overflow-y: auto; flex: 1; min-height: 0;
+      scrollbar-width: none;
+    }
+    .picker-speakers::-webkit-scrollbar { display: none; }
     .picker-speaker {
       display: flex; align-items: center; gap: 10px;
       padding: 8px; border-radius: var(--radius-md);
@@ -465,7 +475,9 @@ class GlassSpotifyCard extends BaseCard {
       cursor: pointer; transition: all var(--t-fast);
       font-family: inherit; outline: none; width: 100%;
       -webkit-tap-highlight-color: transparent; color: inherit;
+      flex-shrink: 0;
     }
+    .picker-speaker.selected { border-color: rgba(29,185,84,0.4); background: rgba(29,185,84,0.08); }
     @media (hover: hover) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
     .picker-speaker:active { transform: scale(0.98); }
     .picker-speaker:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
@@ -474,12 +486,39 @@ class GlassSpotifyCard extends BaseCard {
       width: 32px; height: 32px; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
     }
+    .picker-speaker.selected .picker-speaker-icon { background: rgba(29,185,84,0.15); border-color: rgba(29,185,84,0.3); }
     .picker-speaker-icon ha-icon { --mdc-icon-size: 16px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    .picker-speaker.selected .picker-speaker-icon ha-icon { color: #1DB954; }
     .picker-speaker-name { flex: 1; font-size: 12px; font-weight: 600; color: var(--t2); }
     .picker-speaker-status { font-size: 9px; font-weight: 500; color: var(--t4); white-space: nowrap; }
     .picker-speaker-status.playing { color: rgba(29,185,84,0.6); }
-    .picker-speaker-go ha-icon { --mdc-icon-size: 16px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .picker-speaker-check {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--b2); background: transparent;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
+    }
+    .picker-speaker.selected .picker-speaker-check { border-color: #1DB954; background: #1DB954; }
+    .picker-speaker-check ha-icon { --mdc-icon-size: 14px; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
+    .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
+
+    .picker-play-bar {
+      display: flex; gap: 8px; padding-top: 8px; flex-shrink: 0;
+    }
+    .picker-play-btn {
+      flex: 1; padding: 10px; border-radius: var(--radius-md);
+      border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all var(--t-fast); outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .picker-play-btn.primary { background: #1DB954; color: #fff; }
+    .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
+    @media (hover: hover) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
+    .picker-play-btn.primary ha-icon { --mdc-icon-size: 18px; display: flex; align-items: center; justify-content: center; }
+    .picker-play-btn:active:not(:disabled) { transform: scale(0.98); }
 
     /* Loading spinner placeholder */
     .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }
@@ -732,10 +771,17 @@ class GlassSpotifyCard extends BaseCard {
   private _openPicker(item: SpotifyItem): void {
     this._pickerItem = item;
     this._view = 'speaker_picker';
+    this._selectedSpeakers = new Set<string>();
     // Collect media_player entities
     if (this.hass) {
+      const visibleSet = this._spotifyConfig.visible_speakers;
+      const filterByVisible = visibleSet.length > 0;
       this._speakers = Object.entries(this.hass.states)
-        .filter(([id]) => id.startsWith('media_player.'))
+        .filter(([id]) => {
+          if (!id.startsWith('media_player.')) return false;
+          if (filterByVisible && !visibleSet.includes(id)) return false;
+          return true;
+        })
         .map(([id, entity]) => {
           const dc = (entity.attributes.device_class as string | undefined) ?? '';
           let icon = 'mdi:speaker';
@@ -763,15 +809,24 @@ class GlassSpotifyCard extends BaseCard {
     this._view = this._drilldown ? 'drilldown' : this._searchQuery ? 'search' : 'library';
   }
 
-  private async _playOnSpeaker(entityId: string): Promise<void> {
-    if (!this.hass || !this._pickerItem) return;
+  private _toggleSpeakerSelection(entityId: string): void {
+    const next = new Set(this._selectedSpeakers);
+    if (next.has(entityId)) next.delete(entityId);
+    else next.add(entityId);
+    this._selectedSpeakers = next;
+  }
+
+  private async _playOnSelectedSpeakers(): Promise<void> {
+    if (!this.hass || !this._pickerItem || this._selectedSpeakers.size === 0) return;
     const item = this._pickerItem;
     const uri = item.uri ?? `spotify:${item.type}:${item.id}`;
+    const entityIds = [...this._selectedSpeakers];
+    const contentType = item.type === 'track' ? 'music' : item.type === 'playlist' ? 'playlist' : item.type === 'album' ? 'music' : 'podcast';
     try {
       await this.hass.callService('media_player', 'play_media', {
         media_content_id: uri,
-        media_content_type: item.type === 'track' ? 'music' : item.type === 'playlist' ? 'playlist' : item.type === 'album' ? 'music' : 'podcast',
-      }, { entity_id: entityId });
+        media_content_type: contentType,
+      }, { entity_id: entityIds });
 
       // Radio queue: for single tracks, seed recommendations and add to queue
       if ((item.type === 'track' || item.type === 'episode') && this._backend) {
@@ -1142,6 +1197,7 @@ class GlassSpotifyCard extends BaseCard {
     const item = this._pickerItem!;
     const img = getImage(item, 64);
     const artist = getArtistNames(item);
+    const hasSelection = this._selectedSpeakers.size > 0;
     return html`
       <div class="picker-backdrop visible" @click=${(e: Event) => { if ((e.target as HTMLElement).classList.contains('picker-backdrop')) this._closePicker(); }}>
         <div class="glass speaker-picker">
@@ -1165,24 +1221,39 @@ class GlassSpotifyCard extends BaseCard {
           </div>
 
           <div class="picker-speakers">
-            ${this._speakers.map((sp) => html`
-              <button class="picker-speaker" @click=${() => this._playOnSpeaker(sp.entityId)}>
-                <div class="picker-speaker-icon">
-                  <ha-icon .icon=${sp.icon}></ha-icon>
-                </div>
-                <div class="picker-speaker-name">${sp.name}</div>
-                <div class="picker-speaker-status ${sp.state === 'playing' ? 'playing' : ''}">
-                  ${sp.state === 'playing' && sp.mediaTitle
-                    ? sp.mediaTitle
-                    : sp.state === 'paused'
-                      ? t('spotify.paused')
-                      : t('spotify.available')}
-                </div>
-                <div class="picker-speaker-go">
-                  <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-                </div>
-              </button>
-            `)}
+            ${this._speakers.map((sp) => {
+              const selected = this._selectedSpeakers.has(sp.entityId);
+              return html`
+                <button class="picker-speaker ${selected ? 'selected' : ''}" @click=${() => this._toggleSpeakerSelection(sp.entityId)}>
+                  <div class="picker-speaker-icon">
+                    <ha-icon .icon=${sp.icon}></ha-icon>
+                  </div>
+                  <div class="picker-speaker-name">${sp.name}</div>
+                  <div class="picker-speaker-status ${sp.state === 'playing' ? 'playing' : ''}">
+                    ${sp.state === 'playing' && sp.mediaTitle
+                      ? sp.mediaTitle
+                      : sp.state === 'paused'
+                        ? t('spotify.paused')
+                        : t('spotify.available')}
+                  </div>
+                  <div class="picker-speaker-check">
+                    <ha-icon .icon=${'mdi:check'}></ha-icon>
+                  </div>
+                </button>
+              `;
+            })}
+          </div>
+
+          <div class="picker-play-bar">
+            <button
+              class="picker-play-btn primary"
+              ?disabled=${!hasSelection}
+              @click=${() => this._playOnSelectedSpeakers()}
+              aria-label=${t('spotify.play')}
+            >
+              <ha-icon .icon=${'mdi:play'}></ha-icon>
+              ${t('spotify.play')}${hasSelection ? ` (${this._selectedSpeakers.size})` : ''}
+            </button>
           </div>
         </div>
       </div>

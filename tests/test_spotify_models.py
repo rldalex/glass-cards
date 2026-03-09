@@ -31,6 +31,7 @@ class TestSpotifyCardConfig:
             "entity_id": "media_player.spotify_john",
             "sort_order": "oldest_first",
             "max_items_per_section": 10,
+            "visible_speakers": [],
         }
 
     def test_from_dict(self):

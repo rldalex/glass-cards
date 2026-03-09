@@ -179,6 +179,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _spotifySortOrder: 'recent_first' | 'oldest_first' = 'recent_first';
   @state() private _spotifyDropdownOpen = false;
   @state() private _spotifyMaxItems = 6;
+  @state() private _spotifyVisibleSpeakers: string[] = [];
   @state() private _spotifyConfigured: boolean | null = null; // null = checking
 
   // Dashboard config
@@ -2970,6 +2971,7 @@ export class GlassConfigPanel extends LitElement {
       entity_id: '',
       sort_order: 'recent_first' as 'recent_first' | 'oldest_first',
       max_items_per_section: 6,
+      visible_speakers: [] as string[],
     };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
@@ -3027,6 +3029,7 @@ export class GlassConfigPanel extends LitElement {
     this._spotifyEntity = spotifyCardConfig.entity_id ?? '';
     this._spotifySortOrder = spotifyCardConfig.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
     this._spotifyMaxItems = spotifyCardConfig.max_items_per_section ?? 6;
+    this._spotifyVisibleSpeakers = spotifyCardConfig.visible_speakers ?? [];
     this._checkSpotifyStatus();
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
@@ -6266,6 +6269,7 @@ export class GlassConfigPanel extends LitElement {
         entity_id: this._spotifyEntity,
         sort_order: this._spotifySortOrder,
         max_items_per_section: this._spotifyMaxItems,
+        visible_speakers: this._spotifyVisibleSpeakers,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -6281,13 +6285,14 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        spotify_card: { show_header: boolean; entity_id: string; sort_order: string; max_items_per_section: number };
+        spotify_card: { show_header: boolean; entity_id: string; sort_order: string; max_items_per_section: number; visible_speakers?: string[] };
       }>('get_config');
       if (result?.spotify_card) {
         this._spotifyShowHeader = result.spotify_card.show_header ?? true;
         this._spotifyEntity = result.spotify_card.entity_id ?? '';
         this._spotifySortOrder = result.spotify_card.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
         this._spotifyMaxItems = result.spotify_card.max_items_per_section ?? 6;
+        this._spotifyVisibleSpeakers = result.spotify_card.visible_speakers ?? [];
       }
     } catch { /* ignore */ }
   }
@@ -6520,6 +6525,26 @@ export class GlassConfigPanel extends LitElement {
           ">${this._spotifyMaxItems}</span>
         </div>
 
+        <div class="section-label">${t('config.spotify_speakers')}</div>
+        <div class="section-desc">${t('config.spotify_speakers_desc')}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${(this.hass ? Object.entries(this.hass.states).filter(([id]) => id.startsWith('media_player.')).sort(([a], [b]) => a.localeCompare(b)) : []).map(([id, entity]) => {
+            const isChecked = this._spotifyVisibleSpeakers.includes(id);
+            const name = (entity.attributes.friendly_name as string) ?? id;
+            return html`
+              <button
+                class="check-item ${isChecked ? 'checked' : ''}"
+                @click=${() => this._toggleSpotifySpeaker(id)}
+                role="checkbox"
+                aria-checked=${isChecked ? 'true' : 'false'}
+              >
+                <span class="check-box"><ha-icon .icon=${'mdi:check'}></ha-icon></span>
+                <span class="check-label">${name}</span>
+              </button>
+            `;
+          })}
+        </div>
+
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this._loadSpotifyConfig()}>${t('common.reset')}</button>
           <button
@@ -6532,6 +6557,14 @@ export class GlassConfigPanel extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _toggleSpotifySpeaker(entityId: string) {
+    if (this._spotifyVisibleSpeakers.includes(entityId)) {
+      this._spotifyVisibleSpeakers = this._spotifyVisibleSpeakers.filter((id) => id !== entityId);
+    } else {
+      this._spotifyVisibleSpeakers = [...this._spotifyVisibleSpeakers, entityId];
+    }
   }
 
   // — Title card config —

@@ -515,6 +515,9 @@ async def ws_spotify_status(
         ),
         vol.Optional("sort_order"): vol.In(list(VALID_SORT_ORDERS)),
         vol.Optional("max_items_per_section"): vol.All(int, vol.Range(min=1, max=50)),
+        vol.Optional("visible_speakers"): [
+            vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))
+        ],
     }
 )
 @websocket_api.async_response
@@ -537,6 +540,14 @@ async def ws_set_spotify_config(
         store.data.spotify_card.sort_order = msg["sort_order"]
     if "max_items_per_section" in msg:
         store.data.spotify_card.max_items_per_section = msg["max_items_per_section"]
+    if "visible_speakers" in msg:
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for eid in msg["visible_speakers"]:
+            if eid not in seen:
+                seen.add(eid)
+                deduped.append(eid)
+        store.data.spotify_card.visible_speakers = deduped
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.spotify_card.to_dict())

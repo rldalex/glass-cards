@@ -379,6 +379,7 @@ class SpotifyCardConfig:
     entity_id: str = ""
     sort_order: str = "recent_first"
     max_items_per_section: int = 6
+    visible_speakers: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -387,6 +388,7 @@ class SpotifyCardConfig:
             "entity_id": self.entity_id,
             "sort_order": self.sort_order,
             "max_items_per_section": self.max_items_per_section,
+            "visible_speakers": self.visible_speakers,
         }
 
     @classmethod
@@ -394,11 +396,15 @@ class SpotifyCardConfig:
         """Deserialize from dict."""
         raw_sort = str(data.get("sort_order", "recent_first"))
         raw_max = data.get("max_items_per_section", 6)
+        raw_speakers = data.get("visible_speakers", [])
         return cls(
             show_header=bool(data.get("show_header", True)),
             entity_id=str(data.get("entity_id", "")),
             sort_order=raw_sort if raw_sort in VALID_SORT_ORDERS else "recent_first",
             max_items_per_section=max(1, min(50, int(raw_max))) if isinstance(raw_max, (int, float)) else 6,
+            visible_speakers=[
+                str(x) for x in raw_speakers if isinstance(x, str)
+            ] if isinstance(raw_speakers, list) else [],
         )
 
 
