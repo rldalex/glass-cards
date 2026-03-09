@@ -5274,6 +5274,7 @@ export class GlassConfigPanel extends LitElement {
       { key: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather' as const, descKey: 'config.dashboard_card_weather_desc' as const },
       { key: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light' as const, descKey: 'config.dashboard_card_light_desc' as const },
       { key: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover' as const, descKey: 'config.dashboard_card_cover_desc' as const },
+      { key: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify' as const, descKey: 'config.dashboard_card_spotify_desc' as const },
     ];
 
     const enabledSet = new Set(this._dashboardEnabledCards);

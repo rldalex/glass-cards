@@ -286,6 +286,8 @@
     "dashboard_light_auto": "Active lights are automatically displayed on the dashboard.",
     "dashboard_card_cover": "Cover Card",
     "dashboard_card_cover_desc": "Shows selected covers with position controls",
+    "dashboard_card_spotify": "Spotify Card",
+    "dashboard_card_spotify_desc": "Music library, search and Spotify playback",
 
     "tab_cover": "Cover Card",
     "cover_show_header": "Show header",

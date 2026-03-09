@@ -286,6 +286,8 @@
     "dashboard_light_auto": "Les lumières allumées s'affichent automatiquement sur le tableau de bord.",
     "dashboard_card_cover": "Carte Volets",
     "dashboard_card_cover_desc": "Affiche les volets sélectionnés avec contrôle de position",
+    "dashboard_card_spotify": "Carte Spotify",
+    "dashboard_card_spotify_desc": "Bibliothèque musicale, recherche et lecture Spotify",
 
     "tab_cover": "Carte Volets",
     "cover_show_header": "Afficher l'en-tête",
