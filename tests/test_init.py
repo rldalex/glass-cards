@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.glass_cards import async_setup, async_setup_entry, async_unload_entry
-from custom_components.glass_cards.const import DOMAIN, get_js_url
+from custom_components.glass_cards.const import DOMAIN
 
 
 @pytest.fixture
@@ -21,6 +21,8 @@ def mock_hass_with_http(mock_hass):
     """Create a mock hass with http attribute."""
     mock_hass.http = MagicMock()
     mock_hass.http.async_register_static_paths = AsyncMock()
+    # async_add_executor_job runs the function directly (no real thread in tests)
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=lambda fn, *a: fn(*a))
     return mock_hass
 
 
@@ -44,9 +46,13 @@ class TestAsyncSetupEntry:
     @pytest.mark.asyncio
     async def test_sets_up_store(self, mock_hass_with_http, mock_entry):
         """Should load store and register in hass.data."""
-        with patch(
-            "custom_components.glass_cards.GlassCardsStore"
-        ) as mock_store_cls:
+        with (
+            patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
+            patch(
+                "custom_components.glass_cards._resolve_static_assets",
+                return_value=(False, False, "", ""),
+            ),
+        ):
             mock_store_cls.return_value.async_load = AsyncMock()
             result = await async_setup_entry(mock_hass_with_http, mock_entry)
 
@@ -60,7 +66,10 @@ class TestAsyncSetupEntry:
         """Should register static path when JS file exists."""
         with (
             patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
-            patch("os.path.isfile", return_value=True),
+            patch(
+                "custom_components.glass_cards._resolve_static_assets",
+                return_value=(True, True, "/glass_cards/glass-cards.js?v=abc", "/glass_cards/glass-cards-panel.js?v=def"),
+            ),
             patch("custom_components.glass_cards.add_extra_js_url") as mock_add_js,
         ):
             mock_store_cls.return_value.async_load = AsyncMock()
@@ -74,7 +83,10 @@ class TestAsyncSetupEntry:
         """Should not register static path when JS file is missing."""
         with (
             patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
-            patch("os.path.isfile", return_value=False),
+            patch(
+                "custom_components.glass_cards._resolve_static_assets",
+                return_value=(False, False, "", ""),
+            ),
             patch("custom_components.glass_cards.add_extra_js_url") as mock_add_js,
         ):
             mock_store_cls.return_value.async_load = AsyncMock()
