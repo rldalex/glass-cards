@@ -166,10 +166,12 @@ export class GlassConfigPanel extends LitElement {
   @state() private _coverDashboardEntities: string[] = [];
   @state() private _coverDashboardOrder: string[] = [];
   @state() private _coverPresets: number[] = [0, 25, 50, 75, 100];
+  @state() private _coverEntityPresets: Record<string, number[]> = {};
   @state() private _coverRoom = '';
   @state() private _coverRoomDropdownOpen = false;
   @state() private _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
   @state() private _coverPresetInput = '';
+  @state() private _coverEntityPresetInput: Record<string, string> = {};
 
   // Spotify config
   @state() private _spotifyShowHeader = true;
@@ -2961,6 +2963,7 @@ export class GlassConfigPanel extends LitElement {
       show_header: true,
       dashboard_entities: [] as string[],
       presets: [0, 25, 50, 75, 100] as number[],
+      entity_presets: {} as Record<string, number[]>,
     };
     let spotifyCardConfig = {
       show_header: true,
@@ -3017,6 +3020,7 @@ export class GlassConfigPanel extends LitElement {
     this._coverShowHeader = coverCardConfig.show_header ?? true;
     this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
     this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
+    this._coverEntityPresets = coverCardConfig.entity_presets ?? {};
     this._initCoverDashboardOrder();
 
     this._spotifyShowHeader = spotifyCardConfig.show_header ?? true;
@@ -4905,6 +4909,7 @@ export class GlassConfigPanel extends LitElement {
         show_header: this._coverShowHeader,
         dashboard_entities: orderedDashboardEntities,
         presets: this._coverPresets,
+        entity_presets: this._coverEntityPresets,
       });
 
       // Save room-level cover config if a room is selected
@@ -5043,7 +5048,7 @@ export class GlassConfigPanel extends LitElement {
                   <!-- Presets -->
                   <div style="height:1px;background:var(--b1);"></div>
                   <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                    ${this._coverPresets.map((p) => {
+                    ${(this._coverEntityPresets[e.entityId] ?? this._coverPresets).map((p) => {
                       const isActive = posVal === p;
                       const pIsOpen = p >= 50;
                       const label = p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`;
@@ -5173,6 +5178,85 @@ export class GlassConfigPanel extends LitElement {
                       aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
                     ></button>
                   </div>
+                  <!-- Per-entity presets -->
+                  ${e.visible ? html`
+                    <div style="padding:2px 8px 8px 32px;">
+                      <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${t('config.cover_entity_presets')}</div>
+                      <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                        ${(this._coverEntityPresets[e.entityId] ?? this._coverPresets).map((p) => {
+                          const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
+                          const isCustom = !!this._coverEntityPresets[e.entityId];
+                          return html`
+                            <span style="
+                              display:inline-flex;align-items:center;gap:3px;
+                              padding:3px 7px;border-radius:var(--radius-md);
+                              border:1px solid ${isCustom ? 'rgba(167,139,250,0.2)' : 'var(--b2)'};
+                              background:${isCustom ? 'rgba(167,139,250,0.05)' : 'var(--s1)'};
+                              font-size:10px;font-weight:600;color:${isCustom ? 'var(--c-accent)' : 'var(--t3)'};
+                            ">
+                              <ha-icon .icon=${pIcon} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                              ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
+                              ${isCustom ? html`
+                                <button
+                                  style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:color var(--t-fast);"
+                                  @click=${() => this._removeCoverEntityPreset(e.entityId, p)}
+                                  aria-label="${t('common.delete')} ${p}%"
+                                >
+                                  <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                </button>
+                              ` : nothing}
+                            </span>
+                          `;
+                        })}
+                        <span style="display:inline-flex;align-items:center;gap:3px;">
+                          <input
+                            class="input"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="5"
+                            .value=${this._coverEntityPresetInput[e.entityId] ?? ''}
+                            @input=${(ev: Event) => { this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [e.entityId]: (ev.target as HTMLInputElement).value }; }}
+                            @keydown=${(ev: KeyboardEvent) => { if (ev.key === 'Enter') this._addCoverEntityPreset(e.entityId); }}
+                            placeholder="%"
+                            style="width:48px;font-size:10px;padding:3px 6px;"
+                          />
+                          <button
+                            style="
+                              display:inline-flex;align-items:center;
+                              padding:3px 6px;border-radius:var(--radius-md);
+                              border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
+                              font-size:10px;font-weight:600;color:var(--c-accent);
+                              cursor:pointer;font-family:inherit;
+                              opacity:${this._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};
+                              pointer-events:${this._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};
+                              transition:opacity var(--t-fast);
+                            "
+                            @click=${() => this._addCoverEntityPreset(e.entityId)}
+                            aria-label="${t('config.cover_preset_add')}"
+                          >
+                            <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                          </button>
+                          ${this._coverEntityPresets[e.entityId] ? html`
+                            <button
+                              style="
+                                display:inline-flex;align-items:center;gap:2px;
+                                padding:3px 6px;border-radius:var(--radius-md);
+                                border:1px solid var(--b2);background:var(--s1);
+                                font-size:9px;font-weight:600;color:var(--t4);
+                                cursor:pointer;font-family:inherit;
+                                transition:all var(--t-fast);
+                              "
+                              @click=${() => this._resetCoverEntityPresets(e.entityId)}
+                              aria-label="${t('common.reset')}"
+                            >
+                              <ha-icon .icon=${'mdi:restore'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                            </button>
+                          ` : nothing}
+                        </span>
+                      </div>
+                    </div>
+                  ` : nothing}
                 `;
               })}
             </div>
@@ -5279,12 +5363,14 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        cover_card?: { show_header: boolean; dashboard_entities: string[]; presets: number[] };
+        cover_card?: { show_header: boolean; dashboard_entities: string[]; presets: number[]; entity_presets?: Record<string, number[]> };
       }>('get_config');
       if (result?.cover_card) {
         this._coverShowHeader = result.cover_card.show_header ?? true;
         this._coverDashboardEntities = result.cover_card.dashboard_entities ?? [];
         this._coverPresets = result.cover_card.presets ?? [0, 25, 50, 75, 100];
+        this._coverEntityPresets = result.cover_card.entity_presets ?? {};
+        this._coverEntityPresetInput = {};
         this._initCoverDashboardOrder();
       }
     } catch { /* ignore */ }
@@ -5301,6 +5387,41 @@ export class GlassConfigPanel extends LitElement {
 
   private _removeCoverPreset(val: number) {
     this._coverPresets = this._coverPresets.filter((p) => p !== val);
+  }
+
+  private _addCoverEntityPreset(entityId: string) {
+    const raw = this._coverEntityPresetInput[entityId] ?? '';
+    const val = parseInt(raw, 10);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    const current = this._coverEntityPresets[entityId] ?? [...this._coverPresets];
+    if (current.includes(val)) {
+      this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [entityId]: '' };
+      return;
+    }
+    this._coverEntityPresets = {
+      ...this._coverEntityPresets,
+      [entityId]: [...current, val].sort((a, b) => a - b),
+    };
+    this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [entityId]: '' };
+  }
+
+  private _removeCoverEntityPreset(entityId: string, val: number) {
+    const current = this._coverEntityPresets[entityId];
+    if (!current) return;
+    const updated = current.filter((p) => p !== val);
+    if (updated.length === 0) {
+      const ep = { ...this._coverEntityPresets };
+      delete ep[entityId];
+      this._coverEntityPresets = ep;
+    } else {
+      this._coverEntityPresets = { ...this._coverEntityPresets, [entityId]: updated };
+    }
+  }
+
+  private _resetCoverEntityPresets(entityId: string) {
+    const ep = { ...this._coverEntityPresets };
+    delete ep[entityId];
+    this._coverEntityPresets = ep;
   }
 
   // — Dashboard config —
@@ -5355,6 +5476,7 @@ export class GlassConfigPanel extends LitElement {
         show_header: this._coverShowHeader,
         dashboard_entities: orderedDashCovers,
         presets: this._coverPresets,
+        entity_presets: this._coverEntityPresets,
       });
       await this._backend.send('set_spotify_config', {
         show_header: this._spotifyShowHeader,

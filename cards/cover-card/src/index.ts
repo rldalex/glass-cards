@@ -115,6 +115,7 @@ interface CoverBackendConfig {
   show_header: boolean;
   dashboard_entities: string[];
   presets: number[];
+  entity_presets: Record<string, number[]>;
 }
 
 interface RoomCoverConfig {
@@ -129,7 +130,7 @@ class GlassCoverCard extends BaseCard {
 
   @state() private _expanded: string | null = null;
 
-  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], presets: [0, 25, 50, 75, 100] };
+  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], presets: [0, 25, 50, 75, 100], entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
@@ -715,12 +716,15 @@ class GlassCoverCard extends BaseCard {
     const hasPosition = !!(sf & F.SET_POSITION);
     const hasTilt = !!(sf & F.SET_TILT_POSITION);
 
-    // Presets from backend config
+    // Presets: per-entity overrides take priority over global defaults
     const presets: { label: string; icon: string; position: number }[] = [];
     if (hasPosition) {
-      const configPresets = this._coverConfig.presets.length > 0
-        ? this._coverConfig.presets
-        : [0, 25, 50, 75, 100];
+      const entityPresets = this._coverConfig.entity_presets[cv.entityId];
+      const configPresets = entityPresets && entityPresets.length > 0
+        ? entityPresets
+        : this._coverConfig.presets.length > 0
+          ? this._coverConfig.presets
+          : [0, 25, 50, 75, 100];
       for (const p of configPresets) {
         const isOpen = p >= 50;
         const label = p === 0

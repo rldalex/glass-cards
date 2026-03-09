@@ -302,8 +302,9 @@
     "cover_list_banner": "Glissez pour réordonner. Désactivez ceux à masquer.",
     "cover_no_covers": "Aucun volet dans cette pièce.",
     "cover_select_room": "Sélectionnez une pièce",
-    "cover_presets": "Positions favorites",
-    "cover_presets_desc": "Configurez les boutons de position rapide affichés sous chaque volet.",
+    "cover_presets": "Positions par défaut",
+    "cover_presets_desc": "Positions par défaut pour les volets sans configuration personnalisée.",
+    "cover_entity_presets": "Positions",
     "cover_preset_add": "Ajouter",
     "cover_preset_placeholder": "0–100",
 

@@ -302,8 +302,9 @@
     "cover_list_banner": "Drag to reorder. Toggle to hide.",
     "cover_no_covers": "No covers in this room.",
     "cover_select_room": "Select a room",
-    "cover_presets": "Favorite positions",
-    "cover_presets_desc": "Configure the quick position buttons displayed under each cover.",
+    "cover_presets": "Default positions",
+    "cover_presets_desc": "Default positions for covers without custom configuration.",
+    "cover_entity_presets": "Positions",
     "cover_preset_add": "Add",
     "cover_preset_placeholder": "0–100",
 

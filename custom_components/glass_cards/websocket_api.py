@@ -330,6 +330,12 @@ async def ws_set_light_config(
             [vol.All(vol.Coerce(int), vol.Range(min=0, max=100))],
             vol.Length(min=1),
         ),
+        vol.Optional("entity_presets"): {
+            vol.All(str, vol.Match(r"^cover\.[\w-]+$")): vol.All(
+                [vol.All(vol.Coerce(int), vol.Range(min=0, max=100))],
+                vol.Length(min=1),
+            ),
+        },
     }
 )
 @websocket_api.async_response
@@ -357,6 +363,13 @@ async def ws_set_cover_config(
     if "presets" in msg:
         deduped = sorted(set(msg["presets"]))
         store.data.cover_card.presets = deduped if deduped else list(DEFAULT_COVER_PRESETS)
+    if "entity_presets" in msg:
+        ep: dict[str, list[int]] = {}
+        for eid, vals in msg["entity_presets"].items():
+            deduped_vals = sorted(set(vals))
+            if deduped_vals:
+                ep[eid] = deduped_vals
+        store.data.cover_card.entity_presets = ep
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.cover_card.to_dict())

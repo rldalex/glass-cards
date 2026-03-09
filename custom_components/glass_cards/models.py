@@ -323,6 +323,7 @@ class CoverCardConfig:
     show_header: bool = True
     dashboard_entities: list[str] = field(default_factory=list)
     presets: list[int] = field(default_factory=lambda: list(DEFAULT_COVER_PRESETS))
+    entity_presets: dict[str, list[int]] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -330,6 +331,7 @@ class CoverCardConfig:
             "show_header": self.show_header,
             "dashboard_entities": self.dashboard_entities,
             "presets": self.presets,
+            "entity_presets": self.entity_presets,
         }
 
     @classmethod
@@ -345,12 +347,27 @@ class CoverCardConfig:
             ]
             if not presets:
                 presets = list(DEFAULT_COVER_PRESETS)
+
+        raw_ep = data.get("entity_presets")
+        entity_presets: dict[str, list[int]] = {}
+        if isinstance(raw_ep, dict):
+            for eid, vals in raw_ep.items():
+                if not isinstance(eid, str) or not isinstance(vals, list):
+                    continue
+                valid = [
+                    x for x in vals
+                    if isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 100
+                ]
+                if valid:
+                    entity_presets[eid] = sorted(set(valid))
+
         return cls(
             show_header=bool(data.get("show_header", True)),
             dashboard_entities=[
                 str(x) for x in raw_entities if isinstance(x, str)
             ],
             presets=presets,
+            entity_presets=entity_presets,
         )
 
 
