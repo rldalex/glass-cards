@@ -1994,11 +1994,7 @@ export class GlassConfigPanel extends LitElement {
         transition-delay: 0.08s;
       }
       .feature-sub-content {
-        margin: 4px 0 0;
-        padding: 8px 10px;
-        border-radius: var(--radius-md);
-        background: var(--s1);
-        border: 1px solid var(--b1);
+        padding: 6px 10px 8px;
       }
 
       /* ── Threshold inputs ── */
@@ -5346,17 +5342,22 @@ export class GlassConfigPanel extends LitElement {
               isDropTarget ? 'drop-target' : '',
             ].filter(Boolean).join(' ');
 
+            const cardClasses = [
+              'item-card',
+              expanded ? 'expanded' : '',
+            ].filter(Boolean).join(' ');
+
             return html`
-              <div>
-                <div
-                  class=${rowClasses}
-                  draggable="true"
-                  @dragstart=${() => this._onDragStart(idx, 'dashboard_cards')}
-                  @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
-                  @dragleave=${() => this._onDragLeave()}
-                  @drop=${(ev: DragEvent) => this._onDropDashboardCard(idx, ev)}
-                  @dragend=${() => this._onDragEnd()}
-                >
+              <div
+                class=${meta.hasSub ? cardClasses : ''}
+                draggable="true"
+                @dragstart=${() => this._onDragStart(idx, 'dashboard_cards')}
+                @dragover=${(ev: DragEvent) => this._onDragOver(idx, ev)}
+                @dragleave=${() => this._onDragLeave()}
+                @drop=${(ev: DragEvent) => this._onDropDashboardCard(idx, ev)}
+                @dragend=${() => this._onDragEnd()}
+              >
+                <div class=${rowClasses}>
                   <span class="drag-handle">
                     <ha-icon .icon=${'mdi:drag'}></ha-icon>
                   </span>
@@ -5385,6 +5386,9 @@ export class GlassConfigPanel extends LitElement {
                     aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(meta.nameKey)}"
                   ></button>
                 </div>
+                ${meta.hasSub ? html`
+                  <div class="fold-sep ${expanded && enabled ? 'visible' : ''}"></div>
+                ` : nothing}
                 ${this._renderDashboardCardSub(key, enabled, expanded)}
               </div>
             `;

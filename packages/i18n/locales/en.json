@@ -278,7 +278,7 @@
 
     "tab_dashboard": "Dashboard",
     "dashboard_title": "Dashboard cards",
-    "dashboard_desc": "Enable or disable the cards displayed on the Home Assistant dashboard.",
+    "dashboard_desc": "Reorder, enable or disable dashboard cards. Drag to change the order.",
     "dashboard_card_weather": "Weather Card",
     "dashboard_card_weather_desc": "Current weather, forecasts and animations",
     "dashboard_card_light": "Light Card",

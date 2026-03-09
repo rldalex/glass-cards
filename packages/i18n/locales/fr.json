@@ -278,7 +278,7 @@
 
     "tab_dashboard": "Tableau de bord",
     "dashboard_title": "Cartes du tableau de bord",
-    "dashboard_desc": "Activez ou désactivez les cartes affichées sur le tableau de bord Home Assistant.",
+    "dashboard_desc": "Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l'ordre.",
     "dashboard_card_weather": "Carte Météo",
     "dashboard_card_weather_desc": "Affiche la météo actuelle, prévisions et animations",
     "dashboard_card_light": "Carte Lumières",
