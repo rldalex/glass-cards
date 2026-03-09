@@ -182,7 +182,7 @@ export class GlassConfigPanel extends LitElement {
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
   @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify'];
-  @state() private _dashboardCollapsed = new Set<string>();
+  @state() private _dashboardExpanded = new Set<string>();
 
   // Schedule config
   @state() private _scheduleExpandedEntity: string | null = null;
@@ -496,6 +496,7 @@ export class GlassConfigPanel extends LitElement {
         border-color: var(--c-accent);
         background: rgba(129, 140, 248, 0.06);
       }
+      .item-row .feature-icon ha-icon { --mdc-icon-size: 16px; }
 
       .card-row {
         padding: 10px;
@@ -662,6 +663,27 @@ export class GlassConfigPanel extends LitElement {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
       }
+
+      /* ── Icon button (from UI kit) ── */
+      .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        border: none; background: transparent;
+        color: var(--t3); cursor: pointer;
+        padding: 0; outline: none; flex-shrink: 0;
+        transition: all var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn-icon.sm { width: 32px; height: 32px; border-radius: var(--radius-md); }
+      .btn-icon.xs { width: 28px; height: 28px; border-radius: var(--radius-sm); }
+      .btn-icon ha-icon { display: flex; align-items: center; justify-content: center; }
+      .btn-icon.xs ha-icon { --mdc-icon-size: 14px; }
+      .btn-icon.sm ha-icon { --mdc-icon-size: 16px; }
+      @media (hover: hover) { .btn-icon:hover { background: var(--s2); color: var(--t2); } }
+      .btn-icon:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 
       /* ── Dropdown ── */
       .dropdown {
@@ -5186,11 +5208,11 @@ export class GlassConfigPanel extends LitElement {
     this._dashboardEnabledCards = [...set];
   }
 
-  private _toggleDashboardCollapse(card: string) {
-    const next = new Set(this._dashboardCollapsed);
+  private _toggleDashboardExpand(card: string) {
+    const next = new Set(this._dashboardExpanded);
     if (next.has(card)) next.delete(card);
     else next.add(card);
-    this._dashboardCollapsed = next;
+    this._dashboardExpanded = next;
   }
 
   private _onDropDashboardCard(idx: number, e: DragEvent) {
@@ -5314,7 +5336,7 @@ export class GlassConfigPanel extends LitElement {
             const enabled = enabledSet.has(key);
             const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_cards';
             const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_cards';
-            const collapsed = this._dashboardCollapsed.has(key);
+            const expanded = this._dashboardExpanded.has(key);
             const rowClasses = [
               'item-row',
               !enabled ? 'disabled' : '',
@@ -5335,22 +5357,21 @@ export class GlassConfigPanel extends LitElement {
                 <span class="drag-handle">
                   <ha-icon .icon=${'mdi:drag'}></ha-icon>
                 </span>
-                <div class="feature-icon" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                  <ha-icon .icon=${meta.icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                <div class="feature-icon">
+                  <ha-icon .icon=${meta.icon}></ha-icon>
                 </div>
-                <div class="item-info" style="flex:1;">
+                <div class="item-info">
                   <span class="item-name">${t(meta.nameKey)}</span>
                   <span class="item-meta">${t(meta.descKey)}</span>
                 </div>
                 ${meta.hasSub && enabled ? html`
                   <button
                     class="btn-icon xs"
-                    aria-label=${collapsed ? t('common.show') : t('common.hide')}
-                    aria-expanded=${!collapsed ? 'true' : 'false'}
-                    @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardCollapse(key); }}
-                    style="margin-right:4px;"
+                    aria-label=${expanded ? t('common.hide') : t('common.show')}
+                    aria-expanded=${expanded ? 'true' : 'false'}
+                    @click=${(e: Event) => { e.stopPropagation(); this._toggleDashboardExpand(key); }}
                   >
-                    <ha-icon .icon=${collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    <ha-icon .icon=${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
                   </button>
                 ` : nothing}
                 <button
@@ -5361,7 +5382,7 @@ export class GlassConfigPanel extends LitElement {
                   aria-label="${enabled ? t('common.hide') : t('common.show')} ${t(meta.nameKey)}"
                 ></button>
               </div>
-              ${this._renderDashboardCardSub(key, enabled, collapsed)}
+              ${this._renderDashboardCardSub(key, enabled, expanded)}
             `;
           })}
         </div>
@@ -5380,8 +5401,8 @@ export class GlassConfigPanel extends LitElement {
     `;
   }
 
-  private _renderDashboardCardSub(key: string, enabled: boolean, collapsed: boolean): TemplateResult | typeof nothing {
-    const open = enabled && !collapsed;
+  private _renderDashboardCardSub(key: string, enabled: boolean, expanded: boolean): TemplateResult | typeof nothing {
+    const open = enabled && expanded;
 
     if (key === 'light') {
       return html`
