@@ -19,7 +19,25 @@ from .models import (
     VisibilityPeriod,
     VALID_DASHBOARD_CARDS,
     VALID_MODE_COLORS,
+    VALID_SORT_ORDERS,
     VALID_WEATHER_METRICS,
+)
+from .spotify_api import (
+    SPOTIFY_DOMAIN,
+    SpotifyAPIError,
+    SpotifyNotConfiguredError,
+    VALID_SEARCH_TYPES,
+    spotify_add_to_queue,
+    spotify_get_album,
+    spotify_get_artist_top_tracks,
+    spotify_get_playlists,
+    spotify_get_playlist_tracks,
+    spotify_get_queue,
+    spotify_get_recently_played,
+    spotify_get_recommendations,
+    spotify_get_saved_albums,
+    spotify_get_saved_tracks,
+    spotify_search,
 )
 
 if TYPE_CHECKING:
@@ -40,6 +58,12 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_cover_config)
     websocket_api.async_register_command(hass, ws_set_title_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
+    websocket_api.async_register_command(hass, ws_spotify_status)
+    websocket_api.async_register_command(hass, ws_set_spotify_config)
+    websocket_api.async_register_command(hass, ws_spotify_search)
+    websocket_api.async_register_command(hass, ws_spotify_browse)
+    websocket_api.async_register_command(hass, ws_spotify_get_queue)
+    websocket_api.async_register_command(hass, ws_spotify_add_to_queue)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
 
@@ -405,6 +429,265 @@ async def ws_set_dashboard(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.dashboard.to_dict())
+
+
+VALID_BROWSE_CATEGORIES = frozenset({
+    "playlists", "recently_played", "saved_tracks", "saved_albums",
+    "playlist_tracks", "album_tracks", "artist_top_tracks", "recommendations",
+})
+
+
+def _handle_spotify_error(
+    connection: websocket_api.ActiveConnection,
+    msg_id: int,
+    exc: Exception,
+) -> None:
+    """Send appropriate WS error for Spotify exceptions."""
+    if isinstance(exc, SpotifyNotConfiguredError):
+        connection.send_error(msg_id, "spotify_not_configured", str(exc))
+    elif isinstance(exc, SpotifyAPIError):
+        error_data = {"status": exc.status}
+        if exc.retry_after is not None:
+            error_data["retry_after"] = exc.retry_after
+        connection.send_error(msg_id, "spotify_api_error", str(exc))
+    else:
+        connection.send_error(msg_id, "unknown_error", str(exc))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "glass_cards/spotify_status"}
+)
+@websocket_api.async_response
+async def ws_spotify_status(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Check if the Spotify integration is configured and token is valid."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    entries = hass.config_entries.async_entries(SPOTIFY_DOMAIN)
+    if not entries:
+        connection.send_result(msg["id"], {
+            "configured": False,
+            "reason": "no_integration",
+        })
+        return
+
+    entry = entries[0]
+    token_data = entry.data.get("token")
+    if not token_data or "access_token" not in token_data:
+        connection.send_result(msg["id"], {
+            "configured": False,
+            "reason": "no_token",
+        })
+        return
+
+    connection.send_result(msg["id"], {
+        "configured": True,
+    })
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_spotify_config",
+        vol.Optional("show_header"): bool,
+        vol.Optional("entity_id"): vol.Any(
+            None, "", vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))
+        ),
+        vol.Optional("sort_order"): vol.In(list(VALID_SORT_ORDERS)),
+    }
+)
+@websocket_api.async_response
+async def ws_set_spotify_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the Spotify card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.spotify_card.show_header = msg["show_header"]
+    if "entity_id" in msg:
+        store.data.spotify_card.entity_id = msg["entity_id"] or ""
+    if "sort_order" in msg:
+        store.data.spotify_card.sort_order = msg["sort_order"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.spotify_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_search",
+        vol.Required("query"): vol.All(str, vol.Length(min=1, max=200)),
+        vol.Optional("types", default=["track"]): vol.All(
+            [vol.In(list(VALID_SEARCH_TYPES))],
+            vol.Length(min=1, max=6),
+        ),
+        vol.Optional("limit", default=10): vol.All(int, vol.Range(min=1, max=50)),
+        vol.Optional("offset", default=0): vol.All(int, vol.Range(min=0, max=1000)),
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_search(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Search Spotify for content."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    try:
+        result = await spotify_search(
+            hass,
+            query=msg["query"],
+            types=msg["types"],
+            limit=msg["limit"],
+            offset=msg["offset"],
+        )
+        connection.send_result(msg["id"], result)
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_browse",
+        vol.Required("category"): vol.In(list(VALID_BROWSE_CATEGORIES)),
+        vol.Optional("content_id"): str,
+        vol.Optional("limit", default=20): vol.All(int, vol.Range(min=1, max=50)),
+        vol.Optional("offset", default=0): vol.All(int, vol.Range(min=0, max=1000)),
+        vol.Optional("sort_order", default="recent_first"): vol.In(
+            list(VALID_SORT_ORDERS)
+        ),
+        vol.Optional("seed_tracks"): [str],
+        vol.Optional("seed_artists"): [str],
+        vol.Optional("seed_genres"): [str],
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_browse(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Browse the user's Spotify library."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    category = msg["category"]
+    limit = msg["limit"]
+    offset = msg["offset"]
+    sort_order = msg["sort_order"]
+    content_id = msg.get("content_id", "")
+
+    try:
+        result: dict[str, Any]
+        if category == "playlists":
+            result = await spotify_get_playlists(hass, limit=limit, offset=offset)
+        elif category == "recently_played":
+            result = await spotify_get_recently_played(hass, limit=limit)
+        elif category == "saved_tracks":
+            result = await spotify_get_saved_tracks(hass, limit=limit, offset=offset)
+        elif category == "saved_albums":
+            result = await spotify_get_saved_albums(hass, limit=limit, offset=offset)
+        elif category == "playlist_tracks":
+            if not content_id:
+                connection.send_error(
+                    msg["id"], "missing_content_id",
+                    "content_id is required for playlist_tracks"
+                )
+                return
+            result = await spotify_get_playlist_tracks(
+                hass, playlist_id=content_id,
+                limit=limit, offset=offset, sort_order=sort_order,
+            )
+        elif category == "album_tracks":
+            if not content_id:
+                connection.send_error(
+                    msg["id"], "missing_content_id",
+                    "content_id is required for album_tracks"
+                )
+                return
+            result = await spotify_get_album(hass, album_id=content_id)
+        elif category == "artist_top_tracks":
+            if not content_id:
+                connection.send_error(
+                    msg["id"], "missing_content_id",
+                    "content_id is required for artist_top_tracks"
+                )
+                return
+            result = await spotify_get_artist_top_tracks(hass, artist_id=content_id)
+        elif category == "recommendations":
+            result = await spotify_get_recommendations(
+                hass,
+                seed_tracks=msg.get("seed_tracks"),
+                seed_artists=msg.get("seed_artists"),
+                seed_genres=msg.get("seed_genres"),
+                limit=limit,
+            )
+        else:
+            connection.send_error(msg["id"], "invalid_category", f"Unknown category: {category}")
+            return
+
+        connection.send_result(msg["id"], result)
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "glass_cards/spotify_queue"}
+)
+@websocket_api.async_response
+async def ws_spotify_get_queue(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Get the current Spotify playback queue."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    try:
+        result = await spotify_get_queue(hass)
+        connection.send_result(msg["id"], result)
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_add_to_queue",
+        vol.Required("uri"): vol.All(
+            str, vol.Match(r"^spotify:(track|episode):[a-zA-Z0-9]+$")
+        ),
+        vol.Optional("device_id"): str,
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_add_to_queue(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Add a track or episode to the Spotify queue."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    try:
+        await spotify_add_to_queue(
+            hass, uri=msg["uri"], device_id=msg.get("device_id")
+        )
+        connection.send_result(msg["id"], {"success": True})
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
 
 
 def _validate_iso_datetime(value: str) -> str:

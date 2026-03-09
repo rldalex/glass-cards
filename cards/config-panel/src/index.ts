@@ -110,7 +110,7 @@ export class GlassConfigPanel extends LitElement {
   private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'dashboard' = 'dashboard';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -170,6 +170,13 @@ export class GlassConfigPanel extends LitElement {
   @state() private _coverRoomDropdownOpen = false;
   @state() private _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
   @state() private _coverPresetInput = '';
+
+  // Spotify config
+  @state() private _spotifyShowHeader = true;
+  @state() private _spotifyEntity = '';
+  @state() private _spotifySortOrder: 'recent_first' | 'oldest_first' = 'recent_first';
+  @state() private _spotifyDropdownOpen = false;
+  @state() private _spotifyConfigured: boolean | null = null; // null = checking
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
@@ -2840,6 +2847,11 @@ export class GlassConfigPanel extends LitElement {
       dashboard_entities: [] as string[],
       presets: [0, 25, 50, 75, 100] as number[],
     };
+    let spotifyCardConfig = {
+      show_header: true,
+      entity_id: '',
+      sort_order: 'recent_first' as 'recent_first' | 'oldest_first',
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -2850,6 +2862,7 @@ export class GlassConfigPanel extends LitElement {
         light_card: typeof lightCardConfig;
         title_card: typeof titleCardConfig;
         cover_card: typeof coverCardConfig;
+        spotify_card: typeof spotifyCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
@@ -2858,6 +2871,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.light_card) lightCardConfig = result.light_card;
       if (result.title_card) titleCardConfig = result.title_card;
       if (result.cover_card) coverCardConfig = result.cover_card;
+      if (result.spotify_card) spotifyCardConfig = result.spotify_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -2888,6 +2902,11 @@ export class GlassConfigPanel extends LitElement {
     this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
     this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
     this._initCoverDashboardOrder();
+
+    this._spotifyShowHeader = spotifyCardConfig.show_header ?? true;
+    this._spotifyEntity = spotifyCardConfig.entity_id ?? '';
+    this._spotifySortOrder = spotifyCardConfig.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
+    this._checkSpotifyStatus();
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
 
@@ -3082,7 +3101,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'dashboard') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
@@ -3090,6 +3109,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleModeDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
+    this._spotifyDropdownOpen = false;
     this._iconPopupModeIdx = null;
     this._colorPickerModeIdx = null;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
@@ -3279,6 +3299,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveTitle();
     } else if (this._tab === 'cover') {
       this._saveCover();
+    } else if (this._tab === 'spotify') {
+      this._saveSpotify();
     } else {
       this._saveDashboard();
     }
@@ -5850,6 +5872,283 @@ export class GlassConfigPanel extends LitElement {
     } catch { /* ignore */ }
   }
 
+  // — Spotify card config —
+
+  private async _checkSpotifyStatus() {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{ configured: boolean }>('spotify_status');
+      if (!this._mounted) return;
+      this._spotifyConfigured = result?.configured ?? false;
+    } catch {
+      this._spotifyConfigured = false;
+    }
+  }
+
+  private async _saveSpotify() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_spotify_config', {
+        show_header: this._spotifyShowHeader,
+        entity_id: this._spotifyEntity,
+        sort_order: this._spotifySortOrder,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('spotify-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  private async _loadSpotifyConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        spotify_card: { show_header: boolean; entity_id: string; sort_order: string };
+      }>('get_config');
+      if (result?.spotify_card) {
+        this._spotifyShowHeader = result.spotify_card.show_header ?? true;
+        this._spotifyEntity = result.spotify_card.entity_id ?? '';
+        this._spotifySortOrder = result.spotify_card.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
+      }
+    } catch { /* ignore */ }
+  }
+
+  private _selectSpotifyEntity(entityId: string) {
+    this._spotifyEntity = entityId;
+    this._spotifyDropdownOpen = false;
+  }
+
+  private _renderSpotifyPreview() {
+    if (this._spotifyConfigured === false) {
+      return html`<div class="preview-empty">${t('config.spotify_not_configured')}</div>`;
+    }
+    if (!this._spotifyEntity || !this.hass) {
+      return html`<div class="preview-empty">${t('config.spotify_select_entity')}</div>`;
+    }
+
+    const entity = this.hass.states[this._spotifyEntity];
+    if (!entity) {
+      return html`<div class="preview-empty">${t('config.spotify_select_entity')}</div>`;
+    }
+
+    const attrs = entity.attributes;
+    const title = (attrs.media_title as string | undefined) ?? '—';
+    const artist = (attrs.media_artist as string | undefined) ?? '—';
+    const albumArt = attrs.entity_picture as string | undefined;
+    const isPlaying = entity.state === 'playing';
+
+    return html`
+      <div class="preview-spotify" style="
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px; border-radius: var(--radius-lg);
+        background: var(--s2); border: 1px solid var(--b1);
+      ">
+        ${albumArt
+          ? html`<img src=${albumArt} alt="" style="
+              width: 56px; height: 56px; border-radius: var(--radius-md);
+              object-fit: cover; flex-shrink: 0;
+            " />`
+          : html`<div style="
+              width: 56px; height: 56px; border-radius: var(--radius-md);
+              background: var(--s3); display: flex; align-items: center; justify-content: center;
+              flex-shrink: 0;
+            "><ha-icon .icon=${'mdi:spotify'} style="color: #1DB954; --mdc-icon-size: 28px;"></ha-icon></div>`}
+        <div style="min-width: 0; flex: 1;">
+          <div style="font-size: 14px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</div>
+          <div style="font-size: 12px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${artist}</div>
+        </div>
+        <ha-icon .icon=${isPlaying ? 'mdi:pause-circle' : 'mdi:play-circle'} style="
+          color: #1DB954; --mdc-icon-size: 32px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+        "></ha-icon>
+      </div>
+    `;
+  }
+
+  private _renderSpotifySetupGuide() {
+    return html`
+      <div class="tab-panel" id="panel-spotify">
+        <div style="
+          padding: 20px; border-radius: var(--radius-lg);
+          background: var(--s2); border: 1px solid var(--b2);
+          text-align: center;
+        ">
+          <ha-icon .icon=${'mdi:spotify'} style="
+            color: #1DB954; --mdc-icon-size: 48px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+          "></ha-icon>
+          <div style="font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: 8px;">
+            ${t('config.spotify_not_configured')}
+          </div>
+          <div style="font-size: 13px; color: var(--t3); margin-bottom: 20px; line-height: 1.5;">
+            ${t('config.spotify_setup_guide')}
+          </div>
+
+          <div style="text-align: left; padding: 0 8px;">
+            ${[1, 2, 3, 4].map((n) => html`
+              <div style="
+                display: flex; align-items: flex-start; gap: 10px;
+                margin-bottom: 12px; font-size: 13px; color: var(--t2);
+              ">
+                <span style="
+                  flex-shrink: 0; width: 22px; height: 22px;
+                  border-radius: 50%; background: var(--s3);
+                  display: flex; align-items: center; justify-content: center;
+                  font-size: 12px; font-weight: 600; color: var(--t1);
+                ">${n}</span>
+                <span style="line-height: 22px;">
+                  ${t(`config.spotify_setup_step${n}` as Parameters<typeof t>[0])}
+                </span>
+              </div>
+            `)}
+          </div>
+
+          <div style="
+            font-size: 12px; color: var(--t3); margin-top: 16px;
+            padding: 10px; border-radius: var(--radius-md);
+            background: var(--s1); border: 1px solid var(--b1);
+          ">
+            ${t('config.spotify_setup_note')}
+          </div>
+
+          <button
+            class="btn btn-accent"
+            style="margin-top: 20px;"
+            @click=${() => { window.open('/config/integrations/dashboard', '_blank'); }}
+          >
+            <ha-icon .icon=${'mdi:cog'} style="--mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center;"></ha-icon>
+            ${t('config.spotify_open_settings')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderSpotifyTab() {
+    if (this._spotifyConfigured === null) {
+      return html`<div class="tab-panel" id="panel-spotify">
+        <div class="preview-empty">${t('config.spotify_checking')}</div>
+      </div>`;
+    }
+    if (this._spotifyConfigured === false) {
+      return this._renderSpotifySetupGuide();
+    }
+
+    const mediaPlayerEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('media_player.')).sort()
+      : [];
+    const selectedEntity = mediaPlayerEntities.find((id) => id === this._spotifyEntity);
+
+    return html`
+      <div class="tab-panel" id="panel-spotify">
+        <div class="section-label">${t('config.spotify_show_header')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._spotifyShowHeader = !this._spotifyShowHeader; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.spotify_show_header')}</div>
+              <div class="feature-desc">${t('config.spotify_show_header_desc')}</div>
+            </div>
+            <span
+              class="toggle ${this._spotifyShowHeader ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._spotifyShowHeader ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
+        <div class="section-label">${t('config.spotify_entity')}</div>
+        <div class="section-desc">${t('config.spotify_entity_desc')}</div>
+        <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
+          <button
+            class="dropdown-trigger"
+            @click=${() => (this._spotifyDropdownOpen = !this._spotifyDropdownOpen)}
+            aria-expanded=${this._spotifyDropdownOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+          >
+            <ha-icon .icon=${'mdi:spotify'} style="color: #1DB954;"></ha-icon>
+            <span>${selectedEntity || t('common.select')}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          <div class="dropdown-menu" role="listbox">
+            ${mediaPlayerEntities.map(
+              (id) => html`
+                <button
+                  class="dropdown-item ${id === this._spotifyEntity ? 'active' : ''}"
+                  role="option"
+                  aria-selected=${id === this._spotifyEntity ? 'true' : 'false'}
+                  @click=${() => this._selectSpotifyEntity(id)}
+                >
+                  <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+                  ${id}
+                </button>
+              `,
+            )}
+          </div>
+        </div>
+
+        <div class="section-label">${t('config.spotify_sort_order')}</div>
+        <div class="section-desc">${t('config.spotify_sort_order_desc')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._spotifySortOrder = 'recent_first'; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:sort-clock-descending'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.spotify_sort_recent')}</div>
+            </div>
+            <span
+              class="toggle ${this._spotifySortOrder === 'recent_first' ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._spotifySortOrder === 'recent_first' ? 'true' : 'false'}
+            ></span>
+          </button>
+          <button
+            class="feature-row"
+            @click=${() => { this._spotifySortOrder = 'oldest_first'; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:sort-clock-ascending'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.spotify_sort_oldest')}</div>
+            </div>
+            <span
+              class="toggle ${this._spotifySortOrder === 'oldest_first' ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._spotifySortOrder === 'oldest_first' ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadSpotifyConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   // — Title card config —
 
   private async _saveTitle() {
@@ -6442,6 +6741,15 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:blinds'}></ha-icon>
               ${t('config.tab_cover')}
             </button>
+            <button
+              class="tab ${this._tab === 'spotify' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'spotify' ? 'true' : 'false'}
+              @click=${() => this._switchTab('spotify')}
+            >
+              <ha-icon .icon=${'mdi:spotify'}></ha-icon>
+              ${t('config.tab_spotify')}
+            </button>
           </div>
 
           <div class="preview-encart">
@@ -6458,7 +6766,9 @@ export class GlassConfigPanel extends LitElement {
                       ? this._renderTitlePreview()
                       : this._tab === 'cover'
                         ? this._renderCoverPreview()
-                        : this._renderDashboardPreview()}
+                        : this._tab === 'spotify'
+                          ? this._renderSpotifyPreview()
+                          : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -6473,7 +6783,9 @@ export class GlassConfigPanel extends LitElement {
                     ? this._renderTitleTab()
                     : this._tab === 'cover'
                       ? this._renderCoverTab()
-                      : this._renderDashboardTab()}
+                      : this._tab === 'spotify'
+                        ? this._renderSpotifyTab()
+                        : this._renderDashboardTab()}
         </div>
       </div>
 

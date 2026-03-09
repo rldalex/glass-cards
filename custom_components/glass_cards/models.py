@@ -14,8 +14,10 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover"}
+    {"weather", "light", "title", "cover", "spotify"}
 )
+
+VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
 
 VALID_MODE_COLORS = frozenset(
     {"neutral", "success", "warning", "info", "accent", "alert"}
@@ -352,6 +354,33 @@ class CoverCardConfig:
 
 
 @dataclass
+class SpotifyCardConfig:
+    """Configuration for the Spotify card."""
+
+    show_header: bool = True
+    entity_id: str = ""
+    sort_order: str = "recent_first"
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "entity_id": self.entity_id,
+            "sort_order": self.sort_order,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SpotifyCardConfig:
+        """Deserialize from dict."""
+        raw_sort = str(data.get("sort_order", "recent_first"))
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            entity_id=str(data.get("entity_id", "")),
+            sort_order=raw_sort if raw_sort in VALID_SORT_ORDERS else "recent_first",
+        )
+
+
+@dataclass
 class DashboardConfig:
     """Configuration for dashboard card visibility."""
 
@@ -385,6 +414,7 @@ class GlassCardsData:
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
     cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
+    spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
@@ -397,6 +427,7 @@ class GlassCardsData:
             "light_card": self.light_card.to_dict(),
             "cover_card": self.cover_card.to_dict(),
             "title_card": self.title_card.to_dict(),
+            "spotify_card": self.spotify_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -416,6 +447,7 @@ class GlassCardsData:
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
             cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
+            spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})

@@ -269,6 +269,26 @@
     "cover_presets": "Positions favorites",
     "cover_presets_desc": "Configurez les boutons de position rapide affichés sous chaque volet.",
     "cover_preset_add": "Ajouter",
-    "cover_preset_placeholder": "0–100"
+    "cover_preset_placeholder": "0–100",
+
+    "tab_spotify": "Carte Spotify",
+    "spotify_show_header": "Afficher l'en-tête",
+    "spotify_show_header_desc": "Titre et contrôles au-dessus de la carte",
+    "spotify_entity": "Entité lecteur Spotify",
+    "spotify_entity_desc": "Sélectionnez l'entité media_player Spotify à utiliser pour la carte.",
+    "spotify_sort_order": "Ordre de tri",
+    "spotify_sort_order_desc": "Choisissez l'ordre d'affichage des playlists et titres sauvegardés.",
+    "spotify_sort_recent": "Plus récent en premier",
+    "spotify_sort_oldest": "Plus ancien en premier",
+    "spotify_select_entity": "Sélectionnez un lecteur Spotify",
+    "spotify_not_configured": "Intégration Spotify non configurée",
+    "spotify_setup_guide": "Pour utiliser la carte Spotify, vous devez d'abord configurer l'intégration Spotify officielle dans Home Assistant.",
+    "spotify_setup_step1": "Allez dans Paramètres → Appareils et services",
+    "spotify_setup_step2": "Cliquez sur « Ajouter une intégration » et cherchez « Spotify »",
+    "spotify_setup_step3": "Connectez-vous avec votre compte Spotify et autorisez l'accès",
+    "spotify_setup_step4": "Une entité media_player.spotify_* apparaîtra automatiquement",
+    "spotify_setup_note": "Un compte Spotify Premium est requis pour les contrôles de lecture.",
+    "spotify_checking": "Vérification de la connexion Spotify…",
+    "spotify_open_settings": "Ouvrir les paramètres"
   }
 }

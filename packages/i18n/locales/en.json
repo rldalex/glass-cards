@@ -269,6 +269,26 @@
     "cover_presets": "Favorite positions",
     "cover_presets_desc": "Configure the quick position buttons displayed under each cover.",
     "cover_preset_add": "Add",
-    "cover_preset_placeholder": "0–100"
+    "cover_preset_placeholder": "0–100",
+
+    "tab_spotify": "Spotify Card",
+    "spotify_show_header": "Show header",
+    "spotify_show_header_desc": "Title and controls above the card",
+    "spotify_entity": "Spotify player entity",
+    "spotify_entity_desc": "Select the Spotify media_player entity to use for the card.",
+    "spotify_sort_order": "Sort order",
+    "spotify_sort_order_desc": "Choose the display order for playlists and saved tracks.",
+    "spotify_sort_recent": "Most recent first",
+    "spotify_sort_oldest": "Oldest first",
+    "spotify_select_entity": "Select a Spotify player",
+    "spotify_not_configured": "Spotify integration not configured",
+    "spotify_setup_guide": "To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.",
+    "spotify_setup_step1": "Go to Settings → Devices & services",
+    "spotify_setup_step2": "Click \"Add integration\" and search for \"Spotify\"",
+    "spotify_setup_step3": "Sign in with your Spotify account and authorize access",
+    "spotify_setup_step4": "A media_player.spotify_* entity will appear automatically",
+    "spotify_setup_note": "A Spotify Premium account is required for playback controls.",
+    "spotify_checking": "Checking Spotify connection…",
+    "spotify_open_settings": "Open settings"
   }
 }
