@@ -250,7 +250,7 @@ class GlassSpotifyCard extends BaseCard {
     /* Content area */
     .content-area {
       display: flex; flex-direction: column; gap: 6px;
-      max-height: 380px; overflow-y: auto; scrollbar-width: none;
+      max-height: 380px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
     }
     .content-area::-webkit-scrollbar { display: none; }
 
@@ -265,7 +265,7 @@ class GlassSpotifyCard extends BaseCard {
       display: flex; align-items: center; gap: 10px;
       padding: 6px 4px; cursor: pointer; position: relative;
       transition: background var(--t-fast); border-radius: var(--radius-md);
-      flex-shrink: 0; background: none; border: none; width: 100%;
+      flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
       font-family: inherit; text-align: left; color: inherit; outline: none;
       -webkit-tap-highlight-color: transparent;
     }

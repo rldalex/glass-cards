@@ -133,6 +133,7 @@ export class GlassMediaCard extends BaseCard {
   private _playersCache: MediaPlayerInfo[] | null = null;
   private _playersCacheKey = '';
   private _volumeThrottles = new Map<string, number>();
+  private _progressTimer = 0;
   private _flashTimer = 0;
   private _lpTimer = 0;
   private _lpFired = false;
@@ -157,6 +158,7 @@ export class GlassMediaCard extends BaseCard {
     super.disconnectedCallback();
     this._backend = undefined;
     this._volumeThrottles.clear();
+    if (this._progressTimer) clearInterval(this._progressTimer);
     if (this._flashTimer) clearTimeout(this._flashTimer);
     if (this._lpTimer) clearTimeout(this._lpTimer);
   }
@@ -166,6 +168,21 @@ export class GlassMediaCard extends BaseCard {
     if (changedProps.has('hass') && this.hass && !this._backend) {
       this._backend = new BackendService(this.hass);
       this._loadConfig();
+    }
+    // Start/stop progress timer based on playback state
+    this._syncProgressTimer();
+  }
+
+  private _syncProgressTimer(): void {
+    const players = this.hass ? this._getPlayers() : [];
+    const master = this._findMaster(players);
+    const needsTimer = master != null && isPlaying(master.state) && master.duration > 0;
+
+    if (needsTimer && !this._progressTimer) {
+      this._progressTimer = window.setInterval(() => this.requestUpdate(), 1000);
+    } else if (!needsTimer && this._progressTimer) {
+      clearInterval(this._progressTimer);
+      this._progressTimer = 0;
     }
   }
 
@@ -509,20 +526,25 @@ export class GlassMediaCard extends BaseCard {
             <div class="dash-spacer"></div>
 
             <!-- Track info -->
-            <div class="dash-track">
-              ${master.title ? html`
-                <div class="dash-track-title">${master.title}</div>
+            <div class="dash-track-row">
+              ${master.albumArt ? html`
+                <img class="dash-art-thumb" src=${master.albumArt} alt="" loading="lazy" />
               ` : nothing}
-              ${master.artist ? html`
-                <div class="dash-track-artist">${master.artist}</div>
-              ` : nothing}
-              <div class="dash-track-meta">
-                ${master.duration > 0 ? html`
-                  <span class="dash-track-time">${formatTime(elapsed)} / ${formatTime(master.duration)}</span>
+              <div class="dash-track">
+                ${master.title ? html`
+                  <div class="dash-track-title">${master.title}</div>
                 ` : nothing}
-                ${master.source ? html`
-                  <span class="dash-track-source">${master.source}</span>
+                ${master.artist ? html`
+                  <div class="dash-track-artist">${master.artist}</div>
                 ` : nothing}
+                <div class="dash-track-meta">
+                  ${master.duration > 0 ? html`
+                    <span class="dash-track-time">${formatTime(elapsed)} / ${formatTime(master.duration)}</span>
+                  ` : nothing}
+                  ${master.source ? html`
+                    <span class="dash-track-source">${master.source}</span>
+                  ` : nothing}
+                </div>
               </div>
             </div>
 
@@ -661,9 +683,16 @@ export class GlassMediaCard extends BaseCard {
         </div>
       ` : nothing}
 
-      <!-- Multiroom grid -->
-      ${hasFeature(master, F_GROUPING) ? this._renderMultiroomGrid(master) : nothing}
+      <!-- Multiroom grid (show if any groupable speakers exist) -->
+      ${this._hasGroupableSpeakers() ? this._renderMultiroomGrid(master) : nothing}
     `;
+  }
+
+  private _hasGroupableSpeakers(): boolean {
+    if (!this.hass) return false;
+    return Object.values(this.hass.states).some(
+      (e) => e.entity_id.startsWith('media_player.') && ((e.attributes.supported_features as number) & F_GROUPING) !== 0,
+    );
   }
 
   /* ── Render: Multiroom grid ── */
@@ -956,9 +985,19 @@ export class GlassMediaCard extends BaseCard {
       /* ── Spacer ── */
       .dash-spacer { flex: 1; }
 
-      /* ── Track info ── */
+      /* ── Track info row (thumb + text) ── */
+      .dash-track-row {
+        display: flex; align-items: flex-end; gap: 12px;
+      }
+      .dash-art-thumb {
+        width: 72px; height: 72px; border-radius: var(--radius-md);
+        object-fit: cover; flex-shrink: 0;
+        border: 1px solid var(--b2);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      }
       .dash-track {
         display: flex; flex-direction: column; gap: 3px;
+        min-width: 0; /* allow text truncation */
       }
       .dash-track-title {
         font-size: 20px; font-weight: 700; color: var(--t1); line-height: 1.15;
