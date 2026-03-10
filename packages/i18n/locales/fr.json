@@ -135,6 +135,7 @@
     "type_album": "Album",
     "type_podcast": "Podcast",
     "play": "Lire",
+    "play_all": "Tout lire",
     "play_on": "Jouer sur…",
     "play_aria": "Jouer {name}",
     "available": "Disponible",

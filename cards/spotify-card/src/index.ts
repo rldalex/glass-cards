@@ -366,6 +366,11 @@ class GlassSpotifyCard extends BaseCard {
     }
     .playlist-count { font-size: 9px; font-weight: 500; color: var(--t4); }
 
+    /* Drilldown header */
+    .drilldown-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
     /* Back button */
     .back-btn {
       display: flex; align-items: center; gap: 4px;
@@ -379,6 +384,20 @@ class GlassSpotifyCard extends BaseCard {
     @media (hover: hover) { .back-btn:hover { color: var(--t1); } }
     @media (hover: none) { .back-btn:active { animation: bounce 0.3s ease; } }
     .back-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+
+    /* Play all button */
+    .play-all-btn {
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(30, 215, 96, 0.12); border: none; color: #1ed760;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      cursor: pointer; padding: 4px 10px; border-radius: var(--radius-full);
+      outline: none; -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .play-all-btn ha-icon { --mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) { .play-all-btn:hover { background: rgba(30, 215, 96, 0.22); } }
+    @media (hover: none) { .play-all-btn:active { animation: bounce 0.3s ease; } }
+    .play-all-btn:focus-visible { outline: 2px solid rgba(30, 215, 96, 0.4); outline-offset: 2px; }
 
     /* Empty & error states */
     .empty-state {
@@ -903,6 +922,9 @@ class GlassSpotifyCard extends BaseCard {
   private async _seedRadioQueue(item: SpotifyItem): Promise<void> {
     if (!this._backend) return;
     try {
+      // Wait for Spotify to register the play_media command before queuing
+      await new Promise((r) => setTimeout(r, 2000));
+      if (!this._backend) return;
       const result = await this._backend.send<{ tracks: SpotifyItem[] }>(
         'spotify_browse',
         { category: 'recommendations', seed_tracks: [item.id], limit: 20 },
@@ -913,6 +935,8 @@ class GlassSpotifyCard extends BaseCard {
         const recUri = rec.uri ?? `spotify:track:${rec.id}`;
         try {
           await this._backend.send('spotify_add_to_queue', { uri: recUri });
+          // Small delay between queue additions to avoid Spotify rate limiting
+          await new Promise((r) => setTimeout(r, 150));
         } catch {
           break; // Stop on first error (rate limit, etc.)
         }
@@ -1229,13 +1253,26 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Drilldown render —
 
+  private _playFullDrilldown(): void {
+    if (!this._drilldown) return;
+    const dd = this._drilldown;
+    const uri = `spotify:${dd.type}:${dd.id}`;
+    this._openPicker({ id: dd.id, name: dd.title, type: dd.type, uri } as SpotifyItem);
+  }
+
   private _renderDrilldown(): TemplateResult {
     const dd = this._drilldown!;
     return html`
-      <button class="back-btn" @click=${this._goBack}>
-        <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-        ${t('spotify.back')}
-      </button>
+      <div class="drilldown-header">
+        <button class="back-btn" @click=${this._goBack}>
+          <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
+          ${t('spotify.back')}
+        </button>
+        <button class="play-all-btn" @click=${this._playFullDrilldown} aria-label=${t('spotify.play_all')}>
+          <ha-icon .icon=${'mdi:play-circle'}></ha-icon>
+          ${t('spotify.play_all')}
+        </button>
+      </div>
       <div class="section-title">${dd.title}</div>
       <div class="content-area">
         ${dd.items.map((item) => {

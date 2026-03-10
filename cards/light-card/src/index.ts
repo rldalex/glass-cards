@@ -271,7 +271,7 @@ export class GlassLightCard extends BaseCard {
       /* ── Card Body ── */
       .card {
         position: relative;
-        padding: 14px;
+        padding: 2px 14px;
       }
       .card-inner {
         position: relative;
