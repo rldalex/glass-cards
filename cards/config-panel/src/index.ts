@@ -1227,81 +1227,91 @@ export class GlassConfigPanel extends LitElement {
         display: flex; gap: 6px; margin-top: 6px;
       }
 
-      /* Preview media hero card */
+      /* Preview media hero card — full-bleed artwork style */
       .media-preview {
         position: relative; overflow: hidden;
-        border-radius: var(--radius-lg);
-        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-        border: 1px solid var(--b2);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
-        min-height: 180px;
+        border-radius: var(--radius-xl);
+        min-height: 200px;
         display: flex; flex-direction: column;
-        padding: 10px 12px;
+        border: 1px solid var(--b2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
       }
-      .mp-deco {
-        position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      .mp-art-bg {
+        position: absolute; inset: 0; z-index: 0;
+        background: linear-gradient(135deg, #1a1040 0%, #2d1b69 30%, #4a2c8a 60%, #1a1040 100%);
       }
-      .mp-deco::before {
-        content: ''; position: absolute;
-        width: 120px; height: 120px; border-radius: 50%;
-        top: -40px; right: -25px;
-        background: radial-gradient(circle, rgba(255,255,255,0.04), transparent 70%);
+      .mp-gradient {
+        position: absolute; inset: 0; z-index: 1; pointer-events: none;
+        background: linear-gradient(to top,
+          rgba(0,0,0,0.85) 0%,
+          rgba(0,0,0,0.4) 40%,
+          rgba(0,0,0,0.15) 70%,
+          transparent 100%
+        );
       }
-      .mp-deco::after {
-        content: ''; position: absolute;
-        width: 90px; height: 90px; border-radius: 50%;
-        bottom: -25px; left: -20px;
-        background: radial-gradient(circle, rgba(255,255,255,0.02), transparent 70%);
+      .mp-content {
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column;
+        padding: 10px 12px; flex: 1;
       }
       .mp-top {
         display: flex; align-items: center; justify-content: space-between;
-        position: relative; z-index: 1;
       }
-      .mp-speaker {
+      .mp-pill {
         display: inline-flex; align-items: center; gap: 4px;
-        padding: 2px 7px 2px 4px;
+        padding: 3px 8px 3px 5px;
         border-radius: 9999px;
-        background: var(--s1); border: 1px solid var(--b1);
-        font-size: 8px; font-weight: 600; color: var(--t3);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);
+        font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.9);
       }
-      .mp-speaker ha-icon { --mdc-icon-size: 10px; display: flex; align-items: center; justify-content: center; }
+      .mp-pill ha-icon { --mdc-icon-size: 10px; display: flex; align-items: center; justify-content: center; }
       .mp-eq {
         display: flex; align-items: flex-end; gap: 1.5px;
         height: 10px; margin-left: 4px;
       }
       .mp-eq-bar {
         width: 2px; border-radius: 1px;
-        background: rgba(129,140,248,0.7);
-        animation: mp-eq-bounce 0.8s ease-in-out infinite alternate;
+        background: #fff;
+        filter: drop-shadow(0 0 3px rgba(255,255,255,0.6));
+        animation: mp-eq-1 0.8s ease-in-out infinite alternate;
       }
       .mp-eq-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
-      .mp-eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; }
-      .mp-eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; }
-      @keyframes mp-eq-bounce { 0% { height: 20%; } 100% { height: 100%; } }
+      .mp-eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; animation-name: mp-eq-2; }
+      .mp-eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; animation-name: mp-eq-3; }
+      @keyframes mp-eq-1 { 0% { height: 20%; } 100% { height: 100%; } }
+      @keyframes mp-eq-2 { 0% { height: 30%; } 100% { height: 90%; } }
+      @keyframes mp-eq-3 { 0% { height: 15%; } 100% { height: 85%; } }
       .mp-spacer { flex: 1; }
+      .mp-glass-panel {
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: var(--radius-lg);
+        padding: 10px 12px 8px;
+      }
       .mp-track {
-        position: relative; z-index: 1;
         display: flex; flex-direction: column; gap: 2px;
       }
       .mp-track-title {
-        font-size: 14px; font-weight: 700; color: var(--t1); line-height: 1.15;
+        font-size: 13px; font-weight: 700; color: #fff; line-height: 1.15;
         text-shadow: 0 1px 6px rgba(0,0,0,0.4);
       }
       .mp-track-artist {
-        font-size: 10px; font-weight: 500; color: var(--t2);
+        font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.7);
       }
       .mp-track-meta {
         display: flex; align-items: center; gap: 6px; margin-top: 1px;
       }
-      .mp-track-time { font-size: 8px; color: var(--t4); font-variant-numeric: tabular-nums; }
+      .mp-track-time { font-size: 8px; color: rgba(255,255,255,0.4); font-variant-numeric: tabular-nums; }
       .mp-track-source {
         font-size: 6px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.4px; color: var(--t4);
-        padding: 1px 4px; border-radius: 3px; background: var(--s2);
+        letter-spacing: 0.4px; color: rgba(255,255,255,0.4);
+        padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06);
       }
       .mp-progress {
         position: relative; width: 100%; height: 3px;
-        border-radius: 1.5px; background: var(--s2); margin-top: 6px;
+        border-radius: 1.5px; background: rgba(255,255,255,0.08); margin-top: 6px;
       }
       .mp-progress-fill {
         position: absolute; top: 0; left: 0; height: 100%; width: 67%;
@@ -1310,7 +1320,6 @@ export class GlassConfigPanel extends LitElement {
         box-shadow: 0 0 6px rgba(129,140,248,0.4);
       }
       .mp-transport {
-        position: relative; z-index: 1;
         display: flex; align-items: center; justify-content: center; gap: 6px;
         margin-top: 8px;
       }
@@ -1318,7 +1327,7 @@ export class GlassConfigPanel extends LitElement {
         width: 24px; height: 24px; border-radius: 6px;
         background: transparent; border: none;
         display: flex; align-items: center; justify-content: center;
-        color: var(--t3); padding: 0;
+        color: rgba(255,255,255,0.45); padding: 0;
       }
       .mp-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
       .mp-btn.skip { width: 28px; height: 28px; }
@@ -5661,41 +5670,51 @@ export class GlassConfigPanel extends LitElement {
   private _renderMediaPreview() {
     return html`
       <div class="preview-card media-preview">
-        <div class="mp-deco"></div>
-        <!-- Top bar -->
-        <div class="mp-top">
-          <div class="mp-speaker">
-            <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-            <span>Salon</span>
-            <div class="mp-eq">
-              <div class="mp-eq-bar"></div>
-              <div class="mp-eq-bar"></div>
-              <div class="mp-eq-bar"></div>
+        <!-- Simulated full-bleed artwork background -->
+        <div class="mp-art-bg"></div>
+        <div class="mp-gradient"></div>
+        <div class="mp-content">
+          <!-- Top bar: glass pill badges -->
+          <div class="mp-top">
+            <div class="mp-pill">
+              <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+              <span>Salon</span>
+              <div class="mp-eq">
+                <div class="mp-eq-bar"></div>
+                <div class="mp-eq-bar"></div>
+                <div class="mp-eq-bar"></div>
+              </div>
+            </div>
+            <div class="mp-pill">
+              <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
+              <span>2</span>
             </div>
           </div>
-        </div>
-        <!-- Spacer -->
-        <div class="mp-spacer"></div>
-        <!-- Track info -->
-        <div class="mp-track">
-          <div class="mp-track-title">Blinding Lights</div>
-          <div class="mp-track-artist">The Weeknd</div>
-          <div class="mp-track-meta">
-            <span class="mp-track-time">2:14 / 3:20</span>
-            <span class="mp-track-source">Spotify</span>
+          <!-- Spacer -->
+          <div class="mp-spacer"></div>
+          <!-- Bottom glass panel -->
+          <div class="mp-glass-panel">
+            <div class="mp-track">
+              <div class="mp-track-title">Blinding Lights</div>
+              <div class="mp-track-artist">The Weeknd</div>
+              <div class="mp-track-meta">
+                <span class="mp-track-time">2:14 / 3:20</span>
+                <span class="mp-track-source">Spotify</span>
+              </div>
+            </div>
+            <!-- Progress -->
+            <div class="mp-progress">
+              <div class="mp-progress-fill"></div>
+            </div>
+            <!-- Transport -->
+            <div class="mp-transport">
+              <div class="mp-btn"><ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon></div>
+              <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-previous'}></ha-icon></div>
+              <div class="mp-btn main"><ha-icon .icon=${'mdi:pause'}></ha-icon></div>
+              <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-next'}></ha-icon></div>
+              <div class="mp-btn"><ha-icon .icon=${'mdi:repeat'}></ha-icon></div>
+            </div>
           </div>
-        </div>
-        <!-- Progress -->
-        <div class="mp-progress">
-          <div class="mp-progress-fill"></div>
-        </div>
-        <!-- Transport -->
-        <div class="mp-transport">
-          <div class="mp-btn"><ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon></div>
-          <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-previous'}></ha-icon></div>
-          <div class="mp-btn main"><ha-icon .icon=${'mdi:pause'}></ha-icon></div>
-          <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-next'}></ha-icon></div>
-          <div class="mp-btn"><ha-icon .icon=${'mdi:repeat'}></ha-icon></div>
         </div>
       </div>
     `;
