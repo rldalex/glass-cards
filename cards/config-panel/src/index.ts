@@ -180,6 +180,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _presenceNotifyServices: Record<string, string> = {};
   @state() private _presenceDrivingSensors: Record<string, string> = {};
   @state() private _presenceDropdownOpen: string | null = null;
+  @state() private _presenceDropdownSearch = '';
 
   @state() private _mediaShowHeader = true;
   @state() private _mediaExtraEntities: Record<string, string[]> = {};
@@ -771,6 +772,8 @@ export class GlassConfigPanel extends LitElement {
         right: 0;
         z-index: 20;
         min-width: 160px;
+        max-height: 200px;
+        overflow-y: auto;
         border-radius: var(--radius-lg);
         padding: 4px;
         background: #1e2433;
@@ -780,7 +783,22 @@ export class GlassConfigPanel extends LitElement {
         transform: translateY(-4px);
         pointer-events: none;
         transition: all var(--t-fast);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.1) transparent;
       }
+      .dropdown-menu::-webkit-scrollbar { width: 4px; }
+      .dropdown-menu::-webkit-scrollbar-track { background: transparent; }
+      .dropdown-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+      .dropdown-menu::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+      .dropdown-search {
+        width: calc(100% - 8px); margin: 4px; padding: 7px 10px;
+        border-radius: var(--radius-sm); border: 1px solid var(--b1);
+        background: var(--s1); color: var(--t1);
+        font-family: inherit; font-size: 11px; outline: none;
+        box-sizing: border-box;
+      }
+      .dropdown-search::placeholder { color: var(--t4); }
+      .dropdown-search:focus { border-color: var(--b3); }
       .dropdown.open .dropdown-menu {
         opacity: 1;
         transform: translateY(0);
@@ -6629,7 +6647,7 @@ export class GlassConfigPanel extends LitElement {
                 <div class="dropdown ${this._presenceDropdownOpen === smKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownOpen = this._presenceDropdownOpen === smKey ? null : smKey; }}
+                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === smKey ? null : smKey; }}
                     aria-expanded=${this._presenceDropdownOpen === smKey ? 'true' : 'false'}
                     aria-haspopup="listbox"
                   >
@@ -6638,6 +6656,14 @@ export class GlassConfigPanel extends LitElement {
                     <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
+                    <input
+                      class="dropdown-search"
+                      type="text"
+                      placeholder=${t('config.search_entity')}
+                      .value=${this._presenceDropdownOpen === smKey ? this._presenceDropdownSearch : ''}
+                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
+                      @click=${(e: Event) => e.stopPropagation()}
+                    />
                     <button
                       class="dropdown-item ${!currentSensor ? 'active' : ''}"
                       role="option"
@@ -6652,7 +6678,9 @@ export class GlassConfigPanel extends LitElement {
                       <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
                       ${t('config.presence_auto_detect')}
                     </button>
-                    ${smartphoneSensors.map((s) => html`
+                    ${smartphoneSensors
+                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
+                      .map((s) => html`
                       <button
                         class="dropdown-item ${currentSensor === s.entityId ? 'active' : ''}"
                         role="option"
@@ -6675,7 +6703,7 @@ export class GlassConfigPanel extends LitElement {
                 <div class="dropdown ${this._presenceDropdownOpen === notKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownOpen = this._presenceDropdownOpen === notKey ? null : notKey; }}
+                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === notKey ? null : notKey; }}
                     aria-expanded=${this._presenceDropdownOpen === notKey ? 'true' : 'false'}
                     aria-haspopup="listbox"
                   >
@@ -6684,6 +6712,14 @@ export class GlassConfigPanel extends LitElement {
                     <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
+                    <input
+                      class="dropdown-search"
+                      type="text"
+                      placeholder=${t('config.search_entity')}
+                      .value=${this._presenceDropdownOpen === notKey ? this._presenceDropdownSearch : ''}
+                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
+                      @click=${(e: Event) => e.stopPropagation()}
+                    />
                     <button
                       class="dropdown-item ${!currentNotify ? 'active' : ''}"
                       role="option"
@@ -6698,7 +6734,9 @@ export class GlassConfigPanel extends LitElement {
                       <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
                       ${t('config.presence_auto_detect')}
                     </button>
-                    ${notifyServices.map((s) => html`
+                    ${notifyServices
+                      .filter((s) => !this._presenceDropdownSearch || s.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
+                      .map((s) => html`
                       <button
                         class="dropdown-item ${currentNotify === s ? 'active' : ''}"
                         role="option"
@@ -6721,7 +6759,7 @@ export class GlassConfigPanel extends LitElement {
                 <div class="dropdown ${this._presenceDropdownOpen === drvKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownOpen = this._presenceDropdownOpen === drvKey ? null : drvKey; }}
+                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === drvKey ? null : drvKey; }}
                     aria-expanded=${this._presenceDropdownOpen === drvKey ? 'true' : 'false'}
                     aria-haspopup="listbox"
                   >
@@ -6730,6 +6768,14 @@ export class GlassConfigPanel extends LitElement {
                     <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
+                    <input
+                      class="dropdown-search"
+                      type="text"
+                      placeholder=${t('config.search_entity')}
+                      .value=${this._presenceDropdownOpen === drvKey ? this._presenceDropdownSearch : ''}
+                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
+                      @click=${(e: Event) => e.stopPropagation()}
+                    />
                     <button
                       class="dropdown-item ${!currentDriving ? 'active' : ''}"
                       role="option"
@@ -6744,7 +6790,9 @@ export class GlassConfigPanel extends LitElement {
                       <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
                       ${t('config.presence_auto_detect')}
                     </button>
-                    ${drivingSensors.map((s) => html`
+                    ${drivingSensors
+                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
+                      .map((s) => html`
                       <button
                         class="dropdown-item ${currentDriving === s.entityId ? 'active' : ''}"
                         role="option"

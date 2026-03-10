@@ -397,6 +397,7 @@
     "presence_driving_desc": "Capteur binary_sensor pour détecter le mode conduite.",
     "presence_no_persons": "Aucune entité person.* détectée.",
     "presence_auto_detect": "Auto-détection",
+    "search_entity": "Rechercher...",
     "presence_select_entity": "Sélectionnez une entité",
 
     "tab_cover": "Carte Volets",

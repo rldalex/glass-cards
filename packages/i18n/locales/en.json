@@ -397,6 +397,7 @@
     "presence_driving_desc": "binary_sensor to detect driving mode.",
     "presence_no_persons": "No person.* entity detected.",
     "presence_auto_detect": "Auto-detect",
+    "search_entity": "Search...",
     "presence_select_entity": "Select an entity",
 
     "tab_cover": "Cover Card",
