@@ -498,7 +498,12 @@ export class GlassMediaCard extends BaseCard {
     const playing = isPlaying(master.state);
     const progress = this._getProgress(master);
     const elapsed = this._getElapsed(master);
-    const groupCount = master.groupMembers.length;
+
+    // Compute coordinator and group info
+    const allGroupable = this._getGroupablePlayers();
+    const coordinator = this._findGroupCoordinator(master, allGroupable);
+    const groupMembers = coordinator?.groupMembers || [];
+    const groupCount = groupMembers.length;
 
     return html`
       <div class="dash-wrap ${this._foldOpen ? 'fold-open' : ''}">
@@ -620,11 +625,17 @@ export class GlassMediaCard extends BaseCard {
                 ` : nothing}
               </div>
 
-              ${master.source ? html`
-                <div class="dash-source-row">
+              <div class="dash-source-row">
+                ${coordinator && coordinator.entityId !== master.entityId ? html`
+                  <span class="dash-coordinator-badge">
+                    <ha-icon .icon=${coordinator.icon || 'mdi:speaker'}></ha-icon>
+                    ${coordinator.name}
+                  </span>
+                ` : nothing}
+                ${master.source ? html`
                   <span class="dash-track-source">${master.source}</span>
-                </div>
-              ` : nothing}
+                ` : nothing}
+              </div>
             </div>
           </div>
 
@@ -641,7 +652,7 @@ export class GlassMediaCard extends BaseCard {
           <div class="ctrl-fold-inner">
             <div class="dash-fold-sep-top"></div>
             <div class="dash-fold-panel">
-              ${this._foldOpen ? this._renderFoldContent(master) : nothing}
+              ${this._foldOpen ? this._renderFoldContent(master, coordinator, allGroupable) : nothing}
             </div>
           </div>
         </div>
@@ -651,7 +662,7 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Render: Fold content ── */
 
-  private _renderFoldContent(master: MediaPlayerInfo): TemplateResult {
+  private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     return html`
       <!-- Volume -->
       ${hasFeature(master, F_VOLUME_SET) ? html`
@@ -703,15 +714,16 @@ export class GlassMediaCard extends BaseCard {
       ` : nothing}
 
       <!-- Multiroom grid (show if any groupable speakers exist) -->
-      ${this._hasGroupableSpeakers() ? this._renderMultiroomGrid(master) : nothing}
+      ${allGroupable.length > 1 ? this._renderMultiroomGrid(coordinator, allGroupable) : nothing}
     `;
   }
 
-  private _hasGroupableSpeakers(): boolean {
-    if (!this.hass) return false;
-    return Object.values(this.hass.states).some(
-      (e) => e.entity_id.startsWith('media_player.') && ((e.attributes.supported_features as number) & F_GROUPING) !== 0,
-    );
+  private _getGroupablePlayers(): MediaPlayerInfo[] {
+    if (!this.hass) return [];
+    return Object.values(this.hass.states)
+      .filter((e) => e.entity_id.startsWith('media_player.'))
+      .map(getMediaInfo)
+      .filter((p) => hasFeature(p, F_GROUPING));
   }
 
   /**
@@ -735,29 +747,22 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Render: Multiroom grid ── */
 
-  private _renderMultiroomGrid(master: MediaPlayerInfo): TemplateResult {
-    if (!this.hass) return html``;
+  private _renderMultiroomGrid(coordinator: MediaPlayerInfo | null, allPlayers: MediaPlayerInfo[]): TemplateResult {
+    if (!this.hass || !coordinator) return html``;
 
-    // Find all groupable media players
-    const allPlayers = Object.values(this.hass.states)
-      .filter((e) => e.entity_id.startsWith('media_player.'))
-      .map(getMediaInfo)
-      .filter((p) => hasFeature(p, F_GROUPING));
+    const coordinatorId = coordinator.entityId;
+    const groupSet = new Set(coordinator.groupMembers);
+    // Exclude coordinator from the grid (it's shown in the glass panel)
+    const otherPlayers = allPlayers.filter((p) => p.entityId !== coordinatorId);
 
-    if (allPlayers.length <= 1) return html``;
-
-    // Find the real coordinator (groupable speaker, not Spotify entity)
-    const coordinator = this._findGroupCoordinator(master, allPlayers);
-    const coordinatorId = coordinator?.entityId || '';
-    const groupSet = new Set(coordinator?.groupMembers || []);
+    if (otherPlayers.length === 0) return html``;
 
     return html`
       <div class="dash-fold-sep"></div>
       <div class="ctrl-label">${t('media.speakers_label')}</div>
       <div class="multiroom-grid">
-        ${allPlayers.map((speaker) => {
+        ${otherPlayers.map((speaker) => {
           const inGroup = groupSet.has(speaker.entityId);
-          const isCrd = speaker.entityId === coordinatorId && groupSet.size > 1;
 
           return html`
             <div class="mr-cell ${inGroup ? 'joined' : ''}">
@@ -768,7 +773,6 @@ export class GlassMediaCard extends BaseCard {
                     : t('media.add_group_aria', { name: speaker.name })}
                   @click=${(e: Event) => {
                     e.stopPropagation();
-                    if (!coordinatorId || speaker.entityId === coordinatorId) return;
                     if (inGroup) this._unjoinGroup(speaker.entityId);
                     else this._smartJoin(coordinatorId, speaker.entityId);
                   }}>
@@ -776,9 +780,6 @@ export class GlassMediaCard extends BaseCard {
                 </button>
                 <div class="mr-info">
                   <div class="mr-name">${speaker.name}</div>
-                  ${isCrd ? html`
-                    <span class="mr-coordinator">${t('media.coordinator')}</span>
-                  ` : nothing}
                 </div>
               </div>
               ${inGroup ? html`
@@ -1094,7 +1095,16 @@ export class GlassMediaCard extends BaseCard {
         background: rgba(255,255,255,0.06);
       }
       .dash-source-row {
-        display: flex; justify-content: center; margin-top: -2px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin-top: -2px;
+      }
+      .dash-coordinator-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.5);
+      }
+      .dash-coordinator-badge ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 11px;
       }
 
       /* ── Progress bar ── */
