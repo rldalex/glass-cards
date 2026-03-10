@@ -72,6 +72,7 @@ export interface EntityRegistryEntry {
   platform: string;
   disabled_by: string | null;
   hidden_by: string | null;
+  icon: string | null;
 }
 
 // — BaseCard —

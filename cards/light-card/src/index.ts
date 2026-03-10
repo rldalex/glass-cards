@@ -21,6 +21,7 @@ interface LightInfo {
   entity: HassEntity;
   entityId: string;
   name: string;
+  icon: string;
   isOn: boolean;
   type: LightType;
   brightnessPct: number;
@@ -1105,10 +1106,15 @@ export class GlassLightCard extends BaseCard {
       rgbColor = (entity.attributes.rgb_color as [number, number, number]) || null;
     }
 
+    const registryIcon = this.hass?.entities[entity.entity_id]?.icon;
+    const attrIcon = entity.attributes.icon as string | undefined;
+    const icon = registryIcon || attrIcon || 'mdi:lightbulb';
+
     return {
       entity,
       entityId: entity.entity_id,
       name: (entity.attributes.friendly_name as string) || entity.entity_id,
+      icon,
       isOn,
       type,
       brightnessPct,
@@ -1409,7 +1415,7 @@ export class GlassLightCard extends BaseCard {
           @click=${() => this._toggleLight(info.entityId)}
           aria-label="${t('light.toggle_aria', { name: info.name })}"
         >
-          <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
+          <ha-icon .icon=${info.icon}></ha-icon>
         </button>
         <button
           class="light-expand-btn"

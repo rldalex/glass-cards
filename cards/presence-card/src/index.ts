@@ -837,7 +837,7 @@ export class GlassPresenceCard extends BaseCard {
       .health-pill.steps .health-pill-value { color: var(--c-success); opacity: 0.85; }
 
       /* ── Notification zone ── */
-      .notif-zone { padding: 4px 0; display: flex; gap: 6px; flex-direction: column; }
+      .notif-zone { padding: 8px 0 4px; display: flex; gap: 8px; flex-direction: column; }
       .notif-to {
         font-size: 10px; font-weight: 500; color: var(--t4);
         display: flex; align-items: center; gap: 5px;
@@ -849,7 +849,7 @@ export class GlassPresenceCard extends BaseCard {
         flex: 1; padding: 8px 12px; border-radius: 12px;
         border: 1px solid var(--b2); background: var(--s1);
         color: var(--t1); font-family: inherit; font-size: 12px;
-        outline: none; resize: none; height: 36px;
+        outline: none; resize: none; height: 36px; box-sizing: border-box;
         transition: border-color var(--t-fast);
       }
       .notif-input::placeholder { color: var(--t4); }
