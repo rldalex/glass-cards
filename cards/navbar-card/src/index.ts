@@ -207,13 +207,16 @@ export class GlassNavbarCard extends BaseCard {
         padding: 0 10px;
         cursor: pointer;
         position: relative;
-        color: var(--nav-inactive);
+        color: rgba(255,255,255,0.45);
         font-family: inherit;
         outline: none;
         flex-shrink: 0;
         transition:
           background var(--t-fast),
-          color 0.4s ease;
+          color 0.6s ease;
+      }
+      .navbar.bg-light .nav-item {
+        color: rgba(0,0,0,0.45);
       }
       @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
@@ -237,7 +240,7 @@ export class GlassNavbarCard extends BaseCard {
       .nav-item ha-icon {
         --mdc-icon-size: 22px;
         flex-shrink: 0;
-        transition: color var(--t-fast);
+        transition: color 0.6s ease;
         display: flex; align-items: center; justify-content: center;
       }
 
@@ -420,10 +423,13 @@ export class GlassNavbarCard extends BaseCard {
       }
       .nav-settings ha-icon {
         --mdc-icon-size: 20px;
-        color: var(--nav-inactive);
+        color: rgba(255,255,255,0.45);
         opacity: 0.65;
-        transition: color var(--t-fast), opacity var(--t-fast);
+        transition: color 0.6s ease, opacity var(--t-fast);
         display: flex; align-items: center; justify-content: center;
+      }
+      .navbar.bg-light .nav-settings ha-icon {
+        color: rgba(0,0,0,0.45);
       }
       @media (hover: hover) and (pointer: fine) {
         .nav-settings:hover ha-icon {
