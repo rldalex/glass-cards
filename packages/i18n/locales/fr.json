@@ -194,7 +194,8 @@
   },
 
   "presence": {
-    "title": "PRÉSENCE",
+    "title": "PRÉSENCES",
+    "title_single": "PRÉSENCE",
     "home": "Maison",
     "away": "Absent",
     "just_now": "À l'instant",

@@ -126,6 +126,10 @@ export class GlassNavbarCard extends BaseCard {
   private _headerStyleEl: HTMLStyleElement | null = null;
   private _sidebarStyleEl: HTMLStyleElement | null = null;
   private _loadingOverlay: HTMLElement | null = null;
+  private _bgSampleCanvas?: HTMLCanvasElement;
+  private _bgSampleCtx?: CanvasRenderingContext2D;
+  private _bgCheckRaf?: number;
+  private _bgIsLight = false;
 
   static getConfigElement() {
     return document.createElement('glass-navbar-card-editor');
@@ -187,6 +191,10 @@ export class GlassNavbarCard extends BaseCard {
         display: none;
       }
 
+      /* Adaptive inactive icon color based on background luminance */
+      .navbar { --nav-inactive: rgba(255,255,255,0.45); }
+      .navbar.bg-light { --nav-inactive: rgba(0,0,0,0.45); }
+
       .nav-item {
         background: transparent;
         border: none;
@@ -199,13 +207,13 @@ export class GlassNavbarCard extends BaseCard {
         padding: 0 10px;
         cursor: pointer;
         position: relative;
-        color: var(--t3);
+        color: var(--nav-inactive);
         font-family: inherit;
         outline: none;
         flex-shrink: 0;
         transition:
           background var(--t-fast),
-          color var(--t-fast);
+          color 0.4s ease;
       }
       @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
@@ -220,6 +228,10 @@ export class GlassNavbarCard extends BaseCard {
       .nav-item.active {
         background: rgba(255, 255, 255, 0.1);
         color: var(--t1);
+      }
+      .navbar.bg-light .nav-item.active {
+        background: rgba(0, 0, 0, 0.08);
+        color: rgba(0, 0, 0, 0.85);
       }
 
       .nav-item ha-icon {
@@ -408,8 +420,9 @@ export class GlassNavbarCard extends BaseCard {
       }
       .nav-settings ha-icon {
         --mdc-icon-size: 20px;
-        color: var(--t4);
-        transition: color var(--t-fast);
+        color: var(--nav-inactive);
+        opacity: 0.65;
+        transition: color var(--t-fast), opacity var(--t-fast);
         display: flex; align-items: center; justify-content: center;
       }
       @media (hover: hover) and (pointer: fine) {
@@ -454,6 +467,7 @@ export class GlassNavbarCard extends BaseCard {
     });
 
     this._editMode = this._detectEditMode();
+    window.addEventListener('scroll', this._boundBgCheck, { capture: true, passive: true });
   }
 
   disconnectedCallback() {
@@ -473,6 +487,8 @@ export class GlassNavbarCard extends BaseCard {
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
+    window.removeEventListener('scroll', this._boundBgCheck, { capture: true } as EventListenerOptions);
+    if (this._bgCheckRaf) cancelAnimationFrame(this._bgCheckRaf);
   }
 
   protected firstUpdated(changedProps: PropertyValues) {
@@ -922,6 +938,89 @@ export class GlassNavbarCard extends BaseCard {
     this._snapshotPositions();
 
     this._items = items;
+  }
+
+  /* ── Background luminance sampling ── */
+
+  private _boundBgCheck = () => {
+    if (this._bgCheckRaf) return;
+    this._bgCheckRaf = requestAnimationFrame(() => {
+      this._bgCheckRaf = undefined;
+      this._sampleBackgroundLuminance();
+    });
+  };
+
+  private _sampleBackgroundLuminance() {
+    const navbar = this.renderRoot.querySelector('.navbar') as HTMLElement | null;
+    if (!navbar) return;
+    const rect = navbar.getBoundingClientRect();
+    const cx = Math.round(rect.left + rect.width / 2);
+    const cy = Math.round(rect.top + rect.height / 2);
+
+    // Find images behind the navbar
+    const els = document.elementsFromPoint(cx, cy);
+    let luminance = 0;
+    let found = false;
+    for (const el of els) {
+      // Skip our own navbar and its children
+      if (navbar.contains(el) || el === navbar) continue;
+      // Check for <img> elements (like media card artwork)
+      if (el instanceof HTMLImageElement && el.complete && el.naturalWidth > 0) {
+        luminance = this._sampleImageLuminance(el, cx, cy);
+        found = true;
+        break;
+      }
+      // Check shadow DOM for images (cards are web components)
+      if (el.shadowRoot) {
+        const imgs = el.shadowRoot.querySelectorAll('img');
+        for (const img of imgs) {
+          if (!img.complete || img.naturalWidth === 0) continue;
+          const imgRect = img.getBoundingClientRect();
+          if (imgRect.top < rect.bottom && imgRect.bottom > rect.top) {
+            luminance = this._sampleImageLuminance(img, cx, cy);
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+      // Check computed background color
+      const bg = getComputedStyle(el).backgroundColor;
+      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+        const m = bg.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+        if (m) {
+          luminance = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) / 255;
+          found = true;
+          break;
+        }
+      }
+    }
+    const isLight = found && luminance > 0.55;
+    if (isLight !== this._bgIsLight) {
+      this._bgIsLight = isLight;
+      navbar.classList.toggle('bg-light', isLight);
+    }
+  }
+
+  private _sampleImageLuminance(img: HTMLImageElement, cx: number, cy: number): number {
+    if (!this._bgSampleCanvas) {
+      this._bgSampleCanvas = document.createElement('canvas');
+      this._bgSampleCanvas.width = 1;
+      this._bgSampleCanvas.height = 1;
+      this._bgSampleCtx = this._bgSampleCanvas.getContext('2d', { willReadFrequently: true }) ?? undefined;
+    }
+    if (!this._bgSampleCtx) return 0;
+    const imgRect = img.getBoundingClientRect();
+    // Map viewport coord to image coord
+    const sx = ((cx - imgRect.left) / imgRect.width) * img.naturalWidth;
+    const sy = ((cy - imgRect.top) / imgRect.height) * img.naturalHeight;
+    try {
+      this._bgSampleCtx.drawImage(img, sx, sy, 1, 1, 0, 0, 1, 1);
+      const [r, g, b] = this._bgSampleCtx.getImageData(0, 0, 1, 1).data;
+      return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    } catch {
+      return 0; // CORS or tainted canvas
+    }
   }
 
   private _updateAmbient() {
