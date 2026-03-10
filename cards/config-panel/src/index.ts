@@ -189,6 +189,8 @@ export class GlassConfigPanel extends LitElement {
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
   @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify'];
+  @state() private _dashboardHideHeader = false;
+  @state() private _dashboardHideSidebar = false;
   @state() private _dashboardExpanded = new Set<string>();
 
   // Schedule config
@@ -3144,6 +3146,8 @@ export class GlassConfigPanel extends LitElement {
     let dashboardConfig = {
       enabled_cards: ['weather'] as string[],
       card_order: ['title', 'weather', 'light', 'cover', 'spotify'] as string[],
+      hide_header: false,
+      hide_sidebar: false,
     };
     let lightCardConfig = {
       show_header: true,
@@ -3239,6 +3243,8 @@ export class GlassConfigPanel extends LitElement {
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
     this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
+    this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
+    this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
 
     const hiddenSet = new Set(navbarConfig.hidden_rooms);
     const orderMap = new Map<string, number>();
@@ -5794,6 +5800,8 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_dashboard', {
         enabled_cards: this._dashboardEnabledCards,
         card_order: this._dashboardCardOrder,
+        hide_header: this._dashboardHideHeader,
+        hide_sidebar: this._dashboardHideSidebar,
       });
       await this._backend.send('set_light_config', {
         show_header: this._lightShowHeader,
@@ -5835,7 +5843,7 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        dashboard: { enabled_cards: string[]; card_order?: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
         light_card?: { show_header?: boolean };
         weather?: { show_header?: boolean };
         cover_card?: { show_header?: boolean };
@@ -5845,6 +5853,8 @@ export class GlassConfigPanel extends LitElement {
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
         this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
+        this._dashboardHideHeader = result.dashboard.hide_header ?? false;
+        this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
       }
       this._lightShowHeader = result?.light_card?.show_header ?? true;
       this._weatherShowHeader = result?.weather?.show_header ?? true;
@@ -5905,6 +5915,38 @@ export class GlassConfigPanel extends LitElement {
 
     return html`
       <div class="tab-panel" id="panel-dashboard">
+        <div class="section-label">${t('config.dashboard_display')}</div>
+        <div class="section-desc">${t('config.dashboard_display_desc')}</div>
+
+        <div class="check-item" style="margin-top:12px;">
+          <button
+            class="toggle ${this._dashboardHideHeader ? 'on' : ''}"
+            @click=${() => { this._dashboardHideHeader = !this._dashboardHideHeader; this._saveDashboard(); }}
+            role="switch"
+            aria-checked=${this._dashboardHideHeader ? 'true' : 'false'}
+            aria-label=${t('config.dashboard_hide_header')}
+          ></button>
+          <div class="check-label">
+            <span>${t('config.dashboard_hide_header')}</span>
+            <span class="check-desc">${t('config.dashboard_hide_header_desc')}</span>
+          </div>
+        </div>
+        <div class="check-item" style="margin-bottom:8px;">
+          <button
+            class="toggle ${this._dashboardHideSidebar ? 'on' : ''}"
+            @click=${() => { this._dashboardHideSidebar = !this._dashboardHideSidebar; this._saveDashboard(); }}
+            role="switch"
+            aria-checked=${this._dashboardHideSidebar ? 'true' : 'false'}
+            aria-label=${t('config.dashboard_hide_sidebar')}
+          ></button>
+          <div class="check-label">
+            <span>${t('config.dashboard_hide_sidebar')}</span>
+            <span class="check-desc">${t('config.dashboard_hide_sidebar_desc')}</span>
+          </div>
+        </div>
+
+        <div class="fold-sep" style="margin:16px 0;"></div>
+
         <div class="section-label">${t('config.dashboard_title')}</div>
         <div class="section-desc">${t('config.dashboard_desc')}</div>
         <div class="item-list">

@@ -120,6 +120,11 @@ export class GlassNavbarCard extends BaseCard {
   @state() private _enabledCards: string[] = ['weather'];
   private _cardOrder: string[] = DEFAULT_CARD_ORDER;
   private _dashboardCards = new Map<string, HTMLElement>();
+  private _hideHeader = false;
+  private _hideSidebar = false;
+  private _headerStyleEl: HTMLStyleElement | null = null;
+  private _sidebarStyleEl: HTMLStyleElement | null = null;
+  private _loadingOverlay: HTMLElement | null = null;
 
   static getConfigElement() {
     return document.createElement('glass-navbar-card-editor');
@@ -461,6 +466,9 @@ export class GlassNavbarCard extends BaseCard {
     }
     for (const card of this._dashboardCards.values()) card.remove();
     this._dashboardCards.clear();
+    this._removeHeaderStyle();
+    this._removeSidebarStyle();
+    if (this._loadingOverlay) { this._loadingOverlay.remove(); this._loadingOverlay = null; }
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
@@ -568,13 +576,17 @@ export class GlassNavbarCard extends BaseCard {
           humidity_threshold?: number;
         };
         rooms: Record<string, { icon?: string | null }>;
-        dashboard: { enabled_cards: string[]; card_order?: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
       }>('get_config');
       this._navbarConfig = result.navbar;
       this._roomConfigs = result.rooms ?? {};
       if (result.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
         this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
+        this._hideHeader = result.dashboard.hide_header ?? false;
+        this._hideSidebar = result.dashboard.hide_sidebar ?? false;
+        this._applyHideHeader();
+        this._applyHideSidebar();
       }
       // Force rebuild with new config
       this._configLoaded = true;
@@ -583,14 +595,20 @@ export class GlassNavbarCard extends BaseCard {
       this._rebuildStructure();
       this._aggregateState();
     } catch {
-      // Backend not available — use auto-discovery defaults
-      this._configLoaded = true;
-      this._configReady = true;
-      this._rebuildStructure();
-      this._aggregateState();
+      // Backend not available — retry after delay
+      this._configLoading = false;
+      if (this.isConnected) {
+        this._showLoadingOverlay();
+        setTimeout(() => {
+          this._configLoaded = false;
+          this._loadBackendConfig();
+        }, 2000);
+      }
+      return;
     } finally {
       this._configLoading = false;
     }
+    this._removeLoadingOverlay();
   }
 
   private async _loadDashboardConfig(): Promise<void> {
@@ -599,16 +617,165 @@ export class GlassNavbarCard extends BaseCard {
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
-        dashboard: { enabled_cards: string[]; card_order?: string[] };
+        dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
       }>('get_config');
       if (result?.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
         this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
+        const hideHeader = result.dashboard.hide_header ?? false;
+        const hideSidebar = result.dashboard.hide_sidebar ?? false;
+        if (hideHeader !== this._hideHeader) {
+          this._hideHeader = hideHeader;
+          this._applyHideHeader();
+        }
+        if (hideSidebar !== this._hideSidebar) {
+          this._hideSidebar = hideSidebar;
+          this._applyHideSidebar();
+        }
       }
     } catch {
       // Backend not available — keep defaults
     } finally {
       this._dashboardLoading = false;
+    }
+  }
+
+  private _applyHideHeader(retries = 10): void {
+    if (this._hideHeader) {
+      if (!this._injectHeaderStyle() && retries > 0 && this.isConnected) {
+        setTimeout(() => this._applyHideHeader(retries - 1), 500);
+      }
+    } else {
+      this._removeHeaderStyle();
+    }
+  }
+
+  private _injectHeaderStyle(): boolean {
+    if (this._headerStyleEl) return true; // Already injected
+    const huiRoot = this._findHuiRoot();
+    if (!huiRoot) return false;
+    const style = document.createElement('style');
+    style.id = 'glass-cards-hide-header';
+    style.textContent = `
+      .header { display: none !important; }
+      #view, hui-view-container {
+        min-height: 100vh !important;
+        padding-top: env(safe-area-inset-top) !important;
+      }
+    `;
+    huiRoot.appendChild(style);
+    this._headerStyleEl = style;
+    return true;
+  }
+
+  private _removeHeaderStyle(): void {
+    if (this._headerStyleEl) {
+      this._headerStyleEl.remove();
+      this._headerStyleEl = null;
+    }
+  }
+
+  private _applyHideSidebar(retries = 10): void {
+    if (this._hideSidebar) {
+      if (!this._injectSidebarStyle() && retries > 0 && this.isConnected) {
+        setTimeout(() => this._applyHideSidebar(retries - 1), 500);
+      }
+    } else {
+      this._removeSidebarStyle();
+    }
+  }
+
+  private _injectSidebarStyle(): boolean {
+    if (this._sidebarStyleEl) return true;
+    const drawerShadow = this._findDrawerShadow();
+    if (!drawerShadow) return false;
+    const style = document.createElement('style');
+    style.id = 'glass-cards-hide-sidebar';
+    style.textContent = `
+      .mdc-drawer { display: none !important; }
+      .mdc-drawer-scrim { display: none !important; }
+      .mdc-drawer-app-content { margin-left: 0 !important; }
+    `;
+    drawerShadow.appendChild(style);
+    this._sidebarStyleEl = style;
+    return true;
+  }
+
+  private _removeSidebarStyle(): void {
+    if (this._sidebarStyleEl) {
+      this._sidebarStyleEl.remove();
+      this._sidebarStyleEl = null;
+    }
+  }
+
+  private _findDrawerShadow(): ShadowRoot | null {
+    try {
+      const ha = document.querySelector('home-assistant');
+      if (!ha?.shadowRoot) return null;
+      const main = ha.shadowRoot.querySelector('home-assistant-main');
+      if (!main?.shadowRoot) return null;
+      const drawer = main.shadowRoot.querySelector('ha-drawer');
+      if (!drawer?.shadowRoot) return null;
+      return drawer.shadowRoot;
+    } catch {
+      return null;
+    }
+  }
+
+  private _showLoadingOverlay(): void {
+    if (this._loadingOverlay) return;
+    const el = document.createElement('div');
+    el.id = 'glass-cards-loading';
+    el.style.cssText = `
+      position: fixed; inset: 0; z-index: 99999;
+      background: var(--primary-background-color, #111);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      transition: opacity 0.4s ease;
+    `;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = '@keyframes gc-spin { to { transform: rotate(360deg); } }';
+    el.appendChild(styleEl);
+
+    const spinner = document.createElement('div');
+    spinner.style.cssText = 'width:36px;height:36px;border:3px solid rgba(255,255,255,.15);border-top-color:rgba(255,255,255,.7);border-radius:50%;animation:gc-spin .8s linear infinite;';
+    el.appendChild(spinner);
+
+    const label = document.createElement('span');
+    label.style.cssText = 'font:500 13px/1 sans-serif;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;';
+    label.textContent = 'Glass Cards';
+    el.appendChild(label);
+
+    document.body.appendChild(el);
+    this._loadingOverlay = el;
+  }
+
+  private _removeLoadingOverlay(): void {
+    if (!this._loadingOverlay) return;
+    const el = this._loadingOverlay;
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 400);
+    this._loadingOverlay = null;
+  }
+
+  private _findHuiRoot(): ShadowRoot | null {
+    try {
+      const ha = document.querySelector('home-assistant');
+      if (!ha?.shadowRoot) return null;
+      const main = ha.shadowRoot.querySelector('home-assistant-main');
+      if (!main?.shadowRoot) return null;
+      const drawer = main.shadowRoot.querySelector('ha-drawer');
+      if (!drawer) return null;
+      const resolver = drawer.querySelector('partial-panel-resolver');
+      if (!resolver) return null;
+      const lovelace = resolver.querySelector('ha-panel-lovelace');
+      if (!lovelace?.shadowRoot) return null;
+      const huiRoot = lovelace.shadowRoot.querySelector('hui-root');
+      if (!huiRoot?.shadowRoot) return null;
+      return huiRoot.shadowRoot;
+    } catch {
+      return null;
     }
   }
 

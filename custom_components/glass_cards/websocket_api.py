@@ -485,6 +485,8 @@ async def ws_set_media_config(
         vol.Required("type"): "glass_cards/set_dashboard",
         vol.Optional("enabled_cards"): [vol.In(list(VALID_DASHBOARD_CARDS))],
         vol.Optional("card_order"): [vol.In(list(VALID_DASHBOARD_CARDS))],
+        vol.Optional("hide_header"): bool,
+        vol.Optional("hide_sidebar"): bool,
     }
 )
 @websocket_api.async_response
@@ -503,6 +505,10 @@ async def ws_set_dashboard(
         store.data.dashboard.enabled_cards = msg["enabled_cards"]
     if "card_order" in msg:
         store.data.dashboard.card_order = msg["card_order"]
+    if "hide_header" in msg:
+        store.data.dashboard.hide_header = msg["hide_header"]
+    if "hide_sidebar" in msg:
+        store.data.dashboard.hide_sidebar = msg["hide_sidebar"]
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.dashboard.to_dict())

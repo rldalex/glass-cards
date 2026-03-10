@@ -321,6 +321,12 @@
     "dashboard_card_title_desc": "Title text with optional mode selector",
 
     "tab_dashboard": "Dashboard",
+    "dashboard_display": "Display",
+    "dashboard_display_desc": "Customize the Home Assistant interface appearance.",
+    "dashboard_hide_header": "Hide toolbar",
+    "dashboard_hide_header_desc": "Hides the Home Assistant top bar (menu, title, search).",
+    "dashboard_hide_sidebar": "Hide sidebar",
+    "dashboard_hide_sidebar_desc": "Hides the Home Assistant side menu (navigation, settings, notifications).",
     "dashboard_title": "Dashboard cards",
     "dashboard_desc": "Reorder, enable or disable dashboard cards. Drag to change the order.",
     "dashboard_card_weather": "Weather Card",

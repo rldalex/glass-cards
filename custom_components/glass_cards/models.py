@@ -467,12 +467,16 @@ class DashboardConfig:
 
     enabled_cards: list[str] = field(default_factory=lambda: list(DEFAULT_DASHBOARD_CARDS))
     card_order: list[str] = field(default_factory=lambda: list(DEFAULT_CARD_ORDER))
+    hide_header: bool = False
+    hide_sidebar: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "enabled_cards": self.enabled_cards,
             "card_order": self.card_order,
+            "hide_header": self.hide_header,
+            "hide_sidebar": self.hide_sidebar,
         }
 
     @classmethod
@@ -494,6 +498,8 @@ class DashboardConfig:
                 if isinstance(x, str) and x in VALID_DASHBOARD_CARDS
             ],
             card_order=order,
+            hide_header=bool(data.get("hide_header", False)),
+            hide_sidebar=bool(data.get("hide_sidebar", False)),
         )
 
 

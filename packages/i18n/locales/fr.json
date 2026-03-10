@@ -321,6 +321,12 @@
     "dashboard_card_title_desc": "Texte titre avec sélecteur de mode optionnel",
 
     "tab_dashboard": "Tableau de bord",
+    "dashboard_display": "Affichage",
+    "dashboard_display_desc": "Personnalisez l'apparence de l'interface Home Assistant.",
+    "dashboard_hide_header": "Masquer le bandeau",
+    "dashboard_hide_header_desc": "Cache la barre supérieure de Home Assistant (menu, titre, recherche).",
+    "dashboard_hide_sidebar": "Masquer la barre latérale",
+    "dashboard_hide_sidebar_desc": "Cache le menu latéral de Home Assistant (navigation, paramètres, notifications).",
     "dashboard_title": "Cartes du tableau de bord",
     "dashboard_desc": "Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l'ordre.",
     "dashboard_card_weather": "Carte Météo",
