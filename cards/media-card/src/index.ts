@@ -267,7 +267,7 @@ export class GlassMediaCard extends BaseCard {
   private _getActiveRooms(): MediaPlayerInfo[] {
     if (!this.hass) return [];
     const allPlaying = Object.values(this.hass.states)
-      .filter((e) => e.entity_id.startsWith('media_player.') && isPlaying(e.state))
+      .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state))
       .map(getMediaInfo);
 
     // Deduplicate: if a speaker is a group member, only keep the coordinator
@@ -908,10 +908,10 @@ export class GlassMediaCard extends BaseCard {
       `;
     }
 
-    // Room mode — only show if something is playing in this room
+    // Room mode — only show if something is playing/paused in this room
     const players = this._getPlayers();
     const master = this._findMaster(players);
-    if (!master || !isPlaying(master.state)) return nothing;
+    if (!master || !isActive(master.state)) return nothing;
 
     return html`
       ${showHeader ? html`
