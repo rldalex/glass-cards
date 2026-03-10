@@ -126,11 +126,10 @@ export class GlassNavbarCard extends BaseCard {
   private _headerStyleEl: HTMLStyleElement | null = null;
   private _sidebarStyleEl: HTMLStyleElement | null = null;
   private _loadingOverlay: HTMLElement | null = null;
-  private _bgSampleCanvas?: HTMLCanvasElement;
-  private _bgSampleCtx?: CanvasRenderingContext2D;
-  private _bgCheckRaf?: number;
   @state() private _bgIsLight = false;
-  private _bgLastSampleTime = 0;
+  private _bgIntersectionObserver?: IntersectionObserver;
+  private _bgMutationObserver?: MutationObserver;
+  private _bgIntersectingCards = new Set<Element>();
 
   static getConfigElement() {
     return document.createElement('glass-navbar-card-editor');
@@ -468,7 +467,6 @@ export class GlassNavbarCard extends BaseCard {
     });
 
     this._editMode = this._detectEditMode();
-    window.addEventListener('scroll', this._boundBgCheck, { capture: true, passive: true });
   }
 
   disconnectedCallback() {
@@ -488,17 +486,75 @@ export class GlassNavbarCard extends BaseCard {
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
-    window.removeEventListener('scroll', this._boundBgCheck, { capture: true } as EventListenerOptions);
-    if (this._bgCheckRaf) cancelAnimationFrame(this._bgCheckRaf);
-    this._bgSampleCanvas = undefined;
-    this._bgSampleCtx = undefined;
+    this._bgIntersectionObserver?.disconnect();
+    this._bgIntersectionObserver = undefined;
+    this._bgMutationObserver?.disconnect();
+    this._bgMutationObserver = undefined;
   }
 
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
     this._attachScrollListener();
-    // Initial background sample after first paint
-    requestAnimationFrame(() => this._sampleBackgroundLuminance());
+    // Watch .dashboard-cards for child additions to (re)setup IntersectionObserver
+    const container = this.renderRoot.querySelector('.dashboard-cards');
+    if (container) {
+      this._bgMutationObserver = new MutationObserver((mutations) => {
+        const isAttrChange = mutations.some((m) => m.type === 'attributes');
+        if (isAttrChange) {
+          // data-bg-light changed on a card — re-check which intersecting card is light
+          this._checkBgLightFromIntersecting();
+        } else {
+          // childList changed — rebuild IntersectionObserver
+          this._setupBgObserver();
+        }
+      });
+      this._bgMutationObserver.observe(container, {
+        childList: true,
+        subtree: true,
+        attributeFilter: ['data-bg-light'],
+      });
+    }
+    this._setupBgObserver();
+  }
+
+  /** Setup IntersectionObserver that watches dashboard cards entering the navbar zone */
+  private _setupBgObserver() {
+    this._bgIntersectionObserver?.disconnect();
+    const navbar = this.renderRoot.querySelector('.navbar') as HTMLElement | null;
+    const container = this.renderRoot.querySelector('.dashboard-cards');
+    if (!navbar || !container || container.children.length === 0) return;
+
+    const navRect = navbar.getBoundingClientRect();
+    const topMargin = -navRect.top;
+    const bottomMargin = -(window.innerHeight - navRect.bottom);
+
+    this._bgIntersectingCards.clear();
+    this._bgIntersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) this._bgIntersectingCards.add(e.target);
+          else this._bgIntersectingCards.delete(e.target);
+        }
+        this._checkBgLightFromIntersecting();
+      },
+      { root: null, rootMargin: `${topMargin}px 0px ${bottomMargin}px 0px`, threshold: 0 },
+    );
+
+    for (const card of container.children) {
+      this._bgIntersectionObserver.observe(card);
+    }
+  }
+
+  /** Re-check data-bg-light on currently intersecting cards */
+  private _checkBgLightFromIntersecting() {
+    let isLight = false;
+    for (const card of this._bgIntersectingCards) {
+      if ((card as HTMLElement).dataset.bgLight === 'true') {
+        isLight = true;
+        break;
+      }
+    }
+    if (isLight !== this._bgIsLight) this._bgIsLight = isLight;
   }
 
   private _detectEditMode(): boolean {
@@ -576,6 +632,8 @@ export class GlassNavbarCard extends BaseCard {
         this._attachScrollListener();
         this._updateNavMask();
         this._animateFlip();
+        // Re-setup IntersectionObserver when dashboard cards change
+        this._setupBgObserver();
       });
     }
   }
@@ -945,90 +1003,7 @@ export class GlassNavbarCard extends BaseCard {
     this._items = items;
   }
 
-  /* ── Background luminance sampling ── */
-
-  private _boundBgCheck = () => {
-    if (this._bgCheckRaf) return;
-    const now = performance.now();
-    if (now - this._bgLastSampleTime < 200) return;
-    this._bgCheckRaf = requestAnimationFrame(() => {
-      this._bgCheckRaf = undefined;
-      this._bgLastSampleTime = performance.now();
-      this._sampleBackgroundLuminance();
-    });
-  };
-
-  private _sampleBackgroundLuminance() {
-    const navbar = this.renderRoot.querySelector('.navbar') as HTMLElement | null;
-    if (!navbar) return;
-    const rect = navbar.getBoundingClientRect();
-    const cx = Math.round(rect.left + rect.width / 2);
-    const cy = Math.round(rect.top + rect.height / 2);
-
-    // Find images behind the navbar
-    const els = document.elementsFromPoint(cx, cy);
-    let luminance = 0;
-    let found = false;
-    for (const el of els) {
-      // Skip our own navbar and its children
-      if (navbar.contains(el) || el === navbar) continue;
-      // Check for <img> elements (like media card artwork)
-      if (el instanceof HTMLImageElement && el.complete && el.naturalWidth > 0) {
-        luminance = this._sampleImageLuminance(el, cx, cy);
-        found = true;
-        break;
-      }
-      // Check shadow DOM for images (cards are web components)
-      if (el.shadowRoot) {
-        const imgs = el.shadowRoot.querySelectorAll('img');
-        for (const img of imgs) {
-          if (!img.complete || img.naturalWidth === 0) continue;
-          const imgRect = img.getBoundingClientRect();
-          if (imgRect.top < rect.bottom && imgRect.bottom > rect.top) {
-            luminance = this._sampleImageLuminance(img, cx, cy);
-            found = true;
-            break;
-          }
-        }
-        if (found) break;
-      }
-      // Check computed background color
-      const bg = getComputedStyle(el).backgroundColor;
-      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
-        const m = bg.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-        if (m) {
-          luminance = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) / 255;
-          found = true;
-          break;
-        }
-      }
-    }
-    const isLight = found && luminance > 0.55;
-    if (isLight !== this._bgIsLight) {
-      this._bgIsLight = isLight;
-    }
-  }
-
-  private _sampleImageLuminance(img: HTMLImageElement, cx: number, cy: number): number {
-    if (!this._bgSampleCanvas) {
-      this._bgSampleCanvas = document.createElement('canvas');
-      this._bgSampleCanvas.width = 1;
-      this._bgSampleCanvas.height = 1;
-      this._bgSampleCtx = this._bgSampleCanvas.getContext('2d', { willReadFrequently: true }) ?? undefined;
-    }
-    if (!this._bgSampleCtx) return 0;
-    const imgRect = img.getBoundingClientRect();
-    // Map viewport coord to image coord
-    const sx = ((cx - imgRect.left) / imgRect.width) * img.naturalWidth;
-    const sy = ((cy - imgRect.top) / imgRect.height) * img.naturalHeight;
-    try {
-      this._bgSampleCtx.drawImage(img, sx, sy, 1, 1, 0, 0, 1, 1);
-      const [r, g, b] = this._bgSampleCtx.getImageData(0, 0, 1, 1).data;
-      return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    } catch {
-      return 0; // CORS or tainted canvas
-    }
-  }
+  /* ── Background luminance (IntersectionObserver) ── */
 
   private _updateAmbient() {
     if (!this.hass) return;

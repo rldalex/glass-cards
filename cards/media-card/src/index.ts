@@ -131,6 +131,7 @@ export class GlassMediaCard extends BaseCard {
 
   private _backend?: BackendService;
   private _loadVersion = 0;
+  private _lastArtworkUrl = '';
   private _configLoadingInProgress = false;
   private _playersCache: MediaPlayerInfo[] | null = null;
   private _playersCacheKey = '';
@@ -181,6 +182,46 @@ export class GlassMediaCard extends BaseCard {
     }
     // Start/stop progress timer based on playback state
     this._syncProgressTimer();
+    // Expose artwork luminance for navbar adaptive icons
+    this._updateBgLightAttribute();
+  }
+
+  /** Analyze artwork luminance and expose data-bg-light on host for navbar IntersectionObserver */
+  private _updateBgLightAttribute(): void {
+    const img = this.shadowRoot?.querySelector('img.dash-art-bg') as HTMLImageElement | null;
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      this._lastArtworkUrl = '';
+      delete this.dataset.bgLight;
+      return;
+    }
+    // Only re-analyze when artwork URL changes
+    if (img.src === this._lastArtworkUrl) return;
+    this._lastArtworkUrl = img.src;
+
+    const canvas = document.createElement('canvas');
+    const size = 16; // Sample a small 16x16 grid for average luminance
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+    try {
+      ctx.drawImage(img, 0, 0, size, size);
+      const data = ctx.getImageData(0, 0, size, size).data;
+      let totalLum = 0;
+      const pixelCount = size * size;
+      for (let i = 0; i < data.length; i += 4) {
+        totalLum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+      const avgLuminance = totalLum / pixelCount / 255;
+      if (avgLuminance > 0.55) {
+        this.dataset.bgLight = 'true';
+      } else {
+        delete this.dataset.bgLight;
+      }
+    } catch {
+      // CORS tainted canvas — cannot read pixels, remove attribute
+      delete this.dataset.bgLight;
+    }
   }
 
   private _syncProgressTimer(): void {
