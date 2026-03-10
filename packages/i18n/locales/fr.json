@@ -204,6 +204,7 @@
     "avatar_aria": "Informations pour {name}",
     "notify_aria": "Envoyer une notification à {name}",
     "notify_placeholder": "Ton message…",
+    "notif_title": "Message de {name}",
     "send_aria": "Envoyer la notification",
     "notif_sent": "Notification envoyée",
     "health_label": "Santé",
