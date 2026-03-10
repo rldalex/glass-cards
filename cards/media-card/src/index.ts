@@ -49,6 +49,7 @@ interface MediaPlayerInfo {
   duration: number;
   elapsed: number;
   positionUpdatedAt: number;
+  lastUpdated: number;
   icon: string;
 }
 
@@ -86,6 +87,7 @@ function getMediaInfo(entity: HassEntity): MediaPlayerInfo {
     duration: typeof attrs.media_duration === 'number' ? attrs.media_duration : 0,
     elapsed: typeof attrs.media_position === 'number' ? attrs.media_position : 0,
     positionUpdatedAt: posUpdated,
+    lastUpdated: entity.last_updated ? new Date(entity.last_updated).getTime() : 0,
     icon: (attrs.icon as string) || 'mdi:speaker',
   };
 }
@@ -127,6 +129,7 @@ export class GlassMediaCard extends BaseCard {
   };
   @state() private _configLoaded = false;
   @state() private _roomIndex = 0;
+  private _roomEntityId = '';
   @state() private _swipeClass = '';
 
   private _backend?: BackendService;
@@ -291,7 +294,10 @@ export class GlassMediaCard extends BaseCard {
         .map(getMediaInfo)
         .sort((a, b) => {
           const priority = (s: string) => (s === 'playing' ? 0 : s === 'buffering' ? 1 : 2);
-          return priority(a.state) - priority(b.state);
+          const pd = priority(a.state) - priority(b.state);
+          if (pd !== 0) return pd;
+          // Within same priority, most recently updated first
+          return b.lastUpdated - a.lastUpdated;
         });
     }
 
@@ -336,11 +342,13 @@ export class GlassMediaCard extends BaseCard {
       .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state))
       .map(getMediaInfo);
 
-    // Sort coordinators first (coordinator = first element of own group_members)
+    // Sort: coordinators first, then by most recently updated
     allPlaying.sort((a, b) => {
       const aCoord = a.groupMembers.length > 0 && a.groupMembers[0] === a.entityId ? 0 : 1;
       const bCoord = b.groupMembers.length > 0 && b.groupMembers[0] === b.entityId ? 0 : 1;
-      return aCoord - bCoord;
+      const cd = aCoord - bCoord;
+      if (cd !== 0) return cd;
+      return b.lastUpdated - a.lastUpdated;
     });
 
     // Deduplicate: if a speaker is a group member, only keep the coordinator
@@ -459,14 +467,12 @@ export class GlassMediaCard extends BaseCard {
     this._lpTimer = window.setTimeout(() => {
       this._lpFired = true;
       this._foldOpen = !this._foldOpen;
-      // Scroll card into view when fold opens
+      // Scroll card into view when fold opens (wait for fold CSS transition)
       if (this._foldOpen) {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const wrap = this.renderRoot?.querySelector('.dash-wrap') as HTMLElement | null;
-            wrap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          });
-        });
+        setTimeout(() => {
+          const fold = this.renderRoot?.querySelector('.ctrl-fold') as HTMLElement | null;
+          fold?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 350);
       }
     }, 500);
   }
@@ -522,6 +528,7 @@ export class GlassMediaCard extends BaseCard {
     this._swipeAnimTimer = window.setTimeout(() => {
       // Switch room (triggers re-render with new content)
       this._roomIndex = newIndex;
+      this._roomEntityId = '';
       // Phase 2: enter animation
       this._swipeClass = direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left';
 
@@ -615,13 +622,17 @@ export class GlassMediaCard extends BaseCard {
     update(e);
 
     const onMove = (evt: PointerEvent) => update(evt);
-    const onUp = () => {
+    const cleanup = () => {
       bar.removeEventListener('pointermove', onMove);
-      bar.removeEventListener('pointerup', onUp);
+      bar.removeEventListener('pointerup', cleanup);
+      bar.removeEventListener('pointercancel', cleanup);
+      bar.removeEventListener('lostpointercapture', cleanup);
     };
 
     bar.addEventListener('pointermove', onMove);
-    bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointerup', cleanup);
+    bar.addEventListener('pointercancel', cleanup);
+    bar.addEventListener('lostpointercapture', cleanup);
   }
 
   /* ── Compute elapsed (interpolate from position_updated_at) ── */
@@ -985,9 +996,15 @@ export class GlassMediaCard extends BaseCard {
       const rooms = this._getActiveRooms();
       if (rooms.length === 0) return nothing;
 
-      // Clamp index if rooms changed
+      // Stabilize room index by entity ID across re-renders
+      if (this._roomEntityId) {
+        const idx = rooms.findIndex((r) => r.entityId === this._roomEntityId);
+        if (idx >= 0) this._roomIndex = idx;
+        else if (this._roomIndex >= rooms.length) this._roomIndex = 0;
+      }
       if (this._roomIndex >= rooms.length) this._roomIndex = 0;
       const master = rooms[this._roomIndex];
+      this._roomEntityId = master.entityId;
 
       return html`
         ${showHeader ? html`
@@ -1117,7 +1134,7 @@ export class GlassMediaCard extends BaseCard {
         -webkit-tap-highlight-color: transparent;
         transition: border-radius var(--t-layout), border-color var(--t-fast);
       }
-      @media (hover: hover) { .dash-hero:hover { border-color: var(--b3); } }
+      @media (hover: hover) and (pointer: fine) { .dash-hero:hover { border-color: var(--b3); } }
 
       /* Connected fold: hero loses bottom radius when fold is open */
       .dash-wrap.fold-open .dash-hero {
@@ -1316,7 +1333,7 @@ export class GlassMediaCard extends BaseCard {
         cursor: pointer; touch-action: none;
         transition: height var(--t-fast);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .dash-progress:hover { height: 6px; }
         .dash-progress:hover .dash-progress-thumb { opacity: 1; }
       }
@@ -1352,12 +1369,12 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 18px;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .transport-btn:hover { background: var(--s2); color: var(--t2); }
       }
       .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      @media (hover: none) { .transport-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) { .transport-btn:active { transform: scale(0.96); } }
+      @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
       .transport-btn.active { color: var(--mp-color); }
 
       .transport-skip { width: 40px; height: 40px; }
@@ -1369,11 +1386,13 @@ export class GlassMediaCard extends BaseCard {
         color: var(--mp-color);
       }
       .transport-main ha-icon { --mdc-icon-size: 28px; }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .transport-main:hover {
           background: rgba(129,140,248,0.18); border-color: rgba(129,140,248,0.25);
         }
+        .transport-main:active { transform: scale(0.96); }
       }
+      @media (pointer: coarse) { .transport-main:active { animation: bounce 0.3s ease; } }
 
       /* ── Flash overlay ── */
       .dash-flash {
@@ -1423,7 +1442,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-nav-left { left: 0; border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
       .dash-nav-right { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .dash-nav-left:hover, .dash-nav-right:hover {
           background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent);
         }
@@ -1433,8 +1452,8 @@ export class GlassMediaCard extends BaseCard {
         .dash-nav-arrow:hover ha-icon { color: #fff; }
         .dash-hero:hover .dash-nav-arrow { opacity: 1; }
       }
-      @media (hover: none) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) { .dash-nav-arrow:active { transform: scale(0.95); } }
+      @media (pointer: coarse) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .dash-nav-arrow:active { transform: scale(0.95); } }
       .dash-nav-arrow:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
       /* ── Room dots (dashboard swipe indicator) ── */
@@ -1452,8 +1471,8 @@ export class GlassMediaCard extends BaseCard {
         background: rgba(255,255,255,0.7);
         transform: scale(1.3);
       }
-      @media (hover: hover) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
-      @media (hover: none) { .dash-dot:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
+      @media (pointer: coarse) { .dash-dot:active { animation: bounce 0.3s ease; } }
       .dash-dot:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
 
       /* ══════════════════════════════════════════
@@ -1512,10 +1531,10 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 18px;
       }
-      @media (hover: hover) { .volume-btn:hover { color: var(--t2); } }
+      @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: var(--t2); } }
       .volume-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      @media (hover: none) { .volume-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) { .volume-btn:active { transform: scale(0.96); } }
+      @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
       .volume-btn.muted { color: var(--c-alert); }
 
       /* ── Slider (pill) ── */
@@ -1557,12 +1576,12 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 14px;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
       }
       .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      @media (hover: none) { .chip:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) { .chip:active { transform: scale(0.96); } }
+      @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
       .chip.active {
         border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.08);
         color: rgba(129,140,248,0.8);
@@ -1597,11 +1616,11 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 14px;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
       }
-      @media (hover: none) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) { .mr-icon-btn:active { transform: scale(0.96); } }
+      @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
       .mr-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       .mr-cell.joined .mr-icon-btn {
         background: var(--mp-bg); border-color: var(--mp-border); color: var(--mp-color);

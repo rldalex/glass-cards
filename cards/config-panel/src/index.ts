@@ -147,6 +147,7 @@ export class GlassConfigPanel extends LitElement {
   @state() private _titleModeEntity = '';
   @state() private _titleModes: { id: string; label: string; icon: string; color: string }[] = [];
   @state() private _titleModeDropdownOpen = false;
+  private _titleModeEntitySearch = '';
   @state() private _iconPopupModeIdx: number | null = null;
   @state() private _iconSearch = '';
   private _iconList: string[] = [];
@@ -8058,7 +8059,7 @@ export class GlassConfigPanel extends LitElement {
         <div class="dropdown ${this._titleModeDropdownOpen ? 'open' : ''}">
           <button
             class="dropdown-trigger"
-            @click=${() => (this._titleModeDropdownOpen = !this._titleModeDropdownOpen)}
+            @click=${() => { if (!this._titleModeDropdownOpen) this._titleModeEntitySearch = ''; this._titleModeDropdownOpen = !this._titleModeDropdownOpen; }}
             aria-expanded=${this._titleModeDropdownOpen ? 'true' : 'false'}
             aria-haspopup="listbox"
           >
@@ -8067,6 +8068,14 @@ export class GlassConfigPanel extends LitElement {
             <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
+            <input
+              class="dropdown-search"
+              type="text"
+              placeholder=${t('config.search_entity')}
+              .value=${this._titleModeEntitySearch}
+              @input=${(e: InputEvent) => { this._titleModeEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
+              @click=${(e: Event) => e.stopPropagation()}
+            />
             <button
               class="dropdown-item ${!this._titleModeEntity ? 'active' : ''}"
               role="option"
@@ -8076,7 +8085,9 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:close'}></ha-icon>
               ${t('title_card.mode_none')}
             </button>
-            ${modeEntities.map(
+            ${modeEntities
+              .filter((id) => !this._titleModeEntitySearch || id.toLowerCase().includes(this._titleModeEntitySearch.toLowerCase()))
+              .map(
               (id) => html`
                 <button
                   class="dropdown-item ${id === this._titleModeEntity ? 'active' : ''}"
