@@ -3409,31 +3409,31 @@
 
       <!-- Multiroom grid (show if any groupable speakers exist) -->
       ${this._hasGroupableSpeakers()?this._renderMultiroomGrid(e):X}
-    `}_hasGroupableSpeakers(){return!!this.hass&&Object.values(this.hass.states).some(e=>e.entity_id.startsWith("media_player.")&&0!==(e.attributes.supported_features&Bt))}_renderMultiroomGrid(e){if(!this.hass)return K``;const t=Object.values(this.hass.states).filter(e=>e.entity_id.startsWith("media_player.")).map(Wt).filter(e=>Xt(e,Bt));if(t.length<=1)return K``;const i=new Set(e.groupMembers);return K`
+    `}_hasGroupableSpeakers(){return!!this.hass&&Object.values(this.hass.states).some(e=>e.entity_id.startsWith("media_player.")&&0!==(e.attributes.supported_features&Bt))}_findGroupCoordinator(e,t){if(Xt(e,Bt))return e;const i=t.find(t=>Kt(t.state)&&t.title&&t.title===e.title);return i||(t.find(e=>Kt(e.state))||null)}_renderMultiroomGrid(e){if(!this.hass)return K``;const t=Object.values(this.hass.states).filter(e=>e.entity_id.startsWith("media_player.")).map(Wt).filter(e=>Xt(e,Bt));if(t.length<=1)return K``;const i=this._findGroupCoordinator(e,t),s=i?.entityId||"",a=new Set(i?.groupMembers||[]);return K`
       <div class="dash-fold-sep"></div>
       <div class="ctrl-label">${Le("media.speakers_label")}</div>
       <div class="multiroom-grid">
-        ${t.map(t=>{const s=i.has(t.entityId),a=t.entityId===e.entityId&&i.size>1;return K`
-            <div class="mr-cell ${s?"joined":""}">
+        ${t.map(e=>{const t=a.has(e.entityId),i=e.entityId===s&&a.size>1;return K`
+            <div class="mr-cell ${t?"joined":""}">
               <div class="mr-cell-top">
                 <button class="mr-icon-btn"
-                  aria-label=${Le(s?"media.remove_group_aria":"media.add_group_aria",{name:t.name})}
-                  @click=${i=>{i.stopPropagation(),t.entityId!==e.entityId&&(s?this._unjoinGroup(t.entityId):this._joinGroup(e.entityId,t.entityId))}}>
-                  <ha-icon .icon=${t.icon||"mdi:speaker"}></ha-icon>
+                  aria-label=${Le(t?"media.remove_group_aria":"media.add_group_aria",{name:e.name})}
+                  @click=${i=>{i.stopPropagation(),s&&e.entityId!==s&&(t?this._unjoinGroup(e.entityId):this._joinGroup(s,e.entityId))}}>
+                  <ha-icon .icon=${e.icon||"mdi:speaker"}></ha-icon>
                 </button>
                 <div class="mr-info">
-                  <div class="mr-name">${t.name}</div>
-                  ${a?K`
+                  <div class="mr-name">${e.name}</div>
+                  ${i?K`
                     <span class="mr-coordinator">${Le("media.coordinator")}</span>
                   `:X}
                 </div>
               </div>
-              ${s?K`
+              ${t?K`
                 <div class="mr-vol-slider"
-                  @pointerdown=${e=>this._onMrVolPointerDown(e,t.entityId)}>
-                  <div class="mr-vol-fill" style="width:${Math.round(100*t.volume)}%"></div>
+                  @pointerdown=${t=>this._onMrVolPointerDown(t,e.entityId)}>
+                  <div class="mr-vol-fill" style="width:${Math.round(100*e.volume)}%"></div>
                   <div class="mr-vol-icon"><ha-icon .icon=${"mdi:volume-medium"}></ha-icon></div>
-                  <span class="mr-vol-val">${Math.round(100*t.volume)}%</span>
+                  <span class="mr-vol-val">${Math.round(100*e.volume)}%</span>
                 </div>
               `:X}
             </div>
@@ -3597,11 +3597,11 @@
         border-radius: var(--radius-lg);
         backdrop-filter: blur(20px) saturate(1.4);
         -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
-        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.2));
+        border: 1px solid rgba(255,255,255,0.06);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.3),
-          inset 0 1px 0 rgba(255,255,255,0.06);
+          0 4px 16px rgba(0,0,0,0.2),
+          inset 0 1px 0 rgba(255,255,255,0.05);
       }
 
       /* ── Top bar ── */

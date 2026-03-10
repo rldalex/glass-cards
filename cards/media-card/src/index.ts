@@ -699,6 +699,25 @@ export class GlassMediaCard extends BaseCard {
     );
   }
 
+  /**
+   * Find the real groupable coordinator speaker.
+   * When master is a non-groupable entity (e.g. Spotify integration),
+   * find the actual speaker that is playing the same content.
+   */
+  private _findGroupCoordinator(master: MediaPlayerInfo, groupablePlayers: MediaPlayerInfo[]): MediaPlayerInfo | null {
+    // If master itself is groupable, it's the coordinator
+    if (hasFeature(master, F_GROUPING)) return master;
+
+    // Find a groupable speaker that is actively playing the same track
+    const playing = groupablePlayers.find(
+      (p) => isPlaying(p.state) && p.title && p.title === master.title,
+    );
+    if (playing) return playing;
+
+    // Fallback: any groupable speaker that is playing
+    return groupablePlayers.find((p) => isPlaying(p.state)) || null;
+  }
+
   /* ── Render: Multiroom grid ── */
 
   private _renderMultiroomGrid(master: MediaPlayerInfo): TemplateResult {
@@ -712,7 +731,10 @@ export class GlassMediaCard extends BaseCard {
 
     if (allPlayers.length <= 1) return html``;
 
-    const groupSet = new Set(master.groupMembers);
+    // Find the real coordinator (groupable speaker, not Spotify entity)
+    const coordinator = this._findGroupCoordinator(master, allPlayers);
+    const coordinatorId = coordinator?.entityId || '';
+    const groupSet = new Set(coordinator?.groupMembers || []);
 
     return html`
       <div class="dash-fold-sep"></div>
@@ -720,7 +742,7 @@ export class GlassMediaCard extends BaseCard {
       <div class="multiroom-grid">
         ${allPlayers.map((speaker) => {
           const inGroup = groupSet.has(speaker.entityId);
-          const isCoordinator = speaker.entityId === master.entityId && groupSet.size > 1;
+          const isCrd = speaker.entityId === coordinatorId && groupSet.size > 1;
 
           return html`
             <div class="mr-cell ${inGroup ? 'joined' : ''}">
@@ -731,15 +753,15 @@ export class GlassMediaCard extends BaseCard {
                     : t('media.add_group_aria', { name: speaker.name })}
                   @click=${(e: Event) => {
                     e.stopPropagation();
-                    if (speaker.entityId === master.entityId) return;
+                    if (!coordinatorId || speaker.entityId === coordinatorId) return;
                     if (inGroup) this._unjoinGroup(speaker.entityId);
-                    else this._joinGroup(master.entityId, speaker.entityId);
+                    else this._joinGroup(coordinatorId, speaker.entityId);
                   }}>
                   <ha-icon .icon=${speaker.icon || 'mdi:speaker'}></ha-icon>
                 </button>
                 <div class="mr-info">
                   <div class="mr-name">${speaker.name}</div>
-                  ${isCoordinator ? html`
+                  ${isCrd ? html`
                     <span class="mr-coordinator">${t('media.coordinator')}</span>
                   ` : nothing}
                 </div>
@@ -957,11 +979,11 @@ export class GlassMediaCard extends BaseCard {
         border-radius: var(--radius-lg);
         backdrop-filter: blur(20px) saturate(1.4);
         -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
-        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.2));
+        border: 1px solid rgba(255,255,255,0.06);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.3),
-          inset 0 1px 0 rgba(255,255,255,0.06);
+          0 4px 16px rgba(0,0,0,0.2),
+          inset 0 1px 0 rgba(255,255,255,0.05);
       }
 
       /* ── Top bar ── */
