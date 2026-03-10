@@ -3219,16 +3219,17 @@
           @pointerup=${t=>this._onHeroPointerUp(t,e)}
           @pointercancel=${()=>this._onHeroPointerCancel()}
         >
-          <!-- Artwork tint (blurred background) -->
+          <!-- Full-bleed artwork background -->
           ${e.albumArt?K`
-            <div class="dash-tint" style="background-image: url(${e.albumArt})"></div>
+            <img class="dash-art-bg" src=${e.albumArt} alt="" loading="lazy" />
           `:X}
-          <div class="dash-deco"></div>
+          <div class="dash-gradient"></div>
+          ${e.albumArt?X:K`<div class="dash-deco"></div>`}
 
           <div class="dash-content">
-            <!-- Top bar -->
+            <!-- Top bar: speaker badge + group badge (glass pills) -->
             <div class="dash-top">
-              <div class="dash-speaker">
+              <div class="dash-speaker glass-pill">
                 <ha-icon .icon=${e.icon||"mdi:speaker"}></ha-icon>
                 <span>${fe(e.name,16)}</span>
                 ${t?K`
@@ -3241,7 +3242,7 @@
                 `:X}
               </div>
               ${a>1?K`
-                <div class="dash-group-badge">
+                <div class="dash-group-badge glass-pill">
                   <ha-icon .icon=${"mdi:speaker-multiple"}></ha-icon>
                   <span>${Le("media.speakers_count",{count:a})}</span>
                 </div>
@@ -3251,11 +3252,8 @@
             <!-- Spacer -->
             <div class="dash-spacer"></div>
 
-            <!-- Track info -->
-            <div class="dash-track-row">
-              ${e.albumArt?K`
-                <img class="dash-art-thumb" src=${e.albumArt} alt="" loading="lazy" />
-              `:X}
+            <!-- Bottom glass panel: track info + progress + transport -->
+            <div class="dash-info-panel glass-panel">
               <div class="dash-track">
                 ${e.title?K`
                   <div class="dash-track-title">${e.title}</div>
@@ -3263,74 +3261,80 @@
                 ${e.artist?K`
                   <div class="dash-track-artist">${e.artist}</div>
                 `:X}
-                <div class="dash-track-meta">
-                  ${e.duration>0?K`
-                    <span class="dash-track-time">${Yt(s)} / ${Yt(e.duration)}</span>
-                  `:X}
-                  ${e.source?K`
-                    <span class="dash-track-source">${e.source}</span>
-                  `:X}
-                </div>
               </div>
-            </div>
 
-            <!-- Progress bar -->
-            ${e.duration>0&&Xt(e,2)?K`
-              <div class="dash-progress-wrap">
-                <div class="dash-progress"
-                  aria-label=${Le("media.seek_aria")}
-                  @pointerdown=${t=>this._onProgressPointerDown(t,e.entityId,e.duration)}
-                >
-                  <div class="dash-progress-fill" style="width:${i}%"></div>
-                  <div class="dash-progress-thumb" style="left:${i}%"></div>
+              <!-- Progress bar -->
+              ${e.duration>0&&Xt(e,2)?K`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${Yt(s)}</span>
+                    <span class="dash-track-time">${Yt(e.duration)}</span>
+                  </div>
+                  <div class="dash-progress"
+                    aria-label=${Le("media.seek_aria")}
+                    @pointerdown=${t=>this._onProgressPointerDown(t,e.entityId,e.duration)}
+                  >
+                    <div class="dash-progress-fill" style="width:${i}%"></div>
+                    <div class="dash-progress-thumb" style="left:${i}%"></div>
+                  </div>
                 </div>
-              </div>
-            `:e.duration>0?K`
-              <div class="dash-progress-wrap">
-                <div class="dash-progress" style="pointer-events:none">
-                  <div class="dash-progress-fill" style="width:${i}%"></div>
+              `:e.duration>0?K`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${Yt(s)}</span>
+                    <span class="dash-track-time">${Yt(e.duration)}</span>
+                  </div>
+                  <div class="dash-progress" style="pointer-events:none">
+                    <div class="dash-progress-fill" style="width:${i}%"></div>
+                  </div>
                 </div>
-              </div>
-            `:X}
-
-            <!-- Transport -->
-            <div class="dash-transport">
-              ${Xt(e,32768)?K`
-                <button class="transport-btn ${e.shuffle?"active":""}"
-                  aria-label=${Le("media.shuffle_aria")}
-                  @click=${t=>{t.stopPropagation(),this._toggleShuffle(e)}}>
-                  <ha-icon .icon=${"mdi:shuffle-variant"}></ha-icon>
-                </button>
               `:X}
 
-              ${Xt(e,16)?K`
-                <button class="transport-btn transport-skip"
-                  aria-label=${Le("media.prev_aria",{name:e.name})}
-                  @click=${t=>{t.stopPropagation(),this._previous(e.entityId)}}>
-                  <ha-icon .icon=${"mdi:skip-previous"}></ha-icon>
-                </button>
-              `:X}
+              <!-- Transport -->
+              <div class="dash-transport">
+                ${Xt(e,32768)?K`
+                  <button class="transport-btn ${e.shuffle?"active":""}"
+                    aria-label=${Le("media.shuffle_aria")}
+                    @click=${t=>{t.stopPropagation(),this._toggleShuffle(e)}}>
+                    <ha-icon .icon=${"mdi:shuffle-variant"}></ha-icon>
+                  </button>
+                `:X}
 
-              <button class="transport-btn transport-main"
-                aria-label=${Le(t?"media.pause_aria":"media.play_aria",{name:e.name})}
-                @click=${t=>{t.stopPropagation(),this._togglePlayPause(e)}}>
-                <ha-icon .icon=${t?"mdi:pause":"mdi:play"}></ha-icon>
-              </button>
+                ${Xt(e,16)?K`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${Le("media.prev_aria",{name:e.name})}
+                    @click=${t=>{t.stopPropagation(),this._previous(e.entityId)}}>
+                    <ha-icon .icon=${"mdi:skip-previous"}></ha-icon>
+                  </button>
+                `:X}
 
-              ${Xt(e,32)?K`
-                <button class="transport-btn transport-skip"
-                  aria-label=${Le("media.next_aria",{name:e.name})}
-                  @click=${t=>{t.stopPropagation(),this._next(e.entityId)}}>
-                  <ha-icon .icon=${"mdi:skip-next"}></ha-icon>
+                <button class="transport-btn transport-main"
+                  aria-label=${Le(t?"media.pause_aria":"media.play_aria",{name:e.name})}
+                  @click=${t=>{t.stopPropagation(),this._togglePlayPause(e)}}>
+                  <ha-icon .icon=${t?"mdi:pause":"mdi:play"}></ha-icon>
                 </button>
-              `:X}
 
-              ${Xt(e,262144)?K`
-                <button class="transport-btn ${"off"!==e.repeat?"active":""}"
-                  aria-label=${Le("media.repeat_aria")}
-                  @click=${t=>{t.stopPropagation(),this._cycleRepeat(e)}}>
-                  <ha-icon .icon=${"one"===e.repeat?"mdi:repeat-once":"mdi:repeat"}></ha-icon>
-                </button>
+                ${Xt(e,32)?K`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${Le("media.next_aria",{name:e.name})}
+                    @click=${t=>{t.stopPropagation(),this._next(e.entityId)}}>
+                    <ha-icon .icon=${"mdi:skip-next"}></ha-icon>
+                  </button>
+                `:X}
+
+                ${Xt(e,262144)?K`
+                  <button class="transport-btn ${"off"!==e.repeat?"active":""}"
+                    aria-label=${Le("media.repeat_aria")}
+                    @click=${t=>{t.stopPropagation(),this._cycleRepeat(e)}}>
+                    <ha-icon .icon=${"one"===e.repeat?"mdi:repeat-once":"mdi:repeat"}></ha-icon>
+                  </button>
+                `:X}
+              </div>
+
+              ${e.source?K`
+                <div class="dash-source-row">
+                  <span class="dash-track-source">${e.source}</span>
+                </div>
               `:X}
             </div>
           </div>
@@ -3509,14 +3513,12 @@
         display: flex; flex-direction: column; gap: 0;
       }
 
-      /* ── Hero card (glass recipe) ── */
+      /* ── Hero card ── */
       .dash-hero {
         position: relative;
         border-radius: var(--radius-xl);
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-        backdrop-filter: blur(40px) saturate(1.4);
-        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        background: #111;
         border: 1px solid var(--b2);
         box-shadow:
           0 8px 32px rgba(0,0,0,0.3),
@@ -3537,17 +3539,26 @@
         border-bottom-color: transparent;
       }
 
-      /* ── Artwork tint (blurred background) ── */
-      .dash-tint {
-        position: absolute; inset: 0; border-radius: inherit;
-        pointer-events: none; z-index: 0;
-        background-size: cover; background-position: center;
-        filter: blur(40px) brightness(0.3) saturate(1.5);
-        transform: scale(1.3);
-        transition: background-image 0.8s;
+      /* ── Full-bleed artwork background ── */
+      .dash-art-bg {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; pointer-events: none; z-index: 0;
+        transition: opacity 0.8s;
       }
 
-      /* ── Decorative shapes ── */
+      /* ── Gradient overlay for readability ── */
+      .dash-gradient {
+        position: absolute; inset: 0; pointer-events: none; z-index: 1;
+        background: linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.15) 0%,
+          rgba(0,0,0,0.05) 30%,
+          rgba(0,0,0,0.25) 55%,
+          rgba(0,0,0,0.7) 100%
+        );
+      }
+
+      /* ── Decorative shapes (no-artwork fallback) ── */
       .dash-deco {
         position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
       }
@@ -3568,8 +3579,29 @@
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        min-height: 300px;
-        padding: 16px 18px;
+        min-height: 340px;
+        padding: 14px;
+      }
+
+      /* ── Glass pill (shared for top badges) ── */
+      .glass-pill {
+        backdrop-filter: blur(16px) saturate(1.3);
+        -webkit-backdrop-filter: blur(16px) saturate(1.3);
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      }
+
+      /* ── Glass panel (bottom info card) ── */
+      .glass-panel {
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow:
+          0 4px 16px rgba(0,0,0,0.3),
+          inset 0 1px 0 rgba(255,255,255,0.06);
       }
 
       /* ── Top bar ── */
@@ -3580,9 +3612,7 @@
         display: inline-flex; align-items: center; gap: 6px;
         padding: 4px 10px 4px 6px;
         border-radius: var(--radius-full, 9999px);
-        background: var(--s1); border: 1px solid var(--b1);
         font-size: 10px; font-weight: 600; color: var(--t3);
-        backdrop-filter: blur(12px);
         overflow: hidden; white-space: nowrap;
       }
       .dash-speaker ha-icon {
@@ -3592,7 +3622,7 @@
       .dash-group-badge {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 2px 8px; border-radius: 20px;
-        background: rgba(129,140,248,0.15); color: var(--mp-sub);
+        color: var(--mp-sub);
         font-size: 10px; font-weight: 600;
       }
       .dash-group-badge ha-icon {
@@ -3625,48 +3655,47 @@
       /* ── Spacer ── */
       .dash-spacer { flex: 1; }
 
-      /* ── Track info row (thumb + text) ── */
-      .dash-track-row {
-        display: flex; align-items: flex-end; gap: 12px;
+      /* ── Bottom info panel ── */
+      .dash-info-panel {
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 12px 14px;
       }
-      .dash-art-thumb {
-        width: 72px; height: 72px; border-radius: var(--radius-md);
-        object-fit: cover; flex-shrink: 0;
-        border: 1px solid var(--b2);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      }
+
+      /* ── Track info ── */
       .dash-track {
-        display: flex; flex-direction: column; gap: 3px;
-        min-width: 0; /* allow text truncation */
+        display: flex; flex-direction: column; gap: 2px;
+        min-width: 0;
       }
       .dash-track-title {
-        font-size: 20px; font-weight: 700; color: var(--t1); line-height: 1.15;
+        font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
       }
       .dash-track-artist {
-        font-size: 13px; font-weight: 500; color: var(--t2);
+        font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.65);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.3);
       }
-      .dash-track-meta {
-        display: flex; align-items: center; gap: 8px;
-        margin-top: 2px;
+
+      /* ── Time row ── */
+      .dash-time-row {
+        display: flex; justify-content: space-between; align-items: center;
       }
       .dash-track-time {
-        font-size: 10px; font-weight: 500; color: var(--t4);
+        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.35);
         font-variant-numeric: tabular-nums;
       }
       .dash-track-source {
         font-size: 8px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.5px; color: var(--t4);
+        letter-spacing: 0.5px; color: rgba(255,255,255,0.3);
         padding: 1px 6px; border-radius: 4px;
-        background: var(--s2);
+        background: rgba(255,255,255,0.06);
+      }
+      .dash-source-row {
+        display: flex; justify-content: center; margin-top: -2px;
       }
 
       /* ── Progress bar ── */
       .dash-progress-wrap {
-        margin-top: 10px;
+        margin-top: 0;
       }
       .dash-progress {
         position: relative; width: 100%; height: 4px;
@@ -3696,7 +3725,7 @@
       /* ── Transport ── */
       .dash-transport {
         display: flex; align-items: center; justify-content: center; gap: 8px;
-        margin-top: 14px;
+        margin-top: 2px;
       }
       .transport-btn {
         width: 36px; height: 36px; border-radius: var(--radius-md);

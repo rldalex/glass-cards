@@ -493,16 +493,17 @@ export class GlassMediaCard extends BaseCard {
           @pointerup=${(e: PointerEvent) => this._onHeroPointerUp(e, master)}
           @pointercancel=${() => this._onHeroPointerCancel()}
         >
-          <!-- Artwork tint (blurred background) -->
+          <!-- Full-bleed artwork background -->
           ${master.albumArt ? html`
-            <div class="dash-tint" style="background-image: url(${master.albumArt})"></div>
+            <img class="dash-art-bg" src=${master.albumArt} alt="" loading="lazy" />
           ` : nothing}
-          <div class="dash-deco"></div>
+          <div class="dash-gradient"></div>
+          ${!master.albumArt ? html`<div class="dash-deco"></div>` : nothing}
 
           <div class="dash-content">
-            <!-- Top bar -->
+            <!-- Top bar: speaker badge + group badge (glass pills) -->
             <div class="dash-top">
-              <div class="dash-speaker">
+              <div class="dash-speaker glass-pill">
                 <ha-icon .icon=${master.icon || 'mdi:speaker'}></ha-icon>
                 <span>${marqueeText(master.name, 16)}</span>
                 ${playing ? html`
@@ -515,7 +516,7 @@ export class GlassMediaCard extends BaseCard {
                 ` : nothing}
               </div>
               ${groupCount > 1 ? html`
-                <div class="dash-group-badge">
+                <div class="dash-group-badge glass-pill">
                   <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
                   <span>${t('media.speakers_count', { count: groupCount })}</span>
                 </div>
@@ -525,11 +526,8 @@ export class GlassMediaCard extends BaseCard {
             <!-- Spacer -->
             <div class="dash-spacer"></div>
 
-            <!-- Track info -->
-            <div class="dash-track-row">
-              ${master.albumArt ? html`
-                <img class="dash-art-thumb" src=${master.albumArt} alt="" loading="lazy" />
-              ` : nothing}
+            <!-- Bottom glass panel: track info + progress + transport -->
+            <div class="dash-info-panel glass-panel">
               <div class="dash-track">
                 ${master.title ? html`
                   <div class="dash-track-title">${master.title}</div>
@@ -537,74 +535,80 @@ export class GlassMediaCard extends BaseCard {
                 ${master.artist ? html`
                   <div class="dash-track-artist">${master.artist}</div>
                 ` : nothing}
-                <div class="dash-track-meta">
-                  ${master.duration > 0 ? html`
-                    <span class="dash-track-time">${formatTime(elapsed)} / ${formatTime(master.duration)}</span>
-                  ` : nothing}
-                  ${master.source ? html`
-                    <span class="dash-track-source">${master.source}</span>
-                  ` : nothing}
-                </div>
               </div>
-            </div>
 
-            <!-- Progress bar -->
-            ${master.duration > 0 && hasFeature(master, F_SEEK) ? html`
-              <div class="dash-progress-wrap">
-                <div class="dash-progress"
-                  aria-label=${t('media.seek_aria')}
-                  @pointerdown=${(e: PointerEvent) => this._onProgressPointerDown(e, master.entityId, master.duration)}
-                >
-                  <div class="dash-progress-fill" style="width:${progress}%"></div>
-                  <div class="dash-progress-thumb" style="left:${progress}%"></div>
+              <!-- Progress bar -->
+              ${master.duration > 0 && hasFeature(master, F_SEEK) ? html`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${formatTime(elapsed)}</span>
+                    <span class="dash-track-time">${formatTime(master.duration)}</span>
+                  </div>
+                  <div class="dash-progress"
+                    aria-label=${t('media.seek_aria')}
+                    @pointerdown=${(e: PointerEvent) => this._onProgressPointerDown(e, master.entityId, master.duration)}
+                  >
+                    <div class="dash-progress-fill" style="width:${progress}%"></div>
+                    <div class="dash-progress-thumb" style="left:${progress}%"></div>
+                  </div>
                 </div>
-              </div>
-            ` : master.duration > 0 ? html`
-              <div class="dash-progress-wrap">
-                <div class="dash-progress" style="pointer-events:none">
-                  <div class="dash-progress-fill" style="width:${progress}%"></div>
+              ` : master.duration > 0 ? html`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${formatTime(elapsed)}</span>
+                    <span class="dash-track-time">${formatTime(master.duration)}</span>
+                  </div>
+                  <div class="dash-progress" style="pointer-events:none">
+                    <div class="dash-progress-fill" style="width:${progress}%"></div>
+                  </div>
                 </div>
-              </div>
-            ` : nothing}
-
-            <!-- Transport -->
-            <div class="dash-transport">
-              ${hasFeature(master, F_SHUFFLE_SET) ? html`
-                <button class="transport-btn ${master.shuffle ? 'active' : ''}"
-                  aria-label=${t('media.shuffle_aria')}
-                  @click=${(e: Event) => { e.stopPropagation(); this._toggleShuffle(master); }}>
-                  <ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon>
-                </button>
               ` : nothing}
 
-              ${hasFeature(master, F_PREVIOUS) ? html`
-                <button class="transport-btn transport-skip"
-                  aria-label=${t('media.prev_aria', { name: master.name })}
-                  @click=${(e: Event) => { e.stopPropagation(); this._previous(master.entityId); }}>
-                  <ha-icon .icon=${'mdi:skip-previous'}></ha-icon>
-                </button>
-              ` : nothing}
+              <!-- Transport -->
+              <div class="dash-transport">
+                ${hasFeature(master, F_SHUFFLE_SET) ? html`
+                  <button class="transport-btn ${master.shuffle ? 'active' : ''}"
+                    aria-label=${t('media.shuffle_aria')}
+                    @click=${(e: Event) => { e.stopPropagation(); this._toggleShuffle(master); }}>
+                    <ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon>
+                  </button>
+                ` : nothing}
 
-              <button class="transport-btn transport-main"
-                aria-label=${playing ? t('media.pause_aria', { name: master.name }) : t('media.play_aria', { name: master.name })}
-                @click=${(e: Event) => { e.stopPropagation(); this._togglePlayPause(master); }}>
-                <ha-icon .icon=${playing ? 'mdi:pause' : 'mdi:play'}></ha-icon>
-              </button>
+                ${hasFeature(master, F_PREVIOUS) ? html`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${t('media.prev_aria', { name: master.name })}
+                    @click=${(e: Event) => { e.stopPropagation(); this._previous(master.entityId); }}>
+                    <ha-icon .icon=${'mdi:skip-previous'}></ha-icon>
+                  </button>
+                ` : nothing}
 
-              ${hasFeature(master, F_NEXT) ? html`
-                <button class="transport-btn transport-skip"
-                  aria-label=${t('media.next_aria', { name: master.name })}
-                  @click=${(e: Event) => { e.stopPropagation(); this._next(master.entityId); }}>
-                  <ha-icon .icon=${'mdi:skip-next'}></ha-icon>
+                <button class="transport-btn transport-main"
+                  aria-label=${playing ? t('media.pause_aria', { name: master.name }) : t('media.play_aria', { name: master.name })}
+                  @click=${(e: Event) => { e.stopPropagation(); this._togglePlayPause(master); }}>
+                  <ha-icon .icon=${playing ? 'mdi:pause' : 'mdi:play'}></ha-icon>
                 </button>
-              ` : nothing}
 
-              ${hasFeature(master, F_REPEAT_SET) ? html`
-                <button class="transport-btn ${master.repeat !== 'off' ? 'active' : ''}"
-                  aria-label=${t('media.repeat_aria')}
-                  @click=${(e: Event) => { e.stopPropagation(); this._cycleRepeat(master); }}>
-                  <ha-icon .icon=${master.repeat === 'one' ? 'mdi:repeat-once' : 'mdi:repeat'}></ha-icon>
-                </button>
+                ${hasFeature(master, F_NEXT) ? html`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${t('media.next_aria', { name: master.name })}
+                    @click=${(e: Event) => { e.stopPropagation(); this._next(master.entityId); }}>
+                    <ha-icon .icon=${'mdi:skip-next'}></ha-icon>
+                  </button>
+                ` : nothing}
+
+                ${hasFeature(master, F_REPEAT_SET) ? html`
+                  <button class="transport-btn ${master.repeat !== 'off' ? 'active' : ''}"
+                    aria-label=${t('media.repeat_aria')}
+                    @click=${(e: Event) => { e.stopPropagation(); this._cycleRepeat(master); }}>
+                    <ha-icon .icon=${master.repeat === 'one' ? 'mdi:repeat-once' : 'mdi:repeat'}></ha-icon>
+                  </button>
+                ` : nothing}
+              </div>
+
+              ${master.source ? html`
+                <div class="dash-source-row">
+                  <span class="dash-track-source">${master.source}</span>
+                </div>
               ` : nothing}
             </div>
           </div>
@@ -869,14 +873,12 @@ export class GlassMediaCard extends BaseCard {
         display: flex; flex-direction: column; gap: 0;
       }
 
-      /* ── Hero card (glass recipe) ── */
+      /* ── Hero card ── */
       .dash-hero {
         position: relative;
         border-radius: var(--radius-xl);
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-        backdrop-filter: blur(40px) saturate(1.4);
-        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        background: #111;
         border: 1px solid var(--b2);
         box-shadow:
           0 8px 32px rgba(0,0,0,0.3),
@@ -897,17 +899,26 @@ export class GlassMediaCard extends BaseCard {
         border-bottom-color: transparent;
       }
 
-      /* ── Artwork tint (blurred background) ── */
-      .dash-tint {
-        position: absolute; inset: 0; border-radius: inherit;
-        pointer-events: none; z-index: 0;
-        background-size: cover; background-position: center;
-        filter: blur(40px) brightness(0.3) saturate(1.5);
-        transform: scale(1.3);
-        transition: background-image 0.8s;
+      /* ── Full-bleed artwork background ── */
+      .dash-art-bg {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; pointer-events: none; z-index: 0;
+        transition: opacity 0.8s;
       }
 
-      /* ── Decorative shapes ── */
+      /* ── Gradient overlay for readability ── */
+      .dash-gradient {
+        position: absolute; inset: 0; pointer-events: none; z-index: 1;
+        background: linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.15) 0%,
+          rgba(0,0,0,0.05) 30%,
+          rgba(0,0,0,0.25) 55%,
+          rgba(0,0,0,0.7) 100%
+        );
+      }
+
+      /* ── Decorative shapes (no-artwork fallback) ── */
       .dash-deco {
         position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
       }
@@ -928,8 +939,29 @@ export class GlassMediaCard extends BaseCard {
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        min-height: 300px;
-        padding: 16px 18px;
+        min-height: 340px;
+        padding: 14px;
+      }
+
+      /* ── Glass pill (shared for top badges) ── */
+      .glass-pill {
+        backdrop-filter: blur(16px) saturate(1.3);
+        -webkit-backdrop-filter: blur(16px) saturate(1.3);
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      }
+
+      /* ── Glass panel (bottom info card) ── */
+      .glass-panel {
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35));
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow:
+          0 4px 16px rgba(0,0,0,0.3),
+          inset 0 1px 0 rgba(255,255,255,0.06);
       }
 
       /* ── Top bar ── */
@@ -940,9 +972,7 @@ export class GlassMediaCard extends BaseCard {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 4px 10px 4px 6px;
         border-radius: var(--radius-full, 9999px);
-        background: var(--s1); border: 1px solid var(--b1);
         font-size: 10px; font-weight: 600; color: var(--t3);
-        backdrop-filter: blur(12px);
         overflow: hidden; white-space: nowrap;
       }
       .dash-speaker ha-icon {
@@ -952,7 +982,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-group-badge {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 2px 8px; border-radius: 20px;
-        background: rgba(129,140,248,0.15); color: var(--mp-sub);
+        color: var(--mp-sub);
         font-size: 10px; font-weight: 600;
       }
       .dash-group-badge ha-icon {
@@ -985,48 +1015,47 @@ export class GlassMediaCard extends BaseCard {
       /* ── Spacer ── */
       .dash-spacer { flex: 1; }
 
-      /* ── Track info row (thumb + text) ── */
-      .dash-track-row {
-        display: flex; align-items: flex-end; gap: 12px;
+      /* ── Bottom info panel ── */
+      .dash-info-panel {
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 12px 14px;
       }
-      .dash-art-thumb {
-        width: 72px; height: 72px; border-radius: var(--radius-md);
-        object-fit: cover; flex-shrink: 0;
-        border: 1px solid var(--b2);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      }
+
+      /* ── Track info ── */
       .dash-track {
-        display: flex; flex-direction: column; gap: 3px;
-        min-width: 0; /* allow text truncation */
+        display: flex; flex-direction: column; gap: 2px;
+        min-width: 0;
       }
       .dash-track-title {
-        font-size: 20px; font-weight: 700; color: var(--t1); line-height: 1.15;
+        font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
       }
       .dash-track-artist {
-        font-size: 13px; font-weight: 500; color: var(--t2);
+        font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.65);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.3);
       }
-      .dash-track-meta {
-        display: flex; align-items: center; gap: 8px;
-        margin-top: 2px;
+
+      /* ── Time row ── */
+      .dash-time-row {
+        display: flex; justify-content: space-between; align-items: center;
       }
       .dash-track-time {
-        font-size: 10px; font-weight: 500; color: var(--t4);
+        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.35);
         font-variant-numeric: tabular-nums;
       }
       .dash-track-source {
         font-size: 8px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.5px; color: var(--t4);
+        letter-spacing: 0.5px; color: rgba(255,255,255,0.3);
         padding: 1px 6px; border-radius: 4px;
-        background: var(--s2);
+        background: rgba(255,255,255,0.06);
+      }
+      .dash-source-row {
+        display: flex; justify-content: center; margin-top: -2px;
       }
 
       /* ── Progress bar ── */
       .dash-progress-wrap {
-        margin-top: 10px;
+        margin-top: 0;
       }
       .dash-progress {
         position: relative; width: 100%; height: 4px;
@@ -1056,7 +1085,7 @@ export class GlassMediaCard extends BaseCard {
       /* ── Transport ── */
       .dash-transport {
         display: flex; align-items: center; justify-content: center; gap: 8px;
-        margin-top: 14px;
+        margin-top: 2px;
       }
       .transport-btn {
         width: 36px; height: 36px; border-radius: var(--radius-md);
