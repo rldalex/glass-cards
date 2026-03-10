@@ -150,6 +150,7 @@ export class GlassNavbarCard extends BaseCard {
         display: flex;
         flex-direction: column;
         gap: 12px;
+        padding-bottom: 45px;
       }
 
       .navbar {

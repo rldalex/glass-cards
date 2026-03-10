@@ -1323,6 +1323,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        padding-bottom: 45px;
       }
 
       .navbar {
@@ -3316,7 +3317,12 @@
             <img class="dash-art-bg" src=${e.albumArt} alt="" loading="lazy" />
           `:Y}
           <div class="dash-gradient"></div>
-          ${e.albumArt?Y:K`<div class="dash-deco"></div>`}
+          ${e.albumArt?Y:K`
+            <div class="dash-deco"></div>
+            <div class="dash-placeholder">
+              <ha-icon .icon=${e.source?.toLowerCase().includes("tv")||e.icon?.includes("tv")||e.icon?.includes("television")?"mdi:television-classic":e.appName?.toLowerCase().includes("spotify")?"mdi:spotify":"playing"===e.state||"paused"===e.state?"mdi:music-note":e.icon||"mdi:speaker"}></ha-icon>
+            </div>
+          `}
 
           <div class="dash-content">
             <!-- Top bar: speaker badge + group badge (glass pills) -->
@@ -3689,18 +3695,28 @@
       /* ── Decorative shapes (no-artwork fallback) ── */
       .dash-deco {
         position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+        background: linear-gradient(135deg, rgba(30,30,50,1) 0%, rgba(15,15,30,1) 50%, rgba(25,20,40,1) 100%);
       }
       .dash-deco::before {
         content: ''; position: absolute;
-        width: 200px; height: 200px; border-radius: 50%;
-        top: -60px; right: -40px;
-        background: radial-gradient(circle, rgba(255,255,255,0.04), transparent 70%);
+        width: 280px; height: 280px; border-radius: 50%;
+        top: -80px; right: -60px;
+        background: radial-gradient(circle, rgba(129,140,248,0.08), transparent 70%);
       }
       .dash-deco::after {
         content: ''; position: absolute;
-        width: 160px; height: 160px; border-radius: 50%;
-        bottom: -40px; left: -30px;
-        background: radial-gradient(circle, rgba(255,255,255,0.02), transparent 70%);
+        width: 220px; height: 220px; border-radius: 50%;
+        bottom: -50px; left: -40px;
+        background: radial-gradient(circle, rgba(168,85,247,0.06), transparent 70%);
+      }
+      .dash-placeholder {
+        position: absolute; inset: 0; pointer-events: none; z-index: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .dash-placeholder ha-icon {
+        --mdc-icon-size: 80px;
+        color: rgba(255,255,255,0.06);
+        display: flex; align-items: center; justify-content: center;
       }
 
       /* ── Content ── */
