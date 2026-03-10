@@ -193,9 +193,14 @@ export class GlassMediaCard extends BaseCard {
   /** Analyze artwork luminance and expose data-bg-light on host for navbar IntersectionObserver */
   private _updateBgLightAttribute(): void {
     const img = this.shadowRoot?.querySelector('img.dash-art-bg') as HTMLImageElement | null;
-    if (!img || !img.complete || img.naturalWidth === 0) {
+    if (!img) {
       this._lastArtworkUrl = '';
       delete this.dataset.bgLight;
+      return;
+    }
+    if (!img.complete || img.naturalWidth === 0) {
+      // Image still loading — re-run analysis once it finishes
+      img.addEventListener('load', () => this._updateBgLightAttribute(), { once: true });
       return;
     }
     // Only re-analyze when artwork URL changes
