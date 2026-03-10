@@ -74,6 +74,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_spotify_browse)
     websocket_api.async_register_command(hass, ws_spotify_get_queue)
     websocket_api.async_register_command(hass, ws_spotify_add_to_queue)
+    websocket_api.async_register_command(hass, ws_set_presence_config)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
 
@@ -512,6 +513,55 @@ async def ws_set_dashboard(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.dashboard.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_presence_config",
+        vol.Optional("show_header"): bool,
+        vol.Optional("person_entities"): [
+            vol.All(str, vol.Match(r"^person\.[\w-]+$"))
+        ],
+        vol.Optional("smartphone_sensors"): {
+            vol.All(str, vol.Match(r"^person\.[\w-]+$")): vol.All(
+                str, vol.Match(r"^sensor\.[\w-]+$")
+            ),
+        },
+        vol.Optional("notify_services"): {
+            vol.All(str, vol.Match(r"^person\.[\w-]+$")): str,
+        },
+        vol.Optional("driving_sensors"): {
+            vol.All(str, vol.Match(r"^person\.[\w-]+$")): vol.All(
+                str, vol.Match(r"^binary_sensor\.[\w-]+$")
+            ),
+        },
+    }
+)
+@websocket_api.async_response
+async def ws_set_presence_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the presence card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.presence_card.show_header = msg["show_header"]
+    if "person_entities" in msg:
+        store.data.presence_card.person_entities = msg["person_entities"]
+    if "smartphone_sensors" in msg:
+        store.data.presence_card.smartphone_sensors = msg["smartphone_sensors"]
+    if "notify_services" in msg:
+        store.data.presence_card.notify_services = msg["notify_services"]
+    if "driving_sensors" in msg:
+        store.data.presence_card.driving_sensors = msg["driving_sensors"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.presence_card.to_dict())
 
 
 VALID_BROWSE_CATEGORIES = frozenset({

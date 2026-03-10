@@ -36,11 +36,23 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(terser@5.46.0)
 
+  cards/cover-card: {}
+
   cards/light-card: {}
+
+  cards/media-card: {}
 
   cards/navbar-card: {}
 
   cards/popup-card: {}
+
+  cards/presence-card: {}
+
+  cards/spotify-card: {}
+
+  cards/title-card: {}
+
+  cards/weather-card: {}
 
   packages/base-card: {}
 

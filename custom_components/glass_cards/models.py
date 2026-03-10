@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -25,7 +25,7 @@ VALID_MODE_COLORS = frozenset(
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "cover", "spotify"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "cover", "spotify", "presence"]
 
 
 @dataclass
@@ -462,6 +462,56 @@ class MediaCardConfig:
 
 
 @dataclass
+class PresenceCardConfig:
+    """Configuration for the presence card."""
+
+    show_header: bool = True
+    person_entities: list[str] = field(default_factory=list)
+    smartphone_sensors: dict[str, str] = field(default_factory=dict)
+    notify_services: dict[str, str] = field(default_factory=dict)
+    driving_sensors: dict[str, str] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "person_entities": self.person_entities,
+            "smartphone_sensors": self.smartphone_sensors,
+            "notify_services": self.notify_services,
+            "driving_sensors": self.driving_sensors,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> PresenceCardConfig:
+        """Deserialize from dict."""
+        raw_persons = data.get("person_entities", [])
+        raw_smartphones = data.get("smartphone_sensors", {})
+        raw_notify = data.get("notify_services", {})
+        raw_driving = data.get("driving_sensors", {})
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            person_entities=[
+                str(x) for x in raw_persons if isinstance(x, str)
+            ],
+            smartphone_sensors={
+                str(k): str(v)
+                for k, v in raw_smartphones.items()
+                if isinstance(k, str) and isinstance(v, str)
+            },
+            notify_services={
+                str(k): str(v)
+                for k, v in raw_notify.items()
+                if isinstance(k, str) and isinstance(v, str)
+            },
+            driving_sensors={
+                str(k): str(v)
+                for k, v in raw_driving.items()
+                if isinstance(k, str) and isinstance(v, str)
+            },
+        )
+
+
+@dataclass
 class DashboardConfig:
     """Configuration for dashboard card visibility and order."""
 
@@ -515,6 +565,7 @@ class GlassCardsData:
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
     media_card: MediaCardConfig = field(default_factory=MediaCardConfig)
+    presence_card: PresenceCardConfig = field(default_factory=PresenceCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
 
@@ -529,6 +580,7 @@ class GlassCardsData:
             "title_card": self.title_card.to_dict(),
             "spotify_card": self.spotify_card.to_dict(),
             "media_card": self.media_card.to_dict(),
+            "presence_card": self.presence_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -551,6 +603,7 @@ class GlassCardsData:
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
             media_card=MediaCardConfig.from_dict(data.get("media_card", {})),
+            presence_card=PresenceCardConfig.from_dict(data.get("presence_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})

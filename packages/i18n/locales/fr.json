@@ -193,6 +193,28 @@
     "room_dot_aria": "Pièce {index}"
   },
 
+  "presence": {
+    "title": "PRÉSENCE",
+    "home": "Maison",
+    "away": "Absent",
+    "just_now": "À l'instant",
+    "min_ago": "il y a {count} min",
+    "hours_ago": "il y a {count}h",
+    "days_ago": "il y a {count}j",
+    "avatar_aria": "Informations pour {name}",
+    "notify_aria": "Envoyer une notification à {name}",
+    "notify_placeholder": "Ton message…",
+    "send_aria": "Envoyer la notification",
+    "notif_sent": "Notification envoyée",
+    "health_label": "Santé",
+    "bpm": "bpm",
+    "spo2": "SpO2",
+    "steps": "pas",
+    "driving": "En conduite",
+    "distance_m": "m",
+    "distance_km": "km"
+  },
+
   "editor": {
     "redirect_message": "La configuration de Glass Cards se fait depuis le panneau dédié.",
     "open_config": "Ouvrir Glass Cards Config"
@@ -358,6 +380,24 @@
 
     "dashboard_card_media": "Carte Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
+
+    "dashboard_card_presence": "Carte Présence",
+    "dashboard_card_presence_desc": "Affiche la présence des membres du foyer",
+
+    "tab_presence": "Carte Présence",
+    "presence_show_header": "Afficher l'en-tête",
+    "presence_show_header_desc": "Titre et compteur au-dessus de la carte",
+    "presence_persons": "Personnes",
+    "presence_persons_desc": "Sélectionnez les entités person.* à afficher. Vide = auto-détection.",
+    "presence_smartphone": "Capteur smartphone",
+    "presence_smartphone_desc": "Associez un capteur smartphone à chaque personne pour la batterie et les données santé.",
+    "presence_notify": "Service de notification",
+    "presence_notify_desc": "Service notify.* à utiliser pour envoyer des notifications à cette personne.",
+    "presence_driving": "Capteur conduite",
+    "presence_driving_desc": "Capteur binary_sensor pour détecter le mode conduite.",
+    "presence_no_persons": "Aucune entité person.* détectée.",
+    "presence_auto_detect": "Auto-détection",
+    "presence_select_entity": "Sélectionnez une entité",
 
     "tab_cover": "Carte Volets",
     "cover_show_header": "Afficher l'en-tête",

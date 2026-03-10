@@ -110,7 +110,7 @@ export class GlassConfigPanel extends LitElement {
   private _mounted = false;
 
   @state() private _lang = getLanguage();
-  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'dashboard' = 'dashboard';
+  @state() private _tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'dashboard' = 'dashboard';
   @state() private _rooms: RoomEntry[] = [];
   @state() private _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() private _selectedRoom = '';
@@ -174,6 +174,12 @@ export class GlassConfigPanel extends LitElement {
   @state() private _coverEntityPresetInput: Record<string, string> = {};
 
   // Media card config
+  @state() private _presenceShowHeader = true;
+  @state() private _presencePersonEntities: string[] = [];
+  @state() private _presenceSmartphoneSensors: Record<string, string> = {};
+  @state() private _presenceNotifyServices: Record<string, string> = {};
+  @state() private _presenceDrivingSensors: Record<string, string> = {};
+
   @state() private _mediaShowHeader = true;
   @state() private _mediaExtraEntities: Record<string, string[]> = {};
 
@@ -188,7 +194,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
-  @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify'];
+  @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify', 'presence'];
   @state() private _dashboardHideHeader = false;
   @state() private _dashboardHideSidebar = false;
   @state() private _dashboardExpanded = new Set<string>();
@@ -2165,6 +2171,115 @@ export class GlassConfigPanel extends LitElement {
         padding: 16px 0;
       }
 
+      /* ── Presence preview ── */
+      .preview-presence {
+        padding: 12px;
+      }
+      .preview-presence-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .preview-presence-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t2);
+      }
+      .preview-presence-pill {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        color: white;
+      }
+      .preview-presence-pill.all-home { background: var(--c-success); }
+      .preview-presence-pill.all-away { background: var(--c-alert); }
+      .preview-presence-pill.mixed { background: var(--c-accent); }
+      .preview-presence-persons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      .preview-presence-person {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .preview-presence-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 2px solid var(--c-success);
+      }
+      .preview-presence-person.away .preview-presence-avatar {
+        border-color: var(--c-alert);
+        opacity: 0.6;
+      }
+      .preview-presence-avatar.fallback {
+        background: var(--s3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .preview-presence-avatar.fallback ha-icon {
+        --mdc-icon-size: 18px;
+        color: var(--t3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .preview-presence-name {
+        font-size: 9px;
+        color: var(--t3);
+        max-width: 48px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+      }
+
+      /* ── Presence mapping cards ── */
+      .presence-mapping-card {
+        margin-top: 10px;
+        padding: 12px;
+        background: var(--s2);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b1);
+      }
+      .presence-mapping-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .presence-mapping-header .feature-icon {
+        width: 28px;
+        height: 28px;
+      }
+      .presence-mapping-field {
+        margin-bottom: 8px;
+      }
+      .presence-mapping-field:last-child {
+        margin-bottom: 0;
+      }
+      .presence-mapping-label {
+        display: block;
+        font-size: 11px;
+        color: var(--t3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+      }
+      .presence-mapping-field select.input {
+        width: 100%;
+      }
+
       /* ── Feature toggles ── */
       .feature-list {
         display: flex;
@@ -3177,6 +3292,13 @@ export class GlassConfigPanel extends LitElement {
       extra_entities: {} as Record<string, string[]>,
       show_header: true,
     };
+    let presenceCardConfig = {
+      show_header: true,
+      person_entities: [] as string[],
+      smartphone_sensors: {} as Record<string, string>,
+      notify_services: {} as Record<string, string>,
+      driving_sensors: {} as Record<string, string>,
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -3189,6 +3311,7 @@ export class GlassConfigPanel extends LitElement {
         cover_card: typeof coverCardConfig;
         spotify_card: typeof spotifyCardConfig;
         media_card: typeof mediaCardConfig;
+        presence_card: typeof presenceCardConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
@@ -3199,6 +3322,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.cover_card) coverCardConfig = result.cover_card;
       if (result.spotify_card) spotifyCardConfig = result.spotify_card;
       if (result.media_card) mediaCardConfig = result.media_card;
+      if (result.presence_card) presenceCardConfig = result.presence_card;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -3240,6 +3364,12 @@ export class GlassConfigPanel extends LitElement {
 
     this._mediaShowHeader = mediaCardConfig.show_header ?? true;
     this._mediaExtraEntities = mediaCardConfig.extra_entities ?? {};
+
+    this._presenceShowHeader = presenceCardConfig.show_header ?? true;
+    this._presencePersonEntities = presenceCardConfig.person_entities ?? [];
+    this._presenceSmartphoneSensors = presenceCardConfig.smartphone_sensors ?? {};
+    this._presenceNotifyServices = presenceCardConfig.notify_services ?? {};
+    this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
     this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
@@ -3439,7 +3569,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'dashboard') {
+  private _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'dashboard') {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
@@ -3641,6 +3771,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveSpotify();
     } else if (this._tab === 'media') {
       this._saveMedia();
+    } else if (this._tab === 'presence') {
+      this._savePresence();
     } else {
       this._saveDashboard();
     }
@@ -5824,6 +5956,9 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_media_config', {
         show_header: this._mediaShowHeader,
       });
+      await this._backend.send('set_presence_config', {
+        show_header: this._presenceShowHeader,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
@@ -5832,6 +5967,7 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('cover-config-changed', undefined);
       bus.emit('spotify-config-changed', undefined);
       bus.emit('media-config-changed', undefined);
+      bus.emit('presence-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {
@@ -5849,6 +5985,7 @@ export class GlassConfigPanel extends LitElement {
         cover_card?: { show_header?: boolean };
         spotify_card?: { show_header?: boolean };
         media_card?: { show_header?: boolean };
+        presence_card?: { show_header?: boolean };
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
@@ -5861,6 +5998,7 @@ export class GlassConfigPanel extends LitElement {
       this._coverShowHeader = result?.cover_card?.show_header ?? true;
       this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
       this._mediaShowHeader = result?.media_card?.show_header ?? true;
+      this._presenceShowHeader = result?.presence_card?.show_header ?? true;
     } catch { /* ignore */ }
   }
 
@@ -5873,6 +6011,7 @@ export class GlassConfigPanel extends LitElement {
       media: { icon: 'mdi:speaker', label: t('media.title') },
       cover: { icon: 'mdi:blinds', label: t('cover.title') },
       spotify: { icon: 'mdi:spotify', label: t('spotify.title') },
+      presence: { icon: 'mdi:account-group', label: t('presence.title') },
     };
     const ordered = this._dashboardCardOrder.filter((k) => enabled.has(k));
 
@@ -5909,6 +6048,7 @@ export class GlassConfigPanel extends LitElement {
       cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
       spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
       media: { icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', descKey: 'config.dashboard_card_media_desc', hasSub: true },
+      presence: { icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', descKey: 'config.dashboard_card_presence_desc', hasSub: true },
     };
 
     const enabledSet = new Set(this._dashboardEnabledCards);
@@ -6218,7 +6358,340 @@ export class GlassConfigPanel extends LitElement {
       `;
     }
 
+    if (key === 'presence') {
+      return html`
+        <div class="feature-sub ${open ? 'open' : ''}">
+          <div class="feature-sub-inner">
+            <div class="feature-sub-content">
+              <button
+                class="feature-row"
+                @click=${(e: Event) => { e.stopPropagation(); this._presenceShowHeader = !this._presenceShowHeader; }}
+              >
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.presence_show_header')}</div>
+                  <div class="feature-desc">${t('config.presence_show_header_desc')}</div>
+                </div>
+                <span
+                  class="toggle ${this._presenceShowHeader ? 'on' : ''}"
+                  role="switch"
+                  aria-checked=${this._presenceShowHeader ? 'true' : 'false'}
+                ></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return nothing;
+  }
+
+  // — Presence config —
+
+  private async _savePresence() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_presence_config', {
+        show_header: this._presenceShowHeader,
+        person_entities: this._presencePersonEntities,
+        smartphone_sensors: this._presenceSmartphoneSensors,
+        notify_services: this._presenceNotifyServices,
+        driving_sensors: this._presenceDrivingSensors,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('presence-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  private async _loadPresenceConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        presence_card?: {
+          show_header?: boolean;
+          person_entities?: string[];
+          smartphone_sensors?: Record<string, string>;
+          notify_services?: Record<string, string>;
+          driving_sensors?: Record<string, string>;
+        };
+      }>('get_config');
+      if (result?.presence_card) {
+        this._presenceShowHeader = result.presence_card.show_header ?? true;
+        this._presencePersonEntities = result.presence_card.person_entities ?? [];
+        this._presenceSmartphoneSensors = result.presence_card.smartphone_sensors ?? {};
+        this._presenceNotifyServices = result.presence_card.notify_services ?? {};
+        this._presenceDrivingSensors = result.presence_card.driving_sensors ?? {};
+      }
+    } catch { /* ignore */ }
+  }
+
+  private _getAvailablePersonEntities(): { entityId: string; name: string }[] {
+    if (!this.hass) return [];
+    return Object.keys(this.hass.states)
+      .filter((id) => id.startsWith('person.'))
+      .map((id) => {
+        const entity = this.hass!.states[id];
+        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
+        return { entityId: id, name };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _getAvailableSmartphoneSensors(): { entityId: string; name: string }[] {
+    if (!this.hass) return [];
+    return Object.keys(this.hass.states)
+      .filter((id) => id.startsWith('sensor.') && (
+        id.includes('phone') || id.includes('mobile') || id.includes('smartphone') ||
+        id.includes('tablet') || id.includes('iphone') || id.includes('galaxy') ||
+        id.includes('pixel') || id.includes('oneplus')
+      ))
+      .map((id) => {
+        const entity = this.hass!.states[id];
+        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
+        return { entityId: id, name };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _getAvailableDrivingSensors(): { entityId: string; name: string }[] {
+    if (!this.hass) return [];
+    return Object.keys(this.hass.states)
+      .filter((id) => id.startsWith('binary_sensor.'))
+      .map((id) => {
+        const entity = this.hass!.states[id];
+        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
+        return { entityId: id, name };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _getAvailableNotifyServices(): string[] {
+    if (!this.hass) return [];
+    const services = (this.hass as unknown as Record<string, unknown>).services as Record<string, Record<string, unknown>> | undefined;
+    return Object.keys(services?.notify ?? {}).map((s) => `notify.${s}`).sort();
+  }
+
+  private _togglePresencePerson(entityId: string) {
+    const set = new Set(this._presencePersonEntities);
+    if (set.has(entityId)) set.delete(entityId);
+    else set.add(entityId);
+    this._presencePersonEntities = [...set];
+  }
+
+  private _renderPresencePreview() {
+    const persons = this._getAvailablePersonEntities();
+    const selected = this._presencePersonEntities.length > 0
+      ? persons.filter((p) => this._presencePersonEntities.includes(p.entityId))
+      : persons;
+
+    if (selected.length === 0) {
+      return html`<div class="preview-empty">${t('config.presence_no_persons')}</div>`;
+    }
+
+    const homeCount = selected.filter((p) => {
+      const entity = this.hass?.states[p.entityId];
+      return entity?.state === 'home';
+    }).length;
+
+    return html`
+      <div class="preview-presence">
+        ${this._presenceShowHeader ? html`
+          <div class="preview-presence-header">
+            <span class="preview-presence-title">${t('presence.title')}</span>
+            <span class="preview-presence-pill ${homeCount === selected.length ? 'all-home' : homeCount === 0 ? 'all-away' : 'mixed'}">
+              ${homeCount}/${selected.length}
+            </span>
+          </div>
+        ` : nothing}
+        <div class="preview-presence-persons">
+          ${selected.slice(0, 4).map((p) => {
+            const entity = this.hass?.states[p.entityId];
+            const isHome = entity?.state === 'home';
+            const picture = entity?.attributes?.entity_picture as string | undefined;
+            return html`
+              <div class="preview-presence-person ${isHome ? 'home' : 'away'}">
+                ${picture
+                  ? html`<div class="preview-presence-avatar" style="background-image:url(${picture})"></div>`
+                  : html`<div class="preview-presence-avatar fallback"><ha-icon .icon=${'mdi:account'}></ha-icon></div>`}
+                <span class="preview-presence-name">${p.name}</span>
+              </div>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderPresenceTab() {
+    const persons = this._getAvailablePersonEntities();
+    const selectedPersons = this._presencePersonEntities.length > 0
+      ? this._presencePersonEntities
+      : persons.map((p) => p.entityId);
+    const smartphoneSensors = this._getAvailableSmartphoneSensors();
+    const drivingSensors = this._getAvailableDrivingSensors();
+    const notifyServices = this._getAvailableNotifyServices();
+
+    return html`
+      <div class="tab-panel" id="panel-presence">
+        <!-- Behaviour -->
+        <div class="section-label">${t('config.navbar_behavior')}</div>
+        <div class="feature-list">
+          <button
+            class="feature-row"
+            @click=${() => { this._presenceShowHeader = !this._presenceShowHeader; }}
+          >
+            <div class="feature-icon">
+              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.presence_show_header')}</div>
+              <div class="feature-desc">${t('config.presence_show_header_desc')}</div>
+            </div>
+            <span
+              class="toggle ${this._presenceShowHeader ? 'on' : ''}"
+              role="switch"
+              aria-checked=${this._presenceShowHeader ? 'true' : 'false'}
+            ></span>
+          </button>
+        </div>
+
+        <!-- Person entities -->
+        <div class="section-label">${t('config.presence_persons')}</div>
+        <div class="section-desc">${t('config.presence_persons_desc')}</div>
+
+        ${persons.length === 0 ? html`
+          <div class="preview-empty">${t('config.presence_no_persons')}</div>
+        ` : html`
+          <div class="item-list">
+            ${persons.map((p) => {
+              const selected = this._presencePersonEntities.includes(p.entityId);
+              const autoMode = this._presencePersonEntities.length === 0;
+              return html`
+                <div class="item-row ${!selected && !autoMode ? 'disabled' : ''}">
+                  <div class="feature-icon">
+                    <ha-icon .icon=${'mdi:account'}></ha-icon>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">${p.name}</span>
+                    <span class="item-meta">${p.entityId}</span>
+                  </div>
+                  <button
+                    class="toggle ${selected || autoMode ? 'on' : ''}"
+                    @click=${() => this._togglePresencePerson(p.entityId)}
+                    role="switch"
+                    aria-checked=${(selected || autoMode) ? 'true' : 'false'}
+                    aria-label="${p.name}"
+                  ></button>
+                </div>
+              `;
+            })}
+          </div>
+        `}
+
+        <!-- Per-person sensor mapping -->
+        <div class="section-label">${t('config.presence_smartphone')}</div>
+        <div class="section-desc">${t('config.presence_smartphone_desc')}</div>
+
+        ${selectedPersons.map((personId) => {
+          const person = persons.find((p) => p.entityId === personId);
+          if (!person) return nothing;
+          const currentSensor = this._presenceSmartphoneSensors[personId] || '';
+          const currentNotify = this._presenceNotifyServices[personId] || '';
+          const currentDriving = this._presenceDrivingSensors[personId] || '';
+
+          return html`
+            <div class="presence-mapping-card">
+              <div class="presence-mapping-header">
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:account'}></ha-icon>
+                </div>
+                <span class="item-name">${person.name}</span>
+              </div>
+
+              <div class="presence-mapping-field">
+                <label class="presence-mapping-label">${t('config.presence_smartphone')}</label>
+                <select
+                  class="input"
+                  .value=${currentSensor}
+                  @change=${(e: Event) => {
+                    const val = (e.target as HTMLSelectElement).value;
+                    const sensors = { ...this._presenceSmartphoneSensors };
+                    if (val) sensors[personId] = val;
+                    else delete sensors[personId];
+                    this._presenceSmartphoneSensors = sensors;
+                  }}
+                >
+                  <option value="">${t('config.presence_auto_detect')}</option>
+                  ${smartphoneSensors.map((s) => html`
+                    <option value=${s.entityId} ?selected=${currentSensor === s.entityId}>${s.name}</option>
+                  `)}
+                </select>
+              </div>
+
+              <div class="presence-mapping-field">
+                <label class="presence-mapping-label">${t('config.presence_notify')}</label>
+                <select
+                  class="input"
+                  .value=${currentNotify}
+                  @change=${(e: Event) => {
+                    const val = (e.target as HTMLSelectElement).value;
+                    const services = { ...this._presenceNotifyServices };
+                    if (val) services[personId] = val;
+                    else delete services[personId];
+                    this._presenceNotifyServices = services;
+                  }}
+                >
+                  <option value="">${t('config.presence_auto_detect')}</option>
+                  ${notifyServices.map((s) => html`
+                    <option value=${s} ?selected=${currentNotify === s}>${s}</option>
+                  `)}
+                </select>
+              </div>
+
+              <div class="presence-mapping-field">
+                <label class="presence-mapping-label">${t('config.presence_driving')}</label>
+                <select
+                  class="input"
+                  .value=${currentDriving}
+                  @change=${(e: Event) => {
+                    const val = (e.target as HTMLSelectElement).value;
+                    const sensors = { ...this._presenceDrivingSensors };
+                    if (val) sensors[personId] = val;
+                    else delete sensors[personId];
+                    this._presenceDrivingSensors = sensors;
+                  }}
+                >
+                  <option value="">${t('config.presence_auto_detect')}</option>
+                  ${drivingSensors.map((s) => html`
+                    <option value=${s.entityId} ?selected=${currentDriving === s.entityId}>${s.name}</option>
+                  `)}
+                </select>
+              </div>
+            </div>
+          `;
+        })}
+
+        <div class="save-bar">
+          <button class="btn btn-ghost" @click=${() => this._loadPresenceConfig()}>${t('common.reset')}</button>
+          <button
+            class="btn btn-accent"
+            @click=${() => this._save()}
+            ?disabled=${this._saving}
+          >
+            ${this._saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   // — Weather config —
@@ -7655,6 +8128,15 @@ export class GlassConfigPanel extends LitElement {
               <ha-icon .icon=${'mdi:spotify'}></ha-icon>
               ${t('config.tab_spotify')}
             </button>
+            <button
+              class="tab ${this._tab === 'presence' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'presence' ? 'true' : 'false'}
+              @click=${() => this._switchTab('presence')}
+            >
+              <ha-icon .icon=${'mdi:account-group'}></ha-icon>
+              ${t('config.tab_presence')}
+            </button>
           </div>
 
           <div class="preview-encart">
@@ -7675,7 +8157,9 @@ export class GlassConfigPanel extends LitElement {
                           ? this._renderCoverPreview()
                           : this._tab === 'spotify'
                             ? this._renderSpotifyPreview()
-                            : this._renderDashboardPreview()}
+                            : this._tab === 'presence'
+                              ? this._renderPresencePreview()
+                              : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -7694,7 +8178,9 @@ export class GlassConfigPanel extends LitElement {
                         ? this._renderCoverTab()
                         : this._tab === 'spotify'
                           ? this._renderSpotifyTab()
-                          : this._renderDashboardTab()}
+                          : this._tab === 'presence'
+                            ? this._renderPresenceTab()
+                            : this._renderDashboardTab()}
         </div>
       </div>
 

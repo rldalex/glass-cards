@@ -14,6 +14,7 @@ export interface GlassEventMap {
   'title-config-changed': undefined;
   'spotify-config-changed': undefined;
   'media-config-changed': undefined;
+  'presence-config-changed': undefined;
   'schedule-changed': { entityId: string };
 }
 

@@ -193,6 +193,28 @@
     "room_dot_aria": "Room {index}"
   },
 
+  "presence": {
+    "title": "PRESENCE",
+    "home": "Home",
+    "away": "Away",
+    "just_now": "Just now",
+    "min_ago": "{count} min ago",
+    "hours_ago": "{count}h ago",
+    "days_ago": "{count}d ago",
+    "avatar_aria": "Information for {name}",
+    "notify_aria": "Send notification to {name}",
+    "notify_placeholder": "Your message…",
+    "send_aria": "Send notification",
+    "notif_sent": "Notification sent",
+    "health_label": "Health",
+    "bpm": "bpm",
+    "spo2": "SpO2",
+    "steps": "steps",
+    "driving": "Driving",
+    "distance_m": "m",
+    "distance_km": "km"
+  },
+
   "editor": {
     "redirect_message": "Glass Cards configuration is managed from the dedicated panel.",
     "open_config": "Open Glass Cards Config"
@@ -358,6 +380,24 @@
 
     "dashboard_card_media": "Media Card",
     "dashboard_card_media_desc": "Shows media players with transport controls",
+
+    "dashboard_card_presence": "Presence Card",
+    "dashboard_card_presence_desc": "Shows household members presence",
+
+    "tab_presence": "Presence Card",
+    "presence_show_header": "Show header",
+    "presence_show_header_desc": "Title and counter above the card",
+    "presence_persons": "Persons",
+    "presence_persons_desc": "Select person.* entities to display. Empty = auto-detect.",
+    "presence_smartphone": "Smartphone sensor",
+    "presence_smartphone_desc": "Associate a smartphone sensor for battery and health data.",
+    "presence_notify": "Notification service",
+    "presence_notify_desc": "notify.* service to send notifications to this person.",
+    "presence_driving": "Driving sensor",
+    "presence_driving_desc": "binary_sensor to detect driving mode.",
+    "presence_no_persons": "No person.* entity detected.",
+    "presence_auto_detect": "Auto-detect",
+    "presence_select_entity": "Select an entity",
 
     "tab_cover": "Cover Card",
     "cover_show_header": "Show header",
