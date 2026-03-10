@@ -4241,8 +4241,8 @@
             <div class="card-header">
               <div class="card-header-left">
                 <span class="card-title">${1===t.length?ze("presence.title_single"):ze("presence.title")}</span>
-                <span class="card-count ${s}">${i}/${t.length}</span>
               </div>
+              <span class="card-count ${s}">${i}/${t.length}</span>
             </div>
           `:Y}
       <div class="glass presence-card" data-presence=${a}>
@@ -4409,6 +4409,7 @@
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
         width: 100%; padding: 0 6px; min-height: 22px; margin-bottom: 6px;
+        box-sizing: border-box;
       }
       .card-header-left { display: flex; align-items: center; gap: 8px; }
       .card-title {

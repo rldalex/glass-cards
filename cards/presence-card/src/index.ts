@@ -335,8 +335,8 @@ export class GlassPresenceCard extends BaseCard {
             <div class="card-header">
               <div class="card-header-left">
                 <span class="card-title">${persons.length === 1 ? t('presence.title_single') : t('presence.title')}</span>
-                <span class="card-count ${countClass}">${homeCount}/${persons.length}</span>
               </div>
+              <span class="card-count ${countClass}">${homeCount}/${persons.length}</span>
             </div>
           `
         : nothing}
@@ -608,6 +608,7 @@ export class GlassPresenceCard extends BaseCard {
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
         width: 100%; padding: 0 6px; min-height: 22px; margin-bottom: 6px;
+        box-sizing: border-box;
       }
       .card-header-left { display: flex; align-items: center; gap: 8px; }
       .card-title {
