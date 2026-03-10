@@ -335,8 +335,8 @@ export class GlassPresenceCard extends BaseCard {
             <div class="card-header">
               <div class="card-header-left">
                 <span class="card-title">${persons.length === 1 ? t('presence.title_single') : t('presence.title')}</span>
+                <span class="card-count ${countClass}">${homeCount}/${persons.length}</span>
               </div>
-              <span class="card-count ${countClass}">${homeCount}/${persons.length}</span>
             </div>
           `
         : nothing}
