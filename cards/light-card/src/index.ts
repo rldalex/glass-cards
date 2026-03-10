@@ -915,6 +915,7 @@ export class GlassLightCard extends BaseCard {
       }
       this._dashboardHiddenEntities = hidden;
       this._cachedLights = undefined;
+      this._dashboardTotalCache = undefined;
       this.requestUpdate();
     } catch {
       // Backend not available
