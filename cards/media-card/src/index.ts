@@ -132,6 +132,8 @@ export class GlassMediaCard extends BaseCard {
   private _backend?: BackendService;
   private _loadVersion = 0;
   private _lastArtworkUrl = '';
+  private _samplingCanvas?: HTMLCanvasElement;
+  private _samplingCtx?: CanvasRenderingContext2D | null;
   private _configLoadingInProgress = false;
   private _playersCache: MediaPlayerInfo[] | null = null;
   private _playersCacheKey = '';
@@ -173,6 +175,8 @@ export class GlassMediaCard extends BaseCard {
     ++this._loadVersion;
     this._configLoadingInProgress = false;
     this._lastArtworkUrl = '';
+    this._samplingCanvas = undefined;
+    this._samplingCtx = undefined;
     delete this.dataset.bgLight;
   }
 
@@ -207,13 +211,17 @@ export class GlassMediaCard extends BaseCard {
     if (img.src === this._lastArtworkUrl) return;
     this._lastArtworkUrl = img.src;
 
-    const canvas = document.createElement('canvas');
-    const size = 16; // Sample a small 16x16 grid for average luminance
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const size = 16;
+    if (!this._samplingCanvas) {
+      this._samplingCanvas = document.createElement('canvas');
+      this._samplingCanvas.width = size;
+      this._samplingCanvas.height = size;
+      this._samplingCtx = this._samplingCanvas.getContext('2d', { willReadFrequently: true });
+    }
+    const ctx = this._samplingCtx;
     if (!ctx) return;
     try {
+      ctx.clearRect(0, 0, size, size);
       ctx.drawImage(img, 0, 0, size, size);
       const data = ctx.getImageData(0, 0, size, size).data;
       let totalLum = 0;
