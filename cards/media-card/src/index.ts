@@ -1019,20 +1019,27 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-eq-bar {
         width: 3px; border-radius: 1.5px;
-        background: var(--mp-color);
-        opacity: 0.6;
+        background: #fff;
+        filter: drop-shadow(0 0 3px rgba(255,255,255,0.6));
       }
-      .dash-eq.playing .dash-eq-bar {
-        animation: eq-bounce 0.8s ease-in-out infinite alternate;
+      .dash-eq.playing .dash-eq-bar:nth-child(1) {
+        height: 40%; animation: eq-lo 0.65s ease-in-out infinite alternate;
       }
-      .dash-eq-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
-      .dash-eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; }
-      .dash-eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; }
-      .dash-eq-bar:nth-child(4) { height: 70%; animation-delay: 0.1s; }
-      @keyframes eq-bounce {
-        0%   { height: 20%; }
-        100% { height: 100%; }
+      .dash-eq.playing .dash-eq-bar:nth-child(2) {
+        height: 80%; animation: eq-hi 0.52s ease-in-out infinite alternate;
+        animation-delay: 0.12s;
       }
+      .dash-eq.playing .dash-eq-bar:nth-child(3) {
+        height: 55%; animation: eq-mid 0.78s ease-in-out infinite alternate;
+        animation-delay: 0.25s;
+      }
+      .dash-eq.playing .dash-eq-bar:nth-child(4) {
+        height: 70%; animation: eq-lo 0.6s ease-in-out infinite alternate;
+        animation-delay: 0.08s;
+      }
+      @keyframes eq-lo  { 0% { height: 15%; } 100% { height: 70%; } }
+      @keyframes eq-mid { 0% { height: 20%; } 100% { height: 90%; } }
+      @keyframes eq-hi  { 0% { height: 25%; } 100% { height: 100%; } }
 
       /* ── Spacer ── */
       .dash-spacer { flex: 1; }
