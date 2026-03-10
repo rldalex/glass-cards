@@ -129,7 +129,8 @@ export class GlassNavbarCard extends BaseCard {
   private _bgSampleCanvas?: HTMLCanvasElement;
   private _bgSampleCtx?: CanvasRenderingContext2D;
   private _bgCheckRaf?: number;
-  private _bgIsLight = false;
+  @state() private _bgIsLight = false;
+  private _bgLastSampleTime = 0;
 
   static getConfigElement() {
     return document.createElement('glass-navbar-card-editor');
@@ -489,11 +490,15 @@ export class GlassNavbarCard extends BaseCard {
     this._configLoading = false;
     window.removeEventListener('scroll', this._boundBgCheck, { capture: true } as EventListenerOptions);
     if (this._bgCheckRaf) cancelAnimationFrame(this._bgCheckRaf);
+    this._bgSampleCanvas = undefined;
+    this._bgSampleCtx = undefined;
   }
 
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
     this._attachScrollListener();
+    // Initial background sample after first paint
+    requestAnimationFrame(() => this._sampleBackgroundLuminance());
   }
 
   private _detectEditMode(): boolean {
@@ -944,8 +949,11 @@ export class GlassNavbarCard extends BaseCard {
 
   private _boundBgCheck = () => {
     if (this._bgCheckRaf) return;
+    const now = performance.now();
+    if (now - this._bgLastSampleTime < 200) return;
     this._bgCheckRaf = requestAnimationFrame(() => {
       this._bgCheckRaf = undefined;
+      this._bgLastSampleTime = performance.now();
       this._sampleBackgroundLuminance();
     });
   };
@@ -998,7 +1006,6 @@ export class GlassNavbarCard extends BaseCard {
     const isLight = found && luminance > 0.55;
     if (isLight !== this._bgIsLight) {
       this._bgIsLight = isLight;
-      navbar.classList.toggle('bg-light', isLight);
     }
   }
 
@@ -1180,7 +1187,7 @@ export class GlassNavbarCard extends BaseCard {
     return html`
       <div class="dashboard-cards"></div>
       ${showNavbar
-        ? html`<nav class="navbar glass glass-float">
+        ? html`<nav class="navbar glass glass-float${this._bgIsLight ? ' bg-light' : ''}">
             <div class=${scrollClass}>
               ${this._items.map((item) => this._renderNavItem(item))}
               <button

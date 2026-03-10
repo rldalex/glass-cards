@@ -203,6 +203,7 @@
     "hours_ago": "{count}h ago",
     "days_ago": "{count}d ago",
     "avatar_aria": "Information for {name}",
+    "notify_to": "Send to",
     "notify_aria": "Send notification to {name}",
     "notify_placeholder": "Your message…",
     "notif_title": "Message from {name}",

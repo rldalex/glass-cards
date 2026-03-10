@@ -556,7 +556,7 @@ export class GlassPresenceCard extends BaseCard {
               ? html`
                   <div class="notif-zone">
                     <div class="notif-to">
-                      ${t('presence.notify_aria', { name: '' })}
+                      ${t('presence.notify_to')}
                       <span class="notif-to-name">${person.name}</span>
                     </div>
                     <div class="notif-row">
