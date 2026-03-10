@@ -162,6 +162,8 @@ export class GlassLightCard extends BaseCard {
   private _cachedLightsHassRef?: Record<string, HassEntity>;
   private _schedules: EntityScheduleMap | null = null;
   private _schedulesLoaded = false;
+  private _dashboardHiddenEntities = new Set<string>();
+  private _dashboardHiddenLoaded = false;
 
   private get _isDashboardMode(): boolean {
     const area = this.areaId || (this._config?.area as string | undefined);
@@ -810,6 +812,13 @@ export class GlassLightCard extends BaseCard {
         this._cachedLights = undefined;
         this._loadRoomConfig();
       }
+      // Dashboard mode: reload hidden entities from all rooms
+      if (this._isDashboardMode) {
+        this._dashboardHiddenLoaded = false;
+        this._dashboardTotalCache = undefined;
+        this._cachedLights = undefined;
+        this._loadDashboardHidden();
+      }
     });
     this._listen('schedule-changed', () => {
       this._schedulesLoaded = false;
@@ -833,6 +842,7 @@ export class GlassLightCard extends BaseCard {
     this._schedulesLoaded = false;
     this._lightConfigLoaded = false;
     this._roomConfigLoaded = false;
+    this._dashboardHiddenLoaded = false;
   }
 
   private async _loadRoomConfig() {
@@ -887,6 +897,30 @@ export class GlassLightCard extends BaseCard {
     }
   }
 
+  private async _loadDashboardHidden() {
+    if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
+    this._dashboardHiddenLoaded = true;
+    const areas = this.visibleAreaIds;
+    if (!areas || areas.length === 0) return;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const hidden = new Set<string>();
+      for (const aId of areas) {
+        const result = await this._backend.send<{
+          hidden_entities: string[];
+        } | null>('get_room', { area_id: aId });
+        if (result?.hidden_entities) {
+          for (const id of result.hidden_entities) hidden.add(id);
+        }
+      }
+      this._dashboardHiddenEntities = hidden;
+      this._cachedLights = undefined;
+      this.requestUpdate();
+    } catch {
+      // Backend not available
+    }
+  }
+
   private _resetForNewArea() {
     this._roomConfig = null;
     this._roomConfigLoaded = false;
@@ -919,6 +953,7 @@ export class GlassLightCard extends BaseCard {
       this._roomConfigLoaded = false;
       this._schedulesLoaded = false;
       this._lightConfigLoaded = false;
+      this._dashboardHiddenLoaded = false;
     }
 
     // Load schedules
@@ -940,6 +975,11 @@ export class GlassLightCard extends BaseCard {
       if (!this._roomConfigLoaded) {
         this._loadRoomConfig();
       }
+    }
+
+    // Load dashboard hidden entities
+    if (this.hass && this._isDashboardMode && !this._dashboardHiddenLoaded) {
+      this._loadDashboardHidden();
     }
 
     // Invalidate lights cache when hass changes
@@ -1047,7 +1087,7 @@ export class GlassLightCard extends BaseCard {
       const areaEntityIds = new Set<string>();
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('light.')) areaEntityIds.add(e.entity_id);
+          if (e.entity_id.startsWith('light.') && !this._dashboardHiddenEntities.has(e.entity_id)) areaEntityIds.add(e.entity_id);
         }
       }
       return Object.values(this.hass.states)
@@ -1075,7 +1115,7 @@ export class GlassLightCard extends BaseCard {
     const ids = new Set<string>();
     for (const aId of areas) {
       for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-        if (e.entity_id.startsWith('light.')) ids.add(e.entity_id);
+        if (e.entity_id.startsWith('light.') && !this._dashboardHiddenEntities.has(e.entity_id)) ids.add(e.entity_id);
       }
     }
     this._dashboardTotalEntitiesRef = this.hass.entities;
