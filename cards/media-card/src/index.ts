@@ -994,7 +994,7 @@ export class GlassMediaCard extends BaseCard {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 4px 10px 4px 6px;
         border-radius: var(--radius-full, 9999px);
-        font-size: 10px; font-weight: 600; color: var(--t3);
+        font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9);
         overflow: hidden; white-space: nowrap;
       }
       .dash-speaker ha-icon {
@@ -1004,7 +1004,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-group-badge {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 2px 8px; border-radius: 20px;
-        color: var(--mp-sub);
+        color: rgba(255,255,255,0.9);
         font-size: 10px; font-weight: 600;
       }
       .dash-group-badge ha-icon {
