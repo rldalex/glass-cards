@@ -195,7 +195,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() private _dashboardEnabledCards: string[] = ['weather'];
-  @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'cover', 'spotify', 'presence'];
+  @state() private _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
   @state() private _dashboardHideHeader = false;
   @state() private _dashboardHideSidebar = false;
   @state() private _dashboardExpanded = new Set<string>();
@@ -3373,7 +3373,7 @@ export class GlassConfigPanel extends LitElement {
     this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
     this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
     this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
 
@@ -5991,7 +5991,7 @@ export class GlassConfigPanel extends LitElement {
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
         this._dashboardHideHeader = result.dashboard.hide_header ?? false;
         this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
       }

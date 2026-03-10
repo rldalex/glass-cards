@@ -120,6 +120,8 @@ export class GlassPresenceCard extends BaseCard {
   private _backend?: BackendService;
   private _configLoaded = false;
   private _configLoadingInProgress = false;
+  private _clockInterval?: ReturnType<typeof setInterval>;
+  private _prevActivePerson: string | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -127,6 +129,7 @@ export class GlassPresenceCard extends BaseCard {
       this._configLoaded = false;
       this._loadConfig();
     });
+    this._clockInterval = setInterval(() => this.requestUpdate(), 60_000);
   }
 
   disconnectedCallback(): void {
@@ -134,6 +137,8 @@ export class GlassPresenceCard extends BaseCard {
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoadingInProgress = false;
+    clearInterval(this._clockInterval);
+    this._clockInterval = undefined;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -142,12 +147,23 @@ export class GlassPresenceCard extends BaseCard {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._configLoaded = false;
+        this._configLoadingInProgress = false;
       }
       if (!this._configLoaded && !this._configLoadingInProgress) {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
     }
+    // Double rAF for fold animation
+    if (changedProps.has('_activePerson') && this._activePerson && this._activePerson !== this._prevActivePerson) {
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          this.shadowRoot?.querySelectorAll('.fold-sep').forEach((el) => el.classList.add('visible'));
+          this.shadowRoot?.querySelector('.ctrl-fold')?.classList.add('open');
+        }),
+      );
+    }
+    this._prevActivePerson = this._activePerson;
   }
 
   private async _loadConfig(): Promise<void> {
@@ -273,7 +289,15 @@ export class GlassPresenceCard extends BaseCard {
   private async _sendNotification(person: PersonData): Promise<void> {
     if (!this.hass || !person.notifyService || !this._notifText.trim()) return;
     try {
-      await this.hass.callService('notify', person.notifyService, {
+      // Support both "mobile_app_xxx" and "notify.mobile_app_xxx" formats
+      let domain = 'notify';
+      let service = person.notifyService;
+      if (service.includes('.')) {
+        const parts = service.split('.');
+        domain = parts[0];
+        service = parts.slice(1).join('.');
+      }
+      await this.hass.callService(domain, service, {
         message: this._notifText.trim(),
       });
       this._notifText = '';
@@ -333,15 +357,15 @@ export class GlassPresenceCard extends BaseCard {
   private _renderPersons(persons: PersonData[]): TemplateResult | typeof nothing {
     if (persons.length === 1) {
       return html`
-        ${this._renderPerson(persons[0], false)}
+        ${this._renderPerson(persons[0], false, 0)}
         ${this._renderSoloChips(persons[0])}
       `;
     }
     if (persons.length === 2) {
       return html`
-        ${this._renderPerson(persons[0], false)}
+        ${this._renderPerson(persons[0], false, 0)}
         ${this._renderDistance(persons[0], persons[1])}
-        ${this._renderPerson(persons[1], true)}
+        ${this._renderPerson(persons[1], true, 1)}
       `;
     }
     // Family: paired rows
@@ -353,15 +377,15 @@ export class GlassPresenceCard extends BaseCard {
       if (i + 1 < persons.length) {
         rows.push(html`
           <div class="family-row">
-            ${this._renderPerson(persons[i], false)}
+            ${this._renderPerson(persons[i], false, i)}
             ${this._renderDistance(persons[i], persons[i + 1])}
-            ${this._renderPerson(persons[i + 1], true)}
+            ${this._renderPerson(persons[i + 1], true, i + 1)}
           </div>
         `);
       } else {
         rows.push(html`
           <div class="family-row solo-row">
-            ${this._renderPerson(persons[i], false)}
+            ${this._renderPerson(persons[i], false, i)}
           </div>
         `);
       }
@@ -369,9 +393,8 @@ export class GlassPresenceCard extends BaseCard {
     return html`${rows}`;
   }
 
-  private _renderPerson(p: PersonData, isRight: boolean): TemplateResult {
-    const idx = this._getPersonIds().indexOf(p.entityId);
-    const colors = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+  private _renderPerson(p: PersonData, isRight: boolean, colorIdx = 0): TemplateResult {
+    const colors = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
 
     return html`
       <div class="person-block ${isRight ? 'right' : ''}">
@@ -381,7 +404,9 @@ export class GlassPresenceCard extends BaseCard {
           aria-expanded=${String(this._activePerson === p.entityId)}
           @click=${(e: Event) => {
             e.stopPropagation();
-            this._activePerson = this._activePerson === p.entityId ? null : p.entityId;
+            const next = this._activePerson === p.entityId ? null : p.entityId;
+            if (next !== this._activePerson) this._notifText = '';
+            this._activePerson = next;
           }}
         >
           ${p.entityPicture
@@ -413,7 +438,7 @@ export class GlassPresenceCard extends BaseCard {
                   `
                 : nothing}
               ${p.isDriving
-                ? html`<ha-icon class="driving-icon" .icon=${'mdi:car'}></ha-icon>`
+                ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
               <span class="person-last-seen">${timeAgo(p.lastUpdated)}</span>
             </div>
@@ -428,7 +453,7 @@ export class GlassPresenceCard extends BaseCard {
       return nothing;
     }
     const km = haversineKm(a.latitude, a.longitude, b.latitude, b.longitude);
-    const isNear = km < 0.01;
+    const isNear = km < 0.05;
     const valueText = km < 1 ? String(Math.round(km * 1000)) : String(Math.round(km));
     const unitText = km < 1 ? t('presence.distance_m') : t('presence.distance_km');
 
@@ -463,15 +488,15 @@ export class GlassPresenceCard extends BaseCard {
   }
 
   private _renderFold(persons: PersonData[]): TemplateResult | typeof nothing {
-    if (persons.length <= 1 || !this._activePerson) return nothing;
+    if (!this._activePerson) return nothing;
     const person = persons.find((p) => p.entityId === this._activePerson);
     if (!person) return nothing;
 
     const hasHealth = person.heartRate != null || person.spo2 != null || person.steps != null;
 
     return html`
-      <div class="fold-sep visible"></div>
-      <div class="ctrl-fold open">
+      <div class="fold-sep"></div>
+      <div class="ctrl-fold">
         <div class="ctrl-fold-inner">
           <div class="fold-content">
             ${person.geocodedLocation
@@ -559,6 +584,7 @@ export class GlassPresenceCard extends BaseCard {
           </div>
         </div>
       </div>
+      <div class="fold-sep bottom"></div>
     `;
   }
 
@@ -648,19 +674,20 @@ export class GlassPresenceCard extends BaseCard {
       .avatar-wrapper {
         position: relative; flex-shrink: 0;
         cursor: pointer; background: none; border: none;
-        padding: 0; outline: none; border-radius: 50%;
+        padding: 0; border-radius: 50%;
         -webkit-tap-highlight-color: transparent;
       }
+      .avatar-wrapper:not(:focus-visible) { outline: none; }
       .avatar-wrapper:active { transform: scale(0.96); }
       .avatar-wrapper:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
 
       .avatar {
         width: 38px; height: 38px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        border: 2px solid rgba(255,255,255,0.1);
         transition: border-color var(--t-med);
         object-fit: cover;
       }
+      .avatar-fallback { border: 2px solid rgba(255,255,255,0.1); }
       img.avatar { display: block; }
       .avatar-fallback ha-icon {
         display: flex; align-items: center; justify-content: center;
@@ -715,7 +742,8 @@ export class GlassPresenceCard extends BaseCard {
         --mdc-icon-size: 14px;
       }
 
-      .driving-icon {
+      .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
+      .driving-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 12px; color: var(--c-info); opacity: 0.7;
       }
@@ -774,6 +802,7 @@ export class GlassPresenceCard extends BaseCard {
         opacity: 0; transition: opacity 0.25s var(--ease-std);
       }
       .fold-sep.visible { opacity: 1; }
+      .fold-sep.bottom { margin: 0 12px 4px; }
 
       .ctrl-fold {
         display: grid; grid-template-rows: 0fr;
