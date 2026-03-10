@@ -127,6 +127,7 @@ export class GlassMediaCard extends BaseCard {
   };
   @state() private _configLoaded = false;
   @state() private _roomIndex = 0;
+  @state() private _swipeClass = '';
 
   private _backend?: BackendService;
   private _loadVersion = 0;
@@ -139,6 +140,8 @@ export class GlassMediaCard extends BaseCard {
   private _lpTimer = 0;
   private _lpFired = false;
   private _swipeFired = false;
+  private _swipeAnimating = false;
+  private _swipeAnimTimer = 0;
   private _pointerStart = { x: 0, y: 0, t: 0 };
 
   setConfig(config: LovelaceCardConfig): void {
@@ -163,6 +166,9 @@ export class GlassMediaCard extends BaseCard {
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
     if (this._flashTimer) { clearTimeout(this._flashTimer); this._flashTimer = 0; }
     if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
+    if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
+    this._swipeAnimating = false;
+    this._swipeClass = '';
     ++this._loadVersion;
     this._configLoadingInProgress = false;
   }
@@ -423,16 +429,13 @@ export class GlassMediaCard extends BaseCard {
     const dx = e.clientX - this._pointerStart.x;
     const elapsed = Date.now() - this._pointerStart.t;
 
-    // Swipe detection (dashboard only, multiple rooms)
+    // Swipe detection (dashboard only, multiple rooms) — animated
     if (this.isDashboard && roomCount > 1 && Math.abs(dx) > 50 && elapsed < 500) {
       this._swipeFired = true;
-      this._foldOpen = false; // close fold on room switch
       if (dx < 0) {
-        // Swipe left → next room
-        this._roomIndex = (this._roomIndex + 1) % roomCount;
+        this._swipeToRoom('left', (this._roomIndex + 1) % roomCount);
       } else {
-        // Swipe right → previous room
-        this._roomIndex = (this._roomIndex - 1 + roomCount) % roomCount;
+        this._swipeToRoom('right', (this._roomIndex - 1 + roomCount) % roomCount);
       }
       return;
     }
@@ -446,6 +449,29 @@ export class GlassMediaCard extends BaseCard {
 
   private _onHeroPointerCancel(): void {
     clearTimeout(this._lpTimer);
+  }
+
+  /* ── Animated room switch ── */
+
+  private _swipeToRoom(direction: 'left' | 'right', newIndex: number): void {
+    if (this._swipeAnimating) return;
+    this._swipeAnimating = true;
+    this._foldOpen = false;
+
+    // Phase 1: exit animation
+    this._swipeClass = direction === 'left' ? 'swipe-exit-left' : 'swipe-exit-right';
+
+    this._swipeAnimTimer = window.setTimeout(() => {
+      // Switch room (triggers re-render with new content)
+      this._roomIndex = newIndex;
+      // Phase 2: enter animation
+      this._swipeClass = direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left';
+
+      this._swipeAnimTimer = window.setTimeout(() => {
+        this._swipeClass = '';
+        this._swipeAnimating = false;
+      }, 280);
+    }, 220);
   }
 
   /* ── Progress bar seek ── */
@@ -569,7 +595,7 @@ export class GlassMediaCard extends BaseCard {
 
     return html`
       <div class="dash-wrap ${this._foldOpen ? 'fold-open' : ''}">
-        <div class="dash-hero"
+        <div class="dash-hero ${this._swipeClass}"
           @pointerdown=${(e: PointerEvent) => this._onHeroPointerDown(e, master)}
           @pointermove=${(e: PointerEvent) => this._onHeroPointerMove(e)}
           @pointerup=${(e: PointerEvent) => this._onHeroPointerUp(e, master, roomCount)}
@@ -711,11 +737,11 @@ export class GlassMediaCard extends BaseCard {
           <!-- Navigation arrows (desktop hover, multi-room) -->
           ${this.isDashboard && roomCount > 1 ? html`
             <button class="dash-nav-arrow dash-nav-left" aria-label=${t('media.prev_room_aria')}
-              @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex - 1 + roomCount) % roomCount; }}>
+              @click=${(e: Event) => { e.stopPropagation(); this._swipeToRoom('right', (this._roomIndex - 1 + roomCount) % roomCount); }}>
               <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
             </button>
             <button class="dash-nav-arrow dash-nav-right" aria-label=${t('media.next_room_aria')}
-              @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex + 1) % roomCount; }}>
+              @click=${(e: Event) => { e.stopPropagation(); this._swipeToRoom('left', (this._roomIndex + 1) % roomCount); }}>
               <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </button>
           ` : nothing}
@@ -912,7 +938,7 @@ export class GlassMediaCard extends BaseCard {
               <button class="dash-dot ${i === this._roomIndex ? 'active' : ''}"
                 aria-label=${t('media.room_dot_aria', { index: i + 1 })}
                 aria-current=${i === this._roomIndex ? 'true' : 'false'}
-                @click=${(e: Event) => { e.stopPropagation(); this._roomIndex = i; this._foldOpen = false; }}>
+                @click=${(e: Event) => { e.stopPropagation(); if (i !== this._roomIndex) this._swipeToRoom(i > this._roomIndex ? 'left' : 'right', i); }}>
               </button>
             `)}
           </div>
@@ -976,6 +1002,28 @@ export class GlassMediaCard extends BaseCard {
         opacity: 0; transition: opacity var(--t-fast);
       }
       .card-source.active { opacity: 1; color: var(--mp-sub); }
+
+      /* ── Swipe slide animation ── */
+      @keyframes swipe-exit-l {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+      }
+      @keyframes swipe-enter-r {
+        0%   { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+      @keyframes swipe-exit-r {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+      }
+      @keyframes swipe-enter-l {
+        0%   { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+      .swipe-exit-left  { animation: swipe-exit-l 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; }
+      .swipe-enter-right { animation: swipe-enter-r 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; }
+      .swipe-exit-right  { animation: swipe-exit-r 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; }
+      .swipe-enter-left  { animation: swipe-enter-l 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; }
 
       /* ── Dash wrap ── */
       .dash-wrap {
