@@ -8,7 +8,7 @@ import {
   type HomeAssistant,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -128,6 +128,7 @@ export class GlassNavbarCard extends BaseCard {
   static styles = [
     glassTokens,
     glassMixin,
+    bounceMixin,
     css`
       :host {
         display: block;
@@ -203,6 +204,11 @@ export class GlassNavbarCard extends BaseCard {
       @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
           background: var(--s2);
+        }
+      }
+      @media (hover: none) {
+        .nav-item:active {
+          animation: bounce 0.3s ease;
         }
       }
       .nav-item.active {
@@ -404,9 +410,14 @@ export class GlassNavbarCard extends BaseCard {
         .nav-settings:hover ha-icon {
           color: var(--t2);
         }
+        .nav-settings:active ha-icon {
+          color: var(--t1);
+        }
       }
-      .nav-settings:active ha-icon {
-        color: var(--t1);
+      @media (hover: none) {
+        .nav-settings:active {
+          animation: bounce 0.3s ease;
+        }
       }
     `,
   ];

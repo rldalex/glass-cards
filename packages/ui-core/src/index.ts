@@ -134,6 +134,16 @@ export function marqueeText(
   return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0${text}\u00A0\u00A0\u00A0</span></span>`;
 }
 
+// — Press Mixin (mobile touch feedback) —
+
+export const bounceMixin: CSSResult = css`
+  @keyframes bounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
+  }
+`;
+
 // — Fold Mixin —
 
 export const foldMixin: CSSResult = css`

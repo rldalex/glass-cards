@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
-import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 
@@ -57,6 +57,7 @@ export class GlassRoomPopup extends LitElement {
   static styles = [
     glassTokens,
     glassMixin,
+    bounceMixin,
     css`
       :host {
         display: block;
@@ -223,8 +224,15 @@ export class GlassRoomPopup extends LitElement {
           background: var(--s3);
         }
       }
-      .close-btn:active {
-        background: var(--s3);
+      @media (hover: hover) {
+        .close-btn:active {
+          background: var(--s3);
+        }
+      }
+      @media (hover: none) {
+        .close-btn:active {
+          animation: bounce 0.3s ease;
+        }
       }
 
       /* Focus-visible ring */
@@ -283,8 +291,15 @@ export class GlassRoomPopup extends LitElement {
           color: var(--t1);
         }
       }
-      .scene-chip:active {
-        background: var(--s3);
+      @media (hover: hover) {
+        .scene-chip:active {
+          background: var(--s3);
+        }
+      }
+      @media (hover: none) {
+        .scene-chip:active {
+          animation: bounce 0.3s ease;
+        }
       }
       .scene-chip.active {
         background: rgba(255, 255, 255, 0.12);

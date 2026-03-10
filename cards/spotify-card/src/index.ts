@@ -1,7 +1,7 @@
 import { css, html, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Types —
@@ -128,7 +128,7 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Styles —
 
-  static styles: CSSResult[] = [glassTokens, glassMixin, css`
+  static styles: CSSResult[] = [glassTokens, glassMixin, bounceMixin, css`
     :host { display: block; width: 100%; max-width: 500px; margin: 0 auto; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 6px; }
@@ -179,6 +179,7 @@ class GlassSpotifyCard extends BaseCard {
     .search-clear.visible { display: flex; }
     .search-clear ha-icon { --mdc-icon-size: 14px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .search-clear:hover { background: var(--s3); } }
+    @media (hover: none) { .search-clear:active { animation: bounce 0.3s ease; } }
     .search-clear:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     /* Fold toggle arrow (inside search bar) */
@@ -198,6 +199,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     @media (hover: hover) { .search-toggle:hover { background: var(--s3); } }
     @media (hover: hover) { .search-toggle:hover ha-icon { color: var(--t2); } }
+    @media (hover: none) { .search-toggle:active { animation: bounce 0.3s ease; } }
     .search-toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
     .search-toggle.open ha-icon { transform: rotate(180deg); color: #1DB954; }
 
@@ -243,7 +245,8 @@ class GlassSpotifyCard extends BaseCard {
     .tab-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
     .tab-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    .tab-btn:active { transform: scale(0.96); }
+    @media (hover: hover) { .tab-btn:active { transform: scale(0.96); } }
+    @media (hover: none) { .tab-btn:active { animation: bounce 0.3s ease; } }
     .tab-btn.active { background: rgba(29,185,84,0.1); color: #1DB954; }
     .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
 
@@ -270,7 +273,8 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) { .result-row:hover { background: var(--s1); } }
-    .result-row:active { transform: scale(0.99); }
+    @media (hover: hover) { .result-row:active { transform: scale(0.99); } }
+    @media (hover: none) { .result-row:active { animation: bounce 0.3s ease; } }
     .result-row:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     .result-art {
@@ -309,7 +313,8 @@ class GlassSpotifyCard extends BaseCard {
     }
     .result-play ha-icon { --mdc-icon-size: 16px; color: #000; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
-    .result-play:active { transform: scale(0.92); }
+    @media (hover: hover) { .result-play:active { transform: scale(0.92); } }
+    @media (hover: none) { .result-play:active { animation: bounce 0.3s ease; } }
     .result-play:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
 
     /* Playlist grid (horizontal scroll) */
@@ -326,7 +331,8 @@ class GlassSpotifyCard extends BaseCard {
       outline: none; text-align: left; font-family: inherit;
       -webkit-tap-highlight-color: transparent; color: inherit;
     }
-    .playlist-card:active { transform: scale(0.97); }
+    @media (hover: hover) { .playlist-card:active { transform: scale(0.97); } }
+    @media (hover: none) { .playlist-card:active { animation: bounce 0.3s ease; } }
     .playlist-card:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
 
     .playlist-art {
@@ -371,6 +377,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     .back-btn ha-icon { --mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .back-btn:hover { color: var(--t1); } }
+    @media (hover: none) { .back-btn:active { animation: bounce 0.3s ease; } }
     .back-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
 
     /* Empty & error states */
@@ -401,6 +408,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent; transition: all var(--t-fast);
     }
     @media (hover: hover) { .setup-link:hover { background: rgba(29,185,84,0.2); } }
+    @media (hover: none) { .setup-link:active { animation: bounce 0.3s ease; } }
     .setup-link:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
 
     /* Load more button */
@@ -413,6 +421,7 @@ class GlassSpotifyCard extends BaseCard {
       transition: all var(--t-fast); flex-shrink: 0;
     }
     @media (hover: hover) { .load-more-btn:hover { background: var(--s2); color: var(--t1); } }
+    @media (hover: none) { .load-more-btn:active { animation: bounce 0.3s ease; } }
     .load-more-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     /* Speaker picker overlay */
@@ -446,6 +455,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     .picker-close ha-icon { --mdc-icon-size: 16px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) { .picker-close:hover { background: var(--s3); } }
+    @media (hover: none) { .picker-close:active { animation: bounce 0.3s ease; } }
     .picker-close:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     .picker-track {
@@ -480,7 +490,8 @@ class GlassSpotifyCard extends BaseCard {
     }
     .picker-speaker.selected { border-color: rgba(29,185,84,0.4); background: rgba(29,185,84,0.08); }
     @media (hover: hover) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
-    .picker-speaker:active { transform: scale(0.98); }
+    @media (hover: hover) { .picker-speaker:active { transform: scale(0.98); } }
+    @media (hover: none) { .picker-speaker:active { animation: bounce 0.3s ease; } }
     .picker-speaker:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     .picker-speaker-icon {
@@ -519,7 +530,8 @@ class GlassSpotifyCard extends BaseCard {
     .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
     @media (hover: hover) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
     .picker-play-btn.primary ha-icon { --mdc-icon-size: 18px; display: flex; align-items: center; justify-content: center; }
-    .picker-play-btn:active:not(:disabled) { transform: scale(0.98); }
+    @media (hover: hover) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
+    @media (hover: none) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
 
     /* Loading spinner placeholder */
     .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }

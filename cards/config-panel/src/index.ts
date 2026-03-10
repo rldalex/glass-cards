@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus } from '@glass-cards/event-bus';
-import { glassTokens, glassMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t, setLanguage, getLanguage, type TranslationKey } from '@glass-cards/i18n';
 import {
   BackendService,
@@ -230,6 +230,7 @@ export class GlassConfigPanel extends LitElement {
   static styles = [
     glassTokens,
     glassMixin,
+    bounceMixin,
     css`
       *, *::before, *::after {
         box-sizing: border-box;
@@ -306,6 +307,9 @@ export class GlassConfigPanel extends LitElement {
         .page-back:hover {
           background: var(--s3);
         }
+      }
+      @media (hover: none) {
+        .page-back:active { animation: bounce 0.3s ease; }
       }
       .page-back:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -388,6 +392,9 @@ export class GlassConfigPanel extends LitElement {
         .tab:hover {
           color: var(--t2);
         }
+      }
+      @media (hover: none) {
+        .tab:active { animation: bounce 0.3s ease; }
       }
       .tab:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -486,6 +493,9 @@ export class GlassConfigPanel extends LitElement {
           border-color: var(--b2);
         }
       }
+      @media (hover: none) {
+        .item-row:active { animation: bounce 0.3s ease; }
+      }
       .item-row.disabled {
         opacity: 0.35;
       }
@@ -565,6 +575,9 @@ export class GlassConfigPanel extends LitElement {
           background: var(--s3);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .room-icon-btn:active { animation: bounce 0.3s ease; }
       }
       .room-icon-btn:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -690,6 +703,7 @@ export class GlassConfigPanel extends LitElement {
       .btn-icon.xs ha-icon { --mdc-icon-size: 14px; }
       .btn-icon.sm ha-icon { --mdc-icon-size: 16px; }
       @media (hover: hover) { .btn-icon:hover { background: var(--s2); color: var(--t2); } }
+      @media (hover: none) { .btn-icon:active { animation: bounce 0.3s ease; } }
       .btn-icon:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 
       /* ── Dropdown ── */
@@ -721,6 +735,9 @@ export class GlassConfigPanel extends LitElement {
           background: var(--s3);
           border-color: var(--b3);
         }
+      }
+      @media (hover: none) {
+        .dropdown-trigger:active { animation: bounce 0.3s ease; }
       }
       .dropdown-trigger:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -785,6 +802,9 @@ export class GlassConfigPanel extends LitElement {
           color: var(--t1);
         }
       }
+      @media (hover: none) {
+        .dropdown-item:active { animation: bounce 0.3s ease; }
+      }
       .dropdown-item:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: -2px;
@@ -848,6 +868,9 @@ export class GlassConfigPanel extends LitElement {
           background: var(--s3);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .icon-pick:active { animation: bounce 0.3s ease; }
       }
       .icon-pick:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1600,6 +1623,9 @@ export class GlassConfigPanel extends LitElement {
       @media (hover: hover) and (pointer: fine) {
         .title-color-chip:hover { transform: scale(1.1); }
       }
+      @media (hover: none) {
+        .title-color-chip:active { animation: bounce 0.3s ease; }
+      }
       .title-color-chip.neutral { background: var(--t4); }
       .title-color-chip.success { background: var(--c-success); }
       .title-color-chip.warning { background: var(--c-warning); }
@@ -1630,6 +1656,9 @@ export class GlassConfigPanel extends LitElement {
       .title-icon-btn.has-icon ha-icon { color: var(--t1); }
       @media (hover: hover) and (pointer: fine) {
         .title-icon-btn:hover { background: var(--s3); border-color: var(--b3); }
+      }
+      @media (hover: none) {
+        .title-icon-btn:active { animation: bounce 0.3s ease; }
       }
       .title-icon-btn:focus-visible {
         outline: 2px solid var(--c-accent); outline-offset: -2px;
@@ -1748,6 +1777,9 @@ export class GlassConfigPanel extends LitElement {
       @media (hover: hover) and (pointer: fine) {
         .cp-confirm:hover { background: var(--s3); border-color: var(--b3); }
       }
+      @media (hover: none) {
+        .cp-confirm:active { animation: bounce 0.3s ease; }
+      }
       .cp-confirm:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
 
       /* Color picker button (rainbow ring) */
@@ -1767,6 +1799,9 @@ export class GlassConfigPanel extends LitElement {
       }
       @media (hover: hover) and (pointer: fine) {
         .title-color-picker-btn:hover { transform: scale(1.15); }
+      }
+      @media (hover: none) {
+        .title-color-picker-btn:active { animation: bounce 0.3s ease; }
       }
       .title-color-picker-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
       .title-color-chip.custom {
@@ -2147,6 +2182,9 @@ export class GlassConfigPanel extends LitElement {
           background: var(--s1);
         }
       }
+      @media (hover: none) {
+        .feature-row:active { animation: bounce 0.3s ease; }
+      }
       .feature-row:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: -2px;
@@ -2329,6 +2367,9 @@ export class GlassConfigPanel extends LitElement {
           border-color: var(--b3);
         }
       }
+      @media (hover: none) {
+        .layout-btn:active { animation: bounce 0.3s ease; }
+      }
       .layout-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2365,7 +2406,12 @@ export class GlassConfigPanel extends LitElement {
           color: var(--t1);
         }
       }
-      .schedule-btn:active { transform: scale(0.96); }
+      @media (hover: hover) {
+        .schedule-btn:active { transform: scale(0.96); }
+      }
+      @media (hover: none) {
+        .schedule-btn:active { animation: bounce 0.3s ease; }
+      }
       .schedule-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2389,6 +2435,9 @@ export class GlassConfigPanel extends LitElement {
           background: var(--s2);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .item-card:active { animation: bounce 0.3s ease; }
       }
       .item-card.expanded {
         border-color: var(--b2);
@@ -2551,7 +2600,12 @@ export class GlassConfigPanel extends LitElement {
           border-color: rgba(248,113,113,0.3);
         }
       }
-      .schedule-delete:active { transform: scale(0.96); }
+      @media (hover: hover) {
+        .schedule-delete:active { transform: scale(0.96); }
+      }
+      @media (hover: none) {
+        .schedule-delete:active { animation: bounce 0.3s ease; }
+      }
 
       /* ── Schedule add & save (btn btn-sm from kit) ── */
       .schedule-add {
@@ -2611,6 +2665,9 @@ export class GlassConfigPanel extends LitElement {
       }
       @media (hover: hover) and (pointer: fine) {
         .datetime-display:hover { border-color: var(--b3); }
+      }
+      @media (hover: none) {
+        .datetime-display:active { animation: bounce 0.3s ease; }
       }
       .datetime-display:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -2672,6 +2729,9 @@ export class GlassConfigPanel extends LitElement {
       @media (hover: hover) and (pointer: fine) {
         .picker-nav:hover { background: var(--s2); color: var(--t1); }
       }
+      @media (hover: none) {
+        .picker-nav:active { animation: bounce 0.3s ease; }
+      }
       .picker-nav:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2709,6 +2769,9 @@ export class GlassConfigPanel extends LitElement {
       }
       @media (hover: hover) and (pointer: fine) {
         .picker-day:hover { background: var(--s2); color: var(--t1); }
+      }
+      @media (hover: none) {
+        .picker-day:active { animation: bounce 0.3s ease; }
       }
       .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
       .picker-day.selected {
@@ -2857,6 +2920,9 @@ export class GlassConfigPanel extends LitElement {
           color: var(--t1);
         }
       }
+      @media (hover: none) {
+        .btn:active { animation: bounce 0.3s ease; }
+      }
       .btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2872,6 +2938,9 @@ export class GlassConfigPanel extends LitElement {
           border-color: rgba(129, 140, 248, 0.35);
         }
       }
+      @media (hover: none) {
+        .btn-accent:active { animation: bounce 0.3s ease; }
+      }
       .btn-accent:disabled {
         opacity: 0.4;
         cursor: not-allowed;
@@ -2884,6 +2953,9 @@ export class GlassConfigPanel extends LitElement {
         .btn-ghost:hover {
           background: var(--s2);
         }
+      }
+      @media (hover: none) {
+        .btn-ghost:active { animation: bounce 0.3s ease; }
       }
 
       /* ── Toast ── */

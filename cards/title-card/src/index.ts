@@ -1,7 +1,7 @@
 import { css, html, nothing, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens } from '@glass-cards/ui-core';
+import { glassTokens, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Backend config shape —
@@ -55,7 +55,7 @@ class GlassTitleCard extends BaseCard {
   private _cycleTimer = 0;
   private _pendingTimer = 0;
 
-  static styles = [glassTokens, css`
+  static styles = [glassTokens, bounceMixin, css`
     :host {
       display: block;
       width: 100%;
@@ -96,7 +96,12 @@ class GlassTitleCard extends BaseCard {
       .mode-row:hover { background: var(--s1); }
     }
     .mode-row:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
-    .mode-row:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .mode-row:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .mode-row:active { animation: bounce 0.3s ease; }
+    }
 
     .mode-dot {
       width: 8px; height: 8px; border-radius: 50%;

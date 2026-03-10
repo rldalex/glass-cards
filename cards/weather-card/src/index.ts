@@ -1,7 +1,7 @@
 import { css, html, svg, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService, type HassEntity } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t, type TranslationKey } from '@glass-cards/i18n';
 
 // — HA condition → internal key mapping —
@@ -141,7 +141,7 @@ class GlassWeatherCard extends BaseCard {
 
   // — Styles —
 
-  static styles: CSSResult[] = [glassTokens, glassMixin, foldMixin, css`
+  static styles: CSSResult[] = [glassTokens, glassMixin, foldMixin, bounceMixin, css`
     :host {
       display: block;
       width: 100%;
@@ -357,7 +357,12 @@ class GlassWeatherCard extends BaseCard {
       outline: none;
     }
     .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
-    .wc-fc-tab:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .wc-fc-tab:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .wc-fc-tab:active { animation: bounce 0.3s ease; }
+    }
     .wc-fc-tab.active {
       background: var(--s4); border-color: var(--b3); color: var(--t1);
     }
@@ -451,6 +456,9 @@ class GlassWeatherCard extends BaseCard {
 
     @media (hover: hover) and (pointer: fine) {
       .wc-day-row:hover, .wc-hour-row:hover { background: var(--s1); }
+    }
+    @media (hover: none) {
+      .wc-day-row:active, .wc-hour-row:active { animation: bounce 0.3s ease; }
     }
 
     /* ── Tint ── */

@@ -103,7 +103,13 @@
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-`,o`
+`;const ge=o`
+  @keyframes bounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
+  }
+`;o`
   .fold {
     display: grid;
     grid-template-rows: 0fr;
@@ -121,7 +127,7 @@
     opacity: 1;
     transition-delay: 0.1s;
   }
-`;const ge={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité",delete:"Supprimer"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",color_picker_aria:"Ouvrir la roue chromatique",color_picker_title:"Choisir une couleur",effect_off:"Éteint",effect_candle:"Bougie",effect_fire:"Feu",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",dashboard_title:"LUMIÈRES ALLUMÉES",dashboard_overflow:"et {count} autres…",dashboard_turn_all_off_aria:"Éteindre toutes les lumières de la maison"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}",sensor_unavailable:"Capteur indisponible"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel"},cover:{title:"VOLETS",open:"Ouvert",closed:"Fermé",opening:"Ouverture…",closing:"Fermeture…",position:"Position",tilt:"Inclinaison",stop_aria:"Arrêter {name}",open_aria:"Ouvrir {name}",close_aria:"Fermer {name}",toggle_aria:"Basculer {name}",expand_aria:"Développer les contrôles de {name}",open_all_aria:"Ouvrir tous les volets",close_all_aria:"Fermer tous les volets",preset_open:"Ouvert",preset_closed:"Fermé",dashboard_title_one:"1 VOLET OUVERT",dashboard_title:"{count} VOLETS OUVERTS",dc_shutter:"Volet",dc_blind:"Store",dc_curtain:"Rideau",dc_garage:"Garage",dc_gate:"Portail",dc_door:"Porte",dc_awning:"Auvent",dc_shade:"Store",dc_window:"Fenêtre",dc_damper:"Clapet"},title_card:{mode_label:"Mode :",scene_label:"Scène :",mode_none:"Aucun",cycle_aria:"Changer de mode"},spotify:{title:"Spotify",search_placeholder:"Rechercher un titre, artiste, podcast…",tab_all:"Tout",tab_tracks:"Titres",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"Mes playlists",recently_played:"Écoutes récentes",saved_tracks:"Titres likés",followed_podcasts:"Podcasts suivis",tracks_count:"{count} titres",episodes_count:"{count} épisodes",type_track:"Titre",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Lire",play_on:"Jouer sur…",play_aria:"Jouer {name}",available:"Disponible",paused:"En pause",no_results:"Aucun résultat pour « {query} »",no_content:"Aucun contenu",load_more:"Voir plus",loading:"Chargement…",error_api:"Erreur Spotify",error_rate_limit:"Trop de requêtes, réessayez dans {seconds}s",not_configured:"Intégration Spotify non configurée",no_entity:"Configurez l'entité Spotify dans le panneau de configuration",open_config:"Ouvrir la configuration",back:"Retour",toggle_library:"Afficher la bibliothèque"},media:{title:"MÉDIAS",now_playing:"En lecture",idle:"En attente",off:"Éteint",standby:"Veille",buffering:"Chargement…",no_media:"Aucun média en lecture",no_players:"Aucun lecteur média",volume_aria:"Volume de {name}",play_aria:"Lire {name}",pause_aria:"Pause {name}",stop_aria:"Arrêter {name}",next_aria:"Piste suivante {name}",prev_aria:"Piste précédente {name}",mute_aria:"Couper le son de {name}",unmute_aria:"Rétablir le son de {name}",expand_aria:"Développer les contrôles de {name}",power_on_aria:"Allumer {name}",power_off_aria:"Éteindre {name}",dashboard_title:"EN LECTURE",group_members:"Multiroom",unknown_title:"Titre inconnu",unknown_artist:"Artiste inconnu",shuffle_aria:"Lecture aléatoire",repeat_aria:"Répétition",seek_aria:"Chercher dans la piste",source_label:"Source",sound_mode_label:"Mode audio",speakers_label:"Enceintes",volume_label:"Volume",coordinator:"Coordinateur",add_group_aria:"Ajouter {name} au groupe",remove_group_aria:"Retirer {name} du groupe",no_playback:"Aucune lecture en cours",speakers_count:"{count} enceintes"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Barre de nav",tab_popup:"Popup Pièce",tab_light:"Carte Lumières",preview:"Aperçu",navbar_behavior:"Comportement",navbar_auto_sort:"Tri automatique",navbar_auto_sort_desc:"Les pièces actives remontent en premier",navbar_rooms_banner:"Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.",navbar_visible_rooms:"Pièces visibles",navbar_empty_rooms:"Pièces vides",navbar_empty_rooms_desc:"Ces pièces n'ont aucune entité assignée dans Home Assistant. Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.",navbar_indicators:"Indicateurs",navbar_indicators_desc:"Activez ou désactivez les indicateurs visuels sur la navbar.",navbar_ind_lights:"Lumières allumées",navbar_ind_lights_desc:"Glow doré sur l'icône",navbar_ind_temp:"Température",navbar_ind_temp_desc:"Badge chaud / froid",navbar_ind_humidity:"Humidité",navbar_ind_humidity_desc:"Barre bleue en bas",navbar_ind_media:"Média en lecture",navbar_ind_media_desc:"Bounce de l'icône",navbar_thresholds:"Seuils",navbar_thresholds_desc:"Définissez les seuils pour les alertes de température et d'humidité.",navbar_temp_high:"Température haute",navbar_temp_low:"Température basse",navbar_humidity_threshold:"Seuil humidité",navbar_choose_icon:"Choisir icône",navbar_change_icon_aria:"Changer l'icône de {name}",navbar_icon_label:"Icône — {name}",popup_room:"Pièce",popup_room_desc:"Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.",popup_internal_cards:"Cartes internes",popup_internal_cards_desc:"Ordonnez les cartes affichées dans le popup de cette pièce.",popup_scenes:"Scènes",popup_scenes_desc:"Réordonnez et masquez les scènes affichées en haut du popup.",popup_select_room:"Sélectionnez une pièce",light_room:"Pièce",light_room_desc:"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.",light_list_title:"Lumières",light_list_banner:"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.",light_no_lights:"Aucune lumière dans cette pièce.",light_no_visible:"Aucune lumière visible",light_select_room:"Sélectionnez une pièce",light_change_layout_aria:"Changer le layout",light_layout_compact:"COMPACT",light_layout_full:"PLEIN",light_schedule_hint:"Appuyez sur l'icône calendrier de chaque lumière pour définir des périodes de visibilité.",light_schedule_aria:"Gérer la planification de visibilité de {name}",light_schedule_title:"Planification de visibilité",light_schedule_start:"Début",light_schedule_end:"Fin",light_schedule_recurring:"Annuel",light_schedule_add:"Ajouter une période",light_schedule_delete_aria:"Supprimer la période",light_schedule_no_date:"Choisir une date…",light_schedule_confirm:"Confirmer",light_schedule_prev_month_aria:"Mois précédent",light_schedule_next_month_aria:"Mois suivant",light_show_header:"Afficher l'en-tête",light_show_header_desc:"Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte",light_dashboard_vs_room:"Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",domain_light:"Lumières",domain_light_desc:"Contrôle des lumières",domain_media_player:"Média",domain_media_player_desc:"Lecteurs multimédias",domain_climate:"Climat",domain_climate_desc:"Thermostats et climatisation",domain_fan:"Ventilateur",domain_fan_desc:"Ventilation",domain_cover:"Volets",domain_cover_desc:"Stores et volets roulants",domain_vacuum:"Aspirateur",domain_vacuum_desc:"Robots aspirateurs",tab_weather:"Carte Météo",weather_entity:"Entité météo",weather_entity_desc:"Sélectionnez l'entité météo à afficher sur la carte.",weather_metrics:"Métriques visibles",weather_metrics_desc:"Activez ou désactivez les métriques affichées sur la carte.",weather_forecasts:"Onglets prévisions",weather_forecasts_desc:"Activez ou désactivez les onglets de prévisions.",weather_metric_humidity:"Humidité",weather_metric_wind:"Vent",weather_metric_pressure:"Pression",weather_metric_uv:"UV",weather_metric_visibility:"Visibilité",weather_metric_sunrise:"Lever du soleil",weather_metric_sunset:"Coucher du soleil",weather_daily:"Prévisions 7 jours",weather_hourly:"Prévisions horaires",weather_select_entity:"Sélectionnez une entité météo",weather_show_header:"Afficher l'en-tête",weather_show_header_desc:"Titre et localisation au-dessus de la carte",tab_title:"Carte Titre",title_title:"Texte du titre",title_title_desc:"Texte principal affiché sur la carte.",title_title_placeholder:"Ma Maison",title_mode_entity:"Entité mode",title_mode_entity_desc:"Sélectionnez un input_select, input_boolean ou une scène pour les modes.",title_select_entity:"Sélectionnez une entité",title_modes:"Configuration des modes",title_modes_desc:"Personnalisez le libellé, l'icône et la couleur de chaque mode.",title_mode_label:"Libellé",title_mode_icon:"Icône",title_mode_color:"Couleur",title_color_picker_title:"Choisir une couleur",title_color_picker_aria:"Ouvrir la roue chromatique",title_no_modes:"Sélectionnez d'abord une entité mode.",title_no_icons_found:"Aucune icône trouvée",title_no_icon:"Aucune",dashboard_card_title:"Carte Titre",dashboard_card_title_desc:"Texte titre avec sélecteur de mode optionnel",tab_dashboard:"Tableau de bord",dashboard_title:"Cartes du tableau de bord",dashboard_desc:"Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l'ordre.",dashboard_card_weather:"Carte Météo",dashboard_card_weather_desc:"Affiche la météo actuelle, prévisions et animations",dashboard_card_light:"Carte Lumières",dashboard_card_light_desc:"Affiche les lumières allumées avec contrôle rapide",dashboard_light_auto:"Les lumières allumées s'affichent automatiquement sur le tableau de bord.",dashboard_card_cover:"Carte Volets",dashboard_card_cover_desc:"Affiche les volets sélectionnés avec contrôle de position",dashboard_card_spotify:"Carte Spotify",dashboard_card_spotify_desc:"Bibliothèque musicale, recherche et lecture Spotify",tab_media:"Carte Média",media_variant:"Variante d'affichage",media_variant_desc:"Choisissez entre la vue liste (compacte) ou la vue héros (artwork).",media_variant_list:"Liste",media_variant_hero:"Héros",media_show_header:"Afficher l'en-tête",media_show_header_desc:"Titre et compteur au-dessus de la carte",media_room:"Pièce",media_room_desc:"Sélectionnez une pièce pour configurer sa variante et ses lecteurs supplémentaires.",media_room_variant:"Variante pour cette pièce",media_room_variant_default:"Par défaut",media_extra_entities:"Lecteurs supplémentaires",media_extra_entities_desc:"Ajoutez des lecteurs médias supplémentaires à cette pièce.",media_select_room:"Sélectionnez une pièce",media_dashboard_variant:"Variante dashboard",media_dashboard_variant_desc:"Variante utilisée pour la carte média sur le tableau de bord.",dashboard_card_media:"Carte Média",dashboard_card_media_desc:"Affiche les lecteurs médias avec contrôles de transport",tab_cover:"Carte Volets",cover_show_header:"Afficher l'en-tête",cover_show_header_desc:"Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",cover_dashboard_entities:"Volets du tableau de bord",cover_dashboard_entities_desc:"Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.",cover_dashboard_no_entities:"Aucun volet sélectionné pour le tableau de bord.",cover_room:"Pièce",cover_room_desc:"Sélectionnez une pièce pour configurer ses volets : ordre et visibilité.",cover_list_title:"Volets",cover_list_banner:"Glissez pour réordonner. Désactivez ceux à masquer.",cover_no_covers:"Aucun volet dans cette pièce.",cover_select_room:"Sélectionnez une pièce",cover_presets:"Positions par défaut",cover_presets_desc:"Positions par défaut pour les volets sans configuration personnalisée.",cover_entity_presets:"Positions",cover_preset_add:"Ajouter",cover_preset_placeholder:"0–100",tab_spotify:"Carte Spotify",spotify_show_header:"Afficher l'en-tête",spotify_show_header_desc:"Titre et contrôles au-dessus de la carte",spotify_entity:"Entité lecteur Spotify",spotify_entity_desc:"Sélectionnez l'entité media_player Spotify à utiliser pour la carte.",spotify_sort_order:"Ordre de tri",spotify_sort_order_desc:"Choisissez l'ordre d'affichage des playlists et titres sauvegardés.",spotify_sort_recent:"Plus récent en premier",spotify_sort_oldest:"Plus ancien en premier",spotify_select_entity:"Sélectionnez un lecteur Spotify",spotify_max_items:"Éléments par section",spotify_max_items_desc:"Nombre maximum d'éléments affichés par section (playlists, titres récents, etc.).",spotify_speakers:"Enceintes visibles",spotify_speakers_desc:"Sélectionnez les enceintes affichées dans le popup de lecture. Si aucune n'est sélectionnée, toutes les enceintes sont affichées.",spotify_not_configured:"Intégration Spotify non configurée",spotify_setup_guide:"Pour utiliser la carte Spotify, vous devez d'abord configurer l'intégration Spotify officielle dans Home Assistant.",spotify_setup_step1:"Allez dans Paramètres → Appareils et services",spotify_setup_step2:"Cliquez sur « Ajouter une intégration » et cherchez « Spotify »",spotify_setup_step3:"Connectez-vous avec votre compte Spotify et autorisez l'accès",spotify_setup_step4:"Une entité media_player.spotify_* apparaîtra automatiquement",spotify_setup_note:"Un compte Spotify Premium est requis pour les contrôles de lecture.",spotify_checking:"Vérification de la connexion Spotify…",spotify_open_settings:"Ouvrir les paramètres"}},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity",delete:"Delete"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",color_picker_aria:"Open color wheel",color_picker_title:"Choose a color",effect_off:"Off",effect_candle:"Candle",effect_fire:"Fire",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",dashboard_title:"LIGHTS ON",dashboard_overflow:"and {count} more…",dashboard_turn_all_off_aria:"Turn off all lights in the house"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}",sensor_unavailable:"Sensor unavailable"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional"},cover:{title:"COVERS",open:"Open",closed:"Closed",opening:"Opening…",closing:"Closing…",position:"Position",tilt:"Tilt",stop_aria:"Stop {name}",open_aria:"Open {name}",close_aria:"Close {name}",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",open_all_aria:"Open all covers",close_all_aria:"Close all covers",preset_open:"Open",preset_closed:"Closed",dashboard_title_one:"1 COVER OPEN",dashboard_title:"{count} COVERS OPEN",dc_shutter:"Shutter",dc_blind:"Blind",dc_curtain:"Curtain",dc_garage:"Garage",dc_gate:"Gate",dc_door:"Door",dc_awning:"Awning",dc_shade:"Shade",dc_window:"Window",dc_damper:"Damper"},title_card:{mode_label:"Mode:",scene_label:"Scene:",mode_none:"None",cycle_aria:"Change mode"},spotify:{title:"Spotify",search_placeholder:"Search for a track, artist, podcast…",tab_all:"All",tab_tracks:"Tracks",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"My playlists",recently_played:"Recently played",saved_tracks:"Liked songs",followed_podcasts:"Followed podcasts",tracks_count:"{count} tracks",episodes_count:"{count} episodes",type_track:"Track",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Play",play_on:"Play on…",play_aria:"Play {name}",available:"Available",paused:"Paused",no_results:'No results for "{query}"',no_content:"No content",load_more:"Load more",loading:"Loading…",error_api:"Spotify error",error_rate_limit:"Too many requests, try again in {seconds}s",not_configured:"Spotify integration not configured",no_entity:"Configure the Spotify entity in the configuration panel",open_config:"Open configuration",back:"Back",toggle_library:"Show library"},media:{title:"MEDIA",now_playing:"Now playing",idle:"Idle",off:"Off",standby:"Standby",buffering:"Buffering…",no_media:"No media playing",no_players:"No media players",volume_aria:"{name} volume",play_aria:"Play {name}",pause_aria:"Pause {name}",stop_aria:"Stop {name}",next_aria:"Next track {name}",prev_aria:"Previous track {name}",mute_aria:"Mute {name}",unmute_aria:"Unmute {name}",expand_aria:"Expand {name} controls",power_on_aria:"Turn on {name}",power_off_aria:"Turn off {name}",dashboard_title:"NOW PLAYING",group_members:"Multiroom",unknown_title:"Unknown title",unknown_artist:"Unknown artist",shuffle_aria:"Shuffle",repeat_aria:"Repeat",seek_aria:"Seek in track",source_label:"Source",sound_mode_label:"Sound mode",speakers_label:"Speakers",volume_label:"Volume",coordinator:"Coordinator",add_group_aria:"Add {name} to group",remove_group_aria:"Remove {name} from group",no_playback:"No playback",speakers_count:"{count} speakers"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Navbar",tab_popup:"Room Popup",tab_light:"Light Card",preview:"Preview",navbar_behavior:"Behavior",navbar_auto_sort:"Auto sort",navbar_auto_sort_desc:"Active rooms move to the top",navbar_rooms_banner:"Drag to reorder rooms. Toggle to hide.",navbar_visible_rooms:"Visible rooms",navbar_empty_rooms:"Empty rooms",navbar_empty_rooms_desc:"These rooms have no entities assigned in Home Assistant. Add devices to these areas for them to appear in the navbar.",navbar_indicators:"Indicators",navbar_indicators_desc:"Enable or disable visual indicators on the navbar.",navbar_ind_lights:"Lights on",navbar_ind_lights_desc:"Golden glow on icon",navbar_ind_temp:"Temperature",navbar_ind_temp_desc:"Hot / cold badge",navbar_ind_humidity:"Humidity",navbar_ind_humidity_desc:"Blue bar at bottom",navbar_ind_media:"Media playing",navbar_ind_media_desc:"Icon bounce",navbar_thresholds:"Thresholds",navbar_thresholds_desc:"Set thresholds for temperature and humidity alerts.",navbar_temp_high:"High temperature",navbar_temp_low:"Low temperature",navbar_humidity_threshold:"Humidity threshold",navbar_choose_icon:"Choose icon",navbar_change_icon_aria:"Change icon for {name}",navbar_icon_label:"Icon — {name}",popup_room:"Room",popup_room_desc:"Select a room to configure the order and visibility of its internal cards.",popup_internal_cards:"Internal cards",popup_internal_cards_desc:"Order the cards displayed in this room's popup.",popup_scenes:"Scenes",popup_scenes_desc:"Reorder and hide scenes shown at the top of the popup.",popup_select_room:"Select a room",light_room:"Room",light_room_desc:"Select a room to configure its lights: order, visibility and display mode.",light_list_title:"Lights",light_list_banner:"Drag to reorder. The layout button toggles between full width and compact.",light_no_lights:"No lights in this room.",light_no_visible:"No visible lights",light_select_room:"Select a room",light_change_layout_aria:"Change layout",light_layout_compact:"COMPACT",light_layout_full:"FULL",light_schedule_hint:"Tap the calendar icon on each light to set visibility periods.",light_schedule_aria:"Manage visibility schedule for {name}",light_schedule_title:"Visibility schedule",light_schedule_start:"Start",light_schedule_end:"End",light_schedule_recurring:"Annually",light_schedule_add:"Add period",light_schedule_delete_aria:"Delete period",light_schedule_no_date:"Select date…",light_schedule_confirm:"Confirm",light_schedule_prev_month_aria:"Previous month",light_schedule_next_month_aria:"Next month",light_show_header:"Show header",light_show_header_desc:"Title, counter and toggle all button above the card",light_dashboard_vs_room:"On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.",domain_light:"Lights",domain_light_desc:"Light control",domain_media_player:"Media",domain_media_player_desc:"Media players",domain_climate:"Climate",domain_climate_desc:"Thermostats and air conditioning",domain_fan:"Fan",domain_fan_desc:"Ventilation",domain_cover:"Covers",domain_cover_desc:"Blinds and shutters",domain_vacuum:"Vacuum",domain_vacuum_desc:"Robot vacuums",tab_weather:"Weather Card",weather_entity:"Weather entity",weather_entity_desc:"Select the weather entity to display on the card.",weather_metrics:"Visible metrics",weather_metrics_desc:"Enable or disable metrics shown on the card.",weather_forecasts:"Forecast tabs",weather_forecasts_desc:"Enable or disable forecast tabs.",weather_metric_humidity:"Humidity",weather_metric_wind:"Wind",weather_metric_pressure:"Pressure",weather_metric_uv:"UV",weather_metric_visibility:"Visibility",weather_metric_sunrise:"Sunrise",weather_metric_sunset:"Sunset",weather_daily:"7-day forecast",weather_hourly:"Hourly forecast",weather_select_entity:"Select a weather entity",weather_show_header:"Show header",weather_show_header_desc:"Title and location above the card",tab_title:"Title Card",title_title:"Title text",title_title_desc:"Main text displayed on the card.",title_title_placeholder:"My Home",title_mode_entity:"Mode entity",title_mode_entity_desc:"Select an input_select, input_boolean, or scene for modes.",title_select_entity:"Select an entity",title_modes:"Mode configuration",title_modes_desc:"Customize the label, icon and color for each mode option.",title_mode_label:"Label",title_mode_icon:"Icon",title_mode_color:"Color",title_color_picker_title:"Choose a color",title_color_picker_aria:"Open color wheel",title_no_modes:"Select a mode entity first.",title_no_icons_found:"No icons found",title_no_icon:"None",dashboard_card_title:"Title Card",dashboard_card_title_desc:"Title text with optional mode selector",tab_dashboard:"Dashboard",dashboard_title:"Dashboard cards",dashboard_desc:"Reorder, enable or disable dashboard cards. Drag to change the order.",dashboard_card_weather:"Weather Card",dashboard_card_weather_desc:"Current weather, forecasts and animations",dashboard_card_light:"Light Card",dashboard_card_light_desc:"Shows active lights with quick controls",dashboard_light_auto:"Active lights are automatically displayed on the dashboard.",dashboard_card_cover:"Cover Card",dashboard_card_cover_desc:"Shows selected covers with position controls",dashboard_card_spotify:"Spotify Card",dashboard_card_spotify_desc:"Music library, search and Spotify playback",tab_media:"Media Card",media_variant:"Display variant",media_variant_desc:"Choose between list view (compact) or hero view (artwork).",media_variant_list:"List",media_variant_hero:"Hero",media_show_header:"Show header",media_show_header_desc:"Title and counter above the card",media_room:"Room",media_room_desc:"Select a room to configure its variant and extra players.",media_room_variant:"Variant for this room",media_room_variant_default:"Default",media_extra_entities:"Extra players",media_extra_entities_desc:"Add extra media players to this room.",media_select_room:"Select a room",media_dashboard_variant:"Dashboard variant",media_dashboard_variant_desc:"Variant used for the media card on the dashboard.",dashboard_card_media:"Media Card",dashboard_card_media_desc:"Shows media players with transport controls",tab_cover:"Cover Card",cover_show_header:"Show header",cover_show_header_desc:"Title, counter and open/close all buttons above the card",cover_dashboard_entities:"Dashboard covers",cover_dashboard_entities_desc:"Select which covers to display on the dashboard. All selected covers are shown regardless of their state.",cover_dashboard_no_entities:"No cover entities selected for the dashboard.",cover_room:"Room",cover_room_desc:"Select a room to configure its covers: order and visibility.",cover_list_title:"Covers",cover_list_banner:"Drag to reorder. Toggle to hide.",cover_no_covers:"No covers in this room.",cover_select_room:"Select a room",cover_presets:"Default positions",cover_presets_desc:"Default positions for covers without custom configuration.",cover_entity_presets:"Positions",cover_preset_add:"Add",cover_preset_placeholder:"0–100",tab_spotify:"Spotify Card",spotify_show_header:"Show header",spotify_show_header_desc:"Title and controls above the card",spotify_entity:"Spotify player entity",spotify_entity_desc:"Select the Spotify media_player entity to use for the card.",spotify_sort_order:"Sort order",spotify_sort_order_desc:"Choose the display order for playlists and saved tracks.",spotify_sort_recent:"Most recent first",spotify_sort_oldest:"Oldest first",spotify_select_entity:"Select a Spotify player",spotify_max_items:"Items per section",spotify_max_items_desc:"Maximum number of items displayed per section (playlists, recent tracks, etc.).",spotify_speakers:"Visible speakers",spotify_speakers_desc:"Select which speakers appear in the playback popup. If none are selected, all speakers are shown.",spotify_not_configured:"Spotify integration not configured",spotify_setup_guide:"To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.",spotify_setup_step1:"Go to Settings → Devices & services",spotify_setup_step2:'Click "Add integration" and search for "Spotify"',spotify_setup_step3:"Sign in with your Spotify account and authorize access",spotify_setup_step4:"A media_player.spotify_* entity will appear automatically",spotify_setup_note:"A Spotify Premium account is required for playback controls.",spotify_checking:"Checking Spotify connection…",spotify_open_settings:"Open settings"}}},ve="fr";let me=ve;function be(e){const t=e.slice(0,2).toLowerCase(),i=t in ge?t:ve;return i!==me&&(me=i,!0)}function fe(){return me}function ye(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),s=-1===i?"":e.slice(i+1),o=ge[me]??ge[ve],r=ge[ve],n=o?.[a]?.[s]??r?.[a]?.[s];let d="string"==typeof n?n:e;if(t)for(const[c,l]of Object.entries(t))d=d.replaceAll(`{${c}}`,String(l));return d}var we=Object.defineProperty,xe=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&we(t,i,o),o};class $e extends re{constructor(){super(...arguments),this._lang=fe(),this._busCleanups=[],this._boundDocClick=this._handleDocumentClick.bind(this)}setConfig(e){this._config=e}shouldUpdate(e){if(!e.has("hass"))return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&be(this.hass.language)&&(this._lang=fe())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}connectedCallback(){super.connectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.addEventListener("click",this._boundDocClick,!0)}_listen(e,t){this._busCleanups.push(pe.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.removeEventListener("click",this._boundDocClick,!0)}_handleDocumentClick(e){e.composedPath().includes(this)||this._collapseExpanded()}_collapseExpanded(){}_scrollToTop(){setTimeout(()=>{this.scrollIntoView({block:"start",behavior:"smooth"})},300)}}function ke(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&function(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}(t,i)===e)}xe([le({attribute:!1})],$e.prototype,"hass"),xe([he()],$e.prototype,"_lang");class Se{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}var Ee=Object.defineProperty,Ce=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&Ee(t,i,o),o};const Pe=["light","media_player","climate","fan","cover","vacuum"],Me=new Set(["light","media_player","cover"]),De={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",vacuum:"mdi:robot-vacuum"},Ie={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};const Te=["mdi:sofa","mdi:stove","mdi:bed","mdi:desk","mdi:shower","mdi:home","mdi:movie-open","mdi:music","mdi:wrench","mdi:flower","mdi:white-balance-sunny","mdi:weather-night","mdi:lightbulb","mdi:snowflake","mdi:fire","mdi:lock"];class ze extends re{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=fe(),this._tab="dashboard",this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._cards=[],this._scenes=[],this._lights=[],this._lightRoom="",this._lightDropdownOpen=!1,this._iconPickerRoom=null,this._dropdownOpen=!1,this._toast=!1,this._saving=!1,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._showMedia=!0,this._autoSort=!0,this._tempHigh=24,this._tempLow=17,this._humidityThreshold=65,this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1,this._titleText="",this._titleModeEntity="",this._titleModes=[],this._titleModeDropdownOpen=!1,this._iconPopupModeIdx=null,this._iconSearch="",this._iconList=[],this._colorPickerModeIdx=null,this._colorPickerHex="#ffffff",this._colorPickerPos={x:50,y:50},this._cpCanvas=null,this._lightShowHeader=!0,this._coverShowHeader=!0,this._coverDashboardEntities=[],this._coverDashboardOrder=[],this._coverPresets=[0,25,50,75,100],this._coverEntityPresets={},this._coverRoom="",this._coverRoomDropdownOpen=!1,this._coverRoomEntities=[],this._coverPresetInput="",this._coverEntityPresetInput={},this._mediaShowHeader=!0,this._mediaExtraEntities={},this._spotifyShowHeader=!0,this._spotifyEntity="",this._spotifySortOrder="recent_first",this._spotifyDropdownOpen=!1,this._spotifyMaxItems=6,this._spotifyVisibleSpeakers=[],this._spotifyConfigured=null,this._dashboardEnabledCards=["weather"],this._dashboardCardOrder=["title","weather","light","cover","spotify"],this._dashboardExpanded=new Set,this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=(new Date).getFullYear(),this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=(new Date).getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._loaded=!1,this._loading=!1,this._toastError=!1,this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this),this._boundUpdateScrollMask=this._updateScrollMask.bind(this),this._initialIcons=new Map,this._tabsEl=null,this._iconLoading=!1}static{this.styles=[_e,ue,o`
+`;const ve={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité",delete:"Supprimer"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",color_picker_aria:"Ouvrir la roue chromatique",color_picker_title:"Choisir une couleur",effect_off:"Éteint",effect_candle:"Bougie",effect_fire:"Feu",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",dashboard_title:"LUMIÈRES ALLUMÉES",dashboard_overflow:"et {count} autres…",dashboard_turn_all_off_aria:"Éteindre toutes les lumières de la maison"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}",sensor_unavailable:"Capteur indisponible"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel"},cover:{title:"VOLETS",open:"Ouvert",closed:"Fermé",opening:"Ouverture…",closing:"Fermeture…",position:"Position",tilt:"Inclinaison",stop_aria:"Arrêter {name}",open_aria:"Ouvrir {name}",close_aria:"Fermer {name}",toggle_aria:"Basculer {name}",expand_aria:"Développer les contrôles de {name}",open_all_aria:"Ouvrir tous les volets",close_all_aria:"Fermer tous les volets",preset_open:"Ouvert",preset_closed:"Fermé",dashboard_title_one:"1 VOLET OUVERT",dashboard_title:"{count} VOLETS OUVERTS",dc_shutter:"Volet",dc_blind:"Store",dc_curtain:"Rideau",dc_garage:"Garage",dc_gate:"Portail",dc_door:"Porte",dc_awning:"Auvent",dc_shade:"Store",dc_window:"Fenêtre",dc_damper:"Clapet"},title_card:{mode_label:"Mode :",scene_label:"Scène :",mode_none:"Aucun",cycle_aria:"Changer de mode"},spotify:{title:"Spotify",search_placeholder:"Rechercher un titre, artiste, podcast…",tab_all:"Tout",tab_tracks:"Titres",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"Mes playlists",recently_played:"Écoutes récentes",saved_tracks:"Titres likés",followed_podcasts:"Podcasts suivis",tracks_count:"{count} titres",episodes_count:"{count} épisodes",type_track:"Titre",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Lire",play_on:"Jouer sur…",play_aria:"Jouer {name}",available:"Disponible",paused:"En pause",no_results:"Aucun résultat pour « {query} »",no_content:"Aucun contenu",load_more:"Voir plus",loading:"Chargement…",error_api:"Erreur Spotify",error_rate_limit:"Trop de requêtes, réessayez dans {seconds}s",not_configured:"Intégration Spotify non configurée",no_entity:"Configurez l'entité Spotify dans le panneau de configuration",open_config:"Ouvrir la configuration",back:"Retour",toggle_library:"Afficher la bibliothèque"},media:{title:"MÉDIAS",now_playing:"En lecture",idle:"En attente",off:"Éteint",standby:"Veille",buffering:"Chargement…",no_media:"Aucun média en lecture",no_players:"Aucun lecteur média",volume_aria:"Volume de {name}",play_aria:"Lire {name}",pause_aria:"Pause {name}",stop_aria:"Arrêter {name}",next_aria:"Piste suivante {name}",prev_aria:"Piste précédente {name}",mute_aria:"Couper le son de {name}",unmute_aria:"Rétablir le son de {name}",expand_aria:"Développer les contrôles de {name}",power_on_aria:"Allumer {name}",power_off_aria:"Éteindre {name}",dashboard_title:"EN LECTURE",group_members:"Multiroom",unknown_title:"Titre inconnu",unknown_artist:"Artiste inconnu",shuffle_aria:"Lecture aléatoire",repeat_aria:"Répétition",seek_aria:"Chercher dans la piste",source_label:"Source",sound_mode_label:"Mode audio",speakers_label:"Enceintes",volume_label:"Volume",coordinator:"Coordinateur",add_group_aria:"Ajouter {name} au groupe",remove_group_aria:"Retirer {name} du groupe",no_playback:"Aucune lecture en cours",speakers_count:"{count} enceintes"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Barre de nav",tab_popup:"Popup Pièce",tab_light:"Carte Lumières",preview:"Aperçu",navbar_behavior:"Comportement",navbar_auto_sort:"Tri automatique",navbar_auto_sort_desc:"Les pièces actives remontent en premier",navbar_rooms_banner:"Réordonnez les pièces par glisser-déposer. Désactivez celles à masquer.",navbar_visible_rooms:"Pièces visibles",navbar_empty_rooms:"Pièces vides",navbar_empty_rooms_desc:"Ces pièces n'ont aucune entité assignée dans Home Assistant. Ajoutez des appareils à ces zones pour qu'elles apparaissent dans la navbar.",navbar_indicators:"Indicateurs",navbar_indicators_desc:"Activez ou désactivez les indicateurs visuels sur la navbar.",navbar_ind_lights:"Lumières allumées",navbar_ind_lights_desc:"Glow doré sur l'icône",navbar_ind_temp:"Température",navbar_ind_temp_desc:"Badge chaud / froid",navbar_ind_humidity:"Humidité",navbar_ind_humidity_desc:"Barre bleue en bas",navbar_ind_media:"Média en lecture",navbar_ind_media_desc:"Bounce de l'icône",navbar_thresholds:"Seuils",navbar_thresholds_desc:"Définissez les seuils pour les alertes de température et d'humidité.",navbar_temp_high:"Température haute",navbar_temp_low:"Température basse",navbar_humidity_threshold:"Seuil humidité",navbar_choose_icon:"Choisir icône",navbar_change_icon_aria:"Changer l'icône de {name}",navbar_icon_label:"Icône — {name}",popup_room:"Pièce",popup_room_desc:"Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.",popup_internal_cards:"Cartes internes",popup_internal_cards_desc:"Ordonnez les cartes affichées dans le popup de cette pièce.",popup_scenes:"Scènes",popup_scenes_desc:"Réordonnez et masquez les scènes affichées en haut du popup.",popup_select_room:"Sélectionnez une pièce",light_room:"Pièce",light_room_desc:"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.",light_list_title:"Lumières",light_list_banner:"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.",light_no_lights:"Aucune lumière dans cette pièce.",light_no_visible:"Aucune lumière visible",light_select_room:"Sélectionnez une pièce",light_change_layout_aria:"Changer le layout",light_layout_compact:"COMPACT",light_layout_full:"PLEIN",light_schedule_hint:"Appuyez sur l'icône calendrier de chaque lumière pour définir des périodes de visibilité.",light_schedule_aria:"Gérer la planification de visibilité de {name}",light_schedule_title:"Planification de visibilité",light_schedule_start:"Début",light_schedule_end:"Fin",light_schedule_recurring:"Annuel",light_schedule_add:"Ajouter une période",light_schedule_delete_aria:"Supprimer la période",light_schedule_no_date:"Choisir une date…",light_schedule_confirm:"Confirmer",light_schedule_prev_month_aria:"Mois précédent",light_schedule_next_month_aria:"Mois suivant",light_show_header:"Afficher l'en-tête",light_show_header_desc:"Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte",light_dashboard_vs_room:"Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",domain_light:"Lumières",domain_light_desc:"Contrôle des lumières",domain_media_player:"Média",domain_media_player_desc:"Lecteurs multimédias",domain_climate:"Climat",domain_climate_desc:"Thermostats et climatisation",domain_fan:"Ventilateur",domain_fan_desc:"Ventilation",domain_cover:"Volets",domain_cover_desc:"Stores et volets roulants",domain_vacuum:"Aspirateur",domain_vacuum_desc:"Robots aspirateurs",tab_weather:"Carte Météo",weather_entity:"Entité météo",weather_entity_desc:"Sélectionnez l'entité météo à afficher sur la carte.",weather_metrics:"Métriques visibles",weather_metrics_desc:"Activez ou désactivez les métriques affichées sur la carte.",weather_forecasts:"Onglets prévisions",weather_forecasts_desc:"Activez ou désactivez les onglets de prévisions.",weather_metric_humidity:"Humidité",weather_metric_wind:"Vent",weather_metric_pressure:"Pression",weather_metric_uv:"UV",weather_metric_visibility:"Visibilité",weather_metric_sunrise:"Lever du soleil",weather_metric_sunset:"Coucher du soleil",weather_daily:"Prévisions 7 jours",weather_hourly:"Prévisions horaires",weather_select_entity:"Sélectionnez une entité météo",weather_show_header:"Afficher l'en-tête",weather_show_header_desc:"Titre et localisation au-dessus de la carte",tab_title:"Carte Titre",title_title:"Texte du titre",title_title_desc:"Texte principal affiché sur la carte.",title_title_placeholder:"Ma Maison",title_mode_entity:"Entité mode",title_mode_entity_desc:"Sélectionnez un input_select, input_boolean ou une scène pour les modes.",title_select_entity:"Sélectionnez une entité",title_modes:"Configuration des modes",title_modes_desc:"Personnalisez le libellé, l'icône et la couleur de chaque mode.",title_mode_label:"Libellé",title_mode_icon:"Icône",title_mode_color:"Couleur",title_color_picker_title:"Choisir une couleur",title_color_picker_aria:"Ouvrir la roue chromatique",title_no_modes:"Sélectionnez d'abord une entité mode.",title_no_icons_found:"Aucune icône trouvée",title_no_icon:"Aucune",dashboard_card_title:"Carte Titre",dashboard_card_title_desc:"Texte titre avec sélecteur de mode optionnel",tab_dashboard:"Tableau de bord",dashboard_title:"Cartes du tableau de bord",dashboard_desc:"Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l'ordre.",dashboard_card_weather:"Carte Météo",dashboard_card_weather_desc:"Affiche la météo actuelle, prévisions et animations",dashboard_card_light:"Carte Lumières",dashboard_card_light_desc:"Affiche les lumières allumées avec contrôle rapide",dashboard_light_auto:"Les lumières allumées s'affichent automatiquement sur le tableau de bord.",dashboard_card_cover:"Carte Volets",dashboard_card_cover_desc:"Affiche les volets sélectionnés avec contrôle de position",dashboard_card_spotify:"Carte Spotify",dashboard_card_spotify_desc:"Bibliothèque musicale, recherche et lecture Spotify",tab_media:"Carte Média",media_variant:"Variante d'affichage",media_variant_desc:"Choisissez entre la vue liste (compacte) ou la vue héros (artwork).",media_variant_list:"Liste",media_variant_hero:"Héros",media_show_header:"Afficher l'en-tête",media_show_header_desc:"Titre et compteur au-dessus de la carte",media_room:"Pièce",media_room_desc:"Sélectionnez une pièce pour configurer sa variante et ses lecteurs supplémentaires.",media_room_variant:"Variante pour cette pièce",media_room_variant_default:"Par défaut",media_extra_entities:"Lecteurs supplémentaires",media_extra_entities_desc:"Ajoutez des lecteurs médias supplémentaires à cette pièce.",media_select_room:"Sélectionnez une pièce",media_dashboard_variant:"Variante dashboard",media_dashboard_variant_desc:"Variante utilisée pour la carte média sur le tableau de bord.",dashboard_card_media:"Carte Média",dashboard_card_media_desc:"Affiche les lecteurs médias avec contrôles de transport",tab_cover:"Carte Volets",cover_show_header:"Afficher l'en-tête",cover_show_header_desc:"Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",cover_dashboard_entities:"Volets du tableau de bord",cover_dashboard_entities_desc:"Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.",cover_dashboard_no_entities:"Aucun volet sélectionné pour le tableau de bord.",cover_room:"Pièce",cover_room_desc:"Sélectionnez une pièce pour configurer ses volets : ordre et visibilité.",cover_list_title:"Volets",cover_list_banner:"Glissez pour réordonner. Désactivez ceux à masquer.",cover_no_covers:"Aucun volet dans cette pièce.",cover_select_room:"Sélectionnez une pièce",cover_presets:"Positions par défaut",cover_presets_desc:"Positions par défaut pour les volets sans configuration personnalisée.",cover_entity_presets:"Positions",cover_preset_add:"Ajouter",cover_preset_placeholder:"0–100",tab_spotify:"Carte Spotify",spotify_show_header:"Afficher l'en-tête",spotify_show_header_desc:"Titre et contrôles au-dessus de la carte",spotify_entity:"Entité lecteur Spotify",spotify_entity_desc:"Sélectionnez l'entité media_player Spotify à utiliser pour la carte.",spotify_sort_order:"Ordre de tri",spotify_sort_order_desc:"Choisissez l'ordre d'affichage des playlists et titres sauvegardés.",spotify_sort_recent:"Plus récent en premier",spotify_sort_oldest:"Plus ancien en premier",spotify_select_entity:"Sélectionnez un lecteur Spotify",spotify_max_items:"Éléments par section",spotify_max_items_desc:"Nombre maximum d'éléments affichés par section (playlists, titres récents, etc.).",spotify_speakers:"Enceintes visibles",spotify_speakers_desc:"Sélectionnez les enceintes affichées dans le popup de lecture. Si aucune n'est sélectionnée, toutes les enceintes sont affichées.",spotify_not_configured:"Intégration Spotify non configurée",spotify_setup_guide:"Pour utiliser la carte Spotify, vous devez d'abord configurer l'intégration Spotify officielle dans Home Assistant.",spotify_setup_step1:"Allez dans Paramètres → Appareils et services",spotify_setup_step2:"Cliquez sur « Ajouter une intégration » et cherchez « Spotify »",spotify_setup_step3:"Connectez-vous avec votre compte Spotify et autorisez l'accès",spotify_setup_step4:"Une entité media_player.spotify_* apparaîtra automatiquement",spotify_setup_note:"Un compte Spotify Premium est requis pour les contrôles de lecture.",spotify_checking:"Vérification de la connexion Spotify…",spotify_open_settings:"Ouvrir les paramètres"}},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity",delete:"Delete"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",color_picker_aria:"Open color wheel",color_picker_title:"Choose a color",effect_off:"Off",effect_candle:"Candle",effect_fire:"Fire",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",dashboard_title:"LIGHTS ON",dashboard_overflow:"and {count} more…",dashboard_turn_all_off_aria:"Turn off all lights in the house"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}",sensor_unavailable:"Sensor unavailable"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional"},cover:{title:"COVERS",open:"Open",closed:"Closed",opening:"Opening…",closing:"Closing…",position:"Position",tilt:"Tilt",stop_aria:"Stop {name}",open_aria:"Open {name}",close_aria:"Close {name}",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",open_all_aria:"Open all covers",close_all_aria:"Close all covers",preset_open:"Open",preset_closed:"Closed",dashboard_title_one:"1 COVER OPEN",dashboard_title:"{count} COVERS OPEN",dc_shutter:"Shutter",dc_blind:"Blind",dc_curtain:"Curtain",dc_garage:"Garage",dc_gate:"Gate",dc_door:"Door",dc_awning:"Awning",dc_shade:"Shade",dc_window:"Window",dc_damper:"Damper"},title_card:{mode_label:"Mode:",scene_label:"Scene:",mode_none:"None",cycle_aria:"Change mode"},spotify:{title:"Spotify",search_placeholder:"Search for a track, artist, podcast…",tab_all:"All",tab_tracks:"Tracks",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"My playlists",recently_played:"Recently played",saved_tracks:"Liked songs",followed_podcasts:"Followed podcasts",tracks_count:"{count} tracks",episodes_count:"{count} episodes",type_track:"Track",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Play",play_on:"Play on…",play_aria:"Play {name}",available:"Available",paused:"Paused",no_results:'No results for "{query}"',no_content:"No content",load_more:"Load more",loading:"Loading…",error_api:"Spotify error",error_rate_limit:"Too many requests, try again in {seconds}s",not_configured:"Spotify integration not configured",no_entity:"Configure the Spotify entity in the configuration panel",open_config:"Open configuration",back:"Back",toggle_library:"Show library"},media:{title:"MEDIA",now_playing:"Now playing",idle:"Idle",off:"Off",standby:"Standby",buffering:"Buffering…",no_media:"No media playing",no_players:"No media players",volume_aria:"{name} volume",play_aria:"Play {name}",pause_aria:"Pause {name}",stop_aria:"Stop {name}",next_aria:"Next track {name}",prev_aria:"Previous track {name}",mute_aria:"Mute {name}",unmute_aria:"Unmute {name}",expand_aria:"Expand {name} controls",power_on_aria:"Turn on {name}",power_off_aria:"Turn off {name}",dashboard_title:"NOW PLAYING",group_members:"Multiroom",unknown_title:"Unknown title",unknown_artist:"Unknown artist",shuffle_aria:"Shuffle",repeat_aria:"Repeat",seek_aria:"Seek in track",source_label:"Source",sound_mode_label:"Sound mode",speakers_label:"Speakers",volume_label:"Volume",coordinator:"Coordinator",add_group_aria:"Add {name} to group",remove_group_aria:"Remove {name} from group",no_playback:"No playback",speakers_count:"{count} speakers"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:{title:"Configuration",brand:"GLASS CARDS",tab_navbar:"Navbar",tab_popup:"Room Popup",tab_light:"Light Card",preview:"Preview",navbar_behavior:"Behavior",navbar_auto_sort:"Auto sort",navbar_auto_sort_desc:"Active rooms move to the top",navbar_rooms_banner:"Drag to reorder rooms. Toggle to hide.",navbar_visible_rooms:"Visible rooms",navbar_empty_rooms:"Empty rooms",navbar_empty_rooms_desc:"These rooms have no entities assigned in Home Assistant. Add devices to these areas for them to appear in the navbar.",navbar_indicators:"Indicators",navbar_indicators_desc:"Enable or disable visual indicators on the navbar.",navbar_ind_lights:"Lights on",navbar_ind_lights_desc:"Golden glow on icon",navbar_ind_temp:"Temperature",navbar_ind_temp_desc:"Hot / cold badge",navbar_ind_humidity:"Humidity",navbar_ind_humidity_desc:"Blue bar at bottom",navbar_ind_media:"Media playing",navbar_ind_media_desc:"Icon bounce",navbar_thresholds:"Thresholds",navbar_thresholds_desc:"Set thresholds for temperature and humidity alerts.",navbar_temp_high:"High temperature",navbar_temp_low:"Low temperature",navbar_humidity_threshold:"Humidity threshold",navbar_choose_icon:"Choose icon",navbar_change_icon_aria:"Change icon for {name}",navbar_icon_label:"Icon — {name}",popup_room:"Room",popup_room_desc:"Select a room to configure the order and visibility of its internal cards.",popup_internal_cards:"Internal cards",popup_internal_cards_desc:"Order the cards displayed in this room's popup.",popup_scenes:"Scenes",popup_scenes_desc:"Reorder and hide scenes shown at the top of the popup.",popup_select_room:"Select a room",light_room:"Room",light_room_desc:"Select a room to configure its lights: order, visibility and display mode.",light_list_title:"Lights",light_list_banner:"Drag to reorder. The layout button toggles between full width and compact.",light_no_lights:"No lights in this room.",light_no_visible:"No visible lights",light_select_room:"Select a room",light_change_layout_aria:"Change layout",light_layout_compact:"COMPACT",light_layout_full:"FULL",light_schedule_hint:"Tap the calendar icon on each light to set visibility periods.",light_schedule_aria:"Manage visibility schedule for {name}",light_schedule_title:"Visibility schedule",light_schedule_start:"Start",light_schedule_end:"End",light_schedule_recurring:"Annually",light_schedule_add:"Add period",light_schedule_delete_aria:"Delete period",light_schedule_no_date:"Select date…",light_schedule_confirm:"Confirm",light_schedule_prev_month_aria:"Previous month",light_schedule_next_month_aria:"Next month",light_show_header:"Show header",light_show_header_desc:"Title, counter and toggle all button above the card",light_dashboard_vs_room:"On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.",domain_light:"Lights",domain_light_desc:"Light control",domain_media_player:"Media",domain_media_player_desc:"Media players",domain_climate:"Climate",domain_climate_desc:"Thermostats and air conditioning",domain_fan:"Fan",domain_fan_desc:"Ventilation",domain_cover:"Covers",domain_cover_desc:"Blinds and shutters",domain_vacuum:"Vacuum",domain_vacuum_desc:"Robot vacuums",tab_weather:"Weather Card",weather_entity:"Weather entity",weather_entity_desc:"Select the weather entity to display on the card.",weather_metrics:"Visible metrics",weather_metrics_desc:"Enable or disable metrics shown on the card.",weather_forecasts:"Forecast tabs",weather_forecasts_desc:"Enable or disable forecast tabs.",weather_metric_humidity:"Humidity",weather_metric_wind:"Wind",weather_metric_pressure:"Pressure",weather_metric_uv:"UV",weather_metric_visibility:"Visibility",weather_metric_sunrise:"Sunrise",weather_metric_sunset:"Sunset",weather_daily:"7-day forecast",weather_hourly:"Hourly forecast",weather_select_entity:"Select a weather entity",weather_show_header:"Show header",weather_show_header_desc:"Title and location above the card",tab_title:"Title Card",title_title:"Title text",title_title_desc:"Main text displayed on the card.",title_title_placeholder:"My Home",title_mode_entity:"Mode entity",title_mode_entity_desc:"Select an input_select, input_boolean, or scene for modes.",title_select_entity:"Select an entity",title_modes:"Mode configuration",title_modes_desc:"Customize the label, icon and color for each mode option.",title_mode_label:"Label",title_mode_icon:"Icon",title_mode_color:"Color",title_color_picker_title:"Choose a color",title_color_picker_aria:"Open color wheel",title_no_modes:"Select a mode entity first.",title_no_icons_found:"No icons found",title_no_icon:"None",dashboard_card_title:"Title Card",dashboard_card_title_desc:"Title text with optional mode selector",tab_dashboard:"Dashboard",dashboard_title:"Dashboard cards",dashboard_desc:"Reorder, enable or disable dashboard cards. Drag to change the order.",dashboard_card_weather:"Weather Card",dashboard_card_weather_desc:"Current weather, forecasts and animations",dashboard_card_light:"Light Card",dashboard_card_light_desc:"Shows active lights with quick controls",dashboard_light_auto:"Active lights are automatically displayed on the dashboard.",dashboard_card_cover:"Cover Card",dashboard_card_cover_desc:"Shows selected covers with position controls",dashboard_card_spotify:"Spotify Card",dashboard_card_spotify_desc:"Music library, search and Spotify playback",tab_media:"Media Card",media_variant:"Display variant",media_variant_desc:"Choose between list view (compact) or hero view (artwork).",media_variant_list:"List",media_variant_hero:"Hero",media_show_header:"Show header",media_show_header_desc:"Title and counter above the card",media_room:"Room",media_room_desc:"Select a room to configure its variant and extra players.",media_room_variant:"Variant for this room",media_room_variant_default:"Default",media_extra_entities:"Extra players",media_extra_entities_desc:"Add extra media players to this room.",media_select_room:"Select a room",media_dashboard_variant:"Dashboard variant",media_dashboard_variant_desc:"Variant used for the media card on the dashboard.",dashboard_card_media:"Media Card",dashboard_card_media_desc:"Shows media players with transport controls",tab_cover:"Cover Card",cover_show_header:"Show header",cover_show_header_desc:"Title, counter and open/close all buttons above the card",cover_dashboard_entities:"Dashboard covers",cover_dashboard_entities_desc:"Select which covers to display on the dashboard. All selected covers are shown regardless of their state.",cover_dashboard_no_entities:"No cover entities selected for the dashboard.",cover_room:"Room",cover_room_desc:"Select a room to configure its covers: order and visibility.",cover_list_title:"Covers",cover_list_banner:"Drag to reorder. Toggle to hide.",cover_no_covers:"No covers in this room.",cover_select_room:"Select a room",cover_presets:"Default positions",cover_presets_desc:"Default positions for covers without custom configuration.",cover_entity_presets:"Positions",cover_preset_add:"Add",cover_preset_placeholder:"0–100",tab_spotify:"Spotify Card",spotify_show_header:"Show header",spotify_show_header_desc:"Title and controls above the card",spotify_entity:"Spotify player entity",spotify_entity_desc:"Select the Spotify media_player entity to use for the card.",spotify_sort_order:"Sort order",spotify_sort_order_desc:"Choose the display order for playlists and saved tracks.",spotify_sort_recent:"Most recent first",spotify_sort_oldest:"Oldest first",spotify_select_entity:"Select a Spotify player",spotify_max_items:"Items per section",spotify_max_items_desc:"Maximum number of items displayed per section (playlists, recent tracks, etc.).",spotify_speakers:"Visible speakers",spotify_speakers_desc:"Select which speakers appear in the playback popup. If none are selected, all speakers are shown.",spotify_not_configured:"Spotify integration not configured",spotify_setup_guide:"To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.",spotify_setup_step1:"Go to Settings → Devices & services",spotify_setup_step2:'Click "Add integration" and search for "Spotify"',spotify_setup_step3:"Sign in with your Spotify account and authorize access",spotify_setup_step4:"A media_player.spotify_* entity will appear automatically",spotify_setup_note:"A Spotify Premium account is required for playback controls.",spotify_checking:"Checking Spotify connection…",spotify_open_settings:"Open settings"}}},me="fr";let be=me;function fe(e){const t=e.slice(0,2).toLowerCase(),i=t in ve?t:me;return i!==be&&(be=i,!0)}function ye(){return be}function we(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),s=-1===i?"":e.slice(i+1),o=ve[be]??ve[me],r=ve[me],n=o?.[a]?.[s]??r?.[a]?.[s];let d="string"==typeof n?n:e;if(t)for(const[c,l]of Object.entries(t))d=d.replaceAll(`{${c}}`,String(l));return d}var xe=Object.defineProperty,$e=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&xe(t,i,o),o};class ke extends re{constructor(){super(...arguments),this._lang=ye(),this._busCleanups=[],this._boundDocClick=this._handleDocumentClick.bind(this)}setConfig(e){this._config=e}shouldUpdate(e){if(!e.has("hass"))return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&fe(this.hass.language)&&(this._lang=ye())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}connectedCallback(){super.connectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.addEventListener("click",this._boundDocClick,!0)}_listen(e,t){this._busCleanups.push(pe.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.removeEventListener("click",this._boundDocClick,!0)}_handleDocumentClick(e){e.composedPath().includes(this)||this._collapseExpanded()}_collapseExpanded(){}_scrollToTop(){setTimeout(()=>{this.scrollIntoView({block:"start",behavior:"smooth"})},300)}}function Se(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&function(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}(t,i)===e)}$e([le({attribute:!1})],ke.prototype,"hass"),$e([he()],ke.prototype,"_lang");class Ee{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}var Ce=Object.defineProperty,Pe=(e,t,i,a)=>{for(var s,o=void 0,r=e.length-1;r>=0;r--)(s=e[r])&&(o=s(t,i,o)||o);return o&&Ce(t,i,o),o};const Me=["light","media_player","climate","fan","cover","vacuum"],De=new Set(["light","media_player","cover"]),Ie={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",vacuum:"mdi:robot-vacuum"},Te={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};const ze=["mdi:sofa","mdi:stove","mdi:bed","mdi:desk","mdi:shower","mdi:home","mdi:movie-open","mdi:music","mdi:wrench","mdi:flower","mdi:white-balance-sunny","mdi:weather-night","mdi:lightbulb","mdi:snowflake","mdi:fire","mdi:lock"];class Ae extends re{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=ye(),this._tab="dashboard",this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._cards=[],this._scenes=[],this._lights=[],this._lightRoom="",this._lightDropdownOpen=!1,this._iconPickerRoom=null,this._dropdownOpen=!1,this._toast=!1,this._saving=!1,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._showMedia=!0,this._autoSort=!0,this._tempHigh=24,this._tempLow=17,this._humidityThreshold=65,this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1,this._titleText="",this._titleModeEntity="",this._titleModes=[],this._titleModeDropdownOpen=!1,this._iconPopupModeIdx=null,this._iconSearch="",this._iconList=[],this._colorPickerModeIdx=null,this._colorPickerHex="#ffffff",this._colorPickerPos={x:50,y:50},this._cpCanvas=null,this._lightShowHeader=!0,this._coverShowHeader=!0,this._coverDashboardEntities=[],this._coverDashboardOrder=[],this._coverPresets=[0,25,50,75,100],this._coverEntityPresets={},this._coverRoom="",this._coverRoomDropdownOpen=!1,this._coverRoomEntities=[],this._coverPresetInput="",this._coverEntityPresetInput={},this._mediaShowHeader=!0,this._mediaExtraEntities={},this._spotifyShowHeader=!0,this._spotifyEntity="",this._spotifySortOrder="recent_first",this._spotifyDropdownOpen=!1,this._spotifyMaxItems=6,this._spotifyVisibleSpeakers=[],this._spotifyConfigured=null,this._dashboardEnabledCards=["weather"],this._dashboardCardOrder=["title","weather","light","cover","spotify"],this._dashboardExpanded=new Set,this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=(new Date).getFullYear(),this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=(new Date).getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._loaded=!1,this._loading=!1,this._toastError=!1,this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this),this._boundUpdateScrollMask=this._updateScrollMask.bind(this),this._initialIcons=new Map,this._tabsEl=null,this._iconLoading=!1}static{this.styles=[_e,ue,ge,o`
       *, *::before, *::after {
         box-sizing: border-box;
       }
@@ -197,6 +203,9 @@
         .page-back:hover {
           background: var(--s3);
         }
+      }
+      @media (hover: none) {
+        .page-back:active { animation: bounce 0.3s ease; }
       }
       .page-back:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -279,6 +288,9 @@
         .tab:hover {
           color: var(--t2);
         }
+      }
+      @media (hover: none) {
+        .tab:active { animation: bounce 0.3s ease; }
       }
       .tab:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -377,6 +389,9 @@
           border-color: var(--b2);
         }
       }
+      @media (hover: none) {
+        .item-row:active { animation: bounce 0.3s ease; }
+      }
       .item-row.disabled {
         opacity: 0.35;
       }
@@ -456,6 +471,9 @@
           background: var(--s3);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .room-icon-btn:active { animation: bounce 0.3s ease; }
       }
       .room-icon-btn:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -581,6 +599,7 @@
       .btn-icon.xs ha-icon { --mdc-icon-size: 14px; }
       .btn-icon.sm ha-icon { --mdc-icon-size: 16px; }
       @media (hover: hover) { .btn-icon:hover { background: var(--s2); color: var(--t2); } }
+      @media (hover: none) { .btn-icon:active { animation: bounce 0.3s ease; } }
       .btn-icon:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 
       /* ── Dropdown ── */
@@ -612,6 +631,9 @@
           background: var(--s3);
           border-color: var(--b3);
         }
+      }
+      @media (hover: none) {
+        .dropdown-trigger:active { animation: bounce 0.3s ease; }
       }
       .dropdown-trigger:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -676,6 +698,9 @@
           color: var(--t1);
         }
       }
+      @media (hover: none) {
+        .dropdown-item:active { animation: bounce 0.3s ease; }
+      }
       .dropdown-item:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: -2px;
@@ -739,6 +764,9 @@
           background: var(--s3);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .icon-pick:active { animation: bounce 0.3s ease; }
       }
       .icon-pick:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -1491,6 +1519,9 @@
       @media (hover: hover) and (pointer: fine) {
         .title-color-chip:hover { transform: scale(1.1); }
       }
+      @media (hover: none) {
+        .title-color-chip:active { animation: bounce 0.3s ease; }
+      }
       .title-color-chip.neutral { background: var(--t4); }
       .title-color-chip.success { background: var(--c-success); }
       .title-color-chip.warning { background: var(--c-warning); }
@@ -1521,6 +1552,9 @@
       .title-icon-btn.has-icon ha-icon { color: var(--t1); }
       @media (hover: hover) and (pointer: fine) {
         .title-icon-btn:hover { background: var(--s3); border-color: var(--b3); }
+      }
+      @media (hover: none) {
+        .title-icon-btn:active { animation: bounce 0.3s ease; }
       }
       .title-icon-btn:focus-visible {
         outline: 2px solid var(--c-accent); outline-offset: -2px;
@@ -1639,6 +1673,9 @@
       @media (hover: hover) and (pointer: fine) {
         .cp-confirm:hover { background: var(--s3); border-color: var(--b3); }
       }
+      @media (hover: none) {
+        .cp-confirm:active { animation: bounce 0.3s ease; }
+      }
       .cp-confirm:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
 
       /* Color picker button (rainbow ring) */
@@ -1658,6 +1695,9 @@
       }
       @media (hover: hover) and (pointer: fine) {
         .title-color-picker-btn:hover { transform: scale(1.15); }
+      }
+      @media (hover: none) {
+        .title-color-picker-btn:active { animation: bounce 0.3s ease; }
       }
       .title-color-picker-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
       .title-color-chip.custom {
@@ -2038,6 +2078,9 @@
           background: var(--s1);
         }
       }
+      @media (hover: none) {
+        .feature-row:active { animation: bounce 0.3s ease; }
+      }
       .feature-row:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: -2px;
@@ -2220,6 +2263,9 @@
           border-color: var(--b3);
         }
       }
+      @media (hover: none) {
+        .layout-btn:active { animation: bounce 0.3s ease; }
+      }
       .layout-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2256,7 +2302,12 @@
           color: var(--t1);
         }
       }
-      .schedule-btn:active { transform: scale(0.96); }
+      @media (hover: hover) {
+        .schedule-btn:active { transform: scale(0.96); }
+      }
+      @media (hover: none) {
+        .schedule-btn:active { animation: bounce 0.3s ease; }
+      }
       .schedule-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2280,6 +2331,9 @@
           background: var(--s2);
           border-color: var(--b2);
         }
+      }
+      @media (hover: none) {
+        .item-card:active { animation: bounce 0.3s ease; }
       }
       .item-card.expanded {
         border-color: var(--b2);
@@ -2442,7 +2496,12 @@
           border-color: rgba(248,113,113,0.3);
         }
       }
-      .schedule-delete:active { transform: scale(0.96); }
+      @media (hover: hover) {
+        .schedule-delete:active { transform: scale(0.96); }
+      }
+      @media (hover: none) {
+        .schedule-delete:active { animation: bounce 0.3s ease; }
+      }
 
       /* ── Schedule add & save (btn btn-sm from kit) ── */
       .schedule-add {
@@ -2502,6 +2561,9 @@
       }
       @media (hover: hover) and (pointer: fine) {
         .datetime-display:hover { border-color: var(--b3); }
+      }
+      @media (hover: none) {
+        .datetime-display:active { animation: bounce 0.3s ease; }
       }
       .datetime-display:focus-visible {
         outline: 2px solid var(--c-accent);
@@ -2563,6 +2625,9 @@
       @media (hover: hover) and (pointer: fine) {
         .picker-nav:hover { background: var(--s2); color: var(--t1); }
       }
+      @media (hover: none) {
+        .picker-nav:active { animation: bounce 0.3s ease; }
+      }
       .picker-nav:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2600,6 +2665,9 @@
       }
       @media (hover: hover) and (pointer: fine) {
         .picker-day:hover { background: var(--s2); color: var(--t1); }
+      }
+      @media (hover: none) {
+        .picker-day:active { animation: bounce 0.3s ease; }
       }
       .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
       .picker-day.selected {
@@ -2748,6 +2816,9 @@
           color: var(--t1);
         }
       }
+      @media (hover: none) {
+        .btn:active { animation: bounce 0.3s ease; }
+      }
       .btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -2763,6 +2834,9 @@
           border-color: rgba(129, 140, 248, 0.35);
         }
       }
+      @media (hover: none) {
+        .btn-accent:active { animation: bounce 0.3s ease; }
+      }
       .btn-accent:disabled {
         opacity: 0.4;
         cursor: not-allowed;
@@ -2775,6 +2849,9 @@
         .btn-ghost:hover {
           background: var(--s2);
         }
+      }
+      @media (hover: none) {
+        .btn-ghost:active { animation: bounce 0.3s ease; }
       }
 
       /* ── Toast ── */
@@ -2813,28 +2890,28 @@
       .config-panel {
         animation: panel-in 0.4s var(--ease-out) both;
       }
-    `]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,document.removeEventListener("click",this._boundCloseDropdowns),this._removeTabsScrollListener(),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),this._cancelColorDrag?.(),this._cancelColorDrag=void 0,this._backend=void 0}_closeDropdownsOnOutsideClick(e){if(!(this._dropdownOpen||this._lightDropdownOpen||this._weatherDropdownOpen||this._titleModeDropdownOpen||this._coverRoomDropdownOpen))return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const s of a)if(t.includes(s))return;this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,this._titleModeDropdownOpen=!1,this._coverRoomDropdownOpen=!1}_setupTabsScrollListener(){if(this._tabsEl)return;const e=this.shadowRoot?.querySelector(".tabs");e&&(this._tabsEl=e,e.addEventListener("scroll",this._boundUpdateScrollMask,{passive:!0}),this._updateScrollMask())}_removeTabsScrollListener(){this._tabsEl&&(this._tabsEl.removeEventListener("scroll",this._boundUpdateScrollMask),this._tabsEl=null)}_updateScrollMask(){const e=this._tabsEl;if(!e)return;const t=e.scrollLeft<=5,i=e.scrollLeft+e.offsetWidth>=e.scrollWidth-5;e.classList.remove("mask-left","mask-right","mask-both"),t&&!i?e.classList.add("mask-right"):!t&&i?e.classList.add("mask-left"):t||i||e.classList.add("mask-both")}updated(e){super.updated(e),this._setupTabsScrollListener(),e.has("hass")&&(this.hass?.language&&be(this.hass.language)&&(this._lang=fe()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1),!this.hass||this._loaded||this._loading||(this._backend=new Se(this.hass),this._loadConfig()))}async _loadConfig(){if(this.hass&&!this._loading){this._loading=!0;try{await this._loadConfigInner(),this._loaded=!0}catch{this._loaded=!1}finally{this._loading=!1}}}async _loadConfigInner(){if(!this.hass)return;const e=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let t={room_order:[],hidden_rooms:[],show_lights:!0,show_temperature:!0,show_humidity:!0,show_media:!0,auto_sort:!0,temp_high:24,temp_low:17,humidity_threshold:65},i={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},a={enabled_cards:["weather"],card_order:["title","weather","light","cover","spotify"]},s={show_header:!0},o={title:"",mode_entity:"",modes:[]},r={show_header:!0,dashboard_entities:[],presets:[0,25,50,75,100],entity_presets:{}},n={show_header:!0,entity_id:"",sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},d={variant:"list",dashboard_variant:"list",room_variants:{},extra_entities:{},show_header:!0};const c={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_config");t=e.navbar,Object.assign(c,e.rooms),e.weather&&(i=e.weather),e.light_card&&(s=e.light_card),e.title_card&&(o=e.title_card),e.cover_card&&(r=e.cover_card),e.spotify_card&&(n=e.spotify_card),e.media_card&&(d=e.media_card),e.dashboard&&(a=e.dashboard)}catch{}this._showLights=t.show_lights??!0,this._showTemperature=t.show_temperature??!0,this._showHumidity=t.show_humidity??!0,this._showMedia=t.show_media??!0,this._autoSort=t.auto_sort??!0,this._tempHigh=t.temp_high??24,this._tempLow=t.temp_low??17,this._humidityThreshold=t.humidity_threshold??65,this._weatherEntity=i.entity_id??"",this._weatherHiddenMetrics=i.hidden_metrics??[],this._weatherShowDaily=i.show_daily??!0,this._weatherShowHourly=i.show_hourly??!0,this._weatherShowHeader=i.show_header??!0,this._lightShowHeader=s.show_header??!0,this._titleText=o.title??"",this._titleModeEntity=o.mode_entity??"",this._titleModes=o.modes??[],this._coverShowHeader=r.show_header??!0,this._coverDashboardEntities=r.dashboard_entities??[],this._coverPresets=r.presets??[0,25,50,75,100],this._coverEntityPresets=r.entity_presets??{},this._initCoverDashboardOrder(),this._spotifyShowHeader=n.show_header??!0,this._spotifyEntity=n.entity_id??"",this._spotifySortOrder="oldest_first"===n.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=n.max_items_per_section??6,this._spotifyVisibleSpeakers=n.visible_speakers??[],this._checkSpotifyStatus(),this._mediaShowHeader=d.show_header??!0,this._mediaExtraEntities=d.extra_entities??{},this._dashboardEnabledCards=a.enabled_cards??["weather"],this._dashboardCardOrder=a.card_order??["title","weather","light","media","cover","spotify"];const l=new Set(t.hidden_rooms),h=new Map;t.room_order.forEach((e,t)=>h.set(e,t));const p=this.hass;if(!p)return;const _=[],u=[];for(const g of e){const e=ke(g.area_id,p.entities,p.devices),t=c[g.area_id]?.icon,i=t||g.icon||"mdi:home";if(0===e.length){u.push({areaId:g.area_id,name:g.name,icon:i});continue}let a=0,s=null,o=null,r=null,n=null,d=!1;for(const c of e){const e=p.states[c.entity_id];if(!e)continue;const t=c.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||s||(s=`${e.state}°`,o=parseFloat(e.state)),"humidity"!==t||r||(r=`${e.state}%`,n=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(d=!0)}_.push({areaId:g.area_id,name:g.name,icon:i,entityCount:e.length,visible:!l.has(g.area_id),lightsOn:a,temperature:s,tempValue:o,humidity:r,humidityValue:n,mediaPlaying:d})}this._initialIcons.clear();for(const g of _)this._initialIcons.set(g.areaId,g.icon);_.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=h.get(e.areaId),a=h.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._rooms=_,this._emptyRooms=u,!this._selectedRoom&&_.length>0&&(this._selectedRoom=_[0].areaId),this._loadRoomCards()}async _loadRoomCards(){if(!this.hass||!this._selectedRoom)return this._cards=[],void(this._scenes=[]);const e=this._selectedRoom,t=ke(e,this.hass.entities,this.hass.devices);let i=null,a=new Set,s=new Set,o=[];try{if(!this._backend)throw new Error("No backend");const t=await this._backend.send("get_room",{area_id:e});if(this._selectedRoom!==e)return;t&&(i=t.card_order.length>0?t.card_order:null,a=new Set(t.hidden_entities),s=new Set(t.hidden_scenes??[]),o=t.scene_order??[])}catch{}const r=this.hass,n=t.filter(e=>e.entity_id.startsWith("scene.")),d=new Map;o.forEach((e,t)=>d.set(e,t));const c=n.map(e=>{const t=r.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!s.has(e.entity_id)}});c.sort((e,t)=>{const i=d.get(e.entityId),a=d.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=c;const l=new Map;for(const _ of t){if(a.has(_.entity_id))continue;const e=_.entity_id.split(".")[0];l.set(e,(l.get(e)||0)+1)}const h=i?[...i]:[...Pe],p=new Set(h);for(const _ of l.keys())!p.has(_)&&De[_]&&h.push(_);this._cards=h.filter(e=>(l.get(e)||0)>0&&Me.has(e)).map(e=>{const t=function(e){const t=Ie[e];return{nameKey:t?t.name:null,icon:De[e]||"mdi:help-circle",descKey:t?t.desc:null}}(e),a=l.get(e)||0;return{id:e,nameKey:t.nameKey,icon:t.icon,descKey:t.descKey,count:a,visible:i?i.includes(e):a>0}})}_switchTab(e){this._tab=e,this._iconPickerRoom=null,this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,this._titleModeDropdownOpen=!1,this._coverRoomDropdownOpen=!1,this._spotifyDropdownOpen=!1,this._iconPopupModeIdx=null,this._colorPickerModeIdx=null,"light"===e&&!this._lightRoom&&this._rooms.length>0&&(this._lightRoom=this._rooms[0].areaId,this._loadRoomLights()),"cover"===e&&!this._coverRoom&&this._rooms.length>0&&(this._coverRoom=this._rooms[0].areaId,this._loadRoomCovers()),"cover"!==e&&"dashboard"!==e||0!==this._coverDashboardOrder.length||this._initCoverDashboardOrder()}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("rooms"===i){const t=[...this._rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._rooms=t}else if("cards"===i){const t=[...this._cards],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cards=t}else if("scenes"===i){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t}else if("lights"===i){const t=[...this._lights],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._lights=t}this._dragIdx=null,this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_toggleRoomVisible(e){const t=this._rooms.map(t=>t.areaId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._rooms=[...i,...a]}_openIconPicker(e){this._iconPickerRoom=this._iconPickerRoom===e?null:e}_setRoomIcon(e,t){this._rooms=this._rooms.map(i=>i.areaId===e?{...i,icon:t}:i),this._iconPickerRoom=null}_toggleCardVisible(e){this._cards=this._cards.map(t=>t.id===e?{...t,visible:!t.visible}:t)}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_selectRoom(e){this._selectedRoom=e,this._dropdownOpen=!1,this._loadRoomCards()}async _saveNavbar(){const e=this._backend;if(e&&!this._saving){this._saving=!0;try{await e.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId),show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity,show_media:this._showMedia,auto_sort:this._autoSort,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold});const t=this._rooms.filter(e=>e.icon!==this._initialIcons.get(e.areaId)).map(t=>{const i=this.hass?.areas[t.areaId],a=i?.icon||"mdi:home",s=t.icon===a?null:t.icon;return e.send("set_room",{area_id:t.areaId,icon:s})});if(t.length>0&&await Promise.all(t),!this._mounted)return;this._showToast(),pe.emit("navbar-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _savePopup(){if(this._backend&&!this._saving&&this._selectedRoom){this._saving=!0;try{if(await this._backend.send("set_room",{area_id:this._selectedRoom,card_order:this._cards.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId)}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._selectedRoom})}catch{this._showToast(!0)}finally{this._saving=!1}}}_save(){"navbar"===this._tab?this._saveNavbar():"popup"===this._tab?this._savePopup():"light"===this._tab?this._saveLights():"weather"===this._tab?this._saveWeather():"title"===this._tab?this._saveTitle():"cover"===this._tab?this._saveCover():"spotify"===this._tab?this._saveSpotify():"media"===this._tab?this._saveMedia():this._saveDashboard()}_selectLightRoom(e){this._lightRoom=e,this._lightDropdownOpen=!1,this._loadRoomLights()}async _loadRoomLights(){if(!this.hass||!this._lightRoom)return void(this._lights=[]);const e=this._lightRoom,t=ke(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let i=new Set,a=[],s={};try{if(!this._backend)throw new Error("No backend");const t=await this._backend.send("get_room",{area_id:e});if(this._lightRoom!==e)return;t&&(i=new Set(t.hidden_entities??[]),a=t.entity_order??[],s=t.entity_layouts??{})}catch{}const o=this.hass,r=new Map;a.forEach((e,t)=>r.set(e,t));const n=t.map(e=>{const t=o.states[e.entity_id],a="on"===t?.state,r=t?.attributes.brightness,n=a&&void 0!==r?Math.round(r/255*100):0;return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:a,brightnessPct:n,layout:s[e.entity_id]||"compact",visible:!i.has(e.entity_id)}});n.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=r.get(e.entityId),a=r.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=n;try{if(this._backend){const e=await this._backend.send("get_schedules");this._schedulesLoaded=e??{},this._scheduleEdits=new Map;for(const t of n){const e=this._schedulesLoaded[t.entityId];this._scheduleEdits.set(t.entityId,e?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){const t=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._lights=[...i,...a]}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate(),this._saveSchedule(e)}_updateSchedulePeriod(e,t,i,a){const s=this._scheduleEdits.get(e)??[];s[t]&&(s[t]={...s[t],[i]:a},this._scheduleEdits.set(e,[...s]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this._backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{if(await this._backend.send("set_schedule",{entity_id:e,periods:t}),!this._mounted)return;this._showToast(),pe.emit("schedule-changed",{entityId:e})}catch{if(!this._mounted)return;this._showToast(!0)}}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T");if(!t)return null;const a=t.split("-").map(Number);if(a.length<3||a.some(isNaN))return null;const[s,o,r]=a,[n,d]=(i??"00:00").split(":");return{year:s,month:o-1,day:r,hour:n??"00",minute:d??"00"}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,s=i?this._parseDateTimeValue(i.end):null,o=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=o.getMonth(),this._pickerStartYear=o.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=o.getFullYear(),this._pickerMonth=o.getMonth()),s?(this._pickerEndDay=s.day,this._pickerEndMonth=s.month,this._pickerEndYear=s.year,this._pickerEndHour=s.hour,this._pickerEndMinute=s.minute):(this._pickerEndDay=null,this._pickerEndMonth=o.getMonth(),this._pickerEndYear=o.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?s?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerEndDay=null,void(this._pickerPhase="start")}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),s=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),o=String(s).padStart(2,"0");t.target.value=o,"startHour"===e?this._pickerStartHour=o:"startMinute"===e?this._pickerStartMinute=o:"endHour"===e?this._pickerEndHour=o:this._pickerEndMinute=o,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),s=String(this._pickerEndMonth+1).padStart(2,"0"),o=String(this._pickerEndDay).padStart(2,"0"),r=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${s}-${o}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",r),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),s=new Date(e,t,0).getDate(),o=new Date,r=o.getFullYear()===e&&o.getMonth()===t,n=o.getDate(),d=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,c=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,l=[],h=(e,t,i,a)=>{const s=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&r&&e===n,rangeStart:null!==d&&s===d,rangeEnd:null!==c&&s===c,inRange:null!==d&&null!==c&&s>d&&s<c}},p=0===t?11:t-1,_=0===t?e-1:e;for(let m=i-1;m>=0;m--)l.push(h(s-m,!0,_,p));for(let m=1;m<=a;m++)l.push(h(m,!1,e,t));const u=11===t?0:t+1,g=11===t?e+1:e,v=42-l.length;for(let m=1;m<=v;m++)l.push(h(m,!0,g,u));return l}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_renderDateTimePicker(){const e=this._getMonthDays(),t=this._getDayLabels(),i=null!==this._pickerStartDay&&null!==this._pickerEndDay;return U`
+    `]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,document.removeEventListener("click",this._boundCloseDropdowns),this._removeTabsScrollListener(),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),this._cancelColorDrag?.(),this._cancelColorDrag=void 0,this._backend=void 0}_closeDropdownsOnOutsideClick(e){if(!(this._dropdownOpen||this._lightDropdownOpen||this._weatherDropdownOpen||this._titleModeDropdownOpen||this._coverRoomDropdownOpen))return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const s of a)if(t.includes(s))return;this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,this._titleModeDropdownOpen=!1,this._coverRoomDropdownOpen=!1}_setupTabsScrollListener(){if(this._tabsEl)return;const e=this.shadowRoot?.querySelector(".tabs");e&&(this._tabsEl=e,e.addEventListener("scroll",this._boundUpdateScrollMask,{passive:!0}),this._updateScrollMask())}_removeTabsScrollListener(){this._tabsEl&&(this._tabsEl.removeEventListener("scroll",this._boundUpdateScrollMask),this._tabsEl=null)}_updateScrollMask(){const e=this._tabsEl;if(!e)return;const t=e.scrollLeft<=5,i=e.scrollLeft+e.offsetWidth>=e.scrollWidth-5;e.classList.remove("mask-left","mask-right","mask-both"),t&&!i?e.classList.add("mask-right"):!t&&i?e.classList.add("mask-left"):t||i||e.classList.add("mask-both")}updated(e){super.updated(e),this._setupTabsScrollListener(),e.has("hass")&&(this.hass?.language&&fe(this.hass.language)&&(this._lang=ye()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1),!this.hass||this._loaded||this._loading||(this._backend=new Ee(this.hass),this._loadConfig()))}async _loadConfig(){if(this.hass&&!this._loading){this._loading=!0;try{await this._loadConfigInner(),this._loaded=!0}catch{this._loaded=!1}finally{this._loading=!1}}}async _loadConfigInner(){if(!this.hass)return;const e=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let t={room_order:[],hidden_rooms:[],show_lights:!0,show_temperature:!0,show_humidity:!0,show_media:!0,auto_sort:!0,temp_high:24,temp_low:17,humidity_threshold:65},i={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},a={enabled_cards:["weather"],card_order:["title","weather","light","cover","spotify"]},s={show_header:!0},o={title:"",mode_entity:"",modes:[]},r={show_header:!0,dashboard_entities:[],presets:[0,25,50,75,100],entity_presets:{}},n={show_header:!0,entity_id:"",sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},d={variant:"list",dashboard_variant:"list",room_variants:{},extra_entities:{},show_header:!0};const c={};try{if(!this._backend)throw new Error("No backend");const e=await this._backend.send("get_config");t=e.navbar,Object.assign(c,e.rooms),e.weather&&(i=e.weather),e.light_card&&(s=e.light_card),e.title_card&&(o=e.title_card),e.cover_card&&(r=e.cover_card),e.spotify_card&&(n=e.spotify_card),e.media_card&&(d=e.media_card),e.dashboard&&(a=e.dashboard)}catch{}this._showLights=t.show_lights??!0,this._showTemperature=t.show_temperature??!0,this._showHumidity=t.show_humidity??!0,this._showMedia=t.show_media??!0,this._autoSort=t.auto_sort??!0,this._tempHigh=t.temp_high??24,this._tempLow=t.temp_low??17,this._humidityThreshold=t.humidity_threshold??65,this._weatherEntity=i.entity_id??"",this._weatherHiddenMetrics=i.hidden_metrics??[],this._weatherShowDaily=i.show_daily??!0,this._weatherShowHourly=i.show_hourly??!0,this._weatherShowHeader=i.show_header??!0,this._lightShowHeader=s.show_header??!0,this._titleText=o.title??"",this._titleModeEntity=o.mode_entity??"",this._titleModes=o.modes??[],this._coverShowHeader=r.show_header??!0,this._coverDashboardEntities=r.dashboard_entities??[],this._coverPresets=r.presets??[0,25,50,75,100],this._coverEntityPresets=r.entity_presets??{},this._initCoverDashboardOrder(),this._spotifyShowHeader=n.show_header??!0,this._spotifyEntity=n.entity_id??"",this._spotifySortOrder="oldest_first"===n.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=n.max_items_per_section??6,this._spotifyVisibleSpeakers=n.visible_speakers??[],this._checkSpotifyStatus(),this._mediaShowHeader=d.show_header??!0,this._mediaExtraEntities=d.extra_entities??{},this._dashboardEnabledCards=a.enabled_cards??["weather"],this._dashboardCardOrder=a.card_order??["title","weather","light","media","cover","spotify"];const l=new Set(t.hidden_rooms),h=new Map;t.room_order.forEach((e,t)=>h.set(e,t));const p=this.hass;if(!p)return;const _=[],u=[];for(const g of e){const e=Se(g.area_id,p.entities,p.devices),t=c[g.area_id]?.icon,i=t||g.icon||"mdi:home";if(0===e.length){u.push({areaId:g.area_id,name:g.name,icon:i});continue}let a=0,s=null,o=null,r=null,n=null,d=!1;for(const c of e){const e=p.states[c.entity_id];if(!e)continue;const t=c.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||s||(s=`${e.state}°`,o=parseFloat(e.state)),"humidity"!==t||r||(r=`${e.state}%`,n=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(d=!0)}_.push({areaId:g.area_id,name:g.name,icon:i,entityCount:e.length,visible:!l.has(g.area_id),lightsOn:a,temperature:s,tempValue:o,humidity:r,humidityValue:n,mediaPlaying:d})}this._initialIcons.clear();for(const g of _)this._initialIcons.set(g.areaId,g.icon);_.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=h.get(e.areaId),a=h.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._rooms=_,this._emptyRooms=u,!this._selectedRoom&&_.length>0&&(this._selectedRoom=_[0].areaId),this._loadRoomCards()}async _loadRoomCards(){if(!this.hass||!this._selectedRoom)return this._cards=[],void(this._scenes=[]);const e=this._selectedRoom,t=Se(e,this.hass.entities,this.hass.devices);let i=null,a=new Set,s=new Set,o=[];try{if(!this._backend)throw new Error("No backend");const t=await this._backend.send("get_room",{area_id:e});if(this._selectedRoom!==e)return;t&&(i=t.card_order.length>0?t.card_order:null,a=new Set(t.hidden_entities),s=new Set(t.hidden_scenes??[]),o=t.scene_order??[])}catch{}const r=this.hass,n=t.filter(e=>e.entity_id.startsWith("scene.")),d=new Map;o.forEach((e,t)=>d.set(e,t));const c=n.map(e=>{const t=r.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!s.has(e.entity_id)}});c.sort((e,t)=>{const i=d.get(e.entityId),a=d.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=c;const l=new Map;for(const _ of t){if(a.has(_.entity_id))continue;const e=_.entity_id.split(".")[0];l.set(e,(l.get(e)||0)+1)}const h=i?[...i]:[...Me],p=new Set(h);for(const _ of l.keys())!p.has(_)&&Ie[_]&&h.push(_);this._cards=h.filter(e=>(l.get(e)||0)>0&&De.has(e)).map(e=>{const t=function(e){const t=Te[e];return{nameKey:t?t.name:null,icon:Ie[e]||"mdi:help-circle",descKey:t?t.desc:null}}(e),a=l.get(e)||0;return{id:e,nameKey:t.nameKey,icon:t.icon,descKey:t.descKey,count:a,visible:i?i.includes(e):a>0}})}_switchTab(e){this._tab=e,this._iconPickerRoom=null,this._dropdownOpen=!1,this._lightDropdownOpen=!1,this._weatherDropdownOpen=!1,this._titleModeDropdownOpen=!1,this._coverRoomDropdownOpen=!1,this._spotifyDropdownOpen=!1,this._iconPopupModeIdx=null,this._colorPickerModeIdx=null,"light"===e&&!this._lightRoom&&this._rooms.length>0&&(this._lightRoom=this._rooms[0].areaId,this._loadRoomLights()),"cover"===e&&!this._coverRoom&&this._rooms.length>0&&(this._coverRoom=this._rooms[0].areaId,this._loadRoomCovers()),"cover"!==e&&"dashboard"!==e||0!==this._coverDashboardOrder.length||this._initCoverDashboardOrder()}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("rooms"===i){const t=[...this._rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._rooms=t}else if("cards"===i){const t=[...this._cards],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cards=t}else if("scenes"===i){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t}else if("lights"===i){const t=[...this._lights],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._lights=t}this._dragIdx=null,this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_toggleRoomVisible(e){const t=this._rooms.map(t=>t.areaId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._rooms=[...i,...a]}_openIconPicker(e){this._iconPickerRoom=this._iconPickerRoom===e?null:e}_setRoomIcon(e,t){this._rooms=this._rooms.map(i=>i.areaId===e?{...i,icon:t}:i),this._iconPickerRoom=null}_toggleCardVisible(e){this._cards=this._cards.map(t=>t.id===e?{...t,visible:!t.visible}:t)}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_selectRoom(e){this._selectedRoom=e,this._dropdownOpen=!1,this._loadRoomCards()}async _saveNavbar(){const e=this._backend;if(e&&!this._saving){this._saving=!0;try{await e.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId),show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity,show_media:this._showMedia,auto_sort:this._autoSort,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold});const t=this._rooms.filter(e=>e.icon!==this._initialIcons.get(e.areaId)).map(t=>{const i=this.hass?.areas[t.areaId],a=i?.icon||"mdi:home",s=t.icon===a?null:t.icon;return e.send("set_room",{area_id:t.areaId,icon:s})});if(t.length>0&&await Promise.all(t),!this._mounted)return;this._showToast(),pe.emit("navbar-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _savePopup(){if(this._backend&&!this._saving&&this._selectedRoom){this._saving=!0;try{if(await this._backend.send("set_room",{area_id:this._selectedRoom,card_order:this._cards.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId)}),!this._mounted)return;this._showToast(),pe.emit("room-config-changed",{areaId:this._selectedRoom})}catch{this._showToast(!0)}finally{this._saving=!1}}}_save(){"navbar"===this._tab?this._saveNavbar():"popup"===this._tab?this._savePopup():"light"===this._tab?this._saveLights():"weather"===this._tab?this._saveWeather():"title"===this._tab?this._saveTitle():"cover"===this._tab?this._saveCover():"spotify"===this._tab?this._saveSpotify():"media"===this._tab?this._saveMedia():this._saveDashboard()}_selectLightRoom(e){this._lightRoom=e,this._lightDropdownOpen=!1,this._loadRoomLights()}async _loadRoomLights(){if(!this.hass||!this._lightRoom)return void(this._lights=[]);const e=this._lightRoom,t=Se(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let i=new Set,a=[],s={};try{if(!this._backend)throw new Error("No backend");const t=await this._backend.send("get_room",{area_id:e});if(this._lightRoom!==e)return;t&&(i=new Set(t.hidden_entities??[]),a=t.entity_order??[],s=t.entity_layouts??{})}catch{}const o=this.hass,r=new Map;a.forEach((e,t)=>r.set(e,t));const n=t.map(e=>{const t=o.states[e.entity_id],a="on"===t?.state,r=t?.attributes.brightness,n=a&&void 0!==r?Math.round(r/255*100):0;return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:a,brightnessPct:n,layout:s[e.entity_id]||"compact",visible:!i.has(e.entity_id)}});n.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=r.get(e.entityId),a=r.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=n;try{if(this._backend){const e=await this._backend.send("get_schedules");this._schedulesLoaded=e??{},this._scheduleEdits=new Map;for(const t of n){const e=this._schedulesLoaded[t.entityId];this._scheduleEdits.set(t.entityId,e?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){const t=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._lights=[...i,...a]}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate(),this._saveSchedule(e)}_updateSchedulePeriod(e,t,i,a){const s=this._scheduleEdits.get(e)??[];s[t]&&(s[t]={...s[t],[i]:a},this._scheduleEdits.set(e,[...s]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this._backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{if(await this._backend.send("set_schedule",{entity_id:e,periods:t}),!this._mounted)return;this._showToast(),pe.emit("schedule-changed",{entityId:e})}catch{if(!this._mounted)return;this._showToast(!0)}}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T");if(!t)return null;const a=t.split("-").map(Number);if(a.length<3||a.some(isNaN))return null;const[s,o,r]=a,[n,d]=(i??"00:00").split(":");return{year:s,month:o-1,day:r,hour:n??"00",minute:d??"00"}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,s=i?this._parseDateTimeValue(i.end):null,o=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=o.getMonth(),this._pickerStartYear=o.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=o.getFullYear(),this._pickerMonth=o.getMonth()),s?(this._pickerEndDay=s.day,this._pickerEndMonth=s.month,this._pickerEndYear=s.year,this._pickerEndHour=s.hour,this._pickerEndMinute=s.minute):(this._pickerEndDay=null,this._pickerEndMonth=o.getMonth(),this._pickerEndYear=o.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?s?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerEndDay=null,void(this._pickerPhase="start")}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),s=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),o=String(s).padStart(2,"0");t.target.value=o,"startHour"===e?this._pickerStartHour=o:"startMinute"===e?this._pickerStartMinute=o:"endHour"===e?this._pickerEndHour=o:this._pickerEndMinute=o,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),s=String(this._pickerEndMonth+1).padStart(2,"0"),o=String(this._pickerEndDay).padStart(2,"0"),r=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${s}-${o}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",r),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),s=new Date(e,t,0).getDate(),o=new Date,r=o.getFullYear()===e&&o.getMonth()===t,n=o.getDate(),d=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,c=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,l=[],h=(e,t,i,a)=>{const s=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&r&&e===n,rangeStart:null!==d&&s===d,rangeEnd:null!==c&&s===c,inRange:null!==d&&null!==c&&s>d&&s<c}},p=0===t?11:t-1,_=0===t?e-1:e;for(let m=i-1;m>=0;m--)l.push(h(s-m,!0,_,p));for(let m=1;m<=a;m++)l.push(h(m,!1,e,t));const u=11===t?0:t+1,g=11===t?e+1:e,v=42-l.length;for(let m=1;m<=v;m++)l.push(h(m,!0,g,u));return l}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_renderDateTimePicker(){const e=this._getMonthDays(),t=this._getDayLabels(),i=null!==this._pickerStartDay&&null!==this._pickerEndDay;return U`
       <div class="picker-overlay"
         @click=${e=>{e.target===e.currentTarget&&this._closePicker()}}
         @keydown=${e=>{"Escape"===e.key&&this._closePicker()}}
       >
-        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${ye("config.light_schedule_title")}">
+        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${we("config.light_schedule_title")}">
           <div class="picker-phase">
             <button
               class="picker-phase-btn ${"start"===this._pickerPhase?"active":""}"
               @click=${()=>{this._pickerPhase="start"}}
-            >${ye("config.light_schedule_start")}</button>
+            >${we("config.light_schedule_start")}</button>
             <button
               class="picker-phase-btn ${"end"===this._pickerPhase?"active":""}"
               @click=${()=>{this._pickerPhase="end"}}
-            >${ye("config.light_schedule_end")}</button>
+            >${we("config.light_schedule_end")}</button>
           </div>
           <div class="picker-header">
-            <button class="picker-nav" @click=${()=>this._pickerPrevMonth()} aria-label="${ye("config.light_schedule_prev_month_aria")}">
+            <button class="picker-nav" @click=${()=>this._pickerPrevMonth()} aria-label="${we("config.light_schedule_prev_month_aria")}">
               <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
             </button>
             <span class="picker-month">${this._getMonthLabel()}</span>
-            <button class="picker-nav" @click=${()=>this._pickerNextMonth()} aria-label="${ye("config.light_schedule_next_month_aria")}">
+            <button class="picker-nav" @click=${()=>this._pickerNextMonth()} aria-label="${we("config.light_schedule_next_month_aria")}">
               <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
             </button>
           </div>
@@ -2846,7 +2923,7 @@
           </div>
           <div class="picker-time-row">
             <div class="picker-time-group">
-              <span class="picker-time-label">${ye("config.light_schedule_start")}</span>
+              <span class="picker-time-label">${we("config.light_schedule_start")}</span>
               <div class="time-input">
                 <input type="text" class="time-digit" maxlength="2"
                   .value=${this._pickerStartHour}
@@ -2860,7 +2937,7 @@
               </div>
             </div>
             <div class="picker-time-group">
-              <span class="picker-time-label">${ye("config.light_schedule_end")}</span>
+              <span class="picker-time-label">${we("config.light_schedule_end")}</span>
               <div class="time-input">
                 <input type="text" class="time-digit" maxlength="2"
                   .value=${this._pickerEndHour}
@@ -2879,7 +2956,7 @@
             @click=${()=>this._pickerConfirm()}
             ?disabled=${!i}
           >
-            ${ye("config.light_schedule_confirm")}
+            ${we("config.light_schedule_confirm")}
           </button>
         </div>
       </div>
@@ -2895,7 +2972,7 @@
             </div>
           `})}
       </div>
-    `}_renderPopupPreview(){const e=this._rooms.find(e=>e.areaId===this._selectedRoom);if(!e)return U`<div class="preview-empty">${ye("config.popup_select_room")}</div>`;const t=this._scenes.length>0,i=this._scenes.filter(e=>e.visible),a=["preview-popup-icon-box",e.lightsOn>0?"has-light":"",e.mediaPlaying?"has-music":""].filter(Boolean).join(" ");return U`
+    `}_renderPopupPreview(){const e=this._rooms.find(e=>e.areaId===this._selectedRoom);if(!e)return U`<div class="preview-empty">${we("config.popup_select_room")}</div>`;const t=this._scenes.length>0,i=this._scenes.filter(e=>e.visible),a=["preview-popup-icon-box",e.lightsOn>0?"has-light":"",e.mediaPlaying?"has-music":""].filter(Boolean).join(" ");return U`
       <div class="preview-popup">
         <div class="preview-popup-header">
           <div class="preview-popup-header-left">
@@ -2928,7 +3005,7 @@
           ${this._cards.filter(e=>e.visible).map(e=>U`
               <div class="preview-card-slot">
                 <ha-icon .icon=${e.icon}></ha-icon>
-                <span class="preview-card-slot-name">${e.nameKey?ye(e.nameKey):e.id}</span>
+                <span class="preview-card-slot-name">${e.nameKey?we(e.nameKey):e.id}</span>
                 <span class="preview-card-slot-count">${e.count}</span>
               </div>
             `)}
@@ -2938,9 +3015,9 @@
       <div class="tab-panel" id="panel-navbar">
 
         ${this._emptyRooms.length>0?U`
-          <div class="section-label">${ye("config.navbar_empty_rooms")}</div>
+          <div class="section-label">${we("config.navbar_empty_rooms")}</div>
           <div class="section-desc">
-            ${ye("config.navbar_empty_rooms_desc")}
+            ${we("config.navbar_empty_rooms_desc")}
           </div>
           <div class="item-list empty-rooms">
             ${this._emptyRooms.map(e=>U`
@@ -2953,14 +3030,14 @@
                 </div>
                 <div class="item-info">
                   <span class="item-name">${e.name}</span>
-                  <span class="item-meta">0 ${ye("common.entities")}</span>
+                  <span class="item-meta">0 ${we("common.entities")}</span>
                 </div>
               </div>
             `)}
           </div>
         `:q}
 
-        <div class="section-label">${ye("config.navbar_behavior")}</div>
+        <div class="section-label">${we("config.navbar_behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -2970,8 +3047,8 @@
               <ha-icon .icon=${"mdi:sort-bool-ascending"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.navbar_auto_sort")}</div>
-              <div class="feature-desc">${ye("config.navbar_auto_sort_desc")}</div>
+              <div class="feature-name">${we("config.navbar_auto_sort")}</div>
+              <div class="feature-desc">${we("config.navbar_auto_sort_desc")}</div>
             </div>
             <span
               class="toggle ${this._autoSort?"on":""}"
@@ -2983,9 +3060,9 @@
 
         <div class="banner">
           <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
-          <span>${ye("config.navbar_rooms_banner")}</span>
+          <span>${we("config.navbar_rooms_banner")}</span>
         </div>
-        <div class="section-label">${ye("config.navbar_visible_rooms")}</div>
+        <div class="section-label">${we("config.navbar_visible_rooms")}</div>
         <div class="item-list">
           ${this._rooms.map((e,t)=>this._renderRoomRow(e,t))}
         </div>
@@ -2993,14 +3070,14 @@
         <div class="icon-picker-fold ${this._iconPickerRoom?"open":""}">
           <div class="icon-picker-inner">
             <div class="section-label">
-              ${ye("config.navbar_icon_label",{name:this._rooms.find(e=>e.areaId===this._iconPickerRoom)?.name||""})}
+              ${we("config.navbar_icon_label",{name:this._rooms.find(e=>e.areaId===this._iconPickerRoom)?.name||""})}
             </div>
             <div class="icon-picker-grid">
-              ${Te.map(e=>U`
+              ${ze.map(e=>U`
                   <button
                     class="icon-pick ${this._rooms.find(e=>e.areaId===this._iconPickerRoom)?.icon===e?"selected":""}"
                     @click=${()=>this._iconPickerRoom&&this._setRoomIcon(this._iconPickerRoom,e)}
-                    aria-label="${ye("config.navbar_choose_icon")}"
+                    aria-label="${we("config.navbar_choose_icon")}"
                   >
                     <ha-icon .icon=${e}></ha-icon>
                   </button>
@@ -3009,8 +3086,8 @@
           </div>
         </div>
 
-        <div class="section-label">${ye("config.navbar_indicators")}</div>
-        <div class="section-desc">${ye("config.navbar_indicators_desc")}</div>
+        <div class="section-label">${we("config.navbar_indicators")}</div>
+        <div class="section-desc">${we("config.navbar_indicators_desc")}</div>
         <div class="feature-list">
           ${[{key:"lights",icon:"mdi:lightbulb",nameKey:"config.navbar_ind_lights",descKey:"config.navbar_ind_lights_desc"},{key:"temperature",icon:"mdi:thermometer",nameKey:"config.navbar_ind_temp",descKey:"config.navbar_ind_temp_desc"},{key:"humidity",icon:"mdi:water-percent",nameKey:"config.navbar_ind_humidity",descKey:"config.navbar_ind_humidity_desc"},{key:"media",icon:"mdi:music",nameKey:"config.navbar_ind_media",descKey:"config.navbar_ind_media_desc"}].map(e=>{const t={lights:this._showLights,temperature:this._showTemperature,humidity:this._showHumidity,media:this._showMedia}[e.key];return U`
               <button
@@ -3021,8 +3098,8 @@
                   <ha-icon .icon=${e.icon}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye(e.nameKey)}</div>
-                  <div class="feature-desc">${ye(e.descKey)}</div>
+                  <div class="feature-name">${we(e.nameKey)}</div>
+                  <div class="feature-desc">${we(e.descKey)}</div>
                 </div>
                 <span
                   class="toggle ${t?"on":""}"
@@ -3033,21 +3110,21 @@
             `})}
         </div>
 
-        <div class="section-label">${ye("config.navbar_thresholds")}</div>
-        <div class="section-desc">${ye("config.navbar_thresholds_desc")}</div>
+        <div class="section-label">${we("config.navbar_thresholds")}</div>
+        <div class="section-desc">${we("config.navbar_thresholds_desc")}</div>
         <div class="threshold-list">
           <div class="threshold-row">
             <div class="threshold-icon hot">
               <ha-icon .icon=${"mdi:thermometer-high"}></ha-icon>
             </div>
-            <span class="threshold-label">${ye("config.navbar_temp_high")}</span>
+            <span class="threshold-label">${we("config.navbar_temp_high")}</span>
             <input
               class="threshold-input"
               type="number"
               step="0.5"
               .value=${String(this._tempHigh)}
               @change=${e=>{this._tempHigh=parseFloat(e.target.value)||24}}
-              aria-label="${ye("config.navbar_temp_high")}"
+              aria-label="${we("config.navbar_temp_high")}"
             />
             <span class="threshold-unit">°C</span>
           </div>
@@ -3055,14 +3132,14 @@
             <div class="threshold-icon cold">
               <ha-icon .icon=${"mdi:snowflake"}></ha-icon>
             </div>
-            <span class="threshold-label">${ye("config.navbar_temp_low")}</span>
+            <span class="threshold-label">${we("config.navbar_temp_low")}</span>
             <input
               class="threshold-input"
               type="number"
               step="0.5"
               .value=${String(this._tempLow)}
               @change=${e=>{this._tempLow=parseFloat(e.target.value)||17}}
-              aria-label="${ye("config.navbar_temp_low")}"
+              aria-label="${we("config.navbar_temp_low")}"
             />
             <span class="threshold-unit">°C</span>
           </div>
@@ -3070,27 +3147,27 @@
             <div class="threshold-icon humidity">
               <ha-icon .icon=${"mdi:water-percent"}></ha-icon>
             </div>
-            <span class="threshold-label">${ye("config.navbar_humidity_threshold")}</span>
+            <span class="threshold-label">${we("config.navbar_humidity_threshold")}</span>
             <input
               class="threshold-input"
               type="number"
               step="1"
               .value=${String(this._humidityThreshold)}
               @change=${e=>{this._humidityThreshold=parseFloat(e.target.value)||65}}
-              aria-label="${ye("config.navbar_humidity_threshold")}"
+              aria-label="${we("config.navbar_humidity_threshold")}"
             />
             <span class="threshold-unit">%</span>
           </div>
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._reset()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._reset()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -3110,27 +3187,27 @@
         <button
           class="room-icon-btn"
           @click=${()=>this._openIconPicker(e.areaId)}
-          aria-label="${ye("config.navbar_change_icon_aria",{name:e.name})}"
+          aria-label="${we("config.navbar_change_icon_aria",{name:e.name})}"
         >
           <ha-icon .icon=${e.icon}></ha-icon>
         </button>
         <div class="item-info">
           <span class="item-name">${e.name}</span>
-          <span class="item-meta">${e.entityCount} ${ye("common.entities")}</span>
+          <span class="item-meta">${e.entityCount} ${we("common.entities")}</span>
         </div>
         <button
           class="toggle ${e.visible?"on":""}"
           @click=${()=>this._toggleRoomVisible(e.areaId)}
           role="switch"
           aria-checked=${e.visible?"true":"false"}
-          aria-label="${e.visible?ye("common.hide"):ye("common.show")} ${e.name}"
+          aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
         ></button>
       </div>
     `}_renderPopupTab(){const e=this._rooms.find(e=>e.areaId===this._selectedRoom);return U`
       <div class="tab-panel" id="panel-popup">
-        <div class="section-label">${ye("config.popup_room")}</div>
+        <div class="section-label">${we("config.popup_room")}</div>
         <div class="section-desc">
-          ${ye("config.popup_room_desc")}
+          ${we("config.popup_room_desc")}
         </div>
         <div class="dropdown ${this._dropdownOpen?"open":""}">
           <button
@@ -3140,7 +3217,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${e?.icon||"mdi:home"}></ha-icon>
-            <span>${e?.name||ye("common.select")}</span>
+            <span>${e?.name||we("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -3158,18 +3235,18 @@
           </div>
         </div>
 
-        <div class="section-label">${ye("config.popup_internal_cards")}</div>
+        <div class="section-label">${we("config.popup_internal_cards")}</div>
         <div class="section-desc">
-          ${ye("config.popup_internal_cards_desc")}
+          ${we("config.popup_internal_cards_desc")}
         </div>
         <div class="item-list">
           ${this._cards.map((e,t)=>this._renderCardRow(e,t))}
         </div>
 
         ${this._scenes.length>0?U`
-          <div class="section-label">${ye("config.popup_scenes")} (${this._scenes.length})</div>
+          <div class="section-label">${we("config.popup_scenes")} (${this._scenes.length})</div>
           <div class="section-desc">
-            ${ye("config.popup_scenes_desc")}
+            ${we("config.popup_scenes_desc")}
           </div>
           <div class="item-list">
             ${this._scenes.map((e,t)=>this._renderSceneRow(e,t))}
@@ -3177,13 +3254,13 @@
         `:q}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._reset()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._reset()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -3204,8 +3281,8 @@
           <ha-icon .icon=${e.icon}></ha-icon>
         </div>
         <div class="item-info">
-          <span class="item-name">${e.nameKey?ye(e.nameKey):e.id}</span>
-          <span class="item-meta">${e.descKey?ye(e.descKey):""}</span>
+          <span class="item-name">${e.nameKey?we(e.nameKey):e.id}</span>
+          <span class="item-meta">${e.descKey?we(e.descKey):""}</span>
         </div>
         <span class="card-count">${e.count}</span>
         <button
@@ -3213,7 +3290,7 @@
           @click=${()=>this._toggleCardVisible(e.id)}
           role="switch"
           aria-checked=${e.visible?"true":"false"}
-          aria-label="${e.visible?ye("common.hide"):ye("common.show")} ${e.nameKey?ye(e.nameKey):e.id}"
+          aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.nameKey?we(e.nameKey):e.id}"
         ></button>
       </div>
     `}_renderSceneRow(e,t){const i=this._dragIdx===t&&"scenes"===this._dragContext,a=this._dropIdx===t&&"scenes"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return U`
@@ -3241,17 +3318,17 @@
           @click=${()=>this._toggleSceneVisible(e.entityId)}
           role="switch"
           aria-checked=${e.visible?"true":"false"}
-          aria-label="${e.visible?ye("common.hide"):ye("common.show")} ${e.name}"
+          aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
         ></button>
       </div>
-    `}_renderLightPreview(){if(!this._lightRoom)return U`<div class="preview-empty">${ye("config.light_select_room")}</div>`;if(0===this._lights.length)return U`<div class="preview-empty">${ye("config.light_no_lights")}</div>`;const e=this._lights.filter(e=>e.visible),t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,s=0===t?"none":t===i?"all":"some";if(0===e.length)return U`<div class="preview-empty">${ye("config.light_no_visible")}</div>`;const o=[],r=[];for(const c of e){"compact"===("full"===c.layout?"full":"compact")?(r.push(c),2===r.length&&(o.push({kind:"compact-pair",left:r[0],right:r[1]}),r.length=0)):(r.length>0&&(o.push({kind:"full",light:r[0]}),r.length=0),o.push({kind:"full",light:c}))}r.length>0&&o.push({kind:"full",light:r[0]});const n=a?.06:0,d=(e,t,i)=>{const a=["preview-light-row",t?"compact":"",i?"compact-right":"",e.visible?"":"hidden-light"].filter(Boolean).join(" "),s=this._scheduleEdits.get(e.entityId),o=s?s.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0;return U`
+    `}_renderLightPreview(){if(!this._lightRoom)return U`<div class="preview-empty">${we("config.light_select_room")}</div>`;if(0===this._lights.length)return U`<div class="preview-empty">${we("config.light_no_lights")}</div>`;const e=this._lights.filter(e=>e.visible),t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,s=0===t?"none":t===i?"all":"some";if(0===e.length)return U`<div class="preview-empty">${we("config.light_no_visible")}</div>`;const o=[],r=[];for(const c of e){"compact"===("full"===c.layout?"full":"compact")?(r.push(c),2===r.length&&(o.push({kind:"compact-pair",left:r[0],right:r[1]}),r.length=0)):(r.length>0&&(o.push({kind:"full",light:r[0]}),r.length=0),o.push({kind:"full",light:c}))}r.length>0&&o.push({kind:"full",light:r[0]});const n=a?.06:0,d=(e,t,i)=>{const a=["preview-light-row",t?"compact":"",i?"compact-right":"",e.visible?"":"hidden-light"].filter(Boolean).join(" "),s=this._scheduleEdits.get(e.entityId),o=s?s.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0;return U`
         <div class=${a} data-on=${e.isOn}>
           <div class="preview-light-icon ${e.isOn?"on":""}">
             <ha-icon .icon=${"mdi:lightbulb"}></ha-icon>
           </div>
           <div class="preview-light-info">
             <div class="preview-light-name">${e.name}</div>
-            <div class="preview-light-sub">${e.isOn?`${e.brightnessPct}%`:ye("common.off")}</div>
+            <div class="preview-light-sub">${e.isOn?`${e.brightnessPct}%`:we("common.off")}</div>
           </div>
           ${o?U`<ha-icon class="preview-light-sched" .icon=${"mdi:calendar-clock"}></ha-icon>`:q}
           ${"full"===e.layout?U`<span class="preview-light-layout-tag">full</span>`:q}
@@ -3262,7 +3339,7 @@
         ${this._lightShowHeader?U`
           <div class="preview-light-header">
             <div class="preview-light-header-left">
-              <span class="preview-light-title">${ye("light.title")}</span>
+              <span class="preview-light-title">${we("light.title")}</span>
               <span class="preview-light-count ${s}">${t}/${i}</span>
             </div>
             <div class="preview-light-toggle ${a?"on":""}"></div>
@@ -3283,7 +3360,7 @@
       </div>
     `}_renderLightTab(){const e=this._rooms.find(e=>e.areaId===this._lightRoom);return U`
       <div class="tab-panel" id="panel-light">
-        <div class="section-label">${ye("config.navbar_behavior")}</div>
+        <div class="section-label">${we("config.navbar_behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -3293,8 +3370,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.light_show_header")}</div>
-              <div class="feature-desc">${ye("config.light_show_header_desc")}</div>
+              <div class="feature-name">${we("config.light_show_header")}</div>
+              <div class="feature-desc">${we("config.light_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._lightShowHeader?"on":""}"
@@ -3304,9 +3381,9 @@
           </button>
         </div>
 
-        <div class="section-label">${ye("config.light_room")}</div>
+        <div class="section-label">${we("config.light_room")}</div>
         <div class="section-desc">
-          ${ye("config.light_room_desc")}
+          ${we("config.light_room_desc")}
         </div>
         <div class="dropdown ${this._lightDropdownOpen?"open":""}">
           <button
@@ -3316,7 +3393,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${e?.icon||"mdi:home"}></ha-icon>
-            <span>${e?.name||ye("common.select")}</span>
+            <span>${e?.name||we("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -3335,39 +3412,39 @@
         </div>
 
         ${this._lights.length>0?U`
-              <div class="section-label">${ye("config.light_list_title")} (${this._lights.length})</div>
+              <div class="section-label">${we("config.light_list_title")} (${this._lights.length})</div>
               <div class="section-desc">
-                ${ye("config.light_list_banner")}
+                ${we("config.light_list_banner")}
               </div>
               <div class="item-list">
                 ${this._lights.map((e,t)=>this._renderLightRow(e,t))}
               </div>
             `:this._lightRoom?U`<div class="banner">
                 <ha-icon .icon=${"mdi:lightbulb-off-outline"}></ha-icon>
-                <span>${ye("config.light_no_lights")}</span>
+                <span>${we("config.light_no_lights")}</span>
               </div>`:q}
 
         ${this._lights.length>0?U`
           <div class="section-desc schedule-hint">
             <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
-            ${ye("config.light_schedule_hint")}
+            ${we("config.light_schedule_hint")}
           </div>
         `:q}
 
         <div class="section-desc dashboard-vs-room">
           <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
-          ${ye("config.light_dashboard_vs_room")}
+          ${we("config.light_dashboard_vs_room")}
         </div>
 
         ${this._lightRoom?U`
           <div class="save-bar">
-            <button class="btn btn-ghost" @click=${()=>this._loadRoomLights()}>${ye("common.reset")}</button>
+            <button class="btn btn-ghost" @click=${()=>this._loadRoomLights()}>${we("common.reset")}</button>
             <button
               class="btn btn-accent"
               @click=${()=>this._save()}
               ?disabled=${this._saving}
             >
-              ${this._saving?ye("common.saving"):ye("common.save")}
+              ${this._saving?we("common.saving"):we("common.save")}
             </button>
           </div>
         `:q}
@@ -3396,26 +3473,26 @@
           <button
             class="schedule-btn ${r?"active":""}"
             @click=${()=>this._toggleScheduleExpand(e.entityId)}
-            aria-label="${ye("config.light_schedule_aria",{name:e.name})}"
+            aria-label="${we("config.light_schedule_aria",{name:e.name})}"
             aria-expanded=${n?"true":"false"}
-            title="${ye("config.light_schedule_title")}"
+            title="${we("config.light_schedule_title")}"
           >
             <ha-icon .icon=${"mdi:calendar-clock"}></ha-icon>
           </button>
           <button
             class="layout-btn"
             @click=${()=>this._cycleLightLayout(e.entityId)}
-            aria-label="${ye("config.light_change_layout_aria")}"
-            title="${ye("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+            aria-label="${we("config.light_change_layout_aria")}"
+            title="${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
           >
-            ${ye("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+            ${we("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
           </button>
           <button
             class="toggle ${e.visible?"on":""}"
             @click=${()=>this._toggleLightVisible(e.entityId)}
             role="switch"
             aria-checked=${e.visible?"true":"false"}
-            aria-label="${e.visible?ye("common.hide"):ye("common.show")} ${e.name}"
+            aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
           ></button>
         </div>
         <div class="fold-sep ${n?"visible":""}"></div>
@@ -3427,7 +3504,7 @@
       </div>
     `}_formatDateTimeShort(e){if(!e)return"";const[t,i]=e.split("T");if(!t)return e;const[a,s,o]=t.split("-");return`${o}/${s}/${a} ${i??"00:00"}`}_formatPeriodDisplay(e){if(!e.start&&!e.end)return"";const t=this._formatDateTimeShort(e.start),i=this._formatDateTimeShort(e.end);return t&&i?`${t}  →  ${i}`:t?`${t}  → …`:`…  →  ${i}`}_renderScheduleContent(e){const t=this._scheduleEdits.get(e)??[];return U`
       <div class="schedule-body">
-        <div class="schedule-header">${ye("config.light_schedule_title")}</div>
+        <div class="schedule-header">${we("config.light_schedule_title")}</div>
         ${t.map((t,i)=>U`
           <div class="schedule-period">
             <div class="schedule-row">
@@ -3435,7 +3512,7 @@
                 class="datetime-display ${t.start||t.end?"":"empty"}"
                 @click=${()=>this._openRangePicker(e,i)}
               >
-                ${t.start||t.end?this._formatPeriodDisplay(t):ye("config.light_schedule_no_date")}
+                ${t.start||t.end?this._formatPeriodDisplay(t):we("config.light_schedule_no_date")}
               </button>
             </div>
             <div class="schedule-row schedule-row-actions">
@@ -3446,12 +3523,12 @@
                 <span class="check-box">
                   <ha-icon .icon=${"mdi:check"}></ha-icon>
                 </span>
-                <span class="check-label">${ye("config.light_schedule_recurring")}</span>
+                <span class="check-label">${we("config.light_schedule_recurring")}</span>
               </button>
               <button
                 class="btn-icon xs schedule-delete"
                 @click=${()=>this._removeSchedulePeriod(e,i)}
-                aria-label="${ye("config.light_schedule_delete_aria")}"
+                aria-label="${we("config.light_schedule_delete_aria")}"
               >
                 <ha-icon .icon=${"mdi:delete-outline"}></ha-icon>
               </button>
@@ -3460,18 +3537,18 @@
         `)}
         <button class="btn btn-sm schedule-add" @click=${()=>this._addSchedulePeriod(e)}>
           <ha-icon .icon=${"mdi:plus"}></ha-icon>
-          ${ye("config.light_schedule_add")}
+          ${we("config.light_schedule_add")}
         </button>
         <button class="btn btn-sm btn-accent schedule-save" @click=${()=>this._saveSchedule(e)}>
-          ${ye("common.save")}
+          ${we("common.save")}
         </button>
       </div>
-    `}_selectCoverRoom(e){this._coverRoom=e,this._coverRoomDropdownOpen=!1,this._loadRoomCovers()}async _loadRoomCovers(){if(!this._backend||!this._coverRoom||!this.hass)return;const e=this._coverRoom,t=ke(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id);let i=null;try{i=await this._backend.send("get_room",{area_id:e})}catch{}if(this._coverRoom!==e)return;const a=new Set(i?.hidden_entities??[]),s=i?.entity_order??[],o=[...t].sort((e,t)=>{const i=s.indexOf(e),a=s.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._coverRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,s=t?.attributes?.device_class||"shutter";return{entityId:e,name:i,visible:!a.has(e),deviceClass:s}})}_toggleCoverEntityVisibility(e){const t=this._coverRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._coverRoomEntities=[...i,...a]}_getAllCoverEntities(){if(!this.hass)return[];const e=[];for(const[t,i]of Object.entries(this.hass.states)){if(!t.startsWith("cover."))continue;const a=i.attributes?.friendly_name||t.split(".")[1]||t;e.push({entityId:t,name:a})}return e.sort((e,t)=>e.name.localeCompare(t.name))}_toggleCoverDashboardEntity(e){const t=new Set(this._coverDashboardEntities);t.has(e)?t.delete(e):t.add(e),this._coverDashboardEntities=[...t];const i=new Set(this._coverDashboardEntities),a=this._coverDashboardOrder.filter(e=>i.has(e)),s=this._coverDashboardOrder.filter(e=>!i.has(e));this._coverDashboardOrder=[...a,...s]}_initCoverDashboardOrder(){const e=this._getAllCoverEntities().map(e=>e.entityId),t=new Set(this._coverDashboardEntities),i=this._coverDashboardEntities.filter(t=>e.includes(t)),a=e.filter(e=>!t.has(e));this._coverDashboardOrder=[...i,...a]}_onDropDashboardCover(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverDashboardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverDashboardOrder=i,this._dragIdx=null,this._dropIdx=null}async _saveCover(){if(this._backend&&!this._saving){this._saving=!0;try{const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));if(await this._backend.send("set_cover_config",{show_header:this._coverShowHeader,dashboard_entities:e,presets:this._coverPresets,entity_presets:this._coverEntityPresets}),this._coverRoom&&this._coverRoomEntities.length>0){let e=[];try{const t=await this._backend.send("get_room",{area_id:this._coverRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._coverRoomEntities.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._coverRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),s=this._coverRoomEntities.map(e=>e.entityId);await this._backend.send("set_room",{area_id:this._coverRoom,hidden_entities:[...i,...a],entity_order:s})}if(!this._mounted)return;this._showToast(),pe.emit("cover-config-changed",void 0),this._coverRoom&&pe.emit("room-config-changed",{areaId:this._coverRoom})}catch{this._showToast(!0)}finally{this._saving=!1}}}_renderCoverPreview(){const e=this._coverRoomEntities.filter(e=>e.visible),t={shutter:["mdi:window-shutter-open","mdi:window-shutter"],blind:["mdi:blinds-open","mdi:blinds"],curtain:["mdi:curtains","mdi:curtains"],garage:["mdi:garage-open","mdi:garage"],gate:["mdi:gate-open","mdi:gate"],door:["mdi:door-open","mdi:door-closed"]},i=e.length>0?e[0]:null,a=i?this.hass?.states[i.entityId]:null,s="open"===a?.state||"opening"===a?.state,o=a?.attributes.current_position,r=!!(4&(a?.attributes.supported_features||0)),n=o??(s?100:0),d=e.filter(e=>{const t=this.hass?.states[e.entityId];return"open"===t?.state||"opening"===t?.state}).length;return U`
+    `}_selectCoverRoom(e){this._coverRoom=e,this._coverRoomDropdownOpen=!1,this._loadRoomCovers()}async _loadRoomCovers(){if(!this._backend||!this._coverRoom||!this.hass)return;const e=this._coverRoom,t=Se(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id);let i=null;try{i=await this._backend.send("get_room",{area_id:e})}catch{}if(this._coverRoom!==e)return;const a=new Set(i?.hidden_entities??[]),s=i?.entity_order??[],o=[...t].sort((e,t)=>{const i=s.indexOf(e),a=s.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._coverRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,s=t?.attributes?.device_class||"shutter";return{entityId:e,name:i,visible:!a.has(e),deviceClass:s}})}_toggleCoverEntityVisibility(e){const t=this._coverRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),i=t.filter(e=>e.visible),a=t.filter(e=>!e.visible);this._coverRoomEntities=[...i,...a]}_getAllCoverEntities(){if(!this.hass)return[];const e=[];for(const[t,i]of Object.entries(this.hass.states)){if(!t.startsWith("cover."))continue;const a=i.attributes?.friendly_name||t.split(".")[1]||t;e.push({entityId:t,name:a})}return e.sort((e,t)=>e.name.localeCompare(t.name))}_toggleCoverDashboardEntity(e){const t=new Set(this._coverDashboardEntities);t.has(e)?t.delete(e):t.add(e),this._coverDashboardEntities=[...t];const i=new Set(this._coverDashboardEntities),a=this._coverDashboardOrder.filter(e=>i.has(e)),s=this._coverDashboardOrder.filter(e=>!i.has(e));this._coverDashboardOrder=[...a,...s]}_initCoverDashboardOrder(){const e=this._getAllCoverEntities().map(e=>e.entityId),t=new Set(this._coverDashboardEntities),i=this._coverDashboardEntities.filter(t=>e.includes(t)),a=e.filter(e=>!t.has(e));this._coverDashboardOrder=[...i,...a]}_onDropDashboardCover(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverDashboardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverDashboardOrder=i,this._dragIdx=null,this._dropIdx=null}async _saveCover(){if(this._backend&&!this._saving){this._saving=!0;try{const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));if(await this._backend.send("set_cover_config",{show_header:this._coverShowHeader,dashboard_entities:e,presets:this._coverPresets,entity_presets:this._coverEntityPresets}),this._coverRoom&&this._coverRoomEntities.length>0){let e=[];try{const t=await this._backend.send("get_room",{area_id:this._coverRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._coverRoomEntities.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._coverRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),s=this._coverRoomEntities.map(e=>e.entityId);await this._backend.send("set_room",{area_id:this._coverRoom,hidden_entities:[...i,...a],entity_order:s})}if(!this._mounted)return;this._showToast(),pe.emit("cover-config-changed",void 0),this._coverRoom&&pe.emit("room-config-changed",{areaId:this._coverRoom})}catch{this._showToast(!0)}finally{this._saving=!1}}}_renderCoverPreview(){const e=this._coverRoomEntities.filter(e=>e.visible),t={shutter:["mdi:window-shutter-open","mdi:window-shutter"],blind:["mdi:blinds-open","mdi:blinds"],curtain:["mdi:curtains","mdi:curtains"],garage:["mdi:garage-open","mdi:garage"],gate:["mdi:gate-open","mdi:gate"],door:["mdi:door-open","mdi:door-closed"]},i=e.length>0?e[0]:null,a=i?this.hass?.states[i.entityId]:null,s="open"===a?.state||"opening"===a?.state,o=a?.attributes.current_position,r=!!(4&(a?.attributes.supported_features||0)),n=o??(s?100:0),d=e.filter(e=>{const t=this.hass?.states[e.entityId];return"open"===t?.state||"opening"===t?.state}).length;return U`
       <div class="preview-cover">
         ${this._coverShowHeader?U`
           <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${ye("cover.title")}</span>
+              <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${we("cover.title")}</span>
               <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:8px;background:${d>0?"rgba(167,139,250,0.15)":"var(--s2)"};color:${d>0?"#a78bfa":"var(--t3)"};">${d}/${e.length}</span>
             </div>
             <div style="display:flex;gap:3px;">
@@ -3499,7 +3576,7 @@
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</div>
                   <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-                    <span style="font-size:8px;color:${o?"rgba(167,139,250,0.6)":"var(--t4)"};">${ye(o?"cover.open":"cover.closed")}</span>
+                    <span style="font-size:8px;color:${o?"rgba(167,139,250,0.6)":"var(--t4)"};">${we(o?"cover.open":"cover.closed")}</span>
                   </div>
                 </div>
                 ${void 0!==d?U`
@@ -3539,7 +3616,7 @@
                   <!-- Presets -->
                   <div style="height:1px;background:var(--b1);"></div>
                   <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                    ${(this._coverEntityPresets[e.entityId]??this._coverPresets).map(e=>{const t=n===e,i=e>=50,s=0===e?ye("cover.preset_closed"):100===e?ye("cover.preset_open"):`${e}%`;return U`
+                    ${(this._coverEntityPresets[e.entityId]??this._coverPresets).map(e=>{const t=n===e,i=e>=50,s=0===e?we("cover.preset_closed"):100===e?we("cover.preset_open"):`${e}%`;return U`
                         <span style="
                           display:inline-flex;align-items:center;gap:3px;
                           padding:3px 7px;border-radius:var(--radius-md);
@@ -3564,7 +3641,7 @@
       </div>
     `}_renderCoverTab(){if(!this.hass)return q;const e=this._rooms.find(e=>e.areaId===this._coverRoom);return U`
       <div class="tab-panel" id="panel-cover">
-        <div class="section-label">${ye("config.navbar_behavior")}</div>
+        <div class="section-label">${we("config.navbar_behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -3574,8 +3651,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.cover_show_header")}</div>
-              <div class="feature-desc">${ye("config.cover_show_header_desc")}</div>
+              <div class="feature-name">${we("config.cover_show_header")}</div>
+              <div class="feature-desc">${we("config.cover_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._coverShowHeader?"on":""}"
@@ -3586,8 +3663,8 @@
         </div>
 
         <!-- Per-room cover config -->
-        <div class="section-label">${ye("config.cover_room")}</div>
-        <div class="section-desc">${ye("config.cover_room_desc")}</div>
+        <div class="section-label">${we("config.cover_room")}</div>
+        <div class="section-desc">${we("config.cover_room_desc")}</div>
 
         <!-- Room selector dropdown -->
         <div class="dropdown ${this._coverRoomDropdownOpen?"open":""}">
@@ -3598,7 +3675,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${e?.icon||"mdi:home"}></ha-icon>
-            <span>${e?.name||ye("common.select")}</span>
+            <span>${e?.name||we("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -3618,8 +3695,8 @@
 
         ${this._coverRoom?U`
           ${this._coverRoomEntities.length>0?U`
-            <div class="section-label">${ye("config.cover_list_title")} (${this._coverRoomEntities.length})</div>
-            <div class="section-desc">${ye("config.cover_list_banner")}</div>
+            <div class="section-label">${we("config.cover_list_title")} (${this._coverRoomEntities.length})</div>
+            <div class="section-desc">${we("config.cover_list_banner")}</div>
             <div class="item-list">
               ${this._coverRoomEntities.map((e,t)=>{const i=this._dragIdx===t&&"covers"===this._dragContext,a=this._dropIdx===t&&"covers"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return U`
                   <div
@@ -3643,13 +3720,13 @@
                       @click=${()=>this._toggleCoverEntityVisibility(e.entityId)}
                       role="switch"
                       aria-checked=${e.visible?"true":"false"}
-                      aria-label="${e.visible?ye("common.hide"):ye("common.show")} ${e.name}"
+                      aria-label="${e.visible?we("common.hide"):we("common.show")} ${e.name}"
                     ></button>
                   </div>
                   <!-- Per-entity presets -->
                   ${e.visible?U`
                     <div style="padding:2px 8px 8px 32px;">
-                      <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${ye("config.cover_entity_presets")}</div>
+                      <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${we("config.cover_entity_presets")}</div>
                       <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
                         ${(this._coverEntityPresets[e.entityId]??this._coverPresets).map(t=>{const i=t>=50?"mdi:window-shutter-open":"mdi:window-shutter",a=!!this._coverEntityPresets[e.entityId];return U`
                             <span style="
@@ -3660,12 +3737,12 @@
                               font-size:10px;font-weight:600;color:${a?"var(--c-accent)":"var(--t3)"};
                             ">
                               <ha-icon .icon=${i} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                              ${0===t?ye("cover.preset_closed"):100===t?ye("cover.preset_open"):`${t}%`}
+                              ${0===t?we("cover.preset_closed"):100===t?we("cover.preset_open"):`${t}%`}
                               ${a?U`
                                 <button
                                   style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:color var(--t-fast);"
                                   @click=${()=>this._removeCoverEntityPreset(e.entityId,t)}
-                                  aria-label="${ye("common.delete")} ${t}%"
+                                  aria-label="${we("common.delete")} ${t}%"
                                 >
                                   <ha-icon .icon=${"mdi:close"} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                                 </button>
@@ -3697,7 +3774,7 @@
                               transition:opacity var(--t-fast);
                             "
                             @click=${()=>this._addCoverEntityPreset(e.entityId)}
-                            aria-label="${ye("config.cover_preset_add")}"
+                            aria-label="${we("config.cover_preset_add")}"
                           >
                             <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                           </button>
@@ -3712,7 +3789,7 @@
                                 transition:all var(--t-fast);
                               "
                               @click=${()=>this._resetCoverEntityPresets(e.entityId)}
-                              aria-label="${ye("common.reset")}"
+                              aria-label="${we("common.reset")}"
                             >
                               <ha-icon .icon=${"mdi:restore"} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                             </button>
@@ -3726,14 +3803,14 @@
           `:U`
             <div class="banner">
               <ha-icon .icon=${"mdi:blinds-open"}></ha-icon>
-              <span>${ye("config.cover_no_covers")}</span>
+              <span>${we("config.cover_no_covers")}</span>
             </div>
           `}
         `:q}
 
         <!-- Preset config -->
-        <div class="section-label">${ye("config.cover_presets")}</div>
-        <div class="section-desc">${ye("config.cover_presets_desc")}</div>
+        <div class="section-label">${we("config.cover_presets")}</div>
+        <div class="section-desc">${we("config.cover_presets_desc")}</div>
 
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
           ${this._coverPresets.map(e=>U`
@@ -3744,7 +3821,7 @@
                 font-size:11px;font-weight:600;color:var(--t2);
               ">
                 <ha-icon .icon=${e>=50?"mdi:window-shutter-open":"mdi:window-shutter"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                ${0===e?ye("cover.preset_closed"):100===e?ye("cover.preset_open"):`${e}%`}
+                ${0===e?we("cover.preset_closed"):100===e?we("cover.preset_open"):`${e}%`}
                 <button
                   style="
                     background:none;border:none;cursor:pointer;padding:0;
@@ -3752,7 +3829,7 @@
                     color:var(--t4);transition:color var(--t-fast);
                   "
                   @click=${()=>this._removeCoverPreset(e)}
-                  aria-label="${ye("common.delete")} ${e}%"
+                  aria-label="${we("common.delete")} ${e}%"
                 >
                   <ha-icon .icon=${"mdi:close"} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 </button>
@@ -3768,7 +3845,7 @@
               .value=${this._coverPresetInput}
               @input=${e=>{this._coverPresetInput=e.target.value}}
               @keydown=${e=>{"Enter"===e.key&&this._addCoverPreset()}}
-              placeholder=${ye("config.cover_preset_placeholder")}
+              placeholder=${we("config.cover_preset_placeholder")}
               style="width:64px;font-size:11px;padding:5px 8px;"
             />
             <button
@@ -3785,19 +3862,19 @@
               @click=${()=>this._addCoverPreset()}
             >
               <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-              ${ye("config.cover_preset_add")}
+              ${we("config.cover_preset_add")}
             </button>
           </span>
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._resetCover()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._resetCover()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -3851,8 +3928,8 @@
             <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
           </div>
           <div class="feature-text">
-            <div class="feature-name">${ye("config.media_show_header")}</div>
-            <div class="feature-desc">${ye("config.media_show_header_desc")}</div>
+            <div class="feature-name">${we("config.media_show_header")}</div>
+            <div class="feature-desc">${we("config.media_show_header_desc")}</div>
           </div>
           <span
             class="toggle ${this._mediaShowHeader?"on":""}"
@@ -3862,17 +3939,17 @@
         </button>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadMediaConfig()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadMediaConfig()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
-    `}_toggleDashboardCard(e){const t=new Set(this._dashboardEnabledCards);t.has(e)?t.delete(e):t.add(e),this._dashboardEnabledCards=[...t]}_toggleDashboardExpand(e){const t=new Set(this._dashboardExpanded);t.has(e)?t.delete(e):t.add(e),this._dashboardExpanded=t}_onDropDashboardCard(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_cards"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._dashboardCardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._dashboardCardOrder=i,this._dragIdx=null,this._dropIdx=null}async _saveDashboard(){if(this._backend&&!this._saving){this._saving=!0;try{await this._backend.send("set_dashboard",{enabled_cards:this._dashboardEnabledCards,card_order:this._dashboardCardOrder}),await this._backend.send("set_light_config",{show_header:this._lightShowHeader}),await this._backend.send("set_weather",{show_header:this._weatherShowHeader});const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));if(await this._backend.send("set_cover_config",{show_header:this._coverShowHeader,dashboard_entities:e,presets:this._coverPresets,entity_presets:this._coverEntityPresets}),await this._backend.send("set_spotify_config",{show_header:this._spotifyShowHeader}),await this._backend.send("set_media_config",{show_header:this._mediaShowHeader}),!this._mounted)return;this._showToast(),pe.emit("dashboard-config-changed",void 0),pe.emit("light-config-changed",void 0),pe.emit("weather-config-changed",void 0),pe.emit("cover-config-changed",void 0),pe.emit("spotify-config-changed",void 0),pe.emit("media-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadDashboardConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.dashboard&&(this._dashboardEnabledCards=e.dashboard.enabled_cards??["weather"],this._dashboardCardOrder=e.dashboard.card_order??["title","weather","light","media","cover","spotify"]),this._lightShowHeader=e?.light_card?.show_header??!0,this._weatherShowHeader=e?.weather?.show_header??!0,this._coverShowHeader=e?.cover_card?.show_header??!0,this._spotifyShowHeader=e?.spotify_card?.show_header??!0,this._mediaShowHeader=e?.media_card?.show_header??!0}catch{}}_renderDashboardPreview(){const e=new Set(this._dashboardEnabledCards),t={title:{icon:"mdi:format-title",label:this._titleText||ye("config.title_title_placeholder"),titleStyle:"font-size:11px;font-weight:700;color:var(--t1);"},weather:{icon:"mdi:weather-partly-cloudy",label:ye("weather.title")},light:{icon:"mdi:lightbulb-group",label:ye("light.title")},media:{icon:"mdi:speaker",label:ye("media.title")},cover:{icon:"mdi:blinds",label:ye("cover.title")},spotify:{icon:"mdi:spotify",label:ye("spotify.title")}},i=this._dashboardCardOrder.filter(t=>e.has(t));return U`
+    `}_toggleDashboardCard(e){const t=new Set(this._dashboardEnabledCards);t.has(e)?t.delete(e):t.add(e),this._dashboardEnabledCards=[...t]}_toggleDashboardExpand(e){const t=new Set(this._dashboardExpanded);t.has(e)?t.delete(e):t.add(e),this._dashboardExpanded=t}_onDropDashboardCard(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_cards"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._dashboardCardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._dashboardCardOrder=i,this._dragIdx=null,this._dropIdx=null}async _saveDashboard(){if(this._backend&&!this._saving){this._saving=!0;try{await this._backend.send("set_dashboard",{enabled_cards:this._dashboardEnabledCards,card_order:this._dashboardCardOrder}),await this._backend.send("set_light_config",{show_header:this._lightShowHeader}),await this._backend.send("set_weather",{show_header:this._weatherShowHeader});const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));if(await this._backend.send("set_cover_config",{show_header:this._coverShowHeader,dashboard_entities:e,presets:this._coverPresets,entity_presets:this._coverEntityPresets}),await this._backend.send("set_spotify_config",{show_header:this._spotifyShowHeader}),await this._backend.send("set_media_config",{show_header:this._mediaShowHeader}),!this._mounted)return;this._showToast(),pe.emit("dashboard-config-changed",void 0),pe.emit("light-config-changed",void 0),pe.emit("weather-config-changed",void 0),pe.emit("cover-config-changed",void 0),pe.emit("spotify-config-changed",void 0),pe.emit("media-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadDashboardConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.dashboard&&(this._dashboardEnabledCards=e.dashboard.enabled_cards??["weather"],this._dashboardCardOrder=e.dashboard.card_order??["title","weather","light","media","cover","spotify"]),this._lightShowHeader=e?.light_card?.show_header??!0,this._weatherShowHeader=e?.weather?.show_header??!0,this._coverShowHeader=e?.cover_card?.show_header??!0,this._spotifyShowHeader=e?.spotify_card?.show_header??!0,this._mediaShowHeader=e?.media_card?.show_header??!0}catch{}}_renderDashboardPreview(){const e=new Set(this._dashboardEnabledCards),t={title:{icon:"mdi:format-title",label:this._titleText||we("config.title_title_placeholder"),titleStyle:"font-size:11px;font-weight:700;color:var(--t1);"},weather:{icon:"mdi:weather-partly-cloudy",label:we("weather.title")},light:{icon:"mdi:lightbulb-group",label:we("light.title")},media:{icon:"mdi:speaker",label:we("media.title")},cover:{icon:"mdi:blinds",label:we("cover.title")},spotify:{icon:"mdi:spotify",label:we("spotify.title")}},i=this._dashboardCardOrder.filter(t=>e.has(t));return U`
       <div class="preview-dashboard">
         <div class="preview-dashboard-cards">
           ${0===i.length?U`<div class="preview-dashboard-empty">—</div>`:q}
@@ -3890,8 +3967,8 @@
       </div>
     `}_renderDashboardTab(){const e={title:{icon:"mdi:format-title",nameKey:"config.dashboard_card_title",descKey:"config.dashboard_card_title_desc",hasSub:!1},weather:{icon:"mdi:weather-partly-cloudy",nameKey:"config.dashboard_card_weather",descKey:"config.dashboard_card_weather_desc",hasSub:!0},light:{icon:"mdi:lightbulb-group",nameKey:"config.dashboard_card_light",descKey:"config.dashboard_card_light_desc",hasSub:!0},cover:{icon:"mdi:blinds",nameKey:"config.dashboard_card_cover",descKey:"config.dashboard_card_cover_desc",hasSub:!0},spotify:{icon:"mdi:spotify",nameKey:"config.dashboard_card_spotify",descKey:"config.dashboard_card_spotify_desc",hasSub:!0},media:{icon:"mdi:speaker",nameKey:"config.dashboard_card_media",descKey:"config.dashboard_card_media_desc",hasSub:!0}},t=new Set(this._dashboardEnabledCards);return U`
       <div class="tab-panel" id="panel-dashboard">
-        <div class="section-label">${ye("config.dashboard_title")}</div>
-        <div class="section-desc">${ye("config.dashboard_desc")}</div>
+        <div class="section-label">${we("config.dashboard_title")}</div>
+        <div class="section-desc">${we("config.dashboard_desc")}</div>
         <div class="item-list">
           ${this._dashboardCardOrder.map((i,a)=>{const s=e[i];if(!s)return q;const o=t.has(i),r=this._dragIdx===a&&"dashboard_cards"===this._dragContext,n=this._dropIdx===a&&"dashboard_cards"===this._dragContext,d=this._dashboardExpanded.has(i),c=["item-row",o?"":"disabled",r?"dragging":"",n?"drop-target":""].filter(Boolean).join(" "),l=["item-card",d?"expanded":""].filter(Boolean).join(" ");return U`
               <div
@@ -3911,13 +3988,13 @@
                     <ha-icon .icon=${s.icon}></ha-icon>
                   </div>
                   <div class="item-info">
-                    <span class="item-name">${ye(s.nameKey)}</span>
-                    <span class="item-meta">${ye(s.descKey)}</span>
+                    <span class="item-name">${we(s.nameKey)}</span>
+                    <span class="item-meta">${we(s.descKey)}</span>
                   </div>
                   ${s.hasSub&&o?U`
                     <button
                       class="btn-icon xs"
-                      aria-label=${ye(d?"common.hide":"common.show")}
+                      aria-label=${we(d?"common.hide":"common.show")}
                       aria-expanded=${d?"true":"false"}
                       @click=${e=>{e.stopPropagation(),this._toggleDashboardExpand(i)}}
                     >
@@ -3929,7 +4006,7 @@
                     @click=${e=>{e.stopPropagation(),this._toggleDashboardCard(i)}}
                     role="switch"
                     aria-checked=${o?"true":"false"}
-                    aria-label="${ye(o?"common.hide":"common.show")} ${ye(s.nameKey)}"
+                    aria-label="${we(o?"common.hide":"common.show")} ${we(s.nameKey)}"
                   ></button>
                 </div>
                 ${s.hasSub?U`
@@ -3941,13 +4018,13 @@
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadDashboardConfig()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadDashboardConfig()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -3963,8 +4040,8 @@
                   <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye("config.light_show_header")}</div>
-                  <div class="feature-desc">${ye("config.light_show_header_desc")}</div>
+                  <div class="feature-name">${we("config.light_show_header")}</div>
+                  <div class="feature-desc">${we("config.light_show_header_desc")}</div>
                 </div>
                 <span
                   class="toggle ${this._lightShowHeader?"on":""}"
@@ -3987,8 +4064,8 @@
                   <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye("config.weather_show_header")}</div>
-                  <div class="feature-desc">${ye("config.weather_show_header_desc")}</div>
+                  <div class="feature-name">${we("config.weather_show_header")}</div>
+                  <div class="feature-desc">${we("config.weather_show_header_desc")}</div>
                 </div>
                 <span
                   class="toggle ${this._weatherShowHeader?"on":""}"
@@ -4011,8 +4088,8 @@
                   <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye("config.cover_show_header")}</div>
-                  <div class="feature-desc">${ye("config.cover_show_header_desc")}</div>
+                  <div class="feature-name">${we("config.cover_show_header")}</div>
+                  <div class="feature-desc">${we("config.cover_show_header_desc")}</div>
                 </div>
                 <span
                   class="toggle ${this._coverShowHeader?"on":""}"
@@ -4020,8 +4097,8 @@
                   aria-checked=${this._coverShowHeader?"true":"false"}
                 ></span>
               </button>
-              <div class="section-label" style="margin-top:10px;">${ye("config.cover_dashboard_entities")}</div>
-              <div class="section-desc">${ye("config.cover_dashboard_entities_desc")}</div>
+              <div class="section-label" style="margin-top:10px;">${we("config.cover_dashboard_entities")}</div>
+              <div class="section-desc">${we("config.cover_dashboard_entities_desc")}</div>
               <div class="item-list">
                 ${this._coverDashboardOrder.map((e,t)=>{const i=this._getAllCoverEntities().find(t=>t.entityId===e);if(!i)return q;const a=this._coverDashboardEntities.includes(i.entityId),s=["item-row",a?"":"disabled",this._dragIdx===t&&"dashboard_covers"===this._dragContext?"dragging":"",this._dropIdx===t&&"dashboard_covers"===this._dragContext?"drop-target":""].filter(Boolean).join(" ");return U`
                     <div
@@ -4045,7 +4122,7 @@
                         @click=${e=>{e.stopPropagation(),this._toggleCoverDashboardEntity(i.entityId)}}
                         role="switch"
                         aria-checked=${a?"true":"false"}
-                        aria-label="${ye(a?"common.hide":"common.show")} ${i.name}"
+                        aria-label="${we(a?"common.hide":"common.show")} ${i.name}"
                       ></button>
                     </div>
                   `})}
@@ -4065,8 +4142,8 @@
                   <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye("config.spotify_show_header")}</div>
-                  <div class="feature-desc">${ye("config.spotify_show_header_desc")}</div>
+                  <div class="feature-name">${we("config.spotify_show_header")}</div>
+                  <div class="feature-desc">${we("config.spotify_show_header_desc")}</div>
                 </div>
                 <span
                   class="toggle ${this._spotifyShowHeader?"on":""}"
@@ -4089,8 +4166,8 @@
                   <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye("config.media_show_header")}</div>
-                  <div class="feature-desc">${ye("config.media_show_header_desc")}</div>
+                  <div class="feature-name">${we("config.media_show_header")}</div>
+                  <div class="feature-desc">${we("config.media_show_header_desc")}</div>
                 </div>
                 <span
                   class="toggle ${this._mediaShowHeader?"on":""}"
@@ -4101,11 +4178,11 @@
             </div>
           </div>
         </div>
-      `:q}_toggleWeatherMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}_selectWeatherEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}async _saveWeather(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_weather",{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}),!this._mounted)return;this._showToast(),pe.emit("weather-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}_renderWeatherPreview(){if(!this._weatherEntity||!this.hass)return U`<div class="preview-empty">${ye("config.weather_select_entity")}</div>`;const e=this.hass.states[this._weatherEntity];if(!e)return U`<div class="preview-empty">${ye("config.weather_select_entity")}</div>`;const t=e.attributes,i=t.temperature??"--",a=t.temperature_unit??"°C",s=new Set(this._weatherHiddenMetrics),o=e.state||"sunny",r={sunny:"mdi:weather-sunny","clear-night":"mdi:weather-night",partlycloudy:"mdi:weather-partly-cloudy",cloudy:"mdi:weather-cloudy",fog:"mdi:weather-fog",rainy:"mdi:weather-rainy",pouring:"mdi:weather-pouring",snowy:"mdi:weather-snowy",windy:"mdi:weather-windy",lightning:"mdi:weather-lightning"}[o]||"mdi:weather-cloudy",n=ye({sunny:"weather.cond_sunny","clear-night":"weather.cond_clear_night",partlycloudy:"weather.cond_partly_cloudy",cloudy:"weather.cond_cloudy",fog:"weather.cond_foggy",rainy:"weather.cond_rainy",pouring:"weather.cond_pouring",snowy:"weather.cond_snowy",windy:"weather.cond_windy",lightning:"weather.cond_lightning"}[o]||"weather.cond_cloudy"),d={sunny:"#fbbf24","clear-night":"#6366f1",partlycloudy:"#94a3b8",cloudy:"#64748b",fog:"#94a3b8",rainy:"#3b82f6",pouring:"#2563eb",snowy:"#e2e8f0",windy:"#6ee7b3",lightning:"#a78bfa"}[o]||"#64748b",c={sunny:"rgba(251,191,36,0.8)","clear-night":"rgba(129,140,248,0.7)",partlycloudy:"rgba(148,163,184,0.6)",cloudy:"rgba(100,116,139,0.6)",fog:"rgba(148,163,184,0.5)",rainy:"rgba(96,165,250,0.7)",pouring:"rgba(59,130,246,0.8)",snowy:"rgba(226,232,240,0.7)",windy:"rgba(110,231,179,0.6)",lightning:"rgba(167,139,250,0.8)"}[o]||"rgba(148,163,184,0.6)",l=new Date,h=l.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),p=String(l.getSeconds()).padStart(2,"0"),_=l.toLocaleDateString(this.hass.language||"fr",{weekday:"long",day:"numeric",month:"long"}),u=t.apparent_temperature??null,g="number"==typeof i?i:12,v=[0,.5,1.2,.8,-.3,-1,-.5,.2,.7,1.5],m=44,b=Math.min(...v),f=Math.max(...v)-b||1,y=v.map((e,t)=>({x:t/(v.length-1)*348,y:6+32*(1-(e-b)/f)}));let w=`M${y[0].x},${y[0].y}`;for(let H=0;H<y.length-1;H++){const e=y[Math.max(0,H-1)],t=y[H],i=y[H+1],a=y[Math.min(y.length-1,H+2)];w+=` C${t.x+(i.x-e.x)/6},${t.y+(i.y-e.y)/6} ${i.x-(a.x-t.x)/6},${i.y-(a.y-t.y)/6} ${i.x},${i.y}`}const x=w+" L348,44 L0,44 Z",$=.3*(v.length-1),k=Math.floor($),S=Math.min(v.length-1,k+1),E=$-k,C=6+32*(1-(v[k]+(v[S]-v[k])*E-b)/f),P=l.getHours(),M=v.map((e,t)=>`${String((P+t)%24).padStart(2,"0")}h`),D=[];if(s.has("humidity")||null==t.humidity||D.push({key:"humidity",icon:"mdi:water-percent",val:`${t.humidity}`,unit:"%"}),!s.has("wind")&&null!=t.wind_speed){const e="number"==typeof t.wind_bearing?this._windBearingToDir(t.wind_bearing):void 0;D.push({key:"wind",icon:"mdi:weather-windy",val:`${Math.round(t.wind_speed)}`,unit:"km/h",dir:e})}if(s.has("pressure")||null==t.pressure||D.push({key:"pressure",icon:"mdi:gauge",val:`${Math.round(t.pressure)}`,unit:"hPa"}),s.has("uv")||null==t.uv_index||D.push({key:"uv",icon:"mdi:sun-wireless",val:`${Math.round(t.uv_index)}`,unit:"UV"}),s.has("visibility")||null==t.visibility||D.push({key:"visibility",icon:"mdi:eye-outline",val:`${t.visibility}`,unit:"km"}),!s.has("sunrise")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_rising;D.push({key:"sunrise",icon:"mdi:weather-sunset-up",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}if(!s.has("sunset")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_setting;D.push({key:"sunset",icon:"mdi:weather-sunset-down",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}const I=this.hass.language||"fr",T=Array.from({length:7},(e,t)=>{const i=new Date(2024,0,t+1);return new Intl.DateTimeFormat(I,{weekday:"short"}).format(i)}),z=[g+2,g+1,g,g-1,g+1,g+3,g],A=[g-4,g-3,g-5,g-6,g-4,g-2,g-5],O=[0,10,30,60,20,0,15],R=l.getDay();return U`
+      `:q}_toggleWeatherMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}_selectWeatherEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}async _saveWeather(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_weather",{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}),!this._mounted)return;this._showToast(),pe.emit("weather-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}_renderWeatherPreview(){if(!this._weatherEntity||!this.hass)return U`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const e=this.hass.states[this._weatherEntity];if(!e)return U`<div class="preview-empty">${we("config.weather_select_entity")}</div>`;const t=e.attributes,i=t.temperature??"--",a=t.temperature_unit??"°C",s=new Set(this._weatherHiddenMetrics),o=e.state||"sunny",r={sunny:"mdi:weather-sunny","clear-night":"mdi:weather-night",partlycloudy:"mdi:weather-partly-cloudy",cloudy:"mdi:weather-cloudy",fog:"mdi:weather-fog",rainy:"mdi:weather-rainy",pouring:"mdi:weather-pouring",snowy:"mdi:weather-snowy",windy:"mdi:weather-windy",lightning:"mdi:weather-lightning"}[o]||"mdi:weather-cloudy",n=we({sunny:"weather.cond_sunny","clear-night":"weather.cond_clear_night",partlycloudy:"weather.cond_partly_cloudy",cloudy:"weather.cond_cloudy",fog:"weather.cond_foggy",rainy:"weather.cond_rainy",pouring:"weather.cond_pouring",snowy:"weather.cond_snowy",windy:"weather.cond_windy",lightning:"weather.cond_lightning"}[o]||"weather.cond_cloudy"),d={sunny:"#fbbf24","clear-night":"#6366f1",partlycloudy:"#94a3b8",cloudy:"#64748b",fog:"#94a3b8",rainy:"#3b82f6",pouring:"#2563eb",snowy:"#e2e8f0",windy:"#6ee7b3",lightning:"#a78bfa"}[o]||"#64748b",c={sunny:"rgba(251,191,36,0.8)","clear-night":"rgba(129,140,248,0.7)",partlycloudy:"rgba(148,163,184,0.6)",cloudy:"rgba(100,116,139,0.6)",fog:"rgba(148,163,184,0.5)",rainy:"rgba(96,165,250,0.7)",pouring:"rgba(59,130,246,0.8)",snowy:"rgba(226,232,240,0.7)",windy:"rgba(110,231,179,0.6)",lightning:"rgba(167,139,250,0.8)"}[o]||"rgba(148,163,184,0.6)",l=new Date,h=l.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),p=String(l.getSeconds()).padStart(2,"0"),_=l.toLocaleDateString(this.hass.language||"fr",{weekday:"long",day:"numeric",month:"long"}),u=t.apparent_temperature??null,g="number"==typeof i?i:12,v=[0,.5,1.2,.8,-.3,-1,-.5,.2,.7,1.5],m=44,b=Math.min(...v),f=Math.max(...v)-b||1,y=v.map((e,t)=>({x:t/(v.length-1)*348,y:6+32*(1-(e-b)/f)}));let w=`M${y[0].x},${y[0].y}`;for(let H=0;H<y.length-1;H++){const e=y[Math.max(0,H-1)],t=y[H],i=y[H+1],a=y[Math.min(y.length-1,H+2)];w+=` C${t.x+(i.x-e.x)/6},${t.y+(i.y-e.y)/6} ${i.x-(a.x-t.x)/6},${i.y-(a.y-t.y)/6} ${i.x},${i.y}`}const x=w+" L348,44 L0,44 Z",$=.3*(v.length-1),k=Math.floor($),S=Math.min(v.length-1,k+1),E=$-k,C=6+32*(1-(v[k]+(v[S]-v[k])*E-b)/f),P=l.getHours(),M=v.map((e,t)=>`${String((P+t)%24).padStart(2,"0")}h`),D=[];if(s.has("humidity")||null==t.humidity||D.push({key:"humidity",icon:"mdi:water-percent",val:`${t.humidity}`,unit:"%"}),!s.has("wind")&&null!=t.wind_speed){const e="number"==typeof t.wind_bearing?this._windBearingToDir(t.wind_bearing):void 0;D.push({key:"wind",icon:"mdi:weather-windy",val:`${Math.round(t.wind_speed)}`,unit:"km/h",dir:e})}if(s.has("pressure")||null==t.pressure||D.push({key:"pressure",icon:"mdi:gauge",val:`${Math.round(t.pressure)}`,unit:"hPa"}),s.has("uv")||null==t.uv_index||D.push({key:"uv",icon:"mdi:sun-wireless",val:`${Math.round(t.uv_index)}`,unit:"UV"}),s.has("visibility")||null==t.visibility||D.push({key:"visibility",icon:"mdi:eye-outline",val:`${t.visibility}`,unit:"km"}),!s.has("sunrise")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_rising;D.push({key:"sunrise",icon:"mdi:weather-sunset-up",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}if(!s.has("sunset")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_setting;D.push({key:"sunset",icon:"mdi:weather-sunset-down",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}const I=this.hass.language||"fr",T=Array.from({length:7},(e,t)=>{const i=new Date(2024,0,t+1);return new Intl.DateTimeFormat(I,{weekday:"short"}).format(i)}),z=[g+2,g+1,g,g-1,g+1,g+3,g],A=[g-4,g-3,g-5,g-6,g-4,g-2,g-5],O=[0,10,30,60,20,0,15],R=l.getDay();return U`
       <div class="preview-weather-wrap">
         ${this._weatherShowHeader?U`
           <div class="pw-card-header">
-            <span class="pw-card-title">${ye("weather.title")}</span>
+            <span class="pw-card-title">${we("weather.title")}</span>
             <span class="pw-card-location">${e.attributes.friendly_name??""}</span>
           </div>
         `:q}
@@ -4120,7 +4197,7 @@
             <div class="pw-header-right">
               <span class="pw-temp">${i}<span class="pw-temp-unit">${a}</span></span>
               <span class="pw-cond"><ha-icon .icon=${r}></ha-icon>${n}</span>
-              ${null!=u?U`<span class="pw-feels">${ye("weather.feels_like",{temp:String(Math.round(u))})}</span>`:q}
+              ${null!=u?U`<span class="pw-feels">${we("weather.feels_like",{temp:String(Math.round(u))})}</span>`:q}
             </div>
           </div>
 
@@ -4159,13 +4236,13 @@
           ${this._weatherShowDaily||this._weatherShowHourly?U`
             <div class="pw-forecast-zone">
               <div class="pw-tabs">
-                ${this._weatherShowDaily?U`<span class="pw-tab active">${ye("weather.daily_tab")}</span>`:q}
-                ${this._weatherShowHourly?U`<span class="pw-tab">${ye("weather.hourly_tab")}</span>`:q}
+                ${this._weatherShowDaily?U`<span class="pw-tab active">${we("weather.daily_tab")}</span>`:q}
+                ${this._weatherShowHourly?U`<span class="pw-tab">${we("weather.hourly_tab")}</span>`:q}
               </div>
               <div class="pw-fold-sep"></div>
               ${this._weatherShowDaily?U`
                 <div class="pw-daily-list">
-                  ${["mdi:weather-sunny","mdi:weather-partly-cloudy","mdi:weather-cloudy","mdi:weather-rainy","mdi:weather-partly-cloudy","mdi:weather-sunny","mdi:weather-cloudy"].slice(0,5).map((e,t)=>{const i=(R+t)%7,a=0===t?ye("weather.today"):T[i],s=Math.round(z[t]),o=Math.round(A[t]),r=O[t];return U`
+                  ${["mdi:weather-sunny","mdi:weather-partly-cloudy","mdi:weather-cloudy","mdi:weather-rainy","mdi:weather-partly-cloudy","mdi:weather-sunny","mdi:weather-cloudy"].slice(0,5).map((e,t)=>{const i=(R+t)%7,a=0===t?we("weather.today"):T[i],s=Math.round(z[t]),o=Math.round(A[t]),r=O[t];return U`
                       <div class="pw-day-row ${0===t?"today":""}">
                         <span class="pw-day-label">${a}</span>
                         <ha-icon class="pw-day-icon" .icon=${e}></ha-icon>
@@ -4182,7 +4259,7 @@
       </div>
     `}_windBearingToDir(e){return["N","NE","E","SE","S","SO","O","NO"][Math.round(e/45)%8]}_renderWeatherTab(){const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics);return U`
       <div class="tab-panel" id="panel-weather">
-        <div class="section-label">${ye("config.navbar_behavior")}</div>
+        <div class="section-label">${we("config.navbar_behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -4192,8 +4269,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.weather_show_header")}</div>
-              <div class="feature-desc">${ye("config.weather_show_header_desc")}</div>
+              <div class="feature-name">${we("config.weather_show_header")}</div>
+              <div class="feature-desc">${we("config.weather_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowHeader?"on":""}"
@@ -4203,8 +4280,8 @@
           </button>
         </div>
 
-        <div class="section-label">${ye("config.weather_entity")}</div>
-        <div class="section-desc">${ye("config.weather_entity_desc")}</div>
+        <div class="section-label">${we("config.weather_entity")}</div>
+        <div class="section-desc">${we("config.weather_entity_desc")}</div>
         <div class="dropdown ${this._weatherDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -4213,7 +4290,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${"mdi:weather-partly-cloudy"}></ha-icon>
-            <span>${t||ye("common.select")}</span>
+            <span>${t||we("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -4231,8 +4308,8 @@
           </div>
         </div>
 
-        <div class="section-label">${ye("config.weather_metrics")}</div>
-        <div class="section-desc">${ye("config.weather_metrics_desc")}</div>
+        <div class="section-label">${we("config.weather_metrics")}</div>
+        <div class="section-desc">${we("config.weather_metrics_desc")}</div>
         <div class="feature-list">
           ${[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise"},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset"}].map(e=>{const t=!i.has(e.key);return U`
               <button
@@ -4243,20 +4320,20 @@
                   <ha-icon .icon=${e.icon}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${ye(e.nameKey)}</div>
+                  <div class="feature-name">${we(e.nameKey)}</div>
                 </div>
                 <span
                   class="toggle ${t?"on":""}"
                   role="switch"
                   aria-checked=${t?"true":"false"}
-                  aria-label="${ye(t?"common.hide":"common.show")} ${ye(e.nameKey)}"
+                  aria-label="${we(t?"common.hide":"common.show")} ${we(e.nameKey)}"
                 ></span>
               </button>
             `})}
         </div>
 
-        <div class="section-label">${ye("config.weather_forecasts")}</div>
-        <div class="section-desc">${ye("config.weather_forecasts_desc")}</div>
+        <div class="section-label">${we("config.weather_forecasts")}</div>
+        <div class="section-desc">${we("config.weather_forecasts_desc")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -4266,13 +4343,13 @@
               <ha-icon .icon=${"mdi:calendar-week"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.weather_daily")}</div>
+              <div class="feature-name">${we("config.weather_daily")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowDaily?"on":""}"
               role="switch"
               aria-checked=${this._weatherShowDaily?"true":"false"}
-              aria-label="${this._weatherShowDaily?ye("common.hide"):ye("common.show")} ${ye("config.weather_daily")}"
+              aria-label="${this._weatherShowDaily?we("common.hide"):we("common.show")} ${we("config.weather_daily")}"
             ></span>
           </button>
           <button
@@ -4283,47 +4360,47 @@
               <ha-icon .icon=${"mdi:clock-outline"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.weather_hourly")}</div>
+              <div class="feature-name">${we("config.weather_hourly")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowHourly?"on":""}"
               role="switch"
               aria-checked=${this._weatherShowHourly?"true":"false"}
-              aria-label="${this._weatherShowHourly?ye("common.hide"):ye("common.show")} ${ye("config.weather_hourly")}"
+              aria-label="${this._weatherShowHourly?we("common.hide"):we("common.show")} ${we("config.weather_hourly")}"
             ></span>
           </button>
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadWeatherConfig()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadWeatherConfig()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
-    `}async _loadWeatherConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.weather&&(this._weatherEntity=e.weather.entity_id??"",this._weatherHiddenMetrics=e.weather.hidden_metrics??[],this._weatherShowDaily=e.weather.show_daily??!0,this._weatherShowHourly=e.weather.show_hourly??!0,this._weatherShowHeader=e.weather.show_header??!0)}catch{}}async _checkSpotifyStatus(){if(this._backend)try{const e=await this._backend.send("spotify_status");if(!this._mounted)return;this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}async _saveSpotify(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_spotify_config",{entity_id:this._spotifyEntity,sort_order:this._spotifySortOrder,max_items_per_section:this._spotifyMaxItems,visible_speakers:this._spotifyVisibleSpeakers}),!this._mounted)return;this._showToast(),pe.emit("spotify-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadSpotifyConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.spotify_card&&(this._spotifyShowHeader=e.spotify_card.show_header??!0,this._spotifyEntity=e.spotify_card.entity_id??"",this._spotifySortOrder="oldest_first"===e.spotify_card.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=e.spotify_card.max_items_per_section??6,this._spotifyVisibleSpeakers=e.spotify_card.visible_speakers??[])}catch{}}_selectSpotifyEntity(e){this._spotifyEntity=e,this._spotifyDropdownOpen=!1}_renderSpotifyPreview(){if(!1===this._spotifyConfigured)return U`<div class="preview-empty">${ye("config.spotify_not_configured")}</div>`;if(!this._spotifyEntity||!this.hass)return U`<div class="preview-empty">${ye("config.spotify_select_entity")}</div>`;if(!this.hass.states[this._spotifyEntity])return U`<div class="preview-empty">${ye("config.spotify_select_entity")}</div>`;const e=[{id:"all",label:ye("spotify.tab_all"),active:!0},{id:"tracks",label:ye("spotify.tab_tracks"),active:!1},{id:"playlists",label:ye("spotify.tab_playlists"),active:!1},{id:"podcasts",label:ye("spotify.tab_podcasts"),active:!1}],t=[{name:"Daily Mix 1",meta:ye("spotify.type_playlist"),icon:"mdi:playlist-music"},{name:ye("spotify.saved_tracks"),meta:"128 "+ye("spotify.tracks_count",{count:""}).trim(),icon:"mdi:heart"},{name:"Discover Weekly",meta:ye("spotify.type_playlist"),icon:"mdi:playlist-music"}];return U`
+    `}async _loadWeatherConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.weather&&(this._weatherEntity=e.weather.entity_id??"",this._weatherHiddenMetrics=e.weather.hidden_metrics??[],this._weatherShowDaily=e.weather.show_daily??!0,this._weatherShowHourly=e.weather.show_hourly??!0,this._weatherShowHeader=e.weather.show_header??!0)}catch{}}async _checkSpotifyStatus(){if(this._backend)try{const e=await this._backend.send("spotify_status");if(!this._mounted)return;this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}async _saveSpotify(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_spotify_config",{entity_id:this._spotifyEntity,sort_order:this._spotifySortOrder,max_items_per_section:this._spotifyMaxItems,visible_speakers:this._spotifyVisibleSpeakers}),!this._mounted)return;this._showToast(),pe.emit("spotify-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadSpotifyConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.spotify_card&&(this._spotifyShowHeader=e.spotify_card.show_header??!0,this._spotifyEntity=e.spotify_card.entity_id??"",this._spotifySortOrder="oldest_first"===e.spotify_card.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=e.spotify_card.max_items_per_section??6,this._spotifyVisibleSpeakers=e.spotify_card.visible_speakers??[])}catch{}}_selectSpotifyEntity(e){this._spotifyEntity=e,this._spotifyDropdownOpen=!1}_renderSpotifyPreview(){if(!1===this._spotifyConfigured)return U`<div class="preview-empty">${we("config.spotify_not_configured")}</div>`;if(!this._spotifyEntity||!this.hass)return U`<div class="preview-empty">${we("config.spotify_select_entity")}</div>`;if(!this.hass.states[this._spotifyEntity])return U`<div class="preview-empty">${we("config.spotify_select_entity")}</div>`;const e=[{id:"all",label:we("spotify.tab_all"),active:!0},{id:"tracks",label:we("spotify.tab_tracks"),active:!1},{id:"playlists",label:we("spotify.tab_playlists"),active:!1},{id:"podcasts",label:we("spotify.tab_podcasts"),active:!1}],t=[{name:"Daily Mix 1",meta:we("spotify.type_playlist"),icon:"mdi:playlist-music"},{name:we("spotify.saved_tracks"),meta:"128 "+we("spotify.tracks_count",{count:""}).trim(),icon:"mdi:heart"},{name:"Discover Weekly",meta:we("spotify.type_playlist"),icon:"mdi:playlist-music"}];return U`
       <div class="preview-spotify-wrap">
         ${this._spotifyShowHeader?U`
           <div class="ps-card-header">
             <ha-icon .icon=${"mdi:spotify"}></ha-icon>
-            <span class="ps-card-title">${ye("spotify.title")}</span>
+            <span class="ps-card-title">${we("spotify.title")}</span>
           </div>
         `:q}
         <div class="preview-spotify">
           <div class="ps-search">
             <ha-icon .icon=${"mdi:magnify"}></ha-icon>
-            <span class="ps-search-text">${ye("spotify.search_placeholder")}</span>
+            <span class="ps-search-text">${we("spotify.search_placeholder")}</span>
           </div>
           <div class="ps-tabs">
             ${e.map(e=>U`
               <span class="ps-tab ${e.active?"active":""}">${e.label}</span>
             `)}
           </div>
-          <div class="ps-section-label">${ye("spotify.my_playlists")}</div>
+          <div class="ps-section-label">${we("spotify.my_playlists")}</div>
           ${t.map(e=>U`
             <div class="ps-item-row">
               <div class="ps-item-art">
@@ -4351,10 +4428,10 @@
             margin: 0 auto 16px;
           "></ha-icon>
           <div style="font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: 8px;">
-            ${ye("config.spotify_not_configured")}
+            ${we("config.spotify_not_configured")}
           </div>
           <div style="font-size: 13px; color: var(--t3); margin-bottom: 20px; line-height: 1.5;">
-            ${ye("config.spotify_setup_guide")}
+            ${we("config.spotify_setup_guide")}
           </div>
 
           <div style="text-align: left; padding: 0 8px;">
@@ -4370,7 +4447,7 @@
                   font-size: 12px; font-weight: 600; color: var(--t1);
                 ">${e}</span>
                 <span style="line-height: 22px;">
-                  ${ye(`config.spotify_setup_step${e}`)}
+                  ${we(`config.spotify_setup_step${e}`)}
                 </span>
               </div>
             `)}
@@ -4381,7 +4458,7 @@
             padding: 10px; border-radius: var(--radius-md);
             background: var(--s1); border: 1px solid var(--b1);
           ">
-            ${ye("config.spotify_setup_note")}
+            ${we("config.spotify_setup_note")}
           </div>
 
           <button
@@ -4390,16 +4467,16 @@
             @click=${()=>{window.open("/config/integrations/dashboard","_blank")}}
           >
             <ha-icon .icon=${"mdi:cog"} style="--mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center;"></ha-icon>
-            ${ye("config.spotify_open_settings")}
+            ${we("config.spotify_open_settings")}
           </button>
         </div>
       </div>
     `}_renderSpotifyTab(){if(null===this._spotifyConfigured)return U`<div class="tab-panel" id="panel-spotify">
-        <div class="preview-empty">${ye("config.spotify_checking")}</div>
+        <div class="preview-empty">${we("config.spotify_checking")}</div>
       </div>`;if(!1===this._spotifyConfigured)return this._renderSpotifySetupGuide();const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")).sort():[],t=e.find(e=>e===this._spotifyEntity);return U`
       <div class="tab-panel" id="panel-spotify">
-        <div class="section-label">${ye("config.spotify_entity")}</div>
-        <div class="section-desc">${ye("config.spotify_entity_desc")}</div>
+        <div class="section-label">${we("config.spotify_entity")}</div>
+        <div class="section-desc">${we("config.spotify_entity_desc")}</div>
         <div class="dropdown ${this._spotifyDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -4408,7 +4485,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${"mdi:spotify"} style="color: #1DB954;"></ha-icon>
-            <span>${t||ye("common.select")}</span>
+            <span>${t||we("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -4426,8 +4503,8 @@
           </div>
         </div>
 
-        <div class="section-label">${ye("config.spotify_sort_order")}</div>
-        <div class="section-desc">${ye("config.spotify_sort_order_desc")}</div>
+        <div class="section-label">${we("config.spotify_sort_order")}</div>
+        <div class="section-desc">${we("config.spotify_sort_order_desc")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -4437,7 +4514,7 @@
               <ha-icon .icon=${"mdi:sort-clock-descending"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.spotify_sort_recent")}</div>
+              <div class="feature-name">${we("config.spotify_sort_recent")}</div>
             </div>
             <span
               class="toggle ${"recent_first"===this._spotifySortOrder?"on":""}"
@@ -4453,7 +4530,7 @@
               <ha-icon .icon=${"mdi:sort-clock-ascending"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${ye("config.spotify_sort_oldest")}</div>
+              <div class="feature-name">${we("config.spotify_sort_oldest")}</div>
             </div>
             <span
               class="toggle ${"oldest_first"===this._spotifySortOrder?"on":""}"
@@ -4463,8 +4540,8 @@
           </button>
         </div>
 
-        <div class="section-label">${ye("config.spotify_max_items")}</div>
-        <div class="section-desc">${ye("config.spotify_max_items_desc")}</div>
+        <div class="section-label">${we("config.spotify_max_items")}</div>
+        <div class="section-desc">${we("config.spotify_max_items_desc")}</div>
         <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
           <input
             type="range"
@@ -4480,8 +4557,8 @@
           ">${this._spotifyMaxItems}</span>
         </div>
 
-        <div class="section-label">${ye("config.spotify_speakers")}</div>
-        <div class="section-desc">${ye("config.spotify_speakers_desc")}</div>
+        <div class="section-label">${we("config.spotify_speakers")}</div>
+        <div class="section-desc">${we("config.spotify_speakers_desc")}</div>
         ${(()=>{const e=this.hass?Object.entries(this.hass.states).filter(([e])=>e.startsWith("media_player.")).map(([e,t])=>({entityId:e,name:t.attributes.friendly_name??e,visible:this._spotifyVisibleSpeakers.includes(e)})):[],t=[...this._spotifyVisibleSpeakers.map(t=>e.find(e=>e.entityId===t)).filter(e=>!!e),...e.filter(e=>!e.visible).sort((e,t)=>e.name.localeCompare(t.name))];return U`
             <div class="item-list">
               ${t.map(e=>{const t=e.visible,i=t?this._spotifyVisibleSpeakers.indexOf(e.entityId):-1,a=this._dragIdx===i&&-1!==i&&"speakers"===this._dragContext,s=this._dropIdx===i&&-1!==i&&"speakers"===this._dragContext,o=["item-row",t?"":"disabled",a?"dragging":"",s?"drop-target":""].filter(Boolean).join(" ");return U`
@@ -4508,7 +4585,7 @@
                       @click=${()=>this._toggleSpotifySpeaker(e.entityId)}
                       role="switch"
                       aria-checked=${t?"true":"false"}
-                      aria-label="${ye(t?"common.hide":"common.show")} ${e.name}"
+                      aria-label="${we(t?"common.hide":"common.show")} ${e.name}"
                     ></button>
                   </div>
                 `})}
@@ -4516,13 +4593,13 @@
           `})()}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadSpotifyConfig()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadSpotifyConfig()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -4530,7 +4607,7 @@
       <div class="icon-popup-overlay" @click=${e=>{e.target===e.currentTarget&&(this._iconPopupModeIdx=null)}}>
         <div class="icon-popup">
           <div class="icon-popup-header">
-            <span class="icon-popup-title">${ye("config.title_mode_icon")}</span>
+            <span class="icon-popup-title">${we("config.title_mode_icon")}</span>
             <input
               class="icon-popup-search"
               type="text"
@@ -4545,7 +4622,7 @@
                 <button
                   class="icon-pick ${""===t?"selected":""}"
                   @click=${()=>{this._updateTitleMode(this._iconPopupModeIdx,"icon",""),this._iconPopupModeIdx=null}}
-                  aria-label=${ye("config.title_no_icon")}
+                  aria-label=${we("config.title_no_icon")}
                 >
                   <ha-icon .icon=${"mdi:cancel"} style="opacity:0.4;"></ha-icon>
                 </button>
@@ -4559,18 +4636,18 @@
                   </button>
                 `)}
               </div>
-            `:U`<div class="icon-popup-empty">${ye("config.title_no_icons_found")}</div>`}
+            `:U`<div class="icon-popup-empty">${we("config.title_no_icons_found")}</div>`}
           </div>
         </div>
       </div>
-    `}_renderTitlePreview(){const e=this._titleText;if(!e)return U`<div class="preview-empty">${ye("config.title_title_placeholder")}</div>`;let t="",i="",a="neutral";if(this._titleModeEntity&&this.hass){const e=this.hass.states[this._titleModeEntity];if(e&&this._titleModeEntity.startsWith("input_select.")){const s=e.state,o=this._titleModes.find(e=>e.id===s);t=o?.label||s,i=o?.icon||"",a=o?.color||"neutral"}else if(e&&this._titleModeEntity.startsWith("input_boolean.")){const s=this._titleModeEntity.split(".")[1]??this._titleModeEntity,o=this._titleModes.find(e=>e.id===s);t=o?.label||e.attributes.friendly_name||s,i=o?.icon||"",a="on"===e.state?o?.color||"success":"neutral"}else if(e&&this._titleModeEntity.startsWith("scene.")){const s=this._titleModeEntity.split(".")[1]??this._titleModeEntity,o=this._titleModes.find(e=>e.id===s);t=o?.label||e.attributes.friendly_name||s,i=o?.icon||"",a=o?.color||"accent"}}const s={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t3)"};return U`
+    `}_renderTitlePreview(){const e=this._titleText;if(!e)return U`<div class="preview-empty">${we("config.title_title_placeholder")}</div>`;let t="",i="",a="neutral";if(this._titleModeEntity&&this.hass){const e=this.hass.states[this._titleModeEntity];if(e&&this._titleModeEntity.startsWith("input_select.")){const s=e.state,o=this._titleModes.find(e=>e.id===s);t=o?.label||s,i=o?.icon||"",a=o?.color||"neutral"}else if(e&&this._titleModeEntity.startsWith("input_boolean.")){const s=this._titleModeEntity.split(".")[1]??this._titleModeEntity,o=this._titleModes.find(e=>e.id===s);t=o?.label||e.attributes.friendly_name||s,i=o?.icon||"",a="on"===e.state?o?.color||"success":"neutral"}else if(e&&this._titleModeEntity.startsWith("scene.")){const s=this._titleModeEntity.split(".")[1]??this._titleModeEntity,o=this._titleModes.find(e=>e.id===s);t=o?.label||e.attributes.friendly_name||s,i=o?.icon||"",a=o?.color||"accent"}}const s={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t3)"};return U`
       <div class="preview-title-card">
         <div class="preview-title-text">${e}</div>
         ${t?U`
           <div class="preview-title-mode">
             <div class="preview-title-dot" style="background:${{success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t4)"}[a]??(a.startsWith("#")?a:"var(--t4)")};"></div>
             ${i?U`<ha-icon .icon=${i} style="--mdc-icon-size:12px;color:${s[a]??(a.startsWith("#")?a:"var(--t3)")};"></ha-icon>`:q}
-            <span style="color:var(--t4);font-size:9px;">${this._titleModeEntity?.startsWith("scene.")?ye("title_card.scene_label"):ye("title_card.mode_label")}</span>
+            <span style="color:var(--t4);font-size:9px;">${this._titleModeEntity?.startsWith("scene.")?we("title_card.scene_label"):we("title_card.mode_label")}</span>
             <span style="color:${s[a]??(a.startsWith("#")?a:"var(--t3)")};font-size:9px;font-weight:600;">${t}</span>
             <ha-icon .icon=${"mdi:chevron-right"} style="--mdc-icon-size:11px;color:var(--t4);"></ha-icon>
           </div>
@@ -4579,7 +4656,7 @@
     `}_openColorPicker(e){if(e>=this._titleModes.length)return;const t=this._titleModes[e].color;t.startsWith("#")&&7===t.length?(this._colorPickerHex=t,this._colorPickerPos=this._hexToWheelPos(t)):(this._colorPickerHex="#ffffff",this._colorPickerPos={x:50,y:50}),this._colorPickerModeIdx=e,this.updateComplete.then(()=>{const e=this.shadowRoot?.querySelector(".cp-wheel-wrap canvas");e&&(this._cpCanvas=e,this._drawColorWheel(e))})}_closeColorPicker(){this._cancelColorDrag?.(),this._cancelColorDrag=void 0,this._colorPickerModeIdx=null,this._cpCanvas=null}_applyColorPicker(){null!==this._colorPickerModeIdx&&this._colorPickerModeIdx<this._titleModes.length&&this._updateTitleMode(this._colorPickerModeIdx,"color",this._colorPickerHex),this._closeColorPicker()}_onCpWheel(e){const t=this._cpCanvas;if(!t)return;const i=t.getBoundingClientRect(),a="touches"in e?e.touches[0].clientX:e.clientX,s="touches"in e?e.touches[0].clientY:e.clientY,o=a-i.left-i.width/2,r=s-i.top-i.height/2,n=i.width/2,d=Math.sqrt(o*o+r*r);if(d>n)return;const c=(180*Math.atan2(r,o)/Math.PI%360+360)%360,l=Math.min(d/n,1),h=this._hslToRgb(c,l,.5);this._colorPickerHex="#"+h.map(e=>e.toString(16).padStart(2,"0")).join(""),this._colorPickerPos={x:o/n*50+50,y:r/n*50+50}}_drawColorWheel(e){const t=440;e.width=t,e.height=t;const i=e.getContext("2d");if(!i)return;const a=220,s=220;for(let o=0;o<360;o++){const e=(o-1)*Math.PI/180,t=(o+1)*Math.PI/180,r=i.createRadialGradient(a,s,0,a,s,220);r.addColorStop(0,`hsl(${o}, 0%, 100%)`),r.addColorStop(.5,`hsl(${o}, 100%, 50%)`),r.addColorStop(1,`hsl(${o}, 100%, 50%)`),i.beginPath(),i.moveTo(a,s),i.arc(a,s,220,e,t),i.closePath(),i.fillStyle=r,i.fill()}}_hslToRgb(e,t,i){const a=(1-Math.abs(2*i-1))*t,s=a*(1-Math.abs(e/60%2-1)),o=i-a/2;let r=0,n=0,d=0;return e<60?(r=a,n=s):e<120?(r=s,n=a):e<180?(n=a,d=s):e<240?(n=s,d=a):e<300?(r=s,d=a):(r=a,d=s),[Math.round(255*(r+o)),Math.round(255*(n+o)),Math.round(255*(d+o))]}_hexToWheelPos(e){const t=parseInt(e.slice(1,3),16)/255,i=parseInt(e.slice(3,5),16)/255,a=parseInt(e.slice(5,7),16)/255,s=Math.max(t,i,a),o=Math.min(t,i,a),r=s-o;let n=0;0!==r&&(n=s===t?((i-a)/r+6)%6*60:s===i?60*((a-t)/r+2):60*((t-i)/r+4));const d=0===r?0:r/(1-Math.abs(s+o-1)),c=Math.min(d,1),l=n*Math.PI/180;return{x:Math.cos(l)*c*50+50,y:Math.sin(l)*c*50+50}}_renderColorPicker(){if(null===this._colorPickerModeIdx)return q;const e=this._colorPickerHex;return U`
       <div class="cp-overlay" @click=${e=>{e.target===e.currentTarget&&this._closeColorPicker()}}>
         <div class="cp-dialog">
-          <span class="cp-title">${ye("config.title_color_picker_title")}</span>
+          <span class="cp-title">${we("config.title_color_picker_title")}</span>
           <div class="cp-wheel-wrap">
             <canvas
               @mousedown=${e=>{this._cancelColorDrag?.(),this._onCpWheel(e);const t=e=>this._onCpWheel(e),i=()=>{window.removeEventListener("mousemove",t),window.removeEventListener("mouseup",i),this._cancelColorDrag=void 0};window.addEventListener("mousemove",t),window.addEventListener("mouseup",i),this._cancelColorDrag=i}}
@@ -4590,26 +4667,26 @@
           <div class="cp-preview" style="background:${e}"></div>
           <span class="cp-hex">${e}</span>
           <button class="cp-confirm" @click=${()=>this._applyColorPicker()}>
-            ${ye("common.select")}
+            ${we("common.select")}
           </button>
         </div>
       </div>
     `}_renderTitleTab(){const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("input_select.")||e.startsWith("input_boolean.")||e.startsWith("scene.")).sort():[],t=e.find(e=>e===this._titleModeEntity),i=["neutral","success","warning","info","accent","alert"];return U`
       <div class="tab-panel" id="panel-title">
-        <div class="section-label">${ye("config.title_title")}</div>
-        <div class="section-desc">${ye("config.title_title_desc")}</div>
+        <div class="section-label">${we("config.title_title")}</div>
+        <div class="section-desc">${we("config.title_title_desc")}</div>
         <input
           class="input"
           type="text"
           .value=${this._titleText}
-          placeholder=${ye("config.title_title_placeholder")}
+          placeholder=${we("config.title_title_placeholder")}
           @input=${e=>{this._titleText=e.target.value}}
         />
 
         <div class="title-section-gap"></div>
 
-        <div class="section-label">${ye("config.title_mode_entity")}</div>
-        <div class="section-desc">${ye("config.title_mode_entity_desc")}</div>
+        <div class="section-label">${we("config.title_mode_entity")}</div>
+        <div class="section-desc">${we("config.title_mode_entity_desc")}</div>
         <div class="dropdown ${this._titleModeDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -4618,7 +4695,7 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${this._titleModeEntity?"mdi:form-select":"mdi:help-circle-outline"}></ha-icon>
-            <span>${t||ye("config.title_select_entity")}</span>
+            <span>${t||we("config.title_select_entity")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
@@ -4629,7 +4706,7 @@
               @click=${()=>this._selectTitleModeEntity("")}
             >
               <ha-icon .icon=${"mdi:close"}></ha-icon>
-              ${ye("title_card.mode_none")}
+              ${we("title_card.mode_none")}
             </button>
             ${e.map(e=>U`
                 <button
@@ -4648,8 +4725,8 @@
         ${this._titleModes.length>0?U`
           <div class="title-section-gap"></div>
 
-          <div class="section-label">${ye("config.title_modes")}</div>
-          <div class="section-desc">${ye("config.title_modes_desc")}</div>
+          <div class="section-label">${we("config.title_modes")}</div>
+          <div class="section-desc">${we("config.title_modes_desc")}</div>
           <div class="title-modes-list">
             ${this._titleModes.map((e,t)=>U`
               <div class="title-mode-row">
@@ -4658,26 +4735,26 @@
                   <input
                     class="input"
                     type="text"
-                    placeholder=${ye("config.title_mode_label")}
+                    placeholder=${we("config.title_mode_label")}
                     .value=${e.label}
                     @input=${e=>this._updateTitleMode(t,"label",e.target.value)}
                   />
                   <button
                     class="title-icon-btn ${e.icon?"has-icon":""}"
                     @click=${()=>this._openIconPopup(t)}
-                    aria-label="${ye("config.title_mode_icon")}"
+                    aria-label="${we("config.title_mode_icon")}"
                   >
                     <ha-icon .icon=${e.icon||"mdi:emoticon-outline"}></ha-icon>
                   </button>
                 </div>
                 <div class="title-color-row">
-                  <span class="title-color-label">${ye("config.title_mode_color")}</span>
+                  <span class="title-color-label">${we("config.title_mode_color")}</span>
                   <div class="title-color-chips">
                     ${i.map(i=>U`
                       <button
                         class="title-color-chip ${i} ${e.color===i?"active":""}"
                         @click=${()=>this._updateTitleMode(t,"color",i)}
-                        aria-label="${ye("config.title_mode_color")}: ${i}"
+                        aria-label="${we("config.title_mode_color")}: ${i}"
                       ></button>
                     `)}
                     ${e.color.startsWith("#")?U`
@@ -4685,13 +4762,13 @@
                         class="title-color-chip custom active"
                         style="background:${e.color}"
                         @click=${()=>this._openColorPicker(t)}
-                        aria-label="${ye("config.title_color_picker_aria")}"
+                        aria-label="${we("config.title_color_picker_aria")}"
                       ></button>
                     `:q}
                     <button
                       class="title-color-picker-btn"
                       @click=${()=>this._openColorPicker(t)}
-                      aria-label="${ye("config.title_color_picker_aria")}"
+                      aria-label="${we("config.title_color_picker_aria")}"
                     ></button>
                   </div>
                 </div>
@@ -4701,13 +4778,13 @@
         `:q}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadTitleConfig()}>${ye("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadTitleConfig()}>${we("common.reset")}</button>
           <button
             class="btn btn-accent"
             @click=${()=>this._save()}
             ?disabled=${this._saving}
           >
-            ${this._saving?ye("common.saving"):ye("common.save")}
+            ${this._saving?we("common.saving"):we("common.save")}
           </button>
         </div>
       </div>
@@ -4715,11 +4792,11 @@
       <div class="ambient-bg"></div>
       <div class="page-wrap">
         <div class="page-header">
-          <button class="page-back" @click=${()=>this._goBack()} aria-label="${ye("common.back")}">
+          <button class="page-back" @click=${()=>this._goBack()} aria-label="${we("common.back")}">
             <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
           </button>
-          <span class="page-title">${ye("config.title")}</span>
-          <span class="page-subtitle">${ye("config.brand")}</span>
+          <span class="page-title">${we("config.title")}</span>
+          <span class="page-subtitle">${we("config.brand")}</span>
         </div>
 
         <div class="glass config-panel">
@@ -4731,7 +4808,7 @@
               @click=${()=>this._switchTab("dashboard")}
             >
               <ha-icon .icon=${"mdi:view-dashboard"}></ha-icon>
-              ${ye("config.tab_dashboard")}
+              ${we("config.tab_dashboard")}
             </button>
             <button
               class="tab ${"title"===this._tab?"active":""}"
@@ -4740,7 +4817,7 @@
               @click=${()=>this._switchTab("title")}
             >
               <ha-icon .icon=${"mdi:format-title"}></ha-icon>
-              ${ye("config.tab_title")}
+              ${we("config.tab_title")}
             </button>
             <button
               class="tab ${"navbar"===this._tab?"active":""}"
@@ -4749,7 +4826,7 @@
               @click=${()=>this._switchTab("navbar")}
             >
               <ha-icon .icon=${"mdi:dock-bottom"}></ha-icon>
-              ${ye("config.tab_navbar")}
+              ${we("config.tab_navbar")}
             </button>
             <button
               class="tab ${"popup"===this._tab?"active":""}"
@@ -4758,7 +4835,7 @@
               @click=${()=>this._switchTab("popup")}
             >
               <ha-icon .icon=${"mdi:card-outline"}></ha-icon>
-              ${ye("config.tab_popup")}
+              ${we("config.tab_popup")}
             </button>
             <button
               class="tab ${"light"===this._tab?"active":""}"
@@ -4767,7 +4844,7 @@
               @click=${()=>this._switchTab("light")}
             >
               <ha-icon .icon=${"mdi:lightbulb-group"}></ha-icon>
-              ${ye("config.tab_light")}
+              ${we("config.tab_light")}
             </button>
             <button
               class="tab ${"weather"===this._tab?"active":""}"
@@ -4776,7 +4853,7 @@
               @click=${()=>this._switchTab("weather")}
             >
               <ha-icon .icon=${"mdi:weather-partly-cloudy"}></ha-icon>
-              ${ye("config.tab_weather")}
+              ${we("config.tab_weather")}
             </button>
             <button
               class="tab ${"media"===this._tab?"active":""}"
@@ -4785,7 +4862,7 @@
               @click=${()=>this._switchTab("media")}
             >
               <ha-icon .icon=${"mdi:speaker"}></ha-icon>
-              ${ye("config.tab_media")}
+              ${we("config.tab_media")}
             </button>
             <button
               class="tab ${"cover"===this._tab?"active":""}"
@@ -4794,7 +4871,7 @@
               @click=${()=>this._switchTab("cover")}
             >
               <ha-icon .icon=${"mdi:blinds"}></ha-icon>
-              ${ye("config.tab_cover")}
+              ${we("config.tab_cover")}
             </button>
             <button
               class="tab ${"spotify"===this._tab?"active":""}"
@@ -4803,12 +4880,12 @@
               @click=${()=>this._switchTab("spotify")}
             >
               <ha-icon .icon=${"mdi:spotify"}></ha-icon>
-              ${ye("config.tab_spotify")}
+              ${we("config.tab_spotify")}
             </button>
           </div>
 
           <div class="preview-encart">
-            <div class="preview-label">${ye("config.preview")}</div>
+            <div class="preview-label">${we("config.preview")}</div>
             ${"navbar"===this._tab?this._renderNavbarPreview():"popup"===this._tab?this._renderPopupPreview():"light"===this._tab?this._renderLightPreview():"weather"===this._tab?this._renderWeatherPreview():"title"===this._tab?this._renderTitlePreview():"media"===this._tab?this._renderMediaPreview():"cover"===this._tab?this._renderCoverPreview():"spotify"===this._tab?this._renderSpotifyPreview():this._renderDashboardPreview()}
           </div>
 
@@ -4821,6 +4898,6 @@
       ${this._renderColorPicker()}
 
       <div class="toast ${this._toast?"show":""} ${this._toastError?"error":""}">
-        ${this._toastError?ye("common.error_save"):ye("common.config_saved")}
+        ${this._toastError?we("common.error_save"):we("common.config_saved")}
       </div>
-    `:q}}Ce([le({attribute:!1})],ze.prototype,"hass"),Ce([le({type:Boolean})],ze.prototype,"narrow"),Ce([he()],ze.prototype,"_lang"),Ce([he()],ze.prototype,"_tab"),Ce([he()],ze.prototype,"_rooms"),Ce([he()],ze.prototype,"_emptyRooms"),Ce([he()],ze.prototype,"_selectedRoom"),Ce([he()],ze.prototype,"_cards"),Ce([he()],ze.prototype,"_scenes"),Ce([he()],ze.prototype,"_lights"),Ce([he()],ze.prototype,"_lightRoom"),Ce([he()],ze.prototype,"_lightDropdownOpen"),Ce([he()],ze.prototype,"_iconPickerRoom"),Ce([he()],ze.prototype,"_dropdownOpen"),Ce([he()],ze.prototype,"_toast"),Ce([he()],ze.prototype,"_saving"),Ce([he()],ze.prototype,"_showLights"),Ce([he()],ze.prototype,"_showTemperature"),Ce([he()],ze.prototype,"_showHumidity"),Ce([he()],ze.prototype,"_showMedia"),Ce([he()],ze.prototype,"_autoSort"),Ce([he()],ze.prototype,"_tempHigh"),Ce([he()],ze.prototype,"_tempLow"),Ce([he()],ze.prototype,"_humidityThreshold"),Ce([he()],ze.prototype,"_weatherEntity"),Ce([he()],ze.prototype,"_weatherHiddenMetrics"),Ce([he()],ze.prototype,"_weatherShowDaily"),Ce([he()],ze.prototype,"_weatherShowHourly"),Ce([he()],ze.prototype,"_weatherShowHeader"),Ce([he()],ze.prototype,"_weatherDropdownOpen"),Ce([he()],ze.prototype,"_titleText"),Ce([he()],ze.prototype,"_titleModeEntity"),Ce([he()],ze.prototype,"_titleModes"),Ce([he()],ze.prototype,"_titleModeDropdownOpen"),Ce([he()],ze.prototype,"_iconPopupModeIdx"),Ce([he()],ze.prototype,"_iconSearch"),Ce([he()],ze.prototype,"_colorPickerModeIdx"),Ce([he()],ze.prototype,"_colorPickerHex"),Ce([he()],ze.prototype,"_colorPickerPos"),Ce([he()],ze.prototype,"_lightShowHeader"),Ce([he()],ze.prototype,"_coverShowHeader"),Ce([he()],ze.prototype,"_coverDashboardEntities"),Ce([he()],ze.prototype,"_coverDashboardOrder"),Ce([he()],ze.prototype,"_coverPresets"),Ce([he()],ze.prototype,"_coverEntityPresets"),Ce([he()],ze.prototype,"_coverRoom"),Ce([he()],ze.prototype,"_coverRoomDropdownOpen"),Ce([he()],ze.prototype,"_coverRoomEntities"),Ce([he()],ze.prototype,"_coverPresetInput"),Ce([he()],ze.prototype,"_coverEntityPresetInput"),Ce([he()],ze.prototype,"_mediaShowHeader"),Ce([he()],ze.prototype,"_mediaExtraEntities"),Ce([he()],ze.prototype,"_spotifyShowHeader"),Ce([he()],ze.prototype,"_spotifyEntity"),Ce([he()],ze.prototype,"_spotifySortOrder"),Ce([he()],ze.prototype,"_spotifyDropdownOpen"),Ce([he()],ze.prototype,"_spotifyMaxItems"),Ce([he()],ze.prototype,"_spotifyVisibleSpeakers"),Ce([he()],ze.prototype,"_spotifyConfigured"),Ce([he()],ze.prototype,"_dashboardEnabledCards"),Ce([he()],ze.prototype,"_dashboardCardOrder"),Ce([he()],ze.prototype,"_dashboardExpanded"),Ce([he()],ze.prototype,"_scheduleExpandedEntity"),Ce([he()],ze.prototype,"_pickerOpen"),Ce([he()],ze.prototype,"_pickerYear"),Ce([he()],ze.prototype,"_pickerMonth"),Ce([he()],ze.prototype,"_pickerStartDay"),Ce([he()],ze.prototype,"_pickerStartMonth"),Ce([he()],ze.prototype,"_pickerStartYear"),Ce([he()],ze.prototype,"_pickerEndDay"),Ce([he()],ze.prototype,"_pickerEndMonth"),Ce([he()],ze.prototype,"_pickerEndYear"),Ce([he()],ze.prototype,"_pickerStartHour"),Ce([he()],ze.prototype,"_pickerStartMinute"),Ce([he()],ze.prototype,"_pickerEndHour"),Ce([he()],ze.prototype,"_pickerEndMinute"),Ce([he()],ze.prototype,"_pickerPhase"),Ce([he()],ze.prototype,"_dragIdx"),Ce([he()],ze.prototype,"_dropIdx"),Ce([he()],ze.prototype,"_toastError");try{customElements.define("glass-config-panel",ze)}catch{}}();
+    `:q}}Pe([le({attribute:!1})],Ae.prototype,"hass"),Pe([le({type:Boolean})],Ae.prototype,"narrow"),Pe([he()],Ae.prototype,"_lang"),Pe([he()],Ae.prototype,"_tab"),Pe([he()],Ae.prototype,"_rooms"),Pe([he()],Ae.prototype,"_emptyRooms"),Pe([he()],Ae.prototype,"_selectedRoom"),Pe([he()],Ae.prototype,"_cards"),Pe([he()],Ae.prototype,"_scenes"),Pe([he()],Ae.prototype,"_lights"),Pe([he()],Ae.prototype,"_lightRoom"),Pe([he()],Ae.prototype,"_lightDropdownOpen"),Pe([he()],Ae.prototype,"_iconPickerRoom"),Pe([he()],Ae.prototype,"_dropdownOpen"),Pe([he()],Ae.prototype,"_toast"),Pe([he()],Ae.prototype,"_saving"),Pe([he()],Ae.prototype,"_showLights"),Pe([he()],Ae.prototype,"_showTemperature"),Pe([he()],Ae.prototype,"_showHumidity"),Pe([he()],Ae.prototype,"_showMedia"),Pe([he()],Ae.prototype,"_autoSort"),Pe([he()],Ae.prototype,"_tempHigh"),Pe([he()],Ae.prototype,"_tempLow"),Pe([he()],Ae.prototype,"_humidityThreshold"),Pe([he()],Ae.prototype,"_weatherEntity"),Pe([he()],Ae.prototype,"_weatherHiddenMetrics"),Pe([he()],Ae.prototype,"_weatherShowDaily"),Pe([he()],Ae.prototype,"_weatherShowHourly"),Pe([he()],Ae.prototype,"_weatherShowHeader"),Pe([he()],Ae.prototype,"_weatherDropdownOpen"),Pe([he()],Ae.prototype,"_titleText"),Pe([he()],Ae.prototype,"_titleModeEntity"),Pe([he()],Ae.prototype,"_titleModes"),Pe([he()],Ae.prototype,"_titleModeDropdownOpen"),Pe([he()],Ae.prototype,"_iconPopupModeIdx"),Pe([he()],Ae.prototype,"_iconSearch"),Pe([he()],Ae.prototype,"_colorPickerModeIdx"),Pe([he()],Ae.prototype,"_colorPickerHex"),Pe([he()],Ae.prototype,"_colorPickerPos"),Pe([he()],Ae.prototype,"_lightShowHeader"),Pe([he()],Ae.prototype,"_coverShowHeader"),Pe([he()],Ae.prototype,"_coverDashboardEntities"),Pe([he()],Ae.prototype,"_coverDashboardOrder"),Pe([he()],Ae.prototype,"_coverPresets"),Pe([he()],Ae.prototype,"_coverEntityPresets"),Pe([he()],Ae.prototype,"_coverRoom"),Pe([he()],Ae.prototype,"_coverRoomDropdownOpen"),Pe([he()],Ae.prototype,"_coverRoomEntities"),Pe([he()],Ae.prototype,"_coverPresetInput"),Pe([he()],Ae.prototype,"_coverEntityPresetInput"),Pe([he()],Ae.prototype,"_mediaShowHeader"),Pe([he()],Ae.prototype,"_mediaExtraEntities"),Pe([he()],Ae.prototype,"_spotifyShowHeader"),Pe([he()],Ae.prototype,"_spotifyEntity"),Pe([he()],Ae.prototype,"_spotifySortOrder"),Pe([he()],Ae.prototype,"_spotifyDropdownOpen"),Pe([he()],Ae.prototype,"_spotifyMaxItems"),Pe([he()],Ae.prototype,"_spotifyVisibleSpeakers"),Pe([he()],Ae.prototype,"_spotifyConfigured"),Pe([he()],Ae.prototype,"_dashboardEnabledCards"),Pe([he()],Ae.prototype,"_dashboardCardOrder"),Pe([he()],Ae.prototype,"_dashboardExpanded"),Pe([he()],Ae.prototype,"_scheduleExpandedEntity"),Pe([he()],Ae.prototype,"_pickerOpen"),Pe([he()],Ae.prototype,"_pickerYear"),Pe([he()],Ae.prototype,"_pickerMonth"),Pe([he()],Ae.prototype,"_pickerStartDay"),Pe([he()],Ae.prototype,"_pickerStartMonth"),Pe([he()],Ae.prototype,"_pickerStartYear"),Pe([he()],Ae.prototype,"_pickerEndDay"),Pe([he()],Ae.prototype,"_pickerEndMonth"),Pe([he()],Ae.prototype,"_pickerEndYear"),Pe([he()],Ae.prototype,"_pickerStartHour"),Pe([he()],Ae.prototype,"_pickerStartMinute"),Pe([he()],Ae.prototype,"_pickerEndHour"),Pe([he()],Ae.prototype,"_pickerEndMinute"),Pe([he()],Ae.prototype,"_pickerPhase"),Pe([he()],Ae.prototype,"_dragIdx"),Pe([he()],Ae.prototype,"_dropIdx"),Pe([he()],Ae.prototype,"_toastError");try{customElements.define("glass-config-panel",Ae)}catch{}}();

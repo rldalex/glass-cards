@@ -7,7 +7,7 @@ import {
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -932,6 +932,7 @@ export class GlassMediaCard extends BaseCard {
     glassTokens,
     glassMixin,
     marqueeMixin,
+    bounceMixin,
     css`
       :host {
         display: block;
@@ -949,12 +950,12 @@ export class GlassMediaCard extends BaseCard {
       /* ── Header ── */
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 4px; min-height: 22px; margin-bottom: 6px;
+        padding: 0 6px; margin-bottom: 6px;
       }
-      .card-header-left { display: flex; align-items: center; gap: 6px; }
+      .card-header-left { display: flex; align-items: center; gap: 8px; }
       .card-title {
-        font-size: 13px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 1.2px; color: var(--t2);
+        font-size: 9px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1.5px; color: var(--t4);
       }
       .card-source {
         font-size: 10px; font-weight: 500; color: var(--t4);
@@ -1216,7 +1217,8 @@ export class GlassMediaCard extends BaseCard {
         .transport-btn:hover { background: var(--s2); color: var(--t2); }
       }
       .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      .transport-btn:active { transform: scale(0.96); }
+      @media (hover: none) { .transport-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) { .transport-btn:active { transform: scale(0.96); } }
       .transport-btn.active { color: var(--mp-color); }
 
       .transport-skip { width: 40px; height: 40px; }
@@ -1292,7 +1294,8 @@ export class GlassMediaCard extends BaseCard {
         .dash-nav-arrow:hover ha-icon { color: #fff; }
         .dash-hero:hover .dash-nav-arrow { opacity: 1; }
       }
-      .dash-nav-arrow:active { transform: scale(0.95); }
+      @media (hover: none) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) { .dash-nav-arrow:active { transform: scale(0.95); } }
 
       /* ── Room dots (dashboard swipe indicator) ── */
       .dash-dots {
@@ -1310,6 +1313,7 @@ export class GlassMediaCard extends BaseCard {
         transform: scale(1.3);
       }
       @media (hover: hover) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
+      @media (hover: none) { .dash-dot:active { animation: bounce 0.3s ease; } }
 
       /* ══════════════════════════════════════════
          Connected Fold
@@ -1369,7 +1373,8 @@ export class GlassMediaCard extends BaseCard {
       }
       @media (hover: hover) { .volume-btn:hover { color: var(--t2); } }
       .volume-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      .volume-btn:active { transform: scale(0.96); }
+      @media (hover: none) { .volume-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) { .volume-btn:active { transform: scale(0.96); } }
       .volume-btn.muted { color: var(--c-alert); }
 
       /* ── Slider (pill) ── */
@@ -1415,7 +1420,8 @@ export class GlassMediaCard extends BaseCard {
         .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
       }
       .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      .chip:active { transform: scale(0.96); }
+      @media (hover: none) { .chip:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) { .chip:active { transform: scale(0.96); } }
       .chip.active {
         border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.08);
         color: rgba(129,140,248,0.8);
@@ -1453,7 +1459,8 @@ export class GlassMediaCard extends BaseCard {
       @media (hover: hover) {
         .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
       }
-      .mr-icon-btn:active { transform: scale(0.96); }
+      @media (hover: none) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) { .mr-icon-btn:active { transform: scale(0.96); } }
       .mr-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       .mr-cell.joined .mr-icon-btn {
         background: var(--mp-bg); border-color: var(--mp-border); color: var(--mp-color);

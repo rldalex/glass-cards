@@ -9,7 +9,7 @@ import {
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -157,6 +157,7 @@ export class GlassLightCard extends BaseCard {
     glassMixin,
     foldMixin,
     marqueeMixin,
+    bounceMixin,
     css`
       :host {
         display: block;
@@ -289,6 +290,9 @@ export class GlassLightCard extends BaseCard {
         .light-row:hover {
           background: var(--s1);
         }
+      }
+      @media (hover: none) {
+        .light-row:active { animation: bounce 0.3s ease; }
       }
       .light-row.compact {
         grid-column: span 1;
@@ -595,8 +599,11 @@ export class GlassLightCard extends BaseCard {
       }
       @media (hover: hover) and (pointer: fine) {
         .cdot:hover { transform: scale(1.15); }
+        .cdot:active { transform: scale(1.1); }
       }
-      .cdot:active { transform: scale(1.1); }
+      @media (hover: none) {
+        .cdot:active { animation: bounce 0.3s ease; }
+      }
       .cdot.active { border-color: rgba(255, 255, 255, 0.6); }
       .color-picker-btn {
         width: 26px;
@@ -624,6 +631,9 @@ export class GlassLightCard extends BaseCard {
       }
       @media (hover: hover) and (pointer: fine) {
         .color-picker-btn:hover { transform: scale(1.15); }
+      }
+      @media (hover: none) {
+        .color-picker-btn:active { animation: bounce 0.3s ease; }
       }
 
       /* ── Color Picker Popup ── */

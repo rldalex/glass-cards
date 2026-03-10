@@ -6,7 +6,7 @@ import {
   getAreaEntities,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CoverEntityFeature) —
@@ -142,7 +142,7 @@ class GlassCoverCard extends BaseCard {
   private _coversCache: CoverInfo[] | null = null;
   private _coversCacheKey = '';
 
-  static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, css`
+  static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, bounceMixin, css`
     :host {
       display: block;
       width: 100%;
@@ -186,7 +186,12 @@ class GlassCoverCard extends BaseCard {
       .header-btn:hover { background: var(--s3); border-color: var(--b3); }
       .header-btn:hover ha-icon { color: var(--t1); }
     }
-    .header-btn:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .header-btn:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .header-btn:active { animation: bounce 0.3s ease; }
+    }
     .header-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
     .cover-card { position: relative; padding: 14px; }
@@ -211,6 +216,9 @@ class GlassCoverCard extends BaseCard {
     }
     @media (hover: hover) and (pointer: fine) {
       .cv-row:hover { background: var(--s1); }
+    }
+    @media (hover: none) {
+      .cv-row:active { animation: bounce 0.3s ease; }
     }
     .cv-row:focus-within { background: var(--s1); }
 
@@ -241,7 +249,12 @@ class GlassCoverCard extends BaseCard {
       .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
       .cv-icon-btn:hover ha-icon { color: var(--t2); }
     }
-    .cv-icon-btn:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .cv-icon-btn:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .cv-icon-btn:active { animation: bounce 0.3s ease; }
+    }
     .cv-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
     .cv-row.open .cv-icon-btn { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.15); }
     .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(167,139,250,0.4)); }
@@ -321,7 +334,12 @@ class GlassCoverCard extends BaseCard {
       .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
       .transport-btn:hover ha-icon { color: var(--t1); }
     }
-    .transport-btn:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .transport-btn:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .transport-btn:active { animation: bounce 0.3s ease; }
+    }
     .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
     .transport-btn.accent { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.15); }
     .transport-btn.accent ha-icon { color: var(--cv-color, #a78bfa); }
@@ -378,7 +396,12 @@ class GlassCoverCard extends BaseCard {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
     .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    .chip:active { transform: scale(0.96); }
+    @media (hover: hover) {
+      .chip:active { transform: scale(0.96); }
+    }
+    @media (hover: none) {
+      .chip:active { animation: bounce 0.3s ease; }
+    }
     .chip.active { border-color: rgba(167,139,250,0.15); background: rgba(167,139,250,0.1); color: var(--cv-color, #a78bfa); }
 
     .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
