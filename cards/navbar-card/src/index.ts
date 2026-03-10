@@ -499,13 +499,13 @@ export class GlassNavbarCard extends BaseCard {
     const container = this.renderRoot.querySelector('.dashboard-cards');
     if (container) {
       this._bgMutationObserver = new MutationObserver((mutations) => {
-        const isAttrChange = mutations.some((m) => m.type === 'attributes');
-        if (isAttrChange) {
-          // data-bg-light changed on a card — re-check which intersecting card is light
-          this._checkBgLightFromIntersecting();
-        } else {
-          // childList changed — rebuild IntersectionObserver
+        const hasChildList = mutations.some((m) => m.type === 'childList');
+        if (hasChildList) {
+          // Card added/removed — rebuild IntersectionObserver
           this._setupBgObserver();
+        } else {
+          // data-bg-light attribute changed — re-check current intersections
+          this._checkBgLightFromIntersecting();
         }
       });
       this._bgMutationObserver.observe(container, {
@@ -520,15 +520,16 @@ export class GlassNavbarCard extends BaseCard {
   /** Setup IntersectionObserver that watches dashboard cards entering the navbar zone */
   private _setupBgObserver() {
     this._bgIntersectionObserver?.disconnect();
+    this._bgIntersectingCards.clear();
     const navbar = this.renderRoot.querySelector('.navbar') as HTMLElement | null;
     const container = this.renderRoot.querySelector('.dashboard-cards');
     if (!navbar || !container || container.children.length === 0) return;
 
     const navRect = navbar.getBoundingClientRect();
+    // Guard: navbar not yet laid out (zero-rect in firstUpdated)
+    if (navRect.height === 0) return;
     const topMargin = -navRect.top;
     const bottomMargin = -(window.innerHeight - navRect.bottom);
-
-    this._bgIntersectingCards.clear();
     this._bgIntersectionObserver = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {

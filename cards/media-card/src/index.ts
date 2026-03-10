@@ -172,6 +172,8 @@ export class GlassMediaCard extends BaseCard {
     this._swipeClass = '';
     ++this._loadVersion;
     this._configLoadingInProgress = false;
+    this._lastArtworkUrl = '';
+    delete this.dataset.bgLight;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -182,8 +184,10 @@ export class GlassMediaCard extends BaseCard {
     }
     // Start/stop progress timer based on playback state
     this._syncProgressTimer();
-    // Expose artwork luminance for navbar adaptive icons
-    this._updateBgLightAttribute();
+    // Expose artwork luminance for navbar adaptive icons (only on hass/room change)
+    if (changedProps.has('hass') || changedProps.has('_roomIndex')) {
+      this._updateBgLightAttribute();
+    }
   }
 
   /** Analyze artwork luminance and expose data-bg-light on host for navbar IntersectionObserver */
