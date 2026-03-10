@@ -69,10 +69,14 @@ function rgbToRgba(rgb: [number, number, number], alpha: number): string {
   return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
 }
 
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const c = (1 - Math.abs(2 * l - 1)) * s;
+/**
+ * Convert HS (hue 0-360, saturation 0-1) to RGB.
+ * Uses HSV model with V=1 so center=white, edge=pure color.
+ * This matches what HA lights expect via hs_color.
+ */
+function hsToRgb(h: number, s: number): [number, number, number] {
+  const c = s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = l - c / 2;
   let r = 0, g = 0, b = 0;
   if (h < 60) { r = c; g = x; }
   else if (h < 120) { r = x; g = c; }
@@ -80,6 +84,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   else if (h < 240) { g = x; b = c; }
   else if (h < 300) { r = x; b = c; }
   else { r = c; b = x; }
+  const m = 1 - c;
   return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 }
 
@@ -94,11 +99,15 @@ const COLOR_DOTS: [number, number, number][] = [
   [240, 240, 240],
 ];
 
-function rgbEqual(a: [number, number, number], b: [number, number, number]): boolean {
-  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+/** Compare two colors by HS (hue ±5°, sat ±0.08) — tolerant to HA normalization. */
+function hsClose(a: [number, number, number], b: [number, number, number]): boolean {
+  const ha = rgbToHs(a), hb = rgbToHs(b);
+  const hueDiff = Math.abs(ha.h - hb.h);
+  const hueOk = hueDiff < 5 || hueDiff > 355; // wrap-around at 360
+  return hueOk && Math.abs(ha.s - hb.s) < 0.08;
 }
 
-function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } {
+function rgbToHs(rgb: [number, number, number]): { h: number; s: number } {
   const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
   const d = max - min;
@@ -108,9 +117,14 @@ function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } 
     else if (max === g) h = ((b - r) / d + 2) * 60;
     else h = ((r - g) / d + 4) * 60;
   }
-  const sat = d === 0 ? 0 : d / (1 - Math.abs(max + min - 1));
-  const dist = Math.min(sat, 1);
-  // Match canvas coordinate system: 0=right, clockwise, Y-down
+  // HSV saturation: S = (max - min) / max
+  const s = max === 0 ? 0 : d / max;
+  return { h, s };
+}
+
+function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } {
+  const { h, s } = rgbToHs(rgb);
+  const dist = Math.min(s, 1);
   const rad = (h * Math.PI) / 180;
   return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };
 }
@@ -131,6 +145,7 @@ export class GlassLightCard extends BaseCard {
   @state() private _colorPickerEntity: string | null = null;
   @state() private _colorPickerRgb: [number, number, number] | null = null;
   @state() private _colorPickerPos: { x: number; y: number } | null = null;
+  private _colorPickerHs: { h: number; s: number } | null = null;
   @state() private _showHeader = true;
   private _lightConfigLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -714,6 +729,10 @@ export class GlassLightCard extends BaseCard {
         border-radius: var(--radius-md);
         border: 1px solid var(--b2);
       }
+      .cp-hex {
+        font-size: 12px; font-weight: 600; color: var(--t2);
+        font-family: monospace; letter-spacing: 0.5px;
+      }
       .cp-close {
         font-family: inherit;
         font-size: 12px;
@@ -1174,8 +1193,8 @@ export class GlassLightCard extends BaseCard {
     );
   }
 
-  private _setRgbColor(entityId: string, rgb: [number, number, number]) {
-    this.hass?.callService('light', 'turn_on', { rgb_color: rgb }, { entity_id: entityId });
+  private _setHsColor(entityId: string, hue: number, sat: number) {
+    this.hass?.callService('light', 'turn_on', { hs_color: [hue, sat * 100] }, { entity_id: entityId });
   }
 
   private _setEffect(entityId: string, effect: string) {
@@ -1190,6 +1209,7 @@ export class GlassLightCard extends BaseCard {
     this._colorPickerEntity = entityId;
     this._colorPickerRgb = currentRgb ?? [255, 255, 255];
     this._colorPickerPos = currentRgb ? rgbToWheelPos(currentRgb) : null;
+    this._colorPickerHs = currentRgb ? rgbToHs(currentRgb) : null;
   }
 
   private _closeColorPicker() {
@@ -1199,6 +1219,7 @@ export class GlassLightCard extends BaseCard {
     this._colorPickerEntity = null;
     this._colorPickerRgb = null;
     this._colorPickerPos = null;
+    this._colorPickerHs = null;
   }
 
   private _wheelCanvas: HTMLCanvasElement | null = null;
@@ -1214,20 +1235,21 @@ export class GlassLightCard extends BaseCard {
     const y = clientY - rect.top - rect.height / 2;
     const radius = rect.width / 2;
     const dist = Math.sqrt(x * x + y * y);
-    if (dist > radius) return;
+    const clampedDist = Math.min(dist, radius);
 
     // Canvas arc() uses clockwise angles with 0=right, Y-down
     const angle = Math.atan2(y, x); // radians, canvas coordinate system
     const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
-    const sat = Math.min(dist / radius, 1);
-    const rgb = hslToRgb(hue, sat, 0.5);
+    const sat = clampedDist / radius;
+    const rgb = hsToRgb(hue, sat);
 
     const pctX = x / radius * 50 + 50;
     const pctY = y / radius * 50 + 50;
     this._colorPickerPos = { x: pctX, y: pctY };
     this._colorPickerRgb = rgb;
+    this._colorPickerHs = { h: hue, s: sat };
 
-    // Throttled live preview
+    // Throttled live preview — send hs_color to HA
     if (this._colorPickerEntity) {
       const key = `cp:${this._colorPickerEntity}`;
       const existing = this._throttleTimers.get(key);
@@ -1236,8 +1258,8 @@ export class GlassLightCard extends BaseCard {
         key,
         setTimeout(() => {
           this._throttleTimers.delete(key);
-          if (this._colorPickerEntity && this._colorPickerRgb) {
-            this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+          if (this._colorPickerEntity && this._colorPickerHs) {
+            this._setHsColor(this._colorPickerEntity, this._colorPickerHs.h, this._colorPickerHs.s);
           }
         }, 150),
       );
@@ -1250,17 +1272,17 @@ export class GlassLightCard extends BaseCard {
     canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const cx = size / 2;
-    const cy = size / 2;
+    const cx = size / 2, cy = size / 2;
     const r = size / 2;
 
+    // HS wheel (HSV with V=1): white center → pure color at edge
     for (let angle = 0; angle < 360; angle++) {
       const startAngle = ((angle - 1) * Math.PI) / 180;
       const endAngle = ((angle + 1) * Math.PI) / 180;
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      gradient.addColorStop(0, `hsl(${angle}, 0%, 100%)`);
-      gradient.addColorStop(0.5, `hsl(${angle}, 100%, 50%)`);
-      gradient.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+      const [cr, cg, cb] = hsToRgb(angle, 1);
+      gradient.addColorStop(0, '#ffffff');
+      gradient.addColorStop(1, `rgb(${cr},${cg},${cb})`);
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, startAngle, endAngle);
@@ -1484,12 +1506,12 @@ export class GlassLightCard extends BaseCard {
     return html`
       <div class="color-row">
         ${COLOR_DOTS.map((rgb) => {
-          const isActive = info.rgbColor ? rgbEqual(info.rgbColor, rgb) : false;
+          const isActive = info.rgbColor ? hsClose(info.rgbColor, rgb) : false;
           return html`
             <button
               class="cdot ${isActive ? 'active' : ''}"
               style="--cdot-color:${rgbToHex(rgb)}"
-              @click=${() => this._setRgbColor(info.entityId, rgb)}
+              @click=${() => { const hs = rgbToHs(rgb); this._setHsColor(info.entityId, hs.h, hs.s); }}
               aria-label="${t('light.color_aria', { hex: rgbToHex(rgb) })}"
             ></button>
           `;
@@ -1533,6 +1555,7 @@ export class GlassLightCard extends BaseCard {
   private _renderColorPicker(): TemplateResult | typeof nothing {
     if (!this._colorPickerEntity || !this._colorPickerRgb) return nothing;
     const rgb = this._colorPickerRgb;
+    const hex = rgbToHex(rgb);
 
     return html`
       <div class="color-picker-overlay" @click=${(e: Event) => {
@@ -1548,8 +1571,8 @@ export class GlassLightCard extends BaseCard {
                 const onMove = (me: MouseEvent) => this._onWheelInteraction(me);
                 const onUp = () => {
                   cleanup();
-                  if (this._colorPickerEntity && this._colorPickerRgb) {
-                    this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+                  if (this._colorPickerEntity && this._colorPickerHs) {
+                    this._setHsColor(this._colorPickerEntity, this._colorPickerHs.h, this._colorPickerHs.s);
                   }
                 };
                 const cleanup = () => {
@@ -1568,8 +1591,8 @@ export class GlassLightCard extends BaseCard {
                 const onMove = (te: TouchEvent) => { te.preventDefault(); this._onWheelInteraction(te); };
                 const onEnd = () => {
                   cleanup();
-                  if (this._colorPickerEntity && this._colorPickerRgb) {
-                    this._setRgbColor(this._colorPickerEntity, this._colorPickerRgb);
+                  if (this._colorPickerEntity && this._colorPickerHs) {
+                    this._setHsColor(this._colorPickerEntity, this._colorPickerHs.h, this._colorPickerHs.s);
                   }
                 };
                 const cleanup = () => {
@@ -1584,9 +1607,10 @@ export class GlassLightCard extends BaseCard {
                 this._cancelWheelDrag = cleanup;
               }}
             ></canvas>
-            <div class="cp-cursor" style="left:${this._colorPickerPos?.x ?? 50}%;top:${this._colorPickerPos?.y ?? 50}%;background:${rgbToHex(rgb)}"></div>
+            <div class="cp-cursor" style="left:${this._colorPickerPos?.x ?? 50}%;top:${this._colorPickerPos?.y ?? 50}%;background:${hex}"></div>
           </div>
-          <div class="cp-preview" style="background:${rgbToHex(rgb)}"></div>
+          <div class="cp-preview" style="background:${hex}"></div>
+          <span class="cp-hex">${hex}</span>
           <button class="cp-close" @click=${() => this._closeColorPicker()}>
             ${t('common.close')}
           </button>

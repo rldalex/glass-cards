@@ -160,9 +160,11 @@ export class GlassMediaCard extends BaseCard {
     super.disconnectedCallback();
     this._backend = undefined;
     this._volumeThrottles.clear();
-    if (this._progressTimer) clearInterval(this._progressTimer);
-    if (this._flashTimer) clearTimeout(this._flashTimer);
-    if (this._lpTimer) clearTimeout(this._lpTimer);
+    if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
+    if (this._flashTimer) { clearTimeout(this._flashTimer); this._flashTimer = 0; }
+    if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
+    ++this._loadVersion;
+    this._configLoadingInProgress = false;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -270,12 +272,18 @@ export class GlassMediaCard extends BaseCard {
       .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state))
       .map(getMediaInfo);
 
+    // Sort coordinators first (coordinator = first element of own group_members)
+    allPlaying.sort((a, b) => {
+      const aCoord = a.groupMembers.length > 0 && a.groupMembers[0] === a.entityId ? 0 : 1;
+      const bCoord = b.groupMembers.length > 0 && b.groupMembers[0] === b.entityId ? 0 : 1;
+      return aCoord - bCoord;
+    });
+
     // Deduplicate: if a speaker is a group member, only keep the coordinator
     const seen = new Set<string>();
     const rooms: MediaPlayerInfo[] = [];
     for (const p of allPlaying) {
       if (seen.has(p.entityId)) continue;
-      // Mark all group members as seen
       for (const m of p.groupMembers) seen.add(m);
       seen.add(p.entityId);
       rooms.push(p);
@@ -364,6 +372,7 @@ export class GlassMediaCard extends BaseCard {
       this._unjoinGroup(speakerId);
       // Small delay for unjoin to propagate before joining new group
       await new Promise((r) => setTimeout(r, 500));
+      if (!this.isConnected || !this.hass) return;
     }
     this._joinGroup(coordinatorId, speakerId);
   }
@@ -404,6 +413,7 @@ export class GlassMediaCard extends BaseCard {
     const dy = e.clientY - this._pointerStart.y;
     if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
       clearTimeout(this._lpTimer);
+      this._lpTimer = 0;
     }
   }
 
@@ -700,11 +710,11 @@ export class GlassMediaCard extends BaseCard {
 
           <!-- Navigation arrows (desktop hover, multi-room) -->
           ${this.isDashboard && roomCount > 1 ? html`
-            <button class="dash-nav-arrow dash-nav-left" aria-label="Previous room"
+            <button class="dash-nav-arrow dash-nav-left" aria-label=${t('media.prev_room_aria')}
               @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex - 1 + roomCount) % roomCount; }}>
               <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
             </button>
-            <button class="dash-nav-arrow dash-nav-right" aria-label="Next room"
+            <button class="dash-nav-arrow dash-nav-right" aria-label=${t('media.next_room_aria')}
               @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex + 1) % roomCount; }}>
               <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </button>
@@ -805,8 +815,8 @@ export class GlassMediaCard extends BaseCard {
     );
     if (playing) return playing;
 
-    // Fallback: any groupable speaker that is playing
-    return groupablePlayers.find((p) => isPlaying(p.state)) || null;
+    // No reliable match — don't guess a random coordinator
+    return null;
   }
 
   /* ── Render: Multiroom grid ── */
@@ -900,6 +910,8 @@ export class GlassMediaCard extends BaseCard {
           <div class="dash-dots">
             ${rooms.map((_, i) => html`
               <button class="dash-dot ${i === this._roomIndex ? 'active' : ''}"
+                aria-label=${t('media.room_dot_aria', { index: i + 1 })}
+                aria-current=${i === this._roomIndex ? 'true' : 'false'}
                 @click=${(e: Event) => { e.stopPropagation(); this._roomIndex = i; this._foldOpen = false; }}>
               </button>
             `)}
@@ -1096,7 +1108,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-eq-bar {
         width: 3px; border-radius: 1.5px;
         background: #fff;
-        filter: drop-shadow(0 0 3px rgba(255,255,255,0.6));
+        box-shadow: 0 0 3px rgba(255,255,255,0.6);
       }
       .dash-eq.playing .dash-eq-bar:nth-child(1) {
         height: 40%; animation: eq-lo 0.65s ease-in-out infinite alternate;
@@ -1296,6 +1308,7 @@ export class GlassMediaCard extends BaseCard {
       }
       @media (hover: none) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) { .dash-nav-arrow:active { transform: scale(0.95); } }
+      .dash-nav-arrow:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
       /* ── Room dots (dashboard swipe indicator) ── */
       .dash-dots {
@@ -1314,6 +1327,7 @@ export class GlassMediaCard extends BaseCard {
       }
       @media (hover: hover) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
       @media (hover: none) { .dash-dot:active { animation: bounce 0.3s ease; } }
+      .dash-dot:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
 
       /* ══════════════════════════════════════════
          Connected Fold

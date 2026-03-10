@@ -187,7 +187,10 @@
     "add_group_aria": "Add {name} to group",
     "remove_group_aria": "Remove {name} from group",
     "no_playback": "No playback",
-    "speakers_count": "{count} speakers"
+    "speakers_count": "{count} speakers",
+    "prev_room_aria": "Previous room",
+    "next_room_aria": "Next room",
+    "room_dot_aria": "Room {index}"
   },
 
   "editor": {

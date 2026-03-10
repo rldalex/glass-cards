@@ -7267,11 +7267,11 @@ export class GlassConfigPanel extends LitElement {
     const y = clientY - rect.top - rect.height / 2;
     const radius = rect.width / 2;
     const dist = Math.sqrt(x * x + y * y);
-    if (dist > radius) return;
+    const clampedDist = Math.min(dist, radius);
     const angle = Math.atan2(y, x);
     const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
-    const sat = Math.min(dist / radius, 1);
-    const rgb = this._hslToRgb(hue, sat, 0.5);
+    const sat = clampedDist / radius;
+    const rgb = this._hsToRgb(hue, sat);
     this._colorPickerHex = '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
     this._colorPickerPos = { x: x / radius * 50 + 50, y: y / radius * 50 + 50 };
   }
@@ -7287,9 +7287,9 @@ export class GlassConfigPanel extends LitElement {
       const start = ((angle - 1) * Math.PI) / 180;
       const end = ((angle + 1) * Math.PI) / 180;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      grad.addColorStop(0, `hsl(${angle}, 0%, 100%)`);
-      grad.addColorStop(0.5, `hsl(${angle}, 100%, 50%)`);
-      grad.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+      const [cr, cg, cb] = this._hsToRgb(angle, 1);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(1, `rgb(${cr},${cg},${cb})`);
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, start, end);
@@ -7299,10 +7299,10 @@ export class GlassConfigPanel extends LitElement {
     }
   }
 
-  private _hslToRgb(h: number, s: number, l: number): [number, number, number] {
-    const c = (1 - Math.abs(2 * l - 1)) * s;
+  /** HS to RGB (HSV model, V=1): white at center, pure color at edge. */
+  private _hsToRgb(h: number, s: number): [number, number, number] {
+    const c = s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-    const m = l - c / 2;
     let r = 0, g = 0, b = 0;
     if (h < 60) { r = c; g = x; }
     else if (h < 120) { r = x; g = c; }
@@ -7310,6 +7310,7 @@ export class GlassConfigPanel extends LitElement {
     else if (h < 240) { g = x; b = c; }
     else if (h < 300) { r = x; b = c; }
     else { r = c; b = x; }
+    const m = 1 - c;
     return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
   }
 
@@ -7325,7 +7326,8 @@ export class GlassConfigPanel extends LitElement {
       else if (max === g) h = ((b - r) / d + 2) * 60;
       else h = ((r - g) / d + 4) * 60;
     }
-    const sat = d === 0 ? 0 : d / (1 - Math.abs(max + min - 1));
+    // HSV saturation: S = (max - min) / max
+    const sat = max === 0 ? 0 : d / max;
     const dist = Math.min(sat, 1);
     const rad = (h * Math.PI) / 180;
     return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };

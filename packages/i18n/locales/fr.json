@@ -187,7 +187,10 @@
     "add_group_aria": "Ajouter {name} au groupe",
     "remove_group_aria": "Retirer {name} du groupe",
     "no_playback": "Aucune lecture en cours",
-    "speakers_count": "{count} enceintes"
+    "speakers_count": "{count} enceintes",
+    "prev_room_aria": "Pièce précédente",
+    "next_room_aria": "Pièce suivante",
+    "room_dot_aria": "Pièce {index}"
   },
 
   "editor": {
