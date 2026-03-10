@@ -126,6 +126,7 @@ export class GlassMediaCard extends BaseCard {
     show_header: true,
   };
   @state() private _configLoaded = false;
+  @state() private _roomIndex = 0;
 
   private _backend?: BackendService;
   private _loadVersion = 0;
@@ -137,6 +138,7 @@ export class GlassMediaCard extends BaseCard {
   private _flashTimer = 0;
   private _lpTimer = 0;
   private _lpFired = false;
+  private _swipeFired = false;
   private _pointerStart = { x: 0, y: 0, t: 0 };
 
   setConfig(config: LovelaceCardConfig): void {
@@ -257,6 +259,30 @@ export class GlassMediaCard extends BaseCard {
     return players.find((p) => isPlaying(p.state)) || players.find((p) => isActive(p.state)) || null;
   }
 
+  /**
+   * Get active rooms for dashboard swipe view.
+   * Each room = a unique coordinator that is currently playing.
+   * Grouped speakers count as one room (the coordinator).
+   */
+  private _getActiveRooms(): MediaPlayerInfo[] {
+    if (!this.hass) return [];
+    const allPlaying = Object.values(this.hass.states)
+      .filter((e) => e.entity_id.startsWith('media_player.') && isPlaying(e.state))
+      .map(getMediaInfo);
+
+    // Deduplicate: if a speaker is a group member, only keep the coordinator
+    const seen = new Set<string>();
+    const rooms: MediaPlayerInfo[] = [];
+    for (const p of allPlaying) {
+      if (seen.has(p.entityId)) continue;
+      // Mark all group members as seen
+      for (const m of p.groupMembers) seen.add(m);
+      seen.add(p.entityId);
+      rooms.push(p);
+    }
+    return rooms;
+  }
+
   /* ── Actions ── */
 
   private _callService(entityId: string, service: string, data?: Record<string, unknown>): void {
@@ -356,6 +382,7 @@ export class GlassMediaCard extends BaseCard {
     if ((e.target as HTMLElement).closest('button')) return;
     this._pointerStart = { x: e.clientX, y: e.clientY, t: Date.now() };
     this._lpFired = false;
+    this._swipeFired = false;
     this._lpTimer = window.setTimeout(() => {
       this._lpFired = true;
       this._foldOpen = !this._foldOpen;
@@ -363,7 +390,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _onHeroPointerMove(e: PointerEvent): void {
-    if (this._lpFired) return;
+    if (this._lpFired || this._swipeFired) return;
     const dx = e.clientX - this._pointerStart.x;
     const dy = e.clientY - this._pointerStart.y;
     if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
@@ -371,11 +398,27 @@ export class GlassMediaCard extends BaseCard {
     }
   }
 
-  private _onHeroPointerUp(e: PointerEvent, master: MediaPlayerInfo): void {
+  private _onHeroPointerUp(e: PointerEvent, master: MediaPlayerInfo, roomCount: number): void {
     clearTimeout(this._lpTimer);
     if (this._lpFired) return;
-    const elapsed = Date.now() - this._pointerStart.t;
     const dx = e.clientX - this._pointerStart.x;
+    const elapsed = Date.now() - this._pointerStart.t;
+
+    // Swipe detection (dashboard only, multiple rooms)
+    if (this.isDashboard && roomCount > 1 && Math.abs(dx) > 50 && elapsed < 500) {
+      this._swipeFired = true;
+      this._foldOpen = false; // close fold on room switch
+      if (dx < 0) {
+        // Swipe left → next room
+        this._roomIndex = (this._roomIndex + 1) % roomCount;
+      } else {
+        // Swipe right → previous room
+        this._roomIndex = (this._roomIndex - 1 + roomCount) % roomCount;
+      }
+      return;
+    }
+
+    // Tap → play/pause
     if (elapsed < 300 && Math.abs(dx) < 10 && !(e.target as HTMLElement).closest('button')) {
       this._togglePlayPause(master);
       this._flash(isPlaying(master.state) ? 'mdi:pause' : 'mdi:play');
@@ -494,7 +537,7 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Render: Hero card ── */
 
-  private _renderHero(master: MediaPlayerInfo): TemplateResult {
+  private _renderHero(master: MediaPlayerInfo, roomCount = 1): TemplateResult {
     const playing = isPlaying(master.state);
     const progress = this._getProgress(master);
     const elapsed = this._getElapsed(master);
@@ -510,7 +553,7 @@ export class GlassMediaCard extends BaseCard {
         <div class="dash-hero"
           @pointerdown=${(e: PointerEvent) => this._onHeroPointerDown(e, master)}
           @pointermove=${(e: PointerEvent) => this._onHeroPointerMove(e)}
-          @pointerup=${(e: PointerEvent) => this._onHeroPointerUp(e, master)}
+          @pointerup=${(e: PointerEvent) => this._onHeroPointerUp(e, master, roomCount)}
           @pointercancel=${() => this._onHeroPointerCancel()}
         >
           <!-- Full-bleed artwork background -->
@@ -799,22 +842,6 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Render: Idle state ── */
 
-  private _renderIdle(): TemplateResult {
-    return html`
-      <div class="dash-wrap">
-        <div class="dash-hero">
-          <div class="dash-deco"></div>
-          <div class="dash-content">
-            <div class="dash-idle">
-              <ha-icon .icon=${'mdi:music-note-off'}></ha-icon>
-              <span>${t('media.no_playback')}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   protected _collapseExpanded(): void {
     if (this._foldOpen) this._foldOpen = false;
   }
@@ -826,13 +853,15 @@ export class GlassMediaCard extends BaseCard {
     if (!this.hass) return nothing;
     if (!this._configLoaded) return nothing;
 
-    const players = this._getPlayers();
     const showHeader = this._mediaConfig.show_header;
 
     if (this.isDashboard) {
-      if (players.length === 0) return nothing;
-      const master = this._findMaster(players);
-      if (!master) return nothing;
+      const rooms = this._getActiveRooms();
+      if (rooms.length === 0) return nothing;
+
+      // Clamp index if rooms changed
+      if (this._roomIndex >= rooms.length) this._roomIndex = 0;
+      const master = rooms[this._roomIndex];
 
       return html`
         ${showHeader ? html`
@@ -845,14 +874,23 @@ export class GlassMediaCard extends BaseCard {
             ` : nothing}
           </div>
         ` : nothing}
-        ${this._renderHero(master)}
+        ${this._renderHero(master, rooms.length)}
+        ${rooms.length > 1 ? html`
+          <div class="dash-dots">
+            ${rooms.map((_, i) => html`
+              <button class="dash-dot ${i === this._roomIndex ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); this._roomIndex = i; this._foldOpen = false; }}>
+              </button>
+            `)}
+          </div>
+        ` : nothing}
       `;
     }
 
-    // Room mode
-    if (players.length === 0) return nothing;
-
+    // Room mode — only show if something is playing in this room
+    const players = this._getPlayers();
     const master = this._findMaster(players);
+    if (!master || !isPlaying(master.state)) return nothing;
 
     return html`
       ${showHeader ? html`
@@ -860,12 +898,12 @@ export class GlassMediaCard extends BaseCard {
           <div class="card-header-left">
             <span class="card-title">${t('media.title')}</span>
           </div>
-          ${master?.source ? html`
+          ${master.source ? html`
             <span class="card-source active">${master.source}</span>
           ` : nothing}
         </div>
       ` : nothing}
-      ${master ? this._renderHero(master) : this._renderIdle()}
+      ${this._renderHero(master)}
     `;
   }
 
@@ -1206,6 +1244,23 @@ export class GlassMediaCard extends BaseCard {
         --mdc-icon-size: 32px; color: var(--t4);
       }
       .dash-idle span { font-size: 11px; color: var(--t3); font-weight: 500; }
+
+      /* ── Room dots (dashboard swipe indicator) ── */
+      .dash-dots {
+        display: flex; justify-content: center; gap: 6px;
+        padding: 8px 0 2px;
+      }
+      .dash-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: rgba(255,255,255,0.2); border: none;
+        padding: 0; cursor: pointer; transition: all var(--t-fast);
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      .dash-dot.active {
+        background: rgba(255,255,255,0.7);
+        transform: scale(1.3);
+      }
+      @media (hover: hover) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
 
       /* ══════════════════════════════════════════
          Connected Fold
