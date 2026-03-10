@@ -327,6 +327,21 @@ export class GlassMediaCard extends BaseCard {
     this._callService(memberId, 'unjoin');
   }
 
+  /** Unjoin speaker from any existing group first, then join to our coordinator */
+  private async _smartJoin(coordinatorId: string, speakerId: string): Promise<void> {
+    if (!this.hass) return;
+    const entity = this.hass.states[speakerId];
+    if (!entity) return;
+    const members = entity.attributes.group_members as string[] | undefined;
+    // If speaker is in an existing group (not alone), unjoin first
+    if (members && members.length > 1) {
+      this._unjoinGroup(speakerId);
+      // Small delay for unjoin to propagate before joining new group
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    this._joinGroup(coordinatorId, speakerId);
+  }
+
   /* ── Flash overlay ── */
 
   private _flash(icon: string): void {
@@ -755,7 +770,7 @@ export class GlassMediaCard extends BaseCard {
                     e.stopPropagation();
                     if (!coordinatorId || speaker.entityId === coordinatorId) return;
                     if (inGroup) this._unjoinGroup(speaker.entityId);
-                    else this._joinGroup(coordinatorId, speaker.entityId);
+                    else this._smartJoin(coordinatorId, speaker.entityId);
                   }}>
                   <ha-icon .icon=${speaker.icon || 'mdi:speaker'}></ha-icon>
                 </button>

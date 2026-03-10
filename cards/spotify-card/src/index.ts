@@ -830,11 +830,52 @@ class GlassSpotifyCard extends BaseCard {
     const uri = item.uri ?? `spotify:${item.type}:${item.id}`;
     const entityIds = [...this._selectedSpeakers];
     const contentType = item.type === 'track' ? 'music' : item.type === 'playlist' ? 'playlist' : item.type === 'album' ? 'music' : 'podcast';
+    const F_GROUPING = 524288;
+
     try {
+      // Unjoin speakers that are in existing groups first
+      for (const id of entityIds) {
+        const entity = this.hass!.states[id];
+        if (!entity) continue;
+        const members = entity.attributes.group_members as string[] | undefined;
+        if (members && members.length > 1) {
+          this.hass!.callService('media_player', 'unjoin', {}, { entity_id: id });
+        }
+      }
+      // Small delay for unjoins to propagate
+      if (entityIds.length > 1) {
+        await new Promise((r) => setTimeout(r, 600));
+      }
+
+      // Play on the first (coordinator) speaker
+      const coordinator = entityIds[0];
       await this.hass.callService('media_player', 'play_media', {
         media_content_id: uri,
         media_content_type: contentType,
-      }, { entity_id: entityIds });
+      }, { entity_id: coordinator });
+
+      // If multiple speakers selected, join the rest to the coordinator
+      if (entityIds.length > 1) {
+        const others = entityIds.slice(1);
+        const coordinatorEntity = this.hass.states[coordinator];
+        const canGroup = coordinatorEntity &&
+          ((coordinatorEntity.attributes.supported_features as number) & F_GROUPING) !== 0;
+        if (canGroup) {
+          // Small delay for play_media to start
+          await new Promise((r) => setTimeout(r, 800));
+          this.hass.callService('media_player', 'join', {
+            group_members: others,
+          }, { entity_id: coordinator });
+        } else {
+          // Coordinator can't group — play individually on each
+          for (const id of others) {
+            this.hass.callService('media_player', 'play_media', {
+              media_content_id: uri,
+              media_content_type: contentType,
+            }, { entity_id: id });
+          }
+        }
+      }
 
       // Radio queue: for single tracks, seed recommendations and add to queue
       if ((item.type === 'track' || item.type === 'episode') && this._backend) {
