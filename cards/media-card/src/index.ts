@@ -386,6 +386,15 @@ export class GlassMediaCard extends BaseCard {
     this._lpTimer = window.setTimeout(() => {
       this._lpFired = true;
       this._foldOpen = !this._foldOpen;
+      // Scroll card into view when fold opens
+      if (this._foldOpen) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const wrap = this.renderRoot?.querySelector('.dash-wrap') as HTMLElement | null;
+            wrap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          });
+        });
+      }
     }, 500);
   }
 
@@ -688,6 +697,18 @@ export class GlassMediaCard extends BaseCard {
               <ha-icon .icon=${this._flashIcon || 'mdi:play'}></ha-icon>
             </div>
           </div>
+
+          <!-- Navigation arrows (desktop hover, multi-room) -->
+          ${this.isDashboard && roomCount > 1 ? html`
+            <button class="dash-nav-arrow dash-nav-left" aria-label="Previous room"
+              @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex - 1 + roomCount) % roomCount; }}>
+              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
+            </button>
+            <button class="dash-nav-arrow dash-nav-right" aria-label="Next room"
+              @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = false; this._roomIndex = (this._roomIndex + 1) % roomCount; }}>
+              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
+            </button>
+          ` : nothing}
         </div>
 
         <!-- Connected fold -->
@@ -1244,6 +1265,34 @@ export class GlassMediaCard extends BaseCard {
         --mdc-icon-size: 32px; color: var(--t4);
       }
       .dash-idle span { font-size: 11px; color: var(--t3); font-weight: 500; }
+
+      /* ── Navigation arrows (hover on sides) ── */
+      .dash-nav-arrow {
+        position: absolute; top: 0; bottom: 0; width: 40px; z-index: 8;
+        display: flex; align-items: center; justify-content: center;
+        background: none; border: none; cursor: pointer; padding: 0;
+        opacity: 0; transition: opacity var(--t-fast);
+        -webkit-tap-highlight-color: transparent; outline: none;
+      }
+      .dash-nav-arrow ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 24px; color: rgba(255,255,255,0.7);
+        filter: drop-shadow(0 1px 4px rgba(0,0,0,0.5));
+        transition: color var(--t-fast);
+      }
+      .dash-nav-left { left: 0; border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
+      .dash-nav-right { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
+      @media (hover: hover) {
+        .dash-nav-left:hover, .dash-nav-right:hover {
+          background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent);
+        }
+        .dash-nav-right:hover {
+          background: linear-gradient(270deg, rgba(0,0,0,0.25), transparent);
+        }
+        .dash-nav-arrow:hover ha-icon { color: #fff; }
+        .dash-hero:hover .dash-nav-arrow { opacity: 1; }
+      }
+      .dash-nav-arrow:active { transform: scale(0.95); }
 
       /* ── Room dots (dashboard swipe indicator) ── */
       .dash-dots {
