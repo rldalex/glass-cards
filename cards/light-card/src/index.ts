@@ -158,8 +158,7 @@ export class GlassLightCard extends BaseCard {
   private _roomConfigLoaded = false;
   private _lastLoadedAreaId?: string;
   private _backend?: BackendService;
-  private _cachedLights?: HassEntity[];
-  private _cachedLightsHassRef?: Record<string, HassEntity>;
+  private _cachedLightIds?: string[];
   private _schedules: EntityScheduleMap | null = null;
   private _schedulesLoaded = false;
   private _dashboardHiddenEntities = new Set<string>();
@@ -809,20 +808,20 @@ export class GlassLightCard extends BaseCard {
       const area = this.areaId || (this._config?.area as string | undefined);
       if (area && payload.areaId === area) {
         this._roomConfigLoaded = false;
-        this._cachedLights = undefined;
+        this._cachedLightIds = undefined;
         this._loadRoomConfig();
       }
       // Dashboard mode: reload hidden entities from all rooms
       if (this._isDashboardMode) {
         this._dashboardHiddenLoaded = false;
         this._dashboardTotalCache = undefined;
-        this._cachedLights = undefined;
+        this._cachedLightIds = undefined;
         this._loadDashboardHidden();
       }
     });
     this._listen('schedule-changed', () => {
       this._schedulesLoaded = false;
-      this._cachedLights = undefined;
+      this._cachedLightIds = undefined;
       this._loadSchedules();
     });
     this._listen('light-config-changed', () => {
@@ -860,7 +859,7 @@ export class GlassLightCard extends BaseCard {
       const currentArea = this.areaId || (this._config?.area as string | undefined);
       if (currentArea !== area) return;
       this._roomConfig = result;
-      this._cachedLights = undefined;
+      this._cachedLightIds = undefined;
       this.requestUpdate();
     } catch {
       // Backend not available
@@ -874,7 +873,7 @@ export class GlassLightCard extends BaseCard {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<EntityScheduleMap>('get_schedules');
       this._schedules = result;
-      this._cachedLights = undefined;
+      this._cachedLightIds = undefined;
       this.requestUpdate();
     } catch {
       this._schedulesLoaded = false;
@@ -914,7 +913,7 @@ export class GlassLightCard extends BaseCard {
         }
       }
       this._dashboardHiddenEntities = hidden;
-      this._cachedLights = undefined;
+      this._cachedLightIds = undefined;
       this._dashboardTotalCache = undefined;
       this.requestUpdate();
     } catch {
@@ -927,7 +926,7 @@ export class GlassLightCard extends BaseCard {
     this._roomConfigLoaded = false;
     this._expandedEntity = null;
     this._dragValues = new Map();
-    this._cachedLights = undefined;
+    this._cachedLightIds = undefined;
     this._throttleTimers.forEach((t) => clearTimeout(t));
     this._throttleTimers.clear();
   }
@@ -983,9 +982,12 @@ export class GlassLightCard extends BaseCard {
       this._loadDashboardHidden();
     }
 
-    // Invalidate lights cache when hass changes
-    if (changedProps.has('hass')) {
-      this._cachedLights = undefined;
+    // Invalidate structure cache when entities registry changes (new/removed entities)
+    if (changedProps.has('hass') && this.hass) {
+      const oldHass = changedProps.get('hass') as { entities?: unknown } | undefined;
+      if (oldHass && oldHass.entities !== this.hass.entities) {
+        this._cachedLightIds = undefined;
+      }
     }
 
     const lights = this._getLightInfos();
@@ -1033,31 +1035,45 @@ export class GlassLightCard extends BaseCard {
 
   // — Data —
 
+  /** Resolve cached light IDs to current hass.states — cheap, runs every render */
   private _getLights(): HassEntity[] {
     if (!this.hass) return [];
-    // Return cached result if hass.states reference hasn't changed
-    if (this._cachedLights && this._cachedLightsHassRef === this.hass.states) {
-      return this._cachedLights;
+    const ids = this._getLightIds();
+    // Dashboard mode: filter to ON lights only and sort by name
+    if (this._isDashboardMode) {
+      return ids
+        .map((id) => this.hass!.states[id])
+        .filter((e): e is HassEntity => !!e && e.state === 'on' && isEntityVisibleNow(e.entity_id, this._schedules))
+        .sort((a, b) => {
+          const nameA = (a.attributes.friendly_name as string) || a.entity_id;
+          const nameB = (b.attributes.friendly_name as string) || b.entity_id;
+          return nameA.localeCompare(nameB);
+        });
     }
-    this._cachedLightsHassRef = this.hass.states;
-    const result = this._computeLights();
-    this._cachedLights = result;
-    return result;
+    return ids
+      .map((id) => this.hass!.states[id])
+      .filter((s): s is HassEntity => s !== undefined);
   }
 
-  private _computeLights(): HassEntity[] {
+  /** Return ordered list of light entity IDs — cached, only recomputed on structural changes */
+  private _getLightIds(): string[] {
+    if (this._cachedLightIds) return this._cachedLightIds;
+    this._cachedLightIds = this._computeLightIds();
+    return this._cachedLightIds;
+  }
+
+  /** Discover and order light entity IDs (expensive: area lookup, filtering, sorting) */
+  private _computeLightIds(): string[] {
     if (!this.hass) return [];
     const area = this.areaId || (this._config?.area as string | undefined);
     if (area) {
-      // Merge hidden_entities from Lovelace config and backend room config
       const configHidden = (this._config?.hidden_entities as string[] | undefined) ?? [];
       const backendHidden = this._roomConfig?.hidden_entities ?? [];
       const hiddenSet = new Set<string>([...configHidden, ...backendHidden]);
 
-      const lights = getAreaEntities(area, this.hass.entities, this.hass.devices)
+      const ids = getAreaEntities(area, this.hass.entities, this.hass.devices)
         .filter((e) => e.entity_id.startsWith('light.') && !hiddenSet.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules))
-        .map((e) => this.hass?.states[e.entity_id])
-        .filter((s): s is HassEntity => s !== undefined);
+        .map((e) => e.entity_id);
 
       // Apply custom order: Lovelace config takes priority, then backend
       const configOrder = (this._config?.entity_order as string[] | undefined) ?? [];
@@ -1065,39 +1081,32 @@ export class GlassLightCard extends BaseCard {
       if (order.length > 0) {
         const orderMap = new Map<string, number>();
         order.forEach((id, i) => orderMap.set(id, i));
-        lights.sort((a, b) => {
-          const aIdx = orderMap.get(a.entity_id);
-          const bIdx = orderMap.get(b.entity_id);
+        ids.sort((a, b) => {
+          const aIdx = orderMap.get(a);
+          const bIdx = orderMap.get(b);
           if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
           if (aIdx !== undefined) return -1;
           if (bIdx !== undefined) return 1;
           return 0;
         });
       }
-      return lights;
+      return ids;
     }
     if (this._config?.entity) {
       if (!isEntityVisibleNow(this._config.entity, this._schedules)) return [];
-      const entity = this.hass.states[this._config.entity];
-      return entity ? [entity] : [];
+      return this.hass.states[this._config.entity] ? [this._config.entity] : [];
     }
-    // Dashboard mode: ON lights from navbar-visible areas, sorted by name
+    // Dashboard mode: all light IDs from visible areas (filtering to ON is done in _getLights)
     if (this._isDashboardMode) {
       const areas = this.visibleAreaIds;
       if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
-      const areaEntityIds = new Set<string>();
+      const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('light.') && !this._dashboardHiddenEntities.has(e.entity_id)) areaEntityIds.add(e.entity_id);
+          if (e.entity_id.startsWith('light.') && !this._dashboardHiddenEntities.has(e.entity_id)) ids.push(e.entity_id);
         }
       }
-      return Object.values(this.hass.states)
-        .filter((e) => areaEntityIds.has(e.entity_id) && e.state === 'on' && isEntityVisibleNow(e.entity_id, this._schedules))
-        .sort((a, b) => {
-          const nameA = (a.attributes.friendly_name as string) || a.entity_id;
-          const nameB = (b.attributes.friendly_name as string) || b.entity_id;
-          return nameA.localeCompare(nameB);
-        });
+      return ids;
     }
     return [];
   }
