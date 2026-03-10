@@ -1243,8 +1243,10 @@ export class GlassLightCard extends BaseCard {
     const sat = clampedDist / radius;
     const rgb = hsToRgb(hue, sat);
 
-    const pctX = x / radius * 50 + 50;
-    const pctY = y / radius * 50 + 50;
+    // Clamp cursor position to circle edge
+    const scale = dist > 0 ? clampedDist / dist : 1;
+    const pctX = (x * scale) / radius * 50 + 50;
+    const pctY = (y * scale) / radius * 50 + 50;
     this._colorPickerPos = { x: pctX, y: pctY };
     this._colorPickerRgb = rgb;
     this._colorPickerHs = { h: hue, s: sat };

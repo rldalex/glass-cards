@@ -7273,7 +7273,8 @@ export class GlassConfigPanel extends LitElement {
     const sat = clampedDist / radius;
     const rgb = this._hsToRgb(hue, sat);
     this._colorPickerHex = '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
-    this._colorPickerPos = { x: x / radius * 50 + 50, y: y / radius * 50 + 50 };
+    const scale = dist > 0 ? clampedDist / dist : 1;
+    this._colorPickerPos = { x: (x * scale) / radius * 50 + 50, y: (y * scale) / radius * 50 + 50 };
   }
 
   private _drawColorWheel(canvas: HTMLCanvasElement) {
