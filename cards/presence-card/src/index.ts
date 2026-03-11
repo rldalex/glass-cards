@@ -625,7 +625,7 @@ export class GlassPresenceCard extends BaseCard {
       .card-count.mixed { background: rgba(251,191,36,0.15); color: var(--c-warning); }
 
       /* ── Presence card ── */
-      .presence-card { padding: 2px 14px; width: 100%; box-sizing: border-box; }
+      .presence-card { padding: 7px 14px; width: 100%; box-sizing: border-box; }
 
       .card-tint {
         position: absolute; inset: 0; border-radius: inherit;
