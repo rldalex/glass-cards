@@ -699,12 +699,17 @@ class GlassWeatherCard extends BaseCard {
     this._ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  private _animRunning = false;
+
   private _startAnimation(): void {
+    if (this._animRunning) return;
+    this._animRunning = true;
     this._spawnParticles(this._cachedCond || 'cloudy');
     this._animate();
   }
 
   private _stopAnimation(): void {
+    this._animRunning = false;
     if (this._animId) {
       cancelAnimationFrame(this._animId);
       this._animId = 0;
@@ -820,6 +825,7 @@ class GlassWeatherCard extends BaseCard {
   }
 
   private _animate = (): void => {
+    if (!this.isConnected || !this._animRunning) return;
     const ctx = this._ctx;
     if (!ctx) return;
     ctx.clearRect(0, 0, this._cW, this._cH);

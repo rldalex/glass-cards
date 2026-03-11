@@ -9,7 +9,10 @@ import {
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
+import {
+  glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin,
+  rgbToHs, rgbToHex, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
+} from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -62,31 +65,8 @@ function getTempInfo(kelvin: number): { label: string; color: string } {
   return { label: t('light.temp_cold'), color: '#e0ecf5' };
 }
 
-function rgbToHex(rgb: [number, number, number]): string {
-  return '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
-}
-
 function rgbToRgba(rgb: [number, number, number], alpha: number): string {
   return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-}
-
-/**
- * Convert HS (hue 0-360, saturation 0-1) to RGB.
- * Uses HSV model with V=1 so center=white, edge=pure color.
- * This matches what HA lights expect via hs_color.
- */
-function hsToRgb(h: number, s: number): [number, number, number] {
-  const c = s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  let r = 0, g = 0, b = 0;
-  if (h < 60) { r = c; g = x; }
-  else if (h < 120) { r = x; g = c; }
-  else if (h < 180) { g = c; b = x; }
-  else if (h < 240) { g = x; b = c; }
-  else if (h < 300) { r = x; b = c; }
-  else { r = c; b = x; }
-  const m = 1 - c;
-  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 }
 
 const COLOR_DOTS: [number, number, number][] = [
@@ -106,28 +86,6 @@ function hsClose(a: [number, number, number], b: [number, number, number]): bool
   const hueDiff = Math.abs(ha.h - hb.h);
   const hueOk = hueDiff < 5 || hueDiff > 355; // wrap-around at 360
   return hueOk && Math.abs(ha.s - hb.s) < 0.08;
-}
-
-function rgbToHs(rgb: [number, number, number]): { h: number; s: number } {
-  const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  const d = max - min;
-  let h = 0;
-  if (d !== 0) {
-    if (max === r) h = ((g - b) / d + 6) % 6 * 60;
-    else if (max === g) h = ((b - r) / d + 2) * 60;
-    else h = ((r - g) / d + 4) * 60;
-  }
-  // HSV saturation: S = (max - min) / max
-  const s = max === 0 ? 0 : d / max;
-  return { h, s };
-}
-
-function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } {
-  const { h, s } = rgbToHs(rgb);
-  const dist = Math.min(s, 1);
-  const rad = (h * Math.PI) / 180;
-  return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };
 }
 
 const ALLOWED_EFFECTS = ['off', 'candle', 'fire'] as const;
@@ -159,6 +117,8 @@ export class GlassLightCard extends BaseCard {
   private _lastLoadedAreaId?: string;
   private _backend?: BackendService;
   private _cachedLightIds?: string[];
+  private _cachedLightsResult?: HassEntity[];
+  private _lightsFingerprint = '';
   private _schedules: EntityScheduleMap | null = null;
   private _schedulesLoaded = false;
   private _dashboardHiddenEntities = new Set<string>();
@@ -808,20 +768,20 @@ export class GlassLightCard extends BaseCard {
       const area = this.areaId || (this._config?.area as string | undefined);
       if (area && payload.areaId === area) {
         this._roomConfigLoaded = false;
-        this._cachedLightIds = undefined;
+        this._cachedLightIds = undefined; this._lightsFingerprint = '';
         this._loadRoomConfig();
       }
       // Dashboard mode: reload hidden entities from all rooms
       if (this._isDashboardMode) {
         this._dashboardHiddenLoaded = false;
         this._dashboardTotalCache = undefined;
-        this._cachedLightIds = undefined;
+        this._cachedLightIds = undefined; this._lightsFingerprint = '';
         this._loadDashboardHidden();
       }
     });
     this._listen('schedule-changed', () => {
       this._schedulesLoaded = false;
-      this._cachedLightIds = undefined;
+      this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this._loadSchedules();
     });
     this._listen('light-config-changed', () => {
@@ -859,7 +819,7 @@ export class GlassLightCard extends BaseCard {
       const currentArea = this.areaId || (this._config?.area as string | undefined);
       if (currentArea !== area) return;
       this._roomConfig = result;
-      this._cachedLightIds = undefined;
+      this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this.requestUpdate();
     } catch {
       // Backend not available
@@ -873,7 +833,7 @@ export class GlassLightCard extends BaseCard {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<EntityScheduleMap>('get_schedules');
       this._schedules = result;
-      this._cachedLightIds = undefined;
+      this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this.requestUpdate();
     } catch {
       this._schedulesLoaded = false;
@@ -913,7 +873,7 @@ export class GlassLightCard extends BaseCard {
         }
       }
       this._dashboardHiddenEntities = hidden;
-      this._cachedLightIds = undefined;
+      this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this._dashboardTotalCache = undefined;
       this.requestUpdate();
     } catch {
@@ -926,7 +886,7 @@ export class GlassLightCard extends BaseCard {
     this._roomConfigLoaded = false;
     this._expandedEntity = null;
     this._dragValues = new Map();
-    this._cachedLightIds = undefined;
+    this._cachedLightIds = undefined; this._lightsFingerprint = '';
     this._throttleTimers.forEach((t) => clearTimeout(t));
     this._throttleTimers.clear();
   }
@@ -986,8 +946,12 @@ export class GlassLightCard extends BaseCard {
     if (changedProps.has('hass') && this.hass) {
       const oldHass = changedProps.get('hass') as { entities?: unknown } | undefined;
       if (oldHass && oldHass.entities !== this.hass.entities) {
-        this._cachedLightIds = undefined;
+        this._cachedLightIds = undefined; this._lightsFingerprint = '';
       }
+    }
+    // Invalidate when visible areas change (dashboard mode)
+    if (changedProps.has('visibleAreaIds')) {
+      this._cachedLightIds = undefined; this._lightsFingerprint = '';
     }
 
     const lights = this._getLightInfos();
@@ -1023,25 +987,35 @@ export class GlassLightCard extends BaseCard {
       if (changed) this._dragValues = next;
     }
 
-    // Draw color wheel canvas when picker opens
+    // Draw color wheel canvas when picker opens (redraw if entity changed)
     if (this._colorPickerEntity) {
       const canvas = this.renderRoot.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
-      if (canvas && !canvas.dataset.drawn) {
-        this._drawColorWheel(canvas);
-        canvas.dataset.drawn = '1';
+      if (canvas && canvas.dataset.drawnFor !== this._colorPickerEntity) {
+        drawColorWheel(canvas);
+        canvas.dataset.drawnFor = this._colorPickerEntity;
       }
     }
   }
 
   // — Data —
 
-  /** Resolve cached light IDs to current hass.states — cheap, runs every render */
+  /** Resolve cached light IDs to current hass.states — memoized via entity fingerprint */
   private _getLights(): HassEntity[] {
     if (!this.hass) return [];
     const ids = this._getLightIds();
+    // Build fingerprint from tracked entities' state + last_updated
+    const fp = ids.map((id) => {
+      const e = this.hass!.states[id];
+      return e ? `${id}:${e.state}:${e.last_updated}` : `${id}:-`;
+    }).join('|');
+    if (fp === this._lightsFingerprint && this._cachedLightsResult) {
+      return this._cachedLightsResult;
+    }
+    this._lightsFingerprint = fp;
+    let result: HassEntity[];
     // Dashboard mode: filter to ON lights only and sort by name
     if (this._isDashboardMode) {
-      return ids
+      result = ids
         .map((id) => this.hass!.states[id])
         .filter((e): e is HassEntity => !!e && e.state === 'on' && isEntityVisibleNow(e.entity_id, this._schedules))
         .sort((a, b) => {
@@ -1049,10 +1023,13 @@ export class GlassLightCard extends BaseCard {
           const nameB = (b.attributes.friendly_name as string) || b.entity_id;
           return nameA.localeCompare(nameB);
         });
+    } else {
+      result = ids
+        .map((id) => this.hass!.states[id])
+        .filter((s): s is HassEntity => s !== undefined);
     }
-    return ids
-      .map((id) => this.hass!.states[id])
-      .filter((s): s is HassEntity => s !== undefined);
+    this._cachedLightsResult = result;
+    return result;
   }
 
   /** Return ordered list of light entity IDs — cached, only recomputed on structural changes */
@@ -1284,28 +1261,12 @@ export class GlassLightCard extends BaseCard {
   private _onWheelInteraction(e: MouseEvent | TouchEvent) {
     const canvas = this._wheelCanvas;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    const x = clientX - rect.left - rect.width / 2;
-    const y = clientY - rect.top - rect.height / 2;
-    const radius = rect.width / 2;
-    const dist = Math.sqrt(x * x + y * y);
-    const clampedDist = Math.min(dist, radius);
-
-    // Canvas arc() uses clockwise angles with 0=right, Y-down
-    const angle = Math.atan2(y, x); // radians, canvas coordinate system
-    const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
-    const sat = clampedDist / radius;
-    const rgb = hsToRgb(hue, sat);
-
-    // Clamp cursor position to circle edge
-    const scale = dist > 0 ? clampedDist / dist : 1;
-    const pctX = (x * scale) / radius * 50 + 50;
-    const pctY = (y * scale) / radius * 50 + 50;
-    this._colorPickerPos = { x: pctX, y: pctY };
-    this._colorPickerRgb = rgb;
-    this._colorPickerHs = { h: hue, s: sat };
+    const result = colorFromWheelEvent(canvas, clientX, clientY);
+    this._colorPickerPos = result.pos;
+    this._colorPickerRgb = result.rgb;
+    this._colorPickerHs = result.hs;
 
     // Throttled live preview — send hs_color to HA
     if (this._colorPickerEntity) {
@@ -1321,32 +1282,6 @@ export class GlassLightCard extends BaseCard {
           }
         }, 150),
       );
-    }
-  }
-
-  private _drawColorWheel(canvas: HTMLCanvasElement) {
-    const size = 440; // 2x for retina
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const cx = size / 2, cy = size / 2;
-    const r = size / 2;
-
-    // HS wheel (HSV with V=1): white center → pure color at edge
-    for (let angle = 0; angle < 360; angle++) {
-      const startAngle = ((angle - 1) * Math.PI) / 180;
-      const endAngle = ((angle + 1) * Math.PI) / 180;
-      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      const [cr, cg, cb] = hsToRgb(angle, 1);
-      gradient.addColorStop(0, '#ffffff');
-      gradient.addColorStop(1, `rgb(${cr},${cg},${cb})`);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, startAngle, endAngle);
-      ctx.closePath();
-      ctx.fillStyle = gradient;
-      ctx.fill();
     }
   }
 

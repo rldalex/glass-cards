@@ -293,6 +293,120 @@ export function getThemeManager(): ThemeManager {
   return _themeManager;
 }
 
+// — Color Utilities —
+
+export function hsToRgb(h: number, s: number): [number, number, number] {
+  const c = s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  const m = 1 - c;
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+export function rgbToHs(rgb: [number, number, number]): { h: number; s: number } {
+  const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6 * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  const s = max === 0 ? 0 : d / max;
+  return { h, s };
+}
+
+export function rgbToHex(rgb: [number, number, number]): string {
+  return '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('');
+}
+
+export function hexToRgb(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
+
+export function rgbToWheelPos(rgb: [number, number, number]): { x: number; y: number } {
+  const { h, s } = rgbToHs(rgb);
+  const dist = Math.min(s, 1);
+  const rad = (h * Math.PI) / 180;
+  return { x: Math.cos(rad) * dist * 50 + 50, y: Math.sin(rad) * dist * 50 + 50 };
+}
+
+export function hexToWheelPos(hex: string): { x: number; y: number } {
+  return rgbToWheelPos(hexToRgb(hex));
+}
+
+/**
+ * Draw an HS color wheel on a canvas (HSV model, V=1: white center → pure hue at edge).
+ */
+export function drawColorWheel(canvas: HTMLCanvasElement): void {
+  const size = 440;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.scale(dpr, dpr);
+  const cx = size / 2, cy = size / 2, r = size / 2;
+  for (let angle = 0; angle < 360; angle++) {
+    const start = ((angle - 1) * Math.PI) / 180;
+    const end = ((angle + 1) * Math.PI) / 180;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    const [cr, cg, cb] = hsToRgb(angle, 1);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(1, `rgb(${cr},${cg},${cb})`);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+}
+
+export interface ColorWheelEvent {
+  rgb: [number, number, number];
+  hex: string;
+  hs: { h: number; s: number };
+  pos: { x: number; y: number };
+}
+
+/**
+ * Compute color from a pointer position on the wheel canvas.
+ */
+export function colorFromWheelEvent(
+  canvas: HTMLCanvasElement,
+  clientX: number,
+  clientY: number,
+): ColorWheelEvent {
+  const rect = canvas.getBoundingClientRect();
+  const x = clientX - rect.left - rect.width / 2;
+  const y = clientY - rect.top - rect.height / 2;
+  const radius = rect.width / 2;
+  const dist = Math.sqrt(x * x + y * y);
+  const clampedDist = Math.min(dist, radius);
+  const angle = Math.atan2(y, x);
+  const hue = ((angle * 180 / Math.PI) % 360 + 360) % 360;
+  const sat = clampedDist / radius;
+  const rgb = hsToRgb(hue, sat);
+  const hex = rgbToHex(rgb);
+  const scale = dist > 0 ? clampedDist / dist : 1;
+  const pos = { x: (x * scale) / radius * 50 + 50, y: (y * scale) / radius * 50 + 50 };
+  return { rgb, hex, hs: { h: hue, s: sat }, pos };
+}
+
 // HMR support — cleanup on module reload
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {

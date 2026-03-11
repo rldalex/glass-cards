@@ -270,38 +270,89 @@ class TitleModeEntry:
 
 
 @dataclass
-class TitleCardConfig:
-    """Configuration for the title card."""
+class TitleSourceEntry:
+    """A single source group for the title card (input_select, scenes, or booleans)."""
 
-    title: str = ""
-    mode_entity: str = ""
-    mode_source: str = ""
+    source_type: str = ""  # 'input_select', 'scenes', 'booleans'
+    entity: str = ""  # entity_id for input_select
+    label: str = ""  # group label override
     modes: list[TitleModeEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
-            "title": self.title,
-            "mode_entity": self.mode_entity,
-            "mode_source": self.mode_source,
+            "source_type": self.source_type,
+            "entity": self.entity,
+            "label": self.label,
             "modes": [m.to_dict() for m in self.modes],
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TitleCardConfig:
+    def from_dict(cls, data: dict[str, Any]) -> TitleSourceEntry:
         """Deserialize from dict."""
-        raw_modes = data.get("modes", [])
-        raw_source = str(data.get("mode_source", ""))
+        raw_type = str(data.get("source_type", ""))
         return cls(
-            title=str(data.get("title", "")),
-            mode_entity=str(data.get("mode_entity", "")),
-            mode_source=raw_source if raw_source in VALID_MODE_SOURCES else "",
+            source_type=raw_type if raw_type in {"input_select", "scenes", "booleans"} else "",
+            entity=str(data.get("entity", "")),
+            label=str(data.get("label", "")),
             modes=[
                 TitleModeEntry.from_dict(m)
-                for m in raw_modes
+                for m in data.get("modes", [])
                 if isinstance(m, dict)
             ],
         )
+
+
+@dataclass
+class TitleCardConfig:
+    """Configuration for the title card (multi-source)."""
+
+    title: str = ""
+    sources: list[TitleSourceEntry] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "title": self.title,
+            "sources": [s.to_dict() for s in self.sources],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> TitleCardConfig:
+        """Deserialize from dict with backward compat for single-source format."""
+        title = str(data.get("title", ""))
+
+        # New multi-source format
+        raw_sources = data.get("sources", [])
+        if raw_sources and isinstance(raw_sources, list):
+            return cls(
+                title=title,
+                sources=[
+                    TitleSourceEntry.from_dict(s)
+                    for s in raw_sources
+                    if isinstance(s, dict)
+                ],
+            )
+
+        # Backward compat: migrate single-source to multi-source
+        raw_source = str(data.get("mode_source", ""))
+        if raw_source and raw_source in {"input_select", "scenes", "booleans"}:
+            raw_modes = data.get("modes", [])
+            modes = [
+                TitleModeEntry.from_dict(m)
+                for m in raw_modes
+                if isinstance(m, dict)
+            ]
+            return cls(
+                title=title,
+                sources=[TitleSourceEntry(
+                    source_type=raw_source,
+                    entity=str(data.get("mode_entity", "")),
+                    modes=modes,
+                )],
+            )
+
+        return cls(title=title)
 
 
 @dataclass
