@@ -1630,6 +1630,28 @@ export class GlassConfigPanel extends LitElement {
         width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
       }
 
+      /* ── Chip (UI kit) ── */
+      .chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 5px 12px; border-radius: var(--radius-md);
+        border: 1px solid var(--b2); background: var(--s1);
+        font-family: inherit; font-size: 11px; font-weight: 600;
+        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+      }
+      .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+      .chip.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+      .chip ha-icon {
+        --mdc-icon-size: 14px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      @media (pointer: coarse) {
+        .chip:active { transform: scale(0.94); }
+      }
+
       /* ── Title config styles ── */
       .title-section-gap {
         height: 12px;
