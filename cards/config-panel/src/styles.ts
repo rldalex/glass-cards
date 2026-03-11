@@ -1417,6 +1417,14 @@ export const configPanelStyles: CSSResult = css`
         display: flex; flex-direction: column; gap: 8px;
         padding: 12px; border-radius: var(--radius-md);
         background: var(--s1); border: 1px solid var(--b1);
+        cursor: grab; transition: opacity var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+      }
+      .title-mode-row.dragging {
+        opacity: 0.4;
+      }
+      .title-mode-row.drop-target {
+        border-color: var(--c-accent);
+        box-shadow: 0 0 0 1px var(--c-accent);
       }
       .title-source-block {
         border: 1px solid var(--b1); border-radius: var(--radius-md);
@@ -1457,20 +1465,13 @@ export const configPanelStyles: CSSResult = css`
         text-transform: uppercase; letter-spacing: 0.5px;
       }
       .title-mode-header {
-        display: flex; align-items: center; justify-content: space-between; gap: 6px;
+        display: flex; align-items: center; gap: 6px;
       }
-      .title-mode-reorder {
-        display: flex; flex-direction: column; gap: 0;
+      .title-mode-header .drag-handle {
+        cursor: grab; opacity: 0.4; display: flex; align-items: center;
+        --mdc-icon-size: 16px;
       }
-      .title-mode-reorder .btn-icon {
-        padding: 0; opacity: 0.6;
-      }
-      .title-mode-reorder .btn-icon:disabled {
-        opacity: 0.15; pointer-events: none;
-      }
-      .title-mode-reorder .btn-icon:not(:disabled):hover {
-        opacity: 1;
-      }
+      .title-mode-header .drag-handle:hover { opacity: 0.7; }
       .title-mode-id {
         flex: 1;
         font-size: 10px; font-weight: 700; color: var(--t3);

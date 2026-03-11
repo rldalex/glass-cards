@@ -259,6 +259,20 @@ class GlassTitleCard extends BaseCard {
     }
   }
 
+  // — Dash style (single color or multi-color gradient) —
+
+  private _dashStyle(colors: string[]): string {
+    if (colors.length === 0) return '';
+    const resolved = colors.map((c) => resolveColor(c));
+    const width = 'width:' + Math.min(20 + colors.length * 4, 36) + 'px';
+    if (resolved.length === 1) {
+      return `background:${resolved[0].dot};box-shadow:0 0 8px ${resolved[0].glow};${width}`;
+    }
+    const stops = resolved.map((r, i) => `${r.dot} ${Math.round(i / (resolved.length - 1) * 100)}%`).join(', ');
+    const glows = resolved.map((r) => `0 0 6px ${r.glow}`).join(', ');
+    return `background:linear-gradient(90deg, ${stops});box-shadow:${glows};${width}`;
+  }
+
   // — Active mode detection per source —
 
   private _getActiveColor(src: TitleSourceEntry): string {
@@ -362,17 +376,16 @@ class GlassTitleCard extends BaseCard {
     const sources = this._titleConfig.sources;
     const hasSources = sources.length > 0 && sources.some((s) => s.modes.length > 0);
 
-    // Find first active color across all sources for the dash
-    let dashColor = 'neutral';
+    // Collect all active colors across sources for the dash
+    const activeColors: string[] = [];
     if (hasSources) {
       for (const src of sources) {
         const c = this._getActiveColor(src);
-        if (c !== 'neutral') { dashColor = c; break; }
+        if (c !== 'neutral') activeColors.push(c);
       }
     }
-
-    const dashColors = resolveColor(dashColor);
-    const dashHasActive = dashColor !== 'neutral';
+    const dashHasActive = activeColors.length > 0;
+    const dashStyle = dashHasActive ? this._dashStyle(activeColors) : '';
 
     return html`
       <div class="title-card">
@@ -386,7 +399,7 @@ class GlassTitleCard extends BaseCard {
           >
             <div
               class="dash-line"
-              style="${dashHasActive ? `background:${dashColors.dot};box-shadow:0 0 8px ${dashColors.glow};width:24px` : ''}"
+              style="${dashStyle}"
             ></div>
           </button>
           <div class="fold-section ${this._foldOpen ? 'open' : ''}">

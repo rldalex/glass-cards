@@ -31,30 +31,43 @@ export function renderTitlePreview(self: GlassConfigPanel) {
     return html`<div class="preview-empty">${t('config.title_title_placeholder')}</div>`;
   }
 
-  // Find first active color across all sources
-  let activeColor = 'neutral';
+  // Collect all active colors across sources
+  const activeColors: string[] = [];
   for (const src of self._titleSources) {
     if (src.source_type === 'input_select' && src.entity && self.hass) {
       const entity = self.hass.states[src.entity];
       if (entity) {
         const mode = src.modes.find((m) => m.id === entity.state);
-        if (mode?.color && mode.color !== 'neutral') { activeColor = mode.color; break; }
+        if (mode?.color && mode.color !== 'neutral') activeColors.push(mode.color);
       }
     } else if (src.source_type === 'booleans' && self.hass) {
       const active = src.modes.find((m) => self.hass!.states[m.id]?.state === 'on');
-      if (active?.color) { activeColor = active.color; break; }
+      if (active?.color && active.color !== 'neutral') activeColors.push(active.color);
     }
   }
 
   const hasSources = self._titleSources.length > 0 && self._titleSources.some((s) => s.modes.length > 0);
-  const dashHasActive = activeColor !== 'neutral';
+  const dashHasActive = activeColors.length > 0;
+
+  let dashStyle = 'background:var(--t4);width:20px;';
+  if (dashHasActive) {
+    const dots = activeColors.map((c) => resolveD(c));
+    const w = Math.min(20 + activeColors.length * 4, 36);
+    if (dots.length === 1) {
+      dashStyle = `background:${dots[0]};width:${w}px;box-shadow:0 0 6px ${dots[0]};`;
+    } else {
+      const stops = dots.map((d, i) => `${d} ${Math.round(i / (dots.length - 1) * 100)}%`).join(', ');
+      const glows = dots.map((d) => `0 0 6px ${d}`).join(', ');
+      dashStyle = `background:linear-gradient(90deg, ${stops});width:${w}px;box-shadow:${glows};`;
+    }
+  }
 
   return html`
     <div class="preview-title-card">
       <div class="preview-title-text">${title}</div>
       ${hasSources ? html`
         <div class="preview-title-dash">
-          <div class="preview-dash-line" style="${dashHasActive ? `background:${resolveD(activeColor)};width:24px;box-shadow:0 0 6px ${resolveD(activeColor)};` : 'background:var(--t4);width:20px;'}"></div>
+          <div class="preview-dash-line" style="${dashStyle}"></div>
         </div>
       ` : nothing}
     </div>
@@ -186,7 +199,6 @@ function renderSourceEditor(self: GlassConfigPanel, src: TitleSource, srcIdx: nu
           </div>
 
           ${src.source_type === 'input_select' ? renderInputSelectEntityPicker(self, src, srcIdx) : nothing}
-          ${(src.source_type === 'scenes' || src.source_type === 'booleans') ? renderEntityAdder(self, src, srcIdx) : nothing}
 
           <!-- Mode list -->
           ${src.modes.length > 0 ? html`
@@ -195,6 +207,8 @@ function renderSourceEditor(self: GlassConfigPanel, src: TitleSource, srcIdx: nu
               ${src.modes.map((mode, modeIdx) => renderModeRow(self, src, srcIdx, mode, modeIdx))}
             </div>
           ` : nothing}
+
+          ${(src.source_type === 'scenes' || src.source_type === 'booleans') ? renderEntityAdder(self, src, srcIdx) : nothing}
         </div>
       ` : nothing}
     </div>
@@ -319,27 +333,23 @@ function renderModeRow(self: GlassConfigPanel, src: TitleSource, srcIdx: number,
   for (let si = 0; si < srcIdx; si++) flatIdx += self._titleSources[si].modes.length;
   flatIdx += modeIdx;
 
+  const isDragging = self._dragIdx === modeIdx && self._dragContext === 'title_modes' && self._dragModeSrcIdx === srcIdx;
+  const isDropTarget = self._dropIdx === modeIdx && self._dragContext === 'title_modes' && self._dragModeSrcIdx === srcIdx;
+
   return html`
-    <div class="title-mode-row">
+    <div
+      class="title-mode-row ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+      draggable="true"
+      @dragstart=${() => self._onDragStart(modeIdx, 'title_modes', srcIdx)}
+      @dragover=${(e: DragEvent) => self._onDragOver(modeIdx, e)}
+      @dragleave=${() => self._onDragLeave()}
+      @drop=${(e: DragEvent) => self._onDropGeneric(modeIdx, e)}
+      @dragend=${() => self._onDragEnd()}
+    >
       <div class="title-mode-header">
-        <div class="title-mode-reorder">
-          <button
-            class="btn-icon xs"
-            @click=${() => self._moveTitleMode(srcIdx, modeIdx, -1)}
-            ?disabled=${modeIdx === 0}
-            aria-label="Move up"
-          >
-            <ha-icon .icon=${'mdi:chevron-up'}></ha-icon>
-          </button>
-          <button
-            class="btn-icon xs"
-            @click=${() => self._moveTitleMode(srcIdx, modeIdx, 1)}
-            ?disabled=${modeIdx === src.modes.length - 1}
-            aria-label="Move down"
-          >
-            <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-        </div>
+        <span class="drag-handle">
+          <ha-icon .icon=${'mdi:drag'}></ha-icon>
+        </span>
         <span class="title-mode-id">${mode.id}</span>
         ${(src.source_type === 'scenes' || src.source_type === 'booleans') ? html`
           <button

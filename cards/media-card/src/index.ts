@@ -122,7 +122,6 @@ const SOURCE_ICONS: Record<string, string> = {
 export class GlassMediaCard extends BaseCard {
   @property() areaId?: string;
   @state() private _foldOpen = false;
-  @state() private _flashIcon: string | null = null;
   @state() private _mediaConfig: MediaBackendConfig = {
     extra_entities: {},
     show_header: true,
@@ -142,7 +141,6 @@ export class GlassMediaCard extends BaseCard {
   private _playersCacheKey = '';
   private _volumeThrottles = new Map<string, number>();
   private _progressTimer = 0;
-  private _flashTimer = 0;
   private _lpTimer = 0;
   private _lpFired = false;
   private _swipeFired = false;
@@ -170,7 +168,6 @@ export class GlassMediaCard extends BaseCard {
     this._backend = undefined;
     this._volumeThrottles.clear();
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
-    if (this._flashTimer) { clearTimeout(this._flashTimer); this._flashTimer = 0; }
     if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
     this._swipeAnimating = false;
@@ -451,13 +448,7 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Flash overlay ── */
 
-  private _flash(icon: string): void {
-    if (this._flashTimer) clearTimeout(this._flashTimer);
-    this._flashIcon = icon;
-    this._flashTimer = window.setTimeout(() => { this._flashIcon = null; }, 300);
-  }
-
-  /* ── Gesture handlers (tap / long-press on hero) ── */
+  /* ── Gesture handlers (long-press / swipe on hero) ── */
 
   private _onHeroPointerDown(e: PointerEvent, _master: MediaPlayerInfo): void {
     if ((e.target as HTMLElement).closest('button')) return;
@@ -487,7 +478,7 @@ export class GlassMediaCard extends BaseCard {
     }
   }
 
-  private _onHeroPointerUp(e: PointerEvent, master: MediaPlayerInfo, roomCount: number): void {
+  private _onHeroPointerUp(e: PointerEvent, _master: MediaPlayerInfo, roomCount: number): void {
     clearTimeout(this._lpTimer);
     if (this._lpFired) return;
     const dx = e.clientX - this._pointerStart.x;
@@ -504,11 +495,6 @@ export class GlassMediaCard extends BaseCard {
       return;
     }
 
-    // Tap → play/pause
-    if (elapsed < 300 && Math.abs(dx) < 10 && !(e.target as HTMLElement).closest('button')) {
-      this._togglePlayPause(master);
-      this._flash(isPlaying(master.state) ? 'mdi:pause' : 'mdi:play');
-    }
   }
 
   private _onHeroPointerCancel(): void {
@@ -804,13 +790,6 @@ export class GlassMediaCard extends BaseCard {
                   <span class="dash-track-source">${master.source}</span>
                 ` : nothing}
               </div>
-            </div>
-          </div>
-
-          <!-- Flash overlay -->
-          <div class="dash-flash ${this._flashIcon ? 'visible' : ''}">
-            <div class="dash-flash-circle">
-              <ha-icon .icon=${this._flashIcon || 'mdi:play'}></ha-icon>
             </div>
           </div>
 
@@ -1394,27 +1373,6 @@ export class GlassMediaCard extends BaseCard {
         .transport-main:active { transform: scale(0.96); }
       }
       @media (pointer: coarse) { .transport-main:active { animation: bounce 0.3s ease; } }
-
-      /* ── Flash overlay ── */
-      .dash-flash {
-        position: absolute; inset: 0; z-index: 10;
-        display: flex; align-items: center; justify-content: center;
-        opacity: 0; pointer-events: none;
-        transition: opacity 0.12s;
-      }
-      .dash-flash.visible { opacity: 1; }
-      .dash-flash-circle {
-        width: 72px; height: 72px; border-radius: 50%;
-        background: var(--s3); backdrop-filter: blur(16px);
-        border: 1px solid var(--b2);
-        display: flex; align-items: center; justify-content: center;
-        transform: scale(0.8); transition: transform 0.15s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
-      }
-      .dash-flash.visible .dash-flash-circle { transform: scale(1); }
-      .dash-flash-circle ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 32px; color: var(--t1);
-      }
 
       /* ── Idle state ── */
       .dash-idle {

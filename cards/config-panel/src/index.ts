@@ -159,7 +159,8 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() _dragIdx: number | null = null;
   @state() _dropIdx: number | null = null;
-  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' = 'rooms';
+  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' = 'rooms';
+  _dragModeSrcIdx: number | null = null;
 
   _backend?: BackendService;
   _loaded = false;
@@ -657,9 +658,10 @@ export class GlassConfigPanel extends LitElement {
 
   // — Drag & Drop —
 
-  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources') {
+  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) {
     this._dragIdx = idx;
     this._dragContext = context;
+    if (context === 'title_modes') this._dragModeSrcIdx = srcIdx ?? null;
   }
 
   _onDragOver(idx: number, e: DragEvent) {
@@ -714,6 +716,17 @@ export class GlassConfigPanel extends LitElement {
         if (from < oldEdit && idx >= oldEdit) this._titleEditingSourceIdx = oldEdit - 1;
         else if (from > oldEdit && idx <= oldEdit) this._titleEditingSourceIdx = oldEdit + 1;
       }
+    } else if (ctx === 'title_modes' && this._dragModeSrcIdx !== null) {
+      const sources = [...this._titleSources];
+      const src = sources[this._dragModeSrcIdx];
+      if (src) {
+        const modes = [...src.modes];
+        const [moved] = modes.splice(this._dragIdx, 1);
+        modes.splice(idx, 0, moved);
+        sources[this._dragModeSrcIdx] = { ...src, modes };
+        this._titleSources = sources;
+      }
+      this._dragModeSrcIdx = null;
     }
     this._dragIdx = null;
     this._dropIdx = null;
@@ -722,6 +735,7 @@ export class GlassConfigPanel extends LitElement {
   _onDragEnd() {
     this._dragIdx = null;
     this._dropIdx = null;
+    this._dragModeSrcIdx = null;
   }
 
   // — Room actions —

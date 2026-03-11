@@ -350,12 +350,11 @@ export function hexToWheelPos(hex: string): { x: number; y: number } {
  * Draw an HS color wheel on a canvas (HSV model, V=1: white center → pure hue at edge).
  */
 export function drawColorWheel(canvas: HTMLCanvasElement): void {
-  const size = 440;
+  const rect = canvas.getBoundingClientRect();
+  const size = Math.round(rect.width) || 220;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = size * dpr;
   canvas.height = size * dpr;
-  canvas.style.width = `${size}px`;
-  canvas.style.height = `${size}px`;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.scale(dpr, dpr);
