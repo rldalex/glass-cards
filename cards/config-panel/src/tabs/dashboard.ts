@@ -9,6 +9,7 @@ export function renderDashboardPreview(self: GlassConfigPanel) {
     weather: { icon: 'mdi:weather-partly-cloudy', label: t('weather.title') },
     light: { icon: 'mdi:lightbulb-group', label: t('light.title') },
     media: { icon: 'mdi:speaker', label: t('media.title') },
+    fan: { icon: 'mdi:fan', label: t('fan.title') },
     cover: { icon: 'mdi:blinds', label: t('cover.title') },
     spotify: { icon: 'mdi:spotify', label: t('spotify.title') },
     presence: { icon: 'mdi:account-group', label: t('presence.title') },
@@ -48,6 +49,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
     cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
     spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
     media: { icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', descKey: 'config.dashboard_card_media_desc', hasSub: true },
+    fan: { icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', descKey: 'config.dashboard_card_fan_desc', hasSub: false },
     presence: { icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', descKey: 'config.dashboard_card_presence_desc', hasSub: true },
   };
 
@@ -61,7 +63,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
       <div class="check-item" style="margin-top:12px;">
         <button
           class="toggle ${self._dashboardHideHeader ? 'on' : ''}"
-          @click=${() => { self._dashboardHideHeader = !self._dashboardHideHeader; self._saveDashboard(); }}
+          @click=${() => { if (self._saving) return; self._dashboardHideHeader = !self._dashboardHideHeader; self._saveDashboard(); }}
           role="switch"
           aria-checked=${self._dashboardHideHeader ? 'true' : 'false'}
           aria-label=${t('config.dashboard_hide_header')}
@@ -74,7 +76,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
       <div class="check-item" style="margin-bottom:8px;">
         <button
           class="toggle ${self._dashboardHideSidebar ? 'on' : ''}"
-          @click=${() => { self._dashboardHideSidebar = !self._dashboardHideSidebar; self._saveDashboard(); }}
+          @click=${() => { if (self._saving) return; self._dashboardHideSidebar = !self._dashboardHideSidebar; self._saveDashboard(); }}
           role="switch"
           aria-checked=${self._dashboardHideSidebar ? 'true' : 'false'}
           aria-label=${t('config.dashboard_hide_sidebar')}

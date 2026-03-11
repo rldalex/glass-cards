@@ -272,16 +272,15 @@ class GlassFanCard extends BaseCard {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    @keyframes spin-fan-ceiling {
-      0%   { transform: scaleX(1); }
-      50%  { transform: scaleX(-1); }
-      100% { transform: scaleX(1); }
+    @keyframes spin-fan-reverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
     }
     .fan-row.on .fan-icon-btn ha-icon.spinning {
       animation: spin-fan var(--spin-duration, 2s) linear infinite;
     }
-    .fan-row.on .fan-icon-btn ha-icon.spinning.ceiling {
-      animation: spin-fan-ceiling var(--spin-duration, 2s) ease-in-out infinite;
+    .fan-row.on .fan-icon-btn ha-icon.spinning.reverse {
+      animation: spin-fan-reverse var(--spin-duration, 2s) linear infinite;
     }
 
     /* ── Expand Button ── */
@@ -1126,7 +1125,7 @@ class GlassFanCard extends BaseCard {
         >
           <ha-icon
             .icon=${fan.icon}
-            class="${fan.isOn ? 'spinning' : ''} ${fan.isCeiling ? 'ceiling' : ''}"
+            class="${fan.isOn ? 'spinning' : ''} ${fan.isOn && fan.direction === 'reverse' ? 'reverse' : ''}"
             style="${fan.isOn ? `--spin-duration:${spinDuration(fan.percentage)}` : ''}"
           ></ha-icon>
         </button>
