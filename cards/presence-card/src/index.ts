@@ -345,7 +345,7 @@ export class GlassPresenceCard extends BaseCard {
         <div class="card-inner ${this._layoutClass(persons.length)}">
           ${this._renderPersons(persons)}
         </div>
-        ${this._renderFold(persons)}
+        ${this._renderFold(persons, presClass)}
       </div>
     `;
   }
@@ -478,7 +478,7 @@ export class GlassPresenceCard extends BaseCard {
     `;
   }
 
-  private _renderFold(persons: PersonData[]): TemplateResult | typeof nothing {
+  private _renderFold(persons: PersonData[], presClass: string): TemplateResult | typeof nothing {
     if (!this._activePerson) return nothing;
     const person = persons.find((p) => p.entityId === this._activePerson);
     if (!person) return nothing;
@@ -486,7 +486,7 @@ export class GlassPresenceCard extends BaseCard {
     const hasHealth = person.heartRate != null || person.spo2 != null || person.steps != null;
 
     return html`
-      <div class="fold-sep"></div>
+      <div class="fold-sep ${presClass}"></div>
       <div class="ctrl-fold">
         <div class="ctrl-fold-inner">
           <div class="fold-content">
@@ -582,7 +582,7 @@ export class GlassPresenceCard extends BaseCard {
           </div>
         </div>
       </div>
-      <div class="fold-sep bottom"></div>
+      <div class="fold-sep bottom ${presClass}"></div>
     `;
   }
 
@@ -788,6 +788,9 @@ export class GlassPresenceCard extends BaseCard {
         background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
         opacity: 0; transition: opacity 0.25s var(--ease-std);
       }
+      .fold-sep.home { background: linear-gradient(90deg, transparent, rgba(74,222,128,0.3), transparent); }
+      .fold-sep.mixed { background: linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent); }
+      .fold-sep.away { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.3), transparent); }
       .fold-sep.visible { opacity: 1; }
       .fold-sep.bottom { margin: 0 12px 4px; }
 
@@ -814,7 +817,7 @@ export class GlassPresenceCard extends BaseCard {
         padding: 5px 8px; border-radius: var(--radius-sm);
         background: var(--s1); border: 1px solid var(--b1);
       }
-      .health-address-row ha-icon {
+      .health-address-row > ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 12px; color: var(--t4); flex-shrink: 0;
       }
@@ -832,7 +835,7 @@ export class GlassPresenceCard extends BaseCard {
       .fold-battery.low { color: var(--c-alert); }
       .fold-battery ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px;
+        --mdc-icon-size: 14px; color: inherit;
       }
       .fold-meta {
         display: flex; align-items: center; gap: 6px;

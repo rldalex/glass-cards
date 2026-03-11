@@ -182,14 +182,27 @@ export class GlassMediaCard extends BaseCard {
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
-    if (changedProps.has('hass') && this.hass && !this._backend) {
-      this._backend = new BackendService(this.hass);
-      this._loadConfig();
+    if (changedProps.has('hass') && this.hass) {
+      // Detect WS reconnect (hass.connection changes)
+      if (this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._configLoaded = false;
+        this._configLoadingInProgress = false;
+      }
+      if (!this._backend) {
+        this._backend = new BackendService(this.hass);
+        this._loadConfig();
+      }
+      // Invalidate players cache when entity registry changes
+      const oldHass = changedProps.get('hass') as { entities?: unknown } | undefined;
+      if (oldHass && oldHass.entities !== this.hass.entities) {
+        this._playersCache = null;
+        this._playersCacheKey = '';
+      }
     }
-    // Start/stop progress timer based on playback state
-    this._syncProgressTimer();
-    // Expose artwork luminance for navbar adaptive icons (only on hass/room change)
+    // Start/stop progress timer based on playback state (only on relevant changes)
     if (changedProps.has('hass') || changedProps.has('_roomIndex')) {
+      this._syncProgressTimer();
       this._updateBgLightAttribute();
     }
   }
@@ -545,11 +558,16 @@ export class GlassMediaCard extends BaseCard {
     update(e);
 
     const onMove = (evt: PointerEvent) => update(evt);
-    const onUp = (evt: PointerEvent) => {
+    const cleanup = () => {
       bar.removeEventListener('pointermove', onMove);
       bar.removeEventListener('pointerup', onUp);
+      bar.removeEventListener('pointercancel', cleanup);
+      bar.removeEventListener('lostpointercapture', cleanup);
       fill.style.transition = '';
       thumb.style.opacity = '';
+    };
+    const onUp = (evt: PointerEvent) => {
+      cleanup();
       const r = bar.getBoundingClientRect();
       const pct = Math.max(0, Math.min(100, ((evt.clientX - r.left) / r.width) * 100));
       this._seekProgress(entityId, duration, pct);
@@ -557,6 +575,8 @@ export class GlassMediaCard extends BaseCard {
 
     bar.addEventListener('pointermove', onMove);
     bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointercancel', cleanup);
+    bar.addEventListener('lostpointercapture', cleanup);
   }
 
   /* ── Volume slider (pill) ── */
@@ -580,13 +600,17 @@ export class GlassMediaCard extends BaseCard {
     update(e);
 
     const onMove = (evt: PointerEvent) => update(evt);
-    const onUp = () => {
+    const cleanup = () => {
       bar.removeEventListener('pointermove', onMove);
-      bar.removeEventListener('pointerup', onUp);
+      bar.removeEventListener('pointerup', cleanup);
+      bar.removeEventListener('pointercancel', cleanup);
+      bar.removeEventListener('lostpointercapture', cleanup);
     };
 
     bar.addEventListener('pointermove', onMove);
-    bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointerup', cleanup);
+    bar.addEventListener('pointercancel', cleanup);
+    bar.addEventListener('lostpointercapture', cleanup);
   }
 
   /* ── Multiroom volume slider ── */

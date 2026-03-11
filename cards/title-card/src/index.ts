@@ -35,10 +35,10 @@ const COLOR_MAP: Record<string, { text: string; dot: string; glow: string }> = {
   neutral: { text: 'var(--t3)',        dot: 'var(--t4)',        glow: 'none' },
 };
 
-const GROUP_LABELS: Record<string, string> = {
-  input_select: 'Mode',
-  scenes: 'Scènes',
-  booleans: 'Toggles',
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  input_select: 'title_card.group_mode',
+  scenes: 'title_card.group_scenes',
+  booleans: 'title_card.group_toggles',
 };
 
 /** Resolve color key (predefined name or #rrggbb hex) to CSS values. */
@@ -424,7 +424,8 @@ class GlassTitleCard extends BaseCard {
 
   private _renderSourceGroup(src: TitleSourceEntry, _groupIdx: number, showLabel: boolean): TemplateResult | typeof nothing {
     if (src.modes.length === 0) return nothing;
-    const groupLabel = src.label || GROUP_LABELS[src.source_type] || src.source_type;
+    const labelKey = GROUP_LABEL_KEYS[src.source_type];
+    const groupLabel = src.label || (labelKey ? t(labelKey as never) : src.source_type);
 
     return html`
       <div class="chips-group">

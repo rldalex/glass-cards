@@ -109,75 +109,122 @@ export const configPanelStyles: CSSResult = css`
       }
 
       /* ── Tabs ── */
-      .tabs {
-        display: flex;
-        gap: 0;
-        border-radius: 12px;
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        padding: 3px;
+      /* ── Tab Select ── */
+      .tab-select-wrap {
+        position: relative;
+        width: 100%;
         margin-bottom: 16px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: none;
-        scroll-behavior: smooth;
       }
-      .tabs::-webkit-scrollbar { display: none; }
-      .tabs.mask-right {
-        mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-        -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-      }
-      .tabs.mask-left {
-        mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
-        -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
-      }
-      .tabs.mask-both {
-        mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
-        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
-      }
-      .tab {
-        flex-shrink: 0;
+      .tab-select-trigger {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        border-radius: 9px;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t2);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .tab-select-trigger:focus,
+      .tab-select-wrap.open .tab-select-trigger {
+        border-color: var(--b3);
+      }
+      .tab-select-trigger ha-icon {
+        --mdc-icon-size: 16px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t3);
+      }
+      .tab-select-trigger ha-icon.arrow {
+        margin-left: auto;
+        transition: transform var(--t-fast);
+      }
+      .tab-select-wrap.open .tab-select-trigger ha-icon.arrow {
+        transform: rotate(180deg);
+      }
+      .tab-select-trigger span {
+        flex: 1;
+      }
+      .tab-select-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        max-height: 280px;
+        overflow-y: auto;
+        border-radius: var(--radius-lg);
+        padding: 4px;
+        background: #1e2433;
+        border: 1px solid var(--b2);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        z-index: 20;
+        opacity: 0;
+        transform: translateY(-4px);
+        pointer-events: none;
+        transition: all var(--t-fast);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.1) transparent;
+      }
+      .tab-select-menu::-webkit-scrollbar { width: 4px; }
+      .tab-select-menu::-webkit-scrollbar-track { background: transparent; }
+      .tab-select-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+      .tab-select-menu::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+      .tab-select-wrap.open .tab-select-menu {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+      .tab-select-search {
+        width: calc(100% - 8px);
+        margin: 4px;
+        padding: 7px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b1);
+        background: var(--s1);
+        color: var(--t1);
         font-family: inherit;
         font-size: 11px;
-        font-weight: 600;
-        color: var(--t3);
+        outline: none;
+      }
+      .tab-select-search::placeholder { color: var(--t4); }
+      .tab-select-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--t2);
         cursor: pointer;
-        transition:
-          background var(--t-fast),
-          color var(--t-fast),
-          box-shadow var(--t-fast);
+        transition: all var(--t-fast);
         border: none;
         background: transparent;
+        width: 100%;
+        font-family: inherit;
         outline: none;
-        -webkit-tap-highlight-color: transparent;
+        text-align: left;
       }
       @media (hover: hover) and (pointer: fine) {
-        .tab:hover {
-          color: var(--t2);
-        }
+        .tab-select-option:hover { background: var(--s3); color: var(--t1); }
       }
-      @media (hover: none) {
-        .tab:active { animation: bounce 0.3s ease; }
+      @media (pointer: coarse) {
+        .tab-select-option:active { animation: bounce 0.3s ease; }
       }
-      .tab:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: -2px;
-      }
-      .tab.active {
-        background: var(--s4);
-        color: var(--t1);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-      }
-      .tab ha-icon {
-        --mdc-icon-size: 14px;
+      .tab-select-option.selected { color: var(--c-accent); }
+      .tab-select-option.hidden { display: none; }
+      .tab-select-option ha-icon {
+        --mdc-icon-size: 16px;
         display: flex; align-items: center; justify-content: center;
+        color: var(--t3);
       }
+      .tab-select-option.selected ha-icon { color: var(--c-accent); }
 
       /* ── Tab panel animation ── */
       .tab-panel {

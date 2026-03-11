@@ -667,7 +667,14 @@ export function applyColorPicker(self: GlassConfigPanel) {
 }
 
 export function onCpWheel(self: GlassConfigPanel, e: MouseEvent | TouchEvent) {
-  const canvas = self._cpCanvas;
+  // Re-acquire canvas if Lit re-rendered during drag (stale ref)
+  let canvas = self._cpCanvas;
+  const liveCanvas = self.shadowRoot?.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
+  if (liveCanvas && liveCanvas !== canvas) {
+    self._cpCanvas = liveCanvas;
+    drawColorWheel(liveCanvas);
+    canvas = liveCanvas;
+  }
   if (!canvas) return;
   const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;

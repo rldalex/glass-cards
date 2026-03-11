@@ -357,10 +357,10 @@ class GlassWeatherCard extends BaseCard {
       outline: none;
     }
     .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .wc-fc-tab:active { transform: scale(0.96); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .wc-fc-tab:active { animation: bounce 0.3s ease; }
     }
     .wc-fc-tab.active {
@@ -457,7 +457,7 @@ class GlassWeatherCard extends BaseCard {
     @media (hover: hover) and (pointer: fine) {
       .wc-day-row:hover, .wc-hour-row:hover { background: var(--s1); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .wc-day-row:active, .wc-hour-row:active { animation: bounce 0.3s ease; }
     }
 
@@ -547,6 +547,7 @@ class GlassWeatherCard extends BaseCard {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._configLoaded = false;
+        this._configLoadingInProgress = false;
         this._unsubForecasts();
       }
       if (!this._configLoaded && !this._configLoadingInProgress) {
@@ -556,7 +557,7 @@ class GlassWeatherCard extends BaseCard {
       // Cache condition for animation loop (avoid Object.keys scan at 60fps)
       const ws = this._getWeatherState();
       this._cachedCond = ws ? this._mapCondition(ws.state) : '';
-      this._subscribeForecasts();
+      if (this._configLoaded) this._subscribeForecasts();
     }
     // Re-init canvas after reconnect (shadow DOM is available in updated, not in connectedCallback)
     if (this._needsCanvasReInit) {

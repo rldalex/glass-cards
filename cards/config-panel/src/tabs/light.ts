@@ -323,7 +323,6 @@ export function removeSchedulePeriod(self: GlassConfigPanel, entityId: string, i
   periods.splice(idx, 1);
   self._scheduleEdits.set(entityId, [...periods]);
   self.requestUpdate();
-  self._saveSchedule(entityId);
 }
 
 export function updateSchedulePeriod(self: GlassConfigPanel, entityId: string, idx: number, field: 'start' | 'end', value: string) {

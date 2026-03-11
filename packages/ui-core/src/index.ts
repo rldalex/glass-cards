@@ -131,7 +131,7 @@ export function marqueeText(
   duration = '8s',
 ): TemplateResult | string {
   if (text.length <= maxChars) return text;
-  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0${text}\u00A0\u00A0\u00A0</span></span>`;
+  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0</span><span class="marquee-inner" aria-hidden="true">${text}\u00A0\u00A0\u00A0</span></span>`;
 }
 
 // — Press Mixin (mobile touch feedback) —
@@ -259,11 +259,13 @@ export class ThemeManager {
     // Don't inject if already present (e.g. another instance)
     if (document.getElementById(AMBIENT_BG_ID)) {
       this.ambientEl = document.getElementById(AMBIENT_BG_ID);
+      this.styleEl = document.head.querySelector('style[data-glass-ambient]') as HTMLStyleElement | null;
       return;
     }
 
     // Inject styles
     this.styleEl = document.createElement('style');
+    this.styleEl.setAttribute('data-glass-ambient', '');
     this.styleEl.textContent = AMBIENT_STYLES;
     document.head.appendChild(this.styleEl);
 

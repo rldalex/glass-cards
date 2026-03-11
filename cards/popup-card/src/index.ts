@@ -224,12 +224,12 @@ export class GlassRoomPopup extends LitElement {
           background: var(--s3);
         }
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .close-btn:active {
           background: var(--s3);
         }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .close-btn:active {
           animation: bounce 0.3s ease;
         }
@@ -291,12 +291,12 @@ export class GlassRoomPopup extends LitElement {
           color: var(--t1);
         }
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .scene-chip:active {
           background: var(--s3);
         }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .scene-chip:active {
           animation: bounce 0.3s ease;
         }
@@ -407,6 +407,11 @@ export class GlassRoomPopup extends LitElement {
     if (this._peekTimeout !== undefined) {
       clearTimeout(this._peekTimeout);
       this._peekTimeout = undefined;
+    }
+    // Cancel pending rAF from previous open
+    if (this._pendingRaf !== undefined) {
+      cancelAnimationFrame(this._pendingRaf);
+      this._pendingRaf = undefined;
     }
     this._areaId = payload.areaId;
     this._scenesOpen = false;

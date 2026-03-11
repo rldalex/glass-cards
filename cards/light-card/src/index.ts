@@ -269,7 +269,7 @@ export class GlassLightCard extends BaseCard {
           background: var(--s1);
         }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .light-row:active { animation: bounce 0.3s ease; }
       }
       .light-row.compact {
@@ -580,7 +580,7 @@ export class GlassLightCard extends BaseCard {
         .cdot:hover { transform: scale(1.15); }
         .cdot:active { transform: scale(1.1); }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .cdot:active { animation: bounce 0.3s ease; }
       }
       .cdot.active { border-color: rgba(255, 255, 255, 0.6); }
@@ -611,7 +611,7 @@ export class GlassLightCard extends BaseCard {
       @media (hover: hover) and (pointer: fine) {
         .color-picker-btn:hover { transform: scale(1.15); }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .color-picker-btn:active { animation: bounce 0.3s ease; }
       }
 
@@ -954,6 +954,7 @@ export class GlassLightCard extends BaseCard {
     // Invalidate when visible areas change (dashboard mode)
     if (changedProps.has('visibleAreaIds')) {
       this._cachedLightIds = undefined; this._lightsFingerprint = '';
+      this._dashboardHiddenLoaded = false;
     }
 
     const lights = this._getLightInfos();

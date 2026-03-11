@@ -21,7 +21,7 @@ import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityV
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
 import { renderMediaPreview, renderMediaTab } from './tabs/media';
-import { renderFanPreview, renderFanTab } from './tabs/fan';
+import { renderFanPreview, renderFanTab, selectFanRoom, toggleFanEntityVisibility, onDropFan } from './tabs/fan';
 import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible, openIconPicker, setRoomIcon, selectRoom, goBack } from './tabs/navbar';
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
 import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, getAvailableSmartphoneSensors, getAvailableDrivingSensors, getAvailableNotifyServices, togglePresencePerson } from './tabs/presence';
@@ -39,6 +39,8 @@ export class GlassConfigPanel extends LitElement {
 
   @state() _lang = getLanguage();
   @state() _tab: TabId = 'dashboard';
+  @state() _tabSelectOpen = false;
+  @state() _tabSearch = '';
   @state() _rooms: RoomEntry[] = [];
   @state() _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() _selectedRoom = '';
@@ -109,6 +111,9 @@ export class GlassConfigPanel extends LitElement {
 
   // Fan card config
   @state() _fanShowHeader = true;
+  @state() _fanRoom = '';
+  @state() _fanRoomDropdownOpen = false;
+  @state() _fanRoomEntities: { entityId: string; name: string; visible: boolean }[] = [];
 
   // Media card config
   @state() _presenceShowHeader = true;
@@ -163,7 +168,7 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() _dragIdx: number | null = null;
   @state() _dropIdx: number | null = null;
-  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' = 'rooms';
+  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' = 'rooms';
   @state() _dragModeSrcIdx: number | null = null;
 
   _backend?: BackendService;
@@ -172,7 +177,6 @@ export class GlassConfigPanel extends LitElement {
   _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() _toastError = false;
   _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
-  _boundUpdateScrollMask = this._updateScrollMask.bind(this);
   _initialIcons = new Map<string, string | null>();
 
   static styles = [
@@ -201,7 +205,6 @@ export class GlassConfigPanel extends LitElement {
     super.disconnectedCallback();
     this._mounted = false;
     document.removeEventListener('click', this._boundCloseDropdowns);
-    this._removeTabsScrollListener();
     if (this._toastTimeout !== undefined) {
       clearTimeout(this._toastTimeout);
       this._toastTimeout = undefined;
@@ -212,11 +215,11 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
-    const dropdowns = root.querySelectorAll('.dropdown');
+    const dropdowns = root.querySelectorAll('.dropdown, .tab-select-wrap');
     for (const dd of dropdowns) {
       if (path.includes(dd)) return;
     }
@@ -226,42 +229,16 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
+    this._fanRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
+    this._tabSelectOpen = false;
+    this._tabSearch = '';
   }
 
-  _tabsEl: HTMLElement | null = null;
-
-  _setupTabsScrollListener() {
-    if (this._tabsEl) return;
-    const el = this.shadowRoot?.querySelector<HTMLElement>('.tabs');
-    if (!el) return;
-    this._tabsEl = el;
-    el.addEventListener('scroll', this._boundUpdateScrollMask, { passive: true });
-    this._updateScrollMask();
-  }
-
-  _removeTabsScrollListener() {
-    if (this._tabsEl) {
-      this._tabsEl.removeEventListener('scroll', this._boundUpdateScrollMask);
-      this._tabsEl = null;
-    }
-  }
-
-  _updateScrollMask() {
-    const el = this._tabsEl;
-    if (!el) return;
-    const atStart = el.scrollLeft <= 5;
-    const atEnd = el.scrollLeft + el.offsetWidth >= el.scrollWidth - 5;
-    el.classList.remove('mask-left', 'mask-right', 'mask-both');
-    if (atStart && !atEnd) el.classList.add('mask-right');
-    else if (!atStart && atEnd) el.classList.add('mask-left');
-    else if (!atStart && !atEnd) el.classList.add('mask-both');
-  }
 
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
-    this._setupTabsScrollListener();
     if (changedProps.has('hass')) {
       if (this.hass?.language && setLanguage(this.hass.language)) {
         this._lang = getLanguage();
@@ -642,6 +619,8 @@ export class GlassConfigPanel extends LitElement {
 
   _switchTab(tab: TabId) {
     this._tab = tab;
+    this._tabSelectOpen = false;
+    this._tabSearch = '';
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
     this._lightDropdownOpen = false;
@@ -649,6 +628,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
+    this._fanRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
     this._iconPopupModeIdx = null;
@@ -661,6 +641,10 @@ export class GlassConfigPanel extends LitElement {
       this._coverRoom = this._rooms[0].areaId;
       this._loadRoomCovers();
     }
+    if (tab === 'fan' && !this._fanRoom && this._rooms.length > 0) {
+      this._fanRoom = this._rooms[0].areaId;
+      this._loadRoomFans();
+    }
     if ((tab === 'cover' || tab === 'dashboard') && this._coverDashboardOrder.length === 0) {
       this._initCoverDashboardOrder();
     }
@@ -668,7 +652,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Drag & Drop —
 
-  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) {
+  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) {
     this._dragIdx = idx;
     this._dragContext = context;
     if (context === 'title_modes') this._dragModeSrcIdx = srcIdx ?? null;
@@ -1221,6 +1205,49 @@ export class GlassConfigPanel extends LitElement {
 
   _renderFanTab() { return renderFanTab(this); }
 
+  _selectFanRoom(areaId: string) { selectFanRoom(this, areaId); }
+
+  _toggleFanEntityVisibility(entityId: string) { toggleFanEntityVisibility(this, entityId); }
+
+  _onDropFan(idx: number, e: DragEvent) { onDropFan(this, idx, e); }
+
+  async _loadRoomFans() {
+    if (!this._backend || !this._fanRoom || !this.hass) return;
+    const targetRoom = this._fanRoom;
+    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
+    const fanIds = areaEntities
+      .filter((e) => e.entity_id.startsWith('fan.'))
+      .map((e) => e.entity_id);
+
+    // Load room config for hidden_entities / entity_order
+    let roomConfig: { hidden_entities?: string[]; entity_order?: string[] } | null = null;
+    try {
+      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>('get_room', { area_id: targetRoom });
+    } catch { /* ignore */ }
+
+    // Discard stale result if room changed during async call
+    if (this._fanRoom !== targetRoom) return;
+
+    const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
+    const order = roomConfig?.entity_order ?? [];
+
+    // Sort by order
+    const sorted = [...fanIds].sort((a, b) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return 0;
+    });
+
+    this._fanRoomEntities = sorted.map((id) => {
+      const entity = this.hass?.states[id];
+      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      return { entityId: id, name, visible: !hiddenSet.has(id) };
+    });
+  }
+
   private async _saveFan() {
     if (!this._backend || this._saving) return;
     this._saving = true;
@@ -1228,9 +1255,34 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_fan_config', {
         show_header: this._fanShowHeader,
       });
+
+      // Save room-level fan config if a room is selected
+      if (this._fanRoom && this._fanRoomEntities.length > 0) {
+        // Load existing hidden_entities to preserve non-fan hidden entries
+        let existingHidden: string[] = [];
+        try {
+          const existing = await this._backend.send<{
+            hidden_entities: string[];
+          } | null>('get_room', { area_id: this._fanRoom });
+          if (existing) existingHidden = existing.hidden_entities ?? [];
+        } catch { /* ignore */ }
+
+        const fanEntityIds = new Set(this._fanRoomEntities.map((e) => e.entityId));
+        const nonFanHidden = existingHidden.filter((id) => !fanEntityIds.has(id));
+        const hiddenFans = this._fanRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+        const entityOrder = this._fanRoomEntities.map((e) => e.entityId);
+
+        await this._backend.send('set_room', {
+          area_id: this._fanRoom,
+          hidden_entities: [...nonFanHidden, ...hiddenFans],
+          entity_order: entityOrder,
+        });
+      }
+
       if (!this._mounted) return;
       this._showToast();
       bus.emit('fan-config-changed', undefined);
+      if (this._fanRoom) bus.emit('room-config-changed', { areaId: this._fanRoom });
     } catch {
       this._showToast(true);
     } finally {
@@ -1249,6 +1301,7 @@ export class GlassConfigPanel extends LitElement {
         this._fanShowHeader = result.fan_card.show_header ?? true;
       }
     } catch { /* ignore */ }
+    await this._loadRoomFans();
   }
 
   _onDropCover(idx: number, e: DragEvent) { onDropCover(this, idx, e); }
@@ -1719,6 +1772,66 @@ export class GlassConfigPanel extends LitElement {
 
   _renderTitleTab() { return renderTitleTab(this); }
 
+  // — Tab Select —
+
+  private static _TAB_META: { id: TabId; icon: string; labelKey: Parameters<typeof t>[0] }[] = [
+    { id: 'dashboard', icon: 'mdi:view-dashboard', labelKey: 'config.tab_dashboard' },
+    { id: 'title', icon: 'mdi:format-title', labelKey: 'config.tab_title' },
+    { id: 'navbar', icon: 'mdi:dock-bottom', labelKey: 'config.tab_navbar' },
+    { id: 'popup', icon: 'mdi:card-outline', labelKey: 'config.tab_popup' },
+    { id: 'light', icon: 'mdi:lightbulb-group', labelKey: 'config.tab_light' },
+    { id: 'weather', icon: 'mdi:weather-partly-cloudy', labelKey: 'config.tab_weather' },
+    { id: 'media', icon: 'mdi:speaker', labelKey: 'config.tab_media' },
+    { id: 'cover', icon: 'mdi:blinds', labelKey: 'config.tab_cover' },
+    { id: 'fan', icon: 'mdi:fan', labelKey: 'config.tab_fan' },
+    { id: 'spotify', icon: 'mdi:spotify', labelKey: 'config.tab_spotify' },
+    { id: 'presence', icon: 'mdi:account-group', labelKey: 'config.tab_presence' },
+  ];
+
+  _renderTabSelect() {
+    const current = GlassConfigPanel._TAB_META.find((m) => m.id === this._tab);
+    const search = this._tabSearch.toLowerCase();
+    return html`
+      <div class="tab-select-wrap ${this._tabSelectOpen ? 'open' : ''}">
+        <button
+          class="tab-select-trigger"
+          @click=${() => { this._tabSelectOpen = !this._tabSelectOpen; this._tabSearch = ''; }}
+          aria-haspopup="listbox"
+          aria-expanded=${this._tabSelectOpen ? 'true' : 'false'}
+        >
+          <ha-icon .icon=${current?.icon || 'mdi:cog'}></ha-icon>
+          <span>${current ? t(current.labelKey) : ''}</span>
+          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+        </button>
+        <div class="tab-select-menu" role="listbox">
+          <input
+            type="text"
+            class="tab-select-search"
+            placeholder="${t('config.search_entity')}"
+            .value=${this._tabSearch}
+            @input=${(e: Event) => { this._tabSearch = (e.target as HTMLInputElement).value; }}
+            @click=${(e: Event) => e.stopPropagation()}
+          />
+          ${GlassConfigPanel._TAB_META.map((m) => {
+            const label = t(m.labelKey);
+            const hidden = search && !label.toLowerCase().includes(search) && !m.id.includes(search);
+            return html`
+              <button
+                class="tab-select-option ${m.id === this._tab ? 'selected' : ''} ${hidden ? 'hidden' : ''}"
+                role="option"
+                aria-selected=${m.id === this._tab ? 'true' : 'false'}
+                @click=${() => this._switchTab(m.id)}
+              >
+                <ha-icon .icon=${m.icon}></ha-icon>
+                ${label}
+              </button>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+
   // — Main render —
 
   render() {
@@ -1737,107 +1850,7 @@ export class GlassConfigPanel extends LitElement {
         </div>
 
         <div class="glass config-panel">
-          <div class="tabs" role="tablist">
-            <button
-              class="tab ${this._tab === 'dashboard' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'dashboard' ? 'true' : 'false'}
-              @click=${() => this._switchTab('dashboard')}
-            >
-              <ha-icon .icon=${'mdi:view-dashboard'}></ha-icon>
-              ${t('config.tab_dashboard')}
-            </button>
-            <button
-              class="tab ${this._tab === 'title' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'title' ? 'true' : 'false'}
-              @click=${() => this._switchTab('title')}
-            >
-              <ha-icon .icon=${'mdi:format-title'}></ha-icon>
-              ${t('config.tab_title')}
-            </button>
-            <button
-              class="tab ${this._tab === 'navbar' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'navbar' ? 'true' : 'false'}
-              @click=${() => this._switchTab('navbar')}
-            >
-              <ha-icon .icon=${'mdi:dock-bottom'}></ha-icon>
-              ${t('config.tab_navbar')}
-            </button>
-            <button
-              class="tab ${this._tab === 'popup' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'popup' ? 'true' : 'false'}
-              @click=${() => this._switchTab('popup')}
-            >
-              <ha-icon .icon=${'mdi:card-outline'}></ha-icon>
-              ${t('config.tab_popup')}
-            </button>
-            <button
-              class="tab ${this._tab === 'light' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'light' ? 'true' : 'false'}
-              @click=${() => this._switchTab('light')}
-            >
-              <ha-icon .icon=${'mdi:lightbulb-group'}></ha-icon>
-              ${t('config.tab_light')}
-            </button>
-            <button
-              class="tab ${this._tab === 'weather' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'weather' ? 'true' : 'false'}
-              @click=${() => this._switchTab('weather')}
-            >
-              <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-              ${t('config.tab_weather')}
-            </button>
-            <button
-              class="tab ${this._tab === 'media' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'media' ? 'true' : 'false'}
-              @click=${() => this._switchTab('media')}
-            >
-              <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-              ${t('config.tab_media')}
-            </button>
-            <button
-              class="tab ${this._tab === 'cover' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'cover' ? 'true' : 'false'}
-              @click=${() => this._switchTab('cover')}
-            >
-              <ha-icon .icon=${'mdi:blinds'}></ha-icon>
-              ${t('config.tab_cover')}
-            </button>
-            <button
-              class="tab ${this._tab === 'fan' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'fan' ? 'true' : 'false'}
-              @click=${() => this._switchTab('fan')}
-            >
-              <ha-icon .icon=${'mdi:fan'}></ha-icon>
-              ${t('config.tab_fan')}
-            </button>
-            <button
-              class="tab ${this._tab === 'spotify' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'spotify' ? 'true' : 'false'}
-              @click=${() => this._switchTab('spotify')}
-            >
-              <ha-icon .icon=${'mdi:spotify'}></ha-icon>
-              ${t('config.tab_spotify')}
-            </button>
-            <button
-              class="tab ${this._tab === 'presence' ? 'active' : ''}"
-              role="tab"
-              aria-selected=${this._tab === 'presence' ? 'true' : 'false'}
-              @click=${() => this._switchTab('presence')}
-            >
-              <ha-icon .icon=${'mdi:account-group'}></ha-icon>
-              ${t('config.tab_presence')}
-            </button>
-          </div>
+          ${this._renderTabSelect()}
 
           <div class="preview-encart">
             <div class="preview-label">${t('config.preview')}</div>

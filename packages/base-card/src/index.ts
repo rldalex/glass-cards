@@ -223,10 +223,15 @@ export function isEntityVisibleNow(
     end.setSeconds(59, 999);
     if (p.recurring) {
       const sNow = new Date(now.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes());
-      let eNow = new Date(now.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
-      // Cross-year recurring window: advance end to next year
-      if (sNow > eNow) eNow = new Date(now.getFullYear() + 1, end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
-      return now >= sNow && now <= eNow;
+      const eNow = new Date(now.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
+      if (sNow <= eNow) {
+        // Same-year window (e.g. Mar→Jun)
+        return now >= sNow && now <= eNow;
+      }
+      // Cross-year window (e.g. Nov→Feb): check both halves
+      const eNext = new Date(now.getFullYear() + 1, end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), 59, 999);
+      const sPrev = new Date(now.getFullYear() - 1, start.getMonth(), start.getDate(), start.getHours(), start.getMinutes());
+      return (now >= sNow && now <= eNext) || (now >= sPrev && now <= eNow);
     }
     return now >= start && now <= end;
   });

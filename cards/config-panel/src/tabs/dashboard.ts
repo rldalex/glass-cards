@@ -49,7 +49,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
     cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
     spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
     media: { icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', descKey: 'config.dashboard_card_media_desc', hasSub: true },
-    fan: { icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', descKey: 'config.dashboard_card_fan_desc', hasSub: false },
+    fan: { icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', descKey: 'config.dashboard_card_fan_desc', hasSub: true },
     presence: { icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', descKey: 'config.dashboard_card_presence_desc', hasSub: true },
   };
 
@@ -352,6 +352,34 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
                 class="toggle ${self._mediaShowHeader ? 'on' : ''}"
                 role="switch"
                 aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
+              ></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (key === 'fan') {
+    return html`
+      <div class="feature-sub ${open ? 'open' : ''}">
+        <div class="feature-sub-inner">
+          <div class="feature-sub-content">
+            <button
+              class="feature-row"
+              @click=${(e: Event) => { e.stopPropagation(); self._fanShowHeader = !self._fanShowHeader; }}
+            >
+              <div class="feature-icon">
+                <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">${t('config.fan_show_header')}</div>
+                <div class="feature-desc">${t('config.fan_show_header_desc')}</div>
+              </div>
+              <span
+                class="toggle ${self._fanShowHeader ? 'on' : ''}"
+                role="switch"
+                aria-checked=${self._fanShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
