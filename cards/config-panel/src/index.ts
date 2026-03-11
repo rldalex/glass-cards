@@ -160,7 +160,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _dragIdx: number | null = null;
   @state() _dropIdx: number | null = null;
   @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' = 'rooms';
-  _dragModeSrcIdx: number | null = null;
+  @state() _dragModeSrcIdx: number | null = null;
 
   _backend?: BackendService;
   _loaded = false;
@@ -664,9 +664,11 @@ export class GlassConfigPanel extends LitElement {
     if (context === 'title_modes') this._dragModeSrcIdx = srcIdx ?? null;
   }
 
-  _onDragOver(idx: number, e: DragEvent) {
+  _onDragOver(idx: number, e: DragEvent, srcIdx?: number) {
     e.preventDefault();
     if (this._dragIdx === null || this._dragIdx === idx) return;
+    // Block cross-source drag for title_modes
+    if (this._dragContext === 'title_modes' && srcIdx !== undefined && srcIdx !== this._dragModeSrcIdx) return;
     this._dropIdx = idx;
   }
 

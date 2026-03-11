@@ -346,7 +346,7 @@ function renderModeRow(self: GlassConfigPanel, src: TitleSource, srcIdx: number,
       class="title-mode-row ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
       draggable="true"
       @dragstart=${() => self._onDragStart(modeIdx, 'title_modes', srcIdx)}
-      @dragover=${(e: DragEvent) => self._onDragOver(modeIdx, e)}
+      @dragover=${(e: DragEvent) => self._onDragOver(modeIdx, e, srcIdx)}
       @dragleave=${() => self._onDragLeave()}
       @drop=${(e: DragEvent) => self._onDropGeneric(modeIdx, e)}
       @dragend=${() => self._onDragEnd()}
@@ -642,11 +642,13 @@ export function openColorPicker(self: GlassConfigPanel, modeIdx: number) {
   }
   self._colorPickerModeIdx = modeIdx;
   self.updateComplete.then(() => {
-    const canvas = self.shadowRoot?.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
-    if (canvas) {
-      self._cpCanvas = canvas;
-      drawColorWheel(canvas);
-    }
+    requestAnimationFrame(() => {
+      const canvas = self.shadowRoot?.querySelector('.cp-wheel-wrap canvas') as HTMLCanvasElement | null;
+      if (canvas) {
+        self._cpCanvas = canvas;
+        drawColorWheel(canvas);
+      }
+    });
   });
 }
 
