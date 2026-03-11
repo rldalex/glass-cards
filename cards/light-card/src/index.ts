@@ -432,14 +432,15 @@ export class GlassLightCard extends BaseCard {
         opacity: 1;
       }
       .fold-sep {
-        height: 1px;
+        height: 0;
         margin: 0 12px;
+        overflow: hidden;
         background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
         opacity: 0;
-        transition: opacity 0.25s var(--ease-std);
+        transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
         grid-column: 1 / -1;
       }
-      .fold-sep.visible { opacity: 1; }
+      .fold-sep.visible { height: 1px; opacity: 1; }
       .ctrl-panel {
         padding: 6px 0 4px;
         display: flex;

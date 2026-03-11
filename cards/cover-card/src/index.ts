@@ -148,11 +148,13 @@ class GlassCoverCard extends BaseCard {
       width: 100%;
       max-width: 500px;
       margin: 0 auto;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     .cover-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px 4px;
+      padding: 0 6px;
+      margin-bottom: 6px;
     }
     .cover-header-left { display: flex; align-items: center; gap: 8px; }
     .cover-title {
@@ -171,7 +173,7 @@ class GlassCoverCard extends BaseCard {
 
     .cover-header-actions { display: flex; gap: 4px; }
     .header-btn {
-      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      width: 22px; height: 22px; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
@@ -197,7 +199,6 @@ class GlassCoverCard extends BaseCard {
     .cover-card { position: relative; padding: 2px 14px; }
     .card-inner {
       position: relative; z-index: 1;
-      display: flex; flex-direction: column; gap: 2px;
     }
 
     /* Tint */
@@ -279,7 +280,7 @@ class GlassCoverCard extends BaseCard {
     .cv-row.open .cv-position { color: var(--cv-color, #a78bfa); }
 
     .cv-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
     .cv-row.open .cv-dot {
@@ -288,11 +289,11 @@ class GlassCoverCard extends BaseCard {
 
     /* ── Fold ── */
     .fold-sep {
-      height: 1px; margin: 0 12px;
+      height: 0; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
-      opacity: 0; transition: opacity 0.25s var(--ease-std, ease);
+      opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
     }
-    .fold-sep.visible { opacity: 1; }
+    .fold-sep.visible { height: 1px; opacity: 1; }
 
     .ctrl-fold {
       display: grid; grid-template-rows: 0fr;

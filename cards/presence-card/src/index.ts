@@ -628,7 +628,7 @@ export class GlassPresenceCard extends BaseCard {
       .card-count.mixed { background: rgba(251,191,36,0.15); color: var(--c-warning); }
 
       /* ── Presence card ── */
-      .presence-card { padding: 14px 16px; width: 100%; box-sizing: border-box; }
+      .presence-card { padding: 2px 14px; width: 100%; box-sizing: border-box; }
 
       .card-tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -712,7 +712,7 @@ export class GlassPresenceCard extends BaseCard {
       .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(96,165,250,0.5); }
 
       .person-info { min-width: 0; flex: 1; }
-      .person-name { font-size: 13px; font-weight: 600; color: var(--t2); line-height: 1.2; }
+      .person-name { font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2; }
       .person-block.right .person-name { text-align: right; }
 
       .person-sub { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
@@ -722,7 +722,7 @@ export class GlassPresenceCard extends BaseCard {
       .person-block.right .person-line { flex-direction: row-reverse; }
 
       .person-location {
-        font-size: 10px; font-weight: 400; color: var(--t3);
+        font-size: 10px; font-weight: 500; color: var(--t3);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
@@ -731,7 +731,7 @@ export class GlassPresenceCard extends BaseCard {
         --mdc-icon-size: 10px; color: var(--t4);
       }
 
-      .person-last-seen { font-size: 9px; font-weight: 400; color: var(--t4); white-space: nowrap; }
+      .person-last-seen { font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap; }
 
       .person-battery {
         font-size: 10px; font-weight: 500;

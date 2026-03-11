@@ -459,14 +459,15 @@
         opacity: 1;
       }
       .fold-sep {
-        height: 1px;
+        height: 0;
         margin: 0 12px;
+        overflow: hidden;
         background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
         opacity: 0;
-        transition: opacity 0.25s var(--ease-std);
+        transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
         grid-column: 1 / -1;
       }
-      .fold-sep.visible { opacity: 1; }
+      .fold-sep.visible { height: 1px; opacity: 1; }
       .ctrl-panel {
         padding: 6px 0 4px;
         display: flex;
@@ -2131,11 +2132,13 @@
       width: 100%;
       max-width: 500px;
       margin: 0 auto;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     .cover-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px 4px;
+      padding: 0 6px;
+      margin-bottom: 6px;
     }
     .cover-header-left { display: flex; align-items: center; gap: 8px; }
     .cover-title {
@@ -2154,7 +2157,7 @@
 
     .cover-header-actions { display: flex; gap: 4px; }
     .header-btn {
-      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      width: 22px; height: 22px; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
@@ -2180,7 +2183,6 @@
     .cover-card { position: relative; padding: 2px 14px; }
     .card-inner {
       position: relative; z-index: 1;
-      display: flex; flex-direction: column; gap: 2px;
     }
 
     /* Tint */
@@ -2262,7 +2264,7 @@
     .cv-row.open .cv-position { color: var(--cv-color, #a78bfa); }
 
     .cv-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
     .cv-row.open .cv-dot {
@@ -2271,11 +2273,11 @@
 
     /* ── Fold ── */
     .fold-sep {
-      height: 1px; margin: 0 12px;
+      height: 0; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
-      opacity: 0; transition: opacity 0.25s var(--ease-std, ease);
+      opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
     }
-    .fold-sep.visible { opacity: 1; }
+    .fold-sep.visible { height: 1px; opacity: 1; }
 
     .ctrl-fold {
       display: grid; grid-template-rows: 0fr;
@@ -4481,7 +4483,7 @@
       .card-count.mixed { background: rgba(251,191,36,0.15); color: var(--c-warning); }
 
       /* ── Presence card ── */
-      .presence-card { padding: 14px 16px; width: 100%; box-sizing: border-box; }
+      .presence-card { padding: 2px 14px; width: 100%; box-sizing: border-box; }
 
       .card-tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -4565,7 +4567,7 @@
       .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(96,165,250,0.5); }
 
       .person-info { min-width: 0; flex: 1; }
-      .person-name { font-size: 13px; font-weight: 600; color: var(--t2); line-height: 1.2; }
+      .person-name { font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2; }
       .person-block.right .person-name { text-align: right; }
 
       .person-sub { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
@@ -4575,7 +4577,7 @@
       .person-block.right .person-line { flex-direction: row-reverse; }
 
       .person-location {
-        font-size: 10px; font-weight: 400; color: var(--t3);
+        font-size: 10px; font-weight: 500; color: var(--t3);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
@@ -4584,7 +4586,7 @@
         --mdc-icon-size: 10px; color: var(--t4);
       }
 
-      .person-last-seen { font-size: 9px; font-weight: 400; color: var(--t4); white-space: nowrap; }
+      .person-last-seen { font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap; }
 
       .person-battery {
         font-size: 10px; font-weight: 500;
