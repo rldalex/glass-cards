@@ -110,6 +110,25 @@
     "dc_damper": "Clapet"
   },
 
+  "fan": {
+    "title": "Ventilation",
+    "off": "Éteint",
+    "speed": "Vitesse",
+    "speed_pct": "{pct}%",
+    "speed_step": "Vitesse {step}/{total}",
+    "direction": "Direction",
+    "direction_forward": "Été",
+    "direction_reverse": "Hiver",
+    "oscillation": "Oscillation",
+    "ceiling_light": "Éclairage",
+    "preset_auto": "Auto",
+    "preset_eco": "Éco",
+    "preset_night": "Nuit",
+    "preset_comfort": "Confort",
+    "preset_silent": "Silence",
+    "preset_turbo": "Turbo"
+  },
+
   "title_card": {
     "mode_label": "Mode :",
     "scene_label": "Scène :",
@@ -121,7 +140,10 @@
     "toggle_scenes_aria": "Afficher les scènes",
     "toggle_modes_aria": "Afficher les modes",
     "activate_scene_aria": "Activer la scène {name}",
-    "toggle_bool_aria": "Basculer {name}"
+    "toggle_bool_aria": "Basculer {name}",
+    "group_mode": "Mode",
+    "group_scenes": "Scènes",
+    "group_toggles": "Toggles"
   },
 
   "spotify": {
@@ -404,6 +426,8 @@
     "dashboard_card_media": "Carte Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
 
+    "dashboard_card_fan": "Carte Ventilation",
+    "dashboard_card_fan_desc": "Affiche les ventilateurs avec contrôle de vitesse",
     "dashboard_card_presence": "Carte Présence",
     "dashboard_card_presence_desc": "Affiche la présence des membres du foyer",
 
@@ -423,6 +447,7 @@
     "search_entity": "Rechercher...",
     "presence_select_entity": "Sélectionnez une entité",
 
+    "tab_fan": "Carte Ventilation",
     "tab_cover": "Carte Volets",
     "cover_show_header": "Afficher l'en-tête",
     "cover_show_header_desc": "Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",

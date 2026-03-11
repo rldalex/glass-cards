@@ -110,6 +110,25 @@
     "dc_damper": "Damper"
   },
 
+  "fan": {
+    "title": "Fans",
+    "off": "Off",
+    "speed": "Speed",
+    "speed_pct": "{pct}%",
+    "speed_step": "Speed {step}/{total}",
+    "direction": "Direction",
+    "direction_forward": "Summer",
+    "direction_reverse": "Winter",
+    "oscillation": "Oscillation",
+    "ceiling_light": "Light",
+    "preset_auto": "Auto",
+    "preset_eco": "Eco",
+    "preset_night": "Night",
+    "preset_comfort": "Comfort",
+    "preset_silent": "Silent",
+    "preset_turbo": "Turbo"
+  },
+
   "title_card": {
     "mode_label": "Mode:",
     "scene_label": "Scene:",
@@ -121,7 +140,10 @@
     "toggle_scenes_aria": "Show scenes",
     "toggle_modes_aria": "Show modes",
     "activate_scene_aria": "Activate scene {name}",
-    "toggle_bool_aria": "Toggle {name}"
+    "toggle_bool_aria": "Toggle {name}",
+    "group_mode": "Mode",
+    "group_scenes": "Scenes",
+    "group_toggles": "Toggles"
   },
 
   "spotify": {
@@ -404,6 +426,8 @@
     "dashboard_card_media": "Media Card",
     "dashboard_card_media_desc": "Shows media players with transport controls",
 
+    "dashboard_card_fan": "Fan Card",
+    "dashboard_card_fan_desc": "Shows fans with speed controls",
     "dashboard_card_presence": "Presence Card",
     "dashboard_card_presence_desc": "Shows household members presence",
 
@@ -423,6 +447,7 @@
     "search_entity": "Search...",
     "presence_select_entity": "Select an entity",
 
+    "tab_fan": "Fan Card",
     "tab_cover": "Cover Card",
     "cover_show_header": "Show header",
     "cover_show_header_desc": "Title, counter and open/close all buttons above the card",

@@ -20,6 +20,7 @@ export type TranslationKey =
   | `popup.${keyof typeof fr.popup}`
   | `title_card.${keyof typeof fr.title_card}`
   | `editor.${keyof typeof fr.editor}`
+  | `fan.${keyof typeof fr.fan}`
   | `cover.${keyof typeof fr.cover}`
   | `spotify.${keyof typeof fr.spotify}`
   | `media.${keyof typeof fr.media}`
