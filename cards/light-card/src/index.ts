@@ -1182,20 +1182,21 @@ export class GlassLightCard extends BaseCard {
     if (info.type !== 'simple') return true;
     const effects = info.entity.attributes.effect_list as string[] | undefined;
     if (effects && effects.length > 0) {
-      const available = ALLOWED_EFFECTS.filter((e) => e === 'off' || effects.includes(e));
+      const lowerEffects = effects.map((e) => e.toLowerCase());
+      const available = ALLOWED_EFFECTS.filter((e) => e === 'off' || lowerEffects.includes(e));
       if (available.length > 1) return true;
     }
     return false;
   }
 
-  private _toggleExpand(entityId: string, isOn: boolean) {
-    if (!isOn) return;
-    // If light has no controls, toggle it instead of expanding
-    const info = this._getLightInfos().find((l) => l.entityId === entityId);
+  private _toggleExpand(entityId: string, isOn: boolean, info?: LightInfo) {
+    // If light has no controls, toggle it instead of expanding (on or off)
+    if (!info) info = this._getLightInfos().find((l) => l.entityId === entityId);
     if (info && !this._hasControls(info)) {
       this._toggleLight(entityId);
       return;
     }
+    if (!isOn) return;
     if (this._expandedEntity === entityId) {
       this._expandedEntity = null;
     } else {
@@ -1422,7 +1423,7 @@ export class GlassLightCard extends BaseCard {
         </button>
         <button
           class="light-expand-btn"
-          @click=${() => this._toggleExpand(info.entityId, info.isOn)}
+          @click=${() => this._toggleExpand(info.entityId, info.isOn, info)}
           aria-label="${info.isOn ? t('light.expand_aria', { name: info.name }) : info.name}"
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >

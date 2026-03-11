@@ -1,7 +1,7 @@
 import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -428,7 +428,7 @@ export class GlassPresenceCard extends BaseCard {
           <div class="person-sub">
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
-              <span class="person-location">${stateText(p.state)}</span>
+              <span class="person-location">${marqueeText(stateText(p.state), 16)}</span>
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
@@ -494,7 +494,7 @@ export class GlassPresenceCard extends BaseCard {
               ${person.geocodedLocation ? html`
                 <ha-icon .icon=${'mdi:map-marker'}></ha-icon>
                 <span class="address-text">${person.geocodedLocation}</span>
-              ` : html`<span class="address-text"></span>`}
+              ` : nothing}
               <span class="fold-meta">
                 ${person.batteryLevel != null ? html`
                   <span class="fold-battery ${batteryClass(person.batteryLevel)}">
@@ -592,6 +592,7 @@ export class GlassPresenceCard extends BaseCard {
     glassTokens,
     glassMixin,
     foldMixin,
+    marqueeMixin,
     css`
       :host {
         display: block;
@@ -715,31 +716,17 @@ export class GlassPresenceCard extends BaseCard {
       .person-sub { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
       .person-block.right .person-sub { align-items: flex-end; }
 
-      .person-line { display: flex; align-items: center; gap: 4px; }
+      .person-line { display: flex; align-items: center; gap: 4px; min-width: 0; }
       .person-block.right .person-line { flex-direction: row-reverse; }
 
       .person-location {
         font-size: 10px; font-weight: 500; color: var(--t3);
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap; overflow: hidden; min-width: 0;
       }
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
       .source-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 10px; color: var(--t4);
-      }
-
-      .person-last-seen { font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap; }
-
-      .person-battery {
-        font-size: 10px; font-weight: 500;
-        display: flex; align-items: center; gap: 3px;
-      }
-      .person-battery.high { color: var(--c-success); opacity: 0.55; }
-      .person-battery.medium { color: var(--c-warning); opacity: 0.55; }
-      .person-battery.low { color: var(--c-alert); opacity: 0.65; }
-      .person-battery ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px;
       }
 
       .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
@@ -840,9 +827,9 @@ export class GlassPresenceCard extends BaseCard {
         display: flex; align-items: center; gap: 3px;
         font-size: 10px; font-weight: 500; flex-shrink: 0; margin-left: auto;
       }
-      .fold-battery.high { color: var(--c-success); opacity: 0.55; }
-      .fold-battery.medium { color: var(--c-warning); opacity: 0.55; }
-      .fold-battery.low { color: var(--c-alert); opacity: 0.65; }
+      .fold-battery.high { color: var(--c-success); }
+      .fold-battery.medium { color: var(--c-warning); }
+      .fold-battery.low { color: var(--c-alert); }
       .fold-battery ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 14px;

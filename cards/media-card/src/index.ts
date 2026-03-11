@@ -1130,15 +1130,16 @@ export class GlassMediaCard extends BaseCard {
         transition: opacity 0.8s;
       }
 
-      /* ── Gradient overlay for readability ── */
+      /* ── Gradient overlay — minimal vignette to preserve artwork visibility ── */
       .dash-gradient {
         position: absolute; inset: 0; pointer-events: none; z-index: 1;
         background: linear-gradient(
           to bottom,
-          rgba(0,0,0,0.15) 0%,
-          rgba(0,0,0,0.05) 30%,
-          rgba(0,0,0,0.25) 55%,
-          rgba(0,0,0,0.7) 100%
+          rgba(0,0,0,0.08) 0%,
+          rgba(0,0,0,0) 25%,
+          rgba(0,0,0,0) 50%,
+          rgba(0,0,0,0.15) 75%,
+          rgba(0,0,0,0.4) 100%
         );
       }
 
@@ -1186,16 +1187,16 @@ export class GlassMediaCard extends BaseCard {
         box-shadow: 0 2px 8px rgba(0,0,0,0.25);
       }
 
-      /* ── Glass panel (bottom info card) ── */
+      /* ── Glass panel (bottom info card) — light frosted glass, artwork bleeds through ── */
       .glass-panel {
         border-radius: var(--radius-lg);
-        backdrop-filter: blur(20px) saturate(1.4);
-        -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.2));
-        border: 1px solid rgba(255,255,255,0.06);
+        backdrop-filter: blur(4px) saturate(1.2);
+        -webkit-backdrop-filter: blur(4px) saturate(1.2);
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.08);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.2),
-          inset 0 1px 0 rgba(255,255,255,0.05);
+          0 4px 16px rgba(0,0,0,0.15),
+          inset 0 1px 0 rgba(255,255,255,0.04);
       }
 
       /* ── Top bar ── */
@@ -1270,10 +1271,12 @@ export class GlassMediaCard extends BaseCard {
       .dash-track-title {
         font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.3);
       }
       .dash-track-artist {
-        font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.65);
+        font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
       }
 
       /* ── Time row ── */
@@ -1281,8 +1284,9 @@ export class GlassMediaCard extends BaseCard {
         display: flex; justify-content: space-between; align-items: center;
       }
       .dash-track-time {
-        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.35);
+        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.4);
         font-variant-numeric: tabular-nums;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.4);
       }
       .dash-track-source {
         font-size: 8px; font-weight: 700; text-transform: uppercase;

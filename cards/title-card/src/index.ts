@@ -270,33 +270,39 @@ class GlassTitleCard extends BaseCard {
     }
     const n = resolved.length;
     const stops = resolved.flatMap((r, i) => [`${r.dot} ${Math.round(i / n * 100)}%`, `${r.dot} ${Math.round((i + 1) / n * 100)}%`]).join(', ');
-    const glows = resolved.map((r) => `0 0 6px ${r.glow}`).join(', ');
+    const validGlows = resolved.filter((r) => r.glow !== 'none');
+    const glows = validGlows.length > 0 ? validGlows.map((r) => `0 0 6px ${r.glow}`).join(', ') : 'none';
     return `background:linear-gradient(90deg, ${stops});box-shadow:${glows};${width}`;
   }
 
   // — Active mode detection per source —
 
-  private _getActiveColor(src: TitleSourceEntry): string {
+  private _getActiveColors(src: TitleSourceEntry): string[] {
     if (src.source_type === 'input_select') {
-      if (!src.entity || !this.hass) return 'neutral';
+      if (!src.entity || !this.hass) return [];
       const entity = this.hass.states[src.entity];
-      if (!entity) return 'neutral';
+      if (!entity) return [];
       const mode = src.modes.find((m) => m.id === entity.state);
-      return mode?.color || 'neutral';
+      const c = mode?.color || 'neutral';
+      return c !== 'neutral' ? [c] : [];
     }
     if (src.source_type === 'booleans') {
-      if (!this.hass) return 'neutral';
+      if (!this.hass) return [];
+      const colors: string[] = [];
       for (const mode of src.modes) {
-        if (this.hass.states[mode.id]?.state === 'on') return mode.color || 'success';
+        if (this.hass.states[mode.id]?.state === 'on') {
+          const c = mode.color || 'success';
+          if (c !== 'neutral') colors.push(c);
+        }
       }
-      return 'neutral';
+      return colors;
     }
     // scenes: check temporary activation
     if (this._activatingSceneId) {
       const mode = src.modes.find((m) => m.id === this._activatingSceneId);
-      if (mode) return mode.color || 'accent';
+      if (mode) return [mode.color || 'accent'];
     }
-    return 'neutral';
+    return [];
   }
 
   private _isChipActive(src: TitleSourceEntry, mode: TitleModeEntry, _idx: number): boolean {
@@ -381,8 +387,7 @@ class GlassTitleCard extends BaseCard {
     const activeColors: string[] = [];
     if (hasSources) {
       for (const src of sources) {
-        const c = this._getActiveColor(src);
-        if (c !== 'neutral') activeColors.push(c);
+        activeColors.push(...this._getActiveColors(src));
       }
     }
     const dashHasActive = activeColors.length > 0;

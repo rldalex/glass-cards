@@ -31,7 +31,7 @@ export function renderTitlePreview(self: GlassConfigPanel) {
     return html`<div class="preview-empty">${t('config.title_title_placeholder')}</div>`;
   }
 
-  // Collect all active colors across sources
+  // Collect all active colors across sources (including multiple per source)
   const activeColors: string[] = [];
   for (const src of self._titleSources) {
     if (src.source_type === 'input_select' && src.entity && self.hass) {
@@ -41,8 +41,12 @@ export function renderTitlePreview(self: GlassConfigPanel) {
         if (mode?.color && mode.color !== 'neutral') activeColors.push(mode.color);
       }
     } else if (src.source_type === 'booleans' && self.hass) {
-      const active = src.modes.find((m) => self.hass!.states[m.id]?.state === 'on');
-      if (active?.color && active.color !== 'neutral') activeColors.push(active.color);
+      for (const mode of src.modes) {
+        if (self.hass!.states[mode.id]?.state === 'on') {
+          const c = mode.color || 'success';
+          if (c !== 'neutral') activeColors.push(c);
+        }
+      }
     }
   }
 
