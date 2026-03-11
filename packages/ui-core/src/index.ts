@@ -217,6 +217,8 @@ const AMBIENT_STYLES = `
     left: -100px;
     background: var(--ambient-blob-bottom, #4a90a0);
   }
+  html::-webkit-scrollbar { display: none; }
+  html { scrollbar-width: none; }
 `;
 
 export class ThemeManager {

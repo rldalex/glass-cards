@@ -2576,7 +2576,7 @@
     .mode-icon ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: color var(--t-fast);
+      color: var(--t3);
     }
 
     .mode-label {
@@ -2619,7 +2619,7 @@
     .dropdown-trigger ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: color var(--t-fast);
+      color: var(--t3);
     }
     .dropdown-trigger .arrow {
       transition: transform var(--t-fast);
@@ -2663,6 +2663,7 @@
     .dropdown-item ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
     }
 
     .item-dot {
@@ -2687,7 +2688,7 @@
     .chip ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: filter var(--t-fast), color var(--t-fast);
+      color: var(--t3);
     }
     @media (pointer: coarse) {
       .chip:active { transform: scale(0.94); }
@@ -2712,7 +2713,7 @@
       opacity: 0; transition: opacity 0.25s var(--ease-std);
     }
     .fold-sep.visible { opacity: 1; }
-  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new He(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=this._getSource();if("input_select"===e){const e=this._titleConfig.mode_entity;return e?[e]:[]}return"scenes"===e||"booleans"===e?this._titleConfig.modes.map(e=>e.id).filter(e=>e.includes(".")):[]}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_getSource(){if(this._titleConfig.mode_source)return this._titleConfig.mode_source;const e=this._titleConfig.mode_entity;return e?.startsWith("input_select.")?"input_select":e?.startsWith("scene.")?"scenes":e?.startsWith("input_boolean.")?"booleans":""}_getInputSelectActive(){const e=this._titleConfig.mode_entity;if(!e||!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.state,a=this._titleConfig.modes.find(e=>e.id===i);return{id:i,label:a?.label||i,icon:a?.icon||"",color:a?.color||"neutral"}}_getScenesActive(){if(!this.hass)return null;let e=null;for(const t of this._titleConfig.modes){const i=this.hass.states[t.id];if(!i)continue;const a=i.last_changed??i.last_updated??"";(!e||a>e.time)&&(e={mode:t,time:a})}return e?{id:e.mode.id,label:e.mode.label||e.mode.id.split(".")[1]||e.mode.id,icon:e.mode.icon||"",color:e.mode.color||"accent"}:null}_getBooleansActive(){if(!this.hass)return null;const e=[];for(const t of this._titleConfig.modes){const i=this.hass.states[t.id];"on"===i?.state&&e.push(t)}return 0===e.length?null:1===e.length?{label:e[0].label||e[0].id.split(".")[1]||e[0].id,icon:e[0].icon||"",color:e[0].color||"success",count:1}:{label:ze("title_card.active_count",{count:e.length}),icon:e[0].icon||"",color:e[0].color||"success",count:e.length}}_selectOption(e){const t=this._titleConfig.mode_entity;t&&this.hass&&(this.hass.callService("input_select","select_option",{option:e},{entity_id:t}),this._dropdownOpen=!1)}_activateScene(e){this.hass&&(this.hass.callService("scene","turn_on",{},{entity_id:e}),this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))}))}_toggleBoolean(e){this.hass&&this.hass.callService("input_boolean","toggle",{},{entity_id:e})}_toggleFold(){this._foldOpen=!this._foldOpen}_toggleDropdown(e){e.stopPropagation(),this._dropdownOpen=!this._dropdownOpen}_onClickOutside(e){const t=e.composedPath(),i=this.shadowRoot;if(i){if(this._dropdownOpen){const e=i.querySelector(".dropdown");e&&!t.includes(e)&&(this._dropdownOpen=!1)}if(this._foldOpen){const e=i.querySelector(".mode-row"),a=i.querySelector(".fold");e&&a&&!t.includes(e)&&!t.includes(a)&&(this._foldOpen=!1)}}}render(){this._lang;const e=this._titleConfig.title;if(!e)return this.style.display="none",Y;this.style.display="";const t=this._getSource();return K`
+  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new He(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=this._getSource();if("input_select"===e){const e=this._titleConfig.mode_entity;return e?[e]:[]}return"booleans"===e||"scenes"===e?this._titleConfig.modes.map(e=>e.id).filter(e=>e.includes(".")):[]}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_getSource(){if(this._titleConfig.mode_source)return this._titleConfig.mode_source;const e=this._titleConfig.mode_entity;return e?.startsWith("input_select.")?"input_select":e?.startsWith("scene.")?"scenes":e?.startsWith("input_boolean.")?"booleans":""}_getInputSelectActive(){const e=this._titleConfig.mode_entity;if(!e||!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.state,a=this._titleConfig.modes.find(e=>e.id===i);return{id:i,label:a?.label||i,icon:a?.icon||"",color:a?.color||"neutral"}}_getScenesActive(){if(!this.hass)return null;const e=this._titleConfig.modes;if(0===e.length)return null;let t=null,i=0,a=!0,s=0;for(const r of e){const e=this.hass.states[r.id];if(!e)continue;const o=new Date(e.last_changed).getTime();0===s?s=o:o!==s&&(a=!1),o>i&&(i=o,t=r)}return a||!t?null:{id:t.id,label:t.label||t.id.split(".")[1]||t.id,icon:t.icon||"",color:t.color||"accent"}}_getBooleansActive(){if(!this.hass)return null;const e=[];for(const t of this._titleConfig.modes){const i=this.hass.states[t.id];"on"===i?.state&&e.push(t)}return 0===e.length?null:1===e.length?{label:e[0].label||e[0].id.split(".")[1]||e[0].id,icon:e[0].icon||"",color:e[0].color||"success",count:1}:{label:ze("title_card.active_count",{count:e.length}),icon:e[0].icon||"",color:e[0].color||"success",count:e.length}}_selectOption(e){const t=this._titleConfig.mode_entity;t&&this.hass&&(this.hass.callService("input_select","select_option",{option:e},{entity_id:t}),this._dropdownOpen=!1)}_activateScene(e){this.hass&&(this.hass.callService("scene","turn_on",{},{entity_id:e}),this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))}))}_toggleBoolean(e){this.hass&&this.hass.callService("input_boolean","toggle",{},{entity_id:e})}_toggleFold(){this._foldOpen=!this._foldOpen}_toggleDropdown(e){e.stopPropagation(),this._dropdownOpen=!this._dropdownOpen}_onClickOutside(e){const t=e.composedPath(),i=this.shadowRoot;if(i){if(this._dropdownOpen){const e=i.querySelector(".dropdown");e&&!t.includes(e)&&(this._dropdownOpen=!1)}if(this._foldOpen){const e=i.querySelector(".mode-row"),a=i.querySelector(".fold");e&&a&&!t.includes(e)&&!t.includes(a)&&(this._foldOpen=!1)}}}render(){this._lang;const e=this._titleConfig.title;if(!e)return this.style.display="none",Y;this.style.display="";const t=this._getSource();return K`
       <div class="title-card">
         <div class="title-text">${e}</div>
         ${"input_select"===t?this._renderDropdown():Y}
@@ -2726,11 +2727,11 @@
           @click=${e=>this._toggleDropdown(e)}
           aria-haspopup="listbox"
           aria-expanded=${this._dropdownOpen?"true":"false"}
-          style="color:${t.text};border-color:${"neutral"!==e.color?t.dot:"var(--b2)"};"
+          style="border-color:${"neutral"!==e.color?t.dot:"var(--b2)"};"
         >
           <div class="mode-dot" style="background:${t.dot};box-shadow:0 0 6px ${t.glow};"></div>
           ${e.icon?K`<ha-icon .icon=${e.icon}></ha-icon>`:Y}
-          <span>${e.label}</span>
+          <span style="color:${t.text};">${e.label}</span>
           <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
         </button>
         <div class="dropdown-menu" role="listbox">
@@ -2749,7 +2750,7 @@
             `})}
         </div>
       </div>
-    `}_renderScenes(){const e=this._titleConfig.modes;if(0===e.length)return Y;const t=this._getScenesActive(),i=Rt(t?.color??"neutral"),a=ze(e.length<=1?"title_card.scene_label":"title_card.scenes_label");return K`
+    `}_renderScenes(){const e=this._titleConfig.modes;if(0===e.length)return Y;const t=this._getScenesActive(),i=Rt(t?.color??"neutral"),a=e.length<=1?ze("title_card.scene_label"):ze("title_card.scenes_label");return K`
       <button
         class="mode-row"
         @click=${()=>this._toggleFold()}
@@ -2758,11 +2759,11 @@
       >
         <div class="mode-dot" style="background:${i.dot};box-shadow:0 0 6px ${i.glow};"></div>
         ${t?.icon?K`
-          <span class="mode-icon"><ha-icon .icon=${t.icon} style="color:${i.text};"></ha-icon></span>
+          <span class="mode-icon"><ha-icon .icon=${t.icon}></ha-icon></span>
         `:Y}
         <span class="mode-label">${a}</span>
         <span class="mode-value" style="color:${i.text};">
-          ${t?.label??ze("title_card.scene_none")}
+          ${t?.label??(1===e.length?e[0].label||e[0].id.split(".")[1]:ze("title_card.scene_none"))}
         </span>
         <span class="mode-chevron ${this._foldOpen?"rotated":""}">
           <ha-icon .icon=${"mdi:chevron-down"}></ha-icon>
@@ -2776,11 +2777,11 @@
                 <button
                   class="chip"
                   data-id=${e.id}
-                  style="${i?`color:${a.text};background:${"neutral"!==e.color?a.dot+"14":"var(--s4)"};border-color:${a.dot}33;`:""}"
+                  style="${i?`color:${a.text};background:${a.dot}14;border-color:${a.dot}33;`:""}"
                   aria-label=${ze("title_card.activate_scene_aria",{name:e.label||e.id})}
                   @click=${t=>{t.stopPropagation(),this._activateScene(e.id)}}
                 >
-                  ${e.icon?K`<ha-icon .icon=${e.icon} style="${i?`filter:drop-shadow(0 0 3px ${a.glow})`:""}"></ha-icon>`:Y}
+                  ${e.icon?K`<ha-icon .icon=${e.icon}></ha-icon>`:Y}
                   ${e.label||e.id.split(".")[1]||e.id}
                 </button>
               `})}
@@ -2797,7 +2798,7 @@
       >
         <div class="mode-dot" style="background:${i.dot};box-shadow:0 0 6px ${i.glow};"></div>
         ${t?.icon?K`
-          <span class="mode-icon"><ha-icon .icon=${t.icon} style="color:${i.text};"></ha-icon></span>
+          <span class="mode-icon"><ha-icon .icon=${t.icon}></ha-icon></span>
         `:Y}
         <span class="mode-label">${ze("title_card.mode_label")}</span>
         <span class="mode-value" style="color:${i.text};">
@@ -2820,7 +2821,7 @@
                   aria-label=${ze("title_card.toggle_bool_aria",{name:e.label||e.id})}
                   @click=${t=>{t.stopPropagation(),this._toggleBoolean(e.id)}}
                 >
-                  ${e.icon?K`<ha-icon .icon=${e.icon} style="${i?`filter:drop-shadow(0 0 3px ${a.glow})`:""}"></ha-icon>`:Y}
+                  ${e.icon?K`<ha-icon .icon=${e.icon}></ha-icon>`:Y}
                   ${e.label||e.id.split(".")[1]||e.id}
                 </button>
               `})}

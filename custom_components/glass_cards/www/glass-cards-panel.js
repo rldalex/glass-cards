@@ -1550,9 +1550,22 @@
         display: flex; flex-wrap: wrap; gap: 6px;
       }
       .title-mode-header {
-        display: flex; align-items: center; justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      }
+      .title-mode-reorder {
+        display: flex; flex-direction: column; gap: 0;
+      }
+      .title-mode-reorder .btn-icon {
+        padding: 0; opacity: 0.6;
+      }
+      .title-mode-reorder .btn-icon:disabled {
+        opacity: 0.15; pointer-events: none;
+      }
+      .title-mode-reorder .btn-icon:not(:disabled):hover {
+        opacity: 1;
       }
       .title-mode-id {
+        flex: 1;
         font-size: 10px; font-weight: 700; color: var(--t3);
         text-transform: uppercase; letter-spacing: 0.5px;
       }
@@ -5068,7 +5081,7 @@
           </button>
         </div>
       </div>
-    `}_toggleSpotifySpeaker(e){this._spotifyVisibleSpeakers.includes(e)?this._spotifyVisibleSpeakers=this._spotifyVisibleSpeakers.filter(t=>t!==e):this._spotifyVisibleSpeakers=[...this._spotifyVisibleSpeakers,e]}_onDropSpeaker(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"speakers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._spotifyVisibleSpeakers];if(this._dragIdx>=i.length||e>=i.length)return this._dragIdx=null,void(this._dropIdx=null);const[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._spotifyVisibleSpeakers=i,this._dragIdx=null,this._dropIdx=null}async _saveTitle(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_title_config",{title:this._titleText,mode_entity:this._titleModeEntity||null,mode_source:this._titleModeSource||"",modes:this._titleModes}),!this._mounted)return;this._showToast(),he.emit("title-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadTitleConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.title_card&&(this._titleText=e.title_card.title??"",this._titleModeEntity=e.title_card.mode_entity??"",this._titleModeSource=e.title_card.mode_source??"",this._titleModes=e.title_card.modes??[])}catch{}}_selectTitleModeSource(e){this._titleModeSource=e,this._titleModeEntity="",this._titleModes=[],this._titleModeDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1}_selectTitleModeEntity(e){if(this._titleModeEntity=e,this._titleModeDropdownOpen=!1,e.startsWith("input_select.")&&this.hass){const t=this.hass.states[e];if(t){const e=t.attributes.options??[],i=new Map(this._titleModes.map(e=>[e.id,e]));this._titleModes=e.map(e=>i.get(e)??{id:e,label:e,icon:"",color:"neutral"})}}else e||(this._titleModes=[])}_addTitleModeEntity(e){if(this._titleAddEntityDropdownOpen=!1,this._titleModes.some(t=>t.id===e))return;const t=this.hass?.states[e],i=t?.attributes.friendly_name||e.split(".")[1]||e,a=e.startsWith("scene.")?"mdi:palette":"mdi:toggle-switch",s=e.startsWith("scene.")?"accent":"success";this._titleModes=[...this._titleModes,{id:e,label:i,icon:a,color:s}]}_removeTitleModeEntity(e){this._titleModes=this._titleModes.filter(t=>t.id!==e)}_updateTitleMode(e,t,i){const a=[...this._titleModes];a[e]&&(a[e]={...a[e],[t]:i},this._titleModes=a)}async _openIconPopup(e){if(!this._iconLoading){if(0===this._iconList.length){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}e<this._titleModes.length&&(this._iconSearch="",this._iconPopupModeIdx=e)}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim(),t=this._iconList;return e?t.filter(t=>t.toLowerCase().includes(e)).slice(0,120):t.slice(0,120)}_renderIconPopup(){if(null===this._iconPopupModeIdx)return W;const e=this._getFilteredIcons(),t=this._titleModes[this._iconPopupModeIdx]?.icon??"";return U`
+    `}_toggleSpotifySpeaker(e){this._spotifyVisibleSpeakers.includes(e)?this._spotifyVisibleSpeakers=this._spotifyVisibleSpeakers.filter(t=>t!==e):this._spotifyVisibleSpeakers=[...this._spotifyVisibleSpeakers,e]}_onDropSpeaker(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"speakers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._spotifyVisibleSpeakers];if(this._dragIdx>=i.length||e>=i.length)return this._dragIdx=null,void(this._dropIdx=null);const[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._spotifyVisibleSpeakers=i,this._dragIdx=null,this._dropIdx=null}async _saveTitle(){if(this._backend&&!this._saving){this._saving=!0;try{if(await this._backend.send("set_title_config",{title:this._titleText,mode_entity:this._titleModeEntity||null,mode_source:this._titleModeSource||"",modes:this._titleModes}),!this._mounted)return;this._showToast(),he.emit("title-config-changed",void 0)}catch{this._showToast(!0)}finally{this._saving=!1}}}async _loadTitleConfig(){if(this._backend)try{const e=await this._backend.send("get_config");e?.title_card&&(this._titleText=e.title_card.title??"",this._titleModeEntity=e.title_card.mode_entity??"",this._titleModeSource=e.title_card.mode_source??"",this._titleModes=e.title_card.modes??[])}catch{}}_selectTitleModeSource(e){this._titleModeSource=e,this._titleModeEntity="",this._titleModes=[],this._titleModeDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1}_selectTitleModeEntity(e){if(this._titleModeEntity=e,this._titleModeDropdownOpen=!1,e.startsWith("input_select.")&&this.hass){const t=this.hass.states[e];if(t){const e=t.attributes.options??[],i=new Map(this._titleModes.map(e=>[e.id,e]));this._titleModes=e.map(e=>i.get(e)??{id:e,label:e,icon:"",color:"neutral"})}}else e||(this._titleModes=[])}_addTitleModeEntity(e){if(this._titleAddEntityDropdownOpen=!1,this._titleModes.some(t=>t.id===e))return;const t=this.hass?.states[e],i=t?.attributes.friendly_name||e.split(".")[1]||e,a=e.startsWith("scene.")?"mdi:palette":"mdi:toggle-switch",s=e.startsWith("scene.")?"accent":"success";this._titleModes=[...this._titleModes,{id:e,label:i,icon:a,color:s}]}_removeTitleModeEntity(e){this._titleModes=this._titleModes.filter(t=>t.id!==e)}_moveTitleMode(e,t){const i=e+t;if(i<0||i>=this._titleModes.length)return;const a=[...this._titleModes];[a[e],a[i]]=[a[i],a[e]],this._titleModes=a}_updateTitleMode(e,t,i){const a=[...this._titleModes];a[e]&&(a[e]={...a[e],[t]:i},this._titleModes=a)}async _openIconPopup(e){if(!this._iconLoading){if(0===this._iconList.length){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}e<this._titleModes.length&&(this._iconSearch="",this._iconPopupModeIdx=e)}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim(),t=this._iconList;return e?t.filter(t=>t.toLowerCase().includes(e)).slice(0,120):t.slice(0,120)}_renderIconPopup(){if(null===this._iconPopupModeIdx)return W;const e=this._getFilteredIcons(),t=this._titleModes[this._iconPopupModeIdx]?.icon??"";return U`
       <div class="icon-popup-overlay" @click=${e=>{e.target===e.currentTarget&&(this._iconPopupModeIdx=null)}}>
         <div class="icon-popup">
           <div class="icon-popup-header">
@@ -5259,6 +5272,24 @@
             ${this._titleModes.map((t,i)=>U`
               <div class="title-mode-row">
                 <div class="title-mode-header">
+                  <div class="title-mode-reorder">
+                    <button
+                      class="btn-icon xs"
+                      @click=${()=>this._moveTitleMode(i,-1)}
+                      ?disabled=${0===i}
+                      aria-label="Move up"
+                    >
+                      <ha-icon .icon=${"mdi:chevron-up"}></ha-icon>
+                    </button>
+                    <button
+                      class="btn-icon xs"
+                      @click=${()=>this._moveTitleMode(i,1)}
+                      ?disabled=${i===this._titleModes.length-1}
+                      aria-label="Move down"
+                    >
+                      <ha-icon .icon=${"mdi:chevron-down"}></ha-icon>
+                    </button>
+                  </div>
                   <span class="title-mode-id">${t.id}</span>
                   ${"scenes"===this._titleModeSource||"booleans"===this._titleModeSource?U`
                     <button

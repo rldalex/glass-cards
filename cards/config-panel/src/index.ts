@@ -1668,9 +1668,22 @@ export class GlassConfigPanel extends LitElement {
         display: flex; flex-wrap: wrap; gap: 6px;
       }
       .title-mode-header {
-        display: flex; align-items: center; justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      }
+      .title-mode-reorder {
+        display: flex; flex-direction: column; gap: 0;
+      }
+      .title-mode-reorder .btn-icon {
+        padding: 0; opacity: 0.6;
+      }
+      .title-mode-reorder .btn-icon:disabled {
+        opacity: 0.15; pointer-events: none;
+      }
+      .title-mode-reorder .btn-icon:not(:disabled):hover {
+        opacity: 1;
       }
       .title-mode-id {
+        flex: 1;
         font-size: 10px; font-weight: 700; color: var(--t3);
         text-transform: uppercase; letter-spacing: 0.5px;
       }
@@ -7760,6 +7773,14 @@ export class GlassConfigPanel extends LitElement {
     this._titleModes = this._titleModes.filter((m) => m.id !== entityId);
   }
 
+  private _moveTitleMode(idx: number, direction: -1 | 1) {
+    const target = idx + direction;
+    if (target < 0 || target >= this._titleModes.length) return;
+    const modes = [...this._titleModes];
+    [modes[idx], modes[target]] = [modes[target], modes[idx]];
+    this._titleModes = modes;
+  }
+
   private _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) {
     const modes = [...this._titleModes];
     if (!modes[idx]) return;
@@ -8248,6 +8269,24 @@ export class GlassConfigPanel extends LitElement {
             ${this._titleModes.map((mode, idx) => html`
               <div class="title-mode-row">
                 <div class="title-mode-header">
+                  <div class="title-mode-reorder">
+                    <button
+                      class="btn-icon xs"
+                      @click=${() => this._moveTitleMode(idx, -1)}
+                      ?disabled=${idx === 0}
+                      aria-label="Move up"
+                    >
+                      <ha-icon .icon=${'mdi:chevron-up'}></ha-icon>
+                    </button>
+                    <button
+                      class="btn-icon xs"
+                      @click=${() => this._moveTitleMode(idx, 1)}
+                      ?disabled=${idx === this._titleModes.length - 1}
+                      aria-label="Move down"
+                    >
+                      <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
+                    </button>
+                  </div>
                   <span class="title-mode-id">${mode.id}</span>
                   ${(this._titleModeSource === 'scenes' || this._titleModeSource === 'booleans') ? html`
                     <button

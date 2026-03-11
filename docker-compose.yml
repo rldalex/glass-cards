@@ -4,7 +4,10 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     restart: unless-stopped
     ports:
-      - '8123:8123'
+      - '8123:8123'       # Interface HA
+      - '1900:1900/udp'   # Découverte Sonos SSDP
+      - '1400:1400/tcp'   # Contrôle Sonos
+      - '5000:5000/tcp'   # Notifications Sonos → HA
     volumes:
       # HA config directory (persisted)
       - ha-config:/config

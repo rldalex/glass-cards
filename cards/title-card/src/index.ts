@@ -110,7 +110,7 @@ class GlassTitleCard extends BaseCard {
     .mode-icon ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: color var(--t-fast);
+      color: var(--t3);
     }
 
     .mode-label {
@@ -153,7 +153,7 @@ class GlassTitleCard extends BaseCard {
     .dropdown-trigger ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: color var(--t-fast);
+      color: var(--t3);
     }
     .dropdown-trigger .arrow {
       transition: transform var(--t-fast);
@@ -197,6 +197,7 @@ class GlassTitleCard extends BaseCard {
     .dropdown-item ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
     }
 
     .item-dot {
@@ -221,7 +222,7 @@ class GlassTitleCard extends BaseCard {
     .chip ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: filter var(--t-fast), color var(--t-fast);
+      color: var(--t3);
     }
     @media (pointer: coarse) {
       .chip:active { transform: scale(0.94); }
@@ -286,7 +287,10 @@ class GlassTitleCard extends BaseCard {
       const eid = this._titleConfig.mode_entity;
       return eid ? [eid] : [];
     }
-    if (src === 'scenes' || src === 'booleans') {
+    if (src === 'booleans') {
+      return this._titleConfig.modes.map((m) => m.id).filter((id) => id.includes('.'));
+    }
+    if (src === 'scenes') {
       return this._titleConfig.modes.map((m) => m.id).filter((id) => id.includes('.'));
     }
     return [];
@@ -346,23 +350,43 @@ class GlassTitleCard extends BaseCard {
     };
   }
 
+  /**
+   * Detect active scene by comparing last_changed timestamps.
+   * The most recently activated scene (if its timestamp differs from others) is considered active.
+   */
   private _getScenesActive(): { label: string; icon: string; color: string; id: string } | null {
     if (!this.hass) return null;
-    let latest: { mode: TitleModeEntry; time: string } | null = null;
-    for (const mode of this._titleConfig.modes) {
+    const modes = this._titleConfig.modes;
+    if (modes.length === 0) return null;
+
+    let bestMode: TitleModeEntry | null = null;
+    let bestTime = 0;
+    let allSameTime = true;
+    let firstTime = 0;
+
+    for (const mode of modes) {
       const entity = this.hass.states[mode.id];
       if (!entity) continue;
-      const lc = entity.last_changed ?? entity.last_updated ?? '';
-      if (!latest || lc > latest.time) {
-        latest = { mode, time: lc };
+      const ts = new Date(entity.last_changed).getTime();
+      if (firstTime === 0) {
+        firstTime = ts;
+      } else if (ts !== firstTime) {
+        allSameTime = false;
+      }
+      if (ts > bestTime) {
+        bestTime = ts;
+        bestMode = mode;
       }
     }
-    if (!latest) return null;
+
+    // If all scenes have the same timestamp (boot), none is considered active
+    if (allSameTime || !bestMode) return null;
+
     return {
-      id: latest.mode.id,
-      label: latest.mode.label || latest.mode.id.split('.')[1] || latest.mode.id,
-      icon: latest.mode.icon || '',
-      color: latest.mode.color || 'accent',
+      id: bestMode.id,
+      label: bestMode.label || bestMode.id.split('.')[1] || bestMode.id,
+      icon: bestMode.icon || '',
+      color: bestMode.color || 'accent',
     };
   }
 
@@ -402,7 +426,7 @@ class GlassTitleCard extends BaseCard {
   private _activateScene(sceneEntityId: string) {
     if (!this.hass) return;
     this.hass.callService('scene', 'turn_on', {}, { entity_id: sceneEntityId });
-    // Pulse animation
+    // Pulse animation on the chip
     this.updateComplete.then(() => {
       const chip = this.shadowRoot?.querySelector(`.chip[data-id="${sceneEntityId}"]`) as HTMLElement | null;
       if (chip) {
@@ -430,12 +454,10 @@ class GlassTitleCard extends BaseCard {
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
-    // Close dropdown if click is outside
     if (this._dropdownOpen) {
       const dd = root.querySelector('.dropdown');
       if (dd && !path.includes(dd)) this._dropdownOpen = false;
     }
-    // Close fold if click is outside
     if (this._foldOpen) {
       const modeRow = root.querySelector('.mode-row');
       const fold = root.querySelector('.fold');
@@ -482,11 +504,11 @@ class GlassTitleCard extends BaseCard {
           @click=${(e: Event) => this._toggleDropdown(e)}
           aria-haspopup="listbox"
           aria-expanded=${this._dropdownOpen ? 'true' : 'false'}
-          style="color:${colors.text};border-color:${active.color !== 'neutral' ? colors.dot : 'var(--b2)'};"
+          style="border-color:${active.color !== 'neutral' ? colors.dot : 'var(--b2)'};"
         >
           <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
           ${active.icon ? html`<ha-icon .icon=${active.icon}></ha-icon>` : nothing}
-          <span>${active.label}</span>
+          <span style="color:${colors.text};">${active.label}</span>
           <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
         </button>
         <div class="dropdown-menu" role="listbox">
@@ -512,7 +534,7 @@ class GlassTitleCard extends BaseCard {
     `;
   }
 
-  // — scenes → Mode row + fold + chips —
+  // — scenes → Mode row + fold + chips (active detection via last_changed) —
 
   private _renderScenes(): TemplateResult | typeof nothing {
     const modes = this._titleConfig.modes;
@@ -521,8 +543,8 @@ class GlassTitleCard extends BaseCard {
     const activeScene = this._getScenesActive();
     const colorKey = activeScene?.color ?? 'neutral';
     const colors = resolveColor(colorKey);
-    const sceneCount = modes.length;
-    const label = sceneCount <= 1 ? t('title_card.scene_label') : t('title_card.scenes_label');
+
+    const label = modes.length <= 1 ? t('title_card.scene_label') : t('title_card.scenes_label');
 
     return html`
       <button
@@ -533,11 +555,11 @@ class GlassTitleCard extends BaseCard {
       >
         <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
         ${activeScene?.icon ? html`
-          <span class="mode-icon"><ha-icon .icon=${activeScene.icon} style="color:${colors.text};"></ha-icon></span>
+          <span class="mode-icon"><ha-icon .icon=${activeScene.icon}></ha-icon></span>
         ` : nothing}
         <span class="mode-label">${label}</span>
         <span class="mode-value" style="color:${colors.text};">
-          ${activeScene?.label ?? t('title_card.scene_none')}
+          ${activeScene?.label ?? (modes.length === 1 ? (modes[0].label || modes[0].id.split('.')[1]) : t('title_card.scene_none'))}
         </span>
         <span class="mode-chevron ${this._foldOpen ? 'rotated' : ''}">
           <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
@@ -554,11 +576,11 @@ class GlassTitleCard extends BaseCard {
                 <button
                   class="chip"
                   data-id=${mode.id}
-                  style="${isActive ? `color:${mc.text};background:${mode.color !== 'neutral' ? mc.dot + '14' : 'var(--s4)'};border-color:${mc.dot}33;` : ''}"
+                  style="${isActive ? `color:${mc.text};background:${mc.dot}14;border-color:${mc.dot}33;` : ''}"
                   aria-label=${t('title_card.activate_scene_aria', { name: mode.label || mode.id })}
                   @click=${(e: Event) => { e.stopPropagation(); this._activateScene(mode.id); }}
                 >
-                  ${mode.icon ? html`<ha-icon .icon=${mode.icon} style="${isActive ? `filter:drop-shadow(0 0 3px ${mc.glow})` : ''}"></ha-icon>` : nothing}
+                  ${mode.icon ? html`<ha-icon .icon=${mode.icon}></ha-icon>` : nothing}
                   ${mode.label || mode.id.split('.')[1] || mode.id}
                 </button>
               `;
@@ -589,7 +611,7 @@ class GlassTitleCard extends BaseCard {
       >
         <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
         ${activeSummary?.icon ? html`
-          <span class="mode-icon"><ha-icon .icon=${activeSummary.icon} style="color:${colors.text};"></ha-icon></span>
+          <span class="mode-icon"><ha-icon .icon=${activeSummary.icon}></ha-icon></span>
         ` : nothing}
         <span class="mode-label">${t('title_card.mode_label')}</span>
         <span class="mode-value" style="color:${colors.text};">
@@ -616,7 +638,7 @@ class GlassTitleCard extends BaseCard {
                   aria-label=${t('title_card.toggle_bool_aria', { name: mode.label || mode.id })}
                   @click=${(e: Event) => { e.stopPropagation(); this._toggleBoolean(mode.id); }}
                 >
-                  ${mode.icon ? html`<ha-icon .icon=${mode.icon} style="${isOn ? `filter:drop-shadow(0 0 3px ${mc.glow})` : ''}"></ha-icon>` : nothing}
+                  ${mode.icon ? html`<ha-icon .icon=${mode.icon}></ha-icon>` : nothing}
                   ${mode.label || mode.id.split('.')[1] || mode.id}
                 </button>
               `;
