@@ -254,7 +254,7 @@ class GlassFanCard extends BaseCard {
       .fan-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
       .fan-icon-btn:hover ha-icon { color: var(--t2); }
     }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .fan-icon-btn:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {
@@ -371,7 +371,7 @@ class GlassFanCard extends BaseCard {
       .speed-step:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
     }
     .speed-step:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .speed-step:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {
@@ -444,7 +444,7 @@ class GlassFanCard extends BaseCard {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
     .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .chip:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {
@@ -485,7 +485,7 @@ class GlassFanCard extends BaseCard {
       .dir-btn:hover { background: var(--s3); color: var(--t2); }
     }
     .dir-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .dir-btn:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {

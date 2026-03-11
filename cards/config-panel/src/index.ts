@@ -133,7 +133,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() _dashboardEnabledCards: string[] = ['weather'];
-  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
+  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
   @state() _dashboardHideHeader = false;
   @state() _dashboardHideSidebar = false;
   @state() _dashboardExpanded = new Set<string>();
@@ -322,7 +322,7 @@ export class GlassConfigPanel extends LitElement {
     };
     let dashboardConfig = {
       enabled_cards: ['weather'] as string[],
-      card_order: ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'] as string[],
+      card_order: ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'] as string[],
       hide_header: false,
       hide_sidebar: false,
     };
@@ -1239,7 +1239,8 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadFanConfig(): Promise<void> {
-    if (!this._backend) return;
+    if (!this.hass) return;
+    if (!this._backend) this._backend = new BackendService(this.hass);
     try {
       const result = await this._backend.send<{
         fan_card?: { show_header: boolean };
