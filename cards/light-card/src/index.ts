@@ -151,6 +151,7 @@ export class GlassLightCard extends BaseCard {
         justify-content: space-between;
         margin-bottom: 6px;
         padding: 0 6px;
+        min-height: 22px;
       }
       .card-header-left {
         display: flex;
@@ -168,11 +169,11 @@ export class GlassLightCard extends BaseCard {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 4px;
         border-radius: var(--radius-full);
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 600;
         transition: all var(--t-med);
       }

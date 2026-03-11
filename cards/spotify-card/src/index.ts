@@ -129,11 +129,11 @@ class GlassSpotifyCard extends BaseCard {
   // — Styles —
 
   static styles: CSSResult[] = [glassTokens, glassMixin, bounceMixin, css`
-    :host { display: block; width: 100%; max-width: 500px; margin: 0 auto; }
+    :host { display: block; width: 100%; max-width: 500px; margin: 0 auto; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 6px; }
 
-    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; min-height: 22px; }
     .card-header-left { display: flex; align-items: center; gap: 8px; }
     .card-title {
       font-size: 9px; font-weight: 700; text-transform: uppercase;
@@ -1024,7 +1024,7 @@ class GlassSpotifyCard extends BaseCard {
         ${this._spotifyConfig.show_header ? html`
           <div class="card-header">
             <div class="card-header-left">
-              <span class="card-title"><ha-icon .icon=${'mdi:spotify'}></ha-icon>${t('spotify.title')}</span>
+              <span class="card-title">${t('spotify.title')}</span>
             </div>
           </div>
         ` : nothing}

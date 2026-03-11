@@ -602,6 +602,7 @@ export class GlassPresenceCard extends BaseCard {
         width: 100%;
         max-width: 500px;
         margin: 0 auto;
+        font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
       /* ── Header ── */
@@ -618,9 +619,9 @@ export class GlassPresenceCard extends BaseCard {
       }
       .card-count {
         display: inline-flex; align-items: center; justify-content: center;
-        min-width: 18px; height: 18px; padding: 0 5px;
+        min-width: 14px; height: 14px; padding: 0 4px;
         border-radius: var(--radius-full);
-        font-size: 10px; font-weight: 600;
+        font-size: 9px; font-weight: 600;
         transition: all var(--t-med);
       }
       .card-count.all-home { background: rgba(74,222,128,0.15); color: var(--c-success); }

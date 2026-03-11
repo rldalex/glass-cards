@@ -1063,6 +1063,7 @@ export class GlassMediaCard extends BaseCard {
         width: 100%;
         max-width: 500px;
         margin: 0 auto;
+        font-family: 'Plus Jakarta Sans', sans-serif;
         /* media player tokens */
         --mp-color: #818cf8;
         --mp-bg: rgba(129,140,248,0.1);
@@ -1074,7 +1075,7 @@ export class GlassMediaCard extends BaseCard {
       /* ── Header ── */
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 6px; margin-bottom: 6px;
+        padding: 0 6px; margin-bottom: 6px; min-height: 22px;
       }
       .card-header-left { display: flex; align-items: center; gap: 8px; }
       .card-title {

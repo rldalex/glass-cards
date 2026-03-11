@@ -154,7 +154,7 @@ class GlassCoverCard extends BaseCard {
     .cover-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 6px;
-      margin-bottom: 6px;
+      margin-bottom: 6px; min-height: 22px;
     }
     .cover-header-left { display: flex; align-items: center; gap: 8px; }
     .cover-title {
@@ -163,8 +163,8 @@ class GlassCoverCard extends BaseCard {
     }
     .cover-count {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 18px; height: 18px; padding: 0 5px;
-      border-radius: var(--radius-full); font-size: 10px; font-weight: 600;
+      min-width: 14px; height: 14px; padding: 0 4px;
+      border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
       transition: all var(--t-med);
     }
     .cover-count.some { background: rgba(167,139,250,0.15); color: var(--cv-color, #a78bfa); }
