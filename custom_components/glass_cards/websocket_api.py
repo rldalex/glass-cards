@@ -66,6 +66,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_room)
     websocket_api.async_register_command(hass, ws_set_weather)
     websocket_api.async_register_command(hass, ws_set_light_config)
+    websocket_api.async_register_command(hass, ws_set_fan_config)
     websocket_api.async_register_command(hass, ws_set_cover_config)
     websocket_api.async_register_command(hass, ws_set_title_config)
     websocket_api.async_register_command(hass, ws_set_media_config)
@@ -329,6 +330,31 @@ async def ws_set_light_config(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.light_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_fan_config",
+        vol.Optional("show_header"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_set_fan_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the fan card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.fan_card.show_header = msg["show_header"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.fan_card.to_dict())
 
 
 @websocket_api.websocket_command(
@@ -716,7 +742,7 @@ async def ws_spotify_search(
     {
         vol.Required("type"): "glass_cards/spotify_browse",
         vol.Required("category"): vol.In(list(VALID_BROWSE_CATEGORIES)),
-        vol.Optional("content_id"): str,
+        vol.Optional("content_id"): vol.All(str, vol.Match(r"^[a-zA-Z0-9:_-]+$")),
         vol.Optional("limit", default=20): vol.All(int, vol.Range(min=1, max=50)),
         vol.Optional("offset", default=0): vol.All(int, vol.Range(min=0, max=1000)),
         vol.Optional("sort_order", default="recent_first"): vol.In(
