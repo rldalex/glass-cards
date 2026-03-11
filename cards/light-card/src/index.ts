@@ -1178,8 +1178,24 @@ export class GlassLightCard extends BaseCard {
     this._expandedEntity = null;
   }
 
+  private _hasControls(info: LightInfo): boolean {
+    if (info.type !== 'simple') return true;
+    const effects = info.entity.attributes.effect_list as string[] | undefined;
+    if (effects && effects.length > 0) {
+      const available = ALLOWED_EFFECTS.filter((e) => e === 'off' || effects.includes(e));
+      if (available.length > 1) return true;
+    }
+    return false;
+  }
+
   private _toggleExpand(entityId: string, isOn: boolean) {
     if (!isOn) return;
+    // If light has no controls, toggle it instead of expanding
+    const info = this._getLightInfos().find((l) => l.entityId === entityId);
+    if (info && !this._hasControls(info)) {
+      this._toggleLight(entityId);
+      return;
+    }
     if (this._expandedEntity === entityId) {
       this._expandedEntity = null;
     } else {

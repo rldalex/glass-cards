@@ -429,20 +429,9 @@ export class GlassPresenceCard extends BaseCard {
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
               <span class="person-location">${stateText(p.state)}</span>
-            </div>
-            <div class="person-line">
-              ${p.batteryLevel != null
-                ? html`
-                    <span class="person-battery ${batteryClass(p.batteryLevel)}">
-                      <ha-icon .icon=${batteryIcon(p.batteryLevel)}></ha-icon>
-                      ${p.batteryLevel}%
-                    </span>
-                  `
-                : nothing}
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
-              <span class="person-last-seen">${timeAgo(p.lastUpdated)}</span>
             </div>
           </div>
         </div>
@@ -501,14 +490,21 @@ export class GlassPresenceCard extends BaseCard {
       <div class="ctrl-fold">
         <div class="ctrl-fold-inner">
           <div class="fold-content">
-            ${person.geocodedLocation
-              ? html`
-                  <div class="health-address-row">
-                    <ha-icon .icon=${'mdi:map-marker'}></ha-icon>
-                    <span>${person.geocodedLocation}</span>
-                  </div>
-                `
-              : nothing}
+            <div class="health-address-row">
+              ${person.geocodedLocation ? html`
+                <ha-icon .icon=${'mdi:map-marker'}></ha-icon>
+                <span class="address-text">${person.geocodedLocation}</span>
+              ` : html`<span class="address-text"></span>`}
+              <span class="fold-meta">
+                ${person.batteryLevel != null ? html`
+                  <span class="fold-battery ${batteryClass(person.batteryLevel)}">
+                    <ha-icon .icon=${batteryIcon(person.batteryLevel)}></ha-icon>
+                    ${person.batteryLevel}%
+                  </span>
+                ` : nothing}
+                <span class="fold-last-seen">${timeAgo(person.lastUpdated)}</span>
+              </span>
+            </div>
             ${hasHealth
               ? html`
                   <div class="health-zone-label">
@@ -835,9 +831,28 @@ export class GlassPresenceCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 12px; color: var(--t4); flex-shrink: 0;
       }
-      .health-address-row span {
+      .address-text {
         font-size: 10px; font-weight: 400; color: var(--t3);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        flex: 1; min-width: 0;
+      }
+      .fold-battery {
+        display: flex; align-items: center; gap: 3px;
+        font-size: 10px; font-weight: 500; flex-shrink: 0; margin-left: auto;
+      }
+      .fold-battery.high { color: var(--c-success); opacity: 0.55; }
+      .fold-battery.medium { color: var(--c-warning); opacity: 0.55; }
+      .fold-battery.low { color: var(--c-alert); opacity: 0.65; }
+      .fold-battery ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 14px;
+      }
+      .fold-meta {
+        display: flex; align-items: center; gap: 6px;
+        margin-left: auto; flex-shrink: 0;
+      }
+      .fold-last-seen {
+        font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap;
       }
 
       .health-pills { display: flex; gap: 6px; }

@@ -56,7 +56,8 @@ export function renderTitlePreview(self: GlassConfigPanel) {
     if (dots.length === 1) {
       dashStyle = `background:${dots[0]};width:${w}px;box-shadow:0 0 6px ${dots[0]};`;
     } else {
-      const stops = dots.map((d, i) => `${d} ${Math.round(i / (dots.length - 1) * 100)}%`).join(', ');
+      const n = dots.length;
+      const stops = dots.flatMap((d, i) => [`${d} ${Math.round(i / n * 100)}%`, `${d} ${Math.round((i + 1) / n * 100)}%`]).join(', ');
       const glows = dots.map((d) => `0 0 6px ${d}`).join(', ');
       dashStyle = `background:linear-gradient(90deg, ${stops});width:${w}px;box-shadow:${glows};`;
     }

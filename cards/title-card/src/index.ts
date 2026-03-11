@@ -268,7 +268,8 @@ class GlassTitleCard extends BaseCard {
     if (resolved.length === 1) {
       return `background:${resolved[0].dot};box-shadow:0 0 8px ${resolved[0].glow};${width}`;
     }
-    const stops = resolved.map((r, i) => `${r.dot} ${Math.round(i / (resolved.length - 1) * 100)}%`).join(', ');
+    const n = resolved.length;
+    const stops = resolved.flatMap((r, i) => [`${r.dot} ${Math.round(i / n * 100)}%`, `${r.dot} ${Math.round((i + 1) / n * 100)}%`]).join(', ');
     const glows = resolved.map((r) => `0 0 6px ${r.glow}`).join(', ');
     return `background:linear-gradient(90deg, ${stops});box-shadow:${glows};${width}`;
   }
