@@ -126,7 +126,17 @@
     "preset_night": "Night",
     "preset_comfort": "Comfort",
     "preset_silent": "Silent",
-    "preset_turbo": "Turbo"
+    "preset_turbo": "Turbo",
+    "toggle_aria": "Toggle {name}",
+    "expand_aria": "Expand {name} controls",
+    "toggle_all_on_aria": "Turn off all fans",
+    "toggle_all_off_aria": "Turn on all fans",
+    "speed_step_aria": "Speed {step} ({pct}%)",
+    "direction_forward_aria": "Summer mode",
+    "direction_reverse_aria": "Winter mode",
+    "oscillation_aria": "Oscillation",
+    "ceiling_light_aria": "Ceiling light",
+    "no_fans": "No fans in this room."
   },
 
   "title_card": {

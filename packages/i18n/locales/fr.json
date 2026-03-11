@@ -126,7 +126,17 @@
     "preset_night": "Nuit",
     "preset_comfort": "Confort",
     "preset_silent": "Silence",
-    "preset_turbo": "Turbo"
+    "preset_turbo": "Turbo",
+    "toggle_aria": "Allumer/éteindre {name}",
+    "expand_aria": "Développer les contrôles de {name}",
+    "toggle_all_on_aria": "Éteindre tous les ventilateurs",
+    "toggle_all_off_aria": "Allumer tous les ventilateurs",
+    "speed_step_aria": "Vitesse {step} ({pct}%)",
+    "direction_forward_aria": "Mode été",
+    "direction_reverse_aria": "Mode hiver",
+    "oscillation_aria": "Oscillation",
+    "ceiling_light_aria": "Éclairage plafonnier",
+    "no_fans": "Aucun ventilateur dans cette pièce."
   },
 
   "title_card": {
