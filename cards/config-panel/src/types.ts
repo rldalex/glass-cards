@@ -52,7 +52,7 @@ export interface SchedulePeriodEdit {
 
 export const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
 
-export const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'cover']);
+export const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'cover', 'fan']);
 
 export const CARD_ICONS: Record<string, string> = {
   light: 'mdi:lightbulb-group',
@@ -90,4 +90,4 @@ export const ROOM_ICONS = [
   'mdi:lightbulb', 'mdi:snowflake', 'mdi:fire', 'mdi:lock',
 ];
 
-export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'dashboard';
+export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'fan' | 'dashboard';

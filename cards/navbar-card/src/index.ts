@@ -51,6 +51,7 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
   weather: 'glass-weather-card',
   light: 'glass-light-card',
   cover: 'glass-cover-card',
+  fan: 'glass-fan-card',
   title: 'glass-title-card',
   spotify: 'glass-spotify-card',
   media: 'glass-media-card',
@@ -58,7 +59,7 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
 };
 
 /** Default render order for dashboard cards */
-const DEFAULT_CARD_ORDER = ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
+const DEFAULT_CARD_ORDER = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -126,6 +127,9 @@ export class GlassNavbarCard extends BaseCard {
   private _headerStyleEl: HTMLStyleElement | null = null;
   private _sidebarStyleEl: HTMLStyleElement | null = null;
   private _loadingOverlay: HTMLElement | null = null;
+  private _removeOverlayTimer?: ReturnType<typeof setTimeout>;
+  private _headerRetryTimer?: ReturnType<typeof setTimeout>;
+  private _sidebarRetryTimer?: ReturnType<typeof setTimeout>;
   @state() private _bgIsLight = false;
   private _bgIntersectionObserver?: IntersectionObserver;
   private _bgMutationObserver?: MutationObserver;
@@ -489,6 +493,9 @@ export class GlassNavbarCard extends BaseCard {
     this._removeHeaderStyle();
     this._removeSidebarStyle();
     if (this._loadingOverlay) { this._loadingOverlay.remove(); this._loadingOverlay = null; }
+    if (this._removeOverlayTimer) { clearTimeout(this._removeOverlayTimer); this._removeOverlayTimer = undefined; }
+    if (this._headerRetryTimer) { clearTimeout(this._headerRetryTimer); this._headerRetryTimer = undefined; }
+    if (this._sidebarRetryTimer) { clearTimeout(this._sidebarRetryTimer); this._sidebarRetryTimer = undefined; }
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
@@ -496,6 +503,7 @@ export class GlassNavbarCard extends BaseCard {
     this._bgIntersectionObserver = undefined;
     this._bgMutationObserver?.disconnect();
     this._bgMutationObserver = undefined;
+    this._bgIntersectingCards.clear();
   }
 
   protected firstUpdated(changedProps: PropertyValues) {
@@ -730,7 +738,7 @@ export class GlassNavbarCard extends BaseCard {
   private _applyHideHeader(retries = 10): void {
     if (this._hideHeader) {
       if (!this._injectHeaderStyle() && retries > 0 && this.isConnected) {
-        setTimeout(() => this._applyHideHeader(retries - 1), 500);
+        this._headerRetryTimer = setTimeout(() => this._applyHideHeader(retries - 1), 500);
       }
     } else {
       this._removeHeaderStyle();
@@ -765,7 +773,7 @@ export class GlassNavbarCard extends BaseCard {
   private _applyHideSidebar(retries = 10): void {
     if (this._hideSidebar) {
       if (!this._injectSidebarStyle() && retries > 0 && this.isConnected) {
-        setTimeout(() => this._applyHideSidebar(retries - 1), 500);
+        this._sidebarRetryTimer = setTimeout(() => this._applyHideSidebar(retries - 1), 500);
       }
     } else {
       this._removeSidebarStyle();
@@ -841,9 +849,9 @@ export class GlassNavbarCard extends BaseCard {
   private _removeLoadingOverlay(): void {
     if (!this._loadingOverlay) return;
     const el = this._loadingOverlay;
-    el.style.opacity = '0';
-    setTimeout(() => el.remove(), 400);
     this._loadingOverlay = null;
+    el.style.opacity = '0';
+    this._removeOverlayTimer = setTimeout(() => { el.remove(); this._removeOverlayTimer = undefined; }, 400);
   }
 
   private _findHuiRoot(): ShadowRoot | null {

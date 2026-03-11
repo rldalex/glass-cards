@@ -21,6 +21,7 @@ import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityV
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
 import { renderMediaPreview, renderMediaTab } from './tabs/media';
+import { renderFanPreview, renderFanTab } from './tabs/fan';
 import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible, openIconPicker, setRoomIcon, selectRoom, goBack } from './tabs/navbar';
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
 import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, getAvailableSmartphoneSensors, getAvailableDrivingSensors, getAvailableNotifyServices, togglePresencePerson } from './tabs/presence';
@@ -105,6 +106,9 @@ export class GlassConfigPanel extends LitElement {
   @state() _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
   @state() _coverPresetInput = '';
   @state() _coverEntityPresetInput: Record<string, string> = {};
+
+  // Fan card config
+  @state() _fanShowHeader = true;
 
   // Media card config
   @state() _presenceShowHeader = true;
@@ -342,6 +346,9 @@ export class GlassConfigPanel extends LitElement {
       max_items_per_section: 6,
       visible_speakers: [] as string[],
     };
+    let fanCardConfig = {
+      show_header: true,
+    };
     let mediaCardConfig = {
       variant: 'list' as string,
       dashboard_variant: 'list' as string,
@@ -366,6 +373,7 @@ export class GlassConfigPanel extends LitElement {
         light_card: typeof lightCardConfig;
         title_card: typeof titleCardConfig;
         cover_card: typeof coverCardConfig;
+        fan_card: typeof fanCardConfig;
         spotify_card: typeof spotifyCardConfig;
         media_card: typeof mediaCardConfig;
         presence_card: typeof presenceCardConfig;
@@ -377,6 +385,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.light_card) lightCardConfig = result.light_card;
       if (result.title_card) titleCardConfig = result.title_card;
       if (result.cover_card) coverCardConfig = result.cover_card;
+      if (result.fan_card) fanCardConfig = result.fan_card;
       if (result.spotify_card) spotifyCardConfig = result.spotify_card;
       if (result.media_card) mediaCardConfig = result.media_card;
       if (result.presence_card) presenceCardConfig = result.presence_card;
@@ -411,6 +420,7 @@ export class GlassConfigPanel extends LitElement {
     }));
 
     this._coverShowHeader = coverCardConfig.show_header ?? true;
+    this._fanShowHeader = fanCardConfig.show_header ?? true;
     this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
     this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
     this._coverEntityPresets = coverCardConfig.entity_presets ?? {};
@@ -630,7 +640,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Tab switching —
 
-  _switchTab(tab: 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'dashboard') {
+  _switchTab(tab: TabId) {
     this._tab = tab;
     this._iconPickerRoom = null;
     this._dropdownOpen = false;
@@ -833,6 +843,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveTitle();
     } else if (this._tab === 'cover') {
       this._saveCover();
+    } else if (this._tab === 'fan') {
+      this._saveFan();
     } else if (this._tab === 'spotify') {
       this._saveSpotify();
     } else if (this._tab === 'media') {
@@ -916,6 +928,7 @@ export class GlassConfigPanel extends LitElement {
     try {
       if (this._backend) {
         const schedules = await this._backend.send<EntityScheduleMap>('get_schedules');
+        if (this._lightRoom !== targetRoom) return;
         this._schedulesLoaded = schedules ?? {};
         this._scheduleEdits = new Map();
         for (const l of lights) {
@@ -1043,6 +1056,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _reset() {
+    if (this._loading) return;
     this._loaded = false;
     await this._loadConfig();
     if (this._lightRoom) {
@@ -1201,6 +1215,41 @@ export class GlassConfigPanel extends LitElement {
 
   _renderCoverTab() { return renderCoverTab(this); }
 
+  // — Fan Card config —
+
+  _renderFanPreview() { return renderFanPreview(this); }
+
+  _renderFanTab() { return renderFanTab(this); }
+
+  private async _saveFan() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_fan_config', {
+        show_header: this._fanShowHeader,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('fan-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  async _loadFanConfig(): Promise<void> {
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        fan_card?: { show_header: boolean };
+      }>('get_config');
+      if (result?.fan_card) {
+        this._fanShowHeader = result.fan_card.show_header ?? true;
+      }
+    } catch { /* ignore */ }
+  }
+
   _onDropCover(idx: number, e: DragEvent) { onDropCover(this, idx, e); }
 
   async _resetCover() {
@@ -1304,6 +1353,9 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_spotify_config', {
         show_header: this._spotifyShowHeader,
       });
+      await this._backend.send('set_fan_config', {
+        show_header: this._fanShowHeader,
+      });
       await this._backend.send('set_media_config', {
         show_header: this._mediaShowHeader,
       });
@@ -1316,6 +1368,7 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('light-config-changed', undefined);
       bus.emit('weather-config-changed', undefined);
       bus.emit('cover-config-changed', undefined);
+      bus.emit('fan-config-changed', undefined);
       bus.emit('spotify-config-changed', undefined);
       bus.emit('media-config-changed', undefined);
       bus.emit('presence-config-changed', undefined);
@@ -1334,6 +1387,7 @@ export class GlassConfigPanel extends LitElement {
         light_card?: { show_header?: boolean };
         weather?: { show_header?: boolean };
         cover_card?: { show_header?: boolean };
+        fan_card?: { show_header?: boolean };
         spotify_card?: { show_header?: boolean };
         media_card?: { show_header?: boolean };
         presence_card?: { show_header?: boolean };
@@ -1347,6 +1401,7 @@ export class GlassConfigPanel extends LitElement {
       this._lightShowHeader = result?.light_card?.show_header ?? true;
       this._weatherShowHeader = result?.weather?.show_header ?? true;
       this._coverShowHeader = result?.cover_card?.show_header ?? true;
+      this._fanShowHeader = result?.fan_card?.show_header ?? true;
       this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
       this._mediaShowHeader = result?.media_card?.show_header ?? true;
       this._presenceShowHeader = result?.presence_card?.show_header ?? true;
@@ -1485,6 +1540,7 @@ export class GlassConfigPanel extends LitElement {
     this._saving = true;
     try {
       await this._backend.send('set_spotify_config', {
+        show_header: this._spotifyShowHeader,
         entity_id: this._spotifyEntity,
         sort_order: this._spotifySortOrder,
         max_items_per_section: this._spotifyMaxItems,
@@ -1754,6 +1810,15 @@ export class GlassConfigPanel extends LitElement {
               ${t('config.tab_cover')}
             </button>
             <button
+              class="tab ${this._tab === 'fan' ? 'active' : ''}"
+              role="tab"
+              aria-selected=${this._tab === 'fan' ? 'true' : 'false'}
+              @click=${() => this._switchTab('fan')}
+            >
+              <ha-icon .icon=${'mdi:fan'}></ha-icon>
+              ${t('config.tab_fan')}
+            </button>
+            <button
               class="tab ${this._tab === 'spotify' ? 'active' : ''}"
               role="tab"
               aria-selected=${this._tab === 'spotify' ? 'true' : 'false'}
@@ -1789,7 +1854,9 @@ export class GlassConfigPanel extends LitElement {
                         ? this._renderMediaPreview()
                         : this._tab === 'cover'
                           ? this._renderCoverPreview()
-                          : this._tab === 'spotify'
+                          : this._tab === 'fan'
+                            ? this._renderFanPreview()
+                            : this._tab === 'spotify'
                             ? this._renderSpotifyPreview()
                             : this._tab === 'presence'
                               ? this._renderPresencePreview()
@@ -1810,7 +1877,9 @@ export class GlassConfigPanel extends LitElement {
                       ? this._renderMediaTab()
                       : this._tab === 'cover'
                         ? this._renderCoverTab()
-                        : this._tab === 'spotify'
+                        : this._tab === 'fan'
+                          ? this._renderFanTab()
+                          : this._tab === 'spotify'
                           ? this._renderSpotifyTab()
                           : this._tab === 'presence'
                             ? this._renderPresenceTab()

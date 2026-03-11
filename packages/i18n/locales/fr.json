@@ -458,6 +458,8 @@
     "presence_select_entity": "Sélectionnez une entité",
 
     "tab_fan": "Carte Ventilation",
+    "fan_show_header": "Afficher l'en-tête",
+    "fan_show_header_desc": "Titre, compteur et bouton tout basculer au-dessus de la carte",
     "tab_cover": "Carte Volets",
     "cover_show_header": "Afficher l'en-tête",
     "cover_show_header_desc": "Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",
