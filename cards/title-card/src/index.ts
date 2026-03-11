@@ -1,7 +1,7 @@
-import { css, html, nothing, type PropertyValues } from 'lit';
+import { css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, bounceMixin, foldMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Backend config shape —
@@ -16,6 +16,7 @@ interface TitleModeEntry {
 interface TitleBackendConfig {
   title: string;
   mode_entity: string;
+  mode_source: string; // '' | 'input_select' | 'scenes' | 'booleans'
   modes: TitleModeEntry[];
 }
 
@@ -33,7 +34,6 @@ const COLOR_MAP: Record<string, { text: string; dot: string; glow: string }> = {
 function resolveColor(colorKey: string): { text: string; dot: string; glow: string } {
   if (COLOR_MAP[colorKey]) return COLOR_MAP[colorKey];
   if (colorKey.startsWith('#') && colorKey.length === 7) {
-    // Parse hex to rgba for glow
     const r = parseInt(colorKey.slice(1, 3), 16);
     const g = parseInt(colorKey.slice(3, 5), 16);
     const b = parseInt(colorKey.slice(5, 7), 16);
@@ -43,19 +43,17 @@ function resolveColor(colorKey: string): { text: string; dot: string; glow: stri
 }
 
 class GlassTitleCard extends BaseCard {
-  @state() private _cycling = false;
+  @state() private _foldOpen = false;
+  @state() private _dropdownOpen = false;
 
-  private _titleConfig: TitleBackendConfig = { title: '', mode_entity: '', modes: [] };
+  private _titleConfig: TitleBackendConfig = { title: '', mode_entity: '', mode_source: '', modes: [] };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
   private _configLoading = false;
   private _loadVersion = 0;
-  private _lastModeId: string | null = null;
-  private _pendingCycle = false;
-  private _cycleTimer = 0;
-  private _pendingTimer = 0;
+  private _boundClickOutside = this._onClickOutside.bind(this);
 
-  static styles = [glassTokens, bounceMixin, css`
+  static styles = [glassTokens, bounceMixin, foldMixin, css`
     :host {
       display: block;
       width: 100%;
@@ -83,9 +81,9 @@ class GlassTitleCard extends BaseCard {
       background: linear-gradient(90deg, var(--b3), transparent);
     }
 
-    /* ── Mode row ── */
+    /* ── Mode row (scenes & booleans header) ── */
     .mode-row {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 5px;
       cursor: pointer; padding: 4px 12px; outline: none;
       border: none; background: none; font-family: inherit;
       -webkit-tap-highlight-color: transparent;
@@ -96,15 +94,12 @@ class GlassTitleCard extends BaseCard {
       .mode-row:hover { background: var(--s1); }
     }
     .mode-row:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
-    @media (hover: hover) {
+    @media (pointer: coarse) {
       .mode-row:active { transform: scale(0.96); }
-    }
-    @media (hover: none) {
-      .mode-row:active { animation: bounce 0.3s ease; }
     }
 
     .mode-dot {
-      width: 8px; height: 8px; border-radius: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
       flex-shrink: 0;
       transition: all var(--t-med);
     }
@@ -128,35 +123,144 @@ class GlassTitleCard extends BaseCard {
       transition: color var(--t-fast), opacity var(--t-fast);
     }
 
+    .mode-chevron {
+      display: flex; align-items: center;
+      transition: transform 0.35s var(--ease-out);
+    }
+    .mode-chevron.rotated { transform: rotate(90deg); }
     .mode-chevron ha-icon {
       --mdc-icon-size: 14px;
       display: flex; align-items: center; justify-content: center;
       color: var(--t4);
     }
 
-    /* Cycle animation */
-    @keyframes mode-swap {
-      0%   { opacity: 1; transform: translateY(0); }
-      40%  { opacity: 0; transform: translateY(-6px); }
-      60%  { opacity: 0; transform: translateY(6px); }
-      100% { opacity: 1; transform: translateY(0); }
+    /* ── Dropdown (input_select) ── */
+    .dropdown {
+      position: relative; display: inline-block;
     }
-    .mode-value.cycling { animation: mode-swap 0.3s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); }
+    .dropdown-trigger {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: var(--radius-full);
+      border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t2); font-family: inherit; font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all var(--t-fast); outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .dropdown-trigger:hover { background: var(--s3); border-color: var(--b3); }
+    }
+    .dropdown-trigger:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .dropdown-trigger ha-icon {
+      --mdc-icon-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color var(--t-fast);
+    }
+    .dropdown-trigger .arrow {
+      transition: transform var(--t-fast);
+      color: var(--t4);
+    }
+    .dropdown.open .dropdown-trigger .arrow { transform: rotate(180deg); }
+    .dropdown.open .dropdown-trigger { border-color: var(--b3); background: var(--s3); }
+    @media (pointer: coarse) {
+      .dropdown-trigger:active { transform: scale(0.96); }
+    }
+
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(-4px);
+      min-width: 150px;
+      border-radius: var(--radius-lg); padding: 4px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      z-index: 10;
+      opacity: 0; pointer-events: none;
+      transition: all var(--t-fast);
+    }
+    .dropdown.open .dropdown-menu {
+      opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all;
+    }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 500; color: var(--t2);
+      cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; width: 100%;
+      font-family: inherit; outline: none; text-align: left;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .dropdown-item:hover { background: var(--s3); color: var(--t1); }
+    }
+    .dropdown-item:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .dropdown-item ha-icon {
+      --mdc-icon-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .item-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      background: transparent; transition: all var(--t-fast);
+    }
+    .dropdown-item.active .item-dot { background: currentColor; box-shadow: 0 0 6px currentColor; }
+
+    /* ── Chips (scenes & booleans) ── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    }
+    .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .chip ha-icon {
+      --mdc-icon-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: filter var(--t-fast), color var(--t-fast);
+    }
+    @media (pointer: coarse) {
+      .chip:active { transform: scale(0.94); }
+    }
+
+    @keyframes chip-pulse {
+      0%   { box-shadow: inset 0 0 0 0 currentColor; }
+      50%  { box-shadow: inset 0 0 8px 1px currentColor; }
+      100% { box-shadow: inset 0 0 0 0 currentColor; }
+    }
+    .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
+
+    .chips-row {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 6px; padding: 8px 4px;
+    }
+
+    /* Fold separator */
+    .fold-sep {
+      height: 1px; width: 80%; margin: 4px auto;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+      opacity: 0; transition: opacity 0.25s var(--ease-std);
+    }
+    .fold-sep.visible { opacity: 1; }
   `];
 
   connectedCallback(): void {
     super.connectedCallback();
     this._listen('title-config-changed', () => this._loadConfig());
+    document.addEventListener('click', this._boundClickOutside);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    document.removeEventListener('click', this._boundClickOutside);
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
     this._loadVersion++;
-    clearTimeout(this._cycleTimer);
-    clearTimeout(this._pendingTimer);
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -173,23 +277,19 @@ class GlassTitleCard extends BaseCard {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
-      // Detect mode state change → trigger cycling animation
-      if (this._pendingCycle && this._titleConfig.mode_entity) {
-        const currentMode = this._getActiveMode();
-        const currentId = currentMode?.id ?? null;
-        if (currentId !== this._lastModeId) {
-          this._lastModeId = currentId;
-          this._cycling = true;
-          this._pendingCycle = false;
-          this._cycleTimer = window.setTimeout(() => { this._cycling = false; }, 300);
-        }
-      }
     }
   }
 
   protected getTrackedEntityIds(): string[] {
-    const eid = this._titleConfig.mode_entity;
-    return eid ? [eid] : [];
+    const src = this._getSource();
+    if (src === 'input_select') {
+      const eid = this._titleConfig.mode_entity;
+      return eid ? [eid] : [];
+    }
+    if (src === 'scenes' || src === 'booleans') {
+      return this._titleConfig.modes.map((m) => m.id).filter((id) => id.includes('.'));
+    }
+    return [];
   }
 
   // — Backend config —
@@ -215,84 +315,140 @@ class GlassTitleCard extends BaseCard {
     }
   }
 
-  // — Mode helpers —
+  // — Source detection (explicit or inferred for backward compat) —
 
-  private _getActiveMode(): { id: string; label: string; icon: string; color: string } | null {
+  private _getSource(): '' | 'input_select' | 'scenes' | 'booleans' {
+    if (this._titleConfig.mode_source) {
+      return this._titleConfig.mode_source as '' | 'input_select' | 'scenes' | 'booleans';
+    }
+    // Backward compat: infer from mode_entity
     const eid = this._titleConfig.mode_entity;
-    if (!eid || !this.hass) return null;
-
-    if (eid.startsWith('input_select.')) {
-      const entity = this.hass.states[eid];
-      if (!entity) return null;
-      const currentOption = entity.state;
-      const modeConfig = this._titleConfig.modes.find((m) => m.id === currentOption);
-      return {
-        id: currentOption,
-        label: modeConfig?.label || currentOption,
-        icon: modeConfig?.icon || '',
-        color: modeConfig?.color || 'neutral',
-      };
-    }
-
-    if (eid.startsWith('input_boolean.')) {
-      const entity = this.hass.states[eid];
-      if (!entity) return null;
-      const isOn = entity.state === 'on';
-      const suffix = eid.split('.')[1] ?? eid;
-      const modeConfig = this._titleConfig.modes.find((m) => m.id === suffix);
-      const baseName = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
-      return {
-        id: suffix,
-        label: baseName,
-        icon: modeConfig?.icon || '',
-        color: isOn ? (modeConfig?.color || 'success') : 'neutral',
-      };
-    }
-
-    if (eid.startsWith('scene.')) {
-      const entity = this.hass.states[eid];
-      if (!entity) return null;
-      const suffix = eid.split('.')[1] ?? eid;
-      const modeConfig = this._titleConfig.modes.find((m) => m.id === suffix);
-      return {
-        id: suffix,
-        label: modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix,
-        icon: modeConfig?.icon || '',
-        color: modeConfig?.color || 'accent',
-      };
-    }
-
-    return null;
+    if (eid?.startsWith('input_select.')) return 'input_select';
+    if (eid?.startsWith('scene.')) return 'scenes';
+    if (eid?.startsWith('input_boolean.')) return 'booleans';
+    return '';
   }
 
-  private _cycleMode() {
+  // — Mode helpers per source —
+
+  private _getInputSelectActive(): { label: string; icon: string; color: string; id: string } | null {
     const eid = this._titleConfig.mode_entity;
-    if (!eid || !this.hass || this._pendingCycle) return;
+    if (!eid || !this.hass) return null;
+    const entity = this.hass.states[eid];
+    if (!entity) return null;
+    const currentOption = entity.state;
+    const modeConfig = this._titleConfig.modes.find((m) => m.id === currentOption);
+    return {
+      id: currentOption,
+      label: modeConfig?.label || currentOption,
+      icon: modeConfig?.icon || '',
+      color: modeConfig?.color || 'neutral',
+    };
+  }
 
-    if (eid.startsWith('input_select.')) {
-      this.hass.callService('input_select', 'select_next', { cycle: true }, { entity_id: eid });
-    } else if (eid.startsWith('input_boolean.')) {
-      this.hass.callService('input_boolean', 'toggle', {}, { entity_id: eid });
-    } else if (eid.startsWith('scene.')) {
-      this.hass.callService('scene', 'turn_on', {}, { entity_id: eid });
-      // Scenes don't change state — trigger animation directly
-      this._cycling = true;
-      this._cycleTimer = window.setTimeout(() => { this._cycling = false; }, 300);
-      return;
-    } else {
-      return;
+  private _getScenesActive(): { label: string; icon: string; color: string; id: string } | null {
+    if (!this.hass) return null;
+    let latest: { mode: TitleModeEntry; time: string } | null = null;
+    for (const mode of this._titleConfig.modes) {
+      const entity = this.hass.states[mode.id];
+      if (!entity) continue;
+      const lc = entity.last_changed ?? entity.last_updated ?? '';
+      if (!latest || lc > latest.time) {
+        latest = { mode, time: lc };
+      }
     }
+    if (!latest) return null;
+    return {
+      id: latest.mode.id,
+      label: latest.mode.label || latest.mode.id.split('.')[1] || latest.mode.id,
+      icon: latest.mode.icon || '',
+      color: latest.mode.color || 'accent',
+    };
+  }
 
-    this._lastModeId = this._getActiveMode()?.id ?? null;
-    this._pendingCycle = true;
-    // Safety: clear pendingCycle if state never changes
-    this._pendingTimer = window.setTimeout(() => { this._pendingCycle = false; }, 2000);
+  private _getBooleansActive(): { label: string; icon: string; color: string; count: number } | null {
+    if (!this.hass) return null;
+    const active: TitleModeEntry[] = [];
+    for (const mode of this._titleConfig.modes) {
+      const entity = this.hass.states[mode.id];
+      if (entity?.state === 'on') active.push(mode);
+    }
+    if (active.length === 0) return null;
+    if (active.length === 1) {
+      return {
+        label: active[0].label || active[0].id.split('.')[1] || active[0].id,
+        icon: active[0].icon || '',
+        color: active[0].color || 'success',
+        count: 1,
+      };
+    }
+    return {
+      label: t('title_card.active_count', { count: active.length }),
+      icon: active[0].icon || '',
+      color: active[0].color || 'success',
+      count: active.length,
+    };
+  }
+
+  // — Actions —
+
+  private _selectOption(optionId: string) {
+    const eid = this._titleConfig.mode_entity;
+    if (!eid || !this.hass) return;
+    this.hass.callService('input_select', 'select_option', { option: optionId }, { entity_id: eid });
+    this._dropdownOpen = false;
+  }
+
+  private _activateScene(sceneEntityId: string) {
+    if (!this.hass) return;
+    this.hass.callService('scene', 'turn_on', {}, { entity_id: sceneEntityId });
+    // Pulse animation
+    this.updateComplete.then(() => {
+      const chip = this.shadowRoot?.querySelector(`.chip[data-id="${sceneEntityId}"]`) as HTMLElement | null;
+      if (chip) {
+        chip.classList.add('pulsing');
+        setTimeout(() => chip.classList.remove('pulsing'), 600);
+      }
+    });
+  }
+
+  private _toggleBoolean(boolEntityId: string) {
+    if (!this.hass) return;
+    this.hass.callService('input_boolean', 'toggle', {}, { entity_id: boolEntityId });
+  }
+
+  private _toggleFold() {
+    this._foldOpen = !this._foldOpen;
+  }
+
+  private _toggleDropdown(e: Event) {
+    e.stopPropagation();
+    this._dropdownOpen = !this._dropdownOpen;
+  }
+
+  private _onClickOutside(e: Event) {
+    const path = e.composedPath();
+    const root = this.shadowRoot;
+    if (!root) return;
+    // Close dropdown if click is outside
+    if (this._dropdownOpen) {
+      const dd = root.querySelector('.dropdown');
+      if (dd && !path.includes(dd)) this._dropdownOpen = false;
+    }
+    // Close fold if click is outside
+    if (this._foldOpen) {
+      const modeRow = root.querySelector('.mode-row');
+      const fold = root.querySelector('.fold');
+      if (modeRow && fold && !path.includes(modeRow) && !path.includes(fold)) {
+        this._foldOpen = false;
+      }
+    }
   }
 
   // — Render —
 
   protected render() {
-    void this._lang; // track i18n reactivity
+    void this._lang;
     const title = this._titleConfig.title;
     if (!title) {
       this.style.display = 'none';
@@ -300,36 +456,175 @@ class GlassTitleCard extends BaseCard {
     }
     this.style.display = '';
 
-    const hasMode = !!this._titleConfig.mode_entity;
-    const activeMode = hasMode ? this._getActiveMode() : null;
-    const colorKey = activeMode?.color ?? 'neutral';
-    const colors = resolveColor(colorKey);
+    const source = this._getSource();
 
     return html`
       <div class="title-card">
         <div class="title-text">${title}</div>
-        ${hasMode ? html`
-          <button
-            class="mode-row"
-            @click=${() => this._cycleMode()}
-            aria-label=${t('title_card.cycle_aria')}
-          >
-            <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
-            ${activeMode?.icon ? html`
-              <span class="mode-icon">
-                <ha-icon .icon=${activeMode.icon}></ha-icon>
-              </span>
-            ` : nothing}
-            <span class="mode-label">${this._titleConfig.mode_entity?.startsWith('scene.') ? t('title_card.scene_label') : t('title_card.mode_label')}</span>
-            <span class="mode-value ${this._cycling ? 'cycling' : ''}" style="color:${colors.text};">
-              ${activeMode?.label ?? t('title_card.mode_none')}
-            </span>
-            <span class="mode-chevron">
-              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-            </span>
-          </button>
-        ` : nothing}
+        ${source === 'input_select' ? this._renderDropdown() : nothing}
+        ${source === 'scenes' ? this._renderScenes() : nothing}
+        ${source === 'booleans' ? this._renderBooleans() : nothing}
       </div>
+    `;
+  }
+
+  // — input_select → Dropdown —
+
+  private _renderDropdown(): TemplateResult | typeof nothing {
+    const active = this._getInputSelectActive();
+    if (!active) return nothing;
+    const colors = resolveColor(active.color);
+
+    return html`
+      <div class="dropdown ${this._dropdownOpen ? 'open' : ''}">
+        <button
+          class="dropdown-trigger"
+          @click=${(e: Event) => this._toggleDropdown(e)}
+          aria-haspopup="listbox"
+          aria-expanded=${this._dropdownOpen ? 'true' : 'false'}
+          style="color:${colors.text};border-color:${active.color !== 'neutral' ? colors.dot : 'var(--b2)'};"
+        >
+          <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
+          ${active.icon ? html`<ha-icon .icon=${active.icon}></ha-icon>` : nothing}
+          <span>${active.label}</span>
+          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+        </button>
+        <div class="dropdown-menu" role="listbox">
+          ${this._titleConfig.modes.map((mode) => {
+            const isActive = mode.id === active.id;
+            const mc = resolveColor(mode.color || 'neutral');
+            return html`
+              <button
+                class="dropdown-item ${isActive ? 'active' : ''}"
+                role="option"
+                aria-selected=${isActive ? 'true' : 'false'}
+                style="${isActive ? `color:${mc.text}` : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); this._selectOption(mode.id); }}
+              >
+                <span class="item-dot"></span>
+                ${mode.icon ? html`<ha-icon .icon=${mode.icon}></ha-icon>` : nothing}
+                <span>${mode.label || mode.id}</span>
+              </button>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+
+  // — scenes → Mode row + fold + chips —
+
+  private _renderScenes(): TemplateResult | typeof nothing {
+    const modes = this._titleConfig.modes;
+    if (modes.length === 0) return nothing;
+
+    const activeScene = this._getScenesActive();
+    const colorKey = activeScene?.color ?? 'neutral';
+    const colors = resolveColor(colorKey);
+    const sceneCount = modes.length;
+    const label = sceneCount <= 1 ? t('title_card.scene_label') : t('title_card.scenes_label');
+
+    return html`
+      <button
+        class="mode-row"
+        @click=${() => this._toggleFold()}
+        aria-label=${t('title_card.toggle_scenes_aria')}
+        aria-expanded=${this._foldOpen ? 'true' : 'false'}
+      >
+        <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
+        ${activeScene?.icon ? html`
+          <span class="mode-icon"><ha-icon .icon=${activeScene.icon} style="color:${colors.text};"></ha-icon></span>
+        ` : nothing}
+        <span class="mode-label">${label}</span>
+        <span class="mode-value" style="color:${colors.text};">
+          ${activeScene?.label ?? t('title_card.scene_none')}
+        </span>
+        <span class="mode-chevron ${this._foldOpen ? 'rotated' : ''}">
+          <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
+        </span>
+      </button>
+      <div class="fold-sep ${this._foldOpen ? 'visible' : ''}"></div>
+      <div class="fold ${this._foldOpen ? 'open' : ''}">
+        <div class="fold-inner">
+          <div class="chips-row">
+            ${modes.map((mode) => {
+              const isActive = activeScene?.id === mode.id;
+              const mc = resolveColor(mode.color || 'accent');
+              return html`
+                <button
+                  class="chip"
+                  data-id=${mode.id}
+                  style="${isActive ? `color:${mc.text};background:${mode.color !== 'neutral' ? mc.dot + '14' : 'var(--s4)'};border-color:${mc.dot}33;` : ''}"
+                  aria-label=${t('title_card.activate_scene_aria', { name: mode.label || mode.id })}
+                  @click=${(e: Event) => { e.stopPropagation(); this._activateScene(mode.id); }}
+                >
+                  ${mode.icon ? html`<ha-icon .icon=${mode.icon} style="${isActive ? `filter:drop-shadow(0 0 3px ${mc.glow})` : ''}"></ha-icon>` : nothing}
+                  ${mode.label || mode.id.split('.')[1] || mode.id}
+                </button>
+              `;
+            })}
+          </div>
+        </div>
+      </div>
+      <div class="fold-sep ${this._foldOpen ? 'visible' : ''}"></div>
+    `;
+  }
+
+  // — booleans → Mode row + fold + toggle chips —
+
+  private _renderBooleans(): TemplateResult | typeof nothing {
+    const modes = this._titleConfig.modes;
+    if (modes.length === 0) return nothing;
+
+    const activeSummary = this._getBooleansActive();
+    const colorKey = activeSummary?.color ?? 'neutral';
+    const colors = resolveColor(colorKey);
+
+    return html`
+      <button
+        class="mode-row"
+        @click=${() => this._toggleFold()}
+        aria-label=${t('title_card.toggle_modes_aria')}
+        aria-expanded=${this._foldOpen ? 'true' : 'false'}
+      >
+        <div class="mode-dot" style="background:${colors.dot};box-shadow:0 0 6px ${colors.glow};"></div>
+        ${activeSummary?.icon ? html`
+          <span class="mode-icon"><ha-icon .icon=${activeSummary.icon} style="color:${colors.text};"></ha-icon></span>
+        ` : nothing}
+        <span class="mode-label">${t('title_card.mode_label')}</span>
+        <span class="mode-value" style="color:${colors.text};">
+          ${activeSummary?.label ?? t('title_card.mode_none')}
+        </span>
+        <span class="mode-chevron ${this._foldOpen ? 'rotated' : ''}">
+          <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
+        </span>
+      </button>
+      <div class="fold-sep ${this._foldOpen ? 'visible' : ''}"></div>
+      <div class="fold ${this._foldOpen ? 'open' : ''}">
+        <div class="fold-inner">
+          <div class="chips-row">
+            ${modes.map((mode) => {
+              const entity = this.hass?.states[mode.id];
+              const isOn = entity?.state === 'on';
+              const mc = resolveColor(mode.color || 'success');
+              return html`
+                <button
+                  class="chip"
+                  data-id=${mode.id}
+                  style="${isOn ? `color:${mc.text};background:${mc.dot}14;border-color:${mc.dot}33;` : ''}"
+                  aria-pressed=${isOn ? 'true' : 'false'}
+                  aria-label=${t('title_card.toggle_bool_aria', { name: mode.label || mode.id })}
+                  @click=${(e: Event) => { e.stopPropagation(); this._toggleBoolean(mode.id); }}
+                >
+                  ${mode.icon ? html`<ha-icon .icon=${mode.icon} style="${isOn ? `filter:drop-shadow(0 0 3px ${mc.glow})` : ''}"></ha-icon>` : nothing}
+                  ${mode.label || mode.id.split('.')[1] || mode.id}
+                </button>
+              `;
+            })}
+          </div>
+        </div>
+      </div>
+      <div class="fold-sep ${this._foldOpen ? 'visible' : ''}"></div>
     `;
   }
 }

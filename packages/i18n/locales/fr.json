@@ -113,8 +113,15 @@
   "title_card": {
     "mode_label": "Mode :",
     "scene_label": "Scène :",
+    "scenes_label": "Scènes :",
     "mode_none": "Aucun",
-    "cycle_aria": "Changer de mode"
+    "scene_none": "Aucune",
+    "active_count": "{count} actifs",
+    "cycle_aria": "Changer de mode",
+    "toggle_scenes_aria": "Afficher les scènes",
+    "toggle_modes_aria": "Afficher les modes",
+    "activate_scene_aria": "Activer la scène {name}",
+    "toggle_bool_aria": "Basculer {name}"
   },
 
   "spotify": {
@@ -329,9 +336,18 @@
     "title_title": "Texte du titre",
     "title_title_desc": "Texte principal affiché sur la carte.",
     "title_title_placeholder": "Ma Maison",
+    "title_mode_source": "Type de source",
+    "title_mode_source_desc": "Choisissez le type d'entité pour les modes.",
+    "title_source_none": "Aucun",
+    "title_source_input_select": "Sélecteur",
+    "title_source_scenes": "Scènes",
+    "title_source_booleans": "Toggles",
     "title_mode_entity": "Entité mode",
-    "title_mode_entity_desc": "Sélectionnez un input_select, input_boolean ou une scène pour les modes.",
+    "title_mode_entity_desc": "Sélectionnez l'entité input_select pour les modes.",
+    "title_add_entity": "Ajouter une entité",
+    "title_add_entity_desc": "Ajoutez des entités pour les modes.",
     "title_select_entity": "Sélectionnez une entité",
+    "title_remove_entity": "Retirer",
     "title_modes": "Configuration des modes",
     "title_modes_desc": "Personnalisez le libellé, l'icône et la couleur de chaque mode.",
     "title_mode_label": "Libellé",

@@ -27,6 +27,7 @@ from .models import (
     VALID_DASHBOARD_CARDS,
     VALID_MEDIA_VARIANTS,
     VALID_MODE_COLORS,
+    VALID_MODE_SOURCES,
     VALID_SORT_ORDERS,
     VALID_WEATHER_METRICS,
 )
@@ -392,6 +393,7 @@ async def ws_set_cover_config(
         vol.Optional("mode_entity"): vol.Any(
             None, "", vol.All(str, vol.Match(r"^[a-z_]+\.[a-z0-9_]+$"))
         ),
+        vol.Optional("mode_source"): vol.In(list(VALID_MODE_SOURCES)),
         vol.Optional("modes"): [
             {
                 vol.Required("id"): str,
@@ -421,6 +423,8 @@ async def ws_set_title_config(
         store.data.title_card.title = msg["title"]
     if "mode_entity" in msg:
         store.data.title_card.mode_entity = msg["mode_entity"] or ""
+    if "mode_source" in msg:
+        store.data.title_card.mode_source = msg["mode_source"] or ""
     if "modes" in msg:
         store.data.title_card.modes = [
             TitleModeEntry.from_dict(m) for m in msg["modes"]

@@ -145,9 +145,12 @@ export class GlassConfigPanel extends LitElement {
   // Title card config
   @state() private _titleText = '';
   @state() private _titleModeEntity = '';
+  @state() private _titleModeSource: '' | 'input_select' | 'scenes' | 'booleans' = '';
   @state() private _titleModes: { id: string; label: string; icon: string; color: string }[] = [];
   @state() private _titleModeDropdownOpen = false;
+  @state() private _titleAddEntityDropdownOpen = false;
   private _titleModeEntitySearch = '';
+  private _titleAddEntitySearch = '';
   @state() private _iconPopupModeIdx: number | null = null;
   @state() private _iconSearch = '';
   private _iconList: string[] = [];
@@ -1638,6 +1641,12 @@ export class GlassConfigPanel extends LitElement {
         display: flex; flex-direction: column; gap: 8px;
         padding: 12px; border-radius: var(--radius-md);
         background: var(--s1); border: 1px solid var(--b1);
+      }
+      .title-source-chips {
+        display: flex; flex-wrap: wrap; gap: 6px;
+      }
+      .title-mode-header {
+        display: flex; align-items: center; justify-content: space-between;
       }
       .title-mode-id {
         font-size: 10px; font-weight: 700; color: var(--t3);
@@ -3173,7 +3182,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleModeDropdownOpen && !this._coverRoomDropdownOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleModeDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -3185,6 +3194,7 @@ export class GlassConfigPanel extends LitElement {
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
     this._titleModeDropdownOpen = false;
+    this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
   }
 
@@ -3290,6 +3300,7 @@ export class GlassConfigPanel extends LitElement {
     let titleCardConfig = {
       title: '',
       mode_entity: '',
+      mode_source: '',
       modes: [] as { id: string; label: string; icon: string; color: string }[],
     };
     let coverCardConfig = {
@@ -3367,6 +3378,7 @@ export class GlassConfigPanel extends LitElement {
 
     this._titleText = titleCardConfig.title ?? '';
     this._titleModeEntity = titleCardConfig.mode_entity ?? '';
+    this._titleModeSource = (titleCardConfig.mode_source ?? '') as '' | 'input_select' | 'scenes' | 'booleans';
     this._titleModes = titleCardConfig.modes ?? [];
 
     this._coverShowHeader = coverCardConfig.show_header ?? true;
@@ -3596,6 +3608,7 @@ export class GlassConfigPanel extends LitElement {
     this._lightDropdownOpen = false;
     this._weatherDropdownOpen = false;
     this._titleModeDropdownOpen = false;
+    this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
@@ -7658,6 +7671,7 @@ export class GlassConfigPanel extends LitElement {
       await this._backend.send('set_title_config', {
         title: this._titleText,
         mode_entity: this._titleModeEntity || null,
+        mode_source: this._titleModeSource || '',
         modes: this._titleModes,
       });
       if (!this._mounted) return;
@@ -7674,20 +7688,29 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        title_card: { title: string; mode_entity: string; modes: { id: string; label: string; icon: string; color: string }[] };
+        title_card: { title: string; mode_entity: string; mode_source: string; modes: { id: string; label: string; icon: string; color: string }[] };
       }>('get_config');
       if (result?.title_card) {
         this._titleText = result.title_card.title ?? '';
         this._titleModeEntity = result.title_card.mode_entity ?? '';
+        this._titleModeSource = (result.title_card.mode_source ?? '') as '' | 'input_select' | 'scenes' | 'booleans';
         this._titleModes = result.title_card.modes ?? [];
       }
     } catch { /* ignore */ }
   }
 
+  private _selectTitleModeSource(source: '' | 'input_select' | 'scenes' | 'booleans') {
+    this._titleModeSource = source;
+    this._titleModeEntity = '';
+    this._titleModes = [];
+    this._titleModeDropdownOpen = false;
+    this._titleAddEntityDropdownOpen = false;
+  }
+
   private _selectTitleModeEntity(entityId: string) {
     this._titleModeEntity = entityId;
     this._titleModeDropdownOpen = false;
-    // Auto-populate modes from input_select options or scene entity
+    // Auto-populate modes from input_select options
     if (entityId.startsWith('input_select.') && this.hass) {
       const entity = this.hass.states[entityId];
       if (entity) {
@@ -7695,21 +7718,24 @@ export class GlassConfigPanel extends LitElement {
         const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
         this._titleModes = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
       }
-    } else if (entityId.startsWith('input_boolean.') && this.hass) {
-      const suffix = entityId.split('.')[1] ?? entityId;
-      const entity = this.hass.states[entityId];
-      const name = (entity?.attributes.friendly_name as string | undefined) || suffix;
-      const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
-      this._titleModes = [existingMap.get(suffix) ?? { id: suffix, label: name, icon: 'mdi:toggle-switch', color: 'success' }];
-    } else if (entityId.startsWith('scene.') && this.hass) {
-      const suffix = entityId.split('.')[1] ?? entityId;
-      const entity = this.hass.states[entityId];
-      const name = (entity?.attributes.friendly_name as string | undefined) || suffix;
-      const existingMap = new Map(this._titleModes.map((m) => [m.id, m]));
-      this._titleModes = [existingMap.get(suffix) ?? { id: suffix, label: name, icon: 'mdi:palette', color: 'accent' }];
     } else if (!entityId) {
       this._titleModes = [];
     }
+  }
+
+  private _addTitleModeEntity(entityId: string) {
+    this._titleAddEntityDropdownOpen = false;
+    // Don't add duplicates
+    if (this._titleModes.some((m) => m.id === entityId)) return;
+    const entity = this.hass?.states[entityId];
+    const name = (entity?.attributes.friendly_name as string | undefined) || entityId.split('.')[1] || entityId;
+    const defaultIcon = entityId.startsWith('scene.') ? 'mdi:palette' : 'mdi:toggle-switch';
+    const defaultColor = entityId.startsWith('scene.') ? 'accent' : 'success';
+    this._titleModes = [...this._titleModes, { id: entityId, label: name, icon: defaultIcon, color: defaultColor }];
+  }
+
+  private _removeTitleModeEntity(entityId: string) {
+    this._titleModes = this._titleModes.filter((m) => m.id !== entityId);
   }
 
   private _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) {
@@ -7816,33 +7842,6 @@ export class GlassConfigPanel extends LitElement {
       return html`<div class="preview-empty">${t('config.title_title_placeholder')}</div>`;
     }
 
-    // Get active mode if entity is configured
-    let activeLabel = '';
-    let activeIcon = '';
-    let activeColor = 'neutral';
-    if (this._titleModeEntity && this.hass) {
-      const entity = this.hass.states[this._titleModeEntity];
-      if (entity && this._titleModeEntity.startsWith('input_select.')) {
-        const currentOption = entity.state;
-        const modeConfig = this._titleModes.find((m) => m.id === currentOption);
-        activeLabel = modeConfig?.label || currentOption;
-        activeIcon = modeConfig?.icon || '';
-        activeColor = modeConfig?.color || 'neutral';
-      } else if (entity && this._titleModeEntity.startsWith('input_boolean.')) {
-        const suffix = this._titleModeEntity.split('.')[1] ?? this._titleModeEntity;
-        const modeConfig = this._titleModes.find((m) => m.id === suffix);
-        activeLabel = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
-        activeIcon = modeConfig?.icon || '';
-        activeColor = entity.state === 'on' ? (modeConfig?.color || 'success') : 'neutral';
-      } else if (entity && this._titleModeEntity.startsWith('scene.')) {
-        const suffix = this._titleModeEntity.split('.')[1] ?? this._titleModeEntity;
-        const modeConfig = this._titleModes.find((m) => m.id === suffix);
-        activeLabel = modeConfig?.label || (entity.attributes.friendly_name as string | undefined) || suffix;
-        activeIcon = modeConfig?.icon || '';
-        activeColor = modeConfig?.color || 'accent';
-      }
-    }
-
     const COLOR_MAP: Record<string, string> = {
       success: 'var(--c-success)', warning: 'var(--c-warning)',
       info: 'var(--c-info)', accent: 'var(--c-accent)',
@@ -7853,17 +7852,61 @@ export class GlassConfigPanel extends LitElement {
       info: 'var(--c-info)', accent: 'var(--c-accent)',
       alert: 'var(--c-alert)', neutral: 'var(--t4)',
     };
+    const resolveC = (c: string) => COLOR_MAP[c] ?? (c.startsWith('#') ? c : 'var(--t3)');
+    const resolveD = (c: string) => DOT_MAP[c] ?? (c.startsWith('#') ? c : 'var(--t4)');
+
+    // Determine active mode per source type
+    let activeLabel = '';
+    let activeIcon = '';
+    let activeColor = 'neutral';
+    let modeLabel = t('title_card.mode_label');
+
+    if (this._titleModeSource === 'input_select' && this._titleModeEntity && this.hass) {
+      const entity = this.hass.states[this._titleModeEntity];
+      if (entity) {
+        const currentOption = entity.state;
+        const modeConfig = this._titleModes.find((m) => m.id === currentOption);
+        activeLabel = modeConfig?.label || currentOption;
+        activeIcon = modeConfig?.icon || '';
+        activeColor = modeConfig?.color || 'neutral';
+      }
+    } else if (this._titleModeSource === 'scenes' && this._titleModes.length > 0 && this.hass) {
+      modeLabel = this._titleModes.length <= 1 ? t('title_card.scene_label') : t('title_card.scenes_label');
+      let latest: { mode: { id: string; label: string; icon: string; color: string }; time: string } | null = null;
+      for (const mode of this._titleModes) {
+        const entity = this.hass.states[mode.id];
+        if (!entity) continue;
+        const lc = entity.last_changed ?? entity.last_updated ?? '';
+        if (!latest || lc > latest.time) latest = { mode, time: lc };
+      }
+      if (latest) {
+        activeLabel = latest.mode.label || latest.mode.id.split('.')[1] || latest.mode.id;
+        activeIcon = latest.mode.icon || '';
+        activeColor = latest.mode.color || 'accent';
+      }
+    } else if (this._titleModeSource === 'booleans' && this._titleModes.length > 0 && this.hass) {
+      const active = this._titleModes.filter((m) => this.hass!.states[m.id]?.state === 'on');
+      if (active.length === 1) {
+        activeLabel = active[0].label || active[0].id.split('.')[1] || active[0].id;
+        activeIcon = active[0].icon || '';
+        activeColor = active[0].color || 'success';
+      } else if (active.length > 1) {
+        activeLabel = t('title_card.active_count', { count: active.length });
+        activeIcon = active[0].icon || '';
+        activeColor = active[0].color || 'success';
+      }
+    }
 
     return html`
       <div class="preview-title-card">
         <div class="preview-title-text">${title}</div>
         ${activeLabel ? html`
           <div class="preview-title-mode">
-            <div class="preview-title-dot" style="background:${DOT_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t4)')};"></div>
-            ${activeIcon ? html`<ha-icon .icon=${activeIcon} style="--mdc-icon-size:12px;color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};"></ha-icon>` : nothing}
-            <span style="color:var(--t4);font-size:9px;">${this._titleModeEntity?.startsWith('scene.') ? t('title_card.scene_label') : t('title_card.mode_label')}</span>
-            <span style="color:${COLOR_MAP[activeColor] ?? (activeColor.startsWith('#') ? activeColor : 'var(--t3)')};font-size:9px;font-weight:600;">${activeLabel}</span>
-            <ha-icon .icon=${'mdi:chevron-right'} style="--mdc-icon-size:11px;color:var(--t4);"></ha-icon>
+            <div class="preview-title-dot" style="background:${resolveD(activeColor)};"></div>
+            ${activeIcon ? html`<ha-icon .icon=${activeIcon} style="--mdc-icon-size:12px;color:${resolveC(activeColor)};"></ha-icon>` : nothing}
+            <span style="color:var(--t4);font-size:9px;">${modeLabel}</span>
+            <span style="color:${resolveC(activeColor)};font-size:9px;font-weight:600;">${activeLabel}</span>
+            <ha-icon .icon=${'mdi:chevron-down'} style="--mdc-icon-size:11px;color:var(--t4);"></ha-icon>
           </div>
         ` : nothing}
       </div>
@@ -8033,12 +8076,28 @@ export class GlassConfigPanel extends LitElement {
   }
 
   private _renderTitleTab() {
-    const modeEntities = this.hass
-      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.') || id.startsWith('input_boolean.') || id.startsWith('scene.')).sort()
-      : [];
-    const selectedEntity = modeEntities.find((id) => id === this._titleModeEntity);
-
     const COLORS = ['neutral', 'success', 'warning', 'info', 'accent', 'alert'];
+    const SOURCES: { key: '' | 'input_select' | 'scenes' | 'booleans'; label: string; icon: string }[] = [
+      { key: '', label: t('config.title_source_none'), icon: 'mdi:close' },
+      { key: 'input_select', label: t('config.title_source_input_select'), icon: 'mdi:form-select' },
+      { key: 'scenes', label: t('config.title_source_scenes'), icon: 'mdi:palette' },
+      { key: 'booleans', label: t('config.title_source_booleans'), icon: 'mdi:toggle-switch' },
+    ];
+
+    // Entity lists per source type
+    const inputSelectEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.')).sort()
+      : [];
+    const sceneEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('scene.')).sort()
+      : [];
+    const booleanEntities = this.hass
+      ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_boolean.')).sort()
+      : [];
+
+    const existingIds = new Set(this._titleModes.map((m) => m.id));
+    const addableEntities = (this._titleModeSource === 'scenes' ? sceneEntities : booleanEntities)
+      .filter((id) => !existingIds.has(id));
 
     return html`
       <div class="tab-panel" id="panel-title">
@@ -8054,54 +8113,109 @@ export class GlassConfigPanel extends LitElement {
 
         <div class="title-section-gap"></div>
 
-        <div class="section-label">${t('config.title_mode_entity')}</div>
-        <div class="section-desc">${t('config.title_mode_entity_desc')}</div>
-        <div class="dropdown ${this._titleModeDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { if (!this._titleModeDropdownOpen) this._titleModeEntitySearch = ''; this._titleModeDropdownOpen = !this._titleModeDropdownOpen; }}
-            aria-expanded=${this._titleModeDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${this._titleModeEntity ? 'mdi:form-select' : 'mdi:help-circle-outline'}></ha-icon>
-            <span>${selectedEntity || t('config.title_select_entity')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            <input
-              class="dropdown-search"
-              type="text"
-              placeholder=${t('config.search_entity')}
-              .value=${this._titleModeEntitySearch}
-              @input=${(e: InputEvent) => { this._titleModeEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
-              @click=${(e: Event) => e.stopPropagation()}
-            />
+        <div class="section-label">${t('config.title_mode_source')}</div>
+        <div class="section-desc">${t('config.title_mode_source_desc')}</div>
+        <div class="title-source-chips">
+          ${SOURCES.map((s) => html`
             <button
-              class="dropdown-item ${!this._titleModeEntity ? 'active' : ''}"
-              role="option"
-              aria-selected=${!this._titleModeEntity ? 'true' : 'false'}
-              @click=${() => this._selectTitleModeEntity('')}
+              class="chip ${this._titleModeSource === s.key ? 'active' : ''}"
+              @click=${() => this._selectTitleModeSource(s.key)}
             >
-              <ha-icon .icon=${'mdi:close'}></ha-icon>
-              ${t('title_card.mode_none')}
+              <ha-icon .icon=${s.icon}></ha-icon>
+              ${s.label}
             </button>
-            ${modeEntities
-              .filter((id) => !this._titleModeEntitySearch || id.toLowerCase().includes(this._titleModeEntitySearch.toLowerCase()))
-              .map(
-              (id) => html`
-                <button
-                  class="dropdown-item ${id === this._titleModeEntity ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${id === this._titleModeEntity ? 'true' : 'false'}
-                  @click=${() => this._selectTitleModeEntity(id)}
-                >
-                  <ha-icon .icon=${id.startsWith('scene.') ? 'mdi:palette' : id.startsWith('input_boolean.') ? 'mdi:toggle-switch' : 'mdi:form-select'}></ha-icon>
-                  ${id}
-                </button>
-              `,
-            )}
-          </div>
+          `)}
         </div>
+
+        ${this._titleModeSource === 'input_select' ? html`
+          <div class="title-section-gap"></div>
+          <div class="section-label">${t('config.title_mode_entity')}</div>
+          <div class="section-desc">${t('config.title_mode_entity_desc')}</div>
+          <div class="dropdown ${this._titleModeDropdownOpen ? 'open' : ''}">
+            <button
+              class="dropdown-trigger"
+              @click=${() => { if (!this._titleModeDropdownOpen) this._titleModeEntitySearch = ''; this._titleModeDropdownOpen = !this._titleModeDropdownOpen; }}
+              aria-expanded=${this._titleModeDropdownOpen ? 'true' : 'false'}
+              aria-haspopup="listbox"
+            >
+              <ha-icon .icon=${this._titleModeEntity ? 'mdi:form-select' : 'mdi:help-circle-outline'}></ha-icon>
+              <span>${this._titleModeEntity || t('config.title_select_entity')}</span>
+              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+            </button>
+            <div class="dropdown-menu" role="listbox">
+              <input
+                class="dropdown-search"
+                type="text"
+                placeholder=${t('config.search_entity')}
+                .value=${this._titleModeEntitySearch}
+                @input=${(e: InputEvent) => { this._titleModeEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
+                @click=${(e: Event) => e.stopPropagation()}
+              />
+              <button
+                class="dropdown-item ${!this._titleModeEntity ? 'active' : ''}"
+                role="option"
+                aria-selected=${!this._titleModeEntity ? 'true' : 'false'}
+                @click=${() => this._selectTitleModeEntity('')}
+              >
+                <ha-icon .icon=${'mdi:close'}></ha-icon>
+                ${t('title_card.mode_none')}
+              </button>
+              ${inputSelectEntities
+                .filter((id) => !this._titleModeEntitySearch || id.toLowerCase().includes(this._titleModeEntitySearch.toLowerCase()))
+                .map((id) => html`
+                  <button
+                    class="dropdown-item ${id === this._titleModeEntity ? 'active' : ''}"
+                    role="option"
+                    aria-selected=${id === this._titleModeEntity ? 'true' : 'false'}
+                    @click=${() => this._selectTitleModeEntity(id)}
+                  >
+                    <ha-icon .icon=${'mdi:form-select'}></ha-icon>
+                    ${id}
+                  </button>
+                `)}
+            </div>
+          </div>
+        ` : nothing}
+
+        ${(this._titleModeSource === 'scenes' || this._titleModeSource === 'booleans') ? html`
+          <div class="title-section-gap"></div>
+          <div class="section-label">${t('config.title_add_entity')}</div>
+          <div class="section-desc">${t('config.title_add_entity_desc')}</div>
+          <div class="dropdown ${this._titleAddEntityDropdownOpen ? 'open' : ''}">
+            <button
+              class="dropdown-trigger"
+              @click=${() => { if (!this._titleAddEntityDropdownOpen) this._titleAddEntitySearch = ''; this._titleAddEntityDropdownOpen = !this._titleAddEntityDropdownOpen; }}
+              aria-expanded=${this._titleAddEntityDropdownOpen ? 'true' : 'false'}
+              aria-haspopup="listbox"
+            >
+              <ha-icon .icon=${'mdi:plus'}></ha-icon>
+              <span>${t('config.title_add_entity')}</span>
+              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+            </button>
+            <div class="dropdown-menu" role="listbox">
+              <input
+                class="dropdown-search"
+                type="text"
+                placeholder=${t('config.search_entity')}
+                .value=${this._titleAddEntitySearch}
+                @input=${(e: InputEvent) => { this._titleAddEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
+                @click=${(e: Event) => e.stopPropagation()}
+              />
+              ${addableEntities
+                .filter((id) => !this._titleAddEntitySearch || id.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase()))
+                .map((id) => html`
+                  <button
+                    class="dropdown-item"
+                    role="option"
+                    @click=${() => this._addTitleModeEntity(id)}
+                  >
+                    <ha-icon .icon=${this._titleModeSource === 'scenes' ? 'mdi:palette' : 'mdi:toggle-switch'}></ha-icon>
+                    ${id}
+                  </button>
+                `)}
+            </div>
+          </div>
+        ` : nothing}
 
         ${this._titleModes.length > 0 ? html`
           <div class="title-section-gap"></div>
@@ -8111,7 +8225,18 @@ export class GlassConfigPanel extends LitElement {
           <div class="title-modes-list">
             ${this._titleModes.map((mode, idx) => html`
               <div class="title-mode-row">
-                <span class="title-mode-id">${mode.id}</span>
+                <div class="title-mode-header">
+                  <span class="title-mode-id">${mode.id}</span>
+                  ${(this._titleModeSource === 'scenes' || this._titleModeSource === 'booleans') ? html`
+                    <button
+                      class="btn-icon xs"
+                      @click=${() => this._removeTitleModeEntity(mode.id)}
+                      aria-label=${t('config.title_remove_entity')}
+                    >
+                      <ha-icon .icon=${'mdi:close'}></ha-icon>
+                    </button>
+                  ` : nothing}
+                </div>
                 <div class="title-mode-fields-row">
                   <input
                     class="input"

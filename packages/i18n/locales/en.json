@@ -113,8 +113,15 @@
   "title_card": {
     "mode_label": "Mode:",
     "scene_label": "Scene:",
+    "scenes_label": "Scenes:",
     "mode_none": "None",
-    "cycle_aria": "Change mode"
+    "scene_none": "None",
+    "active_count": "{count} active",
+    "cycle_aria": "Change mode",
+    "toggle_scenes_aria": "Show scenes",
+    "toggle_modes_aria": "Show modes",
+    "activate_scene_aria": "Activate scene {name}",
+    "toggle_bool_aria": "Toggle {name}"
   },
 
   "spotify": {
@@ -329,9 +336,18 @@
     "title_title": "Title text",
     "title_title_desc": "Main text displayed on the card.",
     "title_title_placeholder": "My Home",
+    "title_mode_source": "Source type",
+    "title_mode_source_desc": "Choose the entity type for modes.",
+    "title_source_none": "None",
+    "title_source_input_select": "Selector",
+    "title_source_scenes": "Scenes",
+    "title_source_booleans": "Toggles",
     "title_mode_entity": "Mode entity",
-    "title_mode_entity_desc": "Select an input_select, input_boolean, or scene for modes.",
+    "title_mode_entity_desc": "Select the input_select entity for modes.",
+    "title_add_entity": "Add entity",
+    "title_add_entity_desc": "Add entities for modes.",
     "title_select_entity": "Select an entity",
+    "title_remove_entity": "Remove",
     "title_modes": "Mode configuration",
     "title_modes_desc": "Customize the label, icon and color for each mode option.",
     "title_mode_label": "Label",

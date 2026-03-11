@@ -194,7 +194,7 @@ class GlassCoverCard extends BaseCard {
     }
     .header-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
-    .cover-card { position: relative; padding: 14px; }
+    .cover-card { position: relative; padding: 2px 14px; }
     .card-inner {
       position: relative; z-index: 1;
       display: flex; flex-direction: column; gap: 2px;

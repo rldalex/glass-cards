@@ -22,6 +22,7 @@ VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
 VALID_MODE_COLORS = frozenset(
     {"neutral", "success", "warning", "info", "accent", "alert"}
 )
+VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
@@ -274,6 +275,7 @@ class TitleCardConfig:
 
     title: str = ""
     mode_entity: str = ""
+    mode_source: str = ""
     modes: list[TitleModeEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -281,6 +283,7 @@ class TitleCardConfig:
         return {
             "title": self.title,
             "mode_entity": self.mode_entity,
+            "mode_source": self.mode_source,
             "modes": [m.to_dict() for m in self.modes],
         }
 
@@ -288,9 +291,11 @@ class TitleCardConfig:
     def from_dict(cls, data: dict[str, Any]) -> TitleCardConfig:
         """Deserialize from dict."""
         raw_modes = data.get("modes", [])
+        raw_source = str(data.get("mode_source", ""))
         return cls(
             title=str(data.get("title", "")),
             mode_entity=str(data.get("mode_entity", "")),
+            mode_source=raw_source if raw_source in VALID_MODE_SOURCES else "",
             modes=[
                 TitleModeEntry.from_dict(m)
                 for m in raw_modes
