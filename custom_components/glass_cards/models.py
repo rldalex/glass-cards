@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media", "presence"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -26,7 +26,7 @@ VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "cover", "spotify", "presence"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "fan", "cover", "spotify", "presence"]
 
 
 @dataclass
@@ -371,6 +371,22 @@ class LightCardConfig:
         return cls(show_header=bool(data.get("show_header", True)))
 
 
+@dataclass
+class FanCardConfig:
+    """Configuration for the fan card."""
+
+    show_header: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {"show_header": self.show_header}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> FanCardConfig:
+        """Deserialize from dict."""
+        return cls(show_header=bool(data.get("show_header", True)))
+
+
 DEFAULT_COVER_PRESETS: list[int] = [0, 25, 50, 75, 100]
 
 
@@ -617,6 +633,7 @@ class GlassCardsData:
     rooms: dict[str, RoomConfig] = field(default_factory=dict)
     weather: WeatherConfig = field(default_factory=WeatherConfig)
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
+    fan_card: FanCardConfig = field(default_factory=FanCardConfig)
     cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
@@ -632,6 +649,7 @@ class GlassCardsData:
             "rooms": {k: v.to_dict() for k, v in self.rooms.items()},
             "weather": self.weather.to_dict(),
             "light_card": self.light_card.to_dict(),
+            "fan_card": self.fan_card.to_dict(),
             "cover_card": self.cover_card.to_dict(),
             "title_card": self.title_card.to_dict(),
             "spotify_card": self.spotify_card.to_dict(),
@@ -655,6 +673,7 @@ class GlassCardsData:
             },
             weather=WeatherConfig.from_dict(data.get("weather", {})),
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
+            fan_card=FanCardConfig.from_dict(data.get("fan_card", {})),
             cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
