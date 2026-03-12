@@ -288,6 +288,7 @@ class GlassCameraCarouselCard extends BaseCard {
       this._cachedCamerasKey = '';
       this._configLoaded = false;
       this._liveIds = new Set();
+      this.classList.toggle('in-popup', !!this.areaId);
     }
 
     if (!this._configLoaded && !this._configLoading) {
@@ -824,6 +825,8 @@ class GlassCameraCarouselCard extends BaseCard {
       }
 
       .carousel-card { width: 100%; padding: 14px; position: relative; }
+      :host(.in-popup) .carousel-card { padding: 8px; }
+      :host(.in-popup) .carousel-viewport { aspect-ratio: 16 / 10; }
       .carousel-inner {
         position: relative; z-index: 1;
         display: flex; flex-direction: column; gap: 10px;
