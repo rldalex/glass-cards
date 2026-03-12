@@ -190,7 +190,12 @@
     "no_entity": "Configure the Spotify entity in the configuration panel",
     "open_config": "Open configuration",
     "back": "Back",
-    "toggle_library": "Show library"
+    "toggle_library": "Show library",
+    "save_track": "Save to library",
+    "remove_track": "Remove from library",
+    "saved": "Saved",
+    "not_saved": "Not saved",
+    "items_count": "{current} / {total}"
   },
 
   "media": {
@@ -231,7 +236,15 @@
     "speakers_count": "{count} speakers",
     "prev_room_aria": "Previous room",
     "next_room_aria": "Next room",
-    "room_dot_aria": "Room {index}"
+    "room_dot_aria": "Room {index}",
+    "controls_tab": "Controls",
+    "queue_tab": "Queue",
+    "now_playing_label": "Now playing",
+    "radio_badge": "Radio",
+    "loading_radio": "Loading radio...",
+    "skip_track": "Skip track",
+    "extra_entities": "Extra entities",
+    "add_entity": "Add entity"
   },
 
   "presence": {
