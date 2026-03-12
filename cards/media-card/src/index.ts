@@ -1391,7 +1391,7 @@ export class GlassMediaCard extends BaseCard {
         max-width: 50%;
         opacity: 0; transition: opacity var(--t-fast);
       }
-      .card-source.active { opacity: 1; color: var(--mp-sub); }
+      .card-source.active { opacity: 1; color: rgba(255,255,255,0.6); }
 
       /* ── Swipe slide animation ── */
       @keyframes swipe-exit-l {
@@ -1476,7 +1476,7 @@ export class GlassMediaCard extends BaseCard {
         content: ''; position: absolute;
         width: 280px; height: 280px; border-radius: 50%;
         top: -80px; right: -60px;
-        background: radial-gradient(circle, rgba(129,140,248,0.08), transparent 70%);
+        background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 70%);
       }
       .dash-deco::after {
         content: ''; position: absolute;
@@ -1649,8 +1649,8 @@ export class GlassMediaCard extends BaseCard {
       .dash-progress-fill {
         position: absolute; top: 0; left: 0; height: 100%;
         border-radius: inherit;
-        background: var(--c-accent-dynamic, var(--mp-color));
-        box-shadow: 0 0 8px var(--mp-glow);
+        background: rgba(255,255,255,0.85);
+        box-shadow: 0 0 8px rgba(255,255,255,0.3);
         transition: width 0.3s linear;
         pointer-events: none;
       }
@@ -1672,7 +1672,7 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent;
-        color: rgba(255,255,255,0.7);
+        color: rgba(255,255,255,0.85);
       }
       .transport-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
@@ -1685,9 +1685,9 @@ export class GlassMediaCard extends BaseCard {
       @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
       .transport-btn.active {
-        color: var(--c-accent-dynamic, var(--mp-color));
-        background: color-mix(in srgb, var(--c-accent-dynamic, var(--mp-color)) 12%, transparent);
-        border-color: color-mix(in srgb, var(--c-accent-dynamic, var(--mp-color)) 25%, transparent);
+        color: #fff;
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.25);
       }
 
       .transport-skip { width: 40px; height: 40px; }
@@ -1794,12 +1794,12 @@ export class GlassMediaCard extends BaseCard {
 
       .ctrl-label {
         font-size: 9px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 1px; color: var(--t4); margin-bottom: -4px;
+        letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: -4px;
       }
 
       .dash-fold-sep-top {
         height: 1px; margin: 0 12px;
-        background: linear-gradient(90deg, transparent, var(--mp-border), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
       }
       .dash-fold-panel {
         display: flex; flex-direction: column; gap: 10px;
@@ -1807,7 +1807,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-fold-sep {
         height: 1px; margin: 2px 0;
-        background: linear-gradient(90deg, transparent, var(--mp-border), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
       }
 
       /* ── Volume row ── */
@@ -1818,13 +1818,13 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent; flex-shrink: 0;
-        color: var(--t3);
+        color: rgba(255,255,255,0.85);
       }
       .volume-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 18px;
       }
-      @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: var(--t2); } }
+      @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: #fff; } }
       .volume-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
@@ -1842,7 +1842,7 @@ export class GlassMediaCard extends BaseCard {
         border-radius: inherit; pointer-events: none;
         transition: width var(--t-fast);
       }
-      .slider-fill.accent { background: linear-gradient(90deg, rgba(129,140,248,0.15), rgba(129,140,248,0.25)); }
+      .slider-fill.accent { background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2)); }
       .slider-thumb {
         position: absolute; top: 50%; transform: translate(-50%, -50%);
         width: 8px; height: 20px; border-radius: 4px;
@@ -1851,7 +1851,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .slider-val {
         position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
-        font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
+        font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); pointer-events: none;
       }
 
       /* ── Chips ── */
@@ -1862,7 +1862,7 @@ export class GlassMediaCard extends BaseCard {
         border: 1px solid var(--b2); background: var(--s1);
         font-family: inherit; font-size: 10px; font-weight: 600;
         text-transform: uppercase; letter-spacing: 0.8px;
-        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        color: rgba(255,255,255,0.7); cursor: pointer; transition: all var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .chip ha-icon {
@@ -1870,14 +1870,14 @@ export class GlassMediaCard extends BaseCard {
         --mdc-icon-size: 14px;
       }
       @media (hover: hover) and (pointer: fine) {
-        .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+        .chip:hover { background: var(--s3); color: #fff; border-color: var(--b3); }
       }
       .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
       .chip.active {
-        border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.08);
-        color: rgba(129,140,248,0.8);
+        border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1);
+        color: #fff;
       }
 
       /* ── Multiroom grid ── */
@@ -1891,7 +1891,7 @@ export class GlassMediaCard extends BaseCard {
         transition: all var(--t-fast);
       }
       .mr-cell.joined {
-        background: rgba(129,140,248,0.06); border-color: var(--mp-border);
+        background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15);
       }
       .mr-cell-top {
         display: flex; align-items: center; gap: 6px;
@@ -1903,31 +1903,31 @@ export class GlassMediaCard extends BaseCard {
         cursor: pointer; padding: 0; outline: none;
         transition: all var(--t-fast);
         -webkit-tap-highlight-color: transparent;
-        color: var(--t4);
+        color: rgba(255,255,255,0.6);
       }
       .mr-icon-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 14px;
       }
       @media (hover: hover) and (pointer: fine) {
-        .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
+        .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: #fff; }
       }
       @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
       .mr-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       .mr-cell.joined .mr-icon-btn {
-        background: var(--mp-bg); border-color: var(--mp-border); color: var(--mp-color);
+        background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff;
       }
 
       .mr-info { flex: 1; min-width: 0; }
       .mr-name {
-        font-size: 10px; font-weight: 600; color: var(--t3);
+        font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-      .mr-cell.joined .mr-name { color: var(--t2); }
+      .mr-cell.joined .mr-name { color: #fff; }
       .mr-coordinator {
         font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-        color: var(--mp-sub);
+        color: rgba(255,255,255,0.5);
       }
 
       /* Multiroom volume slider */
@@ -1940,18 +1940,18 @@ export class GlassMediaCard extends BaseCard {
       .mr-vol-fill {
         position: absolute; top: 0; left: 0; height: 100%;
         border-radius: inherit; pointer-events: none;
-        background: linear-gradient(90deg, rgba(129,140,248,0.08), rgba(129,140,248,0.18));
+        background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.12));
         transition: width var(--t-fast);
       }
       .mr-cell.joined .mr-vol-fill {
-        background: linear-gradient(90deg, rgba(129,140,248,0.12), rgba(129,140,248,0.25));
+        background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
       }
       .mr-vol-val {
         position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
-        font-size: 8px; font-weight: 600; color: var(--t4); pointer-events: none;
+        font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.5); pointer-events: none;
         font-variant-numeric: tabular-nums;
       }
-      .mr-cell.joined .mr-vol-val { color: var(--mp-sub); }
+      .mr-cell.joined .mr-vol-val { color: rgba(255,255,255,0.7); }
       .mr-vol-icon {
         position: absolute; top: 0; bottom: 0; left: 6px;
         display: flex; align-items: center;
@@ -1959,9 +1959,9 @@ export class GlassMediaCard extends BaseCard {
       }
       .mr-vol-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 11px; color: var(--t4);
+        --mdc-icon-size: 11px; color: rgba(255,255,255,0.5);
       }
-      .mr-cell.joined .mr-vol-icon ha-icon { color: var(--mp-sub); }
+      .mr-cell.joined .mr-vol-icon ha-icon { color: rgba(255,255,255,0.7); }
 
       /* ── Segmented control ── */
       .segmented {
@@ -1974,16 +1974,16 @@ export class GlassMediaCard extends BaseCard {
         flex: 1;
         padding: 7px 0; border-radius: 9px;
         font-family: inherit; font-size: 11px; font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        color: rgba(255,255,255,0.6); cursor: pointer; transition: all var(--t-fast);
         border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }
       .seg-btn.active {
-        background: var(--s4); color: var(--t1);
+        background: rgba(255,255,255,0.12); color: #fff;
         box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       }
       @media (hover: hover) and (pointer: fine) {
-        .seg-btn:hover:not(.active) { color: var(--t2); }
+        .seg-btn:hover:not(.active) { color: rgba(255,255,255,0.85); }
       }
       .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
@@ -1992,7 +1992,7 @@ export class GlassMediaCard extends BaseCard {
         text-align: center;
         padding: 20px 0;
         font-size: 11px;
-        color: var(--t3);
+        color: rgba(255,255,255,0.6);
         font-weight: 500;
       }
       .queue-list {
@@ -2012,7 +2012,7 @@ export class GlassMediaCard extends BaseCard {
         flex-shrink: 0;
         font-size: 11px;
         font-weight: 500;
-        color: var(--t4);
+        color: rgba(255,255,255,0.5);
         text-align: center;
       }
       .queue-info {
@@ -2025,20 +2025,20 @@ export class GlassMediaCard extends BaseCard {
       .queue-title {
         font-size: 12px;
         font-weight: 500;
-        color: var(--t1);
+        color: #fff;
         overflow: hidden;
         white-space: nowrap;
       }
       .queue-artist {
         font-size: 10px;
-        color: var(--t3);
+        color: rgba(255,255,255,0.6);
       }
       .queue-badge {
         font-size: 9px;
         padding: 1px 5px;
         border-radius: var(--radius-sm);
-        background: var(--s2);
-        color: var(--t2);
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.85);
         flex-shrink: 0;
       }
       .queue-item .btn-icon {
@@ -2047,7 +2047,7 @@ export class GlassMediaCard extends BaseCard {
         background: transparent; border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; padding: 0; outline: none;
-        color: var(--t3); flex-shrink: 0;
+        color: rgba(255,255,255,0.6); flex-shrink: 0;
         transition: color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
@@ -2056,7 +2056,7 @@ export class GlassMediaCard extends BaseCard {
         --mdc-icon-size: 16px;
       }
       @media (hover: hover) and (pointer: fine) {
-        .queue-item .btn-icon:hover { color: var(--t1); }
+        .queue-item .btn-icon:hover { color: #fff; }
       }
       .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       .queue-remove { opacity: 0.4; --mdc-icon-size: 14px; }
