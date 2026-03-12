@@ -7,7 +7,7 @@ import {
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, marqueeMixin, marqueeText, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -130,6 +130,10 @@ export class GlassMediaCard extends BaseCard {
   @state() private _roomIndex = 0;
   private _roomEntityId = '';
   @state() private _swipeClass = '';
+  @state() private _foldTab: 'controls' | 'queue' = 'controls';
+  @state() private _queueData: Array<Record<string, unknown>> = [];
+  @state() private _queueLoading = false;
+  @state() private _radioTracks: Array<{ id: string; name: string; uri: string; artist?: string }> = [];
 
   private _backend?: BackendService;
   private _loadVersion = 0;
@@ -160,6 +164,14 @@ export class GlassMediaCard extends BaseCard {
     });
     this._listen('room-config-changed', () => {
       this._playersCache = null;
+    });
+    this._listen('radio-queue-started', () => { this._radioTracks = []; });
+    this._listen('radio-queue-track-added', (ev) => {
+      this._radioTracks = [...this._radioTracks, ev.track];
+    });
+    this._listen('radio-queue-complete', () => { /* tracks already added */ });
+    this._listen('radio-queue-error', (ev) => {
+      console.warn('Radio queue error:', ev.message);
     });
   }
 
@@ -868,6 +880,23 @@ export class GlassMediaCard extends BaseCard {
   /* ── Render: Fold content ── */
 
   private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
+    const isQueue = this._foldTab === 'queue';
+    return html`
+      <div class="fold-tabs">
+        <button class="fold-tab ${!isQueue ? 'active' : ''}"
+                @click=${() => { this._foldTab = 'controls'; }}>
+          ${t('media.controls_tab')}
+        </button>
+        <button class="fold-tab ${isQueue ? 'active' : ''}"
+                @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
+          ${t('media.queue_tab')}
+        </button>
+      </div>
+      ${isQueue ? this._renderQueueTab() : this._renderControlsTab(master, coordinator, allGroupable)}
+    `;
+  }
+
+  private _renderControlsTab(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     return html`
       <!-- Volume -->
       ${hasFeature(master, F_VOLUME_SET) ? html`
@@ -921,6 +950,67 @@ export class GlassMediaCard extends BaseCard {
       <!-- Multiroom grid (show if any groupable speakers exist) -->
       ${allGroupable.length > 1 ? this._renderMultiroomGrid(coordinator, allGroupable) : nothing}
     `;
+  }
+
+  private async _loadQueue(): Promise<void> {
+    if (this._queueLoading || !this._backend) return;
+    this._queueLoading = true;
+    try {
+      const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>('spotify_queue', {});
+      this._queueData = result?.queue ?? [];
+    } catch { /* silent */ }
+    this._queueLoading = false;
+  }
+
+  private _renderQueueTab(): TemplateResult {
+    if (this._queueLoading) {
+      return html`<div class="queue-loading">${t('media.loading_radio')}</div>`;
+    }
+    const items = this._queueData;
+    if (!items.length && !this._radioTracks.length) {
+      return html`<div class="queue-empty">${t('media.queue_tab')}</div>`;
+    }
+    return html`
+      <div class="queue-list">
+        ${items.map((item: Record<string, unknown>, i: number) => {
+          const uri = item.uri as string | undefined;
+          const name = item.name as string | undefined;
+          const album = item.album as Record<string, unknown> | undefined;
+          const images = album?.images as Array<Record<string, unknown>> | undefined;
+          const artists = item.artists as Array<Record<string, unknown>> | undefined;
+          const isRadio = uri ? this._radioTracks.some(rt => rt.uri === uri) : false;
+          return html`
+            <div class="queue-item ${i === 0 ? 'now-playing' : ''}">
+              <div class="queue-art">
+                ${images?.length
+                  ? html`<img src=${images[images.length - 1].url as string} alt="" loading="lazy" />`
+                  : html`<ha-icon icon="mdi:music-note"></ha-icon>`}
+              </div>
+              <div class="queue-info">
+                <span class="queue-title">${marqueeText(name ?? '', 24)}</span>
+                <span class="queue-artist">${(artists?.[0]?.name as string) ?? ''}</span>
+              </div>
+              ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
+              ${i === 0 ? html`
+                <div class="eq-bars"><span></span><span></span><span></span></div>
+                <button class="btn-icon xs" aria-label="${t('media.skip_track')}"
+                        @click=${() => this._skipToNext()}>
+                  <ha-icon icon="mdi:skip-next"></ha-icon>
+                </button>
+              ` : nothing}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private async _skipToNext(): Promise<void> {
+    const players = this._getPlayers();
+    const master = this._findMaster(players);
+    if (!master) return;
+    await this.hass!.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
+    setTimeout(() => this._loadQueue(), 500);
   }
 
   private _getGroupablePlayers(): MediaPlayerInfo[] {
@@ -1005,7 +1095,10 @@ export class GlassMediaCard extends BaseCard {
   /* ── Render: Idle state ── */
 
   protected _collapseExpanded(): void {
-    if (this._foldOpen) this._foldOpen = false;
+    if (this._foldOpen) {
+      this._foldOpen = false;
+      this._foldTab = 'controls';
+    }
   }
 
   /* ── Main render ── */
@@ -1082,6 +1175,7 @@ export class GlassMediaCard extends BaseCard {
     glassMixin,
     marqueeMixin,
     bounceMixin,
+    eqMixin,
     css`
       :host {
         display: block;
@@ -1678,6 +1772,119 @@ export class GlassMediaCard extends BaseCard {
         --mdc-icon-size: 11px; color: var(--t4);
       }
       .mr-cell.joined .mr-vol-icon ha-icon { color: var(--mp-sub); }
+
+      /* ── Fold tabs ── */
+      .fold-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 4px 0 8px;
+        border-bottom: 1px solid var(--b1);
+        margin-bottom: 8px;
+      }
+      .fold-tab {
+        flex: 1;
+        padding: 6px 0;
+        border: none;
+        background: transparent;
+        color: var(--t2);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color var(--t-fast), border-color var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fold-tab.active {
+        color: var(--t1);
+        border-bottom-color: var(--c-accent-dynamic, var(--c-accent));
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .fold-tab:hover { color: var(--t1); }
+      }
+      .fold-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+      /* ── Queue tab ── */
+      .queue-loading, .queue-empty {
+        text-align: center;
+        padding: 20px 0;
+        font-size: 11px;
+        color: var(--t3);
+        font-weight: 500;
+      }
+      .queue-list {
+        max-height: 280px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .queue-list::-webkit-scrollbar { display: none; }
+      .queue-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 4px;
+      }
+      .queue-item.now-playing {
+        background: color-mix(in srgb, var(--c-accent-dynamic, var(--c-accent)) 8%, transparent);
+        border-radius: var(--radius-sm);
+      }
+      .queue-art {
+        width: 32px; height: 32px;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .queue-art img { width: 100%; height: 100%; object-fit: cover; }
+      .queue-art ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 16px; color: var(--t4);
+      }
+      .queue-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .queue-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--t1);
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .queue-artist {
+        font-size: 10px;
+        color: var(--t3);
+      }
+      .queue-badge {
+        font-size: 9px;
+        padding: 1px 5px;
+        border-radius: var(--radius-sm);
+        background: var(--s2);
+        color: var(--t2);
+        flex-shrink: 0;
+      }
+      .queue-item .btn-icon {
+        width: 24px; height: 24px;
+        border-radius: var(--radius-sm);
+        background: transparent; border: none;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; padding: 0; outline: none;
+        color: var(--t3); flex-shrink: 0;
+        transition: color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .queue-item .btn-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 16px;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .queue-item .btn-icon:hover { color: var(--t1); }
+      }
+      .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
     `,
   ];
 }
