@@ -42,17 +42,26 @@ const AI_ICONS: Record<string, string> = {
 
 // — Companion entity patterns (Reolink-style) —
 
+// Patterns support both EN (Reolink EN) and FR (Reolink FR) entity names
 const COMPANION_PATTERNS = {
-  motion: /_motion$/,
-  record: /_record$/,
+  motion: /_(motion|mouvement)$/,
+  record: /_(record|enregistrer)$/,
   siren: /^siren\./,
-  floodlight: /_floodlight$/,
-  auto_tracking: /_auto_tracking$/,
+  floodlight: /_(floodlight|projecteur)$/,
+  auto_tracking: /_(auto_tracking|suivi_automatique)$/,
 } as const;
 
-const AI_PATTERNS = [
-  'person', 'vehicle', 'pet', 'animal', 'face', 'package', 'baby_crying', 'bicycle',
-] as const;
+// AI detection: [regex on entity_id, canonical name]
+const AI_DETECTION: [RegExp, string][] = [
+  [/_person(ne)?$/, 'person'],
+  [/_vehicu?le$/, 'vehicle'],
+  [/_pet$|_animal_domestique$/, 'pet'],
+  [/_animal$/, 'animal'],
+  [/_face$|_visage$/, 'face'],
+  [/_package$|_colis$/, 'package'],
+  [/_baby_crying$|_pleur_bebe$/, 'baby_crying'],
+  [/_bicycl?e$|_velo$/, 'bicycle'],
+];
 
 // — Interfaces —
 
@@ -158,9 +167,11 @@ function discoverCompanions(
     if (eid.startsWith('switch.') && COMPANION_PATTERNS.auto_tracking.test(eid)) {
       result.autoTrackId = eid;
     }
-    for (const aiType of AI_PATTERNS) {
-      if (eid.startsWith('binary_sensor.') && eid.includes(`_${aiType}`) && st.state === 'on') {
-        result.aiDetected.push(aiType);
+    if (eid.startsWith('binary_sensor.') && st.state === 'on') {
+      for (const [pattern, name] of AI_DETECTION) {
+        if (pattern.test(eid) && !result.aiDetected.includes(name)) {
+          result.aiDetected.push(name);
+        }
       }
     }
   }
@@ -490,6 +501,12 @@ class GlassCameraCarouselCard extends BaseCard {
     this.hass.callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.floodlightId });
   }
 
+  private _toggleAutoTrack(cam: CameraInfo) {
+    if (!this.hass || !cam.autoTrackId) return;
+    const isOn = this.hass.states[cam.autoTrackId]?.state === 'on';
+    this.hass.callService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.autoTrackId });
+  }
+
   private _startStream(entityId: string) {
     const next = new Set(this._liveIds);
     next.add(entityId);
@@ -685,6 +702,7 @@ class GlassCameraCarouselCard extends BaseCard {
     const hasPower = (cam.features & F.ON_OFF) !== 0;
     const sirenOn = cam.sirenId ? this.hass?.states[cam.sirenId]?.state === 'on' : false;
     const floodOn = cam.floodlightId ? this.hass?.states[cam.floodlightId]?.state === 'on' : false;
+    const autoTrackOn = cam.autoTrackId ? this.hass?.states[cam.autoTrackId]?.state === 'on' : false;
 
     return html`
       <div class="carousel-actions">
@@ -720,6 +738,12 @@ class GlassCameraCarouselCard extends BaseCard {
           <button class="action-btn ${floodOn ? 'active-warning' : ''}" @click=${() => this._toggleFloodlight(cam)}
             aria-label="${t('camera.floodlight_aria')}">
             <ha-icon .icon=${floodOn ? 'mdi:flashlight' : 'mdi:flashlight-off'} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        ` : nothing}
+        ${cam.autoTrackId ? html`
+          <button class="action-btn ${autoTrackOn ? 'active' : ''}" @click=${() => this._toggleAutoTrack(cam)}
+            aria-label="${t('camera.auto_track_aria')}">
+            <ha-icon .icon=${'mdi:target-account'} style="--mdc-icon-size:14px"></ha-icon>
           </button>
         ` : nothing}
       </div>
