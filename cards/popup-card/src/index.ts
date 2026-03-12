@@ -449,7 +449,55 @@ export class GlassRoomPopup extends LitElement {
   }
 
   private _handleOpen(payload: { areaId: string; originRect?: DOMRect; roomIndex?: number }) {
-    // If a swipe animation is in progress, queue it for after the animation
+    // Case 1: Room switch while popup is already open → directional swipe animation
+    if (
+      this._open &&
+      this._areaId &&
+      this._areaId !== payload.areaId &&
+      payload.roomIndex !== undefined &&
+      this._currentRoomIndex !== undefined
+    ) {
+      // Queue the swipe if an animation is already in progress
+      if (this._swipeAnimating) {
+        this._pendingSwipe = payload;
+        return;
+      }
+      const direction = payload.roomIndex > this._currentRoomIndex ? 'left' : 'right';
+      this._swipeAnimating = true;
+      this._swipeClass = direction === 'left' ? 'swipe-exit-left' : 'swipe-exit-right';
+
+      // Cancel stale peek timeout before swapping rooms
+      if (this._peekTimeout !== undefined) {
+        clearTimeout(this._peekTimeout);
+        this._peekTimeout = undefined;
+      }
+
+      this._swipeAnimTimer = setTimeout(() => {
+        this._swipeAnimTimer = undefined;
+        this._areaId = payload.areaId;
+        this._currentRoomIndex = payload.roomIndex;
+        this._scenesOpen = false;
+        this._activeSceneId = null;
+        this._loadRoomConfig(payload.areaId);
+        this._swipeClass = direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left';
+
+        this._swipeAnimTimer = setTimeout(() => {
+          this._swipeAnimTimer = undefined;
+          this._swipeClass = '';
+          this._swipeAnimating = false;
+          // Process any queued swipe
+          if (this._pendingSwipe) {
+            const pending = this._pendingSwipe;
+            this._pendingSwipe = undefined;
+            this._handleOpen(pending);
+          }
+        }, 220);
+      }, 180);
+      return;
+    }
+
+    // Case 2: Initial open (or same room) → existing behavior
+    // If a swipe animation is in progress, queue it
     if (this._swipeAnimating) {
       this._pendingSwipe = payload;
       return;
