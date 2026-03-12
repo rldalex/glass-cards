@@ -191,6 +191,8 @@ export class GlassMediaCard extends BaseCard {
     this._samplingCtx = undefined;
     delete this.dataset.bgLight;
     this.style.removeProperty('--c-accent-dynamic');
+    this._pendingUnjoinUnsub?.then(u => u());
+    this._pendingUnjoinUnsub = undefined;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -477,6 +479,34 @@ export class GlassMediaCard extends BaseCard {
     this._callService(memberId, 'unjoin');
   }
 
+  private _pendingUnjoinUnsub?: Promise<() => void>;
+
+  /** Wait for a speaker to leave its group via state_changed event, with timeout fallback. */
+  private async _waitForUnjoin(entityId: string, timeout = 3000): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      let resolved = false;
+      const cleanup = () => {
+        if (resolved) return;
+        resolved = true;
+        this._pendingUnjoinUnsub?.then(u => u());
+        this._pendingUnjoinUnsub = undefined;
+        clearTimeout(timer);
+      };
+
+      this._pendingUnjoinUnsub = this.hass!.connection.subscribeEvents((ev: { data: { entity_id?: string; new_state?: { attributes?: { group_members?: string[] } } } }) => {
+        if (ev.data.entity_id === entityId) {
+          const members = ev.data.new_state?.attributes?.group_members;
+          if (!members || members.length <= 1) {
+            cleanup();
+            resolve(true);
+          }
+        }
+      }, 'state_changed');
+
+      const timer = setTimeout(() => { cleanup(); resolve(false); }, timeout);
+    });
+  }
+
   /** Unjoin speaker from any existing group first, then join to our coordinator */
   private async _smartJoin(coordinatorId: string, speakerId: string): Promise<void> {
     if (!this.hass) return;
@@ -486,8 +516,8 @@ export class GlassMediaCard extends BaseCard {
     // If speaker is in an existing group (not alone), unjoin first
     if (members && members.length > 1) {
       this._unjoinGroup(speakerId);
-      // Small delay for unjoin to propagate before joining new group
-      await new Promise((r) => setTimeout(r, 500));
+      // Wait for state_changed confirming unjoin, with timeout fallback
+      await this._waitForUnjoin(speakerId);
       if (!this.isConnected || !this.hass) return;
     }
     this._joinGroup(coordinatorId, speakerId);

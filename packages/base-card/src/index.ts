@@ -20,6 +20,10 @@ export interface HassConnection {
     callback: (msg: T) => void,
     msg: Record<string, unknown>,
   ): Promise<() => void>;
+  subscribeEvents<T>(
+    callback: (msg: T) => void,
+    eventType?: string,
+  ): Promise<() => void>;
 }
 
 export interface HassUser {
