@@ -79,6 +79,11 @@ class TestSpotifyNotConfigured:
 class TestSpotifyRequest:
     """Tests for the low-level spotify_request function."""
 
+    def setup_method(self):
+        import custom_components.glass_cards.spotify_api as api
+        api._rate_limit_until = 0.0
+        api._request_timestamps.clear()
+
     @pytest.mark.asyncio
     async def test_rate_limit_429(self, mock_hass):
         """429 should raise SpotifyAPIError with retry_after."""
@@ -390,6 +395,51 @@ class TestSpotifyPlaylistSort:
             )
             assert result["items"] == []
             assert result["total"] == 0
+
+
+class TestRateLimiter:
+    """Tests for proactive rate limiting in spotify_request."""
+
+    def setup_method(self):
+        import custom_components.glass_cards.spotify_api as api
+        api._rate_limit_until = 0.0
+        api._request_timestamps.clear()
+
+    @pytest.mark.asyncio
+    async def test_proactive_rate_limit(self, mock_hass):
+        """Should raise SpotifyAPIError when sliding window is exceeded."""
+        import custom_components.glass_cards.spotify_api as api
+        import time
+        now = time.time()
+        api._request_timestamps.extend([now - i * 0.5 for i in range(26)])
+        with pytest.raises(SpotifyAPIError, match="Rate limit"):
+            await spotify_request(mock_hass, "GET", "/me/playlists")
+
+    @pytest.mark.asyncio
+    async def test_global_backoff_blocks(self, mock_hass):
+        """Should raise SpotifyAPIError when global backoff is active."""
+        import custom_components.glass_cards.spotify_api as api
+        import time
+        api._rate_limit_until = time.time() + 60
+        with pytest.raises(SpotifyAPIError, match="Rate limited"):
+            await spotify_request(mock_hass, "GET", "/me/playlists")
+
+    @pytest.mark.asyncio
+    async def test_429_sets_global_backoff(self, mock_hass):
+        """A 429 response should set _rate_limit_until."""
+        import custom_components.glass_cards.spotify_api as api
+        import time
+        mock_resp = _make_mock_response(429, headers={"Retry-After": "30"})
+        mock_session = MagicMock()
+        mock_session.request = MagicMock(return_value=mock_resp)
+        before = time.time()
+        with (
+            patch("custom_components.glass_cards.spotify_api._get_spotify_token", return_value="token"),
+            patch("homeassistant.helpers.aiohttp_client.async_get_clientsession", return_value=mock_session),
+        ):
+            with pytest.raises(SpotifyAPIError):
+                await spotify_request(mock_hass, "GET", "/test")
+        assert api._rate_limit_until >= before + 30
 
 
 class TestSpotifyRecommendations:

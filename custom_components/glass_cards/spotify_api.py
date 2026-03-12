@@ -7,6 +7,8 @@ to call the Spotify Web API directly for search, browse, and queue.
 from __future__ import annotations
 
 import logging
+import time
+from collections import deque
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import HomeAssistantError
@@ -18,6 +20,10 @@ _LOGGER = logging.getLogger(__name__)
 
 SPOTIFY_API_BASE = "https://api.spotify.com/v1"
 SPOTIFY_DOMAIN = "spotify"
+
+# Module-level rate-limit state (shared across all calls in the process)
+_rate_limit_until: float = 0.0
+_request_timestamps: deque[float] = deque()
 
 
 class SpotifyNotConfiguredError(HomeAssistantError):
@@ -72,6 +78,31 @@ async def spotify_request(
     json_body: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Make an authenticated request to the Spotify Web API."""
+    global _rate_limit_until
+    now = time.time()
+
+    # Check global backoff from a previous 429
+    if now < _rate_limit_until:
+        remaining = _rate_limit_until - now
+        raise SpotifyAPIError(
+            429,
+            f"Rate limited, retry after {remaining:.0f}s",
+            retry_after=int(remaining),
+        )
+
+    # Proactive: max 25 requests per 30s sliding window
+    while _request_timestamps and now - _request_timestamps[0] > 30:
+        _request_timestamps.popleft()
+    if len(_request_timestamps) > 25:
+        _rate_limit_until = now + 5
+        raise SpotifyAPIError(
+            429,
+            "Rate limit preventive, retry after 5s",
+            retry_after=5,
+        )
+
+    _request_timestamps.append(now)
+
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
     token = await _get_spotify_token(hass)
@@ -86,6 +117,7 @@ async def spotify_request(
             return None
         if resp.status == 429:
             retry_after = int(resp.headers.get("Retry-After", "5"))
+            _rate_limit_until = now + retry_after
             raise SpotifyAPIError(429, "Spotify rate limit exceeded", retry_after)
         if resp.status == 401:
             raise SpotifyAPIError(401, "Spotify token expired or invalid")
