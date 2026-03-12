@@ -17,6 +17,11 @@ export interface GlassEventMap {
   'media-config-changed': undefined;
   'presence-config-changed': undefined;
   'schedule-changed': { entityId: string };
+  // Radio queue feedback events (spotify → media card)
+  'radio-queue-started': { count: number };
+  'radio-queue-track-added': { track: { id: string; name: string; uri: string; artist?: string }; index: number };
+  'radio-queue-complete': { total: number };
+  'radio-queue-error': { message: string };
 }
 
 type EventCallback<T = unknown> = (payload: T) => void;
