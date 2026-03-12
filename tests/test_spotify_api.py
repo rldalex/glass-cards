@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -61,6 +62,7 @@ def _make_mock_response(status: int = 200, json_data: dict | None = None, header
     resp.status = status
     resp.json = AsyncMock(return_value=json_data or {})
     resp.text = AsyncMock(return_value=text)
+    resp.read = AsyncMock(return_value=json.dumps(json_data).encode() if json_data else b"")
     resp.headers = headers or {}
     # Make it work with `async with session.request(...) as resp:`
     ctx = AsyncMock()
@@ -145,6 +147,20 @@ class TestSpotifyRequest:
             patch("homeassistant.helpers.aiohttp_client.async_get_clientsession", return_value=mock_session),
         ):
             result = await spotify_request(mock_hass, "GET", "/test")
+            assert result is None
+
+    @pytest.mark.asyncio
+    async def test_200_empty_body_returns_none(self, mock_hass):
+        """200 with empty body (e.g. PUT /me/tracks) should return None, not raise."""
+        mock_resp = _make_mock_response(200)
+        mock_session = MagicMock()
+        mock_session.request = MagicMock(return_value=mock_resp)
+
+        with (
+            patch("custom_components.glass_cards.spotify_api._get_spotify_token", return_value="token"),
+            patch("homeassistant.helpers.aiohttp_client.async_get_clientsession", return_value=mock_session),
+        ):
+            result = await spotify_request(mock_hass, "PUT", "/me/tracks", json_body={"ids": ["abc"]})
             assert result is None
 
     @pytest.mark.asyncio

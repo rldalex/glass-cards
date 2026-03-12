@@ -131,6 +131,13 @@ async def spotify_request(
     ) as resp:
         if resp.status == 204:
             return None
+        # Some endpoints (PUT/DELETE /me/tracks) return 200 with empty body
+        if resp.status == 200:
+            body = await resp.read()
+            if not body or not body.strip():
+                return None
+            import json
+            return json.loads(body)
         if resp.status == 429:
             retry_after = int(resp.headers.get("Retry-After", "5"))
             _rate_limit_until = now + retry_after
@@ -140,8 +147,12 @@ async def spotify_request(
         if resp.status == 403:
             raise SpotifyAPIError(403, "Spotify Premium required or insufficient permissions")
         if resp.status >= 400:
-            body = await resp.text()
-            raise SpotifyAPIError(resp.status, f"Spotify API error: {body}")
+            err_body = await resp.text()
+            raise SpotifyAPIError(resp.status, f"Spotify API error: {err_body}")
+        # Fallback for other 2xx codes
+        raw = await resp.read()
+        if not raw or not raw.strip():
+            return None
         return await resp.json()
 
 
