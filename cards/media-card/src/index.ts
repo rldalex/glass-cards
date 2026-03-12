@@ -267,7 +267,7 @@ export class GlassMediaCard extends BaseCard {
     }
     // Refresh queue when track changes or player goes idle
     if (changedProps.has('hass') && this.hass && this._foldOpen && this._foldTab === 'queue') {
-      const master = this._findMaster(this._getPlayers());
+      const master = this._getCurrentMaster();
       const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
       if (title !== this._prevMediaTitle) {
         this._prevMediaTitle = title;
@@ -441,6 +441,17 @@ export class GlassMediaCard extends BaseCard {
 
   private _findMaster(players: MediaPlayerInfo[]): MediaPlayerInfo | null {
     return players.find((p) => isPlaying(p.state)) || players.find((p) => isActive(p.state)) || null;
+  }
+
+  /** Return the master for the currently visible room (dashboard swipe) or the room-mode master. */
+  private _getCurrentMaster(): MediaPlayerInfo | null {
+    if (this.isDashboard) {
+      const rooms = this._getActiveRooms();
+      if (!rooms.length) return this._lastMaster ?? null;
+      const idx = Math.min(this._roomIndex, rooms.length - 1);
+      return rooms[idx];
+    }
+    return this._findMaster(this._getPlayers());
   }
 
   /**
@@ -1067,7 +1078,7 @@ export class GlassMediaCard extends BaseCard {
   private async _loadQueue(): Promise<void> {
     if (!this.hass) return;
     const version = ++this._queueVersion;
-    const master = this._findMaster(this._getPlayers());
+    const master = this._getCurrentMaster();
     if (!master) return;
     try {
       const result = await this.hass.connection.sendMessagePromise({
@@ -1092,7 +1103,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _renderQueueTab(): TemplateResult {
-    const master = this._findMaster(this._getPlayers());
+    const master = this._getCurrentMaster();
     // queue_position = 1-based position of the currently playing track (UPnP standard)
     const queuePos = master ? (this.hass?.states[master.entityId]?.attributes?.queue_position as number | undefined) ?? 0 : 0;
     // Only show upcoming tracks (after the currently playing one), like the Sonos desktop app
@@ -1129,7 +1140,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private async _removeFromQueue(sonosIndex: number): Promise<void> {
-    const master = this._findMaster(this._getPlayers());
+    const master = this._getCurrentMaster();
     if (!master || !this.hass) return;
     // Optimistic UI: remove from full queue data immediately
     this._queueData = this._queueData.filter((_, i) => i !== sonosIndex);
