@@ -5819,7 +5819,7 @@
 
       .carousel-card { width: 100%; padding: 14px; position: relative; }
       :host(.in-popup) .carousel-card { padding: 8px; }
-      :host(.in-popup) .carousel-viewport { aspect-ratio: 16 / 10; }
+      :host(.in-popup) .carousel-viewport { max-width: 360px; margin: 0 auto; }
       .carousel-inner {
         position: relative; z-index: 1;
         display: flex; flex-direction: column; gap: 10px;
