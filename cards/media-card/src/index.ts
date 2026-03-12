@@ -265,11 +265,11 @@ export class GlassMediaCard extends BaseCard {
       this._prevMediaTitle = '';
       this._loadQueue();
     }
-    // Refresh queue when track changes (song ended → next started)
+    // Refresh queue when track changes or player goes idle
     if (changedProps.has('hass') && this.hass && this._foldOpen && this._foldTab === 'queue') {
       const master = this._findMaster(this._getPlayers());
       const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
-      if (title && title !== this._prevMediaTitle) {
+      if (title !== this._prevMediaTitle) {
         this._prevMediaTitle = title;
         this._loadQueue();
       }
