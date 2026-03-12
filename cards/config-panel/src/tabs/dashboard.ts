@@ -247,6 +247,23 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
                 class="toggle ${self._coverShowHeader ? 'on' : ''}"
               ></span>
             </button>
+            <button
+              class="feature-row"
+              @click=${(e: Event) => { e.stopPropagation(); self._coverDashboardCompact = !self._coverDashboardCompact; }}
+              role="switch"
+              aria-checked=${self._coverDashboardCompact ? 'true' : 'false'}
+            >
+              <div class="feature-icon">
+                <ha-icon .icon=${'mdi:view-grid-outline'}></ha-icon>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">${t('config.cover_dashboard_compact')}</div>
+                <div class="feature-desc">${t('config.cover_dashboard_compact_desc')}</div>
+              </div>
+              <span
+                class="toggle ${self._coverDashboardCompact ? 'on' : ''}"
+              ></span>
+            </button>
             <div class="section-label" style="margin-top:10px;">${t('config.cover_dashboard_entities')}</div>
             <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
             <div class="item-list">

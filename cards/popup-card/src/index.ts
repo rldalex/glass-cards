@@ -49,6 +49,8 @@ export class GlassRoomPopup extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
     if (changedProps.size > 1) return true;
+    // Skip hass-only updates during swipe animation to prevent flickering
+    if (this._swipeAnimating) return false;
     // Skip hass-only updates when popup is closed or closing
     if (!this._open) return false;
     // Only re-render if entities in the active area changed
@@ -116,37 +118,40 @@ export class GlassRoomPopup extends LitElement {
       }
 
       @keyframes swipe-exit-l {
-        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
-        100% { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        0%   { transform: translateX(0) scale(1); opacity: 1; }
+        100% { transform: translateX(-25%) scale(0.95); opacity: 0; }
       }
       @keyframes swipe-enter-r {
-        0%   { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
-        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        0%   { transform: translateX(25%) scale(0.95); opacity: 0; }
+        100% { transform: translateX(0) scale(1); opacity: 1; }
       }
       @keyframes swipe-exit-r {
-        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
-        100% { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        0%   { transform: translateX(0) scale(1); opacity: 1; }
+        100% { transform: translateX(25%) scale(0.95); opacity: 0; }
       }
       @keyframes swipe-enter-l {
-        0%   { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
-        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        0%   { transform: translateX(-25%) scale(0.95); opacity: 0; }
+        100% { transform: translateX(0) scale(1); opacity: 1; }
       }
 
+      .dialog-inner.swipe-exit-left,
+      .dialog-inner.swipe-exit-right,
+      .dialog-inner.swipe-enter-right,
+      .dialog-inner.swipe-enter-left {
+        will-change: transform, opacity;
+        pointer-events: none;
+      }
       .dialog-inner.swipe-exit-left {
         animation: swipe-exit-l 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
-        pointer-events: none;
       }
       .dialog-inner.swipe-enter-right {
         animation: swipe-enter-r 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        pointer-events: none;
       }
       .dialog-inner.swipe-exit-right {
         animation: swipe-exit-r 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
-        pointer-events: none;
       }
       .dialog-inner.swipe-enter-left {
         animation: swipe-enter-l 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        pointer-events: none;
       }
 
       .header {
@@ -481,19 +486,21 @@ export class GlassRoomPopup extends LitElement {
         this._scenesOpen = false;
         this._activeSceneId = null;
         this._loadRoomConfig(payload.areaId);
-        this._swipeClass = direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left';
-
-        this._swipeAnimTimer = setTimeout(() => {
-          this._swipeAnimTimer = undefined;
-          this._swipeClass = '';
-          this._swipeAnimating = false;
-          // Process any queued swipe
-          if (this._pendingSwipe) {
-            const pending = this._pendingSwipe;
-            this._pendingSwipe = undefined;
-            this._handleOpen(pending);
-          }
-        }, 220);
+        // Wait for Lit to render new content before applying enter animation
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          this._swipeClass = direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left';
+          this._swipeAnimTimer = setTimeout(() => {
+            this._swipeAnimTimer = undefined;
+            this._swipeClass = '';
+            this._swipeAnimating = false;
+            // Process any queued swipe
+            if (this._pendingSwipe) {
+              const pending = this._pendingSwipe;
+              this._pendingSwipe = undefined;
+              this._handleOpen(pending);
+            }
+          }, 220);
+        }));
       }, 180);
       return;
     }

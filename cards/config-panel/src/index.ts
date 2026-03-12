@@ -100,6 +100,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Cover card config
   @state() _coverShowHeader = true;
+  @state() _coverDashboardCompact = true;
   @state() _coverDashboardEntities: string[] = [];
   @state() _coverDashboardOrder: string[] = [];
   @state() _coverPresets: number[] = [0, 25, 50, 75, 100];
@@ -197,7 +198,7 @@ export class GlassConfigPanel extends LitElement {
     '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
     '_titleText', '_titleSources',
     '_lightShowHeader', '_lights',
-    '_coverShowHeader', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
+    '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
     '_mediaShowHeader', '_mediaExtraEntities',
@@ -372,6 +373,7 @@ export class GlassConfigPanel extends LitElement {
     let coverCardConfig = {
       show_header: true,
       dashboard_entities: [] as string[],
+      dashboard_compact: true,
       presets: [0, 25, 50, 75, 100] as number[],
       entity_presets: {} as Record<string, number[]>,
     };
@@ -458,6 +460,7 @@ export class GlassConfigPanel extends LitElement {
     this._coverShowHeader = coverCardConfig.show_header ?? true;
     this._fanShowHeader = fanCardConfig.show_header ?? true;
     this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
+    this._coverDashboardCompact = coverCardConfig.dashboard_compact ?? true;
     this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
     this._coverEntityPresets = coverCardConfig.entity_presets ?? {};
     this._initCoverDashboardOrder();
@@ -1225,6 +1228,7 @@ export class GlassConfigPanel extends LitElement {
       );
       await this._backend.send('set_cover_config', {
         show_header: this._coverShowHeader,
+        dashboard_compact: this._coverDashboardCompact,
         dashboard_entities: orderedDashboardEntities,
         presets: this._coverPresets,
         entity_presets: this._coverEntityPresets,
@@ -1416,11 +1420,12 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
-        cover_card?: { show_header: boolean; dashboard_entities: string[]; presets: number[]; entity_presets?: Record<string, number[]> };
+        cover_card?: { show_header: boolean; dashboard_entities: string[]; dashboard_compact?: boolean; presets: number[]; entity_presets?: Record<string, number[]> };
       }>('get_config');
       if (result?.cover_card) {
         this._coverShowHeader = result.cover_card.show_header ?? true;
         this._coverDashboardEntities = result.cover_card.dashboard_entities ?? [];
+        this._coverDashboardCompact = result.cover_card.dashboard_compact ?? true;
         this._coverPresets = result.cover_card.presets ?? [0, 25, 50, 75, 100];
         this._coverEntityPresets = result.cover_card.entity_presets ?? {};
         this._coverEntityPresetInput = {};
@@ -1528,6 +1533,7 @@ export class GlassConfigPanel extends LitElement {
       );
       await this._backend.send('set_cover_config', {
         show_header: this._coverShowHeader,
+        dashboard_compact: this._coverDashboardCompact,
         dashboard_entities: orderedDashCovers,
         presets: this._coverPresets,
         entity_presets: this._coverEntityPresets,

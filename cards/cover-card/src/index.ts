@@ -114,6 +114,7 @@ function buildCoverInfo(entityId: string, entity: HassEntity): CoverInfo {
 interface CoverBackendConfig {
   show_header: boolean;
   dashboard_entities: string[];
+  dashboard_compact: boolean;
   presets: number[];
   entity_presets: Record<string, number[]>;
 }
@@ -131,7 +132,7 @@ class GlassCoverCard extends BaseCard {
 
   @state() private _expanded: string | null = null;
 
-  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], presets: [0, 25, 50, 75, 100], entity_presets: {} };
+  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], dashboard_compact: true, presets: [0, 25, 50, 75, 100], entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
@@ -764,6 +765,13 @@ class GlassCoverCard extends BaseCard {
   }
 
   private _renderDashboardGrid(covers: CoverInfo[]) {
+    const compact = this._coverConfig.dashboard_compact !== false;
+    if (!compact) {
+      return covers.map((cv, i) => {
+        const last = i + 1 >= covers.length;
+        return [this._renderCoverRow(cv, false, false), this._renderControlFold(cv, last)];
+      }).flat();
+    }
     const results: unknown[] = [];
     let i = 0;
     while (i < covers.length) {

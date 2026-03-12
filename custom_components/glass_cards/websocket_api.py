@@ -386,6 +386,7 @@ async def ws_set_fan_config(
         vol.Optional("dashboard_entities"): [
             vol.All(str, vol.Match(r"^cover\.[\w-]+$"))
         ],
+        vol.Optional("dashboard_compact"): bool,
         vol.Optional("presets"): vol.All(
             [vol.All(_strict_int, vol.Range(min=0, max=100))],
             vol.Length(min=1),
@@ -412,6 +413,8 @@ async def ws_set_cover_config(
 
     if "show_header" in msg:
         store.data.cover_card.show_header = msg["show_header"]
+    if "dashboard_compact" in msg:
+        store.data.cover_card.dashboard_compact = msg["dashboard_compact"]
     if "dashboard_entities" in msg:
         seen: set[str] = set()
         deduped_entities: list[str] = []

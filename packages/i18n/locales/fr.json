@@ -491,6 +491,8 @@
     "tab_cover": "Carte Volets",
     "cover_show_header": "Afficher l'en-tête",
     "cover_show_header_desc": "Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte",
+    "cover_dashboard_compact": "Affichage compact",
+    "cover_dashboard_compact_desc": "Affiche les volets en grille compacte 2 colonnes. Désactivé, chaque volet occupe toute la largeur.",
     "cover_dashboard_entities": "Volets du tableau de bord",
     "cover_dashboard_entities_desc": "Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.",
     "cover_dashboard_no_entities": "Aucun volet sélectionné pour le tableau de bord.",

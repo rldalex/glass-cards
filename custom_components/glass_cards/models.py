@@ -396,6 +396,7 @@ class CoverCardConfig:
 
     show_header: bool = True
     dashboard_entities: list[str] = field(default_factory=list)
+    dashboard_compact: bool = True
     presets: list[int] = field(default_factory=lambda: list(DEFAULT_COVER_PRESETS))
     entity_presets: dict[str, list[int]] = field(default_factory=dict)
 
@@ -404,6 +405,7 @@ class CoverCardConfig:
         return {
             "show_header": self.show_header,
             "dashboard_entities": self.dashboard_entities,
+            "dashboard_compact": self.dashboard_compact,
             "presets": self.presets,
             "entity_presets": self.entity_presets,
         }
@@ -440,6 +442,7 @@ class CoverCardConfig:
             dashboard_entities=[
                 str(x) for x in raw_entities if isinstance(x, str)
             ],
+            dashboard_compact=bool(data.get("dashboard_compact", True)),
             presets=presets,
             entity_presets=entity_presets,
         )

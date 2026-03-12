@@ -491,6 +491,8 @@
     "tab_cover": "Cover Card",
     "cover_show_header": "Show header",
     "cover_show_header_desc": "Title, counter and open/close all buttons above the card",
+    "cover_dashboard_compact": "Compact layout",
+    "cover_dashboard_compact_desc": "Display covers in a 2-column compact grid. When off, each cover takes the full width.",
     "cover_dashboard_entities": "Dashboard covers",
     "cover_dashboard_entities_desc": "Select which covers to display on the dashboard. All selected covers are shown regardless of their state.",
     "cover_dashboard_no_entities": "No cover entities selected for the dashboard.",
