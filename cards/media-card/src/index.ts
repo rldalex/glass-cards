@@ -203,8 +203,9 @@ export class GlassMediaCard extends BaseCard {
     // Start/stop progress timer based on playback state (only on relevant changes)
     if (changedProps.has('hass') || changedProps.has('_roomIndex')) {
       this._syncProgressTimer();
-      this._updateBgLightAttribute();
     }
+    // Check artwork luminance on every render (cheap — early-returns if unchanged)
+    this._updateBgLightAttribute();
   }
 
   /** Analyze artwork luminance and expose data-bg-light on host for navbar IntersectionObserver */

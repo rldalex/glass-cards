@@ -593,6 +593,8 @@ export class GlassRoomPopup extends LitElement {
         return html`<glass-cover-card .hass=${this.hass} .areaId=${this._areaId}></glass-cover-card>`;
       case 'media_player':
         return html`<glass-media-card .hass=${this.hass} .areaId=${this._areaId}></glass-media-card>`;
+      case 'fan':
+        return html`<glass-fan-card .hass=${this.hass} .areaId=${this._areaId}></glass-fan-card>`;
       default:
         return nothing;
     }
