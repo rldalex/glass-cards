@@ -115,6 +115,8 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _libraryLoading = false;
   @state() private _spotifyConfigured: boolean | null = null;
   @state() private _foldOpen = false;
+  @state() private _savedMap: Map<string, boolean> = new Map();
+  private _savedCheckVersion = 0;
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
@@ -562,6 +564,27 @@ class GlassSpotifyCard extends BaseCard {
     }
     .result-row .eq-bars { flex-shrink: 0; }
 
+    /* Heart (favorite) button */
+    .heart-btn {
+      transition: transform var(--t-fast), color var(--t-fast);
+      flex-shrink: 0;
+    }
+    .heart-btn ha-icon {
+      --mdc-icon-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .heart-btn.saved ha-icon {
+      color: var(--c-accent);
+    }
+    .heart-btn:active {
+      transform: scale(0.85);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .heart-btn:hover {
+        transform: scale(1.1);
+      }
+    }
+
     /* Loading spinner placeholder */
     .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }
   `];
@@ -688,6 +711,11 @@ class GlassSpotifyCard extends BaseCard {
       this._savedTracks = (saved?.items ?? []).filter(Boolean) as SpotifyItem[];
       // Shows are wrapped: { show: {...} }
       this._savedShows = (shows?.items ?? []).filter(Boolean).map((item) => item.show ?? item);
+      // Batch check saved status for all tracks
+      const trackIds: string[] = [];
+      for (const item of this._recentlyPlayed) { const tr = item.track ?? item; if (tr.id && (tr.type === 'track' || !tr.type)) trackIds.push(tr.id); }
+      for (const item of this._savedTracks) { const tr = item.track ?? item; if (tr.id) trackIds.push(tr.id); }
+      if (trackIds.length) this._checkSavedStatus(trackIds);
     } catch (e) {
       this._handleApiError(e);
     } finally {
@@ -763,6 +791,9 @@ class GlassSpotifyCard extends BaseCard {
       const totalResults = (result?.tracks?.total ?? 0) + (result?.playlists?.total ?? 0) + (result?.shows?.total ?? 0);
       const loadedResults = this._searchResults.tracks.length + this._searchResults.playlists.length + this._searchResults.shows.length;
       this._searchHasMore = loadedResults < totalResults;
+      // Check saved status for search result tracks
+      const trackIds = tracks.filter((tr) => tr.id).map((tr) => tr.id);
+      if (trackIds.length) this._checkSavedStatus(trackIds);
     } catch (e) {
       if (version !== this._searchVersion) return;
       this._handleApiError(e);
@@ -784,13 +815,16 @@ class GlassSpotifyCard extends BaseCard {
         'spotify_browse',
         { category, content_id: id, limit: 20, offset: 0, sort_order: this._spotifyConfig.sort_order },
       );
+      const items = result?.items ?? [];
       this._drilldown = {
         ...this._drilldown!,
-        items: result?.items ?? [],
+        items,
         total: result?.total ?? 0,
         offset: 20,
         loading: false,
       };
+      const ddTrackIds = items.map((it) => (it.track ?? it).id).filter(Boolean);
+      if (ddTrackIds.length) this._checkSavedStatus(ddTrackIds);
     } catch (e) {
       this._handleApiError(e);
       if (this._drilldown) this._drilldown = { ...this._drilldown, loading: false };
@@ -806,12 +840,15 @@ class GlassSpotifyCard extends BaseCard {
         'spotify_browse',
         { category, content_id: this._drilldown.id, limit: 20, offset: this._drilldown.offset, sort_order: this._spotifyConfig.sort_order },
       );
+      const moreItems = result?.items ?? [];
       this._drilldown = {
         ...this._drilldown,
-        items: [...this._drilldown.items, ...(result?.items ?? [])],
+        items: [...this._drilldown.items, ...moreItems],
         offset: this._drilldown.offset + 20,
         loading: false,
       };
+      const moreTrackIds = moreItems.map((it) => (it.track ?? it).id).filter(Boolean);
+      if (moreTrackIds.length) this._checkSavedStatus(moreTrackIds);
     } catch (e) {
       this._handleApiError(e);
       if (this._drilldown) this._drilldown = { ...this._drilldown, loading: false };
@@ -965,6 +1002,43 @@ class GlassSpotifyCard extends BaseCard {
       }
     } catch {
       // Silent fail — radio queue is best-effort
+    }
+  }
+
+  // — Favorites —
+
+  private async _checkSavedStatus(trackIds: string[]): Promise<void> {
+    if (!trackIds.length || !this._backend) return;
+    const version = ++this._savedCheckVersion;
+    try {
+      const result = await this._backend.send<Record<string, boolean>>('spotify_check_saved', { track_ids: trackIds });
+      if (version !== this._savedCheckVersion) return;
+      const newMap = new Map(this._savedMap);
+      for (const [id, saved] of Object.entries(result ?? {})) {
+        newMap.set(id, saved);
+      }
+      this._savedMap = newMap;
+    } catch { /* silent */ }
+  }
+
+  private async _toggleSaved(trackId: string): Promise<void> {
+    if (!this._backend) return;
+    const isSaved = this._savedMap.get(trackId) ?? false;
+    // Optimistic update
+    const newMap = new Map(this._savedMap);
+    newMap.set(trackId, !isSaved);
+    this._savedMap = newMap;
+    try {
+      if (isSaved) {
+        await this._backend.send('spotify_remove_tracks', { track_ids: [trackId] });
+      } else {
+        await this._backend.send('spotify_save_tracks', { track_ids: [trackId] });
+      }
+    } catch {
+      // Rollback on failure
+      const rollbackMap = new Map(this._savedMap);
+      rollbackMap.set(trackId, isSaved);
+      this._savedMap = rollbackMap;
     }
   }
 
@@ -1218,6 +1292,13 @@ class GlassSpotifyCard extends BaseCard {
             <span>${artist}</span>
           </div>
         </div>
+        ${(type === 'track' || type === 'episode') && item.id ? html`
+          <button class="btn-icon xs heart-btn ${this._savedMap.get(item.id) ? 'saved' : ''}"
+                  aria-label="${this._savedMap.get(item.id) ? t('spotify.remove_track') : t('spotify.save_track')}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._toggleSaved(item.id); }}>
+            <ha-icon .icon="${this._savedMap.get(item.id) ? 'mdi:heart' : 'mdi:heart-outline'}"></ha-icon>
+          </button>
+        ` : nothing}
         ${playing
           ? html`<div class="eq-bars"><span></span><span></span><span></span></div>`
           : html`
