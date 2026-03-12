@@ -14,6 +14,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 
 from .const import DOMAIN, JS_PATH, PANEL_JS_PATH, get_js_url, get_panel_js_url
+from .spotify_cache import SpotifyCache
 from .store import GlassCardsStore
 from .websocket_api import async_register_commands
 
@@ -71,6 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["store"] = store
+    hass.data[DOMAIN]["spotify_cache"] = SpotifyCache()
 
     www_dir = os.path.join(os.path.dirname(__file__), "www")
     static_paths: list[StaticPathConfig] = []

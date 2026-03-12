@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import datetime as dt_cls
 from typing import TYPE_CHECKING, Any
 
@@ -88,6 +90,20 @@ def _get_store(hass: HomeAssistant) -> GlassCardsStore:
     if not domain_data or "store" not in domain_data:
         raise HomeAssistantError("Glass Cards integration not loaded")
     return domain_data["store"]
+
+
+def _cache_key(category: str, **params: Any) -> str:
+    """Build a deterministic cache key from a category and keyword params."""
+    param_str = json.dumps(params, sort_keys=True)
+    return f"{category}:{hashlib.md5(param_str.encode()).hexdigest()}"  # noqa: S324
+
+
+def _get_spotify_cache(hass: HomeAssistant):  # type: ignore[return]
+    """Return the SpotifyCache instance, or None if not available."""
+    domain_data = hass.data.get(DOMAIN)
+    if not domain_data:
+        return None
+    return domain_data.get("spotify_cache")
 
 
 @websocket_api.websocket_command(
@@ -727,6 +743,21 @@ async def ws_spotify_search(
 
     store = _get_store(hass)
     entity_id = store.data.spotify_card.entity_id
+    cache = _get_spotify_cache(hass)
+
+    key = _cache_key(
+        "search",
+        query=msg["query"],
+        types=msg["types"],
+        limit=msg["limit"],
+        offset=msg["offset"],
+        entity_id=entity_id,
+    )
+    if cache is not None:
+        cached = cache.get(key)
+        if cached is not None:
+            connection.send_result(msg["id"], cached)
+            return
 
     try:
         result = await spotify_search(
@@ -737,6 +768,8 @@ async def ws_spotify_search(
             offset=msg["offset"],
             entity_id=entity_id,
         )
+        if cache is not None:
+            cache.set(key, result)
         connection.send_result(msg["id"], result)
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
         _handle_spotify_error(connection, msg["id"], exc)
@@ -769,12 +802,28 @@ async def ws_spotify_browse(
 
     store = _get_store(hass)
     entity_id = store.data.spotify_card.entity_id
+    cache = _get_spotify_cache(hass)
 
     category = msg["category"]
     limit = msg["limit"]
     offset = msg["offset"]
     sort_order = msg["sort_order"]
     content_id = msg.get("content_id", "")
+
+    browse_key = _cache_key(
+        "browse",
+        cat=category,
+        limit=limit,
+        offset=offset,
+        sort_order=sort_order,
+        content_id=content_id,
+        entity_id=entity_id,
+    )
+    if cache is not None:
+        cached = cache.get(browse_key)
+        if cached is not None:
+            connection.send_result(msg["id"], cached)
+            return
 
     try:
         result: dict[str, Any]
@@ -829,6 +878,8 @@ async def ws_spotify_browse(
             connection.send_error(msg["id"], "invalid_category", f"Unknown category: {category}")
             return
 
+        if cache is not None:
+            cache.set(browse_key, result)
         connection.send_result(msg["id"], result)
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
         _handle_spotify_error(connection, msg["id"], exc)

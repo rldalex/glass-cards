@@ -10,7 +10,9 @@ from custom_components.glass_cards.spotify_api import (
     SpotifyAPIError,
     SpotifyNotConfiguredError,
 )
+from custom_components.glass_cards.spotify_cache import SpotifyCache
 from custom_components.glass_cards.websocket_api import (
+    _cache_key,
     ws_set_spotify_config,
     ws_spotify_add_to_queue,
     ws_spotify_browse,
@@ -371,3 +373,145 @@ class TestSpotifyStatus:
         result = mock_connection.send_result.call_args[0][1]
         assert result["configured"] is False
         assert result["reason"] == "no_token"
+
+
+class TestCacheKey:
+    """Tests for the _cache_key helper."""
+
+    def test_same_params_same_key(self):
+        key1 = _cache_key("search", query="test", types="track")
+        key2 = _cache_key("search", query="test", types="track")
+        assert key1 == key2
+
+    def test_different_params_different_key(self):
+        key1 = _cache_key("search", query="test")
+        key2 = _cache_key("search", query="other")
+        assert key1 != key2
+
+    def test_different_categories_different_key(self):
+        key1 = _cache_key("search", query="test")
+        key2 = _cache_key("browse", query="test")
+        assert key1 != key2
+
+    def test_param_order_independent(self):
+        """Keys should be identical regardless of kwarg order."""
+        key1 = _cache_key("browse", limit=20, offset=0)
+        key2 = _cache_key("browse", offset=0, limit=20)
+        assert key1 == key2
+
+
+class TestSpotifySearchCache:
+    """Tests for cache integration in ws_spotify_search."""
+
+    @pytest.fixture
+    def hass_with_cache(self, hass_with_store):
+        """Add a SpotifyCache instance to hass.data."""
+        from custom_components.glass_cards.const import DOMAIN
+        hass_with_store.data[DOMAIN]["spotify_cache"] = SpotifyCache()
+        return hass_with_store
+
+    @pytest.mark.asyncio
+    async def test_search_result_is_cached(self, hass_with_cache, mock_connection):
+        """Second call with same params should hit cache (API called once)."""
+        expected = {"tracks": {"items": [{"name": "Test"}], "total": 1}}
+        msg = {
+            "id": 50, "type": "glass_cards/spotify_search",
+            "query": "test", "types": ["track"], "limit": 10, "offset": 0,
+        }
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_search",
+            new_callable=AsyncMock,
+            return_value=expected,
+        ) as mock_search:
+            await ws_spotify_search(hass_with_cache, mock_connection, msg)
+            await ws_spotify_search(hass_with_cache, mock_connection, {**msg, "id": 51})
+            # API called only once; second response came from cache
+            assert mock_search.call_count == 1
+
+        results = [call[0][1] for call in mock_connection.send_result.call_args_list]
+        assert results[0] == expected
+        assert results[1] == expected
+
+    @pytest.mark.asyncio
+    async def test_search_cache_miss_calls_api(self, hass_with_cache, mock_connection):
+        """Different query should call API again."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_search",
+            new_callable=AsyncMock,
+            return_value={},
+        ) as mock_search:
+            await ws_spotify_search(
+                hass_with_cache, mock_connection,
+                {"id": 52, "type": "glass_cards/spotify_search",
+                 "query": "alpha", "types": ["track"], "limit": 10, "offset": 0},
+            )
+            await ws_spotify_search(
+                hass_with_cache, mock_connection,
+                {"id": 53, "type": "glass_cards/spotify_search",
+                 "query": "beta", "types": ["track"], "limit": 10, "offset": 0},
+            )
+            assert mock_search.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_search_no_cache_in_hass_still_works(self, hass_with_store, mock_connection):
+        """If no cache in hass.data, ws_spotify_search should still function."""
+        expected = {"tracks": {"items": [], "total": 0}}
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_search",
+            new_callable=AsyncMock,
+            return_value=expected,
+        ):
+            await ws_spotify_search(
+                hass_with_store, mock_connection,
+                {"id": 54, "type": "glass_cards/spotify_search",
+                 "query": "test", "types": ["track"], "limit": 10, "offset": 0},
+            )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result == expected
+
+
+class TestSpotifyBrowseCache:
+    """Tests for cache integration in ws_spotify_browse."""
+
+    @pytest.fixture
+    def hass_with_cache(self, hass_with_store):
+        """Add a SpotifyCache instance to hass.data."""
+        from custom_components.glass_cards.const import DOMAIN
+        hass_with_store.data[DOMAIN]["spotify_cache"] = SpotifyCache()
+        return hass_with_store
+
+    @pytest.mark.asyncio
+    async def test_browse_result_is_cached(self, hass_with_cache, mock_connection):
+        """Same browse category+params should hit cache on second call."""
+        expected = {"items": [{"name": "Chill"}], "total": 1}
+        msg = {
+            "id": 60, "type": "glass_cards/spotify_browse",
+            "category": "playlists", "limit": 20, "offset": 0,
+            "sort_order": "recent_first",
+        }
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_get_playlists",
+            new_callable=AsyncMock,
+            return_value=expected,
+        ) as mock_browse:
+            await ws_spotify_browse(hass_with_cache, mock_connection, msg)
+            await ws_spotify_browse(hass_with_cache, mock_connection, {**msg, "id": 61})
+            assert mock_browse.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_browse_no_cache_in_hass_still_works(self, hass_with_store, mock_connection):
+        """If no cache in hass.data, ws_spotify_browse should still function."""
+        expected = {"items": [], "total": 0}
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_get_playlists",
+            new_callable=AsyncMock,
+            return_value=expected,
+        ):
+            await ws_spotify_browse(
+                hass_with_store, mock_connection,
+                {"id": 62, "type": "glass_cards/spotify_browse",
+                 "category": "playlists", "limit": 20, "offset": 0,
+                 "sort_order": "recent_first"},
+            )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result == expected
