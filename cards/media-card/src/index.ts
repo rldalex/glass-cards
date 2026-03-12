@@ -271,7 +271,13 @@ export class GlassMediaCard extends BaseCard {
       const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
       if (title !== this._prevMediaTitle) {
         this._prevMediaTitle = title;
-        this._loadQueue();
+        // Optimistic: shift queue (remove finished track at position 0)
+        if (title && this._queueData.length > 0) {
+          this._queueData = this._queueData.slice(1);
+        }
+        // Confirm with real Sonos data after propagation delay
+        if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
+        this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 1000);
       }
     }
     // Start/stop progress timer based on playback state (only on relevant changes)
