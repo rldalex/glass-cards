@@ -1056,7 +1056,6 @@ export class GlassMediaCard extends BaseCard {
   private async _loadQueue(): Promise<void> {
     if (this._queueLoading || !this.hass) return;
     this._queueLoading = true;
-    this._queueData = [];
     const version = ++this._queueVersion;
     try {
       const master = this._findMaster(this._getPlayers());
