@@ -483,6 +483,9 @@ export class GlassMediaCard extends BaseCard {
 
   /** Wait for a speaker to leave its group via state_changed event, with timeout fallback. */
   private async _waitForUnjoin(entityId: string, timeout = 3000): Promise<boolean> {
+    // Cancel any previous pending subscription to avoid orphan listeners
+    this._pendingUnjoinUnsub?.then(u => u());
+    this._pendingUnjoinUnsub = undefined;
     return new Promise<boolean>((resolve) => {
       let resolved = false;
       const cleanup = () => {
@@ -985,6 +988,7 @@ export class GlassMediaCard extends BaseCard {
   private async _loadQueue(): Promise<void> {
     if (this._queueLoading || !this._backend) return;
     this._queueLoading = true;
+    this._queueData = [];
     try {
       const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>('spotify_queue', {});
       this._queueData = result?.queue ?? [];
@@ -997,8 +1001,10 @@ export class GlassMediaCard extends BaseCard {
       return html`<div class="queue-loading">${t('media.loading_radio')}</div>`;
     }
     const items = this._queueData;
+    const master = this._findMaster(this._getPlayers());
+    const isPlaying = master?.state === 'playing';
     if (!items.length && !this._radioTracks.length) {
-      return html`<div class="queue-empty">${t('media.queue_tab')}</div>`;
+      return html`<div class="queue-empty">${t('media.queue_empty')}</div>`;
     }
     return html`
       <div class="queue-list">
@@ -1022,7 +1028,7 @@ export class GlassMediaCard extends BaseCard {
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
               ${i === 0 ? html`
-                <div class="eq-bars"><span></span><span></span><span></span></div>
+                ${isPlaying ? html`<div class="eq-bars"><span></span><span></span><span></span></div>` : nothing}
                 <button class="btn-icon xs" aria-label="${t('media.skip_track')}"
                         @click=${() => this._skipToNext()}>
                   <ha-icon icon="mdi:skip-next"></ha-icon>

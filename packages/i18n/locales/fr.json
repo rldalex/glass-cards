@@ -239,6 +239,7 @@
     "room_dot_aria": "Pièce {index}",
     "controls_tab": "Contrôles",
     "queue_tab": "File d'attente",
+    "queue_empty": "File d'attente vide",
     "now_playing_label": "En cours",
     "radio_badge": "Radio",
     "loading_radio": "Chargement radio…",

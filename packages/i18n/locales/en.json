@@ -239,6 +239,7 @@
     "room_dot_aria": "Room {index}",
     "controls_tab": "Controls",
     "queue_tab": "Queue",
+    "queue_empty": "Queue is empty",
     "now_playing_label": "Now playing",
     "radio_badge": "Radio",
     "loading_radio": "Loading radio…",
