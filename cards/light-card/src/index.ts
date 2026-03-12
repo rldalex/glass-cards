@@ -10,7 +10,7 @@ import {
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import {
-  glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin,
+  glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin,
   rgbToHs, rgbToHex, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
 } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
@@ -427,21 +427,22 @@ export class GlassLightCard extends BaseCard {
       .ctrl-fold-inner {
         overflow: hidden;
         opacity: 0;
-        transition: opacity 0.25s var(--ease-std);
+        transition: opacity var(--t-fast);
       }
       .ctrl-fold.open .ctrl-fold-inner {
         opacity: 1;
+        transition-delay: 0.1s;
       }
       .fold-sep {
-        height: 0;
+        height: 1px;
         margin: 0 12px;
         overflow: hidden;
         background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
         opacity: 0;
-        transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
+        transition: opacity var(--t-layout);
         grid-column: 1 / -1;
       }
-      .fold-sep.visible { height: 1px; opacity: 1; }
+      .fold-sep.visible { opacity: 1; }
       .ctrl-panel {
         padding: 6px 0 4px;
         display: flex;
@@ -1429,7 +1430,7 @@ export class GlassLightCard extends BaseCard {
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
           <div class="light-info">
-            <div class="light-name">${marqueeText(info.name)}</div>
+            <div class="light-name">${marqueeText(info.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
             <div class="light-sub">${this._renderSubText(info)}</div>
           </div>
           <span class="light-dot"></span>

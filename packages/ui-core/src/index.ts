@@ -119,15 +119,20 @@ export const marqueeMixin: CSSResult = css`
   }
 `;
 
+/** Character threshold for marquee in full-width rows. */
+export const MARQUEE_FULL = 18;
+/** Character threshold for marquee in compact (half-width) rows. */
+export const MARQUEE_COMPACT = 12;
+
 /**
  * Render text with automatic marquee scrolling when too long.
  * @param text — the text to display
- * @param maxChars — character threshold above which marquee activates (default 18)
+ * @param maxChars — character threshold above which marquee activates (default MARQUEE_FULL)
  * @param duration — CSS animation duration (default '8s')
  */
 export function marqueeText(
   text: string,
-  maxChars = 18,
+  maxChars = MARQUEE_FULL,
   duration = '8s',
 ): TemplateResult | string {
   if (text.length <= maxChars) return text;

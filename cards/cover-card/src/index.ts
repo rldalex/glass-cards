@@ -6,7 +6,7 @@ import {
   getAreaEntities,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CoverEntityFeature) —
@@ -227,7 +227,7 @@ class GlassCoverCard extends BaseCard {
     @media (hover: hover) and (pointer: fine) {
       .cv-row:hover { background: var(--s1); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .cv-row:active { animation: bounce 0.3s ease; }
     }
     .cv-row:focus-within { background: var(--s1); }
@@ -299,11 +299,11 @@ class GlassCoverCard extends BaseCard {
     /* ── Fold ── */
     .fold-sep {
       grid-column: 1 / -1;
-      height: 0; margin: 0 12px; overflow: hidden;
+      height: 1px; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
-      opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
+      opacity: 0; transition: opacity var(--t-layout);
     }
-    .fold-sep.visible { height: 1px; opacity: 1; }
+    .fold-sep.visible { opacity: 1; }
 
     .ctrl-fold {
       grid-column: 1 / -1;
@@ -313,7 +313,7 @@ class GlassCoverCard extends BaseCard {
     .ctrl-fold.open { grid-template-rows: 1fr; }
     .ctrl-fold-inner {
       overflow: hidden; opacity: 0;
-      transition: opacity 0.25s var(--ease-std, ease);
+      transition: opacity var(--t-fast);
     }
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
@@ -805,7 +805,7 @@ class GlassCoverCard extends BaseCard {
           aria-label=${t('cover.expand_aria', { name: cv.name })}
         >
           <div class="cv-info">
-            <div class="cv-name">${marqueeText(cv.name)}</div>
+            <div class="cv-name">${marqueeText(cv.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
             <div class="cv-sub">
               <span class="cv-state-text">${stateText(cv.entity.state)}</span>
             </div>

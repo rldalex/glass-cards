@@ -7,7 +7,7 @@ import {
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, marqueeMixin, marqueeText, bounceMixin, eqMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -770,7 +770,7 @@ export class GlassMediaCard extends BaseCard {
             <div class="dash-top">
               <div class="dash-speaker glass-pill">
                 <ha-icon .icon=${master.icon || 'mdi:speaker'}></ha-icon>
-                <span>${marqueeText(master.name, 16)}</span>
+                <span>${marqueeText(master.name, MARQUEE_FULL)}</span>
                 ${playing ? html`
                   <div class="dash-eq playing">
                     <div class="dash-eq-bar"></div>
@@ -1023,7 +1023,7 @@ export class GlassMediaCard extends BaseCard {
                   : html`<ha-icon icon="mdi:music-note"></ha-icon>`}
               </div>
               <div class="queue-info">
-                <span class="queue-title">${marqueeText(name ?? '', 24)}</span>
+                <span class="queue-title">${marqueeText(name ?? '', MARQUEE_FULL)}</span>
                 <span class="queue-artist">${(artists?.[0]?.name as string) ?? ''}</span>
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
@@ -1366,9 +1366,9 @@ export class GlassMediaCard extends BaseCard {
       /* ── Glass panel (bottom info card) — light frosted glass, artwork bleeds through ── */
       .glass-panel {
         border-radius: var(--radius-lg);
-        backdrop-filter: blur(4px) saturate(1.2);
-        -webkit-backdrop-filter: blur(4px) saturate(1.2);
-        background: rgba(0,0,0,0.25);
+        backdrop-filter: blur(24px) saturate(1.4);
+        -webkit-backdrop-filter: blur(24px) saturate(1.4);
+        background: rgba(0,0,0,0.45);
         border: 1px solid rgba(255,255,255,0.08);
         box-shadow:
           0 4px 16px rgba(0,0,0,0.15),
@@ -1523,32 +1523,33 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent;
-        color: var(--t3);
+        color: rgba(255,255,255,0.7);
       }
       .transport-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: 18px;
       }
       @media (hover: hover) and (pointer: fine) {
-        .transport-btn:hover { background: var(--s2); color: var(--t2); }
+        .transport-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
       }
       .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
-      .transport-btn.active { color: var(--mp-color); }
+      .transport-btn.active { color: var(--c-accent-dynamic, var(--mp-color)); }
 
       .transport-skip { width: 40px; height: 40px; }
       .transport-skip ha-icon { --mdc-icon-size: 26px; }
+      .transport-skip { color: rgba(255,255,255,0.85); }
 
       .transport-main {
         width: 52px; height: 52px; border-radius: 16px;
-        background: var(--mp-bg); border: 1px solid var(--mp-border);
-        color: var(--c-accent-dynamic, var(--mp-color));
+        background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+        color: #fff;
       }
       .transport-main ha-icon { --mdc-icon-size: 28px; }
       @media (hover: hover) and (pointer: fine) {
         .transport-main:hover {
-          background: rgba(129,140,248,0.18); border-color: rgba(129,140,248,0.25);
+          background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.25);
         }
         .transport-main:active { transform: scale(0.96); }
       }

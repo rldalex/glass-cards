@@ -332,11 +332,11 @@ class GlassWeatherCard extends BaseCard {
     /* ── Forecast tabs ── */
     /* ── Fold separator ── */
     .wc-fold-sep {
-      height: 0; margin: 0 12px; overflow: hidden;
+      height: 1px; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), transparent);
-      opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease), margin 0.25s var(--ease-std, ease);
+      opacity: 0; transition: opacity var(--t-layout);
     }
-    .wc-fold-sep.visible { height: 1px; margin: 2px 12px; opacity: 1; }
+    .wc-fold-sep.visible { opacity: 1; }
 
     .wc-forecast-zone {
       display: flex; flex-direction: column; gap: 4px;

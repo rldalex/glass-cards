@@ -1,7 +1,7 @@
 import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -428,7 +428,7 @@ export class GlassPresenceCard extends BaseCard {
           <div class="person-sub">
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
-              <span class="person-location">${marqueeText(stateText(p.state), 16)}</span>
+              <span class="person-location">${marqueeText(stateText(p.state), MARQUEE_FULL)}</span>
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
