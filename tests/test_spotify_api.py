@@ -400,6 +400,137 @@ class TestSpotifyPlaylistSort:
             assert result["total"] == 0
 
 
+class TestRecentFirstCacheOptimization:
+    """Tests for the playlist total cache optimization in recent_first mode."""
+
+    def setup_method(self):
+        import custom_components.glass_cards.spotify_api as api
+        api._rate_limit_until = 0.0
+        api._request_timestamps.clear()
+
+    def _make_hass_with_cache(self):
+        """Create a mock hass with a SpotifyCache attached."""
+        from custom_components.glass_cards.spotify_cache import SpotifyCache
+        hass = MagicMock()
+        hass.data = {"glass_cards": {"spotify_cache": SpotifyCache()}}
+        return hass
+
+    @pytest.mark.asyncio
+    async def test_first_page_makes_two_calls_and_caches_total(self):
+        """offset=0: 2 API calls, total stored in cache."""
+        hass = self._make_hass_with_cache()
+        meta_response = {"tracks": {"total": 20}}
+        track_items = [{"track": {"name": f"T{i}"}} for i in range(5)]
+        track_response = {"items": track_items, "total": 20}
+        call_count = 0
+
+        async def mock_request(h, method, endpoint, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return meta_response
+            return track_response
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            side_effect=mock_request,
+        ):
+            result = await spotify_get_playlist_tracks(
+                hass, "pl_abc", limit=5, offset=0, sort_order="recent_first"
+            )
+
+        assert call_count == 2
+        assert result["total"] == 20
+        # Total should now be cached
+        cache = hass.data["glass_cards"]["spotify_cache"]
+        assert cache.get("playlist_total:pl_abc") == 20
+
+    @pytest.mark.asyncio
+    async def test_subsequent_page_uses_cache_one_call_only(self):
+        """offset>0 with warm cache: only 1 API call (no meta fetch)."""
+        from custom_components.glass_cards.spotify_cache import SpotifyCache
+        hass = MagicMock()
+        cache = SpotifyCache()
+        cache.set("playlist_total:pl_abc", 20)
+        hass.data = {"glass_cards": {"spotify_cache": cache}}
+
+        track_items = [{"track": {"name": f"T{i}"}} for i in range(5)]
+        track_response = {"items": track_items, "total": 20}
+        call_count = 0
+
+        async def mock_request(h, method, endpoint, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return track_response
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            side_effect=mock_request,
+        ):
+            result = await spotify_get_playlist_tracks(
+                hass, "pl_abc", limit=5, offset=5, sort_order="recent_first"
+            )
+
+        assert call_count == 1
+        assert result["total"] == 20
+
+    @pytest.mark.asyncio
+    async def test_subsequent_page_cache_miss_falls_back_to_two_calls(self):
+        """offset>0 but cache expired/missing: gracefully re-fetches total (2 calls)."""
+        hass = self._make_hass_with_cache()  # empty cache
+        meta_response = {"tracks": {"total": 15}}
+        track_items = [{"track": {"name": f"T{i}"}} for i in range(5)]
+        track_response = {"items": track_items, "total": 15}
+        call_count = 0
+
+        async def mock_request(h, method, endpoint, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return meta_response
+            return track_response
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            side_effect=mock_request,
+        ):
+            result = await spotify_get_playlist_tracks(
+                hass, "pl_xyz", limit=5, offset=5, sort_order="recent_first"
+            )
+
+        assert call_count == 2
+        assert result["total"] == 15
+
+    @pytest.mark.asyncio
+    async def test_no_cache_in_hass_still_works(self):
+        """Without cache in hass.data, recent_first still functions correctly."""
+        hass = MagicMock()
+        hass.data = {}  # No glass_cards domain data
+
+        meta_response = {"tracks": {"total": 10}}
+        track_items = [{"track": {"name": f"T{i}"}} for i in range(5)]
+        track_response = {"items": track_items, "total": 10}
+        call_count = 0
+
+        async def mock_request(h, method, endpoint, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return meta_response
+            return track_response
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            side_effect=mock_request,
+        ):
+            result = await spotify_get_playlist_tracks(
+                hass, "pl_no_cache", limit=5, offset=0, sort_order="recent_first"
+            )
+
+        assert call_count == 2
+        assert result["total"] == 10
+
+
 class TestEntityIdResolution:
     """Tests for entity_id-based token resolution in _get_spotify_token."""
 

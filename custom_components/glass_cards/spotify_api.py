@@ -211,6 +211,30 @@ async def spotify_get_playlists(
     return result or {"items": [], "total": 0}
 
 
+def _get_playlist_total_from_cache(hass: HomeAssistant, playlist_id: str) -> int | None:
+    """Read cached playlist total, return None on miss or if cache unavailable."""
+    from .const import DOMAIN
+    domain_data = hass.data.get(DOMAIN)
+    if not domain_data:
+        return None
+    cache = domain_data.get("spotify_cache")
+    if cache is None:
+        return None
+    return cache.get(f"playlist_total:{playlist_id}")
+
+
+def _set_playlist_total_in_cache(hass: HomeAssistant, playlist_id: str, total: int) -> None:
+    """Store playlist total in cache for subsequent pages."""
+    from .const import DOMAIN
+    domain_data = hass.data.get(DOMAIN)
+    if not domain_data:
+        return
+    cache = domain_data.get("spotify_cache")
+    if cache is None:
+        return
+    cache.set(f"playlist_total:{playlist_id}", total)
+
+
 async def spotify_get_playlist_tracks(
     hass: HomeAssistant,
     playlist_id: str,
@@ -219,17 +243,33 @@ async def spotify_get_playlist_tracks(
     sort_order: str = "oldest_first",
     entity_id: str = "",
 ) -> dict[str, Any]:
-    """Get tracks in a playlist with optional reverse sort."""
+    """Get tracks in a playlist with optional reverse sort.
+
+    For ``recent_first``:
+    - First page (offset=0): fetches total via a separate metadata call, then
+      caches it as ``playlist_total:{playlist_id}`` so subsequent pages only
+      need one API call.
+    - Subsequent pages: reads total from cache (1 call). If cache expired,
+      re-fetches total gracefully (2 calls again).
+    """
     if sort_order == "recent_first":
-        # First fetch total to compute reverse offset
-        meta = await spotify_request(
-            hass, "GET", f"/playlists/{playlist_id}",
-            params={"fields": "tracks.total"},
-            entity_id=entity_id,
-        )
-        total = (meta or {}).get("tracks", {}).get("total", 0)
-        if total == 0:
-            return {"items": [], "total": 0}
+        # Try to read total from cache (subsequent pages skip the meta call)
+        total: int | None = None
+        if offset > 0:
+            total = _get_playlist_total_from_cache(hass, playlist_id)
+
+        if total is None:
+            # First page or cache miss: fetch total via metadata call
+            meta = await spotify_request(
+                hass, "GET", f"/playlists/{playlist_id}",
+                params={"fields": "tracks.total"},
+                entity_id=entity_id,
+            )
+            total = (meta or {}).get("tracks", {}).get("total", 0)
+            if total == 0:
+                return {"items": [], "total": 0}
+            # Cache total for subsequent page requests
+            _set_playlist_total_in_cache(hass, playlist_id, total)
 
         reverse_offset = max(0, total - offset - limit)
         actual_limit = min(limit, total - offset)
