@@ -51,6 +51,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
     media: { icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', descKey: 'config.dashboard_card_media_desc', hasSub: true },
     fan: { icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', descKey: 'config.dashboard_card_fan_desc', hasSub: true },
     presence: { icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', descKey: 'config.dashboard_card_presence_desc', hasSub: true },
+    camera_carousel: { icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', descKey: 'config.dashboard_card_camera_carousel_desc', hasSub: false },
   };
 
   const enabledSet = new Set(self._dashboardEnabledCards);
