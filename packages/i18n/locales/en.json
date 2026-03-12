@@ -445,6 +445,10 @@
     "media_extra_entities": "Extra players",
     "media_extra_entities_desc": "Add extra media players to this room.",
     "media_select_room": "Select a room",
+    "media_native_players": "Native players",
+    "media_native_players_desc": "Media players assigned to this area in Home Assistant.",
+    "media_no_extra": "No extra players added.",
+    "media_add_extra": "Add extra player",
     "media_dashboard_variant": "Dashboard variant",
     "media_dashboard_variant_desc": "Variant used for the media card on the dashboard.",
 

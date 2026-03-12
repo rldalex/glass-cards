@@ -445,6 +445,10 @@
     "media_extra_entities": "Lecteurs supplémentaires",
     "media_extra_entities_desc": "Ajoutez des lecteurs médias supplémentaires à cette pièce.",
     "media_select_room": "Sélectionnez une pièce",
+    "media_native_players": "Lecteurs natifs",
+    "media_native_players_desc": "Lecteurs médias assignés à cette zone dans Home Assistant.",
+    "media_no_extra": "Aucun lecteur supplémentaire ajouté.",
+    "media_add_extra": "Ajouter un lecteur",
     "media_dashboard_variant": "Variante dashboard",
     "media_dashboard_variant_desc": "Variante utilisée pour la carte média sur le tableau de bord.",
 

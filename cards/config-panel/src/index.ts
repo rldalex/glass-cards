@@ -20,7 +20,7 @@ import {
 import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityVisibility, cycleCoverLayout, getAllCoverEntities, toggleCoverDashboardEntity, initCoverDashboardOrder, onDropDashboardCover, onDropCover, addCoverPreset, removeCoverPreset, addCoverEntityPreset, removeCoverEntityPreset, resetCoverEntityPresets } from './tabs/cover';
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
-import { renderMediaPreview, renderMediaTab } from './tabs/media';
+import { renderMediaPreview, renderMediaTab, selectMediaRoom, addMediaExtraEntity, removeMediaExtraEntity } from './tabs/media';
 import { renderFanPreview, renderFanTab, selectFanRoom, toggleFanEntityVisibility, cycleFanLayout, onDropFan } from './tabs/fan';
 import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible, openIconPicker, setRoomIcon, selectRoom, goBack } from './tabs/navbar';
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
@@ -126,6 +126,11 @@ export class GlassConfigPanel extends LitElement {
 
   @state() _mediaShowHeader = true;
   @state() _mediaExtraEntities: Record<string, string[]> = {};
+  @state() _mediaRoom = '';
+  @state() _mediaRoomDropdownOpen = false;
+  @state() _mediaRoomNativePlayers: string[] = [];
+  @state() _mediaAddDropdownOpen = false;
+  _mediaEntitySearch = '';
 
   // Spotify config
   @state() _spotifyShowHeader = true;
@@ -230,6 +235,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
+    this._mediaRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
     this._tabSelectOpen = false;
@@ -629,6 +635,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
+    this._mediaRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
     this._iconPopupModeIdx = null;
@@ -644,6 +651,10 @@ export class GlassConfigPanel extends LitElement {
     if (tab === 'fan' && !this._fanRoom && this._rooms.length > 0) {
       this._fanRoom = this._rooms[0].areaId;
       this._loadRoomFans();
+    }
+    if (tab === 'media' && !this._mediaRoom && this._rooms.length > 0) {
+      this._mediaRoom = this._rooms[0].areaId;
+      this._loadRoomMediaPlayers();
     }
     if ((tab === 'cover' || tab === 'dashboard') && this._coverDashboardOrder.length === 0) {
       this._initCoverDashboardOrder();
@@ -1409,6 +1420,23 @@ export class GlassConfigPanel extends LitElement {
 
   _renderMediaTab() { return renderMediaTab(this); }
 
+  _selectMediaRoom(areaId: string) { selectMediaRoom(this, areaId); }
+
+  _addMediaExtraEntity(entityId: string) { addMediaExtraEntity(this, entityId); }
+
+  _removeMediaExtraEntity(entityId: string) { removeMediaExtraEntity(this, entityId); }
+
+  _loadRoomMediaPlayers() {
+    if (!this.hass || !this._mediaRoom) {
+      this._mediaRoomNativePlayers = [];
+      return;
+    }
+    const entities = getAreaEntities(this._mediaRoom, this.hass.entities, this.hass.devices);
+    this._mediaRoomNativePlayers = entities
+      .filter((e) => e.entity_id.startsWith('media_player.'))
+      .map((e) => e.entity_id);
+  }
+
   // — Dashboard config —
 
   _toggleDashboardCard(card: string) { toggleDashboardCard(this, card); }
@@ -1450,6 +1478,7 @@ export class GlassConfigPanel extends LitElement {
       });
       await this._backend.send('set_media_config', {
         show_header: this._mediaShowHeader,
+        extra_entities: this._mediaExtraEntities,
       });
       await this._backend.send('set_presence_config', {
         show_header: this._presenceShowHeader,
@@ -1481,7 +1510,7 @@ export class GlassConfigPanel extends LitElement {
         cover_card?: { show_header?: boolean };
         fan_card?: { show_header?: boolean };
         spotify_card?: { show_header?: boolean };
-        media_card?: { show_header?: boolean };
+        media_card?: { show_header?: boolean; extra_entities?: Record<string, string[]> };
         presence_card?: { show_header?: boolean };
       }>('get_config');
       if (result?.dashboard) {
@@ -1496,6 +1525,7 @@ export class GlassConfigPanel extends LitElement {
       this._fanShowHeader = result?.fan_card?.show_header ?? true;
       this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
       this._mediaShowHeader = result?.media_card?.show_header ?? true;
+      this._mediaExtraEntities = result?.media_card?.extra_entities ?? {};
       this._presenceShowHeader = result?.presence_card?.show_header ?? true;
     } catch { /* ignore */ }
   }
