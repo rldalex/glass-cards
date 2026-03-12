@@ -129,6 +129,7 @@ export class GlassMediaCard extends BaseCard {
   @state() private _configLoaded = false;
   @state() private _roomIndex = 0;
   private _roomEntityId = '';
+  private _prevPlayingSet = '';
   @state() private _swipeClass = '';
   @state() private _foldTab: 'controls' | 'queue' = 'controls';
   @state() private _queueData: Array<Record<string, unknown>> = [];
@@ -185,6 +186,7 @@ export class GlassMediaCard extends BaseCard {
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
     this._swipeAnimating = false;
     this._swipeClass = '';
+    this._prevPlayingSet = '';
     ++this._loadVersion;
     this._configLoadingInProgress = false;
     this._lastArtworkUrl = '';
@@ -224,6 +226,32 @@ export class GlassMediaCard extends BaseCard {
         this._playersCache = null;
         this._playersCacheKey = '';
       }
+    }
+    // Auto-switch to newly playing room in dashboard mode
+    if (changedProps.has('hass') && this.isDashboard && this.hass) {
+      const playingNow = Object.entries(this.hass.states)
+        .filter(([id, e]) => id.startsWith('media_player.') && e.state === 'playing')
+        .map(([id]) => id)
+        .sort()
+        .join(',');
+      if (playingNow !== this._prevPlayingSet) {
+        const prev = new Set(this._prevPlayingSet.split(',').filter(Boolean));
+        const curr = playingNow.split(',').filter(Boolean);
+        const newlyPlaying = curr.filter((id) => !prev.has(id));
+        this._prevPlayingSet = playingNow;
+        if (newlyPlaying.length > 0) {
+          const rooms = this._getActiveRooms();
+          const idx = rooms.findIndex((r) => newlyPlaying.includes(r.entityId));
+          if (idx >= 0 && idx !== this._roomIndex) {
+            this._roomIndex = idx;
+            this._roomEntityId = rooms[idx].entityId;
+          }
+        }
+      }
+    }
+    // Refresh queue if room changed while queue tab is open
+    if (changedProps.has('_roomIndex') && this._foldOpen && this._foldTab === 'queue') {
+      this._loadQueue();
     }
     // Start/stop progress timer based on playback state (only on relevant changes)
     if (changedProps.has('hass') || changedProps.has('_roomIndex')) {
@@ -558,6 +586,8 @@ export class GlassMediaCard extends BaseCard {
     this._lpTimer = window.setTimeout(() => {
       this._lpFired = true;
       this._foldOpen = !this._foldOpen;
+      // Pre-load queue when fold opens so we know whether to show tabs
+      if (this._foldOpen) this._loadQueue();
       // Scroll card into view when fold opens (wait for fold CSS transition)
       if (this._foldOpen) {
         setTimeout(() => {
@@ -933,18 +963,23 @@ export class GlassMediaCard extends BaseCard {
   /* ── Render: Fold content ── */
 
   private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
-    const isQueue = this._foldTab === 'queue';
+    const hasQueue = this._queueData.length > 0 || this._radioTracks.length > 0;
+    const isQueue = this._foldTab === 'queue' && hasQueue;
+    // If queue became empty while on queue tab, switch back to controls
+    if (this._foldTab === 'queue' && !hasQueue) this._foldTab = 'controls';
     return html`
-      <div class="segmented">
-        <button class="seg-btn ${!isQueue ? 'active' : ''}"
-                @click=${() => { this._foldTab = 'controls'; }}>
-          ${t('media.controls_tab')}
-        </button>
-        <button class="seg-btn ${isQueue ? 'active' : ''}"
-                @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
-          ${t('media.queue_tab')}
-        </button>
-      </div>
+      ${hasQueue ? html`
+        <div class="segmented">
+          <button class="seg-btn ${!isQueue ? 'active' : ''}"
+                  @click=${() => { this._foldTab = 'controls'; }}>
+            ${t('media.controls_tab')}
+          </button>
+          <button class="seg-btn ${isQueue ? 'active' : ''}"
+                  @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
+            ${t('media.queue_tab')}
+          </button>
+        </div>
+      ` : nothing}
       ${isQueue ? this._renderQueueTab() : this._renderControlsTab(master, coordinator, allGroupable)}
     `;
   }
@@ -1006,19 +1041,54 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private async _loadQueue(): Promise<void> {
-    if (this._queueLoading || !this._backend) return;
+    if (this._queueLoading || !this.hass) return;
     this._queueLoading = true;
     this._queueData = [];
     const version = ++this._queueVersion;
     try {
       const master = this._findMaster(this._getPlayers());
-      const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>(
-        'spotify_queue',
-        master ? { entity_id: master.entityId } : {},
-      );
-      if (version !== this._queueVersion) return;
-      this._queueData = result?.queue ?? [];
-    } catch { /* silent */ }
+      if (!master) { this._queueLoading = false; return; }
+
+      // Try sonos.get_queue first (works for Sonos speakers regardless of source)
+      const isSonos = master.entityId.startsWith('media_player.sonos_');
+      if (isSonos) {
+        const result = await this.hass.connection.sendMessagePromise({
+          type: 'call_service',
+          domain: 'sonos',
+          service: 'get_queue',
+          target: { entity_id: master.entityId },
+          return_response: true,
+        }) as { response?: Record<string, Array<Record<string, unknown>>> };
+        if (version !== this._queueVersion) return;
+        const entityQueue = result?.response?.[master.entityId] ?? [];
+        // Normalize to common format: { name, artist, album_name, content_id }
+        this._queueData = entityQueue.map((item) => ({
+          name: (item.media_title as string) ?? '',
+          artist: (item.media_artist as string) ?? '',
+          album_name: (item.media_album_name as string) ?? '',
+          content_id: (item.media_content_id as string) ?? '',
+        }));
+      } else if (this._backend) {
+        // Fallback: Spotify API queue for non-Sonos players
+        const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>(
+          'spotify_queue',
+          { entity_id: master.entityId },
+        );
+        if (version !== this._queueVersion) return;
+        this._queueData = (result?.queue ?? []).map((item) => {
+          const artists = item.artists as Array<Record<string, unknown>> | undefined;
+          const album = item.album as Record<string, unknown> | undefined;
+          return {
+            name: (item.name as string) ?? '',
+            artist: (artists?.[0]?.name as string) ?? '',
+            album_name: (album?.name as string) ?? '',
+            content_id: (item.uri as string) ?? '',
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('[glass] queue load error:', err);
+    }
     if (version === this._queueVersion) this._queueLoading = false;
   }
 
@@ -1028,33 +1098,29 @@ export class GlassMediaCard extends BaseCard {
     }
     const items = this._queueData;
     const master = this._findMaster(this._getPlayers());
-    const isPlaying = master?.state === 'playing';
+    const playing = master?.state === 'playing';
     if (!items.length && !this._radioTracks.length) {
       return html`<div class="queue-empty">${t('media.queue_empty')}</div>`;
     }
     return html`
       <div class="queue-list">
         ${items.map((item: Record<string, unknown>, i: number) => {
-          const uri = item.uri as string | undefined;
-          const name = item.name as string | undefined;
-          const album = item.album as Record<string, unknown> | undefined;
-          const images = album?.images as Array<Record<string, unknown>> | undefined;
-          const artists = item.artists as Array<Record<string, unknown>> | undefined;
-          const isRadio = uri ? this._radioTracks.some(rt => rt.uri === uri) : false;
+          const name = (item.name as string) ?? '';
+          const artist = (item.artist as string) ?? '';
+          const contentId = (item.content_id as string) ?? '';
+          const isRadio = contentId ? this._radioTracks.some(rt => rt.uri === contentId) : false;
           return html`
             <div class="queue-item ${i === 0 ? 'now-playing' : ''}">
               <div class="queue-art">
-                ${images?.length
-                  ? html`<img src=${images[images.length - 1].url as string} alt="" loading="lazy" />`
-                  : html`<ha-icon icon="mdi:music-note"></ha-icon>`}
+                <ha-icon icon="mdi:music-note"></ha-icon>
               </div>
               <div class="queue-info">
-                <span class="queue-title">${marqueeText(name ?? '', MARQUEE_FULL)}</span>
-                <span class="queue-artist">${(artists?.[0]?.name as string) ?? ''}</span>
+                <span class="queue-title">${marqueeText(name, MARQUEE_FULL)}</span>
+                <span class="queue-artist">${artist}</span>
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
               ${i === 0 ? html`
-                ${isPlaying ? html`<div class="eq-bars"><span></span><span></span><span></span></div>` : nothing}
+                ${playing ? html`<div class="eq-bars"><span></span><span></span><span></span></div>` : nothing}
                 <button class="btn-icon xs" aria-label="${t('media.skip_track')}"
                         @click=${() => this._skipToNext()}>
                   <ha-icon icon="mdi:skip-next"></ha-icon>
