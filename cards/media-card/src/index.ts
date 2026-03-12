@@ -155,6 +155,8 @@ export class GlassMediaCard extends BaseCard {
   private _pointerStart = { x: 0, y: 0, t: 0 };
   private _queueRefreshTimer = 0;
   private _prevMediaTitle = '';
+  private _lastMaster: MediaPlayerInfo | null = null;
+  private _lastMasterStaleTimer = 0;
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
@@ -187,6 +189,8 @@ export class GlassMediaCard extends BaseCard {
     if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
     if (this._queueRefreshTimer) { clearTimeout(this._queueRefreshTimer); this._queueRefreshTimer = 0; }
+    if (this._lastMasterStaleTimer) { clearTimeout(this._lastMasterStaleTimer); this._lastMasterStaleTimer = 0; }
+    this._lastMaster = null;
     this._swipeAnimating = false;
     this._swipeClass = '';
     this._prevPlayingSet = '';
@@ -1119,7 +1123,8 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _renderQueueTab(): TemplateResult {
-    if (this._queueLoading) {
+    // Only show full loading state when we have no existing data to display
+    if (this._queueLoading && this._queueData.length === 0) {
       return html`<div class="queue-loading">${t('media.loading_radio')}</div>`;
     }
     const items = this._queueData;
@@ -1290,7 +1295,29 @@ export class GlassMediaCard extends BaseCard {
 
     if (this.isDashboard) {
       const rooms = this._getActiveRooms();
-      if (rooms.length === 0) return nothing;
+      if (rooms.length === 0) {
+        // Tolerate brief idle transitions during skip — use cached master for up to 2s
+        if (!this._lastMaster) return nothing;
+        if (!this._lastMasterStaleTimer) {
+          this._lastMasterStaleTimer = window.setTimeout(() => {
+            this._lastMaster = null;
+            this._lastMasterStaleTimer = 0;
+            this.requestUpdate();
+          }, 2000);
+        }
+        return html`
+          ${showHeader ? html`
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-title">${t('media.title')}</span>
+              </div>
+            </div>
+          ` : nothing}
+          ${this._renderHero(this._lastMaster)}
+        `;
+      }
+      // Active rooms found — clear stale timer
+      if (this._lastMasterStaleTimer) { clearTimeout(this._lastMasterStaleTimer); this._lastMasterStaleTimer = 0; }
 
       // Stabilize room index by entity ID across re-renders
       if (this._roomEntityId) {
@@ -1301,6 +1328,7 @@ export class GlassMediaCard extends BaseCard {
       if (this._roomIndex >= rooms.length) this._roomIndex = 0;
       const master = rooms[this._roomIndex];
       this._roomEntityId = master.entityId;
+      this._lastMaster = master;
 
       return html`
         ${showHeader ? html`
@@ -1331,7 +1359,30 @@ export class GlassMediaCard extends BaseCard {
     // Room mode — only show if something is playing/paused in this room
     const players = this._getPlayers();
     const master = this._findMaster(players);
-    if (!master || !isActive(master.state)) return nothing;
+    if (!master || !isActive(master.state)) {
+      // Tolerate brief idle transitions during skip — use cached master for up to 2s
+      if (!this._lastMaster) return nothing;
+      if (!this._lastMasterStaleTimer) {
+        this._lastMasterStaleTimer = window.setTimeout(() => {
+          this._lastMaster = null;
+          this._lastMasterStaleTimer = 0;
+          this.requestUpdate();
+        }, 2000);
+      }
+      return html`
+        ${showHeader ? html`
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-title">${t('media.title')}</span>
+            </div>
+          </div>
+        ` : nothing}
+        ${this._renderHero(this._lastMaster)}
+      `;
+    }
+    // Active master found — clear stale timer
+    if (this._lastMasterStaleTimer) { clearTimeout(this._lastMasterStaleTimer); this._lastMasterStaleTimer = 0; }
+    this._lastMaster = master;
 
     return html`
       ${showHeader ? html`
