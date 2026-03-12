@@ -1,7 +1,7 @@
 import { css, html, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, glassMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Types —
@@ -128,7 +128,7 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Styles —
 
-  static styles: CSSResult[] = [glassTokens, glassMixin, bounceMixin, css`
+  static styles: CSSResult[] = [glassTokens, glassMixin, bounceMixin, eqMixin, css`
     :host { display: block; width: 100%; max-width: 500px; margin: 0 auto; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 6px; }
@@ -552,6 +552,16 @@ class GlassSpotifyCard extends BaseCard {
     @media (hover: hover) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
     @media (hover: none) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
 
+    /* Now playing indicator */
+    .result-row.now-playing {
+      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
+      border-radius: var(--radius-sm);
+    }
+    .result-row.now-playing .result-title {
+      color: var(--c-accent);
+    }
+    .result-row .eq-bars { flex-shrink: 0; }
+
     /* Loading spinner placeholder */
     .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }
   `];
@@ -560,7 +570,19 @@ class GlassSpotifyCard extends BaseCard {
 
   protected getTrackedEntityIds(): string[] {
     const eid = this._getEntityId();
-    return eid ? [eid] : [];
+    const ids = eid ? [eid] : [];
+    if (this._spotifyConfig?.entity_id && !ids.includes(this._spotifyConfig.entity_id)) {
+      ids.push(this._spotifyConfig.entity_id);
+    }
+    return ids;
+  }
+
+  private _isNowPlaying(uri: string): boolean {
+    const entityId = this._spotifyConfig?.entity_id;
+    if (!entityId) return false;
+    const entity = this.hass?.states[entityId];
+    if (!entity || entity.state !== 'playing') return false;
+    return (entity.attributes.media_content_id as string ?? '') === uri;
   }
 
   private _getEntityId(): string {
@@ -1170,9 +1192,11 @@ class GlassSpotifyCard extends BaseCard {
     const img = getImage(item, 64);
     const artist = getArtistNames(item) || (item.owner?.display_name ?? '');
     const isRound = type === 'show' || type === 'episode';
+    const uri = item.uri ?? `spotify:${item.type ?? type}:${item.id}`;
+    const playing = this._isNowPlaying(uri);
     return html`
       <div
-        class="result-row"
+        class="result-row ${playing ? 'now-playing' : ''}"
         role="button"
         tabindex="0"
         @click=${() => {
@@ -1194,13 +1218,17 @@ class GlassSpotifyCard extends BaseCard {
             <span>${artist}</span>
           </div>
         </div>
-        <button
-          class="result-play"
-          aria-label=${t('spotify.play_aria', { name: item.name })}
-          @click=${(e: Event) => { e.stopPropagation(); this._openPicker(item); }}
-        >
-          <ha-icon .icon=${'mdi:play'}></ha-icon>
-        </button>
+        ${playing
+          ? html`<div class="eq-bars"><span></span><span></span><span></span></div>`
+          : html`
+            <button
+              class="result-play"
+              aria-label=${t('spotify.play_aria', { name: item.name })}
+              @click=${(e: Event) => { e.stopPropagation(); this._openPicker(item); }}
+            >
+              <ha-icon .icon=${'mdi:play'}></ha-icon>
+            </button>
+          `}
       </div>
     `;
   }
