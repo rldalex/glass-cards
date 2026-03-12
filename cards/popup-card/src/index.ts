@@ -556,9 +556,15 @@ export class GlassRoomPopup extends LitElement {
       clearTimeout(this._peekTimeout);
       this._peekTimeout = undefined;
     }
-    // Discard any pending swipe queued during animation
-    if (this._pendingSwipe) this._pendingSwipe = undefined;
-    if (this._currentRoomIndex !== undefined) this._currentRoomIndex = undefined;
+    // Cancel any in-progress swipe animation
+    if (this._swipeAnimTimer !== undefined) {
+      clearTimeout(this._swipeAnimTimer);
+      this._swipeAnimTimer = undefined;
+    }
+    this._swipeAnimating = false;
+    this._swipeClass = '';
+    this._pendingSwipe = undefined;
+    this._currentRoomIndex = undefined;
     this._open = false;
     this.removeAttribute('open');
     this._closeTimeout = setTimeout(() => {
