@@ -3,7 +3,7 @@ export type AmbientPeriod = 'morning' | 'day' | 'evening' | 'night';
 export interface GlassEventMap {
   'location-changed': undefined;
   'ambient-update': { period: AmbientPeriod };
-  'popup-open': { areaId: string; originRect?: DOMRect };
+  'popup-open': { areaId: string; originRect?: DOMRect; roomIndex?: number };
   'popup-close': undefined;
   'navbar-config-changed': undefined;
   'room-config-changed': { areaId: string };
