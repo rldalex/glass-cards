@@ -2,6 +2,56 @@ import { html, nothing } from 'lit';
 import { t } from '@glass-cards/i18n';
 import type { GlassConfigPanel } from '../index';
 
+interface PreviewFan {
+  name: string; isOn: boolean; pct: number; step: number; total: number; icon: string; layout: 'full' | 'compact';
+}
+
+function renderFanPreviewRow(f: PreviewFan, accentRgba: string, compact: boolean, isRight: boolean) {
+  const sepStyle = isRight ? 'padding-left:8px;position:relative;' : '';
+  const sepLine = isRight ? html`<div style="position:absolute;left:0;top:20%;bottom:20%;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.08) 30%,rgba(255,255,255,0.08) 70%,transparent);"></div>` : nothing;
+  return html`
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${sepStyle}">
+      ${sepLine}
+      <div style="width:22px;height:22px;border-radius:6px;background:${f.isOn ? `${accentRgba}0.1)` : 'var(--s2)'};border:1px solid ${f.isOn ? `${accentRgba}0.15)` : 'var(--b1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <ha-icon .icon=${f.icon} style="--mdc-icon-size:13px;color:${f.isOn ? '#818cf8' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${f.isOn ? `filter:drop-shadow(0 0 4px ${accentRgba}0.4));animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}"></ha-icon>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
+          <span style="font-size:8px;color:${f.isOn ? `${accentRgba}0.6)` : 'var(--t4)'};">${f.isOn ? `${f.pct}%` : t('fan.off')}</span>
+          ${f.isOn ? html`
+            <span style="font-size:7px;color:var(--t4);">${t('fan.speed_step', { step: f.step, total: f.total })}</span>
+          ` : nothing}
+        </div>
+      </div>
+      <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${f.isOn ? '#818cf8' : 'var(--t4)'};${f.isOn ? `box-shadow:0 0 6px ${accentRgba}0.4);` : ''}"></div>
+    </div>
+  `;
+}
+
+function renderFanPreviewRows(fans: PreviewFan[], accentRgba: string) {
+  const results: unknown[] = [];
+  let i = 0;
+  while (i < fans.length) {
+    const fan = fans[i];
+    if (fan.layout === 'compact') {
+      const next = i + 1 < fans.length && fans[i + 1].layout === 'compact' ? fans[i + 1] : null;
+      if (next) {
+        results.push(renderFanPreviewRow(fan, accentRgba, true, false));
+        results.push(renderFanPreviewRow(next, accentRgba, true, true));
+        i += 2;
+      } else {
+        results.push(renderFanPreviewRow(fan, accentRgba, false, false));
+        i++;
+      }
+    } else {
+      results.push(renderFanPreviewRow(fan, accentRgba, false, false));
+      i++;
+    }
+  }
+  return results;
+}
+
 export function renderFanPreview(self: GlassConfigPanel) {
   // Use real room entities if a room is selected, otherwise mock data
   const roomEntities = self._fanRoomEntities.filter((e) => e.visible);
@@ -9,9 +59,9 @@ export function renderFanPreview(self: GlassConfigPanel) {
 
   const fans = useMock
     ? [
-        { name: 'Ventilateur Salon', isOn: true, pct: 67, step: 2, total: 3, icon: 'mdi:fan' },
-        { name: 'Plafonnier Chambre', isOn: true, pct: 50, step: 3, total: 6, icon: 'mdi:ceiling-fan' },
-        { name: 'Extracteur SdB', isOn: false, pct: 0, step: 0, total: 3, icon: 'mdi:fan' },
+        { name: 'Ventilateur Salon', isOn: true, pct: 67, step: 2, total: 3, icon: 'mdi:fan', layout: 'compact' as const },
+        { name: 'Plafonnier Chambre', isOn: true, pct: 50, step: 3, total: 6, icon: 'mdi:ceiling-fan', layout: 'compact' as const },
+        { name: 'Extracteur SdB', isOn: false, pct: 0, step: 0, total: 3, icon: 'mdi:fan', layout: 'compact' as const },
       ]
     : roomEntities.map((e) => {
         const entity = self.hass?.states[e.entityId];
@@ -21,7 +71,7 @@ export function renderFanPreview(self: GlassConfigPanel) {
         const rawCount = entity?.attributes?.speed_count as number | undefined;
         const speedCount = rawCount ?? (pctStep && pctStep > 0 ? Math.round(100 / pctStep) : 3);
         const step = isOn ? Math.round((pct / 100) * speedCount) : 0;
-        return { name: e.name, isOn, pct, step, total: speedCount, icon: 'mdi:fan' };
+        return { name: e.name, isOn, pct, step, total: speedCount, icon: 'mdi:fan', layout: e.layout };
       });
 
   const onCount = fans.filter((f) => f.isOn).length;
@@ -46,29 +96,13 @@ export function renderFanPreview(self: GlassConfigPanel) {
           </div>
         </div>
       ` : nothing}
-      <div class="preview-fan-card glass" style="padding:8px 10px;display:flex;flex-direction:column;gap:2px;position:relative;">
+      <div class="preview-fan-card glass" style="padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;">
         <!-- Tint -->
-        <div style="position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#818cf8,transparent 70%);opacity:${fans.length > 0 ? (onCount / fans.length * 0.18).toFixed(3) : '0'};"></div>
+        <div style="grid-column:1/-1;position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#818cf8,transparent 70%);opacity:${fans.length > 0 ? (onCount / fans.length * 0.18).toFixed(3) : '0'};"></div>
         ${fans.length === 0 ? html`
-          <div style="padding:8px;text-align:center;font-size:10px;color:var(--t4);">—</div>
+          <div style="grid-column:1/-1;padding:8px;text-align:center;font-size:10px;color:var(--t4);">—</div>
         ` : nothing}
-        ${fans.map((f) => html`
-          <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;">
-            <div style="width:22px;height:22px;border-radius:6px;background:${f.isOn ? `${accentRgba}0.1)` : 'var(--s2)'};border:1px solid ${f.isOn ? `${accentRgba}0.15)` : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
-              <ha-icon .icon=${f.icon} style="--mdc-icon-size:13px;color:${f.isOn ? '#818cf8' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${f.isOn ? `filter:drop-shadow(0 0 4px ${accentRgba}0.4));animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}"></ha-icon>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</div>
-              <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-                <span style="font-size:8px;color:${f.isOn ? `${accentRgba}0.6)` : 'var(--t4)'};">${f.isOn ? `${f.pct}%` : t('fan.off')}</span>
-                ${f.isOn ? html`
-                  <span style="font-size:7px;color:var(--t4);">${t('fan.speed_step', { step: f.step, total: f.total })}</span>
-                ` : nothing}
-              </div>
-            </div>
-            <div style="width:6px;height:6px;border-radius:50%;background:${f.isOn ? '#818cf8' : 'var(--t4)'};${f.isOn ? `box-shadow:0 0 6px ${accentRgba}0.4);` : ''}"></div>
-          </div>
-        `)}
+        ${renderFanPreviewRows(fans, accentRgba)}
       </div>
     </div>
   `;

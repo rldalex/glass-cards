@@ -78,7 +78,7 @@ class GlassTitleCard extends BaseCard {
 
     .title-card {
       display: flex; flex-direction: column; align-items: center;
-      gap: 6px; padding: 8px 16px;
+      gap: 4px; padding: 4px 16px 0;
       text-align: center;
     }
 

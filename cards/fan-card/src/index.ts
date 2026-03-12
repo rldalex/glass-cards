@@ -343,7 +343,7 @@ class GlassFanCard extends BaseCard {
     .fold-sep {
       grid-column: 1 / -1;
       height: 0; margin: 0 12px; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(129,140,248,0.25), transparent);
+      background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), transparent);
       opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
     }
     .fold-sep.visible { height: 1px; opacity: 1; }
@@ -984,8 +984,18 @@ class GlassFanCard extends BaseCard {
     this.hass.callService('light', service, {}, { entity_id: fan.lightEntityId });
   }
 
-  private _toggleExpand(entityId: string): void {
-    this._expandedEntity = this._expandedEntity === entityId ? null : entityId;
+  private _hasControls(fan: FanInfo): boolean {
+    const sf = fan.supportedFeatures;
+    return !!(sf & FanFeature.SET_SPEED) || !!(sf & FanFeature.PRESET_MODE) || !!(sf & FanFeature.DIRECTION) || !!(sf & FanFeature.OSCILLATE) || !!fan.lightEntityId;
+  }
+
+  private _toggleExpand(fan: FanInfo): void {
+    // Simple fans with no controls: toggle on/off instead of expanding
+    if (!this._hasControls(fan)) {
+      this._toggleFan(fan, new Event('click'));
+      return;
+    }
+    this._expandedEntity = this._expandedEntity === fan.entityId ? null : fan.entityId;
   }
 
   // — Slider interaction —
@@ -1144,19 +1154,21 @@ class GlassFanCard extends BaseCard {
       if (this._isCompact(fan)) {
         const next = i + 1 < fans.length && this._isCompact(fans[i + 1]) ? fans[i + 1] : null;
         if (next) {
+          const last = i + 2 >= fans.length;
           results.push(this._renderFanRow(fan, true, false));
           results.push(this._renderFanRow(next, true, true));
-          results.push(this._renderControlFold(fan));
-          results.push(this._renderControlFold(next));
+          results.push(this._renderControlFold(fan, last));
+          results.push(this._renderControlFold(next, last));
           i += 2;
         } else {
           results.push(this._renderFanRow(fan, false, false));
-          results.push(this._renderControlFold(fan));
+          results.push(this._renderControlFold(fan, true));
           i++;
         }
       } else {
+        const last = i + 1 >= fans.length;
         results.push(this._renderFanRow(fan, false, false));
-        results.push(this._renderControlFold(fan));
+        results.push(this._renderControlFold(fan, last));
         i++;
       }
     }
@@ -1170,14 +1182,15 @@ class GlassFanCard extends BaseCard {
       const left = fans[i];
       const right = i + 1 < fans.length ? fans[i + 1] : null;
       if (right) {
+        const last = i + 2 >= fans.length;
         results.push(this._renderFanRow(left, true, false));
         results.push(this._renderFanRow(right, true, true));
-        results.push(this._renderControlFold(left));
-        results.push(this._renderControlFold(right));
+        results.push(this._renderControlFold(left, last));
+        results.push(this._renderControlFold(right, last));
         i += 2;
       } else {
         results.push(this._renderFanRow(left, false, false));
-        results.push(this._renderControlFold(left));
+        results.push(this._renderControlFold(left, true));
         i++;
       }
     }
@@ -1189,9 +1202,12 @@ class GlassFanCard extends BaseCard {
     const displayPct = speedDrag ?? fan.percentage;
     const isExpanded = this._expandedEntity === fan.entityId;
 
-    // Speed text — simple fans show just step, complex fans show pct + step
+    // Speed text — simple fans without controls show on/off, others show step info
+    const hasControls = this._hasControls(fan);
     let speedText: string;
-    if (fan.isOn || speedDrag !== undefined) {
+    if (!hasControls) {
+      speedText = fan.isOn ? t('common.on') : t('fan.off');
+    } else if (fan.isOn || speedDrag !== undefined) {
       const step = pctToStep(displayPct, fan.speedCount);
       speedText = fan.isSimple
         ? t('fan.speed_step_short', { step: String(step), total: String(fan.speedCount) })
@@ -1218,9 +1234,9 @@ class GlassFanCard extends BaseCard {
         </button>
         <button
           class="fan-expand-btn"
-          @click=${() => this._toggleExpand(fan.entityId)}
-          aria-expanded=${isExpanded ? 'true' : 'false'}
-          aria-label=${t('fan.expand_aria', { name: fan.name })}
+          @click=${() => this._toggleExpand(fan)}
+          aria-expanded=${hasControls && isExpanded ? 'true' : 'false'}
+          aria-label=${hasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
         >
           <div class="fan-info">
             <div class="fan-name">${marqueeText(fan.name)}</div>
@@ -1240,7 +1256,7 @@ class GlassFanCard extends BaseCard {
     `;
   }
 
-  private _renderControlFold(fan: FanInfo) {
+  private _renderControlFold(fan: FanInfo, isLast = false) {
     const isExpanded = this._expandedEntity === fan.entityId;
     return html`
       <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
@@ -1249,7 +1265,7 @@ class GlassFanCard extends BaseCard {
           ${isExpanded ? this._renderControls(fan) : nothing}
         </div>
       </div>
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>` : nothing}
     `;
   }
 

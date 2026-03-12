@@ -1476,7 +1476,7 @@ export class GlassLightCard extends BaseCard {
     return 'rgba(251,191,36,0.25)';
   }
 
-  private _renderControlFold(info: LightInfo): TemplateResult {
+  private _renderControlFold(info: LightInfo, isLast = false): TemplateResult {
     const isExpanded = this._expandedEntity === info.entityId && info.isOn;
     const isRgb = info.type === 'rgb';
     const { fillClass, fillStyle } = this._getBrightnessFill(info);
@@ -1509,7 +1509,7 @@ export class GlassLightCard extends BaseCard {
           </div>
         </div>
       </div>
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
+      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>` : nothing}
     `;
   }
 
@@ -1728,18 +1728,20 @@ export class GlassLightCard extends BaseCard {
     const layout = this._buildLayout(lights);
     const results: TemplateResult[] = [];
 
-    for (const item of layout) {
+    for (let idx = 0; idx < layout.length; idx++) {
+      const item = layout[idx];
+      const isLast = idx === layout.length - 1;
       if (item.kind === 'full') {
         results.push(this._renderLightRow(item.light, false, false));
-        results.push(this._renderControlFold(item.light));
+        results.push(this._renderControlFold(item.light, isLast));
       } else {
         results.push(this._renderLightRow(item.left, true, false));
         if (item.right) {
           results.push(this._renderLightRow(item.right, true, true));
         }
-        results.push(this._renderControlFold(item.left));
+        results.push(this._renderControlFold(item.left, isLast));
         if (item.right) {
-          results.push(this._renderControlFold(item.right));
+          results.push(this._renderControlFold(item.right, isLast));
         }
       }
     }
@@ -1756,19 +1758,20 @@ export class GlassLightCard extends BaseCard {
       const left = visible[i];
       const right = i + 1 < visible.length ? visible[i + 1] : null;
       if (right) {
+        const last = i + 2 >= visible.length;
         // Compact pair
         results.push(html`
           ${this._renderLightRow(left, true, false)}
           ${this._renderLightRow(right, true, true)}
-          ${this._renderControlFold(left)}
-          ${this._renderControlFold(right)}
+          ${this._renderControlFold(left, last)}
+          ${this._renderControlFold(right, last)}
         `);
         i += 2;
       } else {
         // Last odd light: full width
         results.push(html`
           ${this._renderLightRow(left, false, false)}
-          ${this._renderControlFold(left)}
+          ${this._renderControlFold(left, true)}
         `);
         i++;
       }

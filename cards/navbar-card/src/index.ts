@@ -888,8 +888,8 @@ export class GlassNavbarCard extends BaseCard {
     if (this.hass) {
       (card as unknown as { hass: HomeAssistant }).hass = this.hass;
     }
-    // Pass visible area IDs to light card for dashboard filtering
-    if (tag === 'glass-light-card') {
+    // Pass visible area IDs to cards that need dashboard filtering
+    if (tag === 'glass-light-card' || tag === 'glass-fan-card') {
       const areaIds = this._items.map((item) => item.areaId);
       (card as unknown as { visibleAreaIds: string[] }).visibleAreaIds = areaIds;
     }
