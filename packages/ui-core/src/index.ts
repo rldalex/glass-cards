@@ -144,6 +144,30 @@ export const bounceMixin: CSSResult = css`
   }
 `;
 
+// — Equalizer Mixin —
+
+/** Equalizer animation mixin — 3 animated bars for now-playing indicator. */
+export const eqMixin: CSSResult = css`
+  .eq-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 12px;
+  }
+  .eq-bars span {
+    width: 2px;
+    border-radius: 1px;
+    background: var(--c-accent-dynamic, var(--c-accent));
+    animation: eq-bar 0.8s ease-in-out infinite alternate;
+  }
+  .eq-bars span:nth-child(2) { animation-delay: 0.2s; }
+  .eq-bars span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes eq-bar {
+    from { transform: scaleY(0.25); }
+    to { transform: scaleY(1); }
+  }
+`;
+
 // — Fold Mixin —
 
 export const foldMixin: CSSResult = css`
