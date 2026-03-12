@@ -21,7 +21,7 @@ import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityV
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
 import { renderMediaPreview, renderMediaTab } from './tabs/media';
-import { renderFanPreview, renderFanTab, selectFanRoom, toggleFanEntityVisibility, onDropFan } from './tabs/fan';
+import { renderFanPreview, renderFanTab, selectFanRoom, toggleFanEntityVisibility, cycleFanLayout, onDropFan } from './tabs/fan';
 import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible, openIconPicker, setRoomIcon, selectRoom, goBack } from './tabs/navbar';
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
 import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, getAvailableSmartphoneSensors, getAvailableDrivingSensors, getAvailableNotifyServices, togglePresencePerson } from './tabs/presence';
@@ -113,7 +113,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _fanShowHeader = true;
   @state() _fanRoom = '';
   @state() _fanRoomDropdownOpen = false;
-  @state() _fanRoomEntities: { entityId: string; name: string; visible: boolean }[] = [];
+  @state() _fanRoomEntities: { entityId: string; name: string; visible: boolean; layout: 'full' | 'compact' }[] = [];
 
   // Media card config
   @state() _presenceShowHeader = true;
@@ -1209,6 +1209,8 @@ export class GlassConfigPanel extends LitElement {
 
   _toggleFanEntityVisibility(entityId: string) { toggleFanEntityVisibility(this, entityId); }
 
+  _cycleFanLayout(entityId: string) { cycleFanLayout(this, entityId); }
+
   _onDropFan(idx: number, e: DragEvent) { onDropFan(this, idx, e); }
 
   async _loadRoomFans() {
@@ -1219,10 +1221,10 @@ export class GlassConfigPanel extends LitElement {
       .filter((e) => e.entity_id.startsWith('fan.'))
       .map((e) => e.entity_id);
 
-    // Load room config for hidden_entities / entity_order
-    let roomConfig: { hidden_entities?: string[]; entity_order?: string[] } | null = null;
+    // Load room config for hidden_entities / entity_order / entity_layouts
+    let roomConfig: { hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null = null;
     try {
-      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>('get_room', { area_id: targetRoom });
+      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null>('get_room', { area_id: targetRoom });
     } catch { /* ignore */ }
 
     // Discard stale result if room changed during async call
@@ -1230,6 +1232,7 @@ export class GlassConfigPanel extends LitElement {
 
     const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
     const order = roomConfig?.entity_order ?? [];
+    const entityLayouts = roomConfig?.entity_layouts ?? {};
 
     // Sort by order
     const sorted = [...fanIds].sort((a, b) => {
@@ -1244,7 +1247,7 @@ export class GlassConfigPanel extends LitElement {
     this._fanRoomEntities = sorted.map((id) => {
       const entity = this.hass?.states[id];
       const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-      return { entityId: id, name, visible: !hiddenSet.has(id) };
+      return { entityId: id, name, visible: !hiddenSet.has(id), layout: (entityLayouts[id] as 'full' | 'compact') || 'compact' };
     });
   }
 
@@ -1258,24 +1261,40 @@ export class GlassConfigPanel extends LitElement {
 
       // Save room-level fan config if a room is selected
       if (this._fanRoom && this._fanRoomEntities.length > 0) {
-        // Load existing hidden_entities to preserve non-fan hidden entries
+        // Load existing room config to preserve non-fan entries
         let existingHidden: string[] = [];
+        let existingOrder: string[] = [];
+        let existingLayouts: Record<string, string> = {};
         try {
           const existing = await this._backend.send<{
             hidden_entities: string[];
+            entity_order: string[];
+            entity_layouts: Record<string, string>;
           } | null>('get_room', { area_id: this._fanRoom });
-          if (existing) existingHidden = existing.hidden_entities ?? [];
+          if (existing) {
+            existingHidden = existing.hidden_entities ?? [];
+            existingOrder = existing.entity_order ?? [];
+            existingLayouts = existing.entity_layouts ?? {};
+          }
         } catch { /* ignore */ }
 
         const fanEntityIds = new Set(this._fanRoomEntities.map((e) => e.entityId));
         const nonFanHidden = existingHidden.filter((id) => !fanEntityIds.has(id));
         const hiddenFans = this._fanRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const entityOrder = this._fanRoomEntities.map((e) => e.entityId);
+        const nonFanOrder = existingOrder.filter((id) => !fanEntityIds.has(id));
+        const entityOrder = [...nonFanOrder, ...this._fanRoomEntities.map((e) => e.entityId)];
+
+        // Merge fan layouts with existing non-fan layouts
+        const layouts: Record<string, string> = { ...existingLayouts };
+        for (const e of this._fanRoomEntities) {
+          layouts[e.entityId] = e.layout;
+        }
 
         await this._backend.send('set_room', {
           area_id: this._fanRoom,
           hidden_entities: [...nonFanHidden, ...hiddenFans],
           entity_order: entityOrder,
+          entity_layouts: layouts,
         });
       }
 

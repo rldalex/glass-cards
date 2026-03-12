@@ -116,6 +116,7 @@
     "speed": "Speed",
     "speed_pct": "{pct}%",
     "speed_step": "Speed {step}/{total}",
+    "speed_step_short": "{step}/{total}",
     "direction": "Direction",
     "direction_forward": "Summer",
     "direction_reverse": "Winter",

@@ -17,7 +17,9 @@ export function renderFanPreview(self: GlassConfigPanel) {
         const entity = self.hass?.states[e.entityId];
         const isOn = entity?.state === 'on';
         const pct = (entity?.attributes?.percentage as number) ?? 0;
-        const speedCount = (entity?.attributes?.speed_count as number) ?? 3;
+        const pctStep = entity?.attributes?.percentage_step as number | undefined;
+        const rawCount = entity?.attributes?.speed_count as number | undefined;
+        const speedCount = rawCount ?? (pctStep && pctStep > 0 ? Math.round(100 / pctStep) : 3);
         const step = isOn ? Math.round((pct / 100) * speedCount) : 0;
         return { name: e.name, isOn, pct, step, total: speedCount, icon: 'mdi:fan' };
       });
@@ -163,6 +165,14 @@ export function renderFanTab(self: GlassConfigPanel) {
                     <span class="item-meta">${e.entityId}</span>
                   </div>
                   <button
+                    class="layout-btn"
+                    @click=${() => self._cycleFanLayout(e.entityId)}
+                    aria-label="${t('config.light_change_layout_aria')}"
+                    title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                  >
+                    ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                  </button>
+                  <button
                     class="toggle ${e.visible ? 'on' : ''}"
                     @click=${() => self._toggleFanEntityVisibility(e.entityId)}
                     role="switch"
@@ -204,6 +214,12 @@ export function selectFanRoom(self: GlassConfigPanel, areaId: string) {
 export function toggleFanEntityVisibility(self: GlassConfigPanel, entityId: string) {
   self._fanRoomEntities = self._fanRoomEntities.map((e) =>
     e.entityId === entityId ? { ...e, visible: !e.visible } : e,
+  );
+}
+
+export function cycleFanLayout(self: GlassConfigPanel, entityId: string) {
+  self._fanRoomEntities = self._fanRoomEntities.map((e) =>
+    e.entityId === entityId ? { ...e, layout: e.layout === 'full' ? 'compact' : 'full' } : e,
   );
 }
 

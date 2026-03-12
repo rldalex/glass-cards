@@ -39,6 +39,7 @@ interface FanInfo {
   presetModes: string[];
   supportedFeatures: number;
   lightEntityId: string | null;
+  isSimple: boolean;
 }
 
 interface FanBackendConfig {
@@ -48,6 +49,7 @@ interface FanBackendConfig {
 interface RoomFanConfig {
   hidden_entities: string[];
   entity_order: string[];
+  entity_layouts: Record<string, string>;
 }
 
 // — Preset mode icons —
@@ -217,7 +219,10 @@ class GlassFanCard extends BaseCard {
 
     /* ── Card Body ── */
     .fan-card { position: relative; padding: 2px 14px; }
-    .card-inner { position: relative; z-index: 1; }
+    .card-inner {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    }
 
     .tint {
       transition: opacity var(--t-slow), background var(--t-slow);
@@ -226,8 +231,15 @@ class GlassFanCard extends BaseCard {
     /* ── Fan Row ── */
     .fan-row {
       display: flex; align-items: center; gap: 10px;
+      grid-column: 1 / -1;
       padding: 8px 4px; position: relative;
       transition: background var(--t-fast); border-radius: var(--radius-md);
+    }
+    .fan-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
+    .fan-row.compact-right { padding-left: 10px; }
+    .fan-row.compact-right::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
     }
     @media (hover: hover) and (pointer: fine) {
       .fan-row:hover { background: var(--s1); }
@@ -329,6 +341,7 @@ class GlassFanCard extends BaseCard {
 
     /* ── Fold separator ── */
     .fold-sep {
+      grid-column: 1 / -1;
       height: 0; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(129,140,248,0.25), transparent);
       opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
@@ -337,6 +350,7 @@ class GlassFanCard extends BaseCard {
 
     /* ── Controls fold ── */
     .ctrl-fold {
+      grid-column: 1 / -1;
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
     }
@@ -542,6 +556,7 @@ class GlassFanCard extends BaseCard {
 
     /* ── Empty state ── */
     .empty-state {
+      grid-column: 1 / -1;
       padding: 16px; text-align: center; font-size: 12px; color: var(--t4);
     }
   `];
@@ -858,7 +873,9 @@ class GlassFanCard extends BaseCard {
     const attrs = entity.attributes;
     const isOn = entity.state === 'on';
     const percentage = (attrs.percentage as number) ?? 0;
-    const speedCount = (attrs.speed_count as number) || 3;
+    const pctStep = attrs.percentage_step as number | undefined;
+    const rawCount = attrs.speed_count as number | undefined;
+    const speedCount = rawCount ?? (pctStep && pctStep > 0 ? Math.round(100 / pctStep) : 3);
     const direction = (attrs.direction as string) || null;
     const oscillating = (attrs.oscillating as boolean) || false;
     const presetMode = (attrs.preset_mode as string) || null;
@@ -871,6 +888,12 @@ class GlassFanCard extends BaseCard {
     const icon = registryIcon || attrIcon || (ceiling ? 'mdi:ceiling-fan' : 'mdi:fan');
 
     const lightEntityId = ceiling ? findCeilingLight(entityId, this.hass!) : null;
+
+    // Simple fan = speed only, no preset/direction/oscillation/ceiling light
+    const hasPreset = !!(supportedFeatures & FanFeature.PRESET_MODE) && presetModes.length > 0;
+    const hasDirection = !!(supportedFeatures & FanFeature.DIRECTION);
+    const hasOscillate = !!(supportedFeatures & FanFeature.OSCILLATE);
+    const isSimple = !hasPreset && !hasDirection && !hasOscillate && !lightEntityId;
 
     return {
       entity,
@@ -887,6 +910,7 @@ class GlassFanCard extends BaseCard {
       presetModes,
       supportedFeatures,
       lightEntityId,
+      isSimple,
     };
   }
 
@@ -1076,7 +1100,7 @@ class GlassFanCard extends BaseCard {
       <div class="glass fan-card">
         <div class="tint" style="background:radial-gradient(ellipse at 30% 30%, var(--c-accent), transparent 70%);opacity:${total > 0 ? (onCount / total * 0.18).toFixed(3) : '0'};"></div>
         <div class="card-inner">
-          ${fans.map((fan) => this._renderFanRow(fan))}
+          ${this._isDashboardMode ? this._renderDashboardGrid(fans) : this._renderGrid(fans)}
         </div>
       </div>
     `;
@@ -1102,22 +1126,85 @@ class GlassFanCard extends BaseCard {
     `;
   }
 
-  private _renderFanRow(fan: FanInfo) {
-    const isExpanded = this._expandedEntity === fan.entityId;
+  private _getEntityLayout(entityId: string): 'full' | 'compact' {
+    const layouts = this._roomConfig?.entity_layouts ?? {};
+    const layout = layouts[entityId];
+    return (layout as 'full' | 'compact') === 'full' ? 'full' : 'compact';
+  }
+
+  private _isCompact(fan: FanInfo): boolean {
+    return this._getEntityLayout(fan.entityId) === 'compact';
+  }
+
+  private _renderGrid(fans: FanInfo[]) {
+    const results: unknown[] = [];
+    let i = 0;
+    while (i < fans.length) {
+      const fan = fans[i];
+      if (this._isCompact(fan)) {
+        const next = i + 1 < fans.length && this._isCompact(fans[i + 1]) ? fans[i + 1] : null;
+        if (next) {
+          results.push(this._renderFanRow(fan, true, false));
+          results.push(this._renderFanRow(next, true, true));
+          results.push(this._renderControlFold(fan));
+          results.push(this._renderControlFold(next));
+          i += 2;
+        } else {
+          results.push(this._renderFanRow(fan, false, false));
+          results.push(this._renderControlFold(fan));
+          i++;
+        }
+      } else {
+        results.push(this._renderFanRow(fan, false, false));
+        results.push(this._renderControlFold(fan));
+        i++;
+      }
+    }
+    return results;
+  }
+
+  private _renderDashboardGrid(fans: FanInfo[]) {
+    const results: unknown[] = [];
+    let i = 0;
+    while (i < fans.length) {
+      const left = fans[i];
+      const right = i + 1 < fans.length ? fans[i + 1] : null;
+      if (right) {
+        results.push(this._renderFanRow(left, true, false));
+        results.push(this._renderFanRow(right, true, true));
+        results.push(this._renderControlFold(left));
+        results.push(this._renderControlFold(right));
+        i += 2;
+      } else {
+        results.push(this._renderFanRow(left, false, false));
+        results.push(this._renderControlFold(left));
+        i++;
+      }
+    }
+    return results;
+  }
+
+  private _renderFanRow(fan: FanInfo, compact = false, isRight = false) {
     const speedDrag = this._dragValues.get(`speed:${fan.entityId}`);
     const displayPct = speedDrag ?? fan.percentage;
+    const isExpanded = this._expandedEntity === fan.entityId;
 
-    // Speed text
+    // Speed text — simple fans show just step, complex fans show pct + step
     let speedText: string;
     if (fan.isOn || speedDrag !== undefined) {
       const step = pctToStep(displayPct, fan.speedCount);
-      speedText = `${displayPct}% · ${t('fan.speed_step', { step: String(step), total: String(fan.speedCount) })}`;
+      speedText = fan.isSimple
+        ? t('fan.speed_step_short', { step: String(step), total: String(fan.speedCount) })
+        : `${displayPct}% · ${t('fan.speed_step', { step: String(step), total: String(fan.speedCount) })}`;
     } else {
       speedText = t('fan.off');
     }
 
+    const rowClasses = ['fan-row', fan.isOn ? 'on' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+      .filter(Boolean).join(' ');
+
     return html`
-      <div class="fan-row ${fan.isOn ? 'on' : ''}">
+      <div class=${rowClasses}>
         <button
           class="fan-icon-btn"
           @click=${(e: Event) => this._toggleFan(fan, e)}
@@ -1150,6 +1237,12 @@ class GlassFanCard extends BaseCard {
           <div class="fan-dot"></div>
         </button>
       </div>
+    `;
+  }
+
+  private _renderControlFold(fan: FanInfo) {
+    const isExpanded = this._expandedEntity === fan.entityId;
+    return html`
       <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
@@ -1173,7 +1266,7 @@ class GlassFanCard extends BaseCard {
 
     return html`
       <div class="ctrl-panel">
-        <span class="ctrl-label">${fan.name}</span>
+        ${!fan.isSimple ? html`<span class="ctrl-label">${fan.name}</span>` : nothing}
 
         ${hasSpeed ? html`
           <!-- Speed steps -->
@@ -1194,15 +1287,17 @@ class GlassFanCard extends BaseCard {
             })}
           </div>
 
-          <!-- Speed slider -->
-          <div class="slider-wrap">
-            <div class="slider-icon"><ha-icon .icon=${'mdi:speedometer'}></ha-icon></div>
-            <div class="slider" @pointerdown=${(e: PointerEvent) => this._onSpeedSliderDown(fan, e)}>
-              <div class="slider-fill accent" style="width:${displayPct}%;"></div>
-              <div class="slider-thumb" style="left:${displayPct}%;"></div>
-              <div class="slider-val">${displayPct}%</div>
+          ${!fan.isSimple ? html`
+            <!-- Speed slider (complex fans only) -->
+            <div class="slider-wrap">
+              <div class="slider-icon"><ha-icon .icon=${'mdi:speedometer'}></ha-icon></div>
+              <div class="slider" @pointerdown=${(e: PointerEvent) => this._onSpeedSliderDown(fan, e)}>
+                <div class="slider-fill accent" style="width:${displayPct}%;"></div>
+                <div class="slider-thumb" style="left:${displayPct}%;"></div>
+                <div class="slider-val">${displayPct}%</div>
+              </div>
             </div>
-          </div>
+          ` : nothing}
         ` : nothing}
 
         ${hasPreset ? html`

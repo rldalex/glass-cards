@@ -476,6 +476,11 @@ export class GlassNavbarCard extends BaseCard {
       this._loadDashboardConfig();
     });
 
+    // Reload dashboard config when navigating back from config panel (separate JS context)
+    this._listen('location-changed', () => {
+      this._loadDashboardConfig();
+    });
+
     this._editMode = this._detectEditMode();
   }
 

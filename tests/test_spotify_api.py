@@ -16,6 +16,7 @@ from custom_components.glass_cards.spotify_api import (
     SpotifyAPIError,
     SpotifyNotConfiguredError,
     spotify_add_to_queue,
+    spotify_check_saved_tracks,
     spotify_get_album,
     spotify_get_artist_top_tracks,
     spotify_get_playlists,
@@ -25,7 +26,9 @@ from custom_components.glass_cards.spotify_api import (
     spotify_get_recommendations,
     spotify_get_saved_albums,
     spotify_get_saved_tracks,
+    spotify_remove_tracks,
     spotify_request,
+    spotify_save_tracks,
     spotify_search,
 )
 
@@ -555,3 +558,132 @@ class TestSpotifyRecommendations:
             )
             call_params = mock_req.call_args[1].get("params") or mock_req.call_args[0][3]
             assert len(call_params["seed_tracks"].split(",")) == 5
+
+
+class TestSpotifyFavorites:
+    """Tests for check_saved_tracks, save_tracks, remove_tracks."""
+
+    def setup_method(self):
+        import custom_components.glass_cards.spotify_api as api
+        api._rate_limit_until = 0.0
+        api._request_timestamps.clear()
+
+    @pytest.mark.asyncio
+    async def test_check_saved_tracks_basic(self, mock_hass):
+        """Should return a dict mapping track_id to bool."""
+        track_ids = ["abc", "def", "ghi"]
+        api_response = [True, False, True]
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=api_response,
+        ) as mock_req:
+            result = await spotify_check_saved_tracks(mock_hass, track_ids)
+
+        assert result == {"abc": True, "def": False, "ghi": True}
+        mock_req.assert_called_once()
+        call_params = mock_req.call_args[1].get("params") or {}
+        assert call_params["ids"] == "abc,def,ghi"
+
+    @pytest.mark.asyncio
+    async def test_check_saved_tracks_empty_list(self, mock_hass):
+        """Empty list should return {} without calling the API."""
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+        ) as mock_req:
+            result = await spotify_check_saved_tracks(mock_hass, [])
+
+        assert result == {}
+        mock_req.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_check_saved_tracks_batches_over_50(self, mock_hass):
+        """More than 50 track IDs should be split into multiple API calls."""
+        track_ids = [f"track{i}" for i in range(75)]
+
+        call_count = 0
+
+        async def mock_request(hass, method, endpoint, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            ids = kwargs.get("params", {}).get("ids", "").split(",")
+            return [True] * len(ids)
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            side_effect=mock_request,
+        ):
+            result = await spotify_check_saved_tracks(mock_hass, track_ids)
+
+        # 75 tracks → 2 batches (50 + 25)
+        assert call_count == 2
+        assert len(result) == 75
+        assert all(v is True for v in result.values())
+
+    @pytest.mark.asyncio
+    async def test_save_tracks(self, mock_hass):
+        """Should call PUT /me/tracks with the provided IDs."""
+        track_ids = ["abc", "def"]
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_req:
+            await spotify_save_tracks(mock_hass, track_ids)
+
+        mock_req.assert_called_once()
+        call_kwargs = mock_req.call_args[1]
+        assert mock_req.call_args[0][1] == "PUT"
+        assert mock_req.call_args[0][2] == "/me/tracks"
+        assert call_kwargs.get("json_body") == {"ids": track_ids}
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks(self, mock_hass):
+        """Should call DELETE /me/tracks with the provided IDs."""
+        track_ids = ["xyz"]
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_req:
+            await spotify_remove_tracks(mock_hass, track_ids)
+
+        mock_req.assert_called_once()
+        assert mock_req.call_args[0][1] == "DELETE"
+        assert mock_req.call_args[0][2] == "/me/tracks"
+        call_kwargs = mock_req.call_args[1]
+        assert call_kwargs.get("json_body") == {"ids": track_ids}
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_propagates_entity_id(self, mock_hass):
+        """entity_id should be passed through to spotify_request."""
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_req:
+            await spotify_save_tracks(
+                mock_hass, ["t1"], entity_id="media_player.spotify_alice"
+            )
+
+        call_kwargs = mock_req.call_args[1]
+        assert call_kwargs.get("entity_id") == "media_player.spotify_alice"
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_propagates_entity_id(self, mock_hass):
+        """entity_id should be passed through to spotify_request."""
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_req:
+            await spotify_remove_tracks(
+                mock_hass, ["t1"], entity_id="media_player.spotify_bob"
+            )
+
+        call_kwargs = mock_req.call_args[1]
+        assert call_kwargs.get("entity_id") == "media_player.spotify_bob"

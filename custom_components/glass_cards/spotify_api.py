@@ -323,6 +323,41 @@ async def spotify_get_artist_top_tracks(
     return result or {"tracks": []}
 
 
+# ── Favorites ─────────────────────────────────────────────────────────
+
+async def spotify_check_saved_tracks(
+    hass: HomeAssistant, track_ids: list[str], entity_id: str = ""
+) -> dict[str, bool]:
+    """Check if tracks are in user's saved library. Batches by 50."""
+    if not track_ids:
+        return {}
+    result: dict[str, bool] = {}
+    for i in range(0, len(track_ids), 50):
+        batch = track_ids[i : i + 50]
+        ids_param = ",".join(batch)
+        data = await spotify_request(
+            hass, "GET", "/me/tracks/contains",
+            params={"ids": ids_param}, entity_id=entity_id,
+        )
+        for track_id, saved in zip(batch, data):
+            result[track_id] = saved
+    return result
+
+
+async def spotify_save_tracks(
+    hass: HomeAssistant, track_ids: list[str], entity_id: str = ""
+) -> None:
+    """Save tracks to user's library."""
+    await spotify_request(hass, "PUT", "/me/tracks", json_body={"ids": track_ids}, entity_id=entity_id)
+
+
+async def spotify_remove_tracks(
+    hass: HomeAssistant, track_ids: list[str], entity_id: str = ""
+) -> None:
+    """Remove tracks from user's library."""
+    await spotify_request(hass, "DELETE", "/me/tracks", json_body={"ids": track_ids}, entity_id=entity_id)
+
+
 async def spotify_get_recommendations(
     hass: HomeAssistant,
     seed_tracks: list[str] | None = None,
