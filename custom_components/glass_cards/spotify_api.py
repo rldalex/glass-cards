@@ -153,7 +153,8 @@ async def spotify_request(
         raw = await resp.read()
         if not raw or not raw.strip():
             return None
-        return await resp.json()
+        import json
+        return json.loads(raw)
 
 
 # ── Search ────────────────────────────────────────────────────────────

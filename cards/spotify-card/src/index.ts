@@ -128,6 +128,7 @@ class GlassSpotifyCard extends BaseCard {
   private _configLoaded = false;
   private _configLoadingInProgress = false;
   private _loadVersion = 0;
+  private _radioQueueVersion = 0;
   private _debounceTimer = 0;
 
   // — Styles —
@@ -1010,20 +1011,22 @@ class GlassSpotifyCard extends BaseCard {
   /** Fire-and-forget: fetch recommendations for a track and add them to the queue. */
   private async _seedRadioQueue(item: SpotifyItem): Promise<void> {
     if (!this._backend) return;
+    const version = ++this._radioQueueVersion;
     try {
       // Wait for Spotify to register the play_media command before queuing
       await new Promise((r) => setTimeout(r, 2000));
-      if (!this._backend) return;
+      if (!this._backend || version !== this._radioQueueVersion) return;
       const result = await this._backend.send<{ tracks: SpotifyItem[] }>(
         'spotify_browse',
         { category: 'recommendations', seed_tracks: [item.id], limit: 20 },
       );
+      if (version !== this._radioQueueVersion) return;
       const recommended = result?.tracks ?? [];
       bus.emit('radio-queue-started', { count: recommended.length });
       let added = 0;
       for (let i = 0; i < recommended.length; i++) {
         const rec = recommended[i];
-        if (!this._backend) break;
+        if (!this._backend || version !== this._radioQueueVersion) break;
         const recUri = rec.uri ?? `spotify:track:${rec.id}`;
         try {
           await this._backend.send('spotify_add_to_queue', { uri: recUri });
@@ -1038,9 +1041,13 @@ class GlassSpotifyCard extends BaseCard {
           break; // Stop on first error (rate limit, etc.)
         }
       }
-      bus.emit('radio-queue-complete', { total: added });
+      if (version === this._radioQueueVersion) {
+        bus.emit('radio-queue-complete', { total: added });
+      }
     } catch (e) {
-      bus.emit('radio-queue-error', { message: (e as Error).message ?? 'Unknown error' });
+      if (version === this._radioQueueVersion) {
+        bus.emit('radio-queue-error', { message: (e as Error).message ?? 'Unknown error' });
+      }
     }
   }
 

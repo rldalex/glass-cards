@@ -208,6 +208,7 @@ export class GlassMediaCard extends BaseCard {
       this._foldTab = 'controls';
       this._queueData = [];
       this._queueLoading = false;
+      this._prevMediaTitle = '';
       this._playersCache = null;
       this._playersCacheKey = '';
       this._roomIndex = 0;
@@ -263,7 +264,7 @@ export class GlassMediaCard extends BaseCard {
     if (changedProps.has('hass') && this.hass && this._foldOpen && this._foldTab === 'queue') {
       const master = this._findMaster(this._getPlayers());
       const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
-      if (title && title !== this._prevMediaTitle) {
+      if (title && title !== this._prevMediaTitle && !this._queueLoading) {
         this._prevMediaTitle = title;
         this._loadQueue();
       }
@@ -1057,6 +1058,7 @@ export class GlassMediaCard extends BaseCard {
     if (this._queueLoading || !this.hass) return;
     this._queueLoading = true;
     const version = ++this._queueVersion;
+    let loadFailed = false;
     try {
       const master = this._findMaster(this._getPlayers());
       if (!master) return;
@@ -1082,12 +1084,12 @@ export class GlassMediaCard extends BaseCard {
         }));
       } else if (this._backend) {
         // Fallback: Spotify API queue for non-Sonos players
-        const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>(
+        const result = await this._backend.send<{ currently_playing: Record<string, unknown> | null; queue: Array<Record<string, unknown>> }>(
           'spotify_queue',
           { entity_id: master.entityId },
         );
         if (version !== this._queueVersion) return;
-        this._queueData = (result?.queue ?? []).map((item) => {
+        const mapItem = (item: Record<string, unknown>) => {
           const artists = item.artists as Array<Record<string, unknown>> | undefined;
           const album = item.album as Record<string, unknown> | undefined;
           return {
@@ -1096,14 +1098,19 @@ export class GlassMediaCard extends BaseCard {
             album_name: (album?.name as string) ?? '',
             content_id: (item.uri as string) ?? '',
           };
-        });
+        };
+        const items: Array<Record<string, unknown>> = [];
+        if (result?.currently_playing) items.push(result.currently_playing);
+        items.push(...(result?.queue ?? []));
+        this._queueData = items.map(mapItem);
       }
     } catch (err) {
       console.warn('[glass] queue load error:', err);
+      loadFailed = true;
     } finally {
-      if (version === this._queueVersion) {
-        this._queueLoading = false;
-        // Switch back to controls if queue became empty
+      this._queueLoading = false;
+      if (!loadFailed && version === this._queueVersion) {
+        // Switch back to controls if queue became empty (only on successful load)
         if (this._foldTab === 'queue' && this._queueData.length === 0 && this._radioTracks.length === 0) {
           this._foldTab = 'controls';
         }
@@ -1118,6 +1125,7 @@ export class GlassMediaCard extends BaseCard {
     const items = this._queueData;
     const master = this._findMaster(this._getPlayers());
     const playing = master?.state === 'playing';
+    const isSonos = master ? this.hass?.entities?.[master.entityId]?.platform === 'sonos' : false;
     if (!items.length && !this._radioTracks.length) {
       return html`<div class="queue-empty">${t('media.queue_empty')}</div>`;
     }
@@ -1144,12 +1152,12 @@ export class GlassMediaCard extends BaseCard {
                         @click=${() => this._skipToNext()}>
                   <ha-icon icon="mdi:skip-next"></ha-icon>
                 </button>
-              ` : html`
+              ` : isSonos ? html`
                 <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
                         @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(i); }}>
                   <ha-icon icon="mdi:close"></ha-icon>
                 </button>
-              `}
+              ` : nothing}
             </div>
           `;
         })}
@@ -1163,6 +1171,7 @@ export class GlassMediaCard extends BaseCard {
     if (!master) return;
     if (!this.hass) return;
     await this.hass.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
+    if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
     this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 500);
   }
 
