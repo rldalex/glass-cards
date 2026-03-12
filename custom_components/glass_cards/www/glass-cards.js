@@ -4343,9 +4343,9 @@
 
       <!-- Multiroom grid (show if any groupable speakers exist) -->
       ${i.length>1?this._renderMultiroomGrid(t,i):Q}
-    `}async _loadQueue(){if(!this.hass)return;const e=++this._queueVersion,t=this._findMaster(this._getPlayers());if(t)try{const i=await this.hass.connection.sendMessagePromise({type:"call_service",domain:"sonos",service:"get_queue",target:{entity_id:t.entityId},return_response:!0});if(e!==this._queueVersion)return;const a=i?.response?.[t.entityId]??[];this._queueData=a.map(e=>({name:e.media_title??"",artist:e.media_artist??"",album_name:e.media_album_name??"",content_id:e.media_content_id??""}))}catch(i){if(e!==this._queueVersion)return;console.warn("[glass] queue load error:",i)}}_renderQueueTab(){const e=this._findMaster(this._getPlayers()),t=e?this.hass?.states[e.entityId]?.attributes?.queue_position??0:0,i=this._queueData.slice(t+1);return i.length?K`
+    `}async _loadQueue(){if(!this.hass)return;const e=++this._queueVersion,t=this._findMaster(this._getPlayers());if(t)try{const i=await this.hass.connection.sendMessagePromise({type:"call_service",domain:"sonos",service:"get_queue",target:{entity_id:t.entityId},return_response:!0});if(e!==this._queueVersion)return;const a=i?.response?.[t.entityId]??[];this._queueData=a.map(e=>({name:e.media_title??"",artist:e.media_artist??"",album_name:e.media_album_name??"",content_id:e.media_content_id??""}))}catch(i){if(e!==this._queueVersion)return;console.warn("[glass] queue load error:",i)}}_renderQueueTab(){const e=this._findMaster(this._getPlayers()),t=e?this.hass?.states[e.entityId]?.attributes?.queue_position??0:0,i=this._queueData.slice(t);return i.length?K`
       <div class="queue-list">
-        ${i.map((e,i)=>{const a=e.name??"",s=e.artist??"",r=e.content_id??"",o=!!r&&this._radioTracks.some(e=>e.uri===r),n=t+1+i;return K`
+        ${i.map((e,i)=>{const a=e.name??"",s=e.artist??"",r=e.content_id??"",o=!!r&&this._radioTracks.some(e=>e.uri===r),n=t+i;return K`
             <div class="queue-item">
               <div class="queue-num">${i+1}</div>
               <div class="queue-info">

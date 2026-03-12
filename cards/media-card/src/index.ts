@@ -1093,10 +1093,10 @@ export class GlassMediaCard extends BaseCard {
 
   private _renderQueueTab(): TemplateResult {
     const master = this._findMaster(this._getPlayers());
-    // queue_position = 0-indexed position of the currently playing track in the full Sonos queue
+    // queue_position = 1-based position of the currently playing track (UPnP standard)
     const queuePos = master ? (this.hass?.states[master.entityId]?.attributes?.queue_position as number | undefined) ?? 0 : 0;
     // Only show upcoming tracks (after the currently playing one), like the Sonos desktop app
-    const upcoming = this._queueData.slice(queuePos + 1);
+    const upcoming = this._queueData.slice(queuePos);
     if (!upcoming.length) {
       return html`<div class="queue-empty">${t('media.queue_empty')}</div>`;
     }
@@ -1108,7 +1108,7 @@ export class GlassMediaCard extends BaseCard {
           const contentId = (item.content_id as string) ?? '';
           const isRadio = contentId ? this._radioTracks.some(rt => rt.uri === contentId) : false;
           // Real Sonos queue index for service calls (0-indexed in the full queue)
-          const realIndex = queuePos + 1 + i;
+          const realIndex = queuePos + i;
           return html`
             <div class="queue-item">
               <div class="queue-num">${i + 1}</div>
