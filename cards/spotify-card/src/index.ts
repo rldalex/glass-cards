@@ -117,8 +117,8 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _spotifyConfigured: boolean | null = null;
   @state() private _foldOpen = false;
   @state() private _savedMap: Map<string, boolean> = new Map();
-  private _savedCheckVersion = 0;
   @state() private _sectionTotals: Record<string, number> = {};
+  private _loadingMore: Record<string, boolean> = {};
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
@@ -568,8 +568,14 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Heart (favorite) button */
     .heart-btn {
+      width: 24px; height: 24px;
+      border-radius: var(--radius-sm);
+      background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      color: var(--t3); flex-shrink: 0;
       transition: transform var(--t-fast), color var(--t-fast);
-      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     .heart-btn ha-icon {
       --mdc-icon-size: 16px;
@@ -1041,7 +1047,8 @@ class GlassSpotifyCard extends BaseCard {
   // — Library pagination —
 
   private async _loadMoreItems(category: string): Promise<void> {
-    if (!this._backend) return;
+    if (!this._backend || this._loadingMore[category]) return;
+    this._loadingMore = { ...this._loadingMore, [category]: true };
     const limit = this._spotifyConfig.max_items_per_section;
     let offset = 0;
     if (category === 'playlists') offset = this._playlists.length;
@@ -1071,6 +1078,8 @@ class GlassSpotifyCard extends BaseCard {
       }
     } catch (e) {
       this._handleApiError(e);
+    } finally {
+      this._loadingMore = { ...this._loadingMore, [category]: false };
     }
   }
 
@@ -1078,7 +1087,7 @@ class GlassSpotifyCard extends BaseCard {
     const total = this._sectionTotals[category] ?? 0;
     if (currentCount >= total) return nothing;
     return html`
-      <button class="load-more-btn load-more" @click=${() => this._loadMoreItems(category)}>
+      <button class="load-more-btn load-more" ?disabled=${this._loadingMore[category]} @click=${() => this._loadMoreItems(category)}>
         ${t('spotify.load_more')}
         <span class="items-count">${t('spotify.items_count', { current: String(currentCount), total: String(total) })}</span>
       </button>
@@ -1089,10 +1098,9 @@ class GlassSpotifyCard extends BaseCard {
 
   private async _checkSavedStatus(trackIds: string[]): Promise<void> {
     if (!trackIds.length || !this._backend) return;
-    const version = ++this._savedCheckVersion;
     try {
       const result = await this._backend.send<Record<string, boolean>>('spotify_check_saved', { track_ids: trackIds });
-      if (version !== this._savedCheckVersion) return;
+      if (!this.isConnected) return;
       const newMap = new Map(this._savedMap);
       for (const [id, saved] of Object.entries(result ?? {})) {
         newMap.set(id, saved);
@@ -1377,7 +1385,7 @@ class GlassSpotifyCard extends BaseCard {
           </div>
         </div>
         ${(type === 'track' || type === 'episode') && item.id ? html`
-          <button class="btn-icon xs heart-btn ${this._savedMap.get(item.id) ? 'saved' : ''}"
+          <button class="heart-btn ${this._savedMap.get(item.id) ? 'saved' : ''}"
                   aria-label="${this._savedMap.get(item.id) ? t('spotify.remove_track') : t('spotify.save_track')}"
                   @click=${(e: Event) => { e.stopPropagation(); this._toggleSaved(item.id); }}>
             <ha-icon .icon="${this._savedMap.get(item.id) ? 'mdi:heart' : 'mdi:heart-outline'}"></ha-icon>
@@ -1473,7 +1481,7 @@ class GlassSpotifyCard extends BaseCard {
         })}
         ${dd.loading ? html`<div class="loading-text">${t('spotify.loading')}</div>` : nothing}
         ${!dd.loading && dd.items.length < dd.total ? html`
-          <button class="load-more-btn" @click=${this._loadMoreDrilldown}>
+          <button class="load-more-btn" ?disabled=${dd.loading} @click=${this._loadMoreDrilldown}>
             ${t('spotify.load_more')}
           </button>
         ` : nothing}
