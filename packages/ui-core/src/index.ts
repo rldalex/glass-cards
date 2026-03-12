@@ -157,7 +157,8 @@ export const eqMixin: CSSResult = css`
   .eq-bars span {
     width: 2px;
     border-radius: 1px;
-    background: var(--c-accent-dynamic, var(--c-accent));
+    background: var(--c-accent-dynamic, var(--c-accent)); /* set --c-accent-dynamic on host to tint bars */
+    transform-origin: bottom;
     animation: eq-bar 0.8s ease-in-out infinite alternate;
   }
   .eq-bars span:nth-child(2) { animation-delay: 0.2s; }
