@@ -11,6 +11,7 @@ await build({
       '@glass-cards/event-bus': resolve(root, 'packages/event-bus/src'),
       '@glass-cards/base-card': resolve(root, 'packages/base-card/src'),
       '@glass-cards/ui-core': resolve(root, 'packages/ui-core/src'),
+      '@glass-cards/i18n': resolve(root, 'packages/i18n/src'),
     },
   },
   build: {

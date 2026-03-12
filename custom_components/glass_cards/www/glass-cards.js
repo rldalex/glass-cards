@@ -4753,7 +4753,11 @@
       .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
-      .transport-btn.active { color: var(--c-accent-dynamic, var(--mp-color)); }
+      .transport-btn.active {
+        color: var(--c-accent-dynamic, var(--mp-color));
+        background: color-mix(in srgb, var(--c-accent-dynamic, var(--mp-color)) 12%, transparent);
+        border-color: color-mix(in srgb, var(--c-accent-dynamic, var(--mp-color)) 25%, transparent);
+      }
 
       .transport-skip { width: 40px; height: 40px; }
       .transport-skip ha-icon { --mdc-icon-size: 26px; }
