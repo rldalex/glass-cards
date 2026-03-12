@@ -113,6 +113,8 @@ export function renderMediaTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
           @click=${() => { self._mediaShowHeader = !self._mediaShowHeader; }}
         >
           <div class="feature-icon">
@@ -124,8 +126,6 @@ export function renderMediaTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._mediaShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>

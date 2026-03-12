@@ -402,11 +402,13 @@ export class GlassRoomPopup extends LitElement {
     this._listen('popup-open', (payload) => this._handleOpen(payload));
     this._listen('popup-close', () => this._handleClose());
     this._listen('room-config-changed', (payload) => {
+      if (this._peekTimeout !== undefined) { clearTimeout(this._peekTimeout); this._peekTimeout = undefined; }
       this._roomConfigs.delete(payload.areaId);
       this._peekedRooms.delete(payload.areaId);
       if (this._areaId === payload.areaId) this._loadRoomConfig(payload.areaId);
     });
     this._listen('navbar-config-changed', () => {
+      if (this._peekTimeout !== undefined) { clearTimeout(this._peekTimeout); this._peekTimeout = undefined; }
       this._roomConfigs.clear();
       this._loadingRooms.clear();
       if (this._areaId) this._loadRoomConfig(this._areaId);

@@ -114,6 +114,8 @@ export function renderLightTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._lightShowHeader ? 'true' : 'false'}
           @click=${() => { self._lightShowHeader = !self._lightShowHeader; }}
         >
           <div class="feature-icon">
@@ -125,8 +127,6 @@ export function renderLightTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._lightShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._lightShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>

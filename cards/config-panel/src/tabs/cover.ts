@@ -113,6 +113,8 @@ export function renderCoverTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._coverShowHeader ? 'true' : 'false'}
           @click=${() => { self._coverShowHeader = !self._coverShowHeader; }}
         >
           <div class="feature-icon">
@@ -124,8 +126,6 @@ export function renderCoverTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._coverShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._coverShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>

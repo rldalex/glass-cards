@@ -137,6 +137,7 @@ export class GlassMediaCard extends BaseCard {
 
   private _backend?: BackendService;
   private _loadVersion = 0;
+  private _queueVersion = 0;
   private _lastArtworkUrl = '';
   private _samplingCanvas?: HTMLCanvasElement;
   private _samplingCtx?: CanvasRenderingContext2D | null;
@@ -191,12 +192,21 @@ export class GlassMediaCard extends BaseCard {
     this._samplingCtx = undefined;
     delete this.dataset.bgLight;
     this.style.removeProperty('--c-accent-dynamic');
-    this._pendingUnjoinUnsub?.then(u => u());
-    this._pendingUnjoinUnsub = undefined;
+    this._unjoinUnsub?.();
+    this._unjoinUnsub = undefined;
   }
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+    if (changedProps.has('areaId')) {
+      this._foldOpen = false;
+      this._foldTab = 'controls';
+      this._queueData = [];
+      this._queueLoading = false;
+      this._playersCache = null;
+      this._playersCacheKey = '';
+      this._roomIndex = 0;
+    }
     if (changedProps.has('hass') && this.hass) {
       // Detect WS reconnect (hass.connection changes)
       if (this._backend && this._backend.connection !== this.hass.connection) {
@@ -304,6 +314,10 @@ export class GlassMediaCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
+    if (this.isDashboard && this.hass) {
+      // Track all media_player entities so we detect state transitions (playing→idle)
+      return Object.keys(this.hass.states).filter((id) => id.startsWith('media_player.'));
+    }
     return this._getPlayers().map((p) => p.entityId);
   }
 
@@ -479,24 +493,26 @@ export class GlassMediaCard extends BaseCard {
     this._callService(memberId, 'unjoin');
   }
 
-  private _pendingUnjoinUnsub?: Promise<() => void>;
+  private _unjoinUnsub?: () => void;
 
   /** Wait for a speaker to leave its group via state_changed event, with timeout fallback. */
   private async _waitForUnjoin(entityId: string, timeout = 3000): Promise<boolean> {
-    // Cancel any previous pending subscription to avoid orphan listeners
-    this._pendingUnjoinUnsub?.then(u => u());
-    this._pendingUnjoinUnsub = undefined;
+    // Cancel any previous subscription to avoid orphan listeners
+    this._unjoinUnsub?.();
+    this._unjoinUnsub = undefined;
+    const version = ++this._loadVersion;
     return new Promise<boolean>((resolve) => {
       let resolved = false;
       const cleanup = () => {
         if (resolved) return;
         resolved = true;
-        this._pendingUnjoinUnsub?.then(u => u());
-        this._pendingUnjoinUnsub = undefined;
+        this._unjoinUnsub?.();
+        this._unjoinUnsub = undefined;
         clearTimeout(timer);
       };
 
-      this._pendingUnjoinUnsub = this.hass!.connection.subscribeEvents((ev: { data: { entity_id?: string; new_state?: { attributes?: { group_members?: string[] } } } }) => {
+      this.hass!.connection.subscribeEvents((ev: { data: { entity_id?: string; new_state?: { attributes?: { group_members?: string[] } } } }) => {
+        if (version !== this._loadVersion) { cleanup(); return; }
         if (ev.data.entity_id === entityId) {
           const members = ev.data.new_state?.attributes?.group_members;
           if (!members || members.length <= 1) {
@@ -504,7 +520,10 @@ export class GlassMediaCard extends BaseCard {
             resolve(true);
           }
         }
-      }, 'state_changed');
+      }, 'state_changed').then((unsub) => {
+        if (resolved) { unsub(); return; }
+        this._unjoinUnsub = unsub;
+      });
 
       const timer = setTimeout(() => { cleanup(); resolve(false); }, timeout);
     });
@@ -989,15 +1008,17 @@ export class GlassMediaCard extends BaseCard {
     if (this._queueLoading || !this._backend) return;
     this._queueLoading = true;
     this._queueData = [];
+    const version = ++this._queueVersion;
     try {
       const master = this._findMaster(this._getPlayers());
       const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>(
         'spotify_queue',
         master ? { entity_id: master.entityId } : {},
       );
+      if (version !== this._queueVersion) return;
       this._queueData = result?.queue ?? [];
     } catch { /* silent */ }
-    this._queueLoading = false;
+    if (version === this._queueVersion) this._queueLoading = false;
   }
 
   private _renderQueueTab(): TemplateResult {

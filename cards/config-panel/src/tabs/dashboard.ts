@@ -63,7 +63,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
       <div class="check-item mt-12">
         <button
           class="toggle ${self._dashboardHideHeader ? 'on' : ''}"
-          @click=${() => { if (self._saving) return; self._dashboardHideHeader = !self._dashboardHideHeader; self._saveDashboard(); }}
+          @click=${() => { if (self._saving) return; self._beginSuppressAutoSave(); self._dashboardHideHeader = !self._dashboardHideHeader; self._saveDashboard(); }}
           role="switch"
           aria-checked=${self._dashboardHideHeader ? 'true' : 'false'}
           aria-label=${t('config.dashboard_hide_header')}
@@ -76,7 +76,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
       <div class="check-item mb-8">
         <button
           class="toggle ${self._dashboardHideSidebar ? 'on' : ''}"
-          @click=${() => { if (self._saving) return; self._dashboardHideSidebar = !self._dashboardHideSidebar; self._saveDashboard(); }}
+          @click=${() => { if (self._saving) return; self._beginSuppressAutoSave(); self._dashboardHideSidebar = !self._dashboardHideSidebar; self._saveDashboard(); }}
           role="switch"
           aria-checked=${self._dashboardHideSidebar ? 'true' : 'false'}
           aria-label=${t('config.dashboard_hide_sidebar')}
@@ -177,6 +177,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._lightShowHeader = !self._lightShowHeader; }}
+              role="switch"
+              aria-checked=${self._lightShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -187,8 +189,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._lightShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._lightShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
@@ -205,6 +205,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._weatherShowHeader = !self._weatherShowHeader; }}
+              role="switch"
+              aria-checked=${self._weatherShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -215,8 +217,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._weatherShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._weatherShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
@@ -233,6 +233,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._coverShowHeader = !self._coverShowHeader; }}
+              role="switch"
+              aria-checked=${self._coverShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -243,8 +245,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._coverShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._coverShowHeader ? 'true' : 'false'}
               ></span>
             </button>
             <div class="section-label" style="margin-top:10px;">${t('config.cover_dashboard_entities')}</div>
@@ -305,6 +305,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._spotifyShowHeader = !self._spotifyShowHeader; }}
+              role="switch"
+              aria-checked=${self._spotifyShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -315,8 +317,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._spotifyShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._spotifyShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
@@ -333,6 +333,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._mediaShowHeader = !self._mediaShowHeader; }}
+              role="switch"
+              aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -343,8 +345,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._mediaShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
@@ -361,6 +361,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._fanShowHeader = !self._fanShowHeader; }}
+              role="switch"
+              aria-checked=${self._fanShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -371,8 +373,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._fanShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._fanShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>
@@ -389,6 +389,8 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             <button
               class="feature-row"
               @click=${(e: Event) => { e.stopPropagation(); self._presenceShowHeader = !self._presenceShowHeader; }}
+              role="switch"
+              aria-checked=${self._presenceShowHeader ? 'true' : 'false'}
             >
               <div class="feature-icon">
                 <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
@@ -399,8 +401,6 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
               </div>
               <span
                 class="toggle ${self._presenceShowHeader ? 'on' : ''}"
-                role="switch"
-                aria-checked=${self._presenceShowHeader ? 'true' : 'false'}
               ></span>
             </button>
           </div>

@@ -245,7 +245,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -479,7 +479,7 @@ export class GlassConfigPanel extends LitElement {
     this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
     this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
     this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
 
@@ -689,6 +689,7 @@ export class GlassConfigPanel extends LitElement {
     this._coverRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
     this._mediaRoomDropdownOpen = false;
+    this._mediaAddDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
     this._iconPopupModeIdx = null;
@@ -1543,6 +1544,10 @@ export class GlassConfigPanel extends LitElement {
       });
       await this._backend.send('set_presence_config', {
         show_header: this._presenceShowHeader,
+        person_entities: this._presencePersonEntities,
+        smartphone_sensors: this._presenceSmartphoneSensors,
+        notify_services: this._presenceNotifyServices,
+        driving_sensors: this._presenceDrivingSensors,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -1577,7 +1582,7 @@ export class GlassConfigPanel extends LitElement {
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'cover', 'spotify', 'presence'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
         this._dashboardHideHeader = result.dashboard.hide_header ?? false;
         this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
       }

@@ -113,6 +113,8 @@ export function renderFanTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._fanShowHeader ? 'true' : 'false'}
           @click=${() => { self._fanShowHeader = !self._fanShowHeader; }}
         >
           <div class="feature-icon">
@@ -124,8 +126,6 @@ export function renderFanTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._fanShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._fanShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>

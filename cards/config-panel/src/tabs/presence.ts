@@ -62,6 +62,8 @@ export function renderPresenceTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._presenceShowHeader ? 'true' : 'false'}
           @click=${() => { self._presenceShowHeader = !self._presenceShowHeader; }}
         >
           <div class="feature-icon">
@@ -73,8 +75,6 @@ export function renderPresenceTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._presenceShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._presenceShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>

@@ -558,8 +558,14 @@ class PresenceCardConfig:
         """Deserialize from dict."""
         raw_persons = data.get("person_entities", [])
         raw_smartphones = data.get("smartphone_sensors", {})
+        if not isinstance(raw_smartphones, dict):
+            raw_smartphones = {}
         raw_notify = data.get("notify_services", {})
+        if not isinstance(raw_notify, dict):
+            raw_notify = {}
         raw_driving = data.get("driving_sensors", {})
+        if not isinstance(raw_driving, dict):
+            raw_driving = {}
         return cls(
             show_header=bool(data.get("show_header", True)),
             person_entities=[

@@ -254,6 +254,8 @@ export function renderWeatherTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._weatherShowHeader ? 'true' : 'false'}
           @click=${() => { self._weatherShowHeader = !self._weatherShowHeader; }}
         >
           <div class="feature-icon">
@@ -265,8 +267,6 @@ export function renderWeatherTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._weatherShowHeader ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._weatherShowHeader ? 'true' : 'false'}
           ></span>
         </button>
       </div>
@@ -309,6 +309,9 @@ export function renderWeatherTab(self: GlassConfigPanel) {
           return html`
             <button
               class="feature-row"
+              role="switch"
+              aria-checked=${visible ? 'true' : 'false'}
+              aria-label="${visible ? t('common.hide') : t('common.show')} ${t(m.nameKey)}"
               @click=${() => self._toggleWeatherMetric(m.key)}
             >
               <div class="feature-icon">
@@ -319,9 +322,6 @@ export function renderWeatherTab(self: GlassConfigPanel) {
               </div>
               <span
                 class="toggle ${visible ? 'on' : ''}"
-                role="switch"
-                aria-checked=${visible ? 'true' : 'false'}
-                aria-label="${visible ? t('common.hide') : t('common.show')} ${t(m.nameKey)}"
               ></span>
             </button>
           `;
@@ -333,6 +333,9 @@ export function renderWeatherTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._weatherShowDaily ? 'true' : 'false'}
+          aria-label="${self._weatherShowDaily ? t('common.hide') : t('common.show')} ${t('config.weather_daily')}"
           @click=${() => { self._weatherShowDaily = !self._weatherShowDaily; }}
         >
           <div class="feature-icon">
@@ -343,13 +346,13 @@ export function renderWeatherTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._weatherShowDaily ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._weatherShowDaily ? 'true' : 'false'}
-            aria-label="${self._weatherShowDaily ? t('common.hide') : t('common.show')} ${t('config.weather_daily')}"
           ></span>
         </button>
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._weatherShowHourly ? 'true' : 'false'}
+          aria-label="${self._weatherShowHourly ? t('common.hide') : t('common.show')} ${t('config.weather_hourly')}"
           @click=${() => { self._weatherShowHourly = !self._weatherShowHourly; }}
         >
           <div class="feature-icon">
@@ -360,9 +363,6 @@ export function renderWeatherTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._weatherShowHourly ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._weatherShowHourly ? 'true' : 'false'}
-            aria-label="${self._weatherShowHourly ? t('common.hide') : t('common.show')} ${t('config.weather_hourly')}"
           ></span>
         </button>
       </div>

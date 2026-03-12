@@ -894,7 +894,7 @@ async def ws_spotify_browse(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "glass_cards/spotify_queue",
-        vol.Optional("entity_id"): str,
+        vol.Optional("entity_id"): vol.All(str, vol.Match(r"^media_player\.[\w-]+$")),
     }
 )
 @websocket_api.async_response

@@ -130,6 +130,7 @@ export class GlassNavbarCard extends BaseCard {
   private _removeOverlayTimer?: ReturnType<typeof setTimeout>;
   private _headerRetryTimer?: ReturnType<typeof setTimeout>;
   private _sidebarRetryTimer?: ReturnType<typeof setTimeout>;
+  private _configRetryTimer?: ReturnType<typeof setTimeout>;
   @state() private _bgIsLight = false;
   private _bgIntersectionObserver?: IntersectionObserver;
   private _bgMutationObserver?: MutationObserver;
@@ -501,6 +502,7 @@ export class GlassNavbarCard extends BaseCard {
     if (this._removeOverlayTimer) { clearTimeout(this._removeOverlayTimer); this._removeOverlayTimer = undefined; }
     if (this._headerRetryTimer) { clearTimeout(this._headerRetryTimer); this._headerRetryTimer = undefined; }
     if (this._sidebarRetryTimer) { clearTimeout(this._sidebarRetryTimer); this._sidebarRetryTimer = undefined; }
+    if (this._configRetryTimer) { clearTimeout(this._configRetryTimer); this._configRetryTimer = undefined; }
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoading = false;
@@ -545,8 +547,11 @@ export class GlassNavbarCard extends BaseCard {
     if (!navbar || !container || container.children.length === 0) return;
 
     const navRect = navbar.getBoundingClientRect();
-    // Guard: navbar not yet laid out (zero-rect in firstUpdated)
-    if (navRect.height === 0) return;
+    // Guard: navbar not yet laid out — retry once after layout
+    if (navRect.height === 0) {
+      requestAnimationFrame(() => requestAnimationFrame(() => this._setupBgObserver()));
+      return;
+    }
     const topMargin = -navRect.top;
     const bottomMargin = -(window.innerHeight - navRect.bottom);
     this._bgIntersectionObserver = new IntersectionObserver(
@@ -699,7 +704,9 @@ export class GlassNavbarCard extends BaseCard {
       this._configLoading = false;
       if (this.isConnected) {
         this._showLoadingOverlay();
-        setTimeout(() => {
+        this._configRetryTimer = setTimeout(() => {
+          this._configRetryTimer = undefined;
+          if (!this.isConnected) return;
           this._configLoaded = false;
           this._loadBackendConfig();
         }, 2000);

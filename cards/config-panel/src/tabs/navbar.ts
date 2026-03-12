@@ -80,6 +80,8 @@ export function renderNavbarTab(self: GlassConfigPanel) {
       <div class="feature-list">
         <button
           class="feature-row"
+          role="switch"
+          aria-checked=${self._autoSort ? 'true' : 'false'}
           @click=${() => { self._autoSort = !self._autoSort; }}
         >
           <div class="feature-icon">
@@ -91,8 +93,6 @@ export function renderNavbarTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._autoSort ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._autoSort ? 'true' : 'false'}
           ></span>
         </button>
       </div>
@@ -146,6 +146,8 @@ export function renderNavbarTab(self: GlassConfigPanel) {
           return html`
             <button
               class="feature-row"
+              role="switch"
+              aria-checked=${checked ? 'true' : 'false'}
               @click=${() => {
                 if (feat.key === 'lights') self._showLights = !self._showLights;
                 else if (feat.key === 'temperature') self._showTemperature = !self._showTemperature;
@@ -162,8 +164,6 @@ export function renderNavbarTab(self: GlassConfigPanel) {
               </div>
               <span
                 class="toggle ${checked ? 'on' : ''}"
-                role="switch"
-                aria-checked=${checked ? 'true' : 'false'}
               ></span>
             </button>
           `;
