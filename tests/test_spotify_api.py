@@ -397,6 +397,81 @@ class TestSpotifyPlaylistSort:
             assert result["total"] == 0
 
 
+class TestEntityIdResolution:
+    """Tests for entity_id-based token resolution in _get_spotify_token."""
+
+    def setup_method(self):
+        import custom_components.glass_cards.spotify_api as api
+        api._rate_limit_until = 0.0
+        api._request_timestamps.clear()
+
+    @pytest.mark.asyncio
+    async def test_entity_id_resolves_config_entry(self, mock_hass):
+        """When entity_id provided, resolve config entry via entity registry."""
+        mock_entry = MagicMock()
+        mock_reg_entry = MagicMock()
+        mock_reg_entry.config_entry_id = "config-entry-id-abc"
+
+        mock_hass.config_entries.async_get_entry = MagicMock(return_value=mock_entry)
+
+        mock_er = MagicMock()
+        mock_er.async_get = MagicMock(return_value=mock_reg_entry)
+
+        mock_session_obj = MagicMock()
+        mock_session_obj.async_ensure_token_valid = AsyncMock()
+        mock_session_obj.token = {"access_token": "entity-token-456"}
+
+        with (
+            patch(
+                "custom_components.glass_cards.spotify_api._get_spotify_token",
+                new_callable=AsyncMock,
+                return_value="entity-token-456",
+            ) as mock_token_fn,
+        ):
+            from custom_components.glass_cards.spotify_api import spotify_request
+            mock_resp = _make_mock_response(200, json_data={"ok": True})
+            mock_session = MagicMock()
+            mock_session.request = MagicMock(return_value=mock_resp)
+            with patch(
+                "homeassistant.helpers.aiohttp_client.async_get_clientsession",
+                return_value=mock_session,
+            ):
+                result = await spotify_request(
+                    mock_hass, "GET", "/test", entity_id="media_player.spotify_john"
+                )
+            # entity_id should be passed to _get_spotify_token
+            mock_token_fn.assert_called_once_with(mock_hass, entity_id="media_player.spotify_john")
+            assert result == {"ok": True}
+
+    @pytest.mark.asyncio
+    async def test_entity_id_propagates_through_public_functions(self, mock_hass):
+        """entity_id param should propagate from public functions to spotify_request."""
+        from custom_components.glass_cards.spotify_api import spotify_get_playlists
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value={"items": [], "total": 0},
+        ) as mock_req:
+            await spotify_get_playlists(mock_hass, entity_id="media_player.spotify_alice")
+            call_kwargs = mock_req.call_args[1]
+            assert call_kwargs.get("entity_id") == "media_player.spotify_alice"
+
+    @pytest.mark.asyncio
+    async def test_no_entity_id_defaults_to_empty_string(self, mock_hass):
+        """Without entity_id, spotify_request is called with entity_id=''."""
+        from custom_components.glass_cards.spotify_api import spotify_get_queue
+
+        with patch(
+            "custom_components.glass_cards.spotify_api.spotify_request",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_req:
+            await spotify_get_queue(mock_hass)
+            call_kwargs = mock_req.call_args[1]
+            assert call_kwargs.get("entity_id", "") == ""
+
+
 class TestRateLimiter:
     """Tests for proactive rate limiting in spotify_request."""
 

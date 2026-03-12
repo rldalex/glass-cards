@@ -725,6 +725,9 @@ async def ws_spotify_search(
     if not can_read(connection.user):
         raise Unauthorized()
 
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+
     try:
         result = await spotify_search(
             hass,
@@ -732,6 +735,7 @@ async def ws_spotify_search(
             types=msg["types"],
             limit=msg["limit"],
             offset=msg["offset"],
+            entity_id=entity_id,
         )
         connection.send_result(msg["id"], result)
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
@@ -763,6 +767,9 @@ async def ws_spotify_browse(
     if not can_read(connection.user):
         raise Unauthorized()
 
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+
     category = msg["category"]
     limit = msg["limit"]
     offset = msg["offset"]
@@ -772,15 +779,15 @@ async def ws_spotify_browse(
     try:
         result: dict[str, Any]
         if category == "playlists":
-            result = await spotify_get_playlists(hass, limit=limit, offset=offset)
+            result = await spotify_get_playlists(hass, limit=limit, offset=offset, entity_id=entity_id)
         elif category == "recently_played":
-            result = await spotify_get_recently_played(hass, limit=limit)
+            result = await spotify_get_recently_played(hass, limit=limit, entity_id=entity_id)
         elif category == "saved_tracks":
-            result = await spotify_get_saved_tracks(hass, limit=limit, offset=offset)
+            result = await spotify_get_saved_tracks(hass, limit=limit, offset=offset, entity_id=entity_id)
         elif category == "saved_albums":
-            result = await spotify_get_saved_albums(hass, limit=limit, offset=offset)
+            result = await spotify_get_saved_albums(hass, limit=limit, offset=offset, entity_id=entity_id)
         elif category == "saved_shows":
-            result = await spotify_get_saved_shows(hass, limit=limit, offset=offset)
+            result = await spotify_get_saved_shows(hass, limit=limit, offset=offset, entity_id=entity_id)
         elif category == "playlist_tracks":
             if not content_id:
                 connection.send_error(
@@ -791,6 +798,7 @@ async def ws_spotify_browse(
             result = await spotify_get_playlist_tracks(
                 hass, playlist_id=content_id,
                 limit=limit, offset=offset, sort_order=sort_order,
+                entity_id=entity_id,
             )
         elif category == "album_tracks":
             if not content_id:
@@ -799,7 +807,7 @@ async def ws_spotify_browse(
                     "content_id is required for album_tracks"
                 )
                 return
-            result = await spotify_get_album(hass, album_id=content_id)
+            result = await spotify_get_album(hass, album_id=content_id, entity_id=entity_id)
         elif category == "artist_top_tracks":
             if not content_id:
                 connection.send_error(
@@ -807,7 +815,7 @@ async def ws_spotify_browse(
                     "content_id is required for artist_top_tracks"
                 )
                 return
-            result = await spotify_get_artist_top_tracks(hass, artist_id=content_id)
+            result = await spotify_get_artist_top_tracks(hass, artist_id=content_id, entity_id=entity_id)
         elif category == "recommendations":
             result = await spotify_get_recommendations(
                 hass,
@@ -815,6 +823,7 @@ async def ws_spotify_browse(
                 seed_artists=msg.get("seed_artists"),
                 seed_genres=msg.get("seed_genres"),
                 limit=limit,
+                entity_id=entity_id,
             )
         else:
             connection.send_error(msg["id"], "invalid_category", f"Unknown category: {category}")
@@ -838,8 +847,11 @@ async def ws_spotify_get_queue(
     if not can_read(connection.user):
         raise Unauthorized()
 
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+
     try:
-        result = await spotify_get_queue(hass)
+        result = await spotify_get_queue(hass, entity_id=entity_id)
         connection.send_result(msg["id"], result)
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
         _handle_spotify_error(connection, msg["id"], exc)
@@ -864,9 +876,12 @@ async def ws_spotify_add_to_queue(
     if not can_edit(connection.user):
         raise Unauthorized()
 
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+
     try:
         await spotify_add_to_queue(
-            hass, uri=msg["uri"], device_id=msg.get("device_id")
+            hass, uri=msg["uri"], device_id=msg.get("device_id"), entity_id=entity_id
         )
         connection.send_result(msg["id"], {"success": True})
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
