@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -26,7 +26,7 @@ VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "fan", "cover", "spotify", "presence"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence"]
 
 
 @dataclass
@@ -387,6 +387,8 @@ class FanCardConfig:
         return cls(show_header=bool(data.get("show_header", True)))
 
 
+DEFAULT_CAMERA_CYCLE_INTERVAL: int = 10
+
 DEFAULT_COVER_PRESETS: list[int] = [0, 25, 50, 75, 100]
 
 
@@ -445,6 +447,40 @@ class CoverCardConfig:
             dashboard_compact=bool(data.get("dashboard_compact", True)),
             presets=presets,
             entity_presets=entity_presets,
+        )
+
+
+@dataclass
+class CameraCarouselConfig:
+    """Configuration for the camera carousel card."""
+
+    show_header: bool = True
+    entity_order: list[str] = field(default_factory=list)
+    auto_cycle: bool = False
+    cycle_interval: int = DEFAULT_CAMERA_CYCLE_INTERVAL
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "entity_order": self.entity_order,
+            "auto_cycle": self.auto_cycle,
+            "cycle_interval": self.cycle_interval,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CameraCarouselConfig:
+        """Deserialize from dict."""
+        raw_order = data.get("entity_order", [])
+        raw_interval = data.get("cycle_interval", DEFAULT_CAMERA_CYCLE_INTERVAL)
+        interval = DEFAULT_CAMERA_CYCLE_INTERVAL
+        if isinstance(raw_interval, int) and not isinstance(raw_interval, bool):
+            interval = max(3, min(60, raw_interval))
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            entity_order=[str(x) for x in raw_order if isinstance(x, str)],
+            auto_cycle=bool(data.get("auto_cycle", False)),
+            cycle_interval=interval,
         )
 
 
@@ -644,6 +680,7 @@ class GlassCardsData:
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
     fan_card: FanCardConfig = field(default_factory=FanCardConfig)
     cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
+    camera_carousel: CameraCarouselConfig = field(default_factory=CameraCarouselConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
     media_card: MediaCardConfig = field(default_factory=MediaCardConfig)
@@ -660,6 +697,7 @@ class GlassCardsData:
             "light_card": self.light_card.to_dict(),
             "fan_card": self.fan_card.to_dict(),
             "cover_card": self.cover_card.to_dict(),
+            "camera_carousel": self.camera_carousel.to_dict(),
             "title_card": self.title_card.to_dict(),
             "spotify_card": self.spotify_card.to_dict(),
             "media_card": self.media_card.to_dict(),
@@ -684,6 +722,7 @@ class GlassCardsData:
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
             fan_card=FanCardConfig.from_dict(data.get("fan_card", {})),
             cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
+            camera_carousel=CameraCarouselConfig.from_dict(data.get("camera_carousel", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
             media_card=MediaCardConfig.from_dict(data.get("media_card", {})),

@@ -90,4 +90,4 @@ export const ROOM_ICONS = [
   'mdi:lightbulb', 'mdi:snowflake', 'mdi:fire', 'mdi:lock',
 ];
 
-export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'fan' | 'dashboard';
+export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'spotify' | 'media' | 'presence' | 'fan' | 'camera_carousel' | 'dashboard';

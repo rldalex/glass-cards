@@ -12,6 +12,7 @@ import '../cards/title-card/src/index';
 import '../cards/spotify-card/src/index';
 import '../cards/media-card/src/index';
 import '../cards/presence-card/src/index';
+import '../cards/camera-carousel/src/index';
 
 installHistoryIntercept();
 getThemeManager();

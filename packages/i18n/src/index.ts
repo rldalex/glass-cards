@@ -25,6 +25,7 @@ export type TranslationKey =
   | `spotify.${keyof typeof fr.spotify}`
   | `media.${keyof typeof fr.media}`
   | `presence.${keyof typeof fr.presence}`
+  | `camera.${keyof typeof fr.camera}`
   | `config.${keyof typeof fr.config}`;
 
 /* ── Locale key validation ── */

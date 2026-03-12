@@ -28,6 +28,7 @@ import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, g
 import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, selectSpotifyEntity, toggleSpotifySpeaker, onDropSpeaker } from './tabs/spotify';
 import { renderTitlePreview, renderTitleTab, renderIconPopup, renderColorPicker, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons, openColorPicker, closeColorPicker, applyColorPicker, onCpWheel } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
+import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
 
 
 // — Component —
@@ -144,9 +145,15 @@ export class GlassConfigPanel extends LitElement {
   @state() _spotifyVisibleSpeakers: string[] = [];
   @state() _spotifyConfigured: boolean | null = null; // null = checking
 
+  // Camera carousel config
+  @state() _cameraShowHeader = true;
+  @state() _cameraAutoCycle = false;
+  @state() _cameraCycleInterval = 10;
+  @state() _cameraEntityOrder: string[] = [];
+
   // Dashboard config
   @state() _dashboardEnabledCards: string[] = ['weather'];
-  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
+  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
   @state() _dashboardHideHeader = false;
   @state() _dashboardHideSidebar = false;
   @state() _dashboardExpanded = new Set<string>();
@@ -203,6 +210,7 @@ export class GlassConfigPanel extends LitElement {
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
     '_mediaShowHeader', '_mediaExtraEntities',
     '_spotifyShowHeader', '_spotifyEntity', '_spotifySortOrder', '_spotifyMaxItems', '_spotifyVisibleSpeakers',
+    '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder',
     '_dashboardEnabledCards', '_dashboardCardOrder', '_dashboardHideHeader', '_dashboardHideSidebar',
   ]);
 
@@ -401,6 +409,12 @@ export class GlassConfigPanel extends LitElement {
       notify_services: {} as Record<string, string>,
       driving_sensors: {} as Record<string, string>,
     };
+    let cameraCarouselConfig = {
+      show_header: true,
+      entity_order: [] as string[],
+      auto_cycle: false,
+      cycle_interval: 10,
+    };
     const roomConfigs: Record<string, { icon?: string | null }> = {};
     try {
       if (!this._backend) throw new Error('No backend');
@@ -415,6 +429,7 @@ export class GlassConfigPanel extends LitElement {
         spotify_card: typeof spotifyCardConfig;
         media_card: typeof mediaCardConfig;
         presence_card: typeof presenceCardConfig;
+        camera_carousel: typeof cameraCarouselConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
       navbarConfig = result.navbar;
@@ -427,6 +442,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.spotify_card) spotifyCardConfig = result.spotify_card;
       if (result.media_card) mediaCardConfig = result.media_card;
       if (result.presence_card) presenceCardConfig = result.presence_card;
+      if (result.camera_carousel) cameraCarouselConfig = result.camera_carousel;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
       // Backend not available
@@ -481,8 +497,13 @@ export class GlassConfigPanel extends LitElement {
     this._presenceNotifyServices = presenceCardConfig.notify_services ?? {};
     this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
 
+    this._cameraShowHeader = cameraCarouselConfig.show_header ?? true;
+    this._cameraEntityOrder = cameraCarouselConfig.entity_order ?? [];
+    this._cameraAutoCycle = cameraCarouselConfig.auto_cycle ?? false;
+    this._cameraCycleInterval = cameraCarouselConfig.cycle_interval ?? 10;
+
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
     this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
     this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
 
@@ -903,6 +924,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveMedia();
     } else if (this._tab === 'presence') {
       this._savePresence();
+    } else if (this._tab === 'camera_carousel') {
+      this._saveCameraCarousel();
     } else {
       this._saveDashboard();
     }
@@ -1585,10 +1608,11 @@ export class GlassConfigPanel extends LitElement {
         spotify_card?: { show_header?: boolean };
         media_card?: { show_header?: boolean; extra_entities?: Record<string, string[]> };
         presence_card?: { show_header?: boolean };
+        camera_carousel?: { show_header?: boolean };
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
         this._dashboardHideHeader = result.dashboard.hide_header ?? false;
         this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
       }
@@ -1600,6 +1624,7 @@ export class GlassConfigPanel extends LitElement {
       this._mediaShowHeader = result?.media_card?.show_header ?? true;
       this._mediaExtraEntities = result?.media_card?.extra_entities ?? {};
       this._presenceShowHeader = result?.presence_card?.show_header ?? true;
+      this._cameraShowHeader = result?.camera_carousel?.show_header ?? true;
     } catch { /* ignore */ }
   }
 
@@ -1668,6 +1693,53 @@ export class GlassConfigPanel extends LitElement {
   _renderPresencePreview() { return renderPresencePreview(this); }
 
   _renderPresenceTab() { return renderPresenceTab(this); }
+
+  // — Camera carousel config —
+
+  private async _saveCameraCarousel() {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      await this._backend.send('set_camera_carousel_config', {
+        show_header: this._cameraShowHeader,
+        entity_order: this._cameraEntityOrder,
+        auto_cycle: this._cameraAutoCycle,
+        cycle_interval: this._cameraCycleInterval,
+      });
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('camera-carousel-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  async _loadCameraCarouselConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
+    if (!this._backend) return;
+    try {
+      const result = await this._backend.send<{
+        camera_carousel?: {
+          show_header?: boolean;
+          entity_order?: string[];
+          auto_cycle?: boolean;
+          cycle_interval?: number;
+        };
+      }>('get_config');
+      if (result?.camera_carousel) {
+        this._cameraShowHeader = result.camera_carousel.show_header ?? true;
+        this._cameraEntityOrder = result.camera_carousel.entity_order ?? [];
+        this._cameraAutoCycle = result.camera_carousel.auto_cycle ?? false;
+        this._cameraCycleInterval = result.camera_carousel.cycle_interval ?? 10;
+      }
+    } catch { /* ignore */ }
+  }
+
+  _renderCameraCarouselPreview() { return renderCameraCarouselPreview(this); }
+
+  _renderCameraCarouselTab() { return renderCameraCarouselTab(this); }
 
   // — Weather config —
 
@@ -1931,6 +2003,7 @@ export class GlassConfigPanel extends LitElement {
     { id: 'fan', icon: 'mdi:fan', labelKey: 'config.tab_fan' },
     { id: 'spotify', icon: 'mdi:spotify', labelKey: 'config.tab_spotify' },
     { id: 'presence', icon: 'mdi:account-group', labelKey: 'config.tab_presence' },
+    { id: 'camera_carousel', icon: 'mdi:cctv', labelKey: 'config.tab_camera_carousel' },
   ];
 
   _renderTabSelect() {
@@ -2019,7 +2092,9 @@ export class GlassConfigPanel extends LitElement {
                             ? this._renderSpotifyPreview()
                             : this._tab === 'presence'
                               ? this._renderPresencePreview()
-                              : this._renderDashboardPreview()}
+                              : this._tab === 'camera_carousel'
+                                ? this._renderCameraCarouselPreview()
+                                : this._renderDashboardPreview()}
           </div>
 
           ${this._tab === 'navbar'
@@ -2042,7 +2117,9 @@ export class GlassConfigPanel extends LitElement {
                           ? this._renderSpotifyTab()
                           : this._tab === 'presence'
                             ? this._renderPresenceTab()
-                            : this._renderDashboardTab()}
+                            : this._tab === 'camera_carousel'
+                              ? this._renderCameraCarouselTab()
+                              : this._renderDashboardTab()}
         </div>
       </div>
 

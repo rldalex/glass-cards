@@ -86,6 +86,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_spotify_save_tracks)
     websocket_api.async_register_command(hass, ws_spotify_remove_tracks)
     websocket_api.async_register_command(hass, ws_set_presence_config)
+    websocket_api.async_register_command(hass, ws_set_camera_carousel_config)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
 
@@ -621,6 +622,50 @@ async def ws_set_presence_config(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.presence_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_camera_carousel_config",
+        vol.Optional("show_header"): bool,
+        vol.Optional("entity_order"): [
+            vol.All(str, vol.Match(r"^camera\.[\w-]+$"))
+        ],
+        vol.Optional("auto_cycle"): bool,
+        vol.Optional("cycle_interval"): vol.All(
+            _strict_int, vol.Range(min=3, max=60)
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_set_camera_carousel_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the camera carousel card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.camera_carousel.show_header = msg["show_header"]
+    if "entity_order" in msg:
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for eid in msg["entity_order"]:
+            if eid not in seen:
+                seen.add(eid)
+                deduped.append(eid)
+        store.data.camera_carousel.entity_order = deduped
+    if "auto_cycle" in msg:
+        store.data.camera_carousel.auto_cycle = msg["auto_cycle"]
+    if "cycle_interval" in msg:
+        store.data.camera_carousel.cycle_interval = msg["cycle_interval"]
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.camera_carousel.to_dict())
 
 
 VALID_BROWSE_CATEGORIES = frozenset({
