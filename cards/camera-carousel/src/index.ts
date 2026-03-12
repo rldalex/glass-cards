@@ -230,6 +230,8 @@ class GlassCameraCarouselCard extends BaseCard {
 
   // Auto-cycle
   private _cycleTimer?: ReturnType<typeof setInterval>;
+  // Timestamp refresh (stream overlay clock)
+  private _timestampTimer?: ReturnType<typeof setInterval>;
 
   // Camera cache
   private _cachedCameraIds: string[] = [];
@@ -242,12 +244,16 @@ class GlassCameraCarouselCard extends BaseCard {
       this._loadConfig();
     });
     this._listen('dashboard-config-changed', () => this.requestUpdate());
+    // Refresh stream overlay timestamp every 60s
+    this._timestampTimer = setInterval(() => this.requestUpdate(), 60_000);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._backend = undefined;
     this._clearCycleTimer();
+    this._clearTimestampTimer();
+    _companionCache.clear();
   }
 
   getTrackedEntityIds(): string[] {
@@ -271,7 +277,7 @@ class GlassCameraCarouselCard extends BaseCard {
     super.updated(changedProps);
 
     if (changedProps.has('hass') && this.hass) {
-      if (!this._backend) {
+      if (!this._backend || this._backend.connection !== this.hass.connection) {
         this._backend = new BackendService(this.hass);
       }
     }
@@ -312,45 +318,45 @@ class GlassCameraCarouselCard extends BaseCard {
   private _getCameraIds(): string[] {
     if (!this.hass) return [];
 
-    // Build a fingerprint to avoid re-computing every render
+    // Collect raw camera entity ids
     let ids: string[];
     if (this.areaId) {
       ids = getAreaEntities(this.areaId, this.hass.entities, this.hass.devices)
         .filter((e) => e.entity_id.startsWith('camera.'))
         .map((e) => e.entity_id);
     } else {
-      // Dashboard mode: all cameras
       ids = Object.keys(this.hass.states).filter((eid) => eid.startsWith('camera.'));
     }
 
-    // Apply entity_order from config
-    if (this._camConfig?.entity_order?.length) {
-      const ordered = this._camConfig.entity_order.filter((eid) => ids.includes(eid));
-      const remaining = ids.filter((eid) => !ordered.includes(eid));
-      ids = [...ordered, ...remaining];
-    }
+    // Cheap fingerprint: skip expensive sort if camera set + alert states unchanged
+    const cheapKey = ids.length + ':' + ids.map((eid) => {
+      const s = this.hass?.states[eid];
+      return s ? `${eid}:${s.last_changed}` : eid;
+    }).join(',');
+    if (cheapKey === this._cachedCamerasKey) return this._cachedCameraIds;
 
-    // Dashboard mode: sort by most recent AI detection alert
-    if (!this.areaId) {
+    // Apply entity_order from config + dashboard alert sort
+    const configOrder = this._camConfig?.entity_order ?? [];
+    if (configOrder.length) {
+      const ordered = configOrder.filter((eid) => ids.includes(eid));
+      const remaining = ids.filter((eid) => !ordered.includes(eid));
+      if (!this.areaId) {
+        const states = this.hass.states;
+        const entities = this.hass.entities;
+        remaining.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
+      }
+      ids = [...ordered, ...remaining];
+    } else if (!this.areaId) {
       const states = this.hass.states;
       const entities = this.hass.entities;
-      ids.sort((a, b) => {
-        const tsA = this._latestAlertTimestamp(a, states, entities);
-        const tsB = this._latestAlertTimestamp(b, states, entities);
-        return tsB - tsA; // Most recent first
-      });
+      ids.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
     }
 
-    const key = ids.join(',');
-    if (key !== this._cachedCamerasKey) {
-      this._cachedCamerasKey = key;
-      this._cachedCameraIds = ids;
-      // Reset carousel index if it's out of bounds
-      if (this._carouselIndex >= ids.length) {
-        this._carouselIndex = Math.max(0, ids.length - 1);
-      }
+    this._cachedCamerasKey = cheapKey;
+    this._cachedCameraIds = ids;
+    if (this._carouselIndex >= ids.length) {
+      this._carouselIndex = Math.max(0, ids.length - 1);
     }
-
     return this._cachedCameraIds;
   }
 
@@ -429,6 +435,13 @@ class GlassCameraCarouselCard extends BaseCard {
     if (this._cycleTimer) {
       clearInterval(this._cycleTimer);
       this._cycleTimer = undefined;
+    }
+  }
+
+  private _clearTimestampTimer() {
+    if (this._timestampTimer) {
+      clearInterval(this._timestampTimer);
+      this._timestampTimer = undefined;
     }
   }
 
@@ -547,12 +560,7 @@ class GlassCameraCarouselCard extends BaseCard {
     this._liveIds = next;
   }
 
-  /** Stop a live stream (used by future stop button or area change). */
-  protected _stopStream(entityId: string) {
-    const next = new Set(this._liveIds);
-    next.delete(entityId);
-    this._liveIds = next;
-  }
+
 
   // — Render —
 
