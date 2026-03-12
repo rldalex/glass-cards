@@ -271,11 +271,8 @@ export class GlassMediaCard extends BaseCard {
       const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
       if (title !== this._prevMediaTitle) {
         this._prevMediaTitle = title;
-        // Optimistic: shift queue (remove finished track at position 0)
-        if (title && this._queueData.length > 0) {
-          this._queueData = this._queueData.slice(1);
-        }
-        // Confirm with real Sonos data after propagation delay
+        // queue_position attribute updates with hass state, view auto-adjusts
+        // Confirm with real Sonos queue data after propagation delay
         if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
         this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 1000);
       }
@@ -504,6 +501,11 @@ export class GlassMediaCard extends BaseCard {
 
   private _next(entityId: string): void {
     this._callService(entityId, 'media_next_track');
+    // Schedule queue refresh if queue tab is open
+    if (this._foldOpen && this._foldTab === 'queue') {
+      if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
+      this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 1000);
+    }
   }
 
   private _toggleMute(player: MediaPlayerInfo): void {
@@ -1090,41 +1092,35 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _renderQueueTab(): TemplateResult {
-    const items = this._queueData;
-    if (!items.length) {
+    const master = this._findMaster(this._getPlayers());
+    // queue_position = 0-indexed position of the currently playing track in the full Sonos queue
+    const queuePos = master ? (this.hass?.states[master.entityId]?.attributes?.queue_position as number | undefined) ?? 0 : 0;
+    // Only show upcoming tracks (after the currently playing one), like the Sonos desktop app
+    const upcoming = this._queueData.slice(queuePos + 1);
+    if (!upcoming.length) {
       return html`<div class="queue-empty">${t('media.queue_empty')}</div>`;
     }
-    const master = this._findMaster(this._getPlayers());
-    const playing = master?.state === 'playing';
     return html`
       <div class="queue-list">
-        ${items.map((item: Record<string, unknown>, i: number) => {
+        ${upcoming.map((item: Record<string, unknown>, i: number) => {
           const name = (item.name as string) ?? '';
           const artist = (item.artist as string) ?? '';
           const contentId = (item.content_id as string) ?? '';
           const isRadio = contentId ? this._radioTracks.some(rt => rt.uri === contentId) : false;
+          // Real Sonos queue index for service calls (0-indexed in the full queue)
+          const realIndex = queuePos + 1 + i;
           return html`
-            <div class="queue-item ${i === 0 ? 'now-playing' : ''}">
-              <div class="queue-art">
-                <ha-icon icon="mdi:music-note"></ha-icon>
-              </div>
+            <div class="queue-item">
+              <div class="queue-num">${i + 1}</div>
               <div class="queue-info">
                 <span class="queue-title">${marqueeText(name, MARQUEE_FULL)}</span>
                 <span class="queue-artist">${artist}</span>
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
-              ${i === 0 ? html`
-                ${playing ? html`<div class="eq-bars"><span></span><span></span><span></span></div>` : nothing}
-                <button class="btn-icon xs" aria-label="${t('media.skip_track')}"
-                        @click=${() => this._skipToNext()}>
-                  <ha-icon icon="mdi:skip-next"></ha-icon>
-                </button>
-              ` : html`
-                <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
-                        @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(i); }}>
-                  <ha-icon icon="mdi:close"></ha-icon>
-                </button>
-              `}
+              <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
+                      @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(realIndex); }}>
+                <ha-icon icon="mdi:close"></ha-icon>
+              </button>
             </div>
           `;
         })}
@@ -1132,27 +1128,13 @@ export class GlassMediaCard extends BaseCard {
     `;
   }
 
-  private async _skipToNext(): Promise<void> {
-    const players = this._getPlayers();
-    const master = this._findMaster(players);
-    if (!master || !this.hass) return;
-    // Optimistic: shift queue immediately (remove current, next becomes now-playing)
-    if (this._queueData.length > 0) {
-      this._queueData = this._queueData.slice(1);
-    }
-    await this.hass.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
-    // Confirm with real data after Sonos state propagates
-    if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
-    this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 1000);
-  }
-
-  private async _removeFromQueue(index: number): Promise<void> {
+  private async _removeFromQueue(sonosIndex: number): Promise<void> {
     const master = this._findMaster(this._getPlayers());
     if (!master || !this.hass) return;
-    // Optimistic UI: remove immediately
-    this._queueData = this._queueData.filter((_, i) => i !== index);
+    // Optimistic UI: remove from full queue data immediately
+    this._queueData = this._queueData.filter((_, i) => i !== sonosIndex);
     try {
-      await this.hass.callService('sonos', 'remove_from_queue', { queue_position: index }, { entity_id: master.entityId });
+      await this.hass.callService('sonos', 'remove_from_queue', { queue_position: sonosIndex }, { entity_id: master.entityId });
     } catch {
       this._loadQueue();
     }
@@ -2014,21 +1996,13 @@ export class GlassMediaCard extends BaseCard {
         gap: 8px;
         padding: 6px 4px;
       }
-      .queue-item.now-playing {
-        background: color-mix(in srgb, var(--c-accent-dynamic, var(--c-accent)) 8%, transparent);
-        border-radius: var(--radius-sm);
-      }
-      .queue-art {
-        width: 32px; height: 32px;
-        border-radius: var(--radius-sm);
-        overflow: hidden;
+      .queue-num {
+        width: 20px;
         flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .queue-art img { width: 100%; height: 100%; object-fit: cover; }
-      .queue-art ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 16px; color: var(--t4);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--t4);
+        text-align: center;
       }
       .queue-info {
         flex: 1;
