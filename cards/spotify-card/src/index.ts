@@ -118,7 +118,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _foldOpen = false;
   @state() private _savedMap: Map<string, boolean> = new Map();
   @state() private _sectionTotals: Record<string, number> = {};
-  private _loadingMore: Record<string, boolean> = {};
+  @state() private _loadingMore: Record<string, boolean> = {};
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
@@ -1009,7 +1009,6 @@ class GlassSpotifyCard extends BaseCard {
   /** Fire-and-forget: fetch recommendations for a track and add them to the queue. */
   private async _seedRadioQueue(item: SpotifyItem): Promise<void> {
     if (!this._backend) return;
-    bus.emit('radio-queue-started', { count: 0 });
     try {
       // Wait for Spotify to register the play_media command before queuing
       await new Promise((r) => setTimeout(r, 2000));
@@ -1097,9 +1096,10 @@ class GlassSpotifyCard extends BaseCard {
   // — Favorites —
 
   private async _checkSavedStatus(trackIds: string[]): Promise<void> {
-    if (!trackIds.length || !this._backend) return;
+    const unique = [...new Set(trackIds)];
+    if (!unique.length || !this._backend) return;
     try {
-      const result = await this._backend.send<Record<string, boolean>>('spotify_check_saved', { track_ids: trackIds });
+      const result = await this._backend.send<Record<string, boolean>>('spotify_check_saved', { track_ids: unique });
       if (!this.isConnected) return;
       const newMap = new Map(this._savedMap);
       for (const [id, saved] of Object.entries(result ?? {})) {

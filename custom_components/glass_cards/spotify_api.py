@@ -379,6 +379,8 @@ async def spotify_check_saved_tracks(
             hass, "GET", "/me/tracks/contains",
             params={"ids": ids_param}, entity_id=entity_id,
         )
+        if not data or not isinstance(data, list):
+            continue
         for track_id, saved in zip(batch, data):
             result[track_id] = saved
     return result
