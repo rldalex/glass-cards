@@ -466,7 +466,7 @@ class GlassCameraCarouselCard extends BaseCard {
   // — Swipe handlers —
 
   private _onPointerDown = (e: PointerEvent) => {
-    if ((e.target as HTMLElement).closest('.carousel-nav')) return;
+    if ((e.target as HTMLElement).closest('.carousel-nav, .stream-placeholder')) return;
     this._touchStartX = e.clientX;
     this._touchDelta = 0;
     this._isSwiping = true;
@@ -877,7 +877,8 @@ class GlassCameraCarouselCard extends BaseCard {
       }
       .cam-stream {
         position: absolute; inset: 0; width: 100%; height: 100%;
-        z-index: 0; --video-object-fit: cover;
+        display: block; z-index: 0; overflow: hidden;
+        --video-object-fit: cover;
       }
 
       /* — Stream overlays — */
