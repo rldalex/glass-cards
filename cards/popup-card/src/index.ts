@@ -40,6 +40,11 @@ export class GlassRoomPopup extends LitElement {
   private _loadingRooms = new Set<string>();
   private _backend?: BackendService;
   private _busCleanups: (() => void)[] = [];
+  @state() private _swipeClass = '';
+  private _swipeAnimating = false;
+  private _swipeAnimTimer?: ReturnType<typeof setTimeout>;
+  private _currentRoomIndex?: number;
+  private _pendingSwipe?: { areaId: string; originRect?: DOMRect; roomIndex?: number };
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
@@ -108,6 +113,40 @@ export class GlassRoomPopup extends LitElement {
         transform: translateX(-50%) scale(1);
         opacity: 1;
         pointer-events: auto;
+      }
+
+      @keyframes swipe-exit-l {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
+      }
+      @keyframes swipe-enter-r {
+        0%   { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+      @keyframes swipe-exit-r {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
+      }
+      @keyframes swipe-enter-l {
+        0%   { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+
+      .dialog-inner.swipe-exit-left {
+        animation: swipe-exit-l 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
+        pointer-events: none;
+      }
+      .dialog-inner.swipe-enter-right {
+        animation: swipe-enter-r 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        pointer-events: none;
+      }
+      .dialog-inner.swipe-exit-right {
+        animation: swipe-exit-r 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
+        pointer-events: none;
+      }
+      .dialog-inner.swipe-enter-left {
+        animation: swipe-enter-l 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        pointer-events: none;
       }
 
       .header {
@@ -394,6 +433,14 @@ export class GlassRoomPopup extends LitElement {
     this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
     this._backend = undefined;
+    if (this._swipeAnimTimer !== undefined) {
+      clearTimeout(this._swipeAnimTimer);
+      this._swipeAnimTimer = undefined;
+    }
+    this._swipeAnimating = false;
+    this._swipeClass = '';
+    this._pendingSwipe = undefined;
+    this._currentRoomIndex = undefined;
     document.removeEventListener('keydown', this._boundKeydown);
   }
 
@@ -401,7 +448,13 @@ export class GlassRoomPopup extends LitElement {
     if (this._scenesOpen) this._scenesOpen = false;
   }
 
-  private _handleOpen(payload: { areaId: string; originRect?: DOMRect }) {
+  private _handleOpen(payload: { areaId: string; originRect?: DOMRect; roomIndex?: number }) {
+    // If a swipe animation is in progress, queue it for after the animation
+    if (this._swipeAnimating) {
+      this._pendingSwipe = payload;
+      return;
+    }
+    this._currentRoomIndex = payload.roomIndex;
     // Cancel stale close timeout from previous room
     if (this._closeTimeout !== undefined) {
       clearTimeout(this._closeTimeout);
@@ -455,6 +508,9 @@ export class GlassRoomPopup extends LitElement {
       clearTimeout(this._peekTimeout);
       this._peekTimeout = undefined;
     }
+    // Discard any pending swipe queued during animation
+    if (this._pendingSwipe) this._pendingSwipe = undefined;
+    if (this._currentRoomIndex !== undefined) this._currentRoomIndex = undefined;
     this._open = false;
     this.removeAttribute('open');
     this._closeTimeout = setTimeout(() => {
@@ -616,6 +672,7 @@ export class GlassRoomPopup extends LitElement {
     return html`
       <div class="overlay" @click=${this._onOverlayClick}></div>
       <div class="dialog glass glass-float" role="dialog" aria-modal="true" aria-label=${meta.name}>
+        <div class="dialog-inner ${this._swipeClass}">
         <div class="header">
           <div class="header-left">
             <button
@@ -672,6 +729,7 @@ export class GlassRoomPopup extends LitElement {
 
         <div class="cards">
           ${visibleCards.map((domain) => this._renderDomainCard(domain))}
+        </div>
         </div>
       </div>
     `;
