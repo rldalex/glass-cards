@@ -709,6 +709,7 @@ class GlassCameraCarouselCard extends BaseCard {
     css`
       :host {
         display: block;
+        width: 100%;
         font-family: 'Plus Jakarta Sans', sans-serif;
         max-width: 500px;
         margin: 0 auto;
