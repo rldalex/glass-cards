@@ -22,7 +22,7 @@ export function renderMediaPreview(self: GlassConfigPanel) {
         <div class="mp-top">
           <div class="mp-pill">
             <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-            <span>${roomId ? (self._rooms.find((r) => r.areaId === roomId)?.name ?? 'Room') : 'Salon'}</span>
+            <span>${roomId ? (self._rooms.find((r) => r.areaId === roomId)?.name ?? t('config.media_room')) : t('config.media_select_room')}</span>
             ${playingCount > 0 ? html`
               <div class="mp-eq">
                 <div class="mp-eq-bar"></div>
@@ -236,7 +236,7 @@ export function renderMediaTab(self: GlassConfigPanel) {
               class="dropdown-search"
               placeholder="${t('config.search_entity')}"
               .value=${self._mediaEntitySearch ?? ''}
-              @input=${(e: Event) => { self._mediaEntitySearch = (e.target as HTMLInputElement).value; self.requestUpdate(); }}
+              @input=${(e: Event) => { self._mediaEntitySearch = (e.target as HTMLInputElement).value; }}
               @click=${(e: Event) => e.stopPropagation()}
             />
             ${available.slice(0, 20).map((id) => {
@@ -279,6 +279,8 @@ export function renderMediaTab(self: GlassConfigPanel) {
 export function selectMediaRoom(self: GlassConfigPanel, areaId: string) {
   self._mediaRoom = areaId;
   self._mediaRoomDropdownOpen = false;
+  self._mediaAddDropdownOpen = false;
+  self._mediaEntitySearch = '';
   self._loadRoomMediaPlayers();
 }
 

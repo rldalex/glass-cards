@@ -130,7 +130,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _mediaRoomDropdownOpen = false;
   @state() _mediaRoomNativePlayers: string[] = [];
   @state() _mediaAddDropdownOpen = false;
-  _mediaEntitySearch = '';
+  @state() _mediaEntitySearch = '';
 
   // Spotify config
   @state() _spotifyShowHeader = true;
