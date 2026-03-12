@@ -823,7 +823,7 @@ class GlassCameraCarouselCard extends BaseCard {
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 2px 14px; position: relative; box-sizing: border-box; }
+      .carousel-card { width: 100%; padding: 14px; position: relative; box-sizing: border-box; }
       .carousel-inner {
         position: relative; z-index: 1;
         display: flex; flex-direction: column; gap: 10px;

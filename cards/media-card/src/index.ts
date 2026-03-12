@@ -154,6 +154,7 @@ export class GlassMediaCard extends BaseCard {
   private _swipeAnimTimer = 0;
   private _pointerStart = { x: 0, y: 0, t: 0 };
   private _queueRefreshTimer = 0;
+  private _prevMediaTitle = '';
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
@@ -257,6 +258,15 @@ export class GlassMediaCard extends BaseCard {
     // Refresh queue if room changed while queue tab is open
     if (changedProps.has('_roomIndex') && this._foldOpen && this._foldTab === 'queue') {
       this._loadQueue();
+    }
+    // Refresh queue when track changes (song ended → next started)
+    if (changedProps.has('hass') && this.hass && this._foldOpen && this._foldTab === 'queue') {
+      const master = this._findMaster(this._getPlayers());
+      const title = master ? (this.hass.states[master.entityId]?.attributes?.media_title as string ?? '') : '';
+      if (title && title !== this._prevMediaTitle) {
+        this._prevMediaTitle = title;
+        this._loadQueue();
+      }
     }
     // Start/stop progress timer based on playback state (only on relevant changes)
     if (changedProps.has('hass') || changedProps.has('_roomIndex')) {
