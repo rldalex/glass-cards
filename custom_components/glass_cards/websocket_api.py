@@ -40,6 +40,7 @@ from .spotify_api import (
     SpotifyNotConfiguredError,
     VALID_SEARCH_TYPES,
     spotify_add_to_queue,
+    spotify_check_saved_tracks,
     spotify_get_album,
     spotify_get_artist_top_tracks,
     spotify_get_playlists,
@@ -50,6 +51,8 @@ from .spotify_api import (
     spotify_get_saved_albums,
     spotify_get_saved_shows,
     spotify_get_saved_tracks,
+    spotify_remove_tracks,
+    spotify_save_tracks,
     spotify_search,
 )
 
@@ -79,6 +82,9 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_spotify_browse)
     websocket_api.async_register_command(hass, ws_spotify_get_queue)
     websocket_api.async_register_command(hass, ws_spotify_add_to_queue)
+    websocket_api.async_register_command(hass, ws_spotify_check_saved)
+    websocket_api.async_register_command(hass, ws_spotify_save_tracks)
+    websocket_api.async_register_command(hass, ws_spotify_remove_tracks)
     websocket_api.async_register_command(hass, ws_set_presence_config)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
@@ -934,6 +940,98 @@ async def ws_spotify_add_to_queue(
         await spotify_add_to_queue(
             hass, uri=msg["uri"], device_id=msg.get("device_id"), entity_id=entity_id
         )
+        connection.send_result(msg["id"], {"success": True})
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+_TRACK_ID_SCHEMA = vol.All(
+    [vol.All(str, vol.Match(r"^[a-zA-Z0-9]+$"))],
+    vol.Length(min=1, max=50),
+)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_check_saved",
+        vol.Required("track_ids"): _TRACK_ID_SCHEMA,
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_check_saved(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Check if tracks are in the user's saved library."""
+    if not can_read(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+
+    try:
+        result = await spotify_check_saved_tracks(
+            hass, track_ids=msg["track_ids"], entity_id=entity_id
+        )
+        connection.send_result(msg["id"], result)
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_save_tracks",
+        vol.Required("track_ids"): _TRACK_ID_SCHEMA,
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_save_tracks(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Save tracks to the user's library."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+    cache = _get_spotify_cache(hass)
+
+    try:
+        await spotify_save_tracks(hass, track_ids=msg["track_ids"], entity_id=entity_id)
+        if cache is not None:
+            cache.invalidate("saved_tracks")
+        connection.send_result(msg["id"], {"success": True})
+    except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
+        _handle_spotify_error(connection, msg["id"], exc)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/spotify_remove_tracks",
+        vol.Required("track_ids"): _TRACK_ID_SCHEMA,
+    }
+)
+@websocket_api.async_response
+async def ws_spotify_remove_tracks(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Remove tracks from the user's library."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    entity_id = store.data.spotify_card.entity_id
+    cache = _get_spotify_cache(hass)
+
+    try:
+        await spotify_remove_tracks(hass, track_ids=msg["track_ids"], entity_id=entity_id)
+        if cache is not None:
+            cache.invalidate("saved_tracks")
         connection.send_result(msg["id"], {"success": True})
     except (SpotifyNotConfiguredError, SpotifyAPIError) as exc:
         _handle_spotify_error(connection, msg["id"], exc)

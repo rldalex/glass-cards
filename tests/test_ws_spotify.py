@@ -16,7 +16,10 @@ from custom_components.glass_cards.websocket_api import (
     ws_set_spotify_config,
     ws_spotify_add_to_queue,
     ws_spotify_browse,
+    ws_spotify_check_saved,
     ws_spotify_get_queue,
+    ws_spotify_remove_tracks,
+    ws_spotify_save_tracks,
     ws_spotify_search,
     ws_spotify_status,
 )
@@ -515,3 +518,243 @@ class TestSpotifyBrowseCache:
             )
         result = mock_connection.send_result.call_args[0][1]
         assert result == expected
+
+
+class TestSpotifyCheckSaved:
+    """Tests for ws_spotify_check_saved."""
+
+    @pytest.mark.asyncio
+    async def test_check_saved_success(self, hass_with_store, mock_connection):
+        """Should return dict mapping track_id to bool."""
+        expected = {"abc123": True, "def456": False}
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_check_saved_tracks",
+            new_callable=AsyncMock,
+            return_value=expected,
+        ):
+            await ws_spotify_check_saved(
+                hass_with_store, mock_connection,
+                {
+                    "id": 70, "type": "glass_cards/spotify_check_saved",
+                    "track_ids": ["abc123", "def456"],
+                },
+            )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result == expected
+
+    @pytest.mark.asyncio
+    async def test_check_saved_uses_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """entity_id from config should be passed to the API."""
+        mock_store._data.spotify_card.entity_id = "media_player.spotify_john"
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_check_saved_tracks",
+            new_callable=AsyncMock,
+            return_value={"abc123": True},
+        ) as mock_fn:
+            await ws_spotify_check_saved(
+                hass_with_store, mock_connection,
+                {"id": 71, "type": "glass_cards/spotify_check_saved", "track_ids": ["abc123"]},
+            )
+        call_kwargs = mock_fn.call_args[1]
+        assert call_kwargs.get("entity_id") == "media_player.spotify_john"
+
+    @pytest.mark.asyncio
+    async def test_check_saved_not_configured_error(self, hass_with_store, mock_connection):
+        """SpotifyNotConfiguredError should send WS error."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_check_saved_tracks",
+            side_effect=SpotifyNotConfiguredError("Not configured"),
+        ):
+            await ws_spotify_check_saved(
+                hass_with_store, mock_connection,
+                {"id": 72, "type": "glass_cards/spotify_check_saved", "track_ids": ["abc123"]},
+            )
+        mock_connection.send_error.assert_called_once()
+        assert mock_connection.send_error.call_args[0][1] == "spotify_not_configured"
+
+    @pytest.mark.asyncio
+    async def test_check_saved_api_error(self, hass_with_store, mock_connection):
+        """SpotifyAPIError should send WS error."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_check_saved_tracks",
+            side_effect=SpotifyAPIError(429, "Rate limited", retry_after=5),
+        ):
+            await ws_spotify_check_saved(
+                hass_with_store, mock_connection,
+                {"id": 73, "type": "glass_cards/spotify_check_saved", "track_ids": ["abc123"]},
+            )
+        mock_connection.send_error.assert_called_once()
+        assert mock_connection.send_error.call_args[0][1] == "spotify_api_error"
+
+    @pytest.mark.asyncio
+    async def test_check_saved_unauthorized(self, hass_with_store, mock_connection):
+        """Non-readable user should raise Unauthorized."""
+        mock_connection.user = None
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_spotify_check_saved(
+                hass_with_store, mock_connection,
+                {"id": 74, "type": "glass_cards/spotify_check_saved", "track_ids": ["abc123"]},
+            )
+
+
+class TestSpotifySaveTracks:
+    """Tests for ws_spotify_save_tracks."""
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_success(self, hass_with_store, mock_connection):
+        """Should call save API and return success."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_save_tracks",
+            new_callable=AsyncMock,
+        ):
+            await ws_spotify_save_tracks(
+                hass_with_store, mock_connection,
+                {
+                    "id": 80, "type": "glass_cards/spotify_save_tracks",
+                    "track_ids": ["abc123"],
+                },
+            )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_invalidates_cache(self, hass_with_store, mock_connection):
+        """Should invalidate saved_tracks cache prefix after saving."""
+        from custom_components.glass_cards.const import DOMAIN
+        cache = SpotifyCache()
+        cache.set("saved_tracks:somehash", {"items": []})
+        hass_with_store.data[DOMAIN]["spotify_cache"] = cache
+
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_save_tracks",
+            new_callable=AsyncMock,
+        ):
+            await ws_spotify_save_tracks(
+                hass_with_store, mock_connection,
+                {"id": 81, "type": "glass_cards/spotify_save_tracks", "track_ids": ["abc123"]},
+            )
+
+        # Cache entry with saved_tracks prefix should be gone
+        assert cache.get("saved_tracks:somehash") is None
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_requires_edit(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-edit user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_spotify_save_tracks(
+                hass_with_store, mock_connection,
+                {"id": 82, "type": "glass_cards/spotify_save_tracks", "track_ids": ["abc123"]},
+            )
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_api_error(self, hass_with_store, mock_connection):
+        """SpotifyAPIError should send WS error."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_save_tracks",
+            side_effect=SpotifyAPIError(403, "Premium required"),
+        ):
+            await ws_spotify_save_tracks(
+                hass_with_store, mock_connection,
+                {"id": 83, "type": "glass_cards/spotify_save_tracks", "track_ids": ["abc123"]},
+            )
+        mock_connection.send_error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_save_tracks_uses_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """entity_id from config should be passed to the API."""
+        mock_store._data.spotify_card.entity_id = "media_player.spotify_alice"
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_save_tracks",
+            new_callable=AsyncMock,
+        ) as mock_fn:
+            await ws_spotify_save_tracks(
+                hass_with_store, mock_connection,
+                {"id": 84, "type": "glass_cards/spotify_save_tracks", "track_ids": ["t1"]},
+            )
+        call_kwargs = mock_fn.call_args[1]
+        assert call_kwargs.get("entity_id") == "media_player.spotify_alice"
+
+
+class TestSpotifyRemoveTracks:
+    """Tests for ws_spotify_remove_tracks."""
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_success(self, hass_with_store, mock_connection):
+        """Should call remove API and return success."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_remove_tracks",
+            new_callable=AsyncMock,
+        ):
+            await ws_spotify_remove_tracks(
+                hass_with_store, mock_connection,
+                {
+                    "id": 90, "type": "glass_cards/spotify_remove_tracks",
+                    "track_ids": ["abc123"],
+                },
+            )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_invalidates_cache(self, hass_with_store, mock_connection):
+        """Should invalidate saved_tracks cache prefix after removing."""
+        from custom_components.glass_cards.const import DOMAIN
+        cache = SpotifyCache()
+        cache.set("saved_tracks:anotherhash", {"items": []})
+        hass_with_store.data[DOMAIN]["spotify_cache"] = cache
+
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_remove_tracks",
+            new_callable=AsyncMock,
+        ):
+            await ws_spotify_remove_tracks(
+                hass_with_store, mock_connection,
+                {"id": 91, "type": "glass_cards/spotify_remove_tracks", "track_ids": ["abc123"]},
+            )
+
+        assert cache.get("saved_tracks:anotherhash") is None
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_requires_edit(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-edit user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_spotify_remove_tracks(
+                hass_with_store, mock_connection,
+                {"id": 92, "type": "glass_cards/spotify_remove_tracks", "track_ids": ["abc123"]},
+            )
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_api_error(self, hass_with_store, mock_connection):
+        """SpotifyAPIError should send WS error."""
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_remove_tracks",
+            side_effect=SpotifyAPIError(500, "Server error"),
+        ):
+            await ws_spotify_remove_tracks(
+                hass_with_store, mock_connection,
+                {"id": 93, "type": "glass_cards/spotify_remove_tracks", "track_ids": ["abc123"]},
+            )
+        mock_connection.send_error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_remove_tracks_uses_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """entity_id from config should be passed to the API."""
+        mock_store._data.spotify_card.entity_id = "media_player.spotify_bob"
+        with patch(
+            "custom_components.glass_cards.websocket_api.spotify_remove_tracks",
+            new_callable=AsyncMock,
+        ) as mock_fn:
+            await ws_spotify_remove_tracks(
+                hass_with_store, mock_connection,
+                {"id": 94, "type": "glass_cards/spotify_remove_tracks", "track_ids": ["t1"]},
+            )
+        call_kwargs = mock_fn.call_args[1]
+        assert call_kwargs.get("entity_id") == "media_player.spotify_bob"
