@@ -58,7 +58,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
   return html`
     <div class="tab-panel" id="panel-presence">
       <!-- Behaviour -->
-      <div class="section-label">${t('config.navbar_behavior')}</div>
+      <div class="section-label">${t('config.behavior')}</div>
       <div class="feature-list">
         <button
           class="feature-row"
@@ -138,7 +138,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
             </div>
 
             <div class="presence-mapping-field">
-              <label class="presence-mapping-label">${t('config.presence_smartphone')}</label>
+              <label class="section-label">${t('config.presence_smartphone')}</label>
               <div class="dropdown ${self._presenceDropdownOpen === smKey ? 'open' : ''}">
                 <button
                   class="dropdown-trigger"
@@ -194,7 +194,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
             </div>
 
             <div class="presence-mapping-field">
-              <label class="presence-mapping-label">${t('config.presence_notify')}</label>
+              <label class="section-label">${t('config.presence_notify')}</label>
               <div class="dropdown ${self._presenceDropdownOpen === notKey ? 'open' : ''}">
                 <button
                   class="dropdown-trigger"
@@ -250,7 +250,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
             </div>
 
             <div class="presence-mapping-field">
-              <label class="presence-mapping-label">${t('config.presence_driving')}</label>
+              <label class="section-label">${t('config.presence_driving')}</label>
               <div class="dropdown ${self._presenceDropdownOpen === drvKey ? 'open' : ''}">
                 <button
                   class="dropdown-trigger"

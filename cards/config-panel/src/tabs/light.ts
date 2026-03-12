@@ -110,7 +110,7 @@ export function renderLightTab(self: GlassConfigPanel) {
 
   return html`
     <div class="tab-panel" id="panel-light">
-      <div class="section-label">${t('config.navbar_behavior')}</div>
+      <div class="section-label">${t('config.behavior')}</div>
       <div class="feature-list">
         <button
           class="feature-row"

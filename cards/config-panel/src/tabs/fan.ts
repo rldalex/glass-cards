@@ -78,12 +78,6 @@ export function renderFanPreview(self: GlassConfigPanel) {
   const accentRgba = 'rgba(129,140,248,';
 
   return html`
-    <style>
-      @keyframes spin-fan-preview {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-    </style>
     <div class="preview-fan">
       ${self._fanShowHeader ? html`
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
@@ -115,7 +109,7 @@ export function renderFanTab(self: GlassConfigPanel) {
 
   return html`
     <div class="tab-panel" id="panel-fan">
-      <div class="section-label">${t('config.navbar_behavior')}</div>
+      <div class="section-label">${t('config.behavior')}</div>
       <div class="feature-list">
         <button
           class="feature-row"

@@ -14,7 +14,9 @@
     "config_saved": "Configuration sauvegardée",
     "entities": "entités",
     "no_entity": "Aucune entité",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "collapse": "Réduire",
+    "expand": "Développer"
   },
 
   "light": {
@@ -286,6 +288,7 @@
     "tab_light": "Carte Lumières",
     "preview": "Aperçu",
 
+    "behavior": "Comportement",
     "navbar_behavior": "Comportement",
     "navbar_auto_sort": "Tri automatique",
     "navbar_auto_sort_desc": "Les pièces actives remontent en premier",

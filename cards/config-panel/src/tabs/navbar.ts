@@ -221,7 +221,7 @@ export function renderNavbarTab(self: GlassConfigPanel) {
       </div>
 
       <div class="save-bar">
-        <button class="btn btn-ghost" @click=${() => self._reset()}>${t('common.reset')}</button>
+        <button class="btn btn-ghost" @click=${() => self._loadConfig()}>${t('common.reset')}</button>
       </div>
     </div>
   `;
@@ -297,6 +297,7 @@ export function setRoomIcon(self: GlassConfigPanel, areaId: string, icon: string
 export function selectRoom(self: GlassConfigPanel, areaId: string) {
   self._selectedRoom = areaId;
   self._dropdownOpen = false;
+  self._popupRoomSearch = '';
   self._loadRoomCards();
 }
 

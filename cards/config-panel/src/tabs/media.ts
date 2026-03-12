@@ -13,7 +13,7 @@ export function renderMediaPreview(self: GlassConfigPanel) {
   const playingCount = roomId ? _countPlaying(self, roomId) : 1;
 
   return html`
-    <div class="media-preview">
+    <div class="preview-media">
       <!-- Simulated full-bleed artwork background -->
       <div class="mp-art-bg"></div>
       <div class="mp-gradient"></div>
@@ -109,23 +109,26 @@ export function renderMediaTab(self: GlassConfigPanel) {
   return html`
     <div class="tab-panel" id="panel-media">
       <!-- Show header toggle -->
-      <button
-        class="feature-row"
-        @click=${() => { self._mediaShowHeader = !self._mediaShowHeader; }}
-      >
-        <div class="feature-icon">
-          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-        </div>
-        <div class="feature-text">
-          <div class="feature-name">${t('config.media_show_header')}</div>
-          <div class="feature-desc">${t('config.media_show_header_desc')}</div>
-        </div>
-        <span
-          class="toggle ${self._mediaShowHeader ? 'on' : ''}"
-          role="switch"
-          aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
-        ></span>
-      </button>
+      <div class="section-label">${t('config.behavior')}</div>
+      <div class="feature-list">
+        <button
+          class="feature-row"
+          @click=${() => { self._mediaShowHeader = !self._mediaShowHeader; }}
+        >
+          <div class="feature-icon">
+            <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+          </div>
+          <div class="feature-text">
+            <div class="feature-name">${t('config.media_show_header')}</div>
+            <div class="feature-desc">${t('config.media_show_header_desc')}</div>
+          </div>
+          <span
+            class="toggle ${self._mediaShowHeader ? 'on' : ''}"
+            role="switch"
+            aria-checked=${self._mediaShowHeader ? 'true' : 'false'}
+          ></span>
+        </button>
+      </div>
 
       <!-- Per-room extra entities -->
       <div class="section-label">${t('config.media_room')}</div>
@@ -174,7 +177,7 @@ export function renderMediaTab(self: GlassConfigPanel) {
                     <span class="item-name">${name}</span>
                     <span class="item-meta">${id}</span>
                   </div>
-                  <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${isPlaying ? '#60a5fa' : 'var(--t4)'};${isPlaying ? 'box-shadow:0 0 6px rgba(96,165,250,0.4);' : ''}"></div>
+                  <div class="dot" style="background:${isPlaying ? '#60a5fa' : 'var(--t4)'};${isPlaying ? 'box-shadow:0 0 6px rgba(96,165,250,0.4);' : ''}"></div>
                 </div>
               `;
             })}

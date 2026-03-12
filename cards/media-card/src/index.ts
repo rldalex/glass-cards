@@ -795,10 +795,10 @@ export class GlassMediaCard extends BaseCard {
             <div class="dash-info-panel glass-panel">
               <div class="dash-track">
                 ${master.title ? html`
-                  <div class="dash-track-title">${master.title}</div>
+                  <div class="dash-track-title">${marqueeText(master.title, 22)}</div>
                 ` : nothing}
                 ${master.artist ? html`
-                  <div class="dash-track-artist">${master.artist}</div>
+                  <div class="dash-track-artist">${marqueeText(master.artist, 28)}</div>
                 ` : nothing}
               </div>
 
@@ -1370,8 +1370,8 @@ export class GlassMediaCard extends BaseCard {
       /* ── Glass panel (bottom info card) — frosted glass, artwork bleeds through ── */
       .glass-panel {
         border-radius: var(--radius-lg);
-        backdrop-filter: blur(20px) saturate(1.4);
-        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        backdrop-filter: blur(10px) saturate(1.4);
+        -webkit-backdrop-filter: blur(10px) saturate(1.4);
         background: rgba(0,0,0,0.25);
         border: 1px solid rgba(255,255,255,0.12);
         box-shadow:
@@ -1439,6 +1439,7 @@ export class GlassMediaCard extends BaseCard {
 
       /* ── Bottom info panel ── */
       .dash-info-panel {
+        position: relative; z-index: 10;
         display: flex; flex-direction: column; gap: 8px;
         padding: 12px 14px;
       }
@@ -1450,12 +1451,12 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-track-title {
         font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        overflow: hidden; white-space: nowrap;
         text-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.3);
       }
       .dash-track-artist {
         font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75);
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        overflow: hidden; white-space: nowrap;
         text-shadow: 0 1px 3px rgba(0,0,0,0.5);
       }
 

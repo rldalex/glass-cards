@@ -60,7 +60,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
       <div class="section-label">${t('config.dashboard_display')}</div>
       <div class="section-desc">${t('config.dashboard_display_desc')}</div>
 
-      <div class="check-item" style="margin-top:12px;">
+      <div class="check-item mt-12">
         <button
           class="toggle ${self._dashboardHideHeader ? 'on' : ''}"
           @click=${() => { if (self._saving) return; self._dashboardHideHeader = !self._dashboardHideHeader; self._saveDashboard(); }}
@@ -73,7 +73,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
           <span class="check-desc">${t('config.dashboard_hide_header_desc')}</span>
         </div>
       </div>
-      <div class="check-item" style="margin-bottom:8px;">
+      <div class="check-item mb-8">
         <button
           class="toggle ${self._dashboardHideSidebar ? 'on' : ''}"
           @click=${() => { if (self._saving) return; self._dashboardHideSidebar = !self._dashboardHideSidebar; self._saveDashboard(); }}

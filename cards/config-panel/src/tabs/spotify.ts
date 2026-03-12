@@ -113,56 +113,29 @@ export function renderSpotifyTab(self: GlassConfigPanel) {
 
       <div class="section-label">${t('config.spotify_sort_order')}</div>
       <div class="section-desc">${t('config.spotify_sort_order_desc')}</div>
-      <div class="feature-list">
-        <button
-          class="feature-row"
-          @click=${() => { self._spotifySortOrder = 'recent_first'; }}
-        >
-          <div class="feature-icon">
-            <ha-icon .icon=${'mdi:sort-clock-descending'}></ha-icon>
-          </div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.spotify_sort_recent')}</div>
-          </div>
-          <span
-            class="toggle ${self._spotifySortOrder === 'recent_first' ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._spotifySortOrder === 'recent_first' ? 'true' : 'false'}
-          ></span>
+      <div class="segmented">
+        <button class="seg-btn ${self._spotifySortOrder === 'recent_first' ? 'active' : ''}"
+          @click=${() => { self._spotifySortOrder = 'recent_first'; }}>
+          ${t('config.spotify_sort_recent')}
         </button>
-        <button
-          class="feature-row"
-          @click=${() => { self._spotifySortOrder = 'oldest_first'; }}
-        >
-          <div class="feature-icon">
-            <ha-icon .icon=${'mdi:sort-clock-ascending'}></ha-icon>
-          </div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.spotify_sort_oldest')}</div>
-          </div>
-          <span
-            class="toggle ${self._spotifySortOrder === 'oldest_first' ? 'on' : ''}"
-            role="switch"
-            aria-checked=${self._spotifySortOrder === 'oldest_first' ? 'true' : 'false'}
-          ></span>
+        <button class="seg-btn ${self._spotifySortOrder === 'oldest_first' ? 'active' : ''}"
+          @click=${() => { self._spotifySortOrder = 'oldest_first'; }}>
+          ${t('config.spotify_sort_oldest')}
         </button>
       </div>
 
       <div class="section-label">${t('config.spotify_max_items')}</div>
       <div class="section-desc">${t('config.spotify_max_items_desc')}</div>
-      <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+      <div class="range-row">
         <input
           type="range"
+          class="range-input"
           min="1"
           max="20"
           .value=${String(self._spotifyMaxItems)}
           @input=${(e: Event) => { self._spotifyMaxItems = parseInt((e.target as HTMLInputElement).value, 10); }}
-          style="flex: 1; accent-color: #1DB954;"
         />
-        <span style="
-          font-size: 13px; font-weight: 600; color: var(--t1);
-          min-width: 28px; text-align: center;
-        ">${self._spotifyMaxItems}</span>
+        <span class="range-value">${self._spotifyMaxItems}</span>
       </div>
 
       <div class="section-label">${t('config.spotify_speakers')}</div>

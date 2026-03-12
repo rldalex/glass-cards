@@ -51,6 +51,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _lightDropdownOpen = false;
   @state() _iconPickerRoom: string | null = null;
   @state() _dropdownOpen = false;
+  _popupRoomSearch = '';
   @state() _toast = false;
   @state() _saving = false;
 
@@ -314,7 +315,7 @@ export class GlassConfigPanel extends LitElement {
     }, 800);
   }
 
-  private async _loadConfig() {
+  async _loadConfig() {
     if (!this.hass || this._loading) return;
     this._loading = true;
     try {

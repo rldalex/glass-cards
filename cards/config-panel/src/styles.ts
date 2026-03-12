@@ -1061,7 +1061,7 @@ export const configPanelStyles: CSSResult = css`
       }
 
       /* Preview media hero card — full-bleed artwork style */
-      .media-preview {
+      .preview-media {
         position: relative; overflow: hidden;
         border-radius: var(--radius-xl);
         min-height: 200px;
@@ -3046,4 +3046,73 @@ export const configPanelStyles: CSSResult = css`
       .config-panel {
         animation: panel-in 0.4s var(--ease-out) both;
       }
+
+      /* ── Fan preview spin ── */
+      @keyframes spin-fan-preview {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Segmented control ── */
+      .segmented {
+        display: inline-flex; gap: 0;
+        border-radius: 12px; background: var(--s1);
+        border: 1px solid var(--b1); padding: 3px;
+        width: 100%; margin-bottom: 8px;
+      }
+      .seg-btn {
+        flex: 1;
+        padding: 7px 0; border-radius: 9px;
+        font-family: inherit; font-size: 11px; font-weight: 600;
+        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        border: none; background: transparent; outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .seg-btn.active {
+        background: var(--s4); color: var(--t1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .seg-btn:hover:not(.active) { color: var(--t2); }
+      }
+      .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+      /* ── Range input (styled) ── */
+      .range-row {
+        display: flex; align-items: center; gap: 12px; padding: 4px 0;
+      }
+      .range-input {
+        flex: 1; height: 4px; border-radius: 2px;
+        -webkit-appearance: none; appearance: none;
+        background: var(--s2); outline: none;
+      }
+      .range-input::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 14px; height: 14px; border-radius: 50%;
+        background: var(--c-accent); cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      }
+      .range-input::-moz-range-thumb {
+        width: 14px; height: 14px; border-radius: 50%; border: none;
+        background: var(--c-accent); cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      }
+      .range-input::-moz-range-track {
+        height: 4px; border-radius: 2px; background: var(--s2);
+      }
+      .range-value {
+        font-size: 13px; font-weight: 600; color: var(--t1);
+        min-width: 28px; text-align: center;
+      }
+
+      /* ── Dot (status indicator) ── */
+      .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── Utility spacing ── */
+      .mt-12 { margin-top: 12px; }
+      .mb-8 { margin-bottom: 8px; }
 `;

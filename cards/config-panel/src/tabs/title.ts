@@ -96,9 +96,7 @@ export function renderTitleTab(self: GlassConfigPanel) {
         @input=${(e: Event) => { self._titleText = (e.target as HTMLInputElement).value; }}
       />
 
-      <div class="title-section-gap"></div>
-
-      <div class="section-label">${t('config.title_mode_source')}</div>
+      <div class="section-label" style="margin-top:12px;">${t('config.title_mode_source')}</div>
       <div class="section-desc">${t('config.title_mode_source_desc')}</div>
 
       <!-- Existing sources -->
@@ -169,7 +167,7 @@ function renderSourceEditor(self: GlassConfigPanel, src: TitleSource, srcIdx: nu
         <button
           class="btn-icon xs"
           @click=${() => { self._titleEditingSourceIdx = isEditing ? null : srcIdx; self._titleAddEntityDropdownOpen = false; }}
-          aria-label="${isEditing ? 'Collapse' : 'Expand'}"
+          aria-label=${isEditing ? t('common.collapse') : t('common.expand')}
         >
           <ha-icon .icon=${isEditing ? 'mdi:pencil' : 'mdi:pencil-outline'}></ha-icon>
         </button>

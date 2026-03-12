@@ -73,7 +73,7 @@ export function renderPopupTab(self: GlassConfigPanel) {
       <div class="dropdown ${self._dropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
-          @click=${() => (self._dropdownOpen = !self._dropdownOpen)}
+          @click=${() => { if (!self._dropdownOpen) self._popupRoomSearch = ''; self._dropdownOpen = !self._dropdownOpen; }}
           aria-expanded=${self._dropdownOpen ? 'true' : 'false'}
           aria-haspopup="listbox"
         >
@@ -82,7 +82,17 @@ export function renderPopupTab(self: GlassConfigPanel) {
           <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
         </button>
         <div class="dropdown-menu" role="listbox">
-          ${self._rooms.map(
+          <input
+            class="dropdown-search"
+            type="text"
+            placeholder=${t('config.search_entity')}
+            .value=${self._popupRoomSearch}
+            @input=${(e: InputEvent) => { self._popupRoomSearch = (e.target as HTMLInputElement).value; self.requestUpdate(); }}
+            @click=${(e: Event) => e.stopPropagation()}
+          />
+          ${self._rooms
+            .filter((room) => !self._popupRoomSearch || room.name.toLowerCase().includes(self._popupRoomSearch.toLowerCase()))
+            .map(
             (room) => html`
               <button
                 class="dropdown-item ${room.areaId === self._selectedRoom ? 'active' : ''}"
@@ -117,7 +127,7 @@ export function renderPopupTab(self: GlassConfigPanel) {
       ` : nothing}
 
       <div class="save-bar">
-        <button class="btn btn-ghost" @click=${() => self._reset()}>${t('common.reset')}</button>
+        <button class="btn btn-ghost" @click=${() => self._loadConfig()}>${t('common.reset')}</button>
       </div>
     </div>
   `;

@@ -14,7 +14,9 @@
     "config_saved": "Configuration saved",
     "entities": "entities",
     "no_entity": "No entity",
-    "delete": "Delete"
+    "delete": "Delete",
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
 
   "light": {
@@ -286,6 +288,7 @@
     "tab_light": "Light Card",
     "preview": "Preview",
 
+    "behavior": "Behavior",
     "navbar_behavior": "Behavior",
     "navbar_auto_sort": "Auto sort",
     "navbar_auto_sort_desc": "Active rooms move to the top",
