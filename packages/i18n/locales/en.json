@@ -246,6 +246,7 @@
     "radio_badge": "Radio",
     "loading_radio": "Loading radio…",
     "skip_track": "Skip track",
+    "remove_from_queue": "Remove from queue",
     "extra_entities": "Extra entities",
     "add_entity": "Add entity"
   },

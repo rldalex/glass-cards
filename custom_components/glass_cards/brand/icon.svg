@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Glass gradient -->
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.35"/>
+    </linearGradient>
+    <!-- Shine highlight -->
+    <linearGradient id="shine" x1="0" y1="0" x2="0.6" y2="0.6">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.5"/>
+      <stop offset="40%" stop-color="#fff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Background glow -->
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Card shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#312e81" flood-opacity="0.5"/>
+    </filter>
+    <filter id="shadow-sm" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#312e81" flood-opacity="0.4"/>
+    </filter>
+    <!-- Blur for glass effect -->
+    <filter id="blur-bg">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <!-- Dark background circle -->
+  <circle cx="256" cy="256" r="240" fill="#0f0d24"/>
+  <circle cx="256" cy="256" r="240" fill="url(#glow)"/>
+
+  <!-- Ambient dots -->
+  <circle cx="140" cy="150" r="3" fill="#818cf8" opacity="0.25"/>
+  <circle cx="380" cy="120" r="2" fill="#a78bfa" opacity="0.2"/>
+  <circle cx="350" cy="380" r="2.5" fill="#818cf8" opacity="0.15"/>
+  <circle cx="160" cy="360" r="2" fill="#a78bfa" opacity="0.2"/>
+
+  <!-- Back card (slightly tilted) -->
+  <g transform="translate(256,256) rotate(-6) translate(-256,-256)" filter="url(#shadow-sm)">
+    <rect x="138" y="135" width="236" height="260" rx="24" fill="#1a1744" stroke="#818cf8" stroke-opacity="0.15" stroke-width="1"/>
+    <rect x="138" y="135" width="236" height="260" rx="24" fill="url(#glass)"/>
+  </g>
+
+  <!-- Front card -->
+  <g filter="url(#shadow)">
+    <rect x="148" y="120" width="236" height="272" rx="24" fill="#1e1b4b" stroke="#818cf8" stroke-opacity="0.25" stroke-width="1.5"/>
+    <rect x="148" y="120" width="236" height="272" rx="24" fill="url(#glass)"/>
+    <!-- Glass shine overlay -->
+    <rect x="148" y="120" width="236" height="272" rx="24" fill="url(#shine)"/>
+
+    <!-- Card content: mock UI elements -->
+    <!-- Header line -->
+    <rect x="174" y="152" width="80" height="6" rx="3" fill="#fff" opacity="0.5"/>
+    <circle cx="356" cy="155" r="8" fill="#818cf8" opacity="0.3" stroke="#818cf8" stroke-opacity="0.4" stroke-width="1"/>
+
+    <!-- Separator -->
+    <line x1="174" y1="178" x2="358" y2="178" stroke="#818cf8" stroke-opacity="0.12" stroke-width="1"/>
+
+    <!-- Row 1: icon + text + toggle -->
+    <circle cx="190" cy="204" r="10" fill="#818cf8" opacity="0.15" stroke="#818cf8" stroke-opacity="0.2" stroke-width="1"/>
+    <rect x="210" y="199" width="90" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+    <rect x="210" y="209" width="55" height="4" rx="2" fill="#fff" opacity="0.15"/>
+    <rect x="330" y="197" width="28" height="14" rx="7" fill="#818cf8" opacity="0.4"/>
+    <circle cx="350" cy="204" r="5" fill="#fff" opacity="0.8"/>
+
+    <!-- Row 2 -->
+    <circle cx="190" cy="244" r="10" fill="#818cf8" opacity="0.15" stroke="#818cf8" stroke-opacity="0.2" stroke-width="1"/>
+    <rect x="210" y="239" width="70" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+    <rect x="210" y="249" width="45" height="4" rx="2" fill="#fff" opacity="0.15"/>
+    <rect x="330" y="237" width="28" height="14" rx="7" fill="#4c4775"/>
+    <circle cx="338" cy="244" r="5" fill="#fff" opacity="0.4"/>
+
+    <!-- Row 3 -->
+    <circle cx="190" cy="284" r="10" fill="#818cf8" opacity="0.15" stroke="#818cf8" stroke-opacity="0.2" stroke-width="1"/>
+    <rect x="210" y="279" width="85" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+    <rect x="210" y="289" width="50" height="4" rx="2" fill="#fff" opacity="0.15"/>
+    <rect x="330" y="277" width="28" height="14" rx="7" fill="#818cf8" opacity="0.4"/>
+    <circle cx="350" cy="284" r="5" fill="#fff" opacity="0.8"/>
+
+    <!-- Slider bar -->
+    <rect x="174" y="316" width="184" height="6" rx="3" fill="#4c4775"/>
+    <rect x="174" y="316" width="120" height="6" rx="3" fill="#818cf8" opacity="0.6"/>
+    <circle cx="294" cy="319" r="8" fill="#818cf8" stroke="#fff" stroke-opacity="0.3" stroke-width="1.5"/>
+
+    <!-- Bottom chips -->
+    <rect x="174" y="345" width="48" height="18" rx="9" fill="#818cf8" opacity="0.15" stroke="#818cf8" stroke-opacity="0.2" stroke-width="1"/>
+    <rect x="230" y="345" width="48" height="18" rx="9" fill="#4c4775" stroke="#818cf8" stroke-opacity="0.1" stroke-width="1"/>
+    <rect x="286" y="345" width="48" height="18" rx="9" fill="#4c4775" stroke="#818cf8" stroke-opacity="0.1" stroke-width="1"/>
+  </g>
+
+  <!-- "GC" text mark -->
+  <text x="256" y="440" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="28" font-weight="800" letter-spacing="6" fill="#818cf8" opacity="0.6">GLASS</text>
+</svg>

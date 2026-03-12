@@ -246,6 +246,7 @@
     "radio_badge": "Radio",
     "loading_radio": "Chargement radio…",
     "skip_track": "Passer le morceau",
+    "remove_from_queue": "Retirer de la liste de lecture",
     "extra_entities": "Entités supplémentaires",
     "add_entity": "Ajouter une entité"
   },

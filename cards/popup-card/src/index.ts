@@ -695,7 +695,7 @@ export class GlassRoomPopup extends LitElement {
     this.hass?.callService('scene', 'turn_on', {}, { entity_id: entityId });
   }
 
-  private static readonly DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
+  private static readonly DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera', 'vacuum'];
 
   private _getVisibleCards(domains: string[]): string[] {
     const roomCfg = this._areaId ? this._roomConfigs.get(this._areaId) : undefined;
@@ -718,6 +718,8 @@ export class GlassRoomPopup extends LitElement {
         return html`<glass-media-card .hass=${this.hass} .areaId=${this._areaId}></glass-media-card>`;
       case 'fan':
         return html`<glass-fan-card .hass=${this.hass} .areaId=${this._areaId}></glass-fan-card>`;
+      case 'camera':
+        return html`<glass-camera-carousel-card .hass=${this.hass} .areaId=${this._areaId}></glass-camera-carousel-card>`;
       default:
         return nothing;
     }

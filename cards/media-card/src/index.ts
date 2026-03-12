@@ -1135,7 +1135,12 @@ export class GlassMediaCard extends BaseCard {
                         @click=${() => this._skipToNext()}>
                   <ha-icon icon="mdi:skip-next"></ha-icon>
                 </button>
-              ` : nothing}
+              ` : html`
+                <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
+                        @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(i); }}>
+                  <ha-icon icon="mdi:close"></ha-icon>
+                </button>
+              `}
             </div>
           `;
         })}
@@ -1150,6 +1155,22 @@ export class GlassMediaCard extends BaseCard {
     if (!this.hass) return;
     await this.hass.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
     this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 500);
+  }
+
+  private async _removeFromQueue(index: number): Promise<void> {
+    const master = this._findMaster(this._getPlayers());
+    if (!master || !this.hass) return;
+    const isSonos = this.hass.entities?.[master.entityId]?.platform === 'sonos';
+    if (isSonos) {
+      // Optimistic UI: remove immediately
+      this._queueData = this._queueData.filter((_, i) => i !== index);
+      try {
+        await this.hass.callService('sonos', 'remove_from_queue', { queue_position: index }, { entity_id: master.entityId });
+      } catch {
+        // Revert on failure — reload queue
+        this._loadQueue();
+      }
+    }
   }
 
   private _getGroupablePlayers(): MediaPlayerInfo[] {
@@ -2022,6 +2043,11 @@ export class GlassMediaCard extends BaseCard {
         .queue-item .btn-icon:hover { color: var(--t1); }
       }
       .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .queue-remove { opacity: 0.4; --mdc-icon-size: 14px; }
+      @media (hover: hover) and (pointer: fine) {
+        .queue-remove:hover { opacity: 1; color: var(--c-alert, #ef4444) !important; }
+      }
+      @media (pointer: coarse) { .queue-remove:active { animation: bounce 0.3s ease; } }
     `,
   ];
 }
