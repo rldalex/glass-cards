@@ -394,6 +394,8 @@
     "domain_fan_desc": "Ventilation",
     "domain_cover": "Volets",
     "domain_cover_desc": "Stores et volets roulants",
+    "domain_camera": "Caméras",
+    "domain_camera_desc": "Caméras de surveillance",
     "domain_vacuum": "Aspirateur",
     "domain_vacuum_desc": "Robots aspirateurs",
 

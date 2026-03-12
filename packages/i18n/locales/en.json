@@ -394,6 +394,8 @@
     "domain_fan_desc": "Ventilation",
     "domain_cover": "Covers",
     "domain_cover_desc": "Blinds and shutters",
+    "domain_camera": "Cameras",
+    "domain_camera_desc": "Security cameras",
     "domain_vacuum": "Vacuum",
     "domain_vacuum_desc": "Robot vacuums",
 

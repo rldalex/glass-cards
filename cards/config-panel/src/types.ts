@@ -50,9 +50,9 @@ export interface SchedulePeriodEdit {
   recurring: boolean;
 }
 
-export const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'vacuum'];
+export const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera', 'vacuum'];
 
-export const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'cover', 'fan']);
+export const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'cover', 'fan', 'camera']);
 
 export const CARD_ICONS: Record<string, string> = {
   light: 'mdi:lightbulb-group',
@@ -60,10 +60,11 @@ export const CARD_ICONS: Record<string, string> = {
   climate: 'mdi:thermostat',
   fan: 'mdi:fan',
   cover: 'mdi:blinds',
+  camera: 'mdi:cctv',
   vacuum: 'mdi:robot-vacuum',
 };
 
-type DomainKey = 'light' | 'media_player' | 'climate' | 'fan' | 'cover' | 'vacuum';
+type DomainKey = 'light' | 'media_player' | 'climate' | 'fan' | 'cover' | 'camera' | 'vacuum';
 
 export const DOMAIN_I18N_KEYS: Record<DomainKey, { name: TranslationKey; desc: TranslationKey }> = {
   light: { name: 'config.domain_light', desc: 'config.domain_light_desc' },
@@ -71,6 +72,7 @@ export const DOMAIN_I18N_KEYS: Record<DomainKey, { name: TranslationKey; desc: T
   climate: { name: 'config.domain_climate', desc: 'config.domain_climate_desc' },
   fan: { name: 'config.domain_fan', desc: 'config.domain_fan_desc' },
   cover: { name: 'config.domain_cover', desc: 'config.domain_cover_desc' },
+  camera: { name: 'config.domain_camera', desc: 'config.domain_camera_desc' },
   vacuum: { name: 'config.domain_vacuum', desc: 'config.domain_vacuum_desc' },
 };
 
