@@ -3,6 +3,7 @@ import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
 import { glassTokens, glassMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
+import { bus } from '@glass-cards/event-bus';
 
 // — Types —
 
@@ -117,6 +118,7 @@ class GlassSpotifyCard extends BaseCard {
   @state() private _foldOpen = false;
   @state() private _savedMap: Map<string, boolean> = new Map();
   private _savedCheckVersion = 0;
+  @state() private _sectionTotals: Record<string, number> = {};
 
   // — Config —
   private _spotifyConfig: SpotifyBackendConfig = {
@@ -585,6 +587,20 @@ class GlassSpotifyCard extends BaseCard {
       }
     }
 
+    /* Load more (library pagination) */
+    .load-more {
+      width: 100%;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .items-count {
+      font-size: 10px;
+      color: var(--t3);
+    }
+
     /* Loading spinner placeholder */
     .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }
   `];
@@ -701,16 +717,23 @@ class GlassSpotifyCard extends BaseCard {
     const limit = this._spotifyConfig.max_items_per_section;
     try {
       const [playlists, recent, saved, shows] = await Promise.all([
-        this._backend.send<{ items: SpotifyItem[] }>('spotify_browse', { category: 'playlists', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
-        this._backend.send<{ items: SpotifyItem[] }>('spotify_browse', { category: 'recently_played', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
+        this._backend.send<{ items: SpotifyItem[]; total: number }>('spotify_browse', { category: 'playlists', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
+        this._backend.send<{ items: SpotifyItem[]; total: number }>('spotify_browse', { category: 'recently_played', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
         this._backend.send<{ items: SpotifyItem[]; total: number }>('spotify_browse', { category: 'saved_tracks', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
-        this._backend.send<{ items: SpotifyItem[] }>('spotify_browse', { category: 'saved_shows', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
+        this._backend.send<{ items: SpotifyItem[]; total: number }>('spotify_browse', { category: 'saved_shows', limit, offset: 0, sort_order: this._spotifyConfig.sort_order }),
       ]);
       this._playlists = (playlists?.items ?? []).filter(Boolean) as SpotifyItem[];
       this._recentlyPlayed = (recent?.items ?? []).filter(Boolean) as SpotifyItem[];
       this._savedTracks = (saved?.items ?? []).filter(Boolean) as SpotifyItem[];
       // Shows are wrapped: { show: {...} }
       this._savedShows = (shows?.items ?? []).filter(Boolean).map((item) => item.show ?? item);
+      // Track totals for pagination
+      this._sectionTotals = {
+        playlists: playlists?.total ?? 0,
+        recently_played: recent?.total ?? 0,
+        saved_tracks: saved?.total ?? 0,
+        saved_shows: shows?.total ?? 0,
+      };
       // Batch check saved status for all tracks
       const trackIds: string[] = [];
       for (const item of this._recentlyPlayed) { const tr = item.track ?? item; if (tr.id && (tr.type === 'track' || !tr.type)) trackIds.push(tr.id); }
@@ -980,6 +1003,7 @@ class GlassSpotifyCard extends BaseCard {
   /** Fire-and-forget: fetch recommendations for a track and add them to the queue. */
   private async _seedRadioQueue(item: SpotifyItem): Promise<void> {
     if (!this._backend) return;
+    bus.emit('radio-queue-started', { count: 0 });
     try {
       // Wait for Spotify to register the play_media command before queuing
       await new Promise((r) => setTimeout(r, 2000));
@@ -989,20 +1013,76 @@ class GlassSpotifyCard extends BaseCard {
         { category: 'recommendations', seed_tracks: [item.id], limit: 20 },
       );
       const recommended = result?.tracks ?? [];
-      for (const rec of recommended) {
+      bus.emit('radio-queue-started', { count: recommended.length });
+      let added = 0;
+      for (let i = 0; i < recommended.length; i++) {
+        const rec = recommended[i];
         if (!this._backend) break;
         const recUri = rec.uri ?? `spotify:track:${rec.id}`;
         try {
           await this._backend.send('spotify_add_to_queue', { uri: recUri });
+          added++;
+          bus.emit('radio-queue-track-added', {
+            track: { id: rec.id, name: rec.name, uri: recUri, artist: getArtistNames(rec) || undefined },
+            index: i,
+          });
           // Small delay between queue additions to avoid Spotify rate limiting
           await new Promise((r) => setTimeout(r, 150));
         } catch {
           break; // Stop on first error (rate limit, etc.)
         }
       }
-    } catch {
-      // Silent fail — radio queue is best-effort
+      bus.emit('radio-queue-complete', { total: added });
+    } catch (e) {
+      bus.emit('radio-queue-error', { message: (e as Error).message ?? 'Unknown error' });
     }
+  }
+
+  // — Library pagination —
+
+  private async _loadMoreItems(category: string): Promise<void> {
+    if (!this._backend) return;
+    const limit = this._spotifyConfig.max_items_per_section;
+    let offset = 0;
+    if (category === 'playlists') offset = this._playlists.length;
+    else if (category === 'recently_played') offset = this._recentlyPlayed.length;
+    else if (category === 'saved_tracks') offset = this._savedTracks.length;
+    else if (category === 'saved_shows') offset = this._savedShows.length;
+
+    try {
+      const result = await this._backend.send<{ items: SpotifyItem[]; total: number }>(
+        'spotify_browse',
+        { category, limit, offset, sort_order: this._spotifyConfig.sort_order },
+      );
+      const newItems = (result?.items ?? []).filter(Boolean) as SpotifyItem[];
+      if (category === 'playlists') {
+        this._playlists = [...this._playlists, ...newItems];
+      } else if (category === 'recently_played') {
+        this._recentlyPlayed = [...this._recentlyPlayed, ...newItems];
+      } else if (category === 'saved_tracks') {
+        this._savedTracks = [...this._savedTracks, ...newItems];
+        const trackIds = newItems.map((it) => (it.track ?? it).id).filter(Boolean);
+        if (trackIds.length) this._checkSavedStatus(trackIds);
+      } else if (category === 'saved_shows') {
+        this._savedShows = [...this._savedShows, ...newItems.map((item) => item.show ?? item)];
+      }
+      if (result?.total != null) {
+        this._sectionTotals = { ...this._sectionTotals, [category]: result.total };
+      }
+    } catch (e) {
+      this._handleApiError(e);
+    }
+  }
+
+  private _renderLoadMore(category: string, currentCount: number): TemplateResult | typeof nothing {
+    const total = this._sectionTotals[category] ?? 0;
+    if (currentCount >= total) return nothing;
+    return html`
+      <button class="load-more-btn load-more" @click=${() => this._loadMoreItems(category)}>
+        ${t('spotify.load_more')}
+        <span class="items-count">${t('spotify.items_count', { current: String(currentCount), total: String(total) })}</span>
+      </button>
+    `;
   }
 
   // — Favorites —
@@ -1215,6 +1295,7 @@ class GlassSpotifyCard extends BaseCard {
         <div class="playlist-scroll">
           ${this._playlists.map((pl) => this._renderPlaylistCard(pl))}
         </div>
+        ${this._renderLoadMore('playlists', this._playlists.length)}
       ` : nothing}
 
       ${showTracks && this._recentlyPlayed.length > 0 ? html`
@@ -1223,6 +1304,7 @@ class GlassSpotifyCard extends BaseCard {
           const track = item.track ?? item;
           return this._renderResultRow(track, track.type ?? 'track');
         })}
+        ${this._renderLoadMore('recently_played', this._recentlyPlayed.length)}
       ` : nothing}
 
       ${showTracks && this._savedTracks.length > 0 ? html`
@@ -1231,11 +1313,13 @@ class GlassSpotifyCard extends BaseCard {
           const track = item.track ?? item;
           return this._renderResultRow(track, 'track');
         })}
+        ${this._renderLoadMore('saved_tracks', this._savedTracks.length)}
       ` : nothing}
 
       ${showPodcasts && this._savedShows.length > 0 ? html`
         <div class="section-title">${t('spotify.followed_podcasts')}</div>
         ${this._savedShows.map((show) => this._renderResultRow({ ...show, type: 'show' as const }, 'show'))}
+        ${this._renderLoadMore('saved_shows', this._savedShows.length)}
       ` : nothing}
     `;
   }
