@@ -161,13 +161,6 @@ export function renderDashboardTab(self: GlassConfigPanel) {
 
       <div class="save-bar">
         <button class="btn btn-ghost" @click=${() => self._loadDashboardConfig()}>${t('common.reset')}</button>
-        <button
-          class="btn btn-accent"
-          @click=${() => self._save()}
-          ?disabled=${self._saving}
-        >
-          ${self._saving ? t('common.saving') : t('common.save')}
-        </button>
       </div>
     </div>
   `;
@@ -274,10 +267,10 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
                   <div
                     class=${rowClasses}
                     draggable="true"
-                    @dragstart=${() => self._onDragStart(idx, 'dashboard_covers')}
-                    @dragover=${(ev: DragEvent) => self._onDragOver(idx, ev)}
+                    @dragstart=${(ev: DragEvent) => { ev.stopPropagation(); self._onDragStart(idx, 'dashboard_covers'); }}
+                    @dragover=${(ev: DragEvent) => { ev.stopPropagation(); self._onDragOver(idx, ev); }}
                     @dragleave=${() => self._onDragLeave()}
-                    @drop=${(ev: DragEvent) => self._onDropDashboardCover(idx, ev)}
+                    @drop=${(ev: DragEvent) => { ev.stopPropagation(); self._onDropDashboardCover(idx, ev); }}
                     @dragend=${() => self._onDragEnd()}
                   >
                     <span class="drag-handle">

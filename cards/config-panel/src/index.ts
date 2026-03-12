@@ -108,6 +108,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' }[] = [];
   @state() _coverPresetInput = '';
   @state() _coverEntityPresetInput: Record<string, string> = {};
+  @state() _coverPresetsExpandedEntity: string | null = null;
 
   // Fan card config
   @state() _fanShowHeader = true;
@@ -179,10 +180,29 @@ export class GlassConfigPanel extends LitElement {
   _backend?: BackendService;
   _loaded = false;
   _loading = false;
+  _configReady = false;
+  _suppressAutoSave = false;
+  _autoSaveTimer?: ReturnType<typeof setTimeout>;
   _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() _toastError = false;
   _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
   _initialIcons = new Map<string, string | null>();
+
+  /** Config properties that trigger auto-save when changed by user interaction. */
+  private static _AUTO_SAVE_KEYS = new Set([
+    '_rooms', '_cards', '_scenes',
+    '_showLights', '_showTemperature', '_showHumidity', '_showMedia',
+    '_autoSort', '_tempHigh', '_tempLow', '_humidityThreshold',
+    '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
+    '_titleText', '_titleSources',
+    '_lightShowHeader', '_lights',
+    '_coverShowHeader', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
+    '_fanShowHeader', '_fanRoomEntities',
+    '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
+    '_mediaShowHeader', '_mediaExtraEntities',
+    '_spotifyShowHeader', '_spotifyEntity', '_spotifySortOrder', '_spotifyMaxItems', '_spotifyVisibleSpeakers',
+    '_dashboardEnabledCards', '_dashboardCardOrder', '_dashboardHideHeader', '_dashboardHideSidebar',
+  ]);
 
   static styles = [
     glassTokens,
@@ -213,6 +233,10 @@ export class GlassConfigPanel extends LitElement {
     if (this._toastTimeout !== undefined) {
       clearTimeout(this._toastTimeout);
       this._toastTimeout = undefined;
+    }
+    if (this._autoSaveTimer !== undefined) {
+      clearTimeout(this._autoSaveTimer);
+      this._autoSaveTimer = undefined;
     }
     this._cancelColorDrag?.();
     this._cancelColorDrag = undefined;
@@ -254,12 +278,40 @@ export class GlassConfigPanel extends LitElement {
         this._backend = undefined;
         this._loaded = false;
         this._loading = false;
+        this._configReady = false;
       }
       if (this.hass && !this._loaded && !this._loading) {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
     }
+    // Auto-save: skip initial load and programmatic loads, debounce on user changes
+    if (!this._loaded || this._loading || this._saving) return;
+    if (!this._configReady) {
+      this._configReady = true;
+      return;
+    }
+    if (this._suppressAutoSave) {
+      this._suppressAutoSave = false;
+      return;
+    }
+    for (const key of changedProps.keys()) {
+      if (GlassConfigPanel._AUTO_SAVE_KEYS.has(key as string)) {
+        this._scheduleAutoSave();
+        break;
+      }
+    }
+  }
+
+  /** Suppress auto-save for the next updated() cycle (use before programmatic state changes). */
+  _beginSuppressAutoSave() { this._suppressAutoSave = true; }
+
+  private _scheduleAutoSave() {
+    if (this._autoSaveTimer !== undefined) clearTimeout(this._autoSaveTimer);
+    this._autoSaveTimer = setTimeout(() => {
+      this._autoSaveTimer = undefined;
+      if (!this._saving) this._save();
+    }, 800);
   }
 
   private async _loadConfig() {
@@ -853,9 +905,10 @@ export class GlassConfigPanel extends LitElement {
 
   // — Light Card config —
 
-  _selectLightRoom(areaId: string) { selectLightRoom(this, areaId); }
+  _selectLightRoom(areaId: string) { this._beginSuppressAutoSave(); selectLightRoom(this, areaId); }
 
   async _loadRoomLights() {
+    this._beginSuppressAutoSave();
     if (!this.hass || !this._lightRoom) {
       this._lights = [];
       return;
@@ -1107,7 +1160,7 @@ export class GlassConfigPanel extends LitElement {
 
   // — Cover card config —
 
-  _selectCoverRoom(areaId: string) { selectCoverRoom(this, areaId); }
+  _selectCoverRoom(areaId: string) { this._beginSuppressAutoSave(); selectCoverRoom(this, areaId); }
 
   async _loadRoomCovers() {
     if (!this._backend || !this._coverRoom || !this.hass) return;
@@ -1235,7 +1288,7 @@ export class GlassConfigPanel extends LitElement {
 
   _renderFanTab() { return renderFanTab(this); }
 
-  _selectFanRoom(areaId: string) { selectFanRoom(this, areaId); }
+  _selectFanRoom(areaId: string) { this._beginSuppressAutoSave(); selectFanRoom(this, areaId); }
 
   _toggleFanEntityVisibility(entityId: string) { toggleFanEntityVisibility(this, entityId); }
 
@@ -1340,6 +1393,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadFanConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this.hass) return;
     if (!this._backend) this._backend = new BackendService(this.hass);
     try {
@@ -1356,6 +1410,7 @@ export class GlassConfigPanel extends LitElement {
   _onDropCover(idx: number, e: DragEvent) { onDropCover(this, idx, e); }
 
   async _resetCover() {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1383,6 +1438,10 @@ export class GlassConfigPanel extends LitElement {
 
   _resetCoverEntityPresets(entityId: string) { resetCoverEntityPresets(this, entityId); }
 
+  _toggleCoverPresetsExpand(entityId: string) {
+    this._coverPresetsExpandedEntity = this._coverPresetsExpandedEntity === entityId ? null : entityId;
+  }
+
   // — Media card config —
 
   private async _saveMedia() {
@@ -1404,6 +1463,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadMediaConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1420,7 +1480,7 @@ export class GlassConfigPanel extends LitElement {
 
   _renderMediaTab() { return renderMediaTab(this); }
 
-  _selectMediaRoom(areaId: string) { selectMediaRoom(this, areaId); }
+  _selectMediaRoom(areaId: string) { this._beginSuppressAutoSave(); selectMediaRoom(this, areaId); }
 
   _addMediaExtraEntity(entityId: string) { addMediaExtraEntity(this, entityId); }
 
@@ -1501,6 +1561,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadDashboardConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1560,6 +1621,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadPresenceConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1629,6 +1691,7 @@ export class GlassConfigPanel extends LitElement {
   _renderWeatherTab() { return renderWeatherTab(this); }
 
   async _loadWeatherConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1679,6 +1742,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadSpotifyConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     try {
       const result = await this._backend.send<{
@@ -1732,6 +1796,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   async _loadTitleConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this._backend) return;
     // Close pickers to avoid stale flatIdx after data reload
     this._iconPopupModeIdx = null;

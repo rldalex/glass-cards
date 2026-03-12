@@ -169,124 +169,140 @@ export function renderCoverTab(self: GlassConfigPanel) {
             ${self._coverRoomEntities.map((e, idx) => {
               const isDragging = self._dragIdx === idx && self._dragContext === 'covers';
               const isDropTarget = self._dropIdx === idx && self._dragContext === 'covers';
+              const isExpanded = self._coverPresetsExpandedEntity === e.entityId;
+              const hasCustomPresets = !!self._coverEntityPresets[e.entityId];
               const rowClasses = [
                 'item-row',
                 !e.visible ? 'disabled' : '',
                 isDragging ? 'dragging' : '',
                 isDropTarget ? 'drop-target' : '',
               ].filter(Boolean).join(' ');
+              const wrapClasses = ['item-card', isExpanded ? 'expanded' : ''].filter(Boolean).join(' ');
               return html`
-                <div
-                  class=${rowClasses}
-                  draggable="true"
-                  @dragstart=${() => self._onDragStart(idx, 'covers')}
-                  @dragover=${(ev: DragEvent) => self._onDragOver(idx, ev)}
-                  @dragleave=${() => self._onDragLeave()}
-                  @drop=${(ev: DragEvent) => self._onDropCover(idx, ev)}
-                  @dragend=${() => self._onDragEnd()}
-                >
-                  <span class="drag-handle">
-                    <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                  </span>
-                  <div class="item-info">
-                    <span class="item-name">${e.name}</span>
-                    <span class="item-meta">${e.entityId}</span>
-                  </div>
-                  <button
-                    class="layout-btn"
-                    @click=${() => self._cycleCoverLayout(e.entityId)}
-                    aria-label="${t('config.light_change_layout_aria')}"
-                    title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                <div class=${wrapClasses}>
+                  <div
+                    class=${rowClasses}
+                    draggable="true"
+                    @dragstart=${() => self._onDragStart(idx, 'covers')}
+                    @dragover=${(ev: DragEvent) => self._onDragOver(idx, ev)}
+                    @dragleave=${() => self._onDragLeave()}
+                    @drop=${(ev: DragEvent) => self._onDropCover(idx, ev)}
+                    @dragend=${() => self._onDragEnd()}
                   >
-                    ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
-                  </button>
-                  <button
-                    class="toggle ${e.visible ? 'on' : ''}"
-                    @click=${() => self._toggleCoverEntityVisibility(e.entityId)}
-                    role="switch"
-                    aria-checked=${e.visible ? 'true' : 'false'}
-                    aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                  ></button>
-                </div>
-                <!-- Per-entity presets -->
-                ${e.visible ? html`
-                  <div style="padding:2px 8px 8px 32px;">
-                    <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${t('config.cover_entity_presets')}</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-                      ${(self._coverEntityPresets[e.entityId] ?? self._coverPresets).map((p) => {
-                        const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
-                        const isCustom = !!self._coverEntityPresets[e.entityId];
-                        return html`
-                          <span style="
-                            display:inline-flex;align-items:center;gap:3px;
-                            padding:3px 7px;border-radius:var(--radius-md);
-                            border:1px solid ${isCustom ? 'rgba(167,139,250,0.2)' : 'var(--b2)'};
-                            background:${isCustom ? 'rgba(167,139,250,0.05)' : 'var(--s1)'};
-                            font-size:10px;font-weight:600;color:${isCustom ? 'var(--c-accent)' : 'var(--t3)'};
-                          ">
-                            <ha-icon .icon=${pIcon} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                            ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
-                            ${isCustom ? html`
+                    <span class="drag-handle">
+                      <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                    </span>
+                    <div class="item-info">
+                      <span class="item-name">${e.name}</span>
+                      <span class="item-meta">${e.entityId}</span>
+                    </div>
+                    <button
+                      class="schedule-btn ${hasCustomPresets ? 'active' : ''}"
+                      @click=${() => self._toggleCoverPresetsExpand(e.entityId)}
+                      aria-label="${t('config.cover_entity_presets')}"
+                      aria-expanded=${isExpanded ? 'true' : 'false'}
+                      title="${t('config.cover_entity_presets')}"
+                    >
+                      <ha-icon .icon=${'mdi:tune-vertical'}></ha-icon>
+                    </button>
+                    <button
+                      class="layout-btn"
+                      @click=${() => self._cycleCoverLayout(e.entityId)}
+                      aria-label="${t('config.light_change_layout_aria')}"
+                      title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                    >
+                      ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                    </button>
+                    <button
+                      class="toggle ${e.visible ? 'on' : ''}"
+                      @click=${() => self._toggleCoverEntityVisibility(e.entityId)}
+                      role="switch"
+                      aria-checked=${e.visible ? 'true' : 'false'}
+                      aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                    ></button>
+                  </div>
+                  <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+                  <div class="schedule-fold ${isExpanded ? 'open' : ''}">
+                    <div class="schedule-fold-inner">
+                      <div style="padding:8px 12px 10px 36px;">
+                        <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${t('config.cover_entity_presets')}</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                          ${(self._coverEntityPresets[e.entityId] ?? self._coverPresets).map((p) => {
+                            const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
+                            const isCustom = !!self._coverEntityPresets[e.entityId];
+                            return html`
+                              <span style="
+                                display:inline-flex;align-items:center;gap:3px;
+                                padding:3px 7px;border-radius:var(--radius-md);
+                                border:1px solid ${isCustom ? 'rgba(167,139,250,0.2)' : 'var(--b2)'};
+                                background:${isCustom ? 'rgba(167,139,250,0.05)' : 'var(--s1)'};
+                                font-size:10px;font-weight:600;color:${isCustom ? 'var(--c-accent)' : 'var(--t3)'};
+                              ">
+                                <ha-icon .icon=${pIcon} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
+                                ${isCustom ? html`
+                                  <button
+                                    style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:color var(--t-fast);"
+                                    @click=${() => self._removeCoverEntityPreset(e.entityId, p)}
+                                    aria-label="${t('common.delete')} ${p}%"
+                                  >
+                                    <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                  </button>
+                                ` : nothing}
+                              </span>
+                            `;
+                          })}
+                          <span style="display:inline-flex;align-items:center;gap:3px;">
+                            <input
+                              class="input"
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="5"
+                              .value=${self._coverEntityPresetInput[e.entityId] ?? ''}
+                              @input=${(ev: Event) => { self._coverEntityPresetInput = { ...self._coverEntityPresetInput, [e.entityId]: (ev.target as HTMLInputElement).value }; }}
+                              @keydown=${(ev: KeyboardEvent) => { if (ev.key === 'Enter') self._addCoverEntityPreset(e.entityId); }}
+                              placeholder="%"
+                              style="width:48px;font-size:10px;padding:3px 6px;"
+                            />
+                            <button
+                              style="
+                                display:inline-flex;align-items:center;
+                                padding:3px 6px;border-radius:var(--radius-md);
+                                border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
+                                font-size:10px;font-weight:600;color:var(--c-accent);
+                                cursor:pointer;font-family:inherit;
+                                opacity:${self._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};
+                                pointer-events:${self._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};
+                                transition:opacity var(--t-fast);
+                              "
+                              @click=${() => self._addCoverEntityPreset(e.entityId)}
+                              aria-label="${t('config.cover_preset_add')}"
+                            >
+                              <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                            </button>
+                            ${self._coverEntityPresets[e.entityId] ? html`
                               <button
-                                style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:color var(--t-fast);"
-                                @click=${() => self._removeCoverEntityPreset(e.entityId, p)}
-                                aria-label="${t('common.delete')} ${p}%"
+                                style="
+                                  display:inline-flex;align-items:center;gap:2px;
+                                  padding:3px 6px;border-radius:var(--radius-md);
+                                  border:1px solid var(--b2);background:var(--s1);
+                                  font-size:9px;font-weight:600;color:var(--t4);
+                                  cursor:pointer;font-family:inherit;
+                                  transition:all var(--t-fast);
+                                "
+                                @click=${() => self._resetCoverEntityPresets(e.entityId)}
+                                aria-label="${t('common.reset')}"
                               >
-                                <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                <ha-icon .icon=${'mdi:restore'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                               </button>
                             ` : nothing}
                           </span>
-                        `;
-                      })}
-                      <span style="display:inline-flex;align-items:center;gap:3px;">
-                        <input
-                          class="input"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="5"
-                          .value=${self._coverEntityPresetInput[e.entityId] ?? ''}
-                          @input=${(ev: Event) => { self._coverEntityPresetInput = { ...self._coverEntityPresetInput, [e.entityId]: (ev.target as HTMLInputElement).value }; }}
-                          @keydown=${(ev: KeyboardEvent) => { if (ev.key === 'Enter') self._addCoverEntityPreset(e.entityId); }}
-                          placeholder="%"
-                          style="width:48px;font-size:10px;padding:3px 6px;"
-                        />
-                        <button
-                          style="
-                            display:inline-flex;align-items:center;
-                            padding:3px 6px;border-radius:var(--radius-md);
-                            border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
-                            font-size:10px;font-weight:600;color:var(--c-accent);
-                            cursor:pointer;font-family:inherit;
-                            opacity:${self._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};
-                            pointer-events:${self._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};
-                            transition:opacity var(--t-fast);
-                          "
-                          @click=${() => self._addCoverEntityPreset(e.entityId)}
-                          aria-label="${t('config.cover_preset_add')}"
-                        >
-                          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                        </button>
-                        ${self._coverEntityPresets[e.entityId] ? html`
-                          <button
-                            style="
-                              display:inline-flex;align-items:center;gap:2px;
-                              padding:3px 6px;border-radius:var(--radius-md);
-                              border:1px solid var(--b2);background:var(--s1);
-                              font-size:9px;font-weight:600;color:var(--t4);
-                              cursor:pointer;font-family:inherit;
-                              transition:all var(--t-fast);
-                            "
-                            @click=${() => self._resetCoverEntityPresets(e.entityId)}
-                            aria-label="${t('common.reset')}"
-                          >
-                            <ha-icon .icon=${'mdi:restore'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                          </button>
-                        ` : nothing}
-                      </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ` : nothing}
+                </div>
               `;
             })}
           </div>
@@ -362,13 +378,6 @@ export function renderCoverTab(self: GlassConfigPanel) {
 
       <div class="save-bar">
         <button class="btn btn-ghost" @click=${() => self._resetCover()}>${t('common.reset')}</button>
-        <button
-          class="btn btn-accent"
-          @click=${() => self._save()}
-          ?disabled=${self._saving}
-        >
-          ${self._saving ? t('common.saving') : t('common.save')}
-        </button>
       </div>
     </div>
   `;
@@ -399,22 +408,23 @@ export function getAllCoverEntities(self: GlassConfigPanel): { entityId: string;
 
 export function toggleCoverDashboardEntity(self: GlassConfigPanel, entityId: string) {
   const set = new Set(self._coverDashboardEntities);
-  if (set.has(entityId)) set.delete(entityId);
-  else set.add(entityId);
+  if (set.has(entityId)) {
+    set.delete(entityId);
+    self._coverDashboardOrder = self._coverDashboardOrder.filter((id) => id !== entityId);
+  } else {
+    set.add(entityId);
+    if (!self._coverDashboardOrder.includes(entityId)) {
+      self._coverDashboardOrder = [...self._coverDashboardOrder, entityId];
+    }
+  }
   self._coverDashboardEntities = [...set];
-  // Re-sort _coverDashboardOrder: selected first, then unselected
-  const newSet = new Set(self._coverDashboardEntities);
-  const selected = self._coverDashboardOrder.filter((id) => newSet.has(id));
-  const unselected = self._coverDashboardOrder.filter((id) => !newSet.has(id));
-  self._coverDashboardOrder = [...selected, ...unselected];
 }
 
 export function initCoverDashboardOrder(self: GlassConfigPanel) {
-  const all = self._getAllCoverEntities().map((c) => c.entityId);
-  const selSet = new Set(self._coverDashboardEntities);
-  // Keep existing order for entities already in _coverDashboardEntities, then append new ones
-  const ordered = self._coverDashboardEntities.filter((id) => all.includes(id));
-  const remaining = all.filter((id) => !selSet.has(id));
+  const all = new Set(self._getAllCoverEntities().map((c) => c.entityId));
+  // Preserve saved order (dashboard_entities from backend), then append any new entities
+  const ordered = self._coverDashboardEntities.filter((id) => all.has(id));
+  const remaining = [...all].filter((id) => !self._coverDashboardEntities.includes(id));
   self._coverDashboardOrder = [...ordered, ...remaining];
 }
 

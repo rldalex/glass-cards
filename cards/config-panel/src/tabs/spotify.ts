@@ -234,13 +234,6 @@ export function renderSpotifyTab(self: GlassConfigPanel) {
 
       <div class="save-bar">
         <button class="btn btn-ghost" @click=${() => self._loadSpotifyConfig()}>${t('common.reset')}</button>
-        <button
-          class="btn btn-accent"
-          @click=${() => self._save()}
-          ?disabled=${self._saving}
-        >
-          ${self._saving ? t('common.saving') : t('common.save')}
-        </button>
       </div>
     </div>
   `;
