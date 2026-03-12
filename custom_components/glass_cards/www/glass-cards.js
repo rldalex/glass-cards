@@ -5632,7 +5632,7 @@
           </div>
         </div>
       `:Y}
-      <div class="${this.areaId?"carousel-card":"glass carousel-card"}">
+      <div class="glass carousel-card">
         <div class="tint" style="${this._tintStyle(i)}"></div>
         <div class="carousel-inner">
           <div class="carousel-viewport"
@@ -5817,12 +5817,11 @@
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 2px 14px; position: relative; }
+      .carousel-card { width: 100%; padding: 14px; position: relative; }
       .carousel-inner {
         position: relative; z-index: 1;
-        display: block;
+        display: flex; flex-direction: column; gap: 10px;
       }
-      .carousel-inner > * + * { margin-top: 6px; }
 
       .tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -5836,10 +5835,6 @@
         border-radius: var(--radius-lg); overflow: hidden;
         background: #0a0f18; border: 1px solid var(--b1);
         touch-action: pan-y;
-      }
-      :host([area-id]) .carousel-viewport {
-        aspect-ratio: unset;
-        height: 160px;
       }
       .carousel-track {
         display: flex; width: 100%; height: 100%;
@@ -6049,4 +6044,4 @@
       @media (pointer: coarse) {
         .action-btn:active { animation: bounce 0.15s ease-out; }
       }
-    `]}}function Di(){window.dispatchEvent(new Event("ll-rebuild"))}Ci([Ae({reflect:!0,attribute:"area-id"})],Ri.prototype,"areaId"),Ci([Le()],Ri.prototype,"_carouselIndex"),Ci([Le()],Ri.prototype,"_liveIds"),customElements.define("glass-camera-carousel-card",Ri),function(){if(t)return;t=!0;const s=history.pushState,r=history.replaceState;history.pushState=function(t,a,r){if(s.call(this,t,a,r),!i){i=!0;try{window.dispatchEvent(new Event("location-changed")),e.emit("location-changed",void 0)}finally{i=!1}}},history.replaceState=function(t,a,s){if(r.call(this,t,a,s),!i){i=!0;try{window.dispatchEvent(new Event("location-changed")),e.emit("location-changed",void 0)}finally{i=!1}}},window.addEventListener("popstate",a)}(),Ce||(Ce=new $e),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>requestAnimationFrame(Di)):requestAnimationFrame(Di),window.addEventListener("connection-status",e=>{"connected"===e.detail&&setTimeout(Di,500)})}();
+    `]}}function Di(){window.dispatchEvent(new Event("ll-rebuild"))}Ci([Ae()],Ri.prototype,"areaId"),Ci([Le()],Ri.prototype,"_carouselIndex"),Ci([Le()],Ri.prototype,"_liveIds"),customElements.define("glass-camera-carousel-card",Ri),function(){if(t)return;t=!0;const s=history.pushState,r=history.replaceState;history.pushState=function(t,a,r){if(s.call(this,t,a,r),!i){i=!0;try{window.dispatchEvent(new Event("location-changed")),e.emit("location-changed",void 0)}finally{i=!1}}},history.replaceState=function(t,a,s){if(r.call(this,t,a,s),!i){i=!0;try{window.dispatchEvent(new Event("location-changed")),e.emit("location-changed",void 0)}finally{i=!1}}},window.addEventListener("popstate",a)}(),Ce||(Ce=new $e),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>requestAnimationFrame(Di)):requestAnimationFrame(Di),window.addEventListener("connection-status",e=>{"connected"===e.detail&&setTimeout(Di,500)})}();

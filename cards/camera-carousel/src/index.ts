@@ -210,7 +210,7 @@ function cameraIcon(entity: HassEntity): string {
 // ================================================================
 
 class GlassCameraCarouselCard extends BaseCard {
-  @property({ reflect: true, attribute: 'area-id' }) areaId?: string;
+  @property() areaId?: string;
 
   @state() private _carouselIndex = 0;
   @state() private _liveIds = new Set<string>();
@@ -582,7 +582,7 @@ class GlassCameraCarouselCard extends BaseCard {
           </div>
         </div>
       ` : nothing}
-      <div class="${this.areaId ? 'carousel-card' : 'glass carousel-card'}">
+      <div class="glass carousel-card">
         <div class="tint" style="${this._tintStyle(currentCam)}"></div>
         <div class="carousel-inner">
           <div class="carousel-viewport"
@@ -823,12 +823,11 @@ class GlassCameraCarouselCard extends BaseCard {
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 2px 14px; position: relative; }
+      .carousel-card { width: 100%; padding: 14px; position: relative; }
       .carousel-inner {
         position: relative; z-index: 1;
-        display: block;
+        display: flex; flex-direction: column; gap: 10px;
       }
-      .carousel-inner > * + * { margin-top: 6px; }
 
       .tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -842,10 +841,6 @@ class GlassCameraCarouselCard extends BaseCard {
         border-radius: var(--radius-lg); overflow: hidden;
         background: #0a0f18; border: 1px solid var(--b1);
         touch-action: pan-y;
-      }
-      :host([area-id]) .carousel-viewport {
-        aspect-ratio: unset;
-        height: 160px;
       }
       .carousel-track {
         display: flex; width: 100%; height: 100%;
