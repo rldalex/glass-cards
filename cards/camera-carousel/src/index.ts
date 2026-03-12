@@ -330,6 +330,17 @@ class GlassCameraCarouselCard extends BaseCard {
       ids = [...ordered, ...remaining];
     }
 
+    // Dashboard mode: sort by most recent AI detection alert
+    if (!this.areaId) {
+      const states = this.hass.states;
+      const entities = this.hass.entities;
+      ids.sort((a, b) => {
+        const tsA = this._latestAlertTimestamp(a, states, entities);
+        const tsB = this._latestAlertTimestamp(b, states, entities);
+        return tsB - tsA; // Most recent first
+      });
+    }
+
     const key = ids.join(',');
     if (key !== this._cachedCamerasKey) {
       this._cachedCamerasKey = key;
@@ -341,6 +352,29 @@ class GlassCameraCarouselCard extends BaseCard {
     }
 
     return this._cachedCameraIds;
+  }
+
+  /** Get the most recent last_changed timestamp among AI detection binary_sensors for a camera. */
+  private _latestAlertTimestamp(
+    cameraEntityId: string,
+    states: Record<string, HassEntity>,
+    entities: Record<string, EntityRegistryEntry>,
+  ): number {
+    const camEntry = entities[cameraEntityId];
+    if (!camEntry?.device_id) return 0;
+    const deviceId = camEntry.device_id;
+    let latest = 0;
+    for (const [eid, entry] of Object.entries(entities)) {
+      if (entry.device_id !== deviceId || !eid.startsWith('binary_sensor.')) continue;
+      // Check if this is an AI detection sensor
+      const isAi = AI_DETECTION.some(([pattern]) => pattern.test(eid));
+      if (!isAi) continue;
+      const st = states[eid];
+      if (!st) continue;
+      const ts = new Date(st.last_changed).getTime();
+      if (ts > latest) latest = ts;
+    }
+    return latest;
   }
 
   private _getCameraInfo(entityId: string): CameraInfo | null {
@@ -649,8 +683,7 @@ class GlassCameraCarouselCard extends BaseCard {
     const isActive = idx === this._carouselIndex;
     let cls = 'carousel-dot-btn';
     if (isActive) cls += ' active';
-    if (cam?.isRecording) cls += ' recording';
-    else if (cam?.aiDetected.length) cls += ' motion-dot';
+    if (cam?.aiDetected.length) cls += ' motion-dot';
 
     return html`
       <button class="${cls}"
