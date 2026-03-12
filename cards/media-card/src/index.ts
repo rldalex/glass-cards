@@ -153,6 +153,7 @@ export class GlassMediaCard extends BaseCard {
   private _swipeAnimating = false;
   private _swipeAnimTimer = 0;
   private _pointerStart = { x: 0, y: 0, t: 0 };
+  private _queueRefreshTimer = 0;
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
@@ -184,6 +185,7 @@ export class GlassMediaCard extends BaseCard {
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
     if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
+    if (this._queueRefreshTimer) { clearTimeout(this._queueRefreshTimer); this._queueRefreshTimer = 0; }
     this._swipeAnimating = false;
     this._swipeClass = '';
     this._prevPlayingSet = '';
@@ -241,7 +243,10 @@ export class GlassMediaCard extends BaseCard {
         this._prevPlayingSet = playingNow;
         if (newlyPlaying.length > 0) {
           const rooms = this._getActiveRooms();
-          const idx = rooms.findIndex((r) => newlyPlaying.includes(r.entityId));
+          const idx = rooms.findIndex((r) =>
+            newlyPlaying.includes(r.entityId) ||
+            newlyPlaying.some((id) => r.groupMembers.includes(id)),
+          );
           if (idx >= 0 && idx !== this._roomIndex) {
             this._roomIndex = idx;
             this._roomEntityId = rooms[idx].entityId;
@@ -965,8 +970,6 @@ export class GlassMediaCard extends BaseCard {
   private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     const hasQueue = this._queueData.length > 0 || this._radioTracks.length > 0;
     const isQueue = this._foldTab === 'queue' && hasQueue;
-    // If queue became empty while on queue tab, switch back to controls
-    if (this._foldTab === 'queue' && !hasQueue) this._foldTab = 'controls';
     return html`
       ${hasQueue ? html`
         <div class="segmented">
@@ -975,7 +978,7 @@ export class GlassMediaCard extends BaseCard {
             ${t('media.controls_tab')}
           </button>
           <button class="seg-btn ${isQueue ? 'active' : ''}"
-                  @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
+                  @click=${() => { this._foldTab = 'queue'; if (!this._queueData.length) this._loadQueue(); }}>
             ${t('media.queue_tab')}
           </button>
         </div>
@@ -1047,10 +1050,10 @@ export class GlassMediaCard extends BaseCard {
     const version = ++this._queueVersion;
     try {
       const master = this._findMaster(this._getPlayers());
-      if (!master) { this._queueLoading = false; return; }
+      if (!master) return;
 
-      // Try sonos.get_queue first (works for Sonos speakers regardless of source)
-      const isSonos = master.entityId.startsWith('media_player.sonos_');
+      // Detect Sonos via entity registry platform (robust even if entity is renamed)
+      const isSonos = this.hass.entities?.[master.entityId]?.platform === 'sonos';
       if (isSonos) {
         const result = await this.hass.connection.sendMessagePromise({
           type: 'call_service',
@@ -1088,8 +1091,15 @@ export class GlassMediaCard extends BaseCard {
       }
     } catch (err) {
       console.warn('[glass] queue load error:', err);
+    } finally {
+      if (version === this._queueVersion) {
+        this._queueLoading = false;
+        // Switch back to controls if queue became empty
+        if (this._foldTab === 'queue' && this._queueData.length === 0 && this._radioTracks.length === 0) {
+          this._foldTab = 'controls';
+        }
+      }
     }
-    if (version === this._queueVersion) this._queueLoading = false;
   }
 
   private _renderQueueTab(): TemplateResult {
@@ -1139,7 +1149,7 @@ export class GlassMediaCard extends BaseCard {
     if (!master) return;
     if (!this.hass) return;
     await this.hass.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
-    setTimeout(() => this._loadQueue(), 500);
+    this._queueRefreshTimer = window.setTimeout(() => this._loadQueue(), 500);
   }
 
   private _getGroupablePlayers(): MediaPlayerInfo[] {
