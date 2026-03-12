@@ -3138,12 +3138,8 @@
   }
   .marquee .marquee-inner {
     display: inline-block;
-    padding-right: 3em;
     animation: marquee-scroll var(--marquee-duration, 8s) linear infinite;
     will-change: transform;
-  }
-  .marquee .marquee-inner[aria-hidden] {
-    /* duplicate for seamless loop */
   }
   @keyframes marquee-scroll {
     0%   { transform: translateX(0); }

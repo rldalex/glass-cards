@@ -106,12 +106,8 @@ export const marqueeMixin: CSSResult = css`
   }
   .marquee .marquee-inner {
     display: inline-block;
-    padding-right: 3em;
     animation: marquee-scroll var(--marquee-duration, 8s) linear infinite;
     will-change: transform;
-  }
-  .marquee .marquee-inner[aria-hidden] {
-    /* duplicate for seamless loop */
   }
   @keyframes marquee-scroll {
     0%   { transform: translateX(0); }
@@ -136,7 +132,7 @@ export function marqueeText(
   duration = '8s',
 ): TemplateResult | string {
   if (text.length <= maxChars) return text;
-  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0</span><span class="marquee-inner" aria-hidden="true">${text}\u00A0\u00A0\u00A0</span></span>`;
+  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0${text}\u00A0\u00A0\u00A0</span></span>`;
 }
 
 // — Press Mixin (mobile touch feedback) —

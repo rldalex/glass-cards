@@ -915,12 +915,12 @@ export class GlassMediaCard extends BaseCard {
   private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     const isQueue = this._foldTab === 'queue';
     return html`
-      <div class="fold-tabs">
-        <button class="fold-tab ${!isQueue ? 'active' : ''}"
+      <div class="segmented">
+        <button class="seg-btn ${!isQueue ? 'active' : ''}"
                 @click=${() => { this._foldTab = 'controls'; }}>
           ${t('media.controls_tab')}
         </button>
-        <button class="fold-tab ${isQueue ? 'active' : ''}"
+        <button class="seg-btn ${isQueue ? 'active' : ''}"
                 @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
           ${t('media.queue_tab')}
         </button>
@@ -990,7 +990,11 @@ export class GlassMediaCard extends BaseCard {
     this._queueLoading = true;
     this._queueData = [];
     try {
-      const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>('spotify_queue', {});
+      const master = this._findMaster(this._getPlayers());
+      const result = await this._backend.send<{ queue: Array<Record<string, unknown>> }>(
+        'spotify_queue',
+        master ? { entity_id: master.entityId } : {},
+      );
       this._queueData = result?.queue ?? [];
     } catch { /* silent */ }
     this._queueLoading = false;
@@ -1358,21 +1362,21 @@ export class GlassMediaCard extends BaseCard {
       .glass-pill {
         backdrop-filter: blur(16px) saturate(1.3);
         -webkit-backdrop-filter: blur(16px) saturate(1.3);
-        background: rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       }
 
-      /* ── Glass panel (bottom info card) — light frosted glass, artwork bleeds through ── */
+      /* ── Glass panel (bottom info card) — frosted glass, artwork bleeds through ── */
       .glass-panel {
         border-radius: var(--radius-lg);
-        backdrop-filter: blur(24px) saturate(1.4);
-        -webkit-backdrop-filter: blur(24px) saturate(1.4);
-        background: rgba(0,0,0,0.45);
-        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.12);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.15),
-          inset 0 1px 0 rgba(255,255,255,0.04);
+          0 4px 16px rgba(0,0,0,0.12),
+          inset 0 1px 0 rgba(255,255,255,0.08);
       }
 
       /* ── Top bar ── */
@@ -1810,37 +1814,29 @@ export class GlassMediaCard extends BaseCard {
       }
       .mr-cell.joined .mr-vol-icon ha-icon { color: var(--mp-sub); }
 
-      /* ── Fold tabs ── */
-      .fold-tabs {
-        display: flex;
-        gap: 4px;
-        padding: 4px 0 8px;
-        border-bottom: 1px solid var(--b1);
-        margin-bottom: 8px;
+      /* ── Segmented control ── */
+      .segmented {
+        display: inline-flex; gap: 0;
+        border-radius: 12px; background: var(--s1);
+        border: 1px solid var(--b1); padding: 3px;
+        margin-bottom: 8px; width: 100%;
       }
-      .fold-tab {
+      .seg-btn {
         flex: 1;
-        padding: 6px 0;
-        border: none;
-        background: transparent;
-        color: var(--t2);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: color var(--t-fast), border-color var(--t-fast);
-        outline: none;
+        padding: 7px 0; border-radius: 9px;
+        font-family: inherit; font-size: 11px; font-weight: 600;
+        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      .fold-tab.active {
-        color: var(--t1);
-        border-bottom-color: var(--c-accent-dynamic, var(--c-accent));
+      .seg-btn.active {
+        background: var(--s4); color: var(--t1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       }
       @media (hover: hover) and (pointer: fine) {
-        .fold-tab:hover { color: var(--t1); }
+        .seg-btn:hover:not(.active) { color: var(--t2); }
       }
-      .fold-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
       /* ── Queue tab ── */
       .queue-loading, .queue-empty {

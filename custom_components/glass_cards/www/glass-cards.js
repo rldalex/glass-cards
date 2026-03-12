@@ -92,18 +92,14 @@
   }
   .marquee .marquee-inner {
     display: inline-block;
-    padding-right: 3em;
     animation: marquee-scroll var(--marquee-duration, 8s) linear infinite;
     will-change: transform;
-  }
-  .marquee .marquee-inner[aria-hidden] {
-    /* duplicate for seamless loop */
   }
   @keyframes marquee-scroll {
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-`,fe=18;function me(e,t=18,i="8s"){return e.length<=t?e:G`<span class="marquee" style="--marquee-duration:${i}"><span class="marquee-inner">${e}\u00A0\u00A0\u00A0</span><span class="marquee-inner" aria-hidden="true">${e}\u00A0\u00A0\u00A0</span></span>`}const ve=d`
+`,fe=18;function me(e,t=18,i="8s"){return e.length<=t?e:G`<span class="marquee" style="--marquee-duration:${i}"><span class="marquee-inner">${e}\u00A0\u00A0\u00A0${e}\u00A0\u00A0\u00A0</span></span>`}const ve=d`
   @keyframes bounce {
     0%   { transform: scale(1); }
     40%  { transform: scale(0.94); }
@@ -4281,12 +4277,12 @@
         </div>
       </div>
     `}_renderFoldContent(e,t,i){const s="queue"===this._foldTab;return G`
-      <div class="fold-tabs">
-        <button class="fold-tab ${s?"":"active"}"
+      <div class="segmented">
+        <button class="seg-btn ${s?"":"active"}"
                 @click=${()=>{this._foldTab="controls"}}>
           ${De("media.controls_tab")}
         </button>
-        <button class="fold-tab ${s?"active":""}"
+        <button class="seg-btn ${s?"active":""}"
                 @click=${()=>{this._foldTab="queue",this._loadQueue()}}>
           ${De("media.queue_tab")}
         </button>
@@ -4344,7 +4340,7 @@
 
       <!-- Multiroom grid (show if any groupable speakers exist) -->
       ${i.length>1?this._renderMultiroomGrid(t,i):Y}
-    `}async _loadQueue(){if(!this._queueLoading&&this._backend){this._queueLoading=!0,this._queueData=[];try{const e=await this._backend.send("spotify_queue",{});this._queueData=e?.queue??[]}catch{}this._queueLoading=!1}}_renderQueueTab(){if(this._queueLoading)return G`<div class="queue-loading">${De("media.loading_radio")}</div>`;const e=this._queueData,t=this._findMaster(this._getPlayers()),i="playing"===t?.state;return e.length||this._radioTracks.length?G`
+    `}async _loadQueue(){if(!this._queueLoading&&this._backend){this._queueLoading=!0,this._queueData=[];try{const e=this._findMaster(this._getPlayers()),t=await this._backend.send("spotify_queue",e?{entity_id:e.entityId}:{});this._queueData=t?.queue??[]}catch{}this._queueLoading=!1}}_renderQueueTab(){if(this._queueLoading)return G`<div class="queue-loading">${De("media.loading_radio")}</div>`;const e=this._queueData,t=this._findMaster(this._getPlayers()),i="playing"===t?.state;return e.length||this._radioTracks.length?G`
       <div class="queue-list">
         ${e.map((e,t)=>{const s=e.uri,a=e.name,r=e.album,o=r?.images,n=e.artists,l=!!s&&this._radioTracks.some(e=>e.uri===s);return G`
             <div class="queue-item ${0===t?"now-playing":""}">
@@ -4574,21 +4570,21 @@
       .glass-pill {
         backdrop-filter: blur(16px) saturate(1.3);
         -webkit-backdrop-filter: blur(16px) saturate(1.3);
-        background: rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       }
 
-      /* ── Glass panel (bottom info card) — light frosted glass, artwork bleeds through ── */
+      /* ── Glass panel (bottom info card) — frosted glass, artwork bleeds through ── */
       .glass-panel {
         border-radius: var(--radius-lg);
-        backdrop-filter: blur(24px) saturate(1.4);
-        -webkit-backdrop-filter: blur(24px) saturate(1.4);
-        background: rgba(0,0,0,0.45);
-        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.12);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.15),
-          inset 0 1px 0 rgba(255,255,255,0.04);
+          0 4px 16px rgba(0,0,0,0.12),
+          inset 0 1px 0 rgba(255,255,255,0.08);
       }
 
       /* ── Top bar ── */
@@ -5026,37 +5022,29 @@
       }
       .mr-cell.joined .mr-vol-icon ha-icon { color: var(--mp-sub); }
 
-      /* ── Fold tabs ── */
-      .fold-tabs {
-        display: flex;
-        gap: 4px;
-        padding: 4px 0 8px;
-        border-bottom: 1px solid var(--b1);
-        margin-bottom: 8px;
+      /* ── Segmented control ── */
+      .segmented {
+        display: inline-flex; gap: 0;
+        border-radius: 12px; background: var(--s1);
+        border: 1px solid var(--b1); padding: 3px;
+        margin-bottom: 8px; width: 100%;
       }
-      .fold-tab {
+      .seg-btn {
         flex: 1;
-        padding: 6px 0;
-        border: none;
-        background: transparent;
-        color: var(--t2);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: color var(--t-fast), border-color var(--t-fast);
-        outline: none;
+        padding: 7px 0; border-radius: 9px;
+        font-family: inherit; font-size: 11px; font-weight: 600;
+        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      .fold-tab.active {
-        color: var(--t1);
-        border-bottom-color: var(--c-accent-dynamic, var(--c-accent));
+      .seg-btn.active {
+        background: var(--s4); color: var(--t1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       }
       @media (hover: hover) and (pointer: fine) {
-        .fold-tab:hover { color: var(--t1); }
+        .seg-btn:hover:not(.active) { color: var(--t2); }
       }
-      .fold-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
 
       /* ── Queue tab ── */
       .queue-loading, .queue-empty {

@@ -892,7 +892,10 @@ async def ws_spotify_browse(
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "glass_cards/spotify_queue"}
+    {
+        vol.Required("type"): "glass_cards/spotify_queue",
+        vol.Optional("entity_id"): str,
+    }
 )
 @websocket_api.async_response
 async def ws_spotify_get_queue(
@@ -904,8 +907,11 @@ async def ws_spotify_get_queue(
     if not can_read(connection.user):
         raise Unauthorized()
 
-    store = _get_store(hass)
-    entity_id = store.data.spotify_card.entity_id
+    # Use provided entity_id (active speaker) or fall back to config
+    entity_id = msg.get("entity_id", "")
+    if not entity_id:
+        store = _get_store(hass)
+        entity_id = store.data.spotify_card.entity_id
 
     try:
         result = await spotify_get_queue(hass, entity_id=entity_id)
