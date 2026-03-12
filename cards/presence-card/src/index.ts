@@ -582,7 +582,6 @@ export class GlassPresenceCard extends BaseCard {
           </div>
         </div>
       </div>
-      <div class="fold-sep bottom ${presClass}"></div>
     `;
   }
 

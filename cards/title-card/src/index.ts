@@ -412,7 +412,6 @@ class GlassTitleCard extends BaseCard {
             <div class="fold-section-inner">
               <div class="fold-sep"></div>
               ${sources.map((src, si) => this._renderSourceGroup(src, si, sources.length > 1))}
-              <div class="fold-sep"></div>
             </div>
           </div>
         ` : nothing}

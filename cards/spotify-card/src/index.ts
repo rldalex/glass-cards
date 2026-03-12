@@ -1011,7 +1011,6 @@ class GlassSpotifyCard extends BaseCard {
                 </div>
               </div>
             </div>
-            <div class="sp-fold-sep"></div>
           `}
       `)}
       ${showSpeakerPicker ? this._renderSpeakerPicker() : nothing}

@@ -2,24 +2,68 @@ import { html, nothing } from 'lit';
 import { t } from '@glass-cards/i18n';
 import type { GlassConfigPanel } from '../index';
 
+const PREVIEW_DC_ICONS: Record<string, [string, string]> = {
+  shutter: ['mdi:window-shutter-open', 'mdi:window-shutter'],
+  blind: ['mdi:blinds-open', 'mdi:blinds'],
+  curtain: ['mdi:curtains', 'mdi:curtains'],
+  garage: ['mdi:garage-open', 'mdi:garage'],
+  gate: ['mdi:gate-open', 'mdi:gate'],
+  door: ['mdi:door-open', 'mdi:door-closed'],
+};
+
+function renderCoverPreviewRow(
+  self: GlassConfigPanel,
+  e: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' },
+  compact: boolean,
+  isRight: boolean,
+) {
+  const icons = PREVIEW_DC_ICONS[e.deviceClass] || PREVIEW_DC_ICONS.shutter;
+  const entity = self.hass?.states[e.entityId];
+  const isOpen = entity?.state === 'open' || entity?.state === 'opening';
+  const pos = entity?.attributes.current_position as number | undefined;
+
+  return html`
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${isRight ? 'padding-left:8px;border-left:1px solid var(--b2);' : ''}">
+      <div style="width:22px;height:22px;border-radius:6px;background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
+        <ha-icon .icon=${icons[isOpen ? 0 : 1]} style="--mdc-icon-size:13px;color:${isOpen ? '#a78bfa' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${isOpen ? 'filter:drop-shadow(0 0 4px rgba(167,139,250,0.4));' : ''}"></ha-icon>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
+          <span style="font-size:8px;color:${isOpen ? 'rgba(167,139,250,0.6)' : 'var(--t4)'};">${isOpen ? t('cover.open') : t('cover.closed')}</span>
+        </div>
+      </div>
+      ${!compact && pos !== undefined ? html`
+        <span style="font-size:12px;font-weight:700;color:${isOpen ? '#a78bfa' : 'var(--t3)'};font-variant-numeric:tabular-nums;">${pos}<span style="font-size:8px;font-weight:500;">%</span></span>
+      ` : nothing}
+      <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${isOpen ? '#a78bfa' : 'var(--t4)'};${isOpen ? 'box-shadow:0 0 6px rgba(167,139,250,0.4);' : ''}"></div>
+    </div>
+  `;
+}
+
+function renderCoverPreviewRows(
+  self: GlassConfigPanel,
+  entities: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' }[],
+) {
+  const results: unknown[] = [];
+  let i = 0;
+  while (i < entities.length) {
+    const e = entities[i];
+    const isCompact = e.layout === 'compact';
+    if (isCompact && i + 1 < entities.length && entities[i + 1].layout === 'compact') {
+      results.push(renderCoverPreviewRow(self, e, true, false));
+      results.push(renderCoverPreviewRow(self, entities[i + 1], true, true));
+      i += 2;
+    } else {
+      results.push(renderCoverPreviewRow(self, e, false, false));
+      i++;
+    }
+  }
+  return results;
+}
+
 export function renderCoverPreview(self: GlassConfigPanel) {
   const entities = self._coverRoomEntities.filter((e) => e.visible);
-  const DC_ICONS: Record<string, [string, string]> = {
-    shutter: ['mdi:window-shutter-open', 'mdi:window-shutter'],
-    blind: ['mdi:blinds-open', 'mdi:blinds'],
-    curtain: ['mdi:curtains', 'mdi:curtains'],
-    garage: ['mdi:garage-open', 'mdi:garage'],
-    gate: ['mdi:gate-open', 'mdi:gate'],
-    door: ['mdi:door-open', 'mdi:door-closed'],
-  };
-  // Pick the first entity with real HA state as the "expanded" one
-  const expandedEntity = entities.length > 0 ? entities[0] : null;
-  const expandedHaState = expandedEntity ? self.hass?.states[expandedEntity.entityId] : null;
-  const expandedIsOpen = expandedHaState?.state === 'open' || expandedHaState?.state === 'opening';
-  const expandedPos = expandedHaState?.attributes.current_position as number | undefined;
-  const expandedFeatures = (expandedHaState?.attributes.supported_features as number) || 0;
-  const hasPosition = !!(expandedFeatures & 4); // SET_POSITION
-  const posVal = expandedPos ?? (expandedIsOpen ? 100 : 0);
   const openCount = entities.filter((e) => {
     const s = self.hass?.states[e.entityId];
     return s?.state === 'open' || s?.state === 'opening';
@@ -43,93 +87,15 @@ export function renderCoverPreview(self: GlassConfigPanel) {
           </div>
         </div>
       ` : nothing}
-      <div class="preview-cover-card glass" style="padding:8px 10px;display:flex;flex-direction:column;gap:2px;position:relative;">
+      <div class="preview-cover-card glass" style="padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;">
         <!-- Tint -->
         <div style="position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#a78bfa,transparent 70%);opacity:${entities.length > 0 ? (openCount / entities.length * 0.18).toFixed(3) : '0'};"></div>
         ${entities.length === 0 ? html`
-          <div style="padding:8px;text-align:center;font-size:10px;color:var(--t4);">—</div>
+          <div style="padding:8px;text-align:center;font-size:10px;color:var(--t4);grid-column:1/-1;">—</div>
         ` : nothing}
-        ${entities.slice(0, 3).map((e, idx) => {
-          const icons = DC_ICONS[e.deviceClass] || DC_ICONS.shutter;
-          const entity = self.hass?.states[e.entityId];
-          const isOpen = entity?.state === 'open' || entity?.state === 'opening';
-          const pos = entity?.attributes.current_position as number | undefined;
-          const isExpanded = idx === 0;
-          return html`
-            <!-- Row -->
-            <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;">
-              <div style="width:22px;height:22px;border-radius:6px;background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
-                <ha-icon .icon=${icons[isOpen ? 0 : 1]} style="--mdc-icon-size:13px;color:${isOpen ? '#a78bfa' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${isOpen ? 'filter:drop-shadow(0 0 4px rgba(167,139,250,0.4));' : ''}"></ha-icon>
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</div>
-                <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-                  <span style="font-size:8px;color:${isOpen ? 'rgba(167,139,250,0.6)' : 'var(--t4)'};">${isOpen ? t('cover.open') : t('cover.closed')}</span>
-                </div>
-              </div>
-              ${pos !== undefined ? html`
-                <span style="font-size:12px;font-weight:700;color:${isOpen ? '#a78bfa' : 'var(--t3)'};font-variant-numeric:tabular-nums;">${pos}<span style="font-size:8px;font-weight:500;">%</span></span>
-              ` : nothing}
-              <div style="width:6px;height:6px;border-radius:50%;background:${isOpen ? '#a78bfa' : 'var(--t4)'};${isOpen ? 'box-shadow:0 0 6px rgba(167,139,250,0.4);' : ''}"></div>
-            </div>
-            ${isExpanded ? html`
-              <!-- Expanded controls for first entity -->
-              <div style="height:1px;margin:0 8px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.25),transparent);"></div>
-              <div style="padding:4px 2px;display:flex;flex-direction:column;gap:6px;position:relative;z-index:1;">
-                <span style="font-size:8px;font-weight:600;letter-spacing:0.5px;color:rgba(167,139,250,0.6);text-transform:uppercase;">${e.name}</span>
-                <!-- Transport -->
-                <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
-                  <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
-                    <ha-icon .icon=${'mdi:arrow-up'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
-                  </div>
-                  <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
-                    <ha-icon .icon=${'mdi:stop'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
-                  </div>
-                  <div style="width:28px;height:28px;border-radius:8px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
-                    <ha-icon .icon=${'mdi:arrow-down'} style="--mdc-icon-size:14px;color:var(--t2);display:flex;align-items:center;justify-content:center;"></ha-icon>
-                  </div>
-                </div>
-                <!-- Position slider -->
-                ${hasPosition ? html`
-                  <div style="display:flex;align-items:center;gap:4px;">
-                    <ha-icon .icon=${icons[1]} style="--mdc-icon-size:12px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
-                    <div style="flex:1;height:22px;border-radius:var(--radius-lg);background:var(--s1);border:1px solid var(--b1);position:relative;overflow:hidden;">
-                      <div style="position:absolute;top:0;left:0;height:100%;width:${posVal}%;border-radius:inherit;background:linear-gradient(90deg,rgba(167,139,250,0.15),rgba(167,139,250,0.25));"></div>
-                      <div style="position:absolute;top:50%;left:${posVal}%;transform:translate(-50%,-50%);width:5px;height:14px;border-radius:3px;background:rgba(255,255,255,0.7);"></div>
-                      <span style="position:absolute;top:50%;right:6px;transform:translateY(-50%);font-size:9px;font-weight:600;color:var(--t3);">${posVal}%</span>
-                    </div>
-                    <ha-icon .icon=${icons[0]} style="--mdc-icon-size:12px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
-                  </div>
-                ` : nothing}
-                <!-- Presets -->
-                <div style="height:1px;background:var(--b1);"></div>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  ${(self._coverEntityPresets[e.entityId] ?? self._coverPresets).map((p) => {
-                    const isActive = posVal === p;
-                    const pIsOpen = p >= 50;
-                    const label = p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`;
-                    return html`
-                      <span style="
-                        display:inline-flex;align-items:center;gap:3px;
-                        padding:3px 7px;border-radius:var(--radius-md);
-                        border:1px solid ${isActive ? 'rgba(167,139,250,0.15)' : 'var(--b2)'};
-                        background:${isActive ? 'rgba(167,139,250,0.1)' : 'var(--s1)'};
-                        font-size:9px;font-weight:600;
-                        color:${isActive ? '#a78bfa' : 'var(--t3)'};
-                      ">
-                        <ha-icon .icon=${icons[pIsOpen ? 0 : 1]} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                        ${label}
-                      </span>
-                    `;
-                  })}
-                </div>
-              </div>
-              <div style="height:1px;margin:0 8px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.25),transparent);"></div>
-            ` : nothing}
-          `;
-        })}
-        ${entities.length > 3 ? html`
-          <div style="font-size:9px;color:var(--t4);text-align:center;padding-top:2px;position:relative;z-index:1;">+${entities.length - 3}</div>
+        ${renderCoverPreviewRows(self, entities.slice(0, 4))}
+        ${entities.length > 4 ? html`
+          <div style="font-size:9px;color:var(--t4);text-align:center;padding-top:2px;position:relative;z-index:1;grid-column:1/-1;">+${entities.length - 4}</div>
         ` : nothing}
       </div>
     </div>
@@ -226,6 +192,14 @@ export function renderCoverTab(self: GlassConfigPanel) {
                     <span class="item-name">${e.name}</span>
                     <span class="item-meta">${e.entityId}</span>
                   </div>
+                  <button
+                    class="layout-btn"
+                    @click=${() => self._cycleCoverLayout(e.entityId)}
+                    aria-label="${t('config.light_change_layout_aria')}"
+                    title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                  >
+                    ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                  </button>
                   <button
                     class="toggle ${e.visible ? 'on' : ''}"
                     @click=${() => self._toggleCoverEntityVisibility(e.entityId)}
@@ -519,4 +493,10 @@ export function resetCoverEntityPresets(self: GlassConfigPanel, entityId: string
   const ep = { ...self._coverEntityPresets };
   delete ep[entityId];
   self._coverEntityPresets = ep;
+}
+
+export function cycleCoverLayout(self: GlassConfigPanel, entityId: string) {
+  self._coverRoomEntities = self._coverRoomEntities.map((e) =>
+    e.entityId === entityId ? { ...e, layout: e.layout === 'full' ? 'compact' : 'full' } : e,
+  );
 }

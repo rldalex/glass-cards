@@ -75,7 +75,11 @@ function pctToStep(pct: number, speedCount: number): number {
 
 function stepToPct(step: number, speedCount: number): number {
   if (step <= 0) return 0;
-  return Math.round((step / speedCount) * 100);
+  return (step / speedCount) * 100;
+}
+
+function stepToPctDisplay(step: number, speedCount: number): number {
+  return Math.round(stepToPct(step, speedCount));
 }
 
 function snapPct(pct: number, speedCount: number): number {
@@ -919,17 +923,39 @@ class GlassFanCard extends BaseCard {
   private _toggleFan(fan: FanInfo, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
-    const service = fan.isOn ? 'turn_off' : 'turn_on';
-    this.hass.callService('fan', service, {}, { entity_id: fan.entityId });
+    if (fan.isOn) {
+      this.hass.callService('fan', 'turn_off', {}, { entity_id: fan.entityId });
+    } else {
+      // Turn on at speed step 1 if fan supports speed
+      const sf = fan.supportedFeatures;
+      if (sf & FanFeature.SET_SPEED) {
+        const pct = stepToPct(1, fan.speedCount);
+        this.hass.callService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
+      } else {
+        this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+      }
+    }
   }
 
   private _toggleAll(): void {
     if (!this.hass) return;
     const fans = this._getFanInfos();
     const anyOn = fans.some((f) => f.isOn);
-    const service = anyOn ? 'turn_off' : 'turn_on';
-    const ids = fans.map((f) => f.entityId);
-    this.hass.callService('fan', service, {}, { entity_id: ids });
+    if (anyOn) {
+      const ids = fans.map((f) => f.entityId);
+      this.hass.callService('fan', 'turn_off', {}, { entity_id: ids });
+    } else {
+      // Turn on each fan at speed step 1
+      for (const fan of fans) {
+        const sf = fan.supportedFeatures;
+        if (sf & FanFeature.SET_SPEED) {
+          const pct = stepToPct(1, fan.speedCount);
+          this.hass.callService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
+        } else {
+          this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+        }
+      }
+    }
     if (anyOn) {
       this._expandedEntity = null;
     }
@@ -1161,8 +1187,9 @@ class GlassFanCard extends BaseCard {
           results.push(this._renderControlFold(next, last));
           i += 2;
         } else {
+          const last = i + 1 >= fans.length;
           results.push(this._renderFanRow(fan, false, false));
-          results.push(this._renderControlFold(fan, true));
+          results.push(this._renderControlFold(fan, last));
           i++;
         }
       } else {
@@ -1290,14 +1317,15 @@ class GlassFanCard extends BaseCard {
             ${Array.from({ length: fan.speedCount }, (_, i) => {
               const step = i + 1;
               const pct = stepToPct(step, fan.speedCount);
+              const pctDisplay = stepToPctDisplay(step, fan.speedCount);
               return html`
                 <button
                   class="speed-step ${currentStep === step ? 'active' : ''}"
                   @click=${(e: Event) => { e.stopPropagation(); this._setSpeed(fan, pct); }}
-                  aria-label=${t('fan.speed_step_aria', { step: String(step), pct: String(pct) })}
+                  aria-label=${t('fan.speed_step_aria', { step: String(step), pct: String(pctDisplay) })}
                 >
                   <span>${step}</span>
-                  <span class="speed-step-pct">${pct}%</span>
+                  <span class="speed-step-pct">${pctDisplay}%</span>
                 </button>
               `;
             })}

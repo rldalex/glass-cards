@@ -17,7 +17,7 @@ import {
   DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS,
   getCardMeta,
 } from './types';
-import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityVisibility, getAllCoverEntities, toggleCoverDashboardEntity, initCoverDashboardOrder, onDropDashboardCover, onDropCover, addCoverPreset, removeCoverPreset, addCoverEntityPreset, removeCoverEntityPreset, resetCoverEntityPresets } from './tabs/cover';
+import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityVisibility, cycleCoverLayout, getAllCoverEntities, toggleCoverDashboardEntity, initCoverDashboardOrder, onDropDashboardCover, onDropCover, addCoverPreset, removeCoverPreset, addCoverEntityPreset, removeCoverEntityPreset, resetCoverEntityPresets } from './tabs/cover';
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
 import { renderMediaPreview, renderMediaTab } from './tabs/media';
@@ -105,7 +105,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _coverEntityPresets: Record<string, number[]> = {};
   @state() _coverRoom = '';
   @state() _coverRoomDropdownOpen = false;
-  @state() _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string }[] = [];
+  @state() _coverRoomEntities: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' }[] = [];
   @state() _coverPresetInput = '';
   @state() _coverEntityPresetInput: Record<string, string> = {};
 
@@ -1106,10 +1106,10 @@ export class GlassConfigPanel extends LitElement {
       .filter((e) => e.entity_id.startsWith('cover.'))
       .map((e) => e.entity_id);
 
-    // Load room config for hidden_entities / entity_order
-    let roomConfig: { hidden_entities?: string[]; entity_order?: string[] } | null = null;
+    // Load room config for hidden_entities / entity_order / entity_layouts
+    let roomConfig: { hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null = null;
     try {
-      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>('get_room', { area_id: targetRoom });
+      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null>('get_room', { area_id: targetRoom });
     } catch { /* ignore */ }
 
     // Discard stale result if room changed during async call
@@ -1117,6 +1117,7 @@ export class GlassConfigPanel extends LitElement {
 
     const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
     const order = roomConfig?.entity_order ?? [];
+    const entityLayouts = roomConfig?.entity_layouts ?? {};
 
     // Sort by order
     const sorted = [...coverIds].sort((a, b) => {
@@ -1132,11 +1133,13 @@ export class GlassConfigPanel extends LitElement {
       const entity = this.hass?.states[id];
       const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
       const dc = (entity?.attributes?.device_class as string) || 'shutter';
-      return { entityId: id, name, visible: !hiddenSet.has(id), deviceClass: dc };
+      return { entityId: id, name, visible: !hiddenSet.has(id), deviceClass: dc, layout: (entityLayouts[id] as 'full' | 'compact') || 'compact' };
     });
   }
 
   _toggleCoverEntityVisibility(entityId: string) { toggleCoverEntityVisibility(this, entityId); }
+
+  _cycleCoverLayout(entityId: string) { cycleCoverLayout(this, entityId); }
 
   _getAllCoverEntities() { return getAllCoverEntities(this); }
 
@@ -1163,24 +1166,40 @@ export class GlassConfigPanel extends LitElement {
 
       // Save room-level cover config if a room is selected
       if (this._coverRoom && this._coverRoomEntities.length > 0) {
-        // Load existing hidden_entities to preserve non-cover hidden entries
+        // Load existing room config to preserve non-cover entries
         let existingHidden: string[] = [];
+        let existingOrder: string[] = [];
+        let existingLayouts: Record<string, string> = {};
         try {
           const existing = await this._backend.send<{
             hidden_entities: string[];
+            entity_order: string[];
+            entity_layouts: Record<string, string>;
           } | null>('get_room', { area_id: this._coverRoom });
-          if (existing) existingHidden = existing.hidden_entities ?? [];
+          if (existing) {
+            existingHidden = existing.hidden_entities ?? [];
+            existingOrder = existing.entity_order ?? [];
+            existingLayouts = existing.entity_layouts ?? {};
+          }
         } catch { /* ignore */ }
 
         const coverEntityIds = new Set(this._coverRoomEntities.map((e) => e.entityId));
         const nonCoverHidden = existingHidden.filter((id) => !coverEntityIds.has(id));
         const hiddenCovers = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const entityOrder = this._coverRoomEntities.map((e) => e.entityId);
+        const nonCoverOrder = existingOrder.filter((id) => !coverEntityIds.has(id));
+        const entityOrder = [...nonCoverOrder, ...this._coverRoomEntities.map((e) => e.entityId)];
+
+        // Merge cover layouts with existing non-cover layouts
+        const layouts: Record<string, string> = { ...existingLayouts };
+        for (const e of this._coverRoomEntities) {
+          layouts[e.entityId] = e.layout;
+        }
 
         await this._backend.send('set_room', {
           area_id: this._coverRoom,
           hidden_entities: [...nonCoverHidden, ...hiddenCovers],
           entity_order: entityOrder,
+          entity_layouts: layouts,
         });
       }
 

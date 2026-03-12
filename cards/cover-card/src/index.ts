@@ -121,6 +121,7 @@ interface CoverBackendConfig {
 interface RoomCoverConfig {
   hidden_entities: string[];
   entity_order: string[];
+  entity_layouts: Record<string, string>;
 }
 
 // — Card —
@@ -199,6 +200,7 @@ class GlassCoverCard extends BaseCard {
     .cover-card { position: relative; padding: 2px 14px; }
     .card-inner {
       position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
     }
 
     /* Tint */
@@ -211,9 +213,16 @@ class GlassCoverCard extends BaseCard {
     /* ── Row ── */
     .cv-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 8px 4px;
+      grid-column: 1 / -1;
+      padding: 8px 4px; position: relative;
       border-radius: var(--radius-md);
       transition: background var(--t-fast);
+    }
+    .cv-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
+    .cv-row.compact-right { padding-left: 10px; }
+    .cv-row.compact-right::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px;
+      background: linear-gradient(180deg, transparent, var(--b2), transparent);
     }
     @media (hover: hover) and (pointer: fine) {
       .cv-row:hover { background: var(--s1); }
@@ -289,6 +298,7 @@ class GlassCoverCard extends BaseCard {
 
     /* ── Fold ── */
     .fold-sep {
+      grid-column: 1 / -1;
       height: 0; margin: 0 12px; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
       opacity: 0; transition: opacity 0.25s var(--ease-std, ease), height 0.25s var(--ease-std, ease);
@@ -296,6 +306,7 @@ class GlassCoverCard extends BaseCard {
     .fold-sep.visible { height: 1px; opacity: 1; }
 
     .ctrl-fold {
+      grid-column: 1 / -1;
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
     }
@@ -490,7 +501,7 @@ class GlassCoverCard extends BaseCard {
     try {
       const result = await this._backend.send<RoomCoverConfig | null>('get_room', { area_id: areaId });
       if (this.areaId === areaId) {
-        this._roomConfig = result;
+        this._roomConfig = result ? { ...result, entity_layouts: result.entity_layouts ?? {} } : null;
         this.requestUpdate();
       }
     } catch {
@@ -704,18 +715,82 @@ class GlassCoverCard extends BaseCard {
         <div class="tint" style="background:radial-gradient(ellipse at 50% 50%, var(--cv-color, #a78bfa), transparent 70%);opacity:${total > 0 ? (openCount / total * 0.18).toFixed(3) : '0'};"></div>
         <div class="card-inner">
           ${covers.length === 0 ? html`
-            <div style="padding:16px;text-align:center;font-size:12px;color:var(--t4);">${t('config.cover_no_covers')}</div>
+            <div style="padding:16px;text-align:center;font-size:12px;color:var(--t4);grid-column:1/-1;">${t('config.cover_no_covers')}</div>
           ` : nothing}
-          ${covers.map((cv) => this._renderCoverRow(cv))}
+          ${!this.areaId ? this._renderDashboardGrid(covers) : this._renderGrid(covers)}
         </div>
       </div>
     `;
   }
 
-  private _renderCoverRow(cv: CoverInfo) {
+  private _getEntityLayout(entityId: string): 'full' | 'compact' {
+    const layouts = this._roomConfig?.entity_layouts ?? {};
+    const layout = layouts[entityId];
+    return (layout as 'full' | 'compact') === 'full' ? 'full' : 'compact';
+  }
+
+  private _isCompact(cv: CoverInfo): boolean {
+    return this._getEntityLayout(cv.entityId) === 'compact';
+  }
+
+  private _renderGrid(covers: CoverInfo[]) {
+    const results: unknown[] = [];
+    let i = 0;
+    while (i < covers.length) {
+      const cv = covers[i];
+      if (this._isCompact(cv)) {
+        const next = i + 1 < covers.length && this._isCompact(covers[i + 1]) ? covers[i + 1] : null;
+        if (next) {
+          const last = i + 2 >= covers.length;
+          results.push(this._renderCoverRow(cv, true, false));
+          results.push(this._renderCoverRow(next, true, true));
+          results.push(this._renderControlFold(cv, last));
+          results.push(this._renderControlFold(next, last));
+          i += 2;
+        } else {
+          const last = i + 1 >= covers.length;
+          results.push(this._renderCoverRow(cv, false, false));
+          results.push(this._renderControlFold(cv, last));
+          i++;
+        }
+      } else {
+        const last = i + 1 >= covers.length;
+        results.push(this._renderCoverRow(cv, false, false));
+        results.push(this._renderControlFold(cv, last));
+        i++;
+      }
+    }
+    return results;
+  }
+
+  private _renderDashboardGrid(covers: CoverInfo[]) {
+    const results: unknown[] = [];
+    let i = 0;
+    while (i < covers.length) {
+      const left = covers[i];
+      const right = i + 1 < covers.length ? covers[i + 1] : null;
+      if (right) {
+        const last = i + 2 >= covers.length;
+        results.push(this._renderCoverRow(left, true, false));
+        results.push(this._renderCoverRow(right, true, true));
+        results.push(this._renderControlFold(left, last));
+        results.push(this._renderControlFold(right, last));
+        i += 2;
+      } else {
+        results.push(this._renderCoverRow(left, false, false));
+        results.push(this._renderControlFold(left, true));
+        i++;
+      }
+    }
+    return results;
+  }
+
+  private _renderCoverRow(cv: CoverInfo, compact = false, isRight = false) {
     const isExpanded = this._expanded === cv.entityId;
+    const rowClasses = ['cv-row', cv.isOpen ? 'open' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+      .filter(Boolean).join(' ');
     return html`
-      <div class="cv-row ${cv.isOpen ? 'open' : ''}">
+      <div class=${rowClasses}>
         <button
           class="cv-icon-btn"
           @click=${(e: Event) => this._toggleCover(cv, e)}
@@ -741,13 +816,19 @@ class GlassCoverCard extends BaseCard {
           <div class="cv-dot"></div>
         </button>
       </div>
+    `;
+  }
+
+  private _renderControlFold(cv: CoverInfo, isLast = false) {
+    const isExpanded = this._expanded === cv.entityId;
+    return html`
       <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
-          ${this._renderControls(cv)}
+          ${isExpanded ? this._renderControls(cv) : nothing}
         </div>
       </div>
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>` : nothing}
     `;
   }
 

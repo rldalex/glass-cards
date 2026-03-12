@@ -114,7 +114,11 @@ export class GlassRoomPopup extends LitElement {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 0;
+      }
+      .header-sep {
+        height: 1px; margin: 8px 12px;
+        background: linear-gradient(90deg, transparent, var(--b2), transparent);
       }
       .header-left {
         display: flex;
@@ -642,6 +646,7 @@ export class GlassRoomPopup extends LitElement {
             <ha-icon .icon=${'mdi:close'}></ha-icon>
           </button>
         </div>
+        <div class="header-sep"></div>
 
         ${hasScenes
           ? html`
