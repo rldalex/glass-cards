@@ -1091,7 +1091,12 @@ export class GlassNavbarCard extends BaseCard {
       this._activeArea = null;
     } else {
       this._activeArea = item.areaId;
-      bus.emit('popup-open', { areaId: item.areaId, originRect: rect });
+      const roomIndex = this._items.indexOf(item);
+      bus.emit('popup-open', {
+        areaId: item.areaId,
+        originRect: rect,
+        roomIndex: roomIndex >= 0 ? roomIndex : undefined,
+      });
     }
   }
 
