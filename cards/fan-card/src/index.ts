@@ -847,7 +847,7 @@ class GlassFanCard extends BaseCard {
 
     // Build fingerprint
     const fp = ids.map((id) => {
-      const e = this.hass!.states[id];
+      const e = this.hass?.states[id];
       return e ? `${id}:${e.state}:${e.last_updated}` : `${id}:-`;
     }).join('|');
 
@@ -858,7 +858,7 @@ class GlassFanCard extends BaseCard {
 
     const result = ids
       .map((id) => {
-        const entity = this.hass!.states[id];
+        const entity = this.hass?.states[id];
         if (!entity) return null;
         return this._buildFanInfo(id, entity);
       })
@@ -891,7 +891,7 @@ class GlassFanCard extends BaseCard {
     const attrIcon = attrs.icon as string | undefined;
     const icon = registryIcon || attrIcon || (ceiling ? 'mdi:ceiling-fan' : 'mdi:fan');
 
-    const lightEntityId = ceiling ? findCeilingLight(entityId, this.hass!) : null;
+    const lightEntityId = ceiling && this.hass ? findCeilingLight(entityId, this.hass) : null;
 
     // Simple fan = speed only, no preset/direction/oscillation/ceiling light
     const hasPreset = !!(supportedFeatures & FanFeature.PRESET_MODE) && presetModes.length > 0;

@@ -845,8 +845,9 @@ class GlassSpotifyCard extends BaseCard {
         { category, content_id: id, limit: 20, offset: 0, sort_order: this._spotifyConfig.sort_order },
       );
       const items = result?.items ?? [];
+      if (!this._drilldown) return;
       this._drilldown = {
-        ...this._drilldown!,
+        ...this._drilldown,
         items,
         total: result?.total ?? 0,
         offset: 20,
@@ -954,11 +955,11 @@ class GlassSpotifyCard extends BaseCard {
     try {
       // Unjoin speakers that are in existing groups first
       for (const id of entityIds) {
-        const entity = this.hass!.states[id];
+        const entity = this.hass.states[id];
         if (!entity) continue;
         const members = entity.attributes.group_members as string[] | undefined;
         if (members && members.length > 1) {
-          this.hass!.callService('media_player', 'unjoin', {}, { entity_id: id });
+          this.hass.callService('media_player', 'unjoin', {}, { entity_id: id });
         }
       }
       // Small delay for unjoins to propagate
@@ -1460,8 +1461,9 @@ class GlassSpotifyCard extends BaseCard {
     this._openPicker({ id: dd.id, name: dd.title, type: dd.type, uri } as SpotifyItem);
   }
 
-  private _renderDrilldown(): TemplateResult {
-    const dd = this._drilldown!;
+  private _renderDrilldown(): TemplateResult | typeof nothing {
+    const dd = this._drilldown;
+    if (!dd) return nothing;
     return html`
       <div class="drilldown-header">
         <button class="back-btn" @click=${this._goBack}>
@@ -1491,8 +1493,9 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Speaker picker render —
 
-  private _renderSpeakerPicker(): TemplateResult {
-    const item = this._pickerItem!;
+  private _renderSpeakerPicker(): TemplateResult | typeof nothing {
+    const item = this._pickerItem;
+    if (!item) return nothing;
     const img = getImage(item, 64);
     const artist = getArtistNames(item);
     const hasSelection = this._selectedSpeakers.size > 0;

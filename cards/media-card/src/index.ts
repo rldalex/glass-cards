@@ -361,12 +361,12 @@ export class GlassMediaCard extends BaseCard {
         });
     }
 
-    const areaId = this.areaId!;
+    const areaId = this.areaId ?? '';
     const extraIds = this._mediaConfig.extra_entities[areaId] || [];
     const cacheKey = `${areaId}:${JSON.stringify(extraIds)}`;
     if (this._playersCache && this._playersCacheKey === cacheKey) {
       return this._playersCache.map((p) => {
-        const entity = this.hass!.states[p.entityId];
+        const entity = this.hass?.states[p.entityId];
         return entity ? getMediaInfo(entity) : p;
       });
     }
@@ -378,7 +378,7 @@ export class GlassMediaCard extends BaseCard {
 
     const allIds = [...new Set([...areaPlayerIds, ...extraIds])];
     const players = allIds
-      .map((id) => this.hass!.states[id])
+      .map((id) => this.hass?.states[id])
       .filter((e): e is HassEntity => !!e)
       .map(getMediaInfo);
 
@@ -511,7 +511,8 @@ export class GlassMediaCard extends BaseCard {
         clearTimeout(timer);
       };
 
-      this.hass!.connection.subscribeEvents((ev: { data: { entity_id?: string; new_state?: { attributes?: { group_members?: string[] } } } }) => {
+      if (!this.hass) { resolve(false); return; }
+      this.hass.connection.subscribeEvents((ev: { data: { entity_id?: string; new_state?: { attributes?: { group_members?: string[] } } } }) => {
         if (version !== this._loadVersion) { cleanup(); return; }
         if (ev.data.entity_id === entityId) {
           const members = ev.data.new_state?.attributes?.group_members;
@@ -1070,7 +1071,8 @@ export class GlassMediaCard extends BaseCard {
     const players = this._getPlayers();
     const master = this._findMaster(players);
     if (!master) return;
-    await this.hass!.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
+    if (!this.hass) return;
+    await this.hass.callService('media_player', 'media_next_track', {}, { entity_id: master.entityId });
     setTimeout(() => this._loadQueue(), 500);
   }
 

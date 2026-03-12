@@ -202,6 +202,7 @@ class GlassCameraCarouselCard extends BaseCard {
   @property() areaId?: string;
 
   @state() private _carouselIndex = 0;
+  @state() private _liveIds = new Set<string>();
 
   private _backend: BackendService | undefined;
   private _camConfig: CameraBackendConfig | null = null;
@@ -240,9 +241,10 @@ class GlassCameraCarouselCard extends BaseCard {
 
   getTrackedEntityIds(): string[] {
     if (!this.hass) return [];
+    const hass = this.hass;
     // Track all camera entities + companion entities
     return this._getCameraIds().flatMap((eid) => {
-      const companions = discoverCompanions(eid, this.hass!.states, this.hass!.entities);
+      const companions = discoverCompanions(eid, hass.states, hass.entities);
       return [
         eid,
         companions.motionSensorId,
@@ -268,6 +270,7 @@ class GlassCameraCarouselCard extends BaseCard {
       this._carouselIndex = 0;
       this._cachedCamerasKey = '';
       this._configLoaded = false;
+      this._liveIds = new Set();
     }
 
     if (!this._configLoaded && !this._configLoading) {
@@ -487,6 +490,19 @@ class GlassCameraCarouselCard extends BaseCard {
     this.hass.callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.floodlightId });
   }
 
+  private _startStream(entityId: string) {
+    const next = new Set(this._liveIds);
+    next.add(entityId);
+    this._liveIds = next;
+  }
+
+  /** Stop a live stream (used by future stop button or area change). */
+  protected _stopStream(entityId: string) {
+    const next = new Set(this._liveIds);
+    next.delete(entityId);
+    this._liveIds = next;
+  }
+
   // — Render —
 
   render() {
@@ -517,7 +533,7 @@ class GlassCameraCarouselCard extends BaseCard {
             @pointercancel=${this._onPointerCancel}
           >
             <div class="carousel-track" style="transform:translateX(-${this._carouselIndex * 100}%)">
-              ${ids.map((eid) => this._renderSlide(eid))}
+              ${ids.map((eid, idx) => this._renderSlide(eid, idx === this._carouselIndex))}
             </div>
             ${ids.length > 1 ? html`
               <button class="carousel-nav prev" aria-label="${t('camera.prev_aria')}" @click=${this._prev}>
@@ -546,16 +562,26 @@ class GlassCameraCarouselCard extends BaseCard {
     return `background:radial-gradient(ellipse at 50% 50%,${color},transparent 70%);opacity:0.12`;
   }
 
-  private _renderSlide(entityId: string): TemplateResult {
+  private _renderSlide(entityId: string, isVisible: boolean): TemplateResult {
     const cam = this._getCameraInfo(entityId);
     if (!cam) return html`<div class="carousel-slide"><div class="carousel-slide-inner off-feed"></div></div>`;
 
-    const feedCls = !cam.isOn ? 'off-feed' : cam.state !== 'idle' ? 'active-feed' : 'idle-feed';
+    const isLive = this._liveIds.has(entityId) || cam.state === 'streaming' || cam.state === 'recording';
+    const showStream = cam.isOn && isLive && isVisible;
+    const feedCls = !cam.isOn ? 'off-feed' : isLive ? 'active-feed' : 'idle-feed';
 
     return html`
       <div class="carousel-slide">
         <div class="carousel-slide-inner ${feedCls}">
-          ${cam.entityPicture && cam.isOn ? html`
+          ${showStream && this.hass ? html`
+            <ha-camera-stream
+              .hass=${this.hass}
+              .stateObj=${cam.entity}
+              .controls=${false}
+              .muted=${true}
+              class="cam-stream"
+            ></ha-camera-stream>
+          ` : cam.entityPicture && cam.isOn ? html`
             <img class="cam-thumbnail" src="${cam.entityPicture}" alt="${cam.name}" />
           ` : nothing}
           ${cam.isOn ? html`
@@ -583,11 +609,12 @@ class GlassCameraCarouselCard extends BaseCard {
                 </div>
               ` : html`<div></div>`}
             </div>
-            ${cam.state === 'idle' ? html`
-              <div class="stream-placeholder">
+            ${!isLive ? html`
+              <button class="stream-placeholder" @click=${(e: Event) => { e.stopPropagation(); this._startStream(entityId); }}
+                aria-label="${t('camera.tap_to_stream')}">
                 <ha-icon .icon=${cam.icon} style="--mdc-icon-size:36px;color:var(--t4)"></ha-icon>
                 <span>${t('camera.tap_to_stream')}</span>
-              </div>
+              </button>
             ` : nothing}
           ` : html`
             <div class="stream-placeholder">
@@ -783,6 +810,10 @@ class GlassCameraCarouselCard extends BaseCard {
         position: absolute; inset: 0; width: 100%; height: 100%;
         object-fit: cover; z-index: 0;
       }
+      .cam-stream {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        z-index: 0; --video-object-fit: cover;
+      }
 
       /* — Stream overlays — */
       .stream-overlay-top {
@@ -830,9 +861,13 @@ class GlassCameraCarouselCard extends BaseCard {
       .stream-ai-tag ha-icon { display: flex; align-items: center; justify-content: center; }
       .stream-placeholder {
         display: flex; flex-direction: column; align-items: center; gap: 6px;
-        z-index: 1;
+        z-index: 3; background: none; border: none; padding: 0; cursor: pointer;
+        outline: none; -webkit-tap-highlight-color: transparent;
+        font-family: inherit;
       }
+      .stream-placeholder:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 4px; border-radius: var(--radius-md); }
       .stream-placeholder span { font-size: 10px; color: var(--t4); font-weight: 500; }
+      button.stream-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; justify-content: center; }
 
       /* — Nav arrows — */
       .carousel-nav {

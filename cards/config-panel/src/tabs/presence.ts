@@ -320,7 +320,7 @@ export function getAvailablePersonEntities(self: GlassConfigPanel): { entityId: 
   return Object.keys(self.hass.states)
     .filter((id) => id.startsWith('person.'))
     .map((id) => {
-      const entity = self.hass!.states[id];
+      const entity = self.hass?.states[id];
       const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
       return { entityId: id, name };
     })
@@ -336,7 +336,7 @@ export function getAvailableSmartphoneSensors(self: GlassConfigPanel): { entityI
       id.includes('pixel') || id.includes('oneplus')
     ))
     .map((id) => {
-      const entity = self.hass!.states[id];
+      const entity = self.hass?.states[id];
       const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
       return { entityId: id, name };
     })
@@ -348,7 +348,7 @@ export function getAvailableDrivingSensors(self: GlassConfigPanel): { entityId: 
   return Object.keys(self.hass.states)
     .filter((id) => id.startsWith('binary_sensor.'))
     .map((id) => {
-      const entity = self.hass!.states[id];
+      const entity = self.hass?.states[id];
       const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
       return { entityId: id, name };
     })

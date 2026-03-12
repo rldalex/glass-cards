@@ -1009,7 +1009,7 @@ export class GlassLightCard extends BaseCard {
     const ids = this._getLightIds();
     // Build fingerprint from tracked entities' state + last_updated
     const fp = ids.map((id) => {
-      const e = this.hass!.states[id];
+      const e = this.hass?.states[id];
       return e ? `${id}:${e.state}:${e.last_updated}` : `${id}:-`;
     }).join('|');
     if (fp === this._lightsFingerprint && this._cachedLightsResult) {
@@ -1020,7 +1020,7 @@ export class GlassLightCard extends BaseCard {
     // Dashboard mode: filter to ON lights only and sort by name
     if (this._isDashboardMode) {
       result = ids
-        .map((id) => this.hass!.states[id])
+        .map((id) => this.hass?.states[id])
         .filter((e): e is HassEntity => !!e && e.state === 'on' && isEntityVisibleNow(e.entity_id, this._schedules))
         .sort((a, b) => {
           const nameA = (a.attributes.friendly_name as string) || a.entity_id;
@@ -1029,7 +1029,7 @@ export class GlassLightCard extends BaseCard {
         });
     } else {
       result = ids
-        .map((id) => this.hass!.states[id])
+        .map((id) => this.hass?.states[id])
         .filter((s): s is HassEntity => s !== undefined);
     }
     this._cachedLightsResult = result;

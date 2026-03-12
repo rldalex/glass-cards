@@ -1947,7 +1947,7 @@ export class GlassConfigPanel extends LitElement {
       picker.hass = this.hass;
       picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
       try {
-        this.shadowRoot!.appendChild(picker);
+        this.shadowRoot?.appendChild(picker);
         await new Promise((r) => setTimeout(r, 50));
         const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
         if (gp?.getItems) {

@@ -42,7 +42,7 @@ export function renderTitlePreview(self: GlassConfigPanel) {
       }
     } else if (src.source_type === 'booleans' && self.hass) {
       for (const mode of src.modes) {
-        if (self.hass!.states[mode.id]?.state === 'on') {
+        if (self.hass?.states[mode.id]?.state === 'on') {
           const c = mode.color || 'success';
           if (c !== 'neutral') activeColors.push(c);
         }
@@ -428,7 +428,7 @@ export function renderIconPopup(self: GlassConfigPanel) {
               <button
                 class="icon-pick ${currentIcon === '' ? 'selected' : ''}"
                 @click=${() => {
-                  self._updateTitleMode(self._iconPopupModeIdx!, 'icon', '');
+                  if (self._iconPopupModeIdx != null) self._updateTitleMode(self._iconPopupModeIdx, 'icon', '');
                   self._iconPopupModeIdx = null;
                 }}
                 aria-label=${t('config.title_no_icon')}
@@ -439,7 +439,7 @@ export function renderIconPopup(self: GlassConfigPanel) {
                 <button
                   class="icon-pick ${icon === currentIcon ? 'selected' : ''}"
                   @click=${() => {
-                    self._updateTitleMode(self._iconPopupModeIdx!, 'icon', icon);
+                    if (self._iconPopupModeIdx != null) self._updateTitleMode(self._iconPopupModeIdx, 'icon', icon);
                     self._iconPopupModeIdx = null;
                   }}
                   aria-label=${icon}
