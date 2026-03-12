@@ -178,6 +178,7 @@ export class GlassMediaCard extends BaseCard {
     this._samplingCanvas = undefined;
     this._samplingCtx = undefined;
     delete this.dataset.bgLight;
+    this.style.removeProperty('--c-accent-dynamic');
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -214,6 +215,7 @@ export class GlassMediaCard extends BaseCard {
     if (!img) {
       this._lastArtworkUrl = '';
       delete this.dataset.bgLight;
+      this.style.removeProperty('--c-accent-dynamic');
       return;
     }
     if (!img.complete || img.naturalWidth === 0) {
@@ -249,9 +251,28 @@ export class GlassMediaCard extends BaseCard {
       } else {
         delete this.dataset.bgLight;
       }
+
+      // Extract dominant saturated color for accent
+      let rSum = 0, gSum = 0, bSum = 0, satCount = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255;
+        const l = (mx + mn) / 2;
+        const sat = mx === mn ? 0 : l > 0.5 ? (mx - mn) / (2 - mx - mn) : (mx - mn) / (mx + mn);
+        if (sat < 0.15) continue;
+        rSum += r * sat; gSum += g * sat; bSum += b * sat;
+        satCount += sat;
+      }
+      if (satCount > 0) {
+        const accent = `rgb(${Math.round(rSum / satCount)}, ${Math.round(gSum / satCount)}, ${Math.round(bSum / satCount)})`;
+        this.style.setProperty('--c-accent-dynamic', accent);
+      } else {
+        this.style.removeProperty('--c-accent-dynamic');
+      }
     } catch {
       // CORS tainted canvas — cannot read pixels, remove attribute
       delete this.dataset.bgLight;
+      this.style.removeProperty('--c-accent-dynamic');
     }
   }
 
@@ -1349,7 +1370,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-progress-fill {
         position: absolute; top: 0; left: 0; height: 100%;
         border-radius: inherit;
-        background: var(--mp-color);
+        background: var(--c-accent-dynamic, var(--mp-color));
         box-shadow: 0 0 8px var(--mp-glow);
         transition: width 0.3s linear;
         pointer-events: none;
@@ -1392,7 +1413,7 @@ export class GlassMediaCard extends BaseCard {
       .transport-main {
         width: 52px; height: 52px; border-radius: 16px;
         background: var(--mp-bg); border: 1px solid var(--mp-border);
-        color: var(--mp-color);
+        color: var(--c-accent-dynamic, var(--mp-color));
       }
       .transport-main ha-icon { --mdc-icon-size: 28px; }
       @media (hover: hover) and (pointer: fine) {
