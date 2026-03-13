@@ -29,6 +29,7 @@ import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, select
 import { renderTitlePreview, renderTitleTab, renderIconPopup, renderColorPicker, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons, openColorPicker, closeColorPicker, applyColorPicker, onCpWheel } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
 import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
+import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, type EntityAreaEntry } from './tabs/unassigned';
 
 
 // — Component —
@@ -151,6 +152,12 @@ export class GlassConfigPanel extends LitElement {
   @state() _cameraCycleInterval = 10;
   @state() _cameraEntityOrder: string[] = [];
 
+  // Entity area assignment
+  @state() _unassignedEntities: EntityAreaEntry[] = [];
+  @state() _unassignedDropdownEntity: string | null = null;
+  @state() _unassignedEntitySearch = '';
+  @state() _unassignedAreaSearch = '';
+
   // Dashboard config
   @state() _dashboardEnabledCards: string[] = ['weather'];
   @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
@@ -254,7 +261,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -272,6 +279,7 @@ export class GlassConfigPanel extends LitElement {
     this._mediaRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
+    this._unassignedDropdownEntity = null;
     this._tabSelectOpen = false;
     this._tabSearch = '';
   }
@@ -716,6 +724,7 @@ export class GlassConfigPanel extends LitElement {
     this._mediaAddDropdownOpen = false;
     this._spotifyDropdownOpen = false;
     this._presenceDropdownOpen = null;
+    this._unassignedDropdownEntity = null;
     this._iconPopupModeIdx = null;
     this._colorPickerModeIdx = null;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
@@ -736,6 +745,9 @@ export class GlassConfigPanel extends LitElement {
     }
     if ((tab === 'cover' || tab === 'dashboard') && this._coverDashboardOrder.length === 0) {
       this._initCoverDashboardOrder();
+    }
+    if (tab === 'unassigned') {
+      this._loadUnassignedEntities();
     }
   }
 
@@ -926,6 +938,8 @@ export class GlassConfigPanel extends LitElement {
       this._savePresence();
     } else if (this._tab === 'camera_carousel') {
       this._saveCameraCarousel();
+    } else if (this._tab === 'unassigned') {
+      // No save — assignments go directly to HA entity registry
     } else {
       this._saveDashboard();
     }
@@ -1989,6 +2003,21 @@ export class GlassConfigPanel extends LitElement {
 
   _renderTitleTab() { return renderTitleTab(this); }
 
+  // — Unassigned entities —
+
+  _renderUnassignedPreview() { return renderUnassignedPreview(this); }
+
+  _renderUnassignedTab() { return renderUnassignedTab(this); }
+
+  _loadUnassignedEntities() {
+    this._unassignedEntities = collectAllEntities(this);
+    this._unassignedDropdownEntity = null;
+    this._unassignedEntitySearch = '';
+    this._unassignedAreaSearch = '';
+  }
+
+  _assignEntityArea(entityId: string, areaId: string) { assignEntityArea(this, entityId, areaId); }
+
   // — Tab Select —
 
   private static _TAB_META: { id: TabId; icon: string; labelKey: Parameters<typeof t>[0] }[] = [
@@ -2004,6 +2033,7 @@ export class GlassConfigPanel extends LitElement {
     { id: 'spotify', icon: 'mdi:spotify', labelKey: 'config.tab_spotify' },
     { id: 'presence', icon: 'mdi:account-group', labelKey: 'config.tab_presence' },
     { id: 'camera_carousel', icon: 'mdi:cctv', labelKey: 'config.tab_camera_carousel' },
+    { id: 'unassigned', icon: 'mdi:home-map-marker', labelKey: 'config.tab_unassigned' },
   ];
 
   _renderTabSelect() {
@@ -2070,7 +2100,7 @@ export class GlassConfigPanel extends LitElement {
         <div class="glass config-panel">
           ${this._renderTabSelect()}
 
-          <div class="preview-encart">
+          ${this._tab === 'unassigned' ? nothing : html`<div class="preview-encart">
             <div class="preview-label">${t('config.preview')}</div>
             ${this._tab === 'navbar'
               ? this._renderNavbarPreview()
@@ -2095,7 +2125,7 @@ export class GlassConfigPanel extends LitElement {
                               : this._tab === 'camera_carousel'
                                 ? this._renderCameraCarouselPreview()
                                 : this._renderDashboardPreview()}
-          </div>
+          </div>`}
 
           ${this._tab === 'navbar'
             ? this._renderNavbarTab()
@@ -2119,7 +2149,9 @@ export class GlassConfigPanel extends LitElement {
                             ? this._renderPresenceTab()
                             : this._tab === 'camera_carousel'
                               ? this._renderCameraCarouselTab()
-                              : this._renderDashboardTab()}
+                              : this._tab === 'unassigned'
+                                ? this._renderUnassignedTab()
+                                : this._renderDashboardTab()}
         </div>
       </div>
 

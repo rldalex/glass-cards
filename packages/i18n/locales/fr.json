@@ -581,6 +581,15 @@
     "spotify_setup_step4": "Une entité media_player.spotify_* apparaîtra automatiquement",
     "spotify_setup_note": "Un compte Spotify Premium est requis pour les contrôles de lecture.",
     "spotify_checking": "Vérification de la connexion Spotify…",
-    "spotify_open_settings": "Ouvrir les paramètres"
+    "spotify_open_settings": "Ouvrir les paramètres",
+
+    "tab_unassigned": "Assignation pièces",
+    "unassigned_desc": "Assignez ou réassignez vos entités à une pièce pour qu'elles apparaissent dans les popups correspondants.",
+    "unassigned_none": "Toutes les entités sont assignées à une pièce.",
+    "unassigned_no_entities": "Aucune entité détectée.",
+    "unassigned_select_area": "Non assignée",
+    "unassigned_assigned": "Assignée",
+    "unassigned_count": "{count} entité(s) sans pièce",
+    "unassigned_no_results": "Aucun résultat."
   }
 }

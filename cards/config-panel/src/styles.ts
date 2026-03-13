@@ -3115,4 +3115,5 @@ export const configPanelStyles: CSSResult = css`
       /* ── Utility spacing ── */
       .mt-12 { margin-top: 12px; }
       .mb-8 { margin-bottom: 8px; }
+
 `;

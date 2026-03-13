@@ -581,6 +581,15 @@
     "spotify_setup_step4": "A media_player.spotify_* entity will appear automatically",
     "spotify_setup_note": "A Spotify Premium account is required for playback controls.",
     "spotify_checking": "Checking Spotify connection…",
-    "spotify_open_settings": "Open settings"
+    "spotify_open_settings": "Open settings",
+
+    "tab_unassigned": "Room assignment",
+    "unassigned_desc": "Assign or reassign your entities to a room so they appear in the corresponding popups.",
+    "unassigned_none": "All entities are assigned to a room.",
+    "unassigned_no_entities": "No entities detected.",
+    "unassigned_select_area": "Unassigned",
+    "unassigned_assigned": "Assigned",
+    "unassigned_count": "{count} unassigned entity(ies)",
+    "unassigned_no_results": "No results."
   }
 }
