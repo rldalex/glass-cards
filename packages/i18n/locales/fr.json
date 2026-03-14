@@ -146,7 +146,10 @@
     "humidity_up_aria": "Augmenter humidité",
     "humidity_down_aria": "Diminuer humidité",
     "range_low_aria": "Température minimale",
-    "range_high_aria": "Température maximale"
+    "range_high_aria": "Température maximale",
+    "no_climates": "Aucun climatiseur",
+    "turn_on_aria": "Allumer",
+    "turn_off_aria": "Éteindre"
   },
 
   "fan": {

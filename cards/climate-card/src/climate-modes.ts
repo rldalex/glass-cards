@@ -87,7 +87,7 @@ export function renderHvacModes(
         const active = mode === current;
         const color = HVAC_COLORS[mode] || 'var(--t4)';
         const icon = HVAC_ICONS[mode] || 'mdi:thermostat';
-        const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as any) : mode;
+        const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as Parameters<typeof t>[0]) : mode;
         return html`
           <button
             class="chip ${active ? 'active' : ''}"
@@ -121,7 +121,7 @@ export function renderPresets(
       ${presets.map((preset) => {
         const active = preset === current;
         const icon = PRESET_ICONS[preset] || 'mdi:tune';
-        const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as any) : preset;
+        const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as Parameters<typeof t>[0]) : preset;
         return html`
           <button
             class="chip ${active ? 'active' : ''}"
