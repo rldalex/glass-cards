@@ -7,6 +7,7 @@ export function renderDashboardPreview(self: GlassConfigPanel) {
   const CARD_META: Record<string, { icon: string; label: string; titleStyle?: string }> = {
     title: { icon: 'mdi:format-title', label: self._titleText || t('config.title_title_placeholder'), titleStyle: 'font-size:11px;font-weight:700;color:var(--t1);' },
     weather: { icon: 'mdi:weather-partly-cloudy', label: t('weather.title') },
+    climate: { icon: 'mdi:thermostat', label: t('climate.title') },
     light: { icon: 'mdi:lightbulb-group', label: t('light.title') },
     media: { icon: 'mdi:speaker', label: t('media.title') },
     fan: { icon: 'mdi:fan', label: t('fan.title') },
@@ -45,6 +46,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
   const CARD_META: Record<string, { icon: string; nameKey: Parameters<typeof t>[0]; descKey: Parameters<typeof t>[0]; hasSub: boolean }> = {
     title: { icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', descKey: 'config.dashboard_card_title_desc', hasSub: false },
     weather: { icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', descKey: 'config.dashboard_card_weather_desc', hasSub: true },
+    climate: { icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', descKey: 'config.dashboard_card_climate_desc', hasSub: false },
     light: { icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', descKey: 'config.dashboard_card_light_desc', hasSub: true },
     cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
     spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
