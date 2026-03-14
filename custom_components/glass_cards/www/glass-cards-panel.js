@@ -3137,6 +3137,9 @@
       @media (hover: hover) and (pointer: fine) {
         .entity-name-btn:hover ha-icon { opacity: 1; }
       }
+      @media (pointer: coarse) {
+        .entity-name-btn ha-icon { opacity: 0.35; }
+      }
       .entity-rename-input {
         width: 100%;
         font: inherit;
@@ -3702,8 +3705,8 @@
                         class="entity-rename-input"
                         .value=${t.name}
                         aria-label="${Ee("config.unassigned_rename")}"
-                        @blur=${i=>e._renameEntity(t.entityId,i.target.value)}
-                        @keydown=${t=>{"Enter"===t.key&&t.target.blur(),"Escape"===t.key&&(e._unassignedEditingEntity=null)}}
+                        @blur=${i=>{const a=i.target;a.dataset.cancelled||e._renameEntity(t.entityId,a.value)}}
+                        @keydown=${t=>{"Enter"===t.key&&t.target.blur(),"Escape"===t.key&&(t.target.dataset.cancelled="1",e._unassignedEditingEntity=null)}}
                         @focus=${e=>e.target.select()}
                       />
                     `:q`
@@ -3711,6 +3714,7 @@
                         class="item-name entity-name-btn"
                         @click=${()=>{e._unassignedEditingEntity=t.entityId,e.updateComplete.then(()=>{const t=e.shadowRoot?.querySelector(".entity-rename-input");t?.focus()})}}
                         title="${Ee("config.unassigned_rename")}"
+                        aria-label="${Ee("config.unassigned_rename")}: ${t.name}"
                       >
                         ${t.name}
                         <ha-icon .icon=${"mdi:pencil"} style="--mdc-icon-size:11px;color:var(--t4);margin-left:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>
@@ -6082,7 +6086,7 @@
         </button>
       </div>
     </div>
-  `}(this)}_renderTitleTab(){return Ye(this)}_renderUnassignedPreview(){return F}_renderUnassignedTab(){return Je(this)}_loadUnassignedEntities(){this._unassignedEntities=function(e){if(!e.hass)return[];const t=e.hass.entities,i=e.hass.devices,a=e.hass.areas,o=[];for(const r of Object.values(t)){if(r.disabled_by||r.hidden_by)continue;const t=r.entity_id.split(".")[0];if(!Xe.includes(t))continue;const n=Ie(r,i),s=e.hass.states[r.entity_id],d=s?.attributes?.friendly_name??r.entity_id,c=n?a[n]?.name??null:null;o.push({entityId:r.entity_id,name:d,domain:t,areaId:n,areaName:c})}return o.sort((e,t)=>{const i=e.areaId?1:0,a=t.areaId?1:0;if(i!==a)return i-a;const o=Xe.indexOf(e.domain)-Xe.indexOf(t.domain);return 0!==o?o:e.name.localeCompare(t.name)}),o}(this),this._unassignedDropdownEntity=null,this._unassignedEditingEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch=""}_assignEntityArea(e,t){!async function(e,t,i){if(e.hass)try{await e.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,area_id:i}),e._unassignedEntities=e._unassignedEntities.map(a=>a.entityId===t?{...a,areaId:i,areaName:e.hass?.areas[i]?.name??null}:a),e._unassignedDropdownEntity=null,e._unassignedAreaSearch=""}catch{e._showToast(!0)}}(this,e,t)}_renameEntity(e,t){!async function(e,t,i){if(!e.hass)return;const a=i.trim();if(!a)return;const o=e._unassignedEntities.find(e=>e.entityId===t);if(o&&o.name===a)e._unassignedEditingEntity=null;else{try{await e.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,name:a}),e._unassignedEntities=e._unassignedEntities.map(e=>e.entityId===t?{...e,name:a}:e)}catch{e._showToast(!0)}e._unassignedEditingEntity=null}}(this,e,t)}static{this._TAB_META=[{id:"dashboard",icon:"mdi:view-dashboard",labelKey:"config.tab_dashboard"},{id:"title",icon:"mdi:format-title",labelKey:"config.tab_title"},{id:"navbar",icon:"mdi:dock-bottom",labelKey:"config.tab_navbar"},{id:"popup",icon:"mdi:card-outline",labelKey:"config.tab_popup"},{id:"light",icon:"mdi:lightbulb-group",labelKey:"config.tab_light"},{id:"weather",icon:"mdi:weather-partly-cloudy",labelKey:"config.tab_weather"},{id:"media",icon:"mdi:speaker",labelKey:"config.tab_media"},{id:"cover",icon:"mdi:blinds",labelKey:"config.tab_cover"},{id:"fan",icon:"mdi:fan",labelKey:"config.tab_fan"},{id:"spotify",icon:"mdi:spotify",labelKey:"config.tab_spotify"},{id:"presence",icon:"mdi:account-group",labelKey:"config.tab_presence"},{id:"camera_carousel",icon:"mdi:cctv",labelKey:"config.tab_camera_carousel"},{id:"unassigned",icon:"mdi:home-map-marker",labelKey:"config.tab_unassigned"}]}_renderTabSelect(){const t=e._TAB_META.find(e=>e.id===this._tab),i=this._tabSearch.toLowerCase();return q`
+  `}(this)}_renderTitleTab(){return Ye(this)}_renderUnassignedPreview(){return F}_renderUnassignedTab(){return Je(this)}_loadUnassignedEntities(){this._unassignedEntities=function(e){if(!e.hass)return[];const t=e.hass.entities,i=e.hass.devices,a=e.hass.areas,o=[];for(const r of Object.values(t)){if(r.disabled_by||r.hidden_by)continue;const t=r.entity_id.split(".")[0];if(!Xe.includes(t))continue;const n=Ie(r,i),s=e.hass.states[r.entity_id],d=s?.attributes?.friendly_name??r.entity_id,c=n?a[n]?.name??null:null;o.push({entityId:r.entity_id,name:d,domain:t,areaId:n,areaName:c})}return o.sort((e,t)=>{const i=e.areaId?1:0,a=t.areaId?1:0;if(i!==a)return i-a;const o=Xe.indexOf(e.domain)-Xe.indexOf(t.domain);return 0!==o?o:e.name.localeCompare(t.name)}),o}(this),this._unassignedDropdownEntity=null,this._unassignedEditingEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch=""}_assignEntityArea(e,t){!async function(e,t,i){if(e.hass)try{await e.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,area_id:i}),e._unassignedEntities=e._unassignedEntities.map(a=>a.entityId===t?{...a,areaId:i,areaName:e.hass?.areas[i]?.name??null}:a),e._unassignedDropdownEntity=null,e._unassignedAreaSearch=""}catch{e._showToast(!0)}}(this,e,t)}_renameEntity(e,t){!async function(e,t,i){if(!e.hass)return;const a=i.trim();if(!a)return void(e._unassignedEditingEntity=null);const o=e._unassignedEntities.find(e=>e.entityId===t);if(o&&o.name===a)e._unassignedEditingEntity=null;else{try{await e.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,name:a}),e._unassignedEntities=e._unassignedEntities.map(e=>e.entityId===t?{...e,name:a}:e)}catch{e._showToast(!0)}e._unassignedEditingEntity=null}}(this,e,t)}static{this._TAB_META=[{id:"dashboard",icon:"mdi:view-dashboard",labelKey:"config.tab_dashboard"},{id:"title",icon:"mdi:format-title",labelKey:"config.tab_title"},{id:"navbar",icon:"mdi:dock-bottom",labelKey:"config.tab_navbar"},{id:"popup",icon:"mdi:card-outline",labelKey:"config.tab_popup"},{id:"light",icon:"mdi:lightbulb-group",labelKey:"config.tab_light"},{id:"weather",icon:"mdi:weather-partly-cloudy",labelKey:"config.tab_weather"},{id:"media",icon:"mdi:speaker",labelKey:"config.tab_media"},{id:"cover",icon:"mdi:blinds",labelKey:"config.tab_cover"},{id:"fan",icon:"mdi:fan",labelKey:"config.tab_fan"},{id:"spotify",icon:"mdi:spotify",labelKey:"config.tab_spotify"},{id:"presence",icon:"mdi:account-group",labelKey:"config.tab_presence"},{id:"camera_carousel",icon:"mdi:cctv",labelKey:"config.tab_camera_carousel"},{id:"unassigned",icon:"mdi:home-map-marker",labelKey:"config.tab_unassigned"}]}_renderTabSelect(){const t=e._TAB_META.find(e=>e.id===this._tab),i=this._tabSearch.toLowerCase();return q`
       <div class="tab-select-wrap ${this._tabSelectOpen?"open":""}">
         <button
           class="tab-select-trigger"

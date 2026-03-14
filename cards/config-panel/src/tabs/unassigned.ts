@@ -88,7 +88,10 @@ export async function assignEntityArea(self: GlassConfigPanel, entityId: string,
 export async function renameEntity(self: GlassConfigPanel, entityId: string, newName: string) {
   if (!self.hass) return;
   const trimmed = newName.trim();
-  if (!trimmed) return;
+  if (!trimmed) {
+    self._unassignedEditingEntity = null;
+    return;
+  }
   // Find current name — skip if unchanged
   const current = self._unassignedEntities.find((e) => e.entityId === entityId);
   if (current && current.name === trimmed) {
@@ -204,10 +207,17 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
                         class="entity-rename-input"
                         .value=${e.name}
                         aria-label="${t('config.unassigned_rename')}"
-                        @blur=${(ev: FocusEvent) => self._renameEntity(e.entityId, (ev.target as HTMLInputElement).value)}
+                        @blur=${(ev: FocusEvent) => {
+                          const input = ev.target as HTMLInputElement;
+                          if (input.dataset.cancelled) return;
+                          self._renameEntity(e.entityId, input.value);
+                        }}
                         @keydown=${(ev: KeyboardEvent) => {
                           if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur();
-                          if (ev.key === 'Escape') { self._unassignedEditingEntity = null; }
+                          if (ev.key === 'Escape') {
+                            (ev.target as HTMLInputElement).dataset.cancelled = '1';
+                            self._unassignedEditingEntity = null;
+                          }
                         }}
                         @focus=${(ev: FocusEvent) => (ev.target as HTMLInputElement).select()}
                       />
@@ -222,6 +232,7 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
                           });
                         }}
                         title="${t('config.unassigned_rename')}"
+                        aria-label="${t('config.unassigned_rename')}: ${e.name}"
                       >
                         ${e.name}
                         <ha-icon .icon=${'mdi:pencil'} style="--mdc-icon-size:11px;color:var(--t4);margin-left:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>

@@ -3139,6 +3139,9 @@ export const configPanelStyles: CSSResult = css`
       @media (hover: hover) and (pointer: fine) {
         .entity-name-btn:hover ha-icon { opacity: 1; }
       }
+      @media (pointer: coarse) {
+        .entity-name-btn ha-icon { opacity: 0.35; }
+      }
       .entity-rename-input {
         width: 100%;
         font: inherit;
