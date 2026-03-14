@@ -3,56 +3,6 @@ import { t } from '@glass-cards/i18n';
 import type { HassEntity } from '@glass-cards/base-card';
 import { CF } from './climate-modes';
 
-// — Temperature Stepper —
-
-export function renderTempStepper(
-  entity: HassEntity,
-  unit: string,
-  onChangeTemp: (temp: number) => void,
-  pendingTarget?: number,
-): TemplateResult | typeof nothing {
-  const state = entity.state;
-  if (state === 'off' || state === 'fan_only') return nothing;
-
-  const features = (entity.attributes.supported_features as number) || 0;
-  if (!(features & CF.TARGET_TEMPERATURE)) return nothing;
-
-  // In heat_cool mode with range support, don't show single stepper
-  if (state === 'heat_cool' && (features & CF.TARGET_TEMPERATURE_RANGE)) return nothing;
-
-  const target = pendingTarget ?? (entity.attributes.temperature as number | undefined);
-  const step = (entity.attributes.target_temp_step as number) || 0.5;
-  const min = (entity.attributes.min_temp as number) || 7;
-  const max = (entity.attributes.max_temp as number) || 35;
-
-  if (target == null) return nothing;
-
-  return html`
-    <div class="stepper-row">
-      <span class="stepper-label">${t('climate.target')}</span>
-      <div class="stepper">
-        <button
-          class="btn-icon xs"
-          @click=${() => onChangeTemp(Math.max(min, target - step))}
-          aria-label=${t('climate.temp_down_aria')}
-          ?disabled=${target <= min}
-        >
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
-        <span class="stepper-value">${target.toFixed(1)}${unit}</span>
-        <button
-          class="btn-icon xs"
-          @click=${() => onChangeTemp(Math.min(max, target + step))}
-          aria-label=${t('climate.temp_up_aria')}
-          ?disabled=${target >= max}
-        >
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
-      </div>
-    </div>
-  `;
-}
-
 // — Range Slider (dual-thumb for heat_cool mode) —
 
 export interface RangeSliderState {

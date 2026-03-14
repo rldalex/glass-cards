@@ -1732,6 +1732,12 @@ export class GlassConfigPanel extends LitElement {
         notify_services: this._presenceNotifyServices,
         driving_sensors: this._presenceDrivingSensors,
       });
+      await this._backend.send('set_climate_config', {
+        show_header: this._climateShowHeader,
+        display_mode: this._climateDisplayMode,
+        dashboard_display_mode: this._climateDashboardDisplayMode,
+        dashboard_entities: this._climateDashboardEntities,
+      });
       if (!this._mounted) return;
       this._showToast();
       bus.emit('dashboard-config-changed', undefined);
@@ -1742,6 +1748,7 @@ export class GlassConfigPanel extends LitElement {
       bus.emit('spotify-config-changed', undefined);
       bus.emit('media-config-changed', undefined);
       bus.emit('presence-config-changed', undefined);
+      bus.emit('climate-config-changed', undefined);
     } catch {
       this._showToast(true);
     } finally {

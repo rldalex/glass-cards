@@ -19,6 +19,7 @@ import {
 import {
   CF,
   HVAC_ICONS,
+  ACTION_LABELS,
   renderHvacModes,
   renderPresets,
   renderFanModes,
@@ -28,15 +29,6 @@ import { renderArcGauge } from './climate-arc';
 import { ThermalCanvas } from './climate-canvas';
 
 // — Constants —
-
-const ACTION_LABELS: Record<string, string> = {
-  heating: 'climate.action_heating',
-  cooling: 'climate.action_cooling',
-  idle: 'climate.action_idle',
-  off: 'climate.action_off',
-  drying: 'climate.action_drying',
-  preheating: 'climate.action_heating',
-};
 
 const ACTION_ORDER: Record<string, number> = { heating: 0, cooling: 1, idle: 2, off: 3 };
 
@@ -63,6 +55,7 @@ export class GlassClimateCard extends BaseCard {
   // Shared state
   @state() private _showHeader = true;
   @state() private _displayMode: 'list' | 'normal' = 'list';
+  @state() private _configReady = false;
 
   // List mode state
   @state() private _expanded: string | null = null;
@@ -248,10 +241,10 @@ export class GlassClimateCard extends BaseCard {
         this._dashboardEntities = result.climate_card.dashboard_entities ?? [];
         this._cachedClimateIds = undefined;
         this._cachedClimatesFingerprint = '';
-        this.requestUpdate();
       }
+      this._configReady = true;
     } catch {
-      // Backend not available
+      this._configReady = true;
     }
   }
 
@@ -298,11 +291,12 @@ export class GlassClimateCard extends BaseCard {
     if (!areas || areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
+      const backend = this._backend;
       const hidden = new Set<string>();
-      for (const aId of areas) {
-        const result = await this._backend.send<{
-          hidden_entities: string[];
-        } | null>('get_room', { area_id: aId });
+      const results = await Promise.all(
+        areas.map((aId) => backend.send<{ hidden_entities: string[] } | null>('get_room', { area_id: aId })),
+      );
+      for (const result of results) {
         if (result?.hidden_entities) {
           for (const id of result.hidden_entities) hidden.add(id);
         }
@@ -327,6 +321,7 @@ export class GlassClimateCard extends BaseCard {
     this._cachedClimatesFingerprint = '';
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
+    this._pendingTemps.clear();
   }
 
   // — Entity discovery —
@@ -447,7 +442,7 @@ export class GlassClimateCard extends BaseCard {
     if (!this.hass) return;
     this._pendingTemps.set(`temp_${entityId}`, temp);
     this.requestUpdate();
-    const key = `temp:${entityId}`;
+    const key = `temp_throttle_${entityId}`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
@@ -459,7 +454,7 @@ export class GlassClimateCard extends BaseCard {
 
   private _setTemperatureRange(entityId: string, low: number, high: number): void {
     if (!this.hass) return;
-    const key = `range:${entityId}`;
+    const key = `range_throttle_${entityId}`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
@@ -475,7 +470,7 @@ export class GlassClimateCard extends BaseCard {
     if (!this.hass) return;
     this._pendingTemps.set(`humidity_${entityId}`, humidity);
     this.requestUpdate();
-    const key = `hum:${entityId}`;
+    const key = `humidity_throttle_${entityId}`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
@@ -636,6 +631,7 @@ export class GlassClimateCard extends BaseCard {
 
   protected render() {
     void this._lang;
+    if (!this._configReady) return nothing;
     const climates = this._getClimates();
 
     if (this._isDashboardMode) {
@@ -878,8 +874,13 @@ export class GlassClimateCard extends BaseCard {
   // ════════════════════════════════════════════════════════════════
 
   private _renderNormalMode(climates: HassEntity[]): TemplateResult {
-    const selectedId = this._selectedEntity || climates[0]?.entity_id;
-    const entity = climates.find((c) => c.entity_id === selectedId) || climates[0];
+    const sorted = [...climates].sort((a, b) => {
+      const aAction = this._getHvacAction(a);
+      const bAction = this._getHvacAction(b);
+      return (ACTION_ORDER[aAction] ?? 3) - (ACTION_ORDER[bAction] ?? 3);
+    });
+    const selectedId = this._selectedEntity || sorted[0]?.entity_id;
+    const entity = sorted.find((c) => c.entity_id === selectedId) || sorted[0];
     if (!entity) return html``;
 
     const hvacAction = this._getHvacAction(entity);
@@ -1083,14 +1084,14 @@ export class GlassClimateCard extends BaseCard {
       background: radial-gradient(ellipse at 30% 30%, var(--cl-auto), transparent 70%);
     }
     /* Normal mode centers the tint */
-    .normal-mode .tint.heat,
-    .normal-mode .tint.cool {
+    .normal-mode .tint.heat {
       background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+      opacity: 0.15;
     }
     .normal-mode .tint.cool {
       background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+      opacity: 0.15;
     }
-    .normal-mode .tint.heat, .normal-mode .tint.cool { opacity: 0.15; }
     .normal-mode .tint.auto-tint {
       background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
     }

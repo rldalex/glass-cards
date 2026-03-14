@@ -38,9 +38,20 @@ export const HVAC_COLORS: Record<string, string> = {
   off: 'var(--t4)',
 };
 
+// — Action labels (shared with arc gauge) —
+
+export const ACTION_LABELS: Record<string, string> = {
+  heating: 'climate.action_heating',
+  cooling: 'climate.action_cooling',
+  idle: 'climate.action_idle',
+  off: 'climate.action_off',
+  drying: 'climate.action_drying',
+  preheating: 'climate.action_heating',
+};
+
 // — Preset icons —
 
-const PRESET_ICONS: Record<string, string> = {
+export const PRESET_ICONS: Record<string, string> = {
   eco: 'mdi:leaf',
   comfort: 'mdi:sofa',
   boost: 'mdi:rocket-launch',
@@ -62,7 +73,7 @@ const HVAC_I18N: Record<string, string> = {
   off: 'climate.mode_off',
 };
 
-const PRESET_I18N: Record<string, string> = {
+export const PRESET_I18N: Record<string, string> = {
   eco: 'climate.preset_eco',
   comfort: 'climate.preset_comfort',
   boost: 'climate.preset_boost',

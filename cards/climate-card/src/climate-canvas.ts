@@ -18,14 +18,18 @@ export class ThermalCanvas {
   private _particles: Particle[] = [];
   private _animFrame: number | null = null;
   private _currentAction = '';
+  private _width = 0;
+  private _height = 0;
 
   attach(canvas: HTMLCanvasElement): void {
     this._canvas = canvas;
   }
 
   update(hvacAction: string, width: number, height: number): void {
-    if (hvacAction === this._currentAction && this._animFrame) return;
+    if (hvacAction === this._currentAction && this._animFrame && width === this._width && height === this._height) return;
     this._currentAction = hvacAction;
+    this._width = width;
+    this._height = height;
     this.stop();
 
     if (hvacAction === 'off' || hvacAction === 'idle' || !hvacAction) {
@@ -72,16 +76,11 @@ export class ThermalCanvas {
 
         let alpha = p.opacity;
         if (p.life < 0.1) alpha *= p.life / 0.1;
-        if (p.life > 0.8) alpha *= (1 - p.life) / 0.2;
+        if (p.life > 0.8) alpha *= Math.max(0, (1 - p.life) / 0.2);
 
-        // Wrap around
-        if (isHeat && p.y < -10) {
-          p.y = h2 + 10;
-          p.x = Math.random() * w2;
-          p.life = 0;
-        }
-        if (!isHeat && p.y > h2 + 10) {
-          p.y = -10;
+        // Wrap around (boundary or life exhausted)
+        if ((isHeat && p.y < -10) || (!isHeat && p.y > h2 + 10) || p.life > 1) {
+          p.y = isHeat ? h2 + 10 : -10;
           p.x = Math.random() * w2;
           p.life = 0;
         }

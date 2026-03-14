@@ -6,6 +6,7 @@
 import { html, svg, nothing, type TemplateResult } from 'lit';
 import { t } from '@glass-cards/i18n';
 import type { HassEntity } from '@glass-cards/base-card';
+import { ACTION_LABELS, PRESET_ICONS, PRESET_I18N } from './climate-modes';
 
 // — Arc geometry constants —
 const CX = 120;
@@ -16,16 +17,7 @@ const END_ANGLE = 120;
 const TOTAL_ANGLE = END_ANGLE - START_ANGLE; // 240°
 const TICK_COUNT = 12;
 
-// — Action labels & icons —
-const ACTION_LABELS: Record<string, string> = {
-  heating: 'climate.action_heating',
-  cooling: 'climate.action_cooling',
-  idle: 'climate.action_idle',
-  off: 'climate.action_off',
-  drying: 'climate.action_drying',
-  preheating: 'climate.action_heating',
-};
-
+// — Action icons —
 const ACTION_ICONS: Record<string, string> = {
   heating: 'mdi:fire',
   cooling: 'mdi:snowflake',
@@ -33,15 +25,6 @@ const ACTION_ICONS: Record<string, string> = {
   off: 'mdi:power-standby',
   drying: 'mdi:water-percent',
   preheating: 'mdi:fire',
-};
-
-const PRESET_ICONS: Record<string, string> = {
-  eco: 'mdi:leaf',
-  comfort: 'mdi:sofa',
-  boost: 'mdi:rocket-launch',
-  away: 'mdi:home-export-outline',
-  sleep: 'mdi:bed',
-  none: 'mdi:circle-outline',
 };
 
 // — Geometry helpers —
@@ -172,7 +155,7 @@ export function renderArcGauge(entity: HassEntity): TemplateResult {
               ${presetMode && presetMode !== 'none' ? html`
                 ${humidity != null ? html`<span style="opacity:0.4">·</span>` : nothing}
                 <ha-icon .icon=${PRESET_ICONS[presetMode] || 'mdi:cog'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                <span>${presetMode.charAt(0).toUpperCase() + presetMode.slice(1)}</span>
+                <span>${PRESET_I18N[presetMode] ? t(PRESET_I18N[presetMode] as Parameters<typeof t>[0]) : presetMode}</span>
               ` : nothing}
             </div>
           ` : nothing}
