@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel", "climate"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -26,7 +26,7 @@ VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "climate", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence"]
 
 
 @dataclass
@@ -387,6 +387,38 @@ class FanCardConfig:
         return cls(show_header=bool(data.get("show_header", True)))
 
 
+@dataclass
+class ClimateConfig:
+    """Configuration for the climate card."""
+
+    show_header: bool = True
+    entity_order: list[str] = field(default_factory=list)
+    hidden_entities: list[str] = field(default_factory=list)
+    dashboard_entities: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "entity_order": self.entity_order,
+            "hidden_entities": self.hidden_entities,
+            "dashboard_entities": self.dashboard_entities,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ClimateConfig:
+        """Deserialize from dict."""
+        raw_order = data.get("entity_order", [])
+        raw_hidden = data.get("hidden_entities", [])
+        raw_dashboard = data.get("dashboard_entities", [])
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            entity_order=[str(x) for x in raw_order if isinstance(x, str)],
+            hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
+            dashboard_entities=[str(x) for x in raw_dashboard if isinstance(x, str)],
+        )
+
+
 DEFAULT_CAMERA_CYCLE_INTERVAL: int = 10
 
 DEFAULT_COVER_PRESETS: list[int] = [0, 25, 50, 75, 100]
@@ -680,6 +712,7 @@ class GlassCardsData:
     light_card: LightCardConfig = field(default_factory=LightCardConfig)
     fan_card: FanCardConfig = field(default_factory=FanCardConfig)
     cover_card: CoverCardConfig = field(default_factory=CoverCardConfig)
+    climate_card: ClimateConfig = field(default_factory=ClimateConfig)
     camera_carousel: CameraCarouselConfig = field(default_factory=CameraCarouselConfig)
     title_card: TitleCardConfig = field(default_factory=TitleCardConfig)
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
@@ -697,6 +730,7 @@ class GlassCardsData:
             "light_card": self.light_card.to_dict(),
             "fan_card": self.fan_card.to_dict(),
             "cover_card": self.cover_card.to_dict(),
+            "climate_card": self.climate_card.to_dict(),
             "camera_carousel": self.camera_carousel.to_dict(),
             "title_card": self.title_card.to_dict(),
             "spotify_card": self.spotify_card.to_dict(),
@@ -722,6 +756,7 @@ class GlassCardsData:
             light_card=LightCardConfig.from_dict(data.get("light_card", {})),
             fan_card=FanCardConfig.from_dict(data.get("fan_card", {})),
             cover_card=CoverCardConfig.from_dict(data.get("cover_card", {})),
+            climate_card=ClimateConfig.from_dict(data.get("climate_card", {})),
             camera_carousel=CameraCarouselConfig.from_dict(data.get("camera_carousel", {})),
             title_card=TitleCardConfig.from_dict(data.get("title_card", {})),
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
