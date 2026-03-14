@@ -46,7 +46,7 @@ export function renderDashboardTab(self: GlassConfigPanel) {
   const CARD_META: Record<string, { icon: string; nameKey: Parameters<typeof t>[0]; descKey: Parameters<typeof t>[0]; hasSub: boolean }> = {
     title: { icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', descKey: 'config.dashboard_card_title_desc', hasSub: false },
     weather: { icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', descKey: 'config.dashboard_card_weather_desc', hasSub: true },
-    climate: { icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', descKey: 'config.dashboard_card_climate_desc', hasSub: false },
+    climate: { icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', descKey: 'config.dashboard_card_climate_desc', hasSub: true },
     light: { icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', descKey: 'config.dashboard_card_light_desc', hasSub: true },
     cover: { icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', descKey: 'config.dashboard_card_cover_desc', hasSub: true },
     spotify: { icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', descKey: 'config.dashboard_card_spotify_desc', hasSub: true },
@@ -310,6 +310,47 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
                   </div>
                 `;
               })}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (key === 'climate') {
+    return html`
+      <div class="feature-sub ${open ? 'open' : ''}">
+        <div class="feature-sub-inner">
+          <div class="feature-sub-content">
+            <button
+              class="feature-row"
+              @click=${(e: Event) => { e.stopPropagation(); self._climateShowHeader = !self._climateShowHeader; }}
+              role="switch"
+              aria-checked=${self._climateShowHeader ? 'true' : 'false'}
+            >
+              <div class="feature-icon">
+                <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">${t('config.climate_show_header')}</div>
+                <div class="feature-desc">${t('config.climate_show_header_desc')}</div>
+              </div>
+              <span
+                class="toggle ${self._climateShowHeader ? 'on' : ''}"
+              ></span>
+            </button>
+            <div class="section-label" style="margin-top:10px;">${t('config.climate_display_mode')}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;padding:0 4px;">
+              <button class="chip ${self._climateDisplayMode === 'list' ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); self._climateDisplayMode = 'list'; }}>
+                <ha-icon .icon=${'mdi:format-list-bulleted'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                ${t('config.climate_mode_list')}
+              </button>
+              <button class="chip ${self._climateDisplayMode === 'normal' ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); self._climateDisplayMode = 'normal'; }}>
+                <ha-icon .icon=${'mdi:gauge'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                ${t('config.climate_mode_normal')}
+              </button>
             </div>
           </div>
         </div>
