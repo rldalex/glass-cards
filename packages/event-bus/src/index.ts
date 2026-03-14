@@ -12,6 +12,7 @@ export interface GlassEventMap {
   'light-config-changed': undefined;
   'fan-config-changed': undefined;
   'cover-config-changed': undefined;
+  'climate-config-changed': undefined;
   'title-config-changed': undefined;
   'spotify-config-changed': undefined;
   'media-config-changed': undefined;

@@ -22,6 +22,7 @@ export type TranslationKey =
   | `editor.${keyof typeof fr.editor}`
   | `fan.${keyof typeof fr.fan}`
   | `cover.${keyof typeof fr.cover}`
+  | `climate.${keyof typeof fr.climate}`
   | `spotify.${keyof typeof fr.spotify}`
   | `media.${keyof typeof fr.media}`
   | `presence.${keyof typeof fr.presence}`

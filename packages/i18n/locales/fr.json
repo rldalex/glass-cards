@@ -112,6 +112,43 @@
     "dc_damper": "Clapet"
   },
 
+  "climate": {
+    "title": "Climat",
+    "target": "Consigne",
+    "current": "Actuelle",
+    "range_low": "Min",
+    "range_high": "Max",
+    "humidity_target": "Humidité cible",
+    "aux_heat": "Chauffage auxiliaire",
+    "unavailable": "Indisponible",
+    "mode_heat": "Chauffage",
+    "mode_cool": "Climatisation",
+    "mode_heat_cool": "Auto chaud/froid",
+    "mode_auto": "Automatique",
+    "mode_dry": "Déshumidification",
+    "mode_fan_only": "Ventilation",
+    "mode_off": "Éteint",
+    "preset_eco": "Éco",
+    "preset_comfort": "Confort",
+    "preset_boost": "Boost",
+    "preset_away": "Absent",
+    "preset_sleep": "Nuit",
+    "preset_activity": "Activité",
+    "preset_none": "Aucun",
+    "fan_mode": "Ventilation",
+    "swing_mode": "Oscillation",
+    "open_all_aria": "Allumer tous les climatiseurs",
+    "close_all_aria": "Éteindre tous les climatiseurs",
+    "toggle_aria": "Basculer",
+    "expand_aria": "Détails",
+    "temp_up_aria": "Augmenter température",
+    "temp_down_aria": "Diminuer température",
+    "humidity_up_aria": "Augmenter humidité",
+    "humidity_down_aria": "Diminuer humidité",
+    "range_low_aria": "Température minimale",
+    "range_high_aria": "Température maximale"
+  },
+
   "fan": {
     "title": "Ventilation",
     "off": "Éteint",
@@ -495,6 +532,12 @@
 
     "dashboard_card_media": "Carte Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
+
+    "tab_climate": "Climat",
+    "climate_desc": "Configurez les entités climat par pièce",
+    "climate_no_entities": "Aucune entité climat dans cette pièce",
+    "dashboard_card_climate": "Climat",
+    "dashboard_card_climate_desc": "Thermostats et climatiseurs",
 
     "dashboard_card_fan": "Carte Ventilation",
     "dashboard_card_fan_desc": "Affiche les ventilateurs avec contrôle de vitesse",

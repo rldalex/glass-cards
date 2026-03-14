@@ -112,6 +112,43 @@
     "dc_damper": "Damper"
   },
 
+  "climate": {
+    "title": "Climate",
+    "target": "Target",
+    "current": "Current",
+    "range_low": "Low",
+    "range_high": "High",
+    "humidity_target": "Target humidity",
+    "aux_heat": "Auxiliary heat",
+    "unavailable": "Unavailable",
+    "mode_heat": "Heat",
+    "mode_cool": "Cool",
+    "mode_heat_cool": "Heat/Cool",
+    "mode_auto": "Auto",
+    "mode_dry": "Dry",
+    "mode_fan_only": "Fan only",
+    "mode_off": "Off",
+    "preset_eco": "Eco",
+    "preset_comfort": "Comfort",
+    "preset_boost": "Boost",
+    "preset_away": "Away",
+    "preset_sleep": "Sleep",
+    "preset_activity": "Activity",
+    "preset_none": "None",
+    "fan_mode": "Fan mode",
+    "swing_mode": "Swing mode",
+    "open_all_aria": "Turn on all climate devices",
+    "close_all_aria": "Turn off all climate devices",
+    "toggle_aria": "Toggle",
+    "expand_aria": "Details",
+    "temp_up_aria": "Increase temperature",
+    "temp_down_aria": "Decrease temperature",
+    "humidity_up_aria": "Increase humidity",
+    "humidity_down_aria": "Decrease humidity",
+    "range_low_aria": "Minimum temperature",
+    "range_high_aria": "Maximum temperature"
+  },
+
   "fan": {
     "title": "Fans",
     "off": "Off",
@@ -495,6 +532,12 @@
 
     "dashboard_card_media": "Media Card",
     "dashboard_card_media_desc": "Shows media players with transport controls",
+
+    "tab_climate": "Climate",
+    "climate_desc": "Configure climate entities per room",
+    "climate_no_entities": "No climate entities in this room",
+    "dashboard_card_climate": "Climate",
+    "dashboard_card_climate_desc": "Thermostats and HVAC",
 
     "dashboard_card_fan": "Fan Card",
     "dashboard_card_fan_desc": "Shows fans with speed controls",
