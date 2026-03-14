@@ -73,6 +73,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_light_config)
     websocket_api.async_register_command(hass, ws_set_fan_config)
     websocket_api.async_register_command(hass, ws_set_cover_config)
+    websocket_api.async_register_command(hass, ws_set_climate_config)
     websocket_api.async_register_command(hass, ws_set_title_config)
     websocket_api.async_register_command(hass, ws_set_media_config)
     websocket_api.async_register_command(hass, ws_set_dashboard)
@@ -437,6 +438,58 @@ async def ws_set_cover_config(
 
     await store.async_save()
     connection.send_result(msg["id"], store.data.cover_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_climate_config",
+        vol.Optional("show_header"): bool,
+        vol.Optional("entity_order"): [
+            vol.All(str, vol.Match(r"^climate\.[\w-]+$"))
+        ],
+        vol.Optional("hidden_entities"): [
+            vol.All(str, vol.Match(r"^climate\.[\w-]+$"))
+        ],
+        vol.Optional("dashboard_entities"): [
+            vol.All(str, vol.Match(r"^climate\.[\w-]+$"))
+        ],
+    }
+)
+@websocket_api.async_response
+async def ws_set_climate_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the climate card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.climate_card.show_header = msg["show_header"]
+    if "entity_order" in msg:
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for eid in msg["entity_order"]:
+            if eid not in seen:
+                seen.add(eid)
+                deduped.append(eid)
+        store.data.climate_card.entity_order = deduped
+    if "hidden_entities" in msg:
+        store.data.climate_card.hidden_entities = list(set(msg["hidden_entities"]))
+    if "dashboard_entities" in msg:
+        seen_d: set[str] = set()
+        deduped_d: list[str] = []
+        for eid in msg["dashboard_entities"]:
+            if eid not in seen_d:
+                seen_d.add(eid)
+                deduped_d.append(eid)
+        store.data.climate_card.dashboard_entities = deduped_d
+
+    await store.async_save()
+    connection.send_result(msg["id"], store.data.climate_card.to_dict())
 
 
 @websocket_api.websocket_command(
