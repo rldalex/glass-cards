@@ -3116,4 +3116,40 @@ export const configPanelStyles: CSSResult = css`
       .mt-12 { margin-top: 12px; }
       .mb-8 { margin-bottom: 8px; }
 
+      /* ── Entity rename ── */
+      .entity-name-btn {
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--t1);
+        cursor: pointer;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .entity-name-btn ha-icon { opacity: 0; transition: opacity var(--t-fast); }
+      @media (hover: hover) and (pointer: fine) {
+        .entity-name-btn:hover ha-icon { opacity: 1; }
+      }
+      .entity-rename-input {
+        width: 100%;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--t1);
+        background: var(--s1);
+        border: 1px solid var(--c-accent);
+        border-radius: var(--radius-sm);
+        padding: 2px 6px;
+        outline: none;
+      }
+
 `;

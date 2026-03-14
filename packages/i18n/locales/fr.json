@@ -590,6 +590,7 @@
     "unassigned_select_area": "Non assignée",
     "unassigned_assigned": "Assignée",
     "unassigned_count": "{count} entité(s) sans pièce",
-    "unassigned_no_results": "Aucun résultat."
+    "unassigned_no_results": "Aucun résultat.",
+    "unassigned_rename": "Renommer l'entité"
   }
 }

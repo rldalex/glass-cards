@@ -14,8 +14,8 @@ export interface EntityAreaEntry {
   areaName: string | null;
 }
 
-/** Domains handled by Glass Cards controllable cards. */
-const CONTROLLABLE_DOMAINS = ['light', 'cover', 'fan', 'media_player', 'camera', 'climate', 'vacuum'];
+/** Domains handled by Glass Cards controllable cards (in prod only). */
+const CONTROLLABLE_DOMAINS = ['light', 'cover', 'fan', 'media_player', 'camera'];
 
 // — Collect —
 
@@ -61,7 +61,7 @@ function domainLabel(domain: string): string {
   return keys ? t(keys.name) : domain;
 }
 
-// — Assign —
+// — Assign area —
 
 export async function assignEntityArea(self: GlassConfigPanel, entityId: string, areaId: string) {
   if (!self.hass) return;
@@ -71,7 +71,6 @@ export async function assignEntityArea(self: GlassConfigPanel, entityId: string,
       entity_id: entityId,
       area_id: areaId,
     });
-    // Update local state immediately
     self._unassignedEntities = self._unassignedEntities.map((e) =>
       e.entityId === entityId
         ? { ...e, areaId, areaName: self.hass?.areas[areaId]?.name ?? null }
@@ -82,6 +81,33 @@ export async function assignEntityArea(self: GlassConfigPanel, entityId: string,
   } catch {
     self._showToast(true);
   }
+}
+
+// — Rename entity —
+
+export async function renameEntity(self: GlassConfigPanel, entityId: string, newName: string) {
+  if (!self.hass) return;
+  const trimmed = newName.trim();
+  if (!trimmed) return;
+  // Find current name — skip if unchanged
+  const current = self._unassignedEntities.find((e) => e.entityId === entityId);
+  if (current && current.name === trimmed) {
+    self._unassignedEditingEntity = null;
+    return;
+  }
+  try {
+    await self.hass.connection.sendMessagePromise({
+      type: 'config/entity_registry/update',
+      entity_id: entityId,
+      name: trimmed,
+    });
+    self._unassignedEntities = self._unassignedEntities.map((e) =>
+      e.entityId === entityId ? { ...e, name: trimmed } : e,
+    );
+  } catch {
+    self._showToast(true);
+  }
+  self._unassignedEditingEntity = null;
 }
 
 // — Preview —
@@ -168,10 +194,39 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
           <div class="item-list">
             ${items.map((e) => {
               const isOpen = self._unassignedDropdownEntity === e.entityId;
+              const isEditing = self._unassignedEditingEntity === e.entityId;
               return html`
                 <div class="item-row">
                   <div class="item-info" style="flex:1;min-width:0;">
-                    <span class="item-name">${e.name}</span>
+                    ${isEditing ? html`
+                      <input
+                        type="text"
+                        class="entity-rename-input"
+                        .value=${e.name}
+                        aria-label="${t('config.unassigned_rename')}"
+                        @blur=${(ev: FocusEvent) => self._renameEntity(e.entityId, (ev.target as HTMLInputElement).value)}
+                        @keydown=${(ev: KeyboardEvent) => {
+                          if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur();
+                          if (ev.key === 'Escape') { self._unassignedEditingEntity = null; }
+                        }}
+                        @focus=${(ev: FocusEvent) => (ev.target as HTMLInputElement).select()}
+                      />
+                    ` : html`
+                      <button
+                        class="item-name entity-name-btn"
+                        @click=${() => {
+                          self._unassignedEditingEntity = e.entityId;
+                          self.updateComplete.then(() => {
+                            const input = self.shadowRoot?.querySelector('.entity-rename-input') as HTMLInputElement | null;
+                            input?.focus();
+                          });
+                        }}
+                        title="${t('config.unassigned_rename')}"
+                      >
+                        ${e.name}
+                        <ha-icon .icon=${'mdi:pencil'} style="--mdc-icon-size:11px;color:var(--t4);margin-left:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>
+                      </button>
+                    `}
                     <span class="item-meta">${e.entityId}</span>
                   </div>
                   <div class="dropdown ${isOpen ? 'open' : ''}" style="flex-shrink:0;max-width:160px;">

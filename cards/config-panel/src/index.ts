@@ -29,7 +29,7 @@ import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, select
 import { renderTitlePreview, renderTitleTab, renderIconPopup, renderColorPicker, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons, openColorPicker, closeColorPicker, applyColorPicker, onCpWheel } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
 import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
-import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, type EntityAreaEntry } from './tabs/unassigned';
+import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, renameEntity, type EntityAreaEntry } from './tabs/unassigned';
 
 
 // — Component —
@@ -157,6 +157,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _unassignedDropdownEntity: string | null = null;
   @state() _unassignedEntitySearch = '';
   @state() _unassignedAreaSearch = '';
+  @state() _unassignedEditingEntity: string | null = null;
 
   // Dashboard config
   @state() _dashboardEnabledCards: string[] = ['weather'];
@@ -2012,11 +2013,14 @@ export class GlassConfigPanel extends LitElement {
   _loadUnassignedEntities() {
     this._unassignedEntities = collectAllEntities(this);
     this._unassignedDropdownEntity = null;
+    this._unassignedEditingEntity = null;
     this._unassignedEntitySearch = '';
     this._unassignedAreaSearch = '';
   }
 
   _assignEntityArea(entityId: string, areaId: string) { assignEntityArea(this, entityId, areaId); }
+
+  _renameEntity(entityId: string, newName: string) { renameEntity(this, entityId, newName); }
 
   // — Tab Select —
 

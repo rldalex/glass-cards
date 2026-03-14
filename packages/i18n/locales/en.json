@@ -590,6 +590,7 @@
     "unassigned_select_area": "Unassigned",
     "unassigned_assigned": "Assigned",
     "unassigned_count": "{count} unassigned entity(ies)",
-    "unassigned_no_results": "No results."
+    "unassigned_no_results": "No results.",
+    "unassigned_rename": "Rename entity"
   }
 }
