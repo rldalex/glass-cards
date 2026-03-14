@@ -9,6 +9,7 @@ export function renderTempStepper(
   entity: HassEntity,
   unit: string,
   onChangeTemp: (temp: number) => void,
+  pendingTarget?: number,
 ): TemplateResult | typeof nothing {
   const state = entity.state;
   if (state === 'off' || state === 'fan_only') return nothing;
@@ -19,7 +20,7 @@ export function renderTempStepper(
   // In heat_cool mode with range support, don't show single stepper
   if (state === 'heat_cool' && (features & CF.TARGET_TEMPERATURE_RANGE)) return nothing;
 
-  const target = entity.attributes.temperature as number | undefined;
+  const target = pendingTarget ?? (entity.attributes.temperature as number | undefined);
   const step = (entity.attributes.target_temp_step as number) || 0.5;
   const min = (entity.attributes.min_temp as number) || 7;
   const max = (entity.attributes.max_temp as number) || 35;
@@ -143,6 +144,7 @@ export function renderRangeSlider(
 export function renderHumidityStepper(
   entity: HassEntity,
   onChangeHumidity: (val: number) => void,
+  pendingTarget?: number,
 ): TemplateResult | typeof nothing {
   const features = (entity.attributes.supported_features as number) || 0;
   if (!(features & CF.TARGET_HUMIDITY)) return nothing;
@@ -150,7 +152,7 @@ export function renderHumidityStepper(
   const state = entity.state;
   if (state === 'off') return nothing;
 
-  const target = entity.attributes.humidity as number | undefined;
+  const target = pendingTarget ?? (entity.attributes.humidity as number | undefined);
   const min = (entity.attributes.min_humidity as number) || 30;
   const max = (entity.attributes.max_humidity as number) || 99;
 

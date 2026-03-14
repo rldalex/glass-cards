@@ -74,6 +74,7 @@ export class GlassClimateCard extends BaseCard {
   private _dashboardHiddenEntities = new Set<string>();
   private _dashboardHiddenLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private _pendingTemps = new Map<string, number>();
   private _schedules: EntityScheduleMap | null = null;
   private _schedulesLoaded = false;
 
@@ -130,6 +131,7 @@ export class GlassClimateCard extends BaseCard {
     this._dashboardHiddenLoaded = false;
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
+    this._pendingTemps.clear();
     if (this._rangeDragCleanup) {
       this._rangeDragCleanup();
       this._rangeDragCleanup = null;
@@ -424,12 +426,15 @@ export class GlassClimateCard extends BaseCard {
 
   private _setTemperature(entityId: string, temp: number): void {
     if (!this.hass) return;
+    this._pendingTemps.set(`temp_${entityId}`, temp);
+    this.requestUpdate();
     const key = `temp:${entityId}`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
       this.hass?.callService('climate', 'set_temperature', { temperature: temp }, { entity_id: entityId });
+      this._pendingTemps.delete(`temp_${entityId}`);
     }, 400));
   }
 
@@ -449,12 +454,15 @@ export class GlassClimateCard extends BaseCard {
 
   private _setHumidity(entityId: string, humidity: number): void {
     if (!this.hass) return;
+    this._pendingTemps.set(`humidity_${entityId}`, humidity);
+    this.requestUpdate();
     const key = `hum:${entityId}`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
       this.hass?.callService('climate', 'set_humidity', { humidity }, { entity_id: entityId });
+      this._pendingTemps.delete(`humidity_${entityId}`);
     }, 400));
   }
 
@@ -698,17 +706,17 @@ export class GlassClimateCard extends BaseCard {
       : { dragging: null, lowTemp: 0, highTemp: 0 };
 
     return html`
-      ${renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode))}
-      ${renderTempStepper(entity, unit, (temp) => this._setTemperature(entityId, temp))}
+      ${renderTempStepper(entity, unit, (temp) => this._setTemperature(entityId, temp), this._pendingTemps.get(`temp_${entityId}`))}
       ${renderRangeSlider(
         entity, unit, rangeState,
         (low, high) => this._setTemperatureRange(entityId, low, high),
         (thumb, e) => this._onRangeDragStart(thumb, e, entityId),
       )}
+      ${renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode))}
       ${renderPresets(entity, (preset) => this._setPreset(entityId, preset))}
       ${renderFanModes(entity, (mode) => this._setFanMode(entityId, mode))}
       ${renderSwingModes(entity, (mode) => this._setSwingMode(entityId, mode))}
-      ${renderHumidityStepper(entity, (val) => this._setHumidity(entityId, val))}
+      ${renderHumidityStepper(entity, (val) => this._setHumidity(entityId, val), this._pendingTemps.get(`humidity_${entityId}`))}
       ${renderAuxHeat(entity, () => this._toggleAuxHeat(entityId, entity))}
     `;
   }
@@ -724,11 +732,11 @@ export class GlassClimateCard extends BaseCard {
       font-family: 'Plus Jakarta Sans', sans-serif;
 
       /* Climate tokens */
-      --cl-heat: #ef8c4f;
-      --cl-cool: #4fc3f7;
-      --cl-dry: #ce93d8;
-      --cl-auto: #81c784;
-      --cl-fan: #90a4ae;
+      --cl-heat: #f97316;
+      --cl-cool: #3b82f6;
+      --cl-dry: #eab308;
+      --cl-auto: #8b5cf6;
+      --cl-fan: #06b6d4;
     }
 
     /* ── Card Header ── */

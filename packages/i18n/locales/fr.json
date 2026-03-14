@@ -16,7 +16,9 @@
     "no_entity": "Aucune entité",
     "delete": "Supprimer",
     "collapse": "Réduire",
-    "expand": "Développer"
+    "expand": "Développer",
+    "move_up": "Déplacer vers le haut",
+    "move_down": "Déplacer vers le bas"
   },
 
   "light": {

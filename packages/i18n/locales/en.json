@@ -16,7 +16,9 @@
     "no_entity": "No entity",
     "delete": "Delete",
     "collapse": "Collapse",
-    "expand": "Expand"
+    "expand": "Expand",
+    "move_up": "Move up",
+    "move_down": "Move down"
   },
 
   "light": {

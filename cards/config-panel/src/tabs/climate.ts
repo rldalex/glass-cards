@@ -90,15 +90,15 @@ export function renderClimateTab(self: GlassConfigPanel) {
               </div>
               <div style="display:flex;align-items:center;gap:4px;">
                 <button class="btn-icon xs" @click=${() => moveClimate(self, idx, -1)}
-                  aria-label="Move up" ?disabled=${idx === 0}>
+                  aria-label=${t('common.move_up')} ?disabled=${idx === 0}>
                   <ha-icon .icon=${'mdi:chevron-up'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 </button>
                 <button class="btn-icon xs" @click=${() => moveClimate(self, idx, 1)}
-                  aria-label="Move down" ?disabled=${idx === entities.length - 1}>
+                  aria-label=${t('common.move_down')} ?disabled=${idx === entities.length - 1}>
                   <ha-icon .icon=${'mdi:chevron-down'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 </button>
                 <button class="btn-icon xs" @click=${() => toggleClimateEntityVisibility(self, e.entityId)}
-                  aria-label=${e.visible ? 'Hide' : 'Show'}>
+                  aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}">
                   <ha-icon .icon=${e.visible ? 'mdi:eye' : 'mdi:eye-off'}
                     style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;${!e.visible ? 'opacity:0.4;' : ''}"></ha-icon>
                 </button>
