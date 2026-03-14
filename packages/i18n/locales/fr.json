@@ -539,6 +539,9 @@
     "tab_climate": "Climat",
     "climate_desc": "Configurez les entités climat par pièce",
     "climate_no_entities": "Aucune entité climat dans cette pièce",
+    "climate_show_header": "Afficher l'en-tête",
+    "climate_show_header_desc": "Titre et compteur au-dessus de la carte",
+    "climate_select_room": "Sélectionner une pièce",
     "dashboard_card_climate": "Climat",
     "dashboard_card_climate_desc": "Thermostats et climatiseurs",
 

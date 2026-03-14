@@ -539,6 +539,9 @@
     "tab_climate": "Climate",
     "climate_desc": "Configure climate entities per room",
     "climate_no_entities": "No climate entities in this room",
+    "climate_show_header": "Show header",
+    "climate_show_header_desc": "Title and counter above the card",
+    "climate_select_room": "Select a room",
     "dashboard_card_climate": "Climate",
     "dashboard_card_climate_desc": "Thermostats and HVAC",
 
