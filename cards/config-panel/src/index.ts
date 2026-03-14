@@ -29,6 +29,7 @@ import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, select
 import { renderTitlePreview, renderTitleTab, renderIconPopup, renderColorPicker, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons, openColorPicker, closeColorPicker, applyColorPicker, onCpWheel } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
 import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
+import { renderClimatePreview, renderClimateTab, selectClimateRoom, toggleClimateEntityVisibility, moveClimate, onDropClimate, getAllClimateEntities } from './tabs/climate';
 import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, renameEntity, type EntityAreaEntry } from './tabs/unassigned';
 
 
@@ -119,6 +120,13 @@ export class GlassConfigPanel extends LitElement {
   @state() _fanRoom = '';
   @state() _fanRoomDropdownOpen = false;
   @state() _fanRoomEntities: { entityId: string; name: string; visible: boolean; layout: 'full' | 'compact' }[] = [];
+
+  // Climate card config
+  @state() _climateShowHeader = true;
+  @state() _climateDashboardEntities: string[] = [];
+  @state() _climateRoom = '';
+  @state() _climateRoomDropdownOpen = false;
+  @state() _climateRoomEntities: { entityId: string; name: string; visible: boolean }[] = [];
 
   // Media card config
   @state() _presenceShowHeader = true;
@@ -215,6 +223,7 @@ export class GlassConfigPanel extends LitElement {
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
+    '_climateShowHeader', '_climateRoomEntities',
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
     '_mediaShowHeader', '_mediaExtraEntities',
     '_spotifyShowHeader', '_spotifyEntity', '_spotifySortOrder', '_spotifyMaxItems', '_spotifyVisibleSpeakers',
@@ -262,7 +271,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -276,6 +285,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
+    this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
     this._mediaRoomDropdownOpen = false;
     this._spotifyDropdownOpen = false;
@@ -720,6 +730,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
+    this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
     this._mediaRoomDropdownOpen = false;
     this._mediaAddDropdownOpen = false;
@@ -735,6 +746,13 @@ export class GlassConfigPanel extends LitElement {
     if (tab === 'cover' && !this._coverRoom && this._rooms.length > 0) {
       this._coverRoom = this._rooms[0].areaId;
       this._loadRoomCovers();
+    }
+    if (tab === 'climate') {
+      this._loadClimateConfig();
+      if (!this._climateRoom && this._rooms.length > 0) {
+        this._climateRoom = this._rooms[0].areaId;
+        this._loadRoomClimates();
+      }
     }
     if (tab === 'fan' && !this._fanRoom && this._rooms.length > 0) {
       this._fanRoom = this._rooms[0].areaId;
@@ -929,6 +947,8 @@ export class GlassConfigPanel extends LitElement {
       this._saveTitle();
     } else if (this._tab === 'cover') {
       this._saveCover();
+    } else if (this._tab === 'climate') {
+      this._saveClimate();
     } else if (this._tab === 'fan') {
       this._saveFan();
     } else if (this._tab === 'spotify') {
@@ -1450,6 +1470,118 @@ export class GlassConfigPanel extends LitElement {
     } catch { /* ignore */ }
     await this._loadRoomFans();
   }
+
+  // — Climate Card config —
+
+  _selectClimateRoom(areaId: string) { this._beginSuppressAutoSave(); selectClimateRoom(this, areaId); }
+
+  async _loadRoomClimates(): Promise<void> {
+    if (!this.hass || !this._climateRoom) return;
+    if (!this._backend) this._backend = new BackendService(this.hass);
+    const targetRoom = this._climateRoom;
+    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
+    const climateIds = areaEntities
+      .filter((e) => e.entity_id.startsWith('climate.'))
+      .map((e) => e.entity_id);
+
+    let roomHidden: string[] = [];
+    let roomOrder: string[] = [];
+    try {
+      const result = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] }>('get_room', { area_id: targetRoom });
+      roomHidden = result?.hidden_entities || [];
+      roomOrder = result?.entity_order || [];
+    } catch { /* ignore */ }
+
+    // Discard stale result if room changed during async call
+    if (this._climateRoom !== targetRoom) return;
+
+    const orderMap = new Map(roomOrder.map((id, i) => [id, i]));
+    const sorted = [...climateIds].sort((a, b) => {
+      const oa = orderMap.get(a) ?? 999;
+      const ob = orderMap.get(b) ?? 999;
+      if (oa !== ob) return oa - ob;
+      return a.localeCompare(b);
+    });
+
+    this._climateRoomEntities = sorted.map((id) => {
+      const state = this.hass?.states[id];
+      const name = (state?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      return { entityId: id, name, visible: !roomHidden.includes(id) };
+    });
+  }
+
+  async _loadClimateConfig(): Promise<void> {
+    this._beginSuppressAutoSave();
+    if (!this.hass) return;
+    if (!this._backend) this._backend = new BackendService(this.hass);
+    try {
+      const result = await this._backend.send<{
+        climate_card?: { show_header: boolean; dashboard_entities: string[] };
+      }>('get_config');
+      if (result?.climate_card) {
+        this._climateShowHeader = result.climate_card.show_header ?? true;
+        this._climateDashboardEntities = result.climate_card.dashboard_entities ?? [];
+      }
+    } catch { /* ignore */ }
+    if (this._climateRoom) await this._loadRoomClimates();
+  }
+
+  async _saveClimate(): Promise<void> {
+    if (!this._backend || this._saving) return;
+    this._saving = true;
+    try {
+      const allIds = this._climateRoomEntities.map((e) => e.entityId);
+      const hiddenIds = this._climateRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+
+      await this._backend.send('set_climate_config', {
+        show_header: this._climateShowHeader,
+        dashboard_entities: this._climateDashboardEntities,
+      });
+
+      if (this._climateRoom && this._climateRoomEntities.length > 0) {
+        // Load existing room config to preserve non-climate entries
+        let existingHidden: string[] = [];
+        let existingOrder: string[] = [];
+        try {
+          const existing = await this._backend.send<{
+            hidden_entities: string[];
+            entity_order: string[];
+          } | null>('get_room', { area_id: this._climateRoom });
+          if (existing) {
+            existingHidden = existing.hidden_entities ?? [];
+            existingOrder = existing.entity_order ?? [];
+          }
+        } catch { /* ignore */ }
+
+        const climateEntityIds = new Set(this._climateRoomEntities.map((e) => e.entityId));
+        const nonClimateHidden = existingHidden.filter((id) => !climateEntityIds.has(id));
+        const nonClimateOrder = existingOrder.filter((id) => !climateEntityIds.has(id));
+
+        await this._backend.send('set_room', {
+          area_id: this._climateRoom,
+          hidden_entities: [...nonClimateHidden, ...hiddenIds],
+          entity_order: [...nonClimateOrder, ...allIds],
+        });
+
+        bus.emit('room-config-changed', { areaId: this._climateRoom });
+      }
+
+      if (!this._mounted) return;
+      this._showToast();
+      bus.emit('climate-config-changed', undefined);
+    } catch {
+      this._showToast(true);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  _toggleClimateEntityVisibility(entityId: string) { toggleClimateEntityVisibility(this, entityId); }
+  _moveClimate(idx: number, dir: number) { moveClimate(this, idx, dir); }
+  _onDropClimate(idx: number, e: DragEvent) { onDropClimate(this, idx, e); }
+  _getAllClimateEntities() { return getAllClimateEntities(this); }
+  _renderClimatePreview() { return renderClimatePreview(this); }
+  _renderClimateTab() { return renderClimateTab(this); }
 
   _onDropCover(idx: number, e: DragEvent) { onDropCover(this, idx, e); }
 
@@ -2033,6 +2165,7 @@ export class GlassConfigPanel extends LitElement {
     { id: 'weather', icon: 'mdi:weather-partly-cloudy', labelKey: 'config.tab_weather' },
     { id: 'media', icon: 'mdi:speaker', labelKey: 'config.tab_media' },
     { id: 'cover', icon: 'mdi:blinds', labelKey: 'config.tab_cover' },
+    { id: 'climate', icon: 'mdi:thermostat', labelKey: 'config.tab_climate' },
     { id: 'fan', icon: 'mdi:fan', labelKey: 'config.tab_fan' },
     { id: 'spotify', icon: 'mdi:spotify', labelKey: 'config.tab_spotify' },
     { id: 'presence', icon: 'mdi:account-group', labelKey: 'config.tab_presence' },
@@ -2120,9 +2253,11 @@ export class GlassConfigPanel extends LitElement {
                         ? this._renderMediaPreview()
                         : this._tab === 'cover'
                           ? this._renderCoverPreview()
-                          : this._tab === 'fan'
-                            ? this._renderFanPreview()
-                            : this._tab === 'spotify'
+                          : this._tab === 'climate'
+                            ? this._renderClimatePreview()
+                            : this._tab === 'fan'
+                              ? this._renderFanPreview()
+                              : this._tab === 'spotify'
                             ? this._renderSpotifyPreview()
                             : this._tab === 'presence'
                               ? this._renderPresencePreview()
@@ -2145,9 +2280,11 @@ export class GlassConfigPanel extends LitElement {
                       ? this._renderMediaTab()
                       : this._tab === 'cover'
                         ? this._renderCoverTab()
-                        : this._tab === 'fan'
-                          ? this._renderFanTab()
-                          : this._tab === 'spotify'
+                        : this._tab === 'climate'
+                          ? this._renderClimateTab()
+                          : this._tab === 'fan'
+                            ? this._renderFanTab()
+                            : this._tab === 'spotify'
                           ? this._renderSpotifyTab()
                           : this._tab === 'presence'
                             ? this._renderPresenceTab()
