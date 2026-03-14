@@ -159,7 +159,10 @@
     "action_drying": "Déshumidifie",
     "current_label": "Actuel",
     "controls_aria": "Contrôles",
-    "unknown": "Inconnu"
+    "unknown": "Inconnu",
+    "avg_label": "Moy.",
+    "section_mode": "Mode",
+    "section_preset": "Preset"
   },
 
   "fan": {

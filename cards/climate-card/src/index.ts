@@ -554,6 +554,12 @@ export class GlassClimateCard extends BaseCard {
     this._lpTimer = setTimeout(() => {
       this._lpTimer = null;
       this._foldOpen = !this._foldOpen;
+      // Visual feedback
+      const card = this.renderRoot.querySelector('.climate-card') as HTMLElement | null;
+      if (card) {
+        card.classList.add('lp-pulse');
+        card.addEventListener('animationend', () => card.classList.remove('lp-pulse'), { once: true });
+      }
     }, 500);
   }
 
@@ -660,7 +666,10 @@ export class GlassClimateCard extends BaseCard {
   // — Header —
 
   private _renderHeader(climates: HassEntity[]) {
-    const activeCount = climates.filter((c) => c.state !== 'off' && c.state !== 'unavailable').length;
+    const activeCount = climates.filter((c) => {
+      const a = (c.attributes.hvac_action as string) || '';
+      return a === 'heating' || a === 'cooling' || a === 'preheating';
+    }).length;
     const total = climates.length;
     const countClass = activeCount === 0 ? 'none' : activeCount === total ? 'all' : 'some';
     const avg = this._avgTemp();
@@ -672,7 +681,7 @@ export class GlassClimateCard extends BaseCard {
           <span class="card-title">${t('climate.title')}</span>
           <span class="card-count ${countClass}">${activeCount}/${total}</span>
         </div>
-        <span class="card-header-right">${avg != null ? `${avg}${unit}` : ''}</span>
+        <span class="card-header-right">${avg != null ? `${t('climate.avg_label')} ${avg}${unit}` : ''}</span>
       </div>
     `;
   }
@@ -841,11 +850,24 @@ export class GlassClimateCard extends BaseCard {
 
   // Shared fold controls (modes, presets, fan, swing, humidity, aux heat)
   private _renderFoldControls(entityId: string, entity: HassEntity): TemplateResult {
+    const hvacAction = this._getHvacAction(entity);
+    const labelClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat'
+      : hvacAction === 'cooling' ? 'cool' : 'neutral';
+    const hvacModes = renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode));
+    const presets = renderPresets(entity, (preset) => this._setPreset(entityId, preset));
+    const fanModes = renderFanModes(entity, (mode) => this._setFanMode(entityId, mode));
+    const swingModes = renderSwingModes(entity, (mode) => this._setSwingMode(entityId, mode));
+
     return html`
-      ${renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode))}
-      ${renderPresets(entity, (preset) => this._setPreset(entityId, preset))}
-      ${renderFanModes(entity, (mode) => this._setFanMode(entityId, mode))}
-      ${renderSwingModes(entity, (mode) => this._setSwingMode(entityId, mode))}
+      <div class="ctrl-label ${labelClass}">${t('climate.section_mode')}</div>
+      ${hvacModes}
+      ${presets !== nothing ? html`
+        <div class="ctrl-sep"></div>
+        <div class="ctrl-label ${labelClass}">${t('climate.section_preset')}</div>
+        ${presets}
+      ` : nothing}
+      ${fanModes !== nothing ? html`<div class="ctrl-sep"></div>${fanModes}` : nothing}
+      ${swingModes !== nothing ? html`<div class="ctrl-sep"></div>${swingModes}` : nothing}
       ${renderHumidityStepper(entity, (val) => this._setHumidity(entityId, val), this._pendingTemps.get(`humidity_${entityId}`))}
       ${renderAuxHeat(entity, () => this._toggleAuxHeat(entityId, entity))}
     `;
@@ -960,7 +982,8 @@ export class GlassClimateCard extends BaseCard {
           <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>
         <div class="target-display">
-          <div class="target-value ${colorClass}">${target.toFixed(1)}<span class="unit">°C</span></div>
+          <div class="target-label">${t('climate.target')}</div>
+          <div class="target-value ${colorClass}">${target.toFixed(1)}<span class="unit">${this._tempUnit()}</span></div>
         </div>
         <button class="temp-stepper-btn normal-stepper"
           @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
@@ -1048,15 +1071,27 @@ export class GlassClimateCard extends BaseCard {
       opacity: 0;
     }
     .tint.heat {
-      opacity: 0.15;
-      background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+      opacity: 0.18;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-heat), transparent 70%);
     }
     .tint.cool {
-      opacity: 0.15;
-      background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+      opacity: 0.18;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-cool), transparent 70%);
     }
     .tint.auto-tint {
       opacity: 0.12;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-auto), transparent 70%);
+    }
+    /* Normal mode centers the tint */
+    .normal-mode .tint.heat,
+    .normal-mode .tint.cool {
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+    }
+    .normal-mode .tint.cool {
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+    }
+    .normal-mode .tint.heat, .normal-mode .tint.cool { opacity: 0.15; }
+    .normal-mode .tint.auto-tint {
       background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
     }
 
@@ -1072,7 +1107,7 @@ export class GlassClimateCard extends BaseCard {
     /* ── Row ── */
     .cl-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 8px 4px; position: relative;
+      padding: 8px 4px; position: relative; flex-shrink: 0;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
     .cl-row.unavailable { opacity: 0.4; pointer-events: none; }
@@ -1229,6 +1264,10 @@ export class GlassClimateCard extends BaseCard {
       display: flex; flex-direction: column; gap: 12px;
     }
     .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+    .ctrl-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .ctrl-label.heat { color: var(--cl-heat-sub); }
+    .ctrl-label.cool { color: var(--cl-cool-sub); }
+    .ctrl-label.neutral { color: var(--t3); }
 
     /* ── Large temperature stepper (list mode fold) ── */
     .temp-control {
@@ -1313,7 +1352,17 @@ export class GlassClimateCard extends BaseCard {
       box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1);
     }
     .normal-fold-inner .ctrl-panel {
-      padding: 12px 14px 14px;
+      padding: 12px 14px 14px; gap: 10px;
+    }
+
+    /* Long-press visual feedback */
+    .climate-card.lp-pulse {
+      animation: lp-scale 0.2s var(--ease-out);
+    }
+    @keyframes lp-scale {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.985); }
+      100% { transform: scale(1); }
     }
 
     .ctrl-fold-sep-top {
@@ -1459,6 +1508,10 @@ export class GlassClimateCard extends BaseCard {
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;
       min-width: 100px;
+    }
+    .target-label {
+      font-size: 8px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t4);
     }
     .target-value {
       font-size: 28px; font-weight: 600; line-height: 1.1;

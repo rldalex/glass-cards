@@ -159,7 +159,10 @@
     "action_drying": "Drying",
     "current_label": "Current",
     "controls_aria": "Controls",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "avg_label": "Avg.",
+    "section_mode": "Mode",
+    "section_preset": "Preset"
   },
 
   "fan": {
