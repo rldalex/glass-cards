@@ -10,6 +10,7 @@ from custom_components.glass_cards.websocket_api import (
     ws_get_config,
     ws_get_room,
     ws_get_schedules,
+    ws_set_climate_config,
     ws_set_navbar,
     ws_set_room,
     ws_set_schedule,
@@ -309,3 +310,101 @@ class TestSetSchedule:
                     "periods": [],
                 },
             )
+
+
+class TestSetClimateConfig:
+    """Tests for ws_set_climate_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_climate_config(
+            hass_with_store,
+            mock_connection,
+            {"id": 50, "type": "glass_cards/set_climate_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_entity_order(self, hass_with_store, mock_connection, mock_store):
+        """Should update entity_order with deduplication."""
+        await ws_set_climate_config(
+            hass_with_store,
+            mock_connection,
+            {
+                "id": 51,
+                "type": "glass_cards/set_climate_config",
+                "entity_order": ["climate.salon", "climate.chambre", "climate.salon"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_order"] == ["climate.salon", "climate.chambre"]
+
+    @pytest.mark.asyncio
+    async def test_set_hidden_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update hidden_entities."""
+        await ws_set_climate_config(
+            hass_with_store,
+            mock_connection,
+            {
+                "id": 52,
+                "type": "glass_cards/set_climate_config",
+                "hidden_entities": ["climate.garage"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert "climate.garage" in result["hidden_entities"]
+
+    @pytest.mark.asyncio
+    async def test_set_dashboard_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update dashboard_entities with deduplication."""
+        await ws_set_climate_config(
+            hass_with_store,
+            mock_connection,
+            {
+                "id": 53,
+                "type": "glass_cards/set_climate_config",
+                "dashboard_entities": ["climate.salon", "climate.salon"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["dashboard_entities"] == ["climate.salon"]
+
+    @pytest.mark.asyncio
+    async def test_unauthorized(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-edit user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_set_climate_config(
+                hass_with_store,
+                mock_connection,
+                {"id": 54, "type": "glass_cards/set_climate_config", "show_header": True},
+            )
+
+    @pytest.mark.asyncio
+    async def test_partial_update(self, hass_with_store, mock_connection, mock_store):
+        """Should only update provided fields."""
+        mock_store._data.climate_card.show_header = True
+        mock_store._data.climate_card.entity_order = ["climate.existing"]
+        await ws_set_climate_config(
+            hass_with_store,
+            mock_connection,
+            {"id": 55, "type": "glass_cards/set_climate_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        assert result["entity_order"] == ["climate.existing"]
+
+    @pytest.mark.asyncio
+    async def test_get_config_includes_climate(self, hass_with_store, mock_connection):
+        """get_config should include climate_card section."""
+        await ws_get_config(
+            hass_with_store, mock_connection, {"id": 56, "type": "glass_cards/get_config"}
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert "climate_card" in result
+        assert result["climate_card"]["show_header"] is True
