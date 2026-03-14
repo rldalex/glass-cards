@@ -45,6 +45,7 @@ const ACTION_ORDER: Record<string, number> = { heating: 0, cooling: 1, idle: 2, 
 interface ClimateBackendConfig {
   show_header: boolean;
   display_mode: 'list' | 'normal';
+  dashboard_display_mode: 'list' | 'normal';
   dashboard_entities: string[];
 }
 
@@ -240,7 +241,10 @@ export class GlassClimateCard extends BaseCard {
       }>('get_config');
       if (result?.climate_card) {
         this._showHeader = result.climate_card.show_header ?? true;
-        this._displayMode = result.climate_card.display_mode ?? 'list';
+        // Dashboard context uses dashboard_display_mode, popup uses display_mode
+        this._displayMode = this.areaId
+          ? (result.climate_card.display_mode ?? 'list')
+          : (result.climate_card.dashboard_display_mode ?? 'list');
         this._dashboardEntities = result.climate_card.dashboard_entities ?? [];
         this._cachedClimateIds = undefined;
         this._cachedClimatesFingerprint = '';

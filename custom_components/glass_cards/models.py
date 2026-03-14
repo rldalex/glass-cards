@@ -393,6 +393,7 @@ class ClimateConfig:
 
     show_header: bool = True
     display_mode: str = "list"
+    dashboard_display_mode: str = "list"
     entity_order: list[str] = field(default_factory=list)
     hidden_entities: list[str] = field(default_factory=list)
     dashboard_entities: list[str] = field(default_factory=list)
@@ -404,6 +405,7 @@ class ClimateConfig:
         return {
             "show_header": self.show_header,
             "display_mode": self.display_mode,
+            "dashboard_display_mode": self.dashboard_display_mode,
             "entity_order": self.entity_order,
             "hidden_entities": self.hidden_entities,
             "dashboard_entities": self.dashboard_entities,
@@ -417,9 +419,12 @@ class ClimateConfig:
         raw_dashboard = data.get("dashboard_entities", [])
         raw_mode = data.get("display_mode", "list")
         display_mode = raw_mode if raw_mode in cls.VALID_DISPLAY_MODES else "list"
+        raw_dash_mode = data.get("dashboard_display_mode", "list")
+        dashboard_display_mode = raw_dash_mode if raw_dash_mode in cls.VALID_DISPLAY_MODES else "list"
         return cls(
             show_header=bool(data.get("show_header", True)),
             display_mode=display_mode,
+            dashboard_display_mode=dashboard_display_mode,
             entity_order=[str(x) for x in raw_order if isinstance(x, str)],
             hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
             dashboard_entities=[str(x) for x in raw_dashboard if isinstance(x, str)],

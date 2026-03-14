@@ -341,13 +341,13 @@ export function renderDashboardCardSub(self: GlassConfigPanel, key: string, enab
             </button>
             <div class="section-label" style="margin-top:10px;">${t('config.climate_display_mode')}</div>
             <div style="display:flex;gap:6px;margin-top:6px;padding:0 4px;">
-              <button class="chip ${self._climateDisplayMode === 'list' ? 'active' : ''}"
-                @click=${(e: Event) => { e.stopPropagation(); self._climateDisplayMode = 'list'; }}>
+              <button class="chip ${self._climateDashboardDisplayMode === 'list' ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); self._climateDashboardDisplayMode = 'list'; }}>
                 <ha-icon .icon=${'mdi:format-list-bulleted'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 ${t('config.climate_mode_list')}
               </button>
-              <button class="chip ${self._climateDisplayMode === 'normal' ? 'active' : ''}"
-                @click=${(e: Event) => { e.stopPropagation(); self._climateDisplayMode = 'normal'; }}>
+              <button class="chip ${self._climateDashboardDisplayMode === 'normal' ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); self._climateDashboardDisplayMode = 'normal'; }}>
                 <ha-icon .icon=${'mdi:gauge'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 ${t('config.climate_mode_normal')}
               </button>
