@@ -7,6 +7,7 @@ import '../cards/popup-card/src/index';
 import '../cards/navbar-card/src/index';
 import '../cards/weather-card/src/index';
 import '../cards/cover-card/src/index';
+import '../cards/climate-card/src/index';
 import '../cards/fan-card/src/index';
 import '../cards/title-card/src/index';
 import '../cards/spotify-card/src/index';
