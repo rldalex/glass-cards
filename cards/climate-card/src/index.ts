@@ -1062,7 +1062,7 @@ export class GlassClimateCard extends BaseCard {
       transition: border-color var(--t-fast), border-radius var(--t-layout);
     }
     .card-inner { position: relative; z-index: 1; }
-    .normal-mode .card-inner { display: flex; flex-direction: column; gap: 8px; }
+    .normal-mode .card-inner { display: flex; flex-direction: column; gap: 0; }
 
     /* ── Tint ── */
     .tint {
