@@ -15,7 +15,7 @@ export interface EntityAreaEntry {
 }
 
 /** Domains handled by Glass Cards controllable cards (in prod only). */
-const CONTROLLABLE_DOMAINS = ['light', 'cover', 'fan', 'media_player', 'camera'];
+const CONTROLLABLE_DOMAINS = ['light', 'cover', 'climate', 'fan', 'media_player', 'camera'];
 
 // — Collect —
 

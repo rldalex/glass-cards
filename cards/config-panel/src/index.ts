@@ -169,7 +169,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Dashboard config
   @state() _dashboardEnabledCards: string[] = ['weather'];
-  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
+  @state() _dashboardCardOrder: string[] = ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
   @state() _dashboardHideHeader = false;
   @state() _dashboardHideSidebar = false;
   @state() _dashboardExpanded = new Set<string>();
@@ -386,7 +386,7 @@ export class GlassConfigPanel extends LitElement {
     };
     let dashboardConfig = {
       enabled_cards: ['weather'] as string[],
-      card_order: ['title', 'weather', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'] as string[],
+      card_order: ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'] as string[],
       hide_header: false,
       hide_sidebar: false,
     };
@@ -522,7 +522,7 @@ export class GlassConfigPanel extends LitElement {
     this._cameraCycleInterval = cameraCarouselConfig.cycle_interval ?? 10;
 
     this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
+    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
     this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
     this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
 
@@ -1476,6 +1476,7 @@ export class GlassConfigPanel extends LitElement {
   _selectClimateRoom(areaId: string) { this._beginSuppressAutoSave(); selectClimateRoom(this, areaId); }
 
   async _loadRoomClimates(): Promise<void> {
+    this._beginSuppressAutoSave();
     if (!this.hass || !this._climateRoom) return;
     if (!this._backend) this._backend = new BackendService(this.hass);
     const targetRoom = this._climateRoom;
@@ -1759,7 +1760,7 @@ export class GlassConfigPanel extends LitElement {
       }>('get_config');
       if (result?.dashboard) {
         this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
+        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
         this._dashboardHideHeader = result.dashboard.hide_header ?? false;
         this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
       }
