@@ -151,7 +151,15 @@
     "range_high_aria": "Température maximale",
     "no_climates": "Aucun climatiseur",
     "turn_on_aria": "Allumer",
-    "turn_off_aria": "Éteindre"
+    "turn_off_aria": "Éteindre",
+    "action_heating": "Chauffe",
+    "action_cooling": "Refroidit",
+    "action_idle": "En attente",
+    "action_off": "Éteint",
+    "action_drying": "Déshumidifie",
+    "current_label": "Actuel",
+    "controls_aria": "Contrôles",
+    "unknown": "Inconnu"
   },
 
   "fan": {
@@ -543,6 +551,9 @@
     "climate_no_entities": "Aucune entité climat dans cette pièce",
     "climate_show_header": "Afficher l'en-tête",
     "climate_show_header_desc": "Titre et compteur au-dessus de la carte",
+    "climate_display_mode": "Mode d'affichage",
+    "climate_mode_list": "Liste",
+    "climate_mode_normal": "Normal",
     "climate_select_room": "Sélectionner une pièce",
     "dashboard_card_climate": "Climat",
     "dashboard_card_climate_desc": "Thermostats et climatiseurs",

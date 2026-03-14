@@ -123,6 +123,7 @@ export class GlassConfigPanel extends LitElement {
 
   // Climate card config
   @state() _climateShowHeader = true;
+  @state() _climateDisplayMode: 'list' | 'normal' = 'list';
   @state() _climateDashboardEntities: string[] = [];
   @state() _climateRoom = '';
   @state() _climateRoomDropdownOpen = false;
@@ -223,7 +224,7 @@ export class GlassConfigPanel extends LitElement {
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
-    '_climateShowHeader', '_climateRoomEntities',
+    '_climateShowHeader', '_climateDisplayMode', '_climateRoomEntities',
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
     '_mediaShowHeader', '_mediaExtraEntities',
     '_spotifyShowHeader', '_spotifyEntity', '_spotifySortOrder', '_spotifyMaxItems', '_spotifyVisibleSpeakers',
@@ -1517,10 +1518,11 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) this._backend = new BackendService(this.hass);
     try {
       const result = await this._backend.send<{
-        climate_card?: { show_header: boolean; dashboard_entities: string[] };
+        climate_card?: { show_header: boolean; display_mode: string; dashboard_entities: string[] };
       }>('get_config');
       if (result?.climate_card) {
         this._climateShowHeader = result.climate_card.show_header ?? true;
+        this._climateDisplayMode = (result.climate_card.display_mode === 'normal' ? 'normal' : 'list');
         this._climateDashboardEntities = result.climate_card.dashboard_entities ?? [];
       }
     } catch { /* ignore */ }
@@ -1536,6 +1538,7 @@ export class GlassConfigPanel extends LitElement {
 
       await this._backend.send('set_climate_config', {
         show_header: this._climateShowHeader,
+        display_mode: this._climateDisplayMode,
         dashboard_entities: this._climateDashboardEntities,
       });
 

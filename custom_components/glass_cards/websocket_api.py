@@ -444,6 +444,7 @@ async def ws_set_cover_config(
     {
         vol.Required("type"): "glass_cards/set_climate_config",
         vol.Optional("show_header"): bool,
+        vol.Optional("display_mode"): vol.In(["list", "normal"]),
         vol.Optional("entity_order"): [
             vol.All(str, vol.Match(r"^climate\.[\w-]+$"))
         ],
@@ -469,6 +470,8 @@ async def ws_set_climate_config(
 
     if "show_header" in msg:
         store.data.climate_card.show_header = msg["show_header"]
+    if "display_mode" in msg:
+        store.data.climate_card.display_mode = msg["display_mode"]
     if "entity_order" in msg:
         seen: set[str] = set()
         deduped: list[str] = []

@@ -151,7 +151,15 @@
     "range_high_aria": "Maximum temperature",
     "no_climates": "No climate devices",
     "turn_on_aria": "Turn on",
-    "turn_off_aria": "Turn off"
+    "turn_off_aria": "Turn off",
+    "action_heating": "Heating",
+    "action_cooling": "Cooling",
+    "action_idle": "Idle",
+    "action_off": "Off",
+    "action_drying": "Drying",
+    "current_label": "Current",
+    "controls_aria": "Controls",
+    "unknown": "Unknown"
   },
 
   "fan": {
@@ -543,6 +551,9 @@
     "climate_no_entities": "No climate entities in this room",
     "climate_show_header": "Show header",
     "climate_show_header_desc": "Title and counter above the card",
+    "climate_display_mode": "Display mode",
+    "climate_mode_list": "List",
+    "climate_mode_normal": "Normal",
     "climate_select_room": "Select a room",
     "dashboard_card_climate": "Climate",
     "dashboard_card_climate_desc": "Thermostats and HVAC",

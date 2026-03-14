@@ -1,4 +1,4 @@
-import { html, nothing } from 'lit';
+import { html, svg, nothing } from 'lit';
 import { t } from '@glass-cards/i18n';
 import type { GlassConfigPanel } from '../index';
 
@@ -7,6 +7,14 @@ export function renderClimatePreview(self: GlassConfigPanel) {
   if (entities.length === 0) {
     return html`<div style="padding:12px;text-align:center;font-size:11px;color:var(--t4);">${t('config.climate_no_entities')}</div>`;
   }
+
+  if (self._climateDisplayMode === 'normal') {
+    return _renderNormalPreview(entities);
+  }
+  return _renderListPreview(entities);
+}
+
+function _renderListPreview(entities: { entityId: string; name: string; visible: boolean }[]) {
   const activeCount = entities.filter((e) => e.visible).length;
   const total = entities.length;
   return html`
@@ -24,6 +32,53 @@ export function renderClimatePreview(self: GlassConfigPanel) {
         </div>
       `)}
       ${entities.length > 4 ? html`<div style="font-size:10px;color:var(--t4);text-align:center;padding:4px;">+${entities.length - 4}</div>` : nothing}
+    </div>
+  `;
+}
+
+function _renderNormalPreview(entities: { entityId: string; name: string; visible: boolean }[]) {
+  // Mini arc gauge preview
+  const cx = 60, cy = 62, r = 40;
+  const startA = -120, endA = 120;
+  const toRad = (a: number) => ((a - 90) * Math.PI) / 180;
+  const pt = (a: number) => ({ x: cx + r * Math.cos(toRad(a)), y: cy + r * Math.sin(toRad(a)) });
+  const p1 = pt(startA), p2 = pt(endA);
+  const arcD = `M ${p1.x} ${p1.y} A ${r} ${r} 0 1 1 ${p2.x} ${p2.y}`;
+  // Progress at ~60%
+  const fullLen = Math.PI * r * (240 / 180);
+  const progressLen = 0.6 * fullLen;
+  // Target dot at ~70%
+  const tAngle = startA + 0.7 * 240;
+  const tPt = pt(tAngle);
+
+  const visibleEntities = entities.filter((e) => e.visible);
+
+  return html`
+    <div style="padding:6px 10px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:600;color:var(--t1);">${t('climate.title')}</span>
+      </div>
+      ${visibleEntities.length > 1 ? html`
+        <div style="display:flex;gap:4px;margin-bottom:4px;">
+          ${visibleEntities.slice(0, 4).map((e, i) => html`
+            <span style="font-size:9px;padding:2px 6px;border-radius:8px;${i === 0 ? 'background:var(--s3);color:var(--t1);font-weight:600;' : 'color:var(--t3);'}">${e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
+          `)}
+        </div>
+      ` : nothing}
+      <div style="display:flex;justify-content:center;">
+        <svg viewBox="0 0 120 80" fill="none" style="width:100px;height:68px;">
+          ${svg`
+            <path d=${arcD} stroke="var(--s3)" stroke-width="4" fill="none" stroke-linecap="round" />
+            <path d=${arcD} stroke="var(--c-warning)" stroke-width="4" fill="none" stroke-linecap="round"
+              stroke-dasharray=${fullLen} stroke-dashoffset=${fullLen - progressLen} />
+            <circle cx=${tPt.x} cy=${tPt.y} r="3" fill="var(--t1)" />
+            <text x=${cx} y=${cy - 4} text-anchor="middle" fill="var(--t1)" font-size="14" font-weight="700">21.5°</text>
+            <text x=${cx} y=${cy + 8} text-anchor="middle" fill="var(--t3)" font-size="7">
+              <tspan>🔥</tspan> ${t('climate.action_heating')}
+            </text>
+          `}
+        </svg>
+      </div>
     </div>
   `;
 }
@@ -59,6 +114,21 @@ export function renderClimateTab(self: GlassConfigPanel) {
             </button>
           `)}
         </div>
+      </div>
+
+      <!-- Display mode selector -->
+      <div class="section-label" style="margin-top:14px;font-size:11px;">${t('config.climate_display_mode')}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="chip ${self._climateDisplayMode === 'list' ? 'active' : ''}"
+          @click=${() => { self._climateDisplayMode = 'list'; }}>
+          <ha-icon .icon=${'mdi:format-list-bulleted'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          ${t('config.climate_mode_list')}
+        </button>
+        <button class="chip ${self._climateDisplayMode === 'normal' ? 'active' : ''}"
+          @click=${() => { self._climateDisplayMode = 'normal'; }}>
+          <ha-icon .icon=${'mdi:gauge'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          ${t('config.climate_mode_normal')}
+        </button>
       </div>
 
       <!-- Show header toggle -->

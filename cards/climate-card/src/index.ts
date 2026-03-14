@@ -11,7 +11,6 @@ import {
 import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import {
-  renderTempStepper,
   renderRangeSlider,
   renderHumidityStepper,
   renderAuxHeat,
@@ -25,25 +24,27 @@ import {
   renderFanModes,
   renderSwingModes,
 } from './climate-modes';
+import { renderArcGauge } from './climate-arc';
+import { ThermalCanvas } from './climate-canvas';
 
 // — Constants —
 
-const ACTION_COLORS: Record<string, string> = {
-  heating: 'var(--cl-heat)',
-  cooling: 'var(--cl-cool)',
-  drying: 'var(--cl-dry)',
-  fan: 'var(--cl-fan)',
-  preheating: 'var(--cl-heat)',
-  idle: 'var(--t4)',
-  off: 'transparent',
+const ACTION_LABELS: Record<string, string> = {
+  heating: 'climate.action_heating',
+  cooling: 'climate.action_cooling',
+  idle: 'climate.action_idle',
+  off: 'climate.action_off',
+  drying: 'climate.action_drying',
+  preheating: 'climate.action_heating',
 };
 
-const PULSE_ACTIONS = new Set(['heating', 'cooling', 'drying', 'preheating']);
+const ACTION_ORDER: Record<string, number> = { heating: 0, cooling: 1, idle: 2, off: 3 };
 
 // — Backend config interfaces —
 
 interface ClimateBackendConfig {
   show_header: boolean;
+  display_mode: 'list' | 'normal';
   dashboard_entities: string[];
 }
 
@@ -58,8 +59,16 @@ export class GlassClimateCard extends BaseCard {
   @property({ attribute: false }) areaId?: string;
   @property({ attribute: false }) visibleAreaIds?: string[];
 
-  @state() private _expanded: string | null = null;
+  // Shared state
   @state() private _showHeader = true;
+  @state() private _displayMode: 'list' | 'normal' = 'list';
+
+  // List mode state
+  @state() private _expanded: string | null = null;
+
+  // Normal mode state
+  @state() private _selectedEntity: string | null = null;
+  @state() private _foldOpen = false;
 
   private _climateConfigLoaded = false;
   private _roomConfig: RoomClimateConfig | null = null;
@@ -82,6 +91,14 @@ export class GlassClimateCard extends BaseCard {
   private _rangeState: RangeSliderState = { dragging: null, lowTemp: 0, highTemp: 0 };
   private _rangeDragEntity: string | null = null;
   private _rangeDragCleanup: (() => void) | null = null;
+
+  // Long-press (normal mode)
+  private _lpTimer: ReturnType<typeof setTimeout> | null = null;
+  private _lpStartX = 0;
+  private _lpStartY = 0;
+
+  // Thermal canvas (normal mode)
+  private _thermalCanvas?: ThermalCanvas;
 
   private get _isDashboardMode(): boolean {
     return !this.areaId;
@@ -136,10 +153,19 @@ export class GlassClimateCard extends BaseCard {
       this._rangeDragCleanup();
       this._rangeDragCleanup = null;
     }
+    if (this._lpTimer) {
+      clearTimeout(this._lpTimer);
+      this._lpTimer = null;
+    }
+    if (this._thermalCanvas) {
+      this._thermalCanvas.destroy();
+      this._thermalCanvas = undefined;
+    }
   }
 
   protected _collapseExpanded(): void {
     if (this._expanded !== null) this._expanded = null;
+    if (this._foldOpen) this._foldOpen = false;
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -154,27 +180,14 @@ export class GlassClimateCard extends BaseCard {
       this._dashboardHiddenLoaded = false;
     }
 
-    // Load schedules
-    if (this.hass && !this._schedulesLoaded) {
-      this._loadSchedules();
-    }
+    if (this.hass && !this._schedulesLoaded) this._loadSchedules();
+    if (this.hass && !this._climateConfigLoaded) this._loadConfig();
 
-    // Load climate config
-    if (this.hass && !this._climateConfigLoaded) {
-      this._loadConfig();
-    }
-
-    // Load room config when areaId available or changes
     if (this.areaId && this.hass) {
-      if (this._lastLoadedAreaId !== this.areaId) {
-        this._resetForNewArea();
-      }
-      if (!this._roomConfigLoaded) {
-        this._loadRoomConfig();
-      }
+      if (this._lastLoadedAreaId !== this.areaId) this._resetForNewArea();
+      if (!this._roomConfigLoaded) this._loadRoomConfig();
     }
 
-    // Load dashboard hidden entities
     if (this.hass && this._isDashboardMode && !this._dashboardHiddenLoaded) {
       this._loadDashboardHidden();
     }
@@ -187,11 +200,18 @@ export class GlassClimateCard extends BaseCard {
         this._cachedClimatesFingerprint = '';
       }
     }
-    // Invalidate when visible areas change (dashboard mode)
     if (changedProps.has('visibleAreaIds')) {
       this._cachedClimateIds = undefined;
       this._cachedClimatesFingerprint = '';
       this._dashboardHiddenLoaded = false;
+    }
+
+    // Update thermal canvas for normal mode
+    if (this._displayMode === 'normal') {
+      this._updateThermalCanvas();
+    } else if (this._thermalCanvas) {
+      this._thermalCanvas.destroy();
+      this._thermalCanvas = undefined;
     }
   }
 
@@ -220,6 +240,7 @@ export class GlassClimateCard extends BaseCard {
       }>('get_config');
       if (result?.climate_card) {
         this._showHeader = result.climate_card.show_header ?? true;
+        this._displayMode = result.climate_card.display_mode ?? 'list';
         this._dashboardEntities = result.climate_card.dashboard_entities ?? [];
         this._cachedClimateIds = undefined;
         this._cachedClimatesFingerprint = '';
@@ -296,6 +317,8 @@ export class GlassClimateCard extends BaseCard {
     this._roomConfigLoaded = false;
     this._roomConfigLoading = false;
     this._expanded = null;
+    this._selectedEntity = null;
+    this._foldOpen = false;
     this._cachedClimateIds = undefined;
     this._cachedClimatesFingerprint = '';
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
@@ -333,9 +356,7 @@ export class GlassClimateCard extends BaseCard {
       }
       return ids;
     }
-    // Dashboard mode
     if (this._isDashboardMode) {
-      // If dashboard_entities configured, use those
       if (this._dashboardEntities.length > 0) {
         return this._dashboardEntities.filter((id) => this.hass?.states[id]);
       }
@@ -355,8 +376,6 @@ export class GlassClimateCard extends BaseCard {
   private _getClimates(): HassEntity[] {
     if (!this.hass) return [];
     const ids = this._getClimateIds();
-
-    // Build fingerprint
     const fp = ids.map((id) => {
       const e = this.hass?.states[id];
       return e ? `${id}:${e.state}:${e.last_updated}` : `${id}:-`;
@@ -366,12 +385,9 @@ export class GlassClimateCard extends BaseCard {
       return this._cachedClimatesResult;
     }
     this._cachedClimatesFingerprint = fp;
-
     const result = ids
       .map((id) => this.hass?.states[id])
       .filter((e): e is HassEntity => e != null);
-
-    // Dashboard mode: show all (not just active — climate always visible)
     this._cachedClimatesResult = result;
     return this._cachedClimatesResult;
   }
@@ -388,7 +404,6 @@ export class GlassClimateCard extends BaseCard {
       if (features & CF.TURN_ON) {
         this.hass.callService('climate', 'turn_on', {}, { entity_id: entityId });
       } else {
-        // Set to first non-off mode
         const modes = (entity.attributes.hvac_modes as string[]) || [];
         const firstMode = modes.find((m) => m !== 'off');
         if (firstMode) {
@@ -469,11 +484,7 @@ export class GlassClimateCard extends BaseCard {
   private _toggleAuxHeat(entityId: string, entity: HassEntity): void {
     if (!this.hass) return;
     const isOn = entity.attributes.aux_heat === 'on';
-    if (isOn) {
-      this.hass.callService('climate', 'set_aux_heat', { aux_heat: false }, { entity_id: entityId });
-    } else {
-      this.hass.callService('climate', 'set_aux_heat', { aux_heat: true }, { entity_id: entityId });
-    }
+    this.hass.callService('climate', 'set_aux_heat', { aux_heat: !isOn }, { entity_id: entityId });
   }
 
   // — Range drag —
@@ -530,10 +541,54 @@ export class GlassClimateCard extends BaseCard {
     this._rangeDragCleanup = cleanup;
   }
 
+  // — Long-press gesture (normal mode) —
+
+  private _onPointerDown(e: PointerEvent): void {
+    if ((e.target as HTMLElement).closest('button, .entity-tab, .temp-stepper-btn, .chip')) return;
+    this._lpStartX = e.clientX;
+    this._lpStartY = e.clientY;
+    this._lpTimer = setTimeout(() => {
+      this._lpTimer = null;
+      this._foldOpen = !this._foldOpen;
+    }, 500);
+  }
+
+  private _onPointerMove(e: PointerEvent): void {
+    if (!this._lpTimer) return;
+    const dx = e.clientX - this._lpStartX;
+    const dy = e.clientY - this._lpStartY;
+    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+      clearTimeout(this._lpTimer);
+      this._lpTimer = null;
+    }
+  }
+
+  private _onPointerUp(): void {
+    if (this._lpTimer) {
+      clearTimeout(this._lpTimer);
+      this._lpTimer = null;
+    }
+  }
+
+  // — Thermal canvas —
+
+  private _updateThermalCanvas(): void {
+    const canvas = this.shadowRoot?.querySelector('#thermal-canvas') as HTMLCanvasElement | null;
+    const wrap = this.shadowRoot?.querySelector('#thermal-canvas-wrap') as HTMLElement | null;
+    if (!canvas || !wrap) return;
+
+    if (!this._thermalCanvas) this._thermalCanvas = new ThermalCanvas();
+    this._thermalCanvas.attach(canvas);
+
+    const selectedId = this._selectedEntity || this._getClimateIds()[0];
+    const entity = selectedId ? this.hass?.states[selectedId] : undefined;
+    const hvacAction = entity ? ((entity.attributes.hvac_action as string) || 'off') : 'off';
+    this._thermalCanvas.update(hvacAction, wrap.offsetWidth, wrap.offsetHeight);
+  }
+
   // — Helpers —
 
   private _tempUnit(): string {
-    // Access hass.config (exists at runtime but not in our type defs)
     const hassAny = this.hass as Record<string, unknown> | undefined;
     const config = hassAny?.config as Record<string, unknown> | undefined;
     const unitSystem = config?.unit_system as Record<string, unknown> | undefined;
@@ -550,17 +605,29 @@ export class GlassClimateCard extends BaseCard {
       if (temp != null) temps.push(temp);
     }
     if (temps.length === 0) return null;
-    const avg = temps.reduce((a, b) => a + b, 0) / temps.length;
-    return avg.toFixed(1);
+    return (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
   }
 
-  // — Render —
+  private _getHvacAction(entity: HassEntity): string {
+    return (entity.attributes.hvac_action as string) || (entity.state === 'off' ? 'off' : 'idle');
+  }
+
+  private _getIcon(entityId: string, entity: HassEntity): string {
+    const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
+    if (isUnavailable) return 'mdi:thermostat-off';
+    const registryIcon = this.hass?.entities[entityId]?.icon;
+    const attrIcon = entity.attributes.icon as string | undefined;
+    return registryIcon || attrIcon || HVAC_ICONS[entity.state] || 'mdi:thermostat';
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  RENDER — dispatches to list or normal mode
+  // ════════════════════════════════════════════════════════════════
 
   protected render() {
     void this._lang;
     const climates = this._getClimates();
 
-    // Dashboard mode: hide when no climates
     if (this._isDashboardMode) {
       if (climates.length === 0) {
         this.style.display = 'none';
@@ -569,7 +636,6 @@ export class GlassClimateCard extends BaseCard {
       this.style.display = '';
     }
 
-    // Room mode: show empty state
     if (!this._isDashboardMode && climates.length === 0) {
       return html`
         ${this._showHeader ? this._renderHeader(climates) : nothing}
@@ -581,26 +647,13 @@ export class GlassClimateCard extends BaseCard {
       `;
     }
 
-    const activeCount = climates.filter((c) => c.state !== 'off' && c.state !== 'unavailable').length;
-    const total = climates.length;
-
-    return html`
-      ${this._showHeader ? this._renderHeader(climates) : nothing}
-      <div class="glass climate-card">
-        <div class="tint" style="background:radial-gradient(ellipse at 30% 30%, var(--cl-heat), transparent 70%);opacity:${total > 0 ? (activeCount / total * 0.12).toFixed(3) : '0'};"></div>
-        <div class="card-inner">
-          ${climates.map((c, i) => {
-            const entityId = c.entity_id;
-            const isLast = i === climates.length - 1;
-            return html`
-              ${this._renderRow(entityId, c)}
-              ${this._renderControlFold(entityId, c, isLast)}
-            `;
-          })}
-        </div>
-      </div>
-    `;
+    if (this._displayMode === 'normal') {
+      return this._renderNormalMode(climates);
+    }
+    return this._renderListMode(climates);
   }
+
+  // — Header —
 
   private _renderHeader(climates: HassEntity[]) {
     const activeCount = climates.filter((c) => c.state !== 'off' && c.state !== 'unavailable').length;
@@ -614,104 +667,177 @@ export class GlassClimateCard extends BaseCard {
         <div class="card-header-left">
           <span class="card-title">${t('climate.title')}</span>
           <span class="card-count ${countClass}">${activeCount}/${total}</span>
-          ${avg != null ? html`<span class="card-avg">${avg}${unit}</span>` : nothing}
+        </div>
+        <span class="card-header-right">${avg != null ? `${avg}${unit}` : ''}</span>
+      </div>
+    `;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  LIST MODE
+  // ════════════════════════════════════════════════════════════════
+
+  private _renderListMode(climates: HassEntity[]): TemplateResult {
+    // Compute tint
+    let tintClass = '';
+    if (this._expanded && this.hass?.states[this._expanded]) {
+      const action = this._getHvacAction(this.hass.states[this._expanded]);
+      if (action === 'heating' || action === 'preheating') tintClass = 'heat';
+      else if (action === 'cooling') tintClass = 'cool';
+    } else {
+      const anyHeating = climates.some((c) => { const a = this._getHvacAction(c); return a === 'heating' || a === 'preheating'; });
+      const anyCooling = climates.some((c) => this._getHvacAction(c) === 'cooling');
+      if (anyHeating) tintClass = 'heat';
+      else if (anyCooling) tintClass = 'cool';
+    }
+
+    return html`
+      ${this._showHeader ? this._renderHeader(climates) : nothing}
+      <div class="glass climate-card list-mode">
+        <div class="tint ${tintClass}"></div>
+        <div class="card-inner">
+          ${climates.map((c) => html`
+            ${this._renderListRow(c.entity_id, c)}
+            ${this._renderListFold(c.entity_id, c)}
+          `)}
         </div>
       </div>
     `;
   }
 
-  private _renderRow(entityId: string, entity: HassEntity): TemplateResult {
+  private _renderListRow(entityId: string, entity: HassEntity): TemplateResult {
     const attrs = entity.attributes;
     const name = (attrs.friendly_name as string) || entityId.split('.')[1] || entityId;
     const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
     const isOff = entity.state === 'off';
-    const hvacAction = (attrs.hvac_action as string) || '';
+    const hvacAction = this._getHvacAction(entity);
     const currentTemp = attrs.current_temperature as number | undefined;
-    const unit = this._tempUnit();
+    const targetTemp = this._pendingTemps.get(`temp_${entityId}`) ?? (attrs.temperature as number | undefined);
     const isExpanded = this._expanded === entityId;
+    const hvacMode = entity.state;
+    const presetMode = attrs.preset_mode as string | undefined;
+    const icon = this._getIcon(entityId, entity);
 
-    // Icon
-    const registryIcon = this.hass?.entities[entityId]?.icon;
-    const attrIcon = attrs.icon as string | undefined;
-    const icon = isUnavailable ? 'mdi:thermostat-off' : (registryIcon || attrIcon || (HVAC_ICONS[entity.state] || 'mdi:thermostat'));
-
-    // Tint color by hvac_action
-    const tintColor = ACTION_COLORS[hvacAction] || (isOff ? 'transparent' : 'var(--t4)');
-    const isPulsing = PULSE_ACTIONS.has(hvacAction);
+    const actionKey = ACTION_LABELS[hvacAction] || 'climate.unknown';
+    const modeBadgeText = presetMode && presetMode !== 'none' ? presetMode : hvacMode;
 
     return html`
-      <div class="climate-row ${isUnavailable ? 'unavailable' : ''} ${!isOff && !isUnavailable ? 'on' : ''}">
+      <div class="cl-row ${isUnavailable ? 'unavailable' : ''}" data-action=${hvacAction}>
         <button
-          class="climate-icon-btn"
+          class="cl-icon-btn"
           @click=${(e: Event) => this._toggle(entityId, entity, e)}
           aria-label=${isOff ? t('climate.turn_on_aria') : t('climate.turn_off_aria')}
           ?disabled=${isUnavailable}
-          style="${!isOff && !isUnavailable ? `background:${tintColor}20;border-color:${tintColor}30;` : ''}"
         >
-          <ha-icon
-            .icon=${icon}
-            style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;${!isOff && !isUnavailable ? `color:${tintColor};filter:drop-shadow(0 0 6px ${tintColor});` : 'color:var(--t3);'}"
-          ></ha-icon>
+          <ha-icon .icon=${icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>
         <button
-          class="climate-expand-btn"
+          class="cl-expand-btn"
           @click=${() => { if (!isUnavailable) this._expanded = isExpanded ? null : entityId; }}
-          aria-label=${name}
           aria-expanded=${isExpanded ? 'true' : 'false'}
+          aria-label=${t('climate.controls_aria')}
         >
-          <div class="climate-info">
-            <div class="climate-name">${marqueeText(name, MARQUEE_COMPACT)}</div>
-            <div class="climate-sub">
-              <span class="climate-temp">${isUnavailable ? '--' : (currentTemp != null ? `${currentTemp.toFixed(1)}${unit}` : '--')}</span>
-              <span class="climate-dot ${isPulsing ? 'pulse' : ''}" style="background:${isUnavailable ? 'var(--t4)' : tintColor};${isPulsing ? `box-shadow:0 0 8px ${tintColor};` : ''}"></span>
+          <div class="cl-info">
+            <div class="cl-name">${marqueeText(name, MARQUEE_COMPACT)}</div>
+            <div class="cl-sub">
+              <span class="cl-action-text">${t(actionKey as Parameters<typeof t>[0])}</span>
+              ${!isOff ? html`<span class="cl-mode-badge">${modeBadgeText}</span>` : nothing}
             </div>
           </div>
-          ${!isUnavailable ? html`
-            <ha-icon
-              .icon=${'mdi:chevron-down'}
-              class="chevron ${isExpanded ? 'open' : ''}"
-              style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"
-            ></ha-icon>
-          ` : nothing}
+          <div class="cl-temps">
+            <div class="cl-temp-current">${isUnavailable ? '--' : (currentTemp != null ? html`${currentTemp.toFixed(1)}<span class="unit">°</span>` : '--')}</div>
+            ${!isOff && targetTemp != null ? html`<div class="cl-temp-target">→ ${targetTemp.toFixed(1)}°</div>` : nothing}
+          </div>
+          <div class="cl-dot"></div>
         </button>
       </div>
     `;
   }
 
-  private _renderControlFold(entityId: string, entity: HassEntity, isLast: boolean): TemplateResult {
+  private _renderListFold(entityId: string, entity: HassEntity): TemplateResult {
     const isExpanded = this._expanded === entityId;
     const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
+    if (isUnavailable) return html``;
 
-    if (isUnavailable) {
-      return html`<div class="fold-sep"></div>`;
-    }
+    const hvacAction = this._getHvacAction(entity);
+    const sepColor = hvacAction === 'cooling' ? 'cool' : '';
 
     return html`
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+      <div class="fold-sep ${isExpanded ? 'visible' : ''} ${sepColor}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           <div class="ctrl-panel">
-            ${this._renderControls(entityId, entity)}
+            ${this._renderListTempControl(entityId, entity)}
+            <div class="ctrl-sep"></div>
+            ${this._renderFoldControls(entityId, entity)}
           </div>
         </div>
       </div>
-      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>` : nothing}
+      <div class="fold-sep ${isExpanded ? 'visible' : ''} ${sepColor}"></div>
     `;
   }
 
-  private _renderControls(entityId: string, entity: HassEntity): TemplateResult {
-    const unit = this._tempUnit();
-    const rangeState: RangeSliderState = this._rangeDragEntity === entityId
-      ? this._rangeState
-      : { dragging: null, lowTemp: 0, highTemp: 0 };
+  private _renderListTempControl(entityId: string, entity: HassEntity): TemplateResult | typeof nothing {
+    if (entity.state === 'off' || entity.state === 'fan_only') return nothing;
+    const features = (entity.attributes.supported_features as number) || 0;
 
-    return html`
-      ${renderTempStepper(entity, unit, (temp) => this._setTemperature(entityId, temp), this._pendingTemps.get(`temp_${entityId}`))}
-      ${renderRangeSlider(
+    // Range slider for heat_cool mode
+    if (entity.state === 'heat_cool' && (features & CF.TARGET_TEMPERATURE_RANGE)) {
+      const unit = this._tempUnit();
+      const rangeState: RangeSliderState = this._rangeDragEntity === entityId
+        ? this._rangeState
+        : { dragging: null, lowTemp: 0, highTemp: 0 };
+      return renderRangeSlider(
         entity, unit, rangeState,
         (low, high) => this._setTemperatureRange(entityId, low, high),
         (thumb, e) => this._onRangeDragStart(thumb, e, entityId),
-      )}
+      );
+    }
+
+    if (!(features & CF.TARGET_TEMPERATURE)) return nothing;
+
+    const target = this._pendingTemps.get(`temp_${entityId}`) ?? (entity.attributes.temperature as number | undefined);
+    const step = (entity.attributes.target_temp_step as number) || 0.5;
+    const min = (entity.attributes.min_temp as number) || 7;
+    const max = (entity.attributes.max_temp as number) || 35;
+    const currentTemp = entity.attributes.current_temperature as number | undefined;
+    const hvacAction = this._getHvacAction(entity);
+    const colorClass = hvacAction === 'heating' || hvacAction === 'preheating' ? 'heat' : hvacAction === 'cooling' ? 'cool' : 'off';
+    const unit = this._tempUnit();
+
+    if (target == null) return nothing;
+
+    return html`
+      <div class="temp-control">
+        <button class="temp-stepper-btn"
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+          aria-label=${t('climate.temp_down_aria')}
+          ?disabled=${target <= min}>
+          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <div class="temp-display">
+          <div class="temp-display-label">${t('climate.target')}</div>
+          <div class="temp-display-value ${colorClass}">${target.toFixed(1)}<span class="unit">${unit}</span></div>
+          ${currentTemp != null ? html`
+            <div class="temp-display-current">
+              <ha-icon .icon=${'mdi:thermometer'} style="--mdc-icon-size:13px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              <span>${t('climate.current_label')} ${currentTemp.toFixed(1)}${unit}</span>
+            </div>
+          ` : nothing}
+        </div>
+        <button class="temp-stepper-btn"
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+          aria-label=${t('climate.temp_up_aria')}
+          ?disabled=${target >= max}>
+          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+      </div>
+    `;
+  }
+
+  // Shared fold controls (modes, presets, fan, swing, humidity, aux heat)
+  private _renderFoldControls(entityId: string, entity: HassEntity): TemplateResult {
+    return html`
       ${renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode))}
       ${renderPresets(entity, (preset) => this._setPreset(entityId, preset))}
       ${renderFanModes(entity, (mode) => this._setFanMode(entityId, mode))}
@@ -721,7 +847,130 @@ export class GlassClimateCard extends BaseCard {
     `;
   }
 
-  // — Styles —
+  // ════════════════════════════════════════════════════════════════
+  //  NORMAL MODE (arc gauge)
+  // ════════════════════════════════════════════════════════════════
+
+  private _renderNormalMode(climates: HassEntity[]): TemplateResult {
+    const selectedId = this._selectedEntity || climates[0]?.entity_id;
+    const entity = climates.find((c) => c.entity_id === selectedId) || climates[0];
+    if (!entity) return html``;
+
+    const hvacAction = this._getHvacAction(entity);
+    const tintClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat'
+      : hvacAction === 'cooling' ? 'cool'
+      : (entity.state === 'auto' || entity.state === 'heat_cool') ? 'auto-tint' : '';
+    const foldSepClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat-sep'
+      : hvacAction === 'cooling' ? 'cool-sep' : '';
+
+    return html`
+      ${this._showHeader ? this._renderHeader(climates) : nothing}
+      <div class="climate-wrap ${this._foldOpen ? 'fold-open' : ''}">
+        <div class="glass climate-card normal-mode"
+          @pointerdown=${(e: PointerEvent) => this._onPointerDown(e)}
+          @pointermove=${(e: PointerEvent) => this._onPointerMove(e)}
+          @pointerup=${() => this._onPointerUp()}
+          @pointercancel=${() => this._onPointerUp()}>
+          <div class="tint ${tintClass}"></div>
+          <div class="thermal-canvas" id="thermal-canvas-wrap">
+            <canvas id="thermal-canvas"></canvas>
+          </div>
+          <div class="card-inner">
+            ${this._renderEntityTabs(climates)}
+            ${renderArcGauge(entity)}
+            ${this._renderNormalTempStepper(entity)}
+          </div>
+        </div>
+        <div class="ctrl-fold ${this._foldOpen ? 'open' : ''}">
+          <div class="ctrl-fold-inner normal-fold-inner">
+            <div class="ctrl-fold-sep-top ${foldSepClass}"></div>
+            <div class="ctrl-panel">
+              ${this._renderFoldControls(entity.entity_id, entity)}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderEntityTabs(climates: HassEntity[]): TemplateResult | typeof nothing {
+    if (climates.length <= 1) return nothing;
+
+    const sorted = [...climates].sort((a, b) => {
+      const aAction = this._getHvacAction(a);
+      const bAction = this._getHvacAction(b);
+      return (ACTION_ORDER[aAction] ?? 3) - (ACTION_ORDER[bAction] ?? 3);
+    });
+
+    const selectedId = this._selectedEntity || sorted[0]?.entity_id;
+
+    return html`
+      <div class="entity-tabs">
+        ${sorted.map((entity) => {
+          const friendlyName = (entity.attributes.friendly_name as string) || entity.entity_id;
+          const shortName = friendlyName.split(' ').pop() || friendlyName;
+          const hvacAction = this._getHvacAction(entity);
+          const isSelected = entity.entity_id === selectedId;
+          const colorClass = isSelected
+            ? ((hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : hvacAction === 'cooling' ? 'cool' : '')
+            : '';
+
+          return html`
+            <button class="entity-tab ${isSelected ? 'active' : ''} ${colorClass}"
+              @click=${() => { this._selectedEntity = entity.entity_id; }}
+              aria-label=${friendlyName}
+              aria-pressed=${isSelected ? 'true' : 'false'}>
+              <span class="tab-dot ${hvacAction}"></span>
+              <span>${shortName}</span>
+            </button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderNormalTempStepper(entity: HassEntity): TemplateResult | typeof nothing {
+    if (entity.state === 'off' || entity.state === 'fan_only') return nothing;
+    const features = (entity.attributes.supported_features as number) || 0;
+    if (!(features & CF.TARGET_TEMPERATURE)) return nothing;
+    if (entity.state === 'heat_cool' && (features & CF.TARGET_TEMPERATURE_RANGE)) return nothing;
+
+    const entityId = entity.entity_id;
+    const target = this._pendingTemps.get(`temp_${entityId}`) ?? (entity.attributes.temperature as number | undefined);
+    const step = (entity.attributes.target_temp_step as number) || 0.5;
+    const min = (entity.attributes.min_temp as number) || 7;
+    const max = (entity.attributes.max_temp as number) || 35;
+    const hvacAction = this._getHvacAction(entity);
+    const colorClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat'
+      : hvacAction === 'cooling' ? 'cool'
+      : (entity.state === 'auto' || entity.state === 'heat_cool') ? 'auto-val' : 'off';
+
+    if (target == null) return nothing;
+
+    return html`
+      <div class="temp-control-panel">
+        <button class="temp-stepper-btn normal-stepper"
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+          aria-label=${t('climate.temp_down_aria')}
+          ?disabled=${target <= min}>
+          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <div class="target-display">
+          <div class="target-value ${colorClass}">${target.toFixed(1)}<span class="unit">°C</span></div>
+        </div>
+        <button class="temp-stepper-btn normal-stepper"
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+          aria-label=${t('climate.temp_up_aria')}
+          ?disabled=${target >= max}>
+          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+      </div>
+    `;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  STYLES
+  // ════════════════════════════════════════════════════════════════
 
   static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, bounceMixin, css`
     :host {
@@ -733,10 +982,25 @@ export class GlassClimateCard extends BaseCard {
 
       /* Climate tokens */
       --cl-heat: #f97316;
-      --cl-cool: #3b82f6;
+      --cl-heat-bg: rgba(249,115,22,0.1);
+      --cl-heat-border: rgba(249,115,22,0.15);
+      --cl-heat-glow: rgba(249,115,22,0.4);
+      --cl-heat-sub: rgba(249,115,22,0.6);
+
+      --cl-cool: #38bdf8;
+      --cl-cool-bg: rgba(56,189,248,0.1);
+      --cl-cool-border: rgba(56,189,248,0.15);
+      --cl-cool-glow: rgba(56,189,248,0.4);
+      --cl-cool-sub: rgba(56,189,248,0.6);
+
+      --cl-auto: #a78bfa;
+      --cl-auto-bg: rgba(167,139,250,0.1);
+      --cl-auto-border: rgba(167,139,250,0.15);
+      --cl-auto-glow: rgba(167,139,250,0.4);
+
       --cl-dry: #eab308;
-      --cl-auto: #8b5cf6;
       --cl-fan: #06b6d4;
+      --cl-off: var(--t4);
     }
 
     /* ── Card Header ── */
@@ -755,59 +1019,114 @@ export class GlassClimateCard extends BaseCard {
       border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
       transition: all var(--t-med);
     }
-    .card-count.some { background: rgba(239,140,79,0.15); color: var(--cl-heat); }
+    .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
     .card-count.none { background: var(--s2); color: var(--t3); }
-    .card-count.all  { background: rgba(239,140,79,0.2); color: var(--cl-heat); }
-    .card-avg {
-      font-size: 10px; font-weight: 600; color: var(--t3);
-      letter-spacing: 0.3px;
-    }
+    .card-count.all  { background: rgba(249,115,22,0.2); color: var(--cl-heat); }
+    .card-header-right { font-size: 10px; font-weight: 500; color: var(--t3); }
 
     /* ── Card Body ── */
-    .climate-card { position: relative; padding: 2px 14px; }
+    .climate-card { position: relative; overflow: hidden; }
+    .climate-card.list-mode { padding: 2px 14px; }
+    .climate-card.normal-mode {
+      padding: 14px;
+      touch-action: pan-y; user-select: none; -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent; cursor: default;
+      transition: border-color var(--t-fast), border-radius var(--t-layout);
+    }
     .card-inner { position: relative; z-index: 1; }
-    .tint { transition: opacity var(--t-slow), background var(--t-slow); }
+    .normal-mode .card-inner { display: flex; flex-direction: column; gap: 8px; }
+
+    /* ── Tint ── */
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0;
+      transition: opacity var(--t-slow), background var(--t-slow);
+      opacity: 0;
+    }
+    .tint.heat {
+      opacity: 0.15;
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+    }
+    .tint.cool {
+      opacity: 0.15;
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+    }
+    .tint.auto-tint {
+      opacity: 0.12;
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
+    }
 
     .empty-state {
       padding: 16px; text-align: center;
       font-size: 12px; color: var(--t3);
     }
 
-    /* ── Climate Row ── */
-    .climate-row {
+    /* ════════════════════════════════════════════
+       LIST MODE STYLES
+       ════════════════════════════════════════════ */
+
+    /* ── Row ── */
+    .cl-row {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 4px; position: relative;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
-    .climate-row.unavailable { opacity: 0.4; pointer-events: none; }
+    .cl-row.unavailable { opacity: 0.4; pointer-events: none; }
     @media (hover: hover) and (pointer: fine) {
-      .climate-row:hover { background: var(--s1); }
+      .cl-row:hover { background: var(--s1); }
     }
     @media (pointer: coarse) {
-      .climate-row:active { animation: bounce 0.3s ease; }
+      .cl-row:active { animation: bounce 0.3s ease; }
     }
 
     /* ── Icon Button ── */
-    .climate-icon-btn {
-      width: 36px; height: 36px; border-radius: 10px;
+    .cl-icon-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
-    .climate-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .climate-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+    .cl-icon-btn ha-icon {
+      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
     }
+    .cl-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
-      .climate-icon-btn:active { transform: scale(0.96); }
+      .cl-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+      .cl-icon-btn:hover ha-icon { color: var(--t2); }
     }
-    @media (pointer: coarse) {
-      .climate-icon-btn:active { animation: bounce 0.3s ease; }
+    @media (hover: hover) { .cl-icon-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .cl-icon-btn:active { animation: bounce 0.3s ease; } }
+
+    /* Icon states */
+    .cl-row[data-action="heating"] .cl-icon-btn,
+    .cl-row[data-action="preheating"] .cl-icon-btn {
+      background: var(--cl-heat-bg); border-color: var(--cl-heat-border);
+    }
+    .cl-row[data-action="heating"] .cl-icon-btn ha-icon,
+    .cl-row[data-action="preheating"] .cl-icon-btn ha-icon {
+      color: var(--cl-heat); animation: pulse-heat 2s ease-in-out infinite;
+    }
+    .cl-row[data-action="cooling"] .cl-icon-btn {
+      background: var(--cl-cool-bg); border-color: var(--cl-cool-border);
+    }
+    .cl-row[data-action="cooling"] .cl-icon-btn ha-icon {
+      color: var(--cl-cool); animation: pulse-cool 2s ease-in-out infinite;
+    }
+    .cl-row[data-action="idle"] .cl-icon-btn { background: var(--s2); border-color: var(--b2); }
+    .cl-row[data-action="idle"] .cl-icon-btn ha-icon { color: var(--t2); }
+
+    @keyframes pulse-heat {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(249,115,22,0.2)); }
+    }
+    @keyframes pulse-cool {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(56,189,248,0.2)); }
     }
 
     /* ── Expand Button ── */
-    .climate-expand-btn {
+    .cl-expand-btn {
       flex: 1; min-width: 0;
       display: flex; align-items: center; gap: 10px;
       background: none; border: none; padding: 0;
@@ -815,70 +1134,345 @@ export class GlassClimateCard extends BaseCard {
       text-align: left; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
-    .climate-expand-btn:focus-visible {
+    .cl-expand-btn:focus-visible {
       outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
 
-    /* ── Climate Info ── */
-    .climate-info { flex: 1; min-width: 0; }
-    .climate-name {
+    /* ── Info ── */
+    .cl-info { flex: 1; min-width: 0; }
+    .cl-name {
       font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
       white-space: nowrap; overflow: hidden;
     }
-    .climate-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
-    .climate-temp {
+    .cl-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .cl-action-text {
       font-size: 10px; font-weight: 500; color: var(--t3);
       transition: color var(--t-med);
     }
+    .cl-row[data-action="heating"] .cl-action-text,
+    .cl-row[data-action="preheating"] .cl-action-text { color: var(--cl-heat-sub); }
+    .cl-row[data-action="cooling"] .cl-action-text { color: var(--cl-cool-sub); }
+
+    .cl-mode-badge {
+      font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 1px 5px; border-radius: var(--radius-full);
+      background: var(--s2); color: var(--t4); flex-shrink: 0;
+    }
+    .cl-row[data-action="heating"] .cl-mode-badge,
+    .cl-row[data-action="preheating"] .cl-mode-badge {
+      background: var(--cl-heat-bg); color: var(--cl-heat-sub);
+    }
+    .cl-row[data-action="cooling"] .cl-mode-badge {
+      background: var(--cl-cool-bg); color: var(--cl-cool-sub);
+    }
+
+    /* ── Temps ── */
+    .cl-temps {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0;
+      flex-shrink: 0;
+    }
+    .cl-temp-current {
+      font-size: 18px; font-weight: 700; color: var(--t1);
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .cl-temp-current .unit { font-size: 11px; font-weight: 500; color: var(--t3); }
+    .cl-temp-target {
+      font-size: 10px; font-weight: 600; color: var(--t3);
+      font-variant-numeric: tabular-nums; margin-top: 1px;
+    }
+    .cl-row[data-action="heating"] .cl-temp-target,
+    .cl-row[data-action="preheating"] .cl-temp-target { color: var(--cl-heat-sub); }
+    .cl-row[data-action="cooling"] .cl-temp-target { color: var(--cl-cool-sub); }
 
     /* ── Dot ── */
-    .climate-dot {
+    .cl-dot {
       width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
-    .climate-dot.pulse {
-      animation: dot-pulse 2s ease-in-out infinite;
+    .cl-row[data-action="heating"] .cl-dot,
+    .cl-row[data-action="preheating"] .cl-dot {
+      background: var(--cl-heat); box-shadow: 0 0 8px var(--cl-heat-glow);
     }
-    @keyframes dot-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    .cl-row[data-action="cooling"] .cl-dot {
+      background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
     }
-
-    /* ── Chevron ── */
-    .chevron {
-      color: var(--t4); transition: transform var(--t-fast);
-      flex-shrink: 0;
-    }
-    .chevron.open { transform: rotate(180deg); }
 
     /* ── Fold separator ── */
     .fold-sep {
       height: 0; margin: 0 12px; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(239,140,79,0.2), transparent);
-      opacity: 0; transition: height var(--t-layout), opacity var(--t-layout);
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+      opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
+    }
+    .fold-sep.cool {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
     }
     .fold-sep.visible { height: 1px; opacity: 1; }
 
-    /* ── Controls fold ── */
+    /* ── Controls fold (list mode) ── */
     .ctrl-fold {
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
     }
     .ctrl-fold.open { grid-template-rows: 1fr; }
     .ctrl-fold-inner {
-      overflow: hidden;
-      opacity: 0; transition: opacity var(--t-fast);
+      overflow: hidden; opacity: 0;
+      transition: opacity 0.25s var(--ease-std);
     }
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
-
     .ctrl-panel {
       padding: 6px 0 4px;
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+
+    /* ── Large temperature stepper (list mode fold) ── */
+    .temp-control {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      padding: 8px 0;
+    }
+    .temp-stepper-btn {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: var(--s2); border: 1px solid var(--b2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
+    @media (hover: hover) and (pointer: fine) {
+      .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
+      .temp-stepper-btn:hover ha-icon { color: var(--t1); }
+    }
+    @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
+    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+    .temp-display {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 100px;
+    }
+    .temp-display-label {
+      font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--t4);
+    }
+    .temp-display-value {
+      font-size: 40px; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums; transition: color var(--t-fast);
+    }
+    .temp-display-value.heat { color: var(--cl-heat); }
+    .temp-display-value.cool { color: var(--cl-cool); }
+    .temp-display-value.off { color: var(--t3); }
+    .temp-display-value .unit { font-size: 18px; font-weight: 500; }
+    .temp-display-current {
+      font-size: 11px; font-weight: 500; color: var(--t3);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .temp-display-current ha-icon { display: flex; align-items: center; justify-content: center; }
+
+    /* ════════════════════════════════════════════
+       NORMAL MODE STYLES
+       ════════════════════════════════════════════ */
+
+    /* ── Thermal canvas ── */
+    .thermal-canvas {
+      position: absolute; inset: 0; border-radius: inherit;
+      overflow: hidden; pointer-events: none; z-index: 0;
+    }
+    .thermal-canvas canvas { width: 100%; height: 100%; }
+
+    /* ── Connected fold wrapper ── */
+    .climate-wrap { display: flex; flex-direction: column; }
+    .climate-wrap.fold-open .climate-card {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-color: transparent;
     }
 
+    /* Touch hint at card bottom when fold closed */
+    .normal-mode::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 2px; border-radius: 1px;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+      opacity: 0; transition: opacity var(--t-med); z-index: 2;
+    }
+    .climate-wrap:not(.fold-open) .normal-mode::after { opacity: 1; }
+
+    /* Normal fold inner (external, connected) */
+    .normal-fold-inner {
+      background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      border: 1px solid var(--b2);
+      border-top: none;
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1);
+    }
+    .normal-fold-inner .ctrl-panel {
+      padding: 12px 14px 14px;
+    }
+
+    .ctrl-fold-sep-top {
+      height: 1px; margin: 0 12px;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+      transition: background var(--t-med);
+    }
+    .ctrl-fold-sep-top.heat-sep {
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+    }
+    .ctrl-fold-sep-top.cool-sep {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+    }
+
+    /* ── Entity tabs ── */
+    .entity-tabs {
+      display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+      border-radius: 12px; background: var(--s1);
+      border: 1px solid var(--b1); padding: 3px;
+    }
+    .entity-tabs::-webkit-scrollbar { display: none; }
+
+    .entity-tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 7px 10px; border-radius: 9px; min-width: 0;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; outline: none;
+      -webkit-tap-highlight-color: transparent; white-space: nowrap;
+    }
+    .entity-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    @media (hover: hover) { .entity-tab:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .entity-tab:active { animation: bounce 0.3s ease; } }
+    @media (hover: hover) and (pointer: fine) {
+      .entity-tab:not(.active):hover { background: var(--s2); color: var(--t2); }
+    }
+
+    .entity-tab .tab-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+      transition: all var(--t-med);
+    }
+    .entity-tab .tab-dot.heating,
+    .entity-tab .tab-dot.preheating {
+      background: var(--cl-heat); box-shadow: 0 0 6px var(--cl-heat-glow);
+    }
+    .entity-tab .tab-dot.cooling {
+      background: var(--cl-cool); box-shadow: 0 0 6px var(--cl-cool-glow);
+    }
+    .entity-tab .tab-dot.idle { background: var(--t3); }
+    .entity-tab .tab-dot.off { background: var(--t4); }
+
+    .entity-tab.active {
+      background: var(--s4); color: var(--t1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .entity-tab.active.heat {
+      background: var(--cl-heat-bg); color: var(--cl-heat);
+      box-shadow: 0 1px 6px rgba(249,115,22,0.15);
+    }
+    .entity-tab.active.cool {
+      background: var(--cl-cool-bg); color: var(--cl-cool);
+      box-shadow: 0 1px 6px rgba(56,189,248,0.15);
+    }
+
+    /* ── Arc gauge ── */
+    .gauge-section {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0; gap: 0;
+    }
+    .arc-gauge { position: relative; width: 240px; height: 160px; }
+    .arc-gauge svg { width: 100%; height: 100%; }
+
+    .arc-bg { fill: none; stroke: var(--s2); stroke-width: 8; stroke-linecap: round; }
+    .arc-progress {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s var(--ease-out), stroke var(--t-med);
+    }
+    .arc-progress.heat { stroke: var(--cl-heat); filter: drop-shadow(0 0 8px var(--cl-heat-glow)); }
+    .arc-progress.cool { stroke: var(--cl-cool); filter: drop-shadow(0 0 8px var(--cl-cool-glow)); }
+    .arc-progress.auto-arc { stroke: var(--cl-auto); filter: drop-shadow(0 0 8px var(--cl-auto-glow)); }
+    .arc-progress.off { stroke: var(--t4); filter: none; }
+
+    .arc-target-dot {
+      fill: rgba(255,255,255,0.9);
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+      transition: all 0.6s var(--ease-out);
+    }
+    .arc-tick { stroke: var(--t4); stroke-width: 1; opacity: 0.3; }
+    .arc-tick-major { stroke: var(--t3); stroke-width: 1.5; opacity: 0.5; }
+    .arc-tick-label {
+      font-size: 8px; font-weight: 500; fill: var(--t4);
+      text-anchor: middle; dominant-baseline: middle;
+    }
+
+    /* Center display */
+    .gauge-center {
+      position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      width: 160px;
+    }
+    .gauge-current-temp {
+      font-size: 48px; font-weight: 300; line-height: 1;
+      font-variant-numeric: tabular-nums; letter-spacing: -2px;
+      transition: color var(--t-med);
+    }
+    .gauge-current-temp .unit {
+      font-size: 20px; font-weight: 400; color: var(--t3);
+      vertical-align: super; margin-left: -2px;
+    }
+    .gauge-current-temp.off { color: var(--t3); }
+
+    .gauge-action-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; transition: color var(--t-med);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .gauge-action-label ha-icon { display: flex; align-items: center; justify-content: center; }
+    .gauge-action-label.heat { color: var(--cl-heat-sub); }
+    .gauge-action-label.cool { color: var(--cl-cool-sub); }
+    .gauge-action-label.idle { color: var(--t3); }
+    .gauge-action-label.off { color: var(--t4); }
+
+    .gauge-sub-info {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 500; color: var(--t3);
+    }
+    .gauge-sub-info ha-icon { opacity: 0.5; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Normal mode temp stepper (glass sub-panel) ── */
+    .temp-control-panel {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      padding: 10px 16px;
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(4px) saturate(1.2);
+      -webkit-backdrop-filter: blur(4px) saturate(1.2);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .normal-stepper {
+      width: 40px; height: 40px; border-radius: 12px;
+    }
+    .target-display {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      min-width: 100px;
+    }
+    .target-value {
+      font-size: 28px; font-weight: 600; line-height: 1.1;
+      font-variant-numeric: tabular-nums; letter-spacing: -1px;
+      transition: color var(--t-med);
+    }
+    .target-value .unit { font-size: 14px; font-weight: 400; color: var(--t3); }
+    .target-value.heat { color: var(--cl-heat); }
+    .target-value.cool { color: var(--cl-cool); }
+    .target-value.auto-val { color: var(--cl-auto); }
+    .target-value.off { color: var(--t4); }
+
+    /* ════════════════════════════════════════════
+       SHARED CONTROL STYLES (used in both modes)
+       ════════════════════════════════════════════ */
+
     /* ── Chip row (HVAC modes, presets, fan, swing) ── */
-    .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip-row { display: flex; gap: 4px; flex-wrap: wrap; }
     .chip {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 5px 12px; border-radius: var(--radius-md);
@@ -895,19 +1489,15 @@ export class GlassClimateCard extends BaseCard {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
     .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .chip:active { animation: bounce 0.3s ease; }
-    }
+    @media (hover: hover) { .chip:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
     .chip.active {
-      border-color: var(--chip-color, rgba(239,140,79,0.15));
+      border-color: var(--chip-color, rgba(249,115,22,0.15));
       background: color-mix(in srgb, var(--chip-color, var(--cl-heat)) 10%, transparent);
       color: var(--chip-color, var(--cl-heat));
     }
 
-    /* ── Stepper row ── */
+    /* ── Stepper row (inline small stepper, used by climate-controls.ts) ── */
     .stepper-row {
       display: flex; align-items: center; justify-content: space-between;
       padding: 2px 0;
@@ -916,9 +1506,7 @@ export class GlassClimateCard extends BaseCard {
       font-size: 11px; font-weight: 600; color: var(--t2);
       display: flex; align-items: center;
     }
-    .stepper {
-      display: flex; align-items: center; gap: 8px;
-    }
+    .stepper { display: flex; align-items: center; gap: 8px; }
     .stepper-value {
       font-size: 14px; font-weight: 700; color: var(--t1);
       min-width: 52px; text-align: center;
@@ -937,28 +1525,16 @@ export class GlassClimateCard extends BaseCard {
     @media (hover: hover) and (pointer: fine) {
       .btn-icon:hover { background: var(--s3); border-color: var(--b3); }
     }
-    @media (hover: hover) and (pointer: fine) {
-      .btn-icon:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .btn-icon:active { animation: bounce 0.3s ease; }
-    }
+    @media (hover: hover) { .btn-icon:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .btn-icon:active { animation: bounce 0.3s ease; } }
     .btn-icon:disabled { opacity: 0.3; pointer-events: none; }
 
     /* ── Range slider ── */
-    .range-slider-row {
-      display: flex; flex-direction: column; gap: 6px;
-      padding: 4px 0;
-    }
-    .range-labels {
-      display: flex; justify-content: space-between;
-    }
-    .range-label {
-      font-size: 12px; font-weight: 700;
-    }
+    .range-slider-row { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+    .range-labels { display: flex; justify-content: space-between; }
+    .range-label { font-size: 12px; font-weight: 700; }
     .range-label.heat { color: var(--cl-heat); }
     .range-label.cool { color: var(--cl-cool); }
-
     .range-track {
       position: relative; height: 28px;
       background: var(--s1); border-radius: var(--radius-lg);
@@ -982,26 +1558,16 @@ export class GlassClimateCard extends BaseCard {
     .range-thumb:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
     .range-thumb.low {
       background: var(--cl-heat); border-color: var(--cl-heat);
-      box-shadow: 0 0 8px rgba(239,140,79,0.4);
+      box-shadow: 0 0 8px rgba(249,115,22,0.4);
     }
     .range-thumb.high {
       background: var(--cl-cool); border-color: var(--cl-cool);
-      box-shadow: 0 0 8px rgba(79,195,247,0.4);
+      box-shadow: 0 0 8px rgba(56,189,248,0.4);
     }
-
-    /* ── Humidity stepper ── */
 
     /* ── Aux heat toggle ── */
-    .aux-row {
-      display: flex; align-items: center; gap: 6px;
-      padding: 4px 0;
-    }
-    .aux-label {
-      font-size: 11px; font-weight: 600; color: var(--t2);
-      flex: 1;
-    }
-
-    /* ── Toggle ── */
+    .aux-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+    .aux-label { font-size: 11px; font-weight: 600; color: var(--t2); flex: 1; }
     .toggle {
       position: relative; width: 40px; height: 22px; border-radius: 11px;
       background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
@@ -1014,10 +1580,10 @@ export class GlassClimateCard extends BaseCard {
       background: var(--t3);
       transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
     }
-    .toggle.on { background: rgba(239,140,79,0.2); border-color: rgba(239,140,79,0.3); }
+    .toggle.on { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); }
     .toggle.on .toggle-knob {
       transform: translateX(18px); background: var(--cl-heat);
-      box-shadow: 0 0 8px rgba(239,140,79,0.4);
+      box-shadow: 0 0 8px rgba(249,115,22,0.4);
     }
     .toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
   `];
