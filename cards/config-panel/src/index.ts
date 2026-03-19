@@ -430,6 +430,12 @@ export class GlassConfigPanel extends LitElement {
       notify_services: {} as Record<string, string>,
       driving_sensors: {} as Record<string, string>,
     };
+    let climateCardConfig = {
+      show_header: true,
+      display_mode: 'list' as string,
+      dashboard_display_mode: 'list' as string,
+      dashboard_entities: [] as string[],
+    };
     let cameraCarouselConfig = {
       show_header: true,
       entity_order: [] as string[],
@@ -450,6 +456,7 @@ export class GlassConfigPanel extends LitElement {
         spotify_card: typeof spotifyCardConfig;
         media_card: typeof mediaCardConfig;
         presence_card: typeof presenceCardConfig;
+        climate_card: typeof climateCardConfig;
         camera_carousel: typeof cameraCarouselConfig;
         dashboard: typeof dashboardConfig;
       }>('get_config');
@@ -463,6 +470,7 @@ export class GlassConfigPanel extends LitElement {
       if (result.spotify_card) spotifyCardConfig = result.spotify_card;
       if (result.media_card) mediaCardConfig = result.media_card;
       if (result.presence_card) presenceCardConfig = result.presence_card;
+      if (result.climate_card) climateCardConfig = result.climate_card;
       if (result.camera_carousel) cameraCarouselConfig = result.camera_carousel;
       if (result.dashboard) dashboardConfig = result.dashboard;
     } catch {
@@ -517,6 +525,11 @@ export class GlassConfigPanel extends LitElement {
     this._presenceSmartphoneSensors = presenceCardConfig.smartphone_sensors ?? {};
     this._presenceNotifyServices = presenceCardConfig.notify_services ?? {};
     this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
+
+    this._climateShowHeader = climateCardConfig.show_header ?? true;
+    this._climateDisplayMode = climateCardConfig.display_mode === 'normal' ? 'normal' : 'list';
+    this._climateDashboardDisplayMode = climateCardConfig.dashboard_display_mode === 'normal' ? 'normal' : 'list';
+    this._climateDashboardEntities = climateCardConfig.dashboard_entities ?? [];
 
     this._cameraShowHeader = cameraCarouselConfig.show_header ?? true;
     this._cameraEntityOrder = cameraCarouselConfig.entity_order ?? [];
