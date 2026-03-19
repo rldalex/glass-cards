@@ -935,20 +935,20 @@ export class GlassClimateCard extends BaseCard {
       <div class="entity-tabs">
         ${sorted.map((entity) => {
           const friendlyName = (entity.attributes.friendly_name as string) || entity.entity_id;
-          const shortName = friendlyName.split(' ').pop() || friendlyName;
           const hvacAction = this._getHvacAction(entity);
           const isSelected = entity.entity_id === selectedId;
           const colorClass = isSelected
             ? ((hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : hvacAction === 'cooling' ? 'cool' : '')
             : '';
 
+          const icon = this._getIcon(entity.entity_id, entity);
+
           return html`
             <button class="entity-tab ${isSelected ? 'active' : ''} ${colorClass}"
               @click=${() => { this._selectedEntity = entity.entity_id; }}
               aria-label=${friendlyName}
               aria-pressed=${isSelected ? 'true' : 'false'}>
-              <span class="tab-dot ${hvacAction}"></span>
-              <span>${shortName}</span>
+              <ha-icon .icon=${icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             </button>
           `;
         })}

@@ -2904,13 +2904,12 @@
       </div>
     `}_renderEntityTabs(e){if(e.length<=1)return Y;const t=[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(ni[i]??3)-(ni[a]??3)}),i=this._selectedEntity||t[0]?.entity_id;return K`
       <div class="entity-tabs">
-        ${t.map(e=>{const t=e.attributes.friendly_name||e.entity_id,a=t.split(" ").pop()||t,s=this._getHvacAction(e),r=e.entity_id===i;return K`
-            <button class="entity-tab ${r?"active":""} ${r?"heating"===s||"preheating"===s?"heat":"cooling"===s?"cool":"":""}"
+        ${t.map(e=>{const t=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),s=e.entity_id===i,r=s?"heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"":"",o=this._getIcon(e.entity_id,e);return K`
+            <button class="entity-tab ${s?"active":""} ${r}"
               @click=${()=>{this._selectedEntity=e.entity_id}}
               aria-label=${t}
-              aria-pressed=${r?"true":"false"}>
-              <span class="tab-dot ${s}"></span>
-              <span>${a}</span>
+              aria-pressed=${s?"true":"false"}>
+              <ha-icon .icon=${o} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             </button>
           `})}
       </div>
