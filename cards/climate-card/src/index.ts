@@ -1007,6 +1007,7 @@ export class GlassClimateCard extends BaseCard {
       max-width: 500px;
       margin: 0 auto;
       font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--t1);
 
       /* Climate tokens */
       --cl-heat: #f97316;
@@ -1467,7 +1468,7 @@ export class GlassClimateCard extends BaseCard {
     .gauge-current-temp {
       font-size: 48px; font-weight: 300; line-height: 1;
       font-variant-numeric: tabular-nums; letter-spacing: -2px;
-      transition: color var(--t-med);
+      color: var(--t1); transition: color var(--t-med);
     }
     .gauge-current-temp .unit {
       font-size: 20px; font-weight: 400; color: var(--t3);
@@ -1477,7 +1478,7 @@ export class GlassClimateCard extends BaseCard {
 
     .gauge-action-label {
       font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.8px; transition: color var(--t-med);
+      letter-spacing: 0.8px; color: var(--t3); transition: color var(--t-med);
       display: flex; align-items: center; gap: 4px;
     }
     .gauge-action-label ha-icon { display: flex; align-items: center; justify-content: center; }
