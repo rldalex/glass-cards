@@ -4,6 +4,7 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  resolveEntityAreaId,
   isEntityVisibleNow,
   type EntityScheduleMap,
   type HassEntity,
@@ -941,14 +942,18 @@ export class GlassClimateCard extends BaseCard {
             ? ((hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : hvacAction === 'cooling' ? 'cool' : '')
             : '';
 
-          const icon = this._getIcon(entity.entity_id, entity);
+          // Resolve room icon for this entity
+          const regEntry = this.hass?.entities[entity.entity_id];
+          const areaId = regEntry ? resolveEntityAreaId(regEntry, this.hass?.devices) : null;
+          const area = areaId ? this.hass?.areas[areaId] : null;
+          const roomIcon = area?.icon || 'mdi:home';
 
           return html`
             <button class="entity-tab ${isSelected ? 'active' : ''} ${colorClass}"
               @click=${() => { this._selectedEntity = entity.entity_id; }}
               aria-label=${friendlyName}
               aria-pressed=${isSelected ? 'true' : 'false'}>
-              <ha-icon .icon=${icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              <ha-icon .icon=${roomIcon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             </button>
           `;
         })}
