@@ -630,6 +630,21 @@ export class GlassRoomPopup extends LitElement {
     const scenes: HassEntity[] = [];
     const domainSet = new Set<string>();
 
+    // Use area-designated temp/humidity sensors (HA area registry fields)
+    const haArea = area as { temperature_entity_id?: string | null; humidity_entity_id?: string | null };
+    if (haArea.temperature_entity_id) {
+      const e = this.hass.states[haArea.temperature_entity_id];
+      if (e && e.state !== 'unavailable' && e.state !== 'unknown') {
+        temperature = `${e.state}${e.attributes.unit_of_measurement || '°C'}`;
+      }
+    }
+    if (haArea.humidity_entity_id) {
+      const e = this.hass.states[haArea.humidity_entity_id];
+      if (e && e.state !== 'unavailable' && e.state !== 'unknown') {
+        humidity = `${e.state}%`;
+      }
+    }
+
     for (const regEntry of areaEntities) {
       const entityState = this.hass?.states[regEntry.entity_id];
       if (!entityState) continue;
@@ -646,6 +661,7 @@ export class GlassRoomPopup extends LitElement {
         if ((dc === 'temperature' || dc === 'humidity') && isUnavail) {
           sensorUnavailable = true;
         }
+        // Fallback: auto-detect if area has no designated sensor
         if (!isUnavail) {
           if (dc === 'temperature' && !temperature) {
             temperature = `${entityState.state}${entityState.attributes.unit_of_measurement || '°C'}`;

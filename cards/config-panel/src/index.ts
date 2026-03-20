@@ -26,7 +26,7 @@ import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible,
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
 import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, getAvailableSmartphoneSensors, getAvailableDrivingSensors, getAvailableNotifyServices, togglePresencePerson } from './tabs/presence';
 import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, selectSpotifyEntity, toggleSpotifySpeaker, onDropSpeaker } from './tabs/spotify';
-import { renderTitlePreview, renderTitleTab, renderIconPopup, renderColorPicker, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons, openColorPicker, closeColorPicker, applyColorPicker, onCpWheel } from './tabs/title';
+import { renderTitlePreview, renderTitleTab, renderIconPopup, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
 import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
 import { renderClimatePreview, renderClimateTab, selectClimateRoom, toggleClimateEntityVisibility, moveClimate, onDropClimate, getAllClimateEntities } from './tabs/climate';
@@ -79,12 +79,8 @@ export class GlassConfigPanel extends LitElement {
   // Title card config (multi-source)
   @state() _titleText = '';
   @state() _titleSources: { source_type: 'input_select' | 'scenes' | 'booleans'; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[] = [];
-  @state() _titlePeriodEntity = '';
-  @state() _titlePeriodOptions: { id: string; label: string; icon: string; color: string }[] = [];
   @state() _titleEditingSourceIdx: number | null = null;
   @state() _titleAddSourceDropdownOpen = false;
-  @state() _titlePeriodDropdownOpen = false;
-  @state() _titlePeriodColorIdx: number | null = null;
   @state() _titleAddEntityDropdownOpen = false;
   _titleAddEntitySearch = '';
   // Backward compat aliases for icon/color picker that use flat mode index
@@ -94,13 +90,6 @@ export class GlassConfigPanel extends LitElement {
   @state() _iconPopupModeIdx: number | null = null;
   @state() _iconSearch = '';
   _iconList: string[] = [];
-
-  // Title color picker
-  @state() _colorPickerModeIdx: number | null = null;
-  @state() _colorPickerHex: string = '#ffffff';
-  @state() _colorPickerPos: { x: number; y: number } = { x: 50, y: 50 };
-  _cpCanvas: HTMLCanvasElement | null = null;
-  _cancelColorDrag: (() => void) | undefined;
 
   // Light card config
   @state() _lightShowHeader = true;
@@ -225,7 +214,7 @@ export class GlassConfigPanel extends LitElement {
     '_showLights', '_showTemperature', '_showHumidity', '_showMedia',
     '_autoSort', '_tempHigh', '_tempLow', '_humidityThreshold',
     '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
-    '_titleText', '_titleSources', '_titlePeriodEntity', '_titlePeriodOptions',
+    '_titleText', '_titleSources',
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
@@ -271,13 +260,11 @@ export class GlassConfigPanel extends LitElement {
       clearTimeout(this._autoSaveTimer);
       this._autoSaveTimer = undefined;
     }
-    this._cancelColorDrag?.();
-    this._cancelColorDrag = undefined;
     this._backend = undefined;
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._titlePeriodDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !!this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -290,7 +277,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
-    this._titlePeriodDropdownOpen = false;
+
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
@@ -508,11 +495,6 @@ export class GlassConfigPanel extends LitElement {
       label: s.label || '',
       modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
     }));
-    this._titlePeriodEntity = titleCardConfig.period_entity ?? '';
-    this._titlePeriodOptions = (titleCardConfig.period_options ?? []).map((o) => ({
-      id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || 'neutral',
-    }));
-
     this._coverShowHeader = coverCardConfig.show_header ?? true;
     this._fanShowHeader = fanCardConfig.show_header ?? true;
     this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
@@ -755,8 +737,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
-    this._titlePeriodDropdownOpen = false;
-    this._titlePeriodColorIdx = null;
+
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
@@ -766,7 +747,6 @@ export class GlassConfigPanel extends LitElement {
     this._presenceDropdownOpen = null;
     this._unassignedDropdownEntity = null;
     this._iconPopupModeIdx = null;
-    this._colorPickerModeIdx = null;
     if (tab === 'light' && !this._lightRoom && this._rooms.length > 0) {
       this._lightRoom = this._rooms[0].areaId;
       this._loadRoomLights();
@@ -2055,8 +2035,6 @@ export class GlassConfigPanel extends LitElement {
           label: s.label || '',
           modes: s.modes,
         })),
-        period_entity: this._titlePeriodEntity,
-        period_options: this._titlePeriodOptions,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -2073,7 +2051,6 @@ export class GlassConfigPanel extends LitElement {
     if (!this._backend) return;
     // Close pickers to avoid stale flatIdx after data reload
     this._iconPopupModeIdx = null;
-    this._colorPickerModeIdx = null;
     this._titleEditingSourceIdx = null;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
@@ -2088,10 +2065,6 @@ export class GlassConfigPanel extends LitElement {
           entity: s.entity || '',
           label: s.label || '',
           modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
-        }));
-        this._titlePeriodEntity = result.title_card.period_entity ?? '';
-        this._titlePeriodOptions = (result.title_card.period_options ?? []).map((o) => ({
-          id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || 'neutral',
         }));
       }
     } catch { /* ignore */ }
@@ -2167,18 +2140,6 @@ export class GlassConfigPanel extends LitElement {
   _renderIconPopup() { return renderIconPopup(this); }
 
   _renderTitlePreview() { return renderTitlePreview(this); }
-
-  // — Title color picker (chromatic wheel) —
-
-  _openColorPicker(modeIdx: number) { openColorPicker(this, modeIdx); }
-
-  _closeColorPicker() { closeColorPicker(this); }
-
-  _applyColorPicker() { applyColorPicker(this); }
-
-  _onCpWheel(e: MouseEvent | TouchEvent) { onCpWheel(this, e); }
-
-  _renderColorPicker() { return renderColorPicker(this); }
 
   _renderTitleTab() { return renderTitleTab(this); }
 
@@ -2344,7 +2305,6 @@ export class GlassConfigPanel extends LitElement {
 
       ${this._pickerOpen ? this._renderDateTimePicker() : nothing}
       ${this._renderIconPopup()}
-      ${this._renderColorPicker()}
 
       <div class="toast ${this._toast ? 'show' : ''} ${this._toastError ? 'error' : ''}">
         ${this._toastError ? t('common.error_save') : t('common.config_saved')}

@@ -969,26 +969,40 @@ export class GlassNavbarCard extends BaseCard {
       let humidityValue: number | null = null;
       let mediaPlaying = false;
 
+      // Use area-designated temp/humidity sensors (HA area registry fields)
+      const haArea = this.hass?.areas?.[area.areaId] as { temperature_entity_id?: string | null; humidity_entity_id?: string | null } | undefined;
+      if (haArea?.temperature_entity_id) {
+        const e = this.hass?.states[haArea.temperature_entity_id];
+        if (e && e.state !== 'unavailable' && e.state !== 'unknown') {
+          const v = parseFloat(e.state);
+          if (!isNaN(v)) { temperature = `${e.state}°`; tempValue = v; }
+        }
+      }
+      if (haArea?.humidity_entity_id) {
+        const e = this.hass?.states[haArea.humidity_entity_id];
+        if (e && e.state !== 'unavailable' && e.state !== 'unknown') {
+          const v = parseFloat(e.state);
+          if (!isNaN(v)) { humidity = `${e.state}%`; humidityValue = v; }
+        }
+      }
+
       for (const entityId of area.entityIds) {
         const entity = this.hass?.states[entityId];
         if (!entity) continue;
         const domain = entityId.split('.')[0];
 
         if (domain === 'light' && entity.state === 'on') lightsOn++;
-        if (domain === 'sensor' && entity.state !== 'unavailable' && entity.state !== 'unknown') {
-          const dc = entity.attributes.device_class;
-          if (dc === 'temperature' && !temperature) {
-            const v = parseFloat(entity.state);
-            if (!isNaN(v)) {
-              temperature = `${entity.state}°`;
-              tempValue = v;
+        // Fallback: auto-detect temp/humidity if area has no designated sensor
+        if (!temperature || !humidity) {
+          if (domain === 'sensor' && entity.state !== 'unavailable' && entity.state !== 'unknown') {
+            const dc = entity.attributes.device_class;
+            if (dc === 'temperature' && !temperature) {
+              const v = parseFloat(entity.state);
+              if (!isNaN(v)) { temperature = `${entity.state}°`; tempValue = v; }
             }
-          }
-          if (dc === 'humidity' && !humidity) {
-            const v = parseFloat(entity.state);
-            if (!isNaN(v)) {
-              humidity = `${entity.state}%`;
-              humidityValue = v;
+            if (dc === 'humidity' && !humidity) {
+              const v = parseFloat(entity.state);
+              if (!isNaN(v)) { humidity = `${entity.state}%`; humidityValue = v; }
             }
           }
         }

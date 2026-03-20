@@ -20,18 +20,9 @@ interface TitleSourceEntry {
   modes: TitleModeEntry[];
 }
 
-interface PeriodOptionEntry {
-  id: string;
-  label: string;
-  icon: string;
-  color: string;
-}
-
 interface TitleBackendConfig {
   title: string;
   sources: TitleSourceEntry[];
-  period_entity: string;
-  period_options: PeriodOptionEntry[];
 }
 
 // Colors mapped to CSS custom properties
@@ -62,6 +53,18 @@ function resolveColor(colorKey: string): { text: string; dot: string; glow: stri
   return COLOR_MAP.neutral;
 }
 
+/** Hardcoded period visuals from the prototype. */
+const PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
+  'Matin':       { icon: 'mdi:weather-sunset-up',   color: '#f0a050' },
+  'Après-midi':  { icon: 'mdi:white-balance-sunny',  color: '#7db8e0' },
+  'Soir':        { icon: 'mdi:weather-sunset-down',  color: '#e08040' },
+  'Nuit':        { icon: 'mdi:weather-night',        color: '#8b8ff0' },
+};
+const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
+
+/** Hardcoded period entity — auto-detected, no config needed. */
+const PERIOD_ENTITY_ID = 'input_select.mode_maison';
+
 /** Scene activation timeout duration (ms). */
 const SCENE_HIGHLIGHT_MS = 2000;
 
@@ -69,7 +72,7 @@ class GlassTitleCard extends BaseCard {
   @state() private _foldOpen = false;
   @state() private _activatingSceneId: string | null = null;
 
-  private _titleConfig: TitleBackendConfig = { title: '', sources: [], period_entity: '', period_options: [] };
+  private _titleConfig: TitleBackendConfig = { title: '', sources: [] };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
   private _configLoading = false;
@@ -268,8 +271,7 @@ class GlassTitleCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    const ids: string[] = [];
-    if (this._titleConfig.period_entity) ids.push(this._titleConfig.period_entity);
+    const ids: string[] = [PERIOD_ENTITY_ID];
     for (const src of this._titleConfig.sources) {
       if (src.source_type === 'input_select' && src.entity) {
         ids.push(src.entity);
@@ -469,30 +471,33 @@ class GlassTitleCard extends BaseCard {
   // — Period indicator —
 
   private _renderPeriodIndicator(): TemplateResult | typeof nothing {
-    const { period_entity, period_options } = this._titleConfig;
-    if (!period_entity || period_options.length === 0 || !this.hass) return nothing;
+    if (!this.hass) return nothing;
 
-    const entity = this.hass.states[period_entity];
+    const entity = this.hass.states[PERIOD_ENTITY_ID];
     if (!entity) return nothing;
 
+    // Read options directly from the HA entity
+    const options = (entity.attributes?.options as string[] | undefined) ?? [];
+    if (options.length === 0) return nothing;
+
     const currentValue = entity.state;
-    const currentIdx = period_options.findIndex((o) => o.id === currentValue);
+    const currentIdx = options.indexOf(currentValue);
 
     // Keep container stable even when state is unavailable/unknown
     if (currentIdx === -1) return html`<div class="period-indicator"></div>`;
 
-    const activeOpt = period_options[currentIdx];
-    const activeColor = resolveColor(activeOpt.color || 'neutral');
+    const activeVisual = PERIOD_VISUALS[currentValue] || PERIOD_DEFAULT_VISUAL;
 
     return html`
-      <div class="period-indicator" aria-live="polite" aria-label="${activeOpt.label || currentValue}">
-        ${period_options.map((opt, i) => {
+      <div class="period-indicator" aria-live="polite" aria-label="${currentValue}">
+        ${options.map((opt, i) => {
           const pos = this._getPeriodPos(i, currentIdx);
+          const visual = PERIOD_VISUALS[opt] || PERIOD_DEFAULT_VISUAL;
           return html`
             <div class="period-item ${pos}"
-              style="${pos === 'pos-center' ? `color:${activeColor.text}` : ''}">
-              ${opt.icon ? html`<ha-icon .icon=${opt.icon} style="--mdc-icon-size:11px;display:flex;align-items:center;justify-content:center;margin-right:5px;"></ha-icon>` : nothing}
-              ${opt.label || opt.id}
+              style="${pos === 'pos-center' ? `color:${activeVisual.color}` : ''}">
+              <ha-icon .icon=${visual.icon} style="--mdc-icon-size:11px;display:flex;align-items:center;justify-content:center;margin-right:5px;"></ha-icon>
+              ${opt}
             </div>
           `;
         })}
@@ -529,7 +534,6 @@ class GlassTitleCard extends BaseCard {
                 data-id=${mode.id}
                 style="${isActive ? `color:${mc.text};background:${mc.dot}14;border-color:${mc.dot}33;` : ''}"
                 aria-label=${mode.label || mode.id}
-                ${src.source_type === 'booleans' ? html`` : nothing}
                 @click=${(e: Event) => { e.stopPropagation(); this._onChipClick(src, mode, idx); }}
               >
                 ${mode.icon ? html`<ha-icon .icon=${mode.icon}></ha-icon>` : nothing}

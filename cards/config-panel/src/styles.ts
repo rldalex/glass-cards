@@ -1421,6 +1421,19 @@ export const configPanelStyles: CSSResult = css`
       .preview-title-text::after {
         background: linear-gradient(90deg, var(--b3), transparent);
       }
+      .yaml-block {
+        background: var(--s1); border: 1px solid var(--b1);
+        border-radius: var(--radius-md); padding: 10px 14px;
+        font-family: 'Courier New', monospace; font-size: 10px;
+        line-height: 1.5; color: var(--t3);
+        overflow-x: auto; white-space: pre; margin: 8px 0 0;
+        user-select: all; -webkit-user-select: all;
+      }
+      .preview-period {
+        display: flex; align-items: center; justify-content: center;
+        font-size: 9px; font-weight: 500; text-transform: uppercase;
+        letter-spacing: 1.5px; user-select: none;
+      }
       .preview-title-dash {
         display: flex; align-items: center; justify-content: center;
         padding: 2px 0;
@@ -1641,91 +1654,6 @@ export const configPanelStyles: CSSResult = css`
       .icon-popup-empty {
         padding: 24px; text-align: center;
         font-size: 12px; color: var(--t4);
-      }
-
-      /* ── Color picker popup (glass) ── */
-      .cp-overlay {
-        position: fixed; inset: 0; z-index: 10001;
-        display: flex; align-items: center; justify-content: center;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        animation: cpFadeIn 0.2s ease;
-      }
-      @keyframes cpFadeIn { from { opacity: 0; } to { opacity: 1; } }
-      .cp-dialog {
-        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
-        backdrop-filter: blur(40px) saturate(1.4); -webkit-backdrop-filter: blur(40px) saturate(1.4);
-        border: 1px solid var(--b2); border-radius: var(--radius-xl);
-        padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 14px;
-        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25);
-        max-width: 300px; width: 90vw;
-      }
-      .cp-dialog .cp-title {
-        font-size: 11px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 1px; color: var(--t3);
-      }
-      .cp-wheel-wrap {
-        position: relative; width: 220px; height: 220px;
-      }
-      .cp-wheel-wrap canvas {
-        width: 100%; height: 100%; border-radius: 50%; cursor: crosshair;
-      }
-      .cp-cursor {
-        position: absolute; width: 22px; height: 22px; border-radius: 50%;
-        border: 3px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
-        pointer-events: none; transform: translate(-50%, -50%);
-      }
-      .cp-preview {
-        width: 100%; height: 32px; border-radius: var(--radius-md);
-        border: 1px solid var(--b2);
-      }
-      .cp-hex {
-        font-size: 12px; font-weight: 600; color: var(--t2);
-        font-family: monospace; letter-spacing: 0.5px;
-      }
-      .cp-confirm {
-        font-family: inherit; font-size: 12px; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.8px; color: var(--t2);
-        background: var(--s2); border: 1px solid var(--b2);
-        border-radius: var(--radius-md); padding: 8px 24px;
-        cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
-        transition: background var(--t-fast), border-color var(--t-fast);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .cp-confirm:hover { background: var(--s3); border-color: var(--b3); }
-      }
-      @media (hover: none) {
-        .cp-confirm:active { animation: bounce 0.3s ease; }
-      }
-      .cp-confirm:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
-
-      /* Color picker button (rainbow ring) */
-      .title-color-picker-btn {
-        width: 20px; height: 20px; border-radius: 50%;
-        border: 2px solid transparent; cursor: pointer; padding: 0;
-        outline: none; background: none; -webkit-tap-highlight-color: transparent;
-        transition: all var(--t-fast); flex-shrink: 0;
-        position: relative;
-      }
-      .title-color-picker-btn::before {
-        content: ''; position: absolute; inset: -2px; border-radius: 50%;
-        background: conic-gradient(
-          hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
-          hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
-        );
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .title-color-picker-btn:hover { transform: scale(1.15); }
-      }
-      @media (hover: none) {
-        .title-color-picker-btn:active { animation: bounce 0.3s ease; }
-      }
-      .title-color-picker-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
-      .title-color-chip.custom {
-        border: 2px solid var(--b3);
-      }
-      .title-color-chip.custom.active {
-        border-color: var(--t1); transform: scale(1.15);
       }
 
       .preview-weather {
