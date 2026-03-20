@@ -978,12 +978,18 @@ export class GlassNavbarCard extends BaseCard {
         if (domain === 'sensor' && entity.state !== 'unavailable' && entity.state !== 'unknown') {
           const dc = entity.attributes.device_class;
           if (dc === 'temperature' && !temperature) {
-            temperature = `${entity.state}°`;
-            tempValue = parseFloat(entity.state);
+            const v = parseFloat(entity.state);
+            if (!isNaN(v)) {
+              temperature = `${entity.state}°`;
+              tempValue = v;
+            }
           }
           if (dc === 'humidity' && !humidity) {
-            humidity = `${entity.state}%`;
-            humidityValue = parseFloat(entity.state);
+            const v = parseFloat(entity.state);
+            if (!isNaN(v)) {
+              humidity = `${entity.state}%`;
+              humidityValue = v;
+            }
           }
         }
         if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
