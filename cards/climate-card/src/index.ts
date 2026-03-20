@@ -358,7 +358,7 @@ export class GlassClimateCard extends BaseCard {
     }
     if (this._isDashboardMode) {
       if (this._dashboardEntities.length > 0) {
-        return this._dashboardEntities.filter((id) => this.hass?.states[id]);
+        return this._dashboardEntities.filter((id) => this.hass?.states[id] && isEntityVisibleNow(id, this._schedules));
       }
       const areas = this.visibleAreaIds;
       if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
@@ -491,6 +491,7 @@ export class GlassClimateCard extends BaseCard {
 
   private _onRangeDragStart(thumb: 'low' | 'high', e: PointerEvent, entityId: string): void {
     e.preventDefault();
+    if (this._rangeDragCleanup) { this._rangeDragCleanup(); this._rangeDragCleanup = null; }
     const entity = this.hass?.states[entityId];
     if (!entity) return;
 
@@ -764,10 +765,10 @@ export class GlassClimateCard extends BaseCard {
     `;
   }
 
-  private _renderListFold(entityId: string, entity: HassEntity): TemplateResult {
+  private _renderListFold(entityId: string, entity: HassEntity): TemplateResult | typeof nothing {
     const isExpanded = this._expanded === entityId;
     const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
-    if (isUnavailable) return html``;
+    if (isUnavailable) return nothing;
 
     const hvacAction = this._getHvacAction(entity);
     const sepColor = hvacAction === 'cooling' ? 'cool' : '';
@@ -904,7 +905,7 @@ export class GlassClimateCard extends BaseCard {
             <canvas id="thermal-canvas"></canvas>
           </div>
           <div class="card-inner">
-            ${this._renderEntityTabs(climates)}
+            ${this._renderEntityTabs(sorted)}
             ${renderArcGauge(entity)}
             ${this._renderNormalTempStepper(entity)}
           </div>
@@ -924,17 +925,11 @@ export class GlassClimateCard extends BaseCard {
   private _renderEntityTabs(climates: HassEntity[]): TemplateResult | typeof nothing {
     if (climates.length <= 1) return nothing;
 
-    const sorted = [...climates].sort((a, b) => {
-      const aAction = this._getHvacAction(a);
-      const bAction = this._getHvacAction(b);
-      return (ACTION_ORDER[aAction] ?? 3) - (ACTION_ORDER[bAction] ?? 3);
-    });
-
-    const selectedId = this._selectedEntity || sorted[0]?.entity_id;
+    const selectedId = this._selectedEntity || climates[0]?.entity_id;
 
     return html`
       <div class="entity-tabs">
-        ${sorted.map((entity) => {
+        ${climates.map((entity) => {
           const friendlyName = (entity.attributes.friendly_name as string) || entity.entity_id;
           const hvacAction = this._getHvacAction(entity);
           const isSelected = entity.entity_id === selectedId;

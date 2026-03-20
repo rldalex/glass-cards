@@ -116,16 +116,35 @@ export function renderClimateTab(self: GlassConfigPanel) {
         </div>
       </div>
 
-      <!-- Display mode selector -->
-      <div class="section-label" style="margin-top:14px;font-size:11px;">${t('config.climate_display_mode')}</div>
+      <!-- Display mode selector (popup) -->
+      <div class="section-label" style="margin-top:14px;font-size:11px;">${t('config.climate_display_mode_popup')}</div>
       <div style="display:flex;gap:6px;margin-top:6px;">
         <button class="chip ${self._climateDisplayMode === 'list' ? 'active' : ''}"
-          @click=${() => { self._climateDisplayMode = 'list'; }}>
+          @click=${() => { self._climateDisplayMode = 'list'; }}
+          aria-pressed=${self._climateDisplayMode === 'list' ? 'true' : 'false'}>
           <ha-icon .icon=${'mdi:format-list-bulleted'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
           ${t('config.climate_mode_list')}
         </button>
         <button class="chip ${self._climateDisplayMode === 'normal' ? 'active' : ''}"
-          @click=${() => { self._climateDisplayMode = 'normal'; }}>
+          @click=${() => { self._climateDisplayMode = 'normal'; }}
+          aria-pressed=${self._climateDisplayMode === 'normal' ? 'true' : 'false'}>
+          <ha-icon .icon=${'mdi:gauge'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          ${t('config.climate_mode_normal')}
+        </button>
+      </div>
+
+      <!-- Display mode selector (dashboard) -->
+      <div class="section-label" style="margin-top:10px;font-size:11px;">${t('config.climate_display_mode_dashboard')}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="chip ${self._climateDashboardDisplayMode === 'list' ? 'active' : ''}"
+          @click=${() => { self._climateDashboardDisplayMode = 'list'; }}
+          aria-pressed=${self._climateDashboardDisplayMode === 'list' ? 'true' : 'false'}>
+          <ha-icon .icon=${'mdi:format-list-bulleted'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          ${t('config.climate_mode_list')}
+        </button>
+        <button class="chip ${self._climateDashboardDisplayMode === 'normal' ? 'active' : ''}"
+          @click=${() => { self._climateDashboardDisplayMode = 'normal'; }}
+          aria-pressed=${self._climateDashboardDisplayMode === 'normal' ? 'true' : 'false'}>
           <ha-icon .icon=${'mdi:gauge'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
           ${t('config.climate_mode_normal')}
         </button>
@@ -135,6 +154,7 @@ export function renderClimateTab(self: GlassConfigPanel) {
       <div class="check-item" style="margin-top:12px;">
         <button class="check-box ${self._climateShowHeader ? 'on' : ''}"
           role="switch" aria-checked=${self._climateShowHeader ? 'true' : 'false'}
+          aria-label=${t('config.climate_show_header')}
           @click=${() => { self._climateShowHeader = !self._climateShowHeader; }}>
           <ha-icon .icon=${self._climateShowHeader ? 'mdi:check' : ''} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>

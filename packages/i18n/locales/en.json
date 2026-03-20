@@ -555,6 +555,8 @@
     "climate_show_header": "Show header",
     "climate_show_header_desc": "Title and counter above the card",
     "climate_display_mode": "Display mode",
+    "climate_display_mode_popup": "Display mode (popup)",
+    "climate_display_mode_dashboard": "Display mode (dashboard)",
     "climate_mode_list": "List",
     "climate_mode_normal": "Normal",
     "climate_select_room": "Select a room",

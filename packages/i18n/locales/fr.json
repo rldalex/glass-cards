@@ -555,6 +555,8 @@
     "climate_show_header": "Afficher l'en-tête",
     "climate_show_header_desc": "Titre et compteur au-dessus de la carte",
     "climate_display_mode": "Mode d'affichage",
+    "climate_display_mode_popup": "Mode d'affichage (popup)",
+    "climate_display_mode_dashboard": "Mode d'affichage (dashboard)",
     "climate_mode_list": "Liste",
     "climate_mode_normal": "Normal",
     "climate_select_room": "Sélectionner une pièce",

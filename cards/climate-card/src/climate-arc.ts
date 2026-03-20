@@ -70,11 +70,12 @@ function getActionColorClass(hvacAction: string): string {
 
 export function renderArcGauge(entity: HassEntity): TemplateResult {
   const attrs = entity.attributes;
-  const isOff = entity.state === 'off';
-  const hvacAction = (attrs.hvac_action as string) || (isOff ? 'off' : 'idle');
+  const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
+  const isOff = entity.state === 'off' || isUnavailable;
+  const hvacAction = isUnavailable ? 'off' : ((attrs.hvac_action as string) || (entity.state === 'off' ? 'off' : 'idle'));
   const hvacMode = entity.state;
-  const currentTemp = (attrs.current_temperature as number) ?? 0;
-  const targetTemp = (attrs.temperature as number) ?? currentTemp;
+  const currentTemp = attrs.current_temperature as number | undefined;
+  const targetTemp = (attrs.temperature as number) ?? currentTemp ?? 0;
   const minTemp = (attrs.min_temp as number) || 7;
   const maxTemp = (attrs.max_temp as number) || 35;
   const humidity = attrs.current_humidity as number | undefined;
@@ -82,7 +83,7 @@ export function renderArcGauge(entity: HassEntity): TemplateResult {
 
   // Arc math
   const fullLen = Math.PI * R * (TOTAL_ANGLE / 180);
-  const currentRatio = Math.max(0, Math.min(1, (currentTemp - minTemp) / (maxTemp - minTemp)));
+  const currentRatio = currentTemp != null ? Math.max(0, Math.min(1, (currentTemp - minTemp) / (maxTemp - minTemp))) : 0;
   const progressLen = currentRatio * fullLen;
 
   const colorClass = getArcColorClass(hvacAction, hvacMode);
@@ -141,7 +142,7 @@ export function renderArcGauge(entity: HassEntity): TemplateResult {
           ` : nothing}
         </svg>
         <div class="gauge-center">
-          <div class="gauge-current-temp ${isOff ? 'off' : ''}">${currentTemp.toFixed(1)}<span class="unit">°</span></div>
+          <div class="gauge-current-temp ${isOff ? 'off' : ''}">${currentTemp != null ? html`${currentTemp.toFixed(1)}<span class="unit">°</span>` : '--'}</div>
           <div class="gauge-action-label ${actionColorClass}">
             <ha-icon .icon=${actionIcon} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             <span>${t(actionKey as Parameters<typeof t>[0])}</span>
