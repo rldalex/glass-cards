@@ -79,8 +79,12 @@ export class GlassConfigPanel extends LitElement {
   // Title card config (multi-source)
   @state() _titleText = '';
   @state() _titleSources: { source_type: 'input_select' | 'scenes' | 'booleans'; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[] = [];
+  @state() _titlePeriodEntity = '';
+  @state() _titlePeriodOptions: { id: string; label: string; icon: string; color: string }[] = [];
   @state() _titleEditingSourceIdx: number | null = null;
   @state() _titleAddSourceDropdownOpen = false;
+  @state() _titlePeriodDropdownOpen = false;
+  @state() _titlePeriodColorIdx: number | null = null;
   @state() _titleAddEntityDropdownOpen = false;
   _titleAddEntitySearch = '';
   // Backward compat aliases for icon/color picker that use flat mode index
@@ -221,7 +225,7 @@ export class GlassConfigPanel extends LitElement {
     '_showLights', '_showTemperature', '_showHumidity', '_showMedia',
     '_autoSort', '_tempHigh', '_tempLow', '_humidityThreshold',
     '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
-    '_titleText', '_titleSources',
+    '_titleText', '_titleSources', '_titlePeriodEntity', '_titlePeriodOptions',
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
@@ -273,7 +277,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._titlePeriodDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -286,6 +290,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
+    this._titlePeriodDropdownOpen = false;
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
@@ -398,6 +403,8 @@ export class GlassConfigPanel extends LitElement {
     let titleCardConfig = {
       title: '',
       sources: [] as { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[],
+      period_entity: '',
+      period_options: [] as { id: string; label: string; icon: string; color: string }[],
     };
     let coverCardConfig = {
       show_header: true,
@@ -500,6 +507,10 @@ export class GlassConfigPanel extends LitElement {
       entity: s.entity || '',
       label: s.label || '',
       modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
+    }));
+    this._titlePeriodEntity = titleCardConfig.period_entity ?? '';
+    this._titlePeriodOptions = (titleCardConfig.period_options ?? []).map((o) => ({
+      id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || 'neutral',
     }));
 
     this._coverShowHeader = coverCardConfig.show_header ?? true;
@@ -744,6 +755,8 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
+    this._titlePeriodDropdownOpen = false;
+    this._titlePeriodColorIdx = null;
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
     this._fanRoomDropdownOpen = false;
@@ -2042,6 +2055,8 @@ export class GlassConfigPanel extends LitElement {
           label: s.label || '',
           modes: s.modes,
         })),
+        period_entity: this._titlePeriodEntity,
+        period_options: this._titlePeriodOptions,
       });
       if (!this._mounted) return;
       this._showToast();
@@ -2064,7 +2079,7 @@ export class GlassConfigPanel extends LitElement {
     this._titleAddEntityDropdownOpen = false;
     try {
       const result = await this._backend.send<{
-        title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[] };
+        title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
       }>('get_config');
       if (result?.title_card) {
         this._titleText = result.title_card.title ?? '';
@@ -2073,6 +2088,10 @@ export class GlassConfigPanel extends LitElement {
           entity: s.entity || '',
           label: s.label || '',
           modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
+        }));
+        this._titlePeriodEntity = result.title_card.period_entity ?? '';
+        this._titlePeriodOptions = (result.title_card.period_options ?? []).map((o) => ({
+          id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || 'neutral',
         }));
       }
     } catch { /* ignore */ }

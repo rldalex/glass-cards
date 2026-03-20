@@ -18,7 +18,8 @@
     "collapse": "Réduire",
     "expand": "Développer",
     "move_up": "Déplacer vers le haut",
-    "move_down": "Déplacer vers le bas"
+    "move_down": "Déplacer vers le bas",
+    "none": "Aucun"
   },
 
   "light": {
@@ -479,6 +480,11 @@
     "title_title_placeholder": "Ma Maison",
     "title_mode_source": "Sources",
     "title_mode_source_desc": "Ajoutez une ou plusieurs sources pour les modes du titre.",
+    "title_period_indicator": "Indicateur de période",
+    "title_period_indicator_desc": "Affiche la période courante d'un input_select avec animation de glissement.",
+    "title_period_select": "Choisir un input_select",
+    "title_period_icon": "Icône de la période",
+    "title_period_color": "Couleur de la période",
     "title_add_source": "Ajouter une source",
     "title_remove_source": "Retirer la source",
     "title_source_label": "Libellé du groupe",

@@ -130,11 +130,143 @@ export function renderTitleTab(self: GlassConfigPanel) {
         </div>
       </div>
 
+      <!-- Period indicator -->
+      <div class="section-label" style="margin-top:16px;">${t('config.title_period_indicator')}</div>
+      <div class="section-desc">${t('config.title_period_indicator_desc')}</div>
+
+      ${renderPeriodEntitySelector(self)}
+      ${self._titlePeriodEntity ? renderPeriodOptions(self) : nothing}
+
       <div class="save-bar">
         <button class="btn btn-ghost" @click=${() => self._loadTitleConfig()}>${t('common.reset')}</button>
       </div>
     </div>
   `;
+}
+
+// — Period indicator config —
+
+function renderPeriodEntitySelector(self: GlassConfigPanel) {
+  const allInputSelects = self.hass
+    ? Object.keys(self.hass.states).filter((id) => id.startsWith('input_select.'))
+    : [];
+  const selectedEntity = self._titlePeriodEntity;
+  const selectedName = selectedEntity
+    ? (self.hass?.states[selectedEntity]?.attributes?.friendly_name as string || selectedEntity)
+    : '';
+
+  return html`
+    <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
+      <div class="dropdown ${self._titlePeriodDropdownOpen ? 'open' : ''}" style="flex:1;">
+        <button class="dropdown-trigger"
+          @click=${() => { self._titlePeriodDropdownOpen = !self._titlePeriodDropdownOpen; }}
+          aria-expanded=${self._titlePeriodDropdownOpen ? 'true' : 'false'}
+          aria-haspopup="listbox">
+          <span>${selectedEntity ? selectedName : t('config.title_period_select')}</span>
+          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+        </button>
+        <div class="dropdown-menu" role="listbox" style="max-height:200px;overflow-y:auto;">
+          <button class="dropdown-item ${!selectedEntity ? 'active' : ''}"
+            role="option" aria-selected=${!selectedEntity ? 'true' : 'false'}
+            @click=${() => { self._titlePeriodEntity = ''; self._titlePeriodOptions = []; self._titlePeriodDropdownOpen = false; }}>
+            <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            ${t('common.none')}
+          </button>
+          ${allInputSelects.map((id) => {
+            const name = (self.hass?.states[id]?.attributes?.friendly_name as string) || id;
+            return html`
+              <button class="dropdown-item ${id === selectedEntity ? 'active' : ''}"
+                role="option" aria-selected=${id === selectedEntity ? 'true' : 'false'}
+                @click=${() => selectPeriodEntity(self, id)}>
+                <ha-icon .icon=${'mdi:form-dropdown'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                ${name}
+              </button>
+            `;
+          })}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPeriodOptions(self: GlassConfigPanel) {
+  const options = self._titlePeriodOptions;
+  if (options.length === 0) {
+    return self._titlePeriodEntity
+      ? html`<div class="section-desc" style="margin-top:8px;">${t('config.title_no_modes')}</div>`
+      : nothing;
+  }
+
+  return html`
+    <div class="item-list" style="margin-top:8px;">
+      ${options.map((opt, idx) => html`
+        <div class="item-row">
+          <div class="item-info" style="flex:1;min-width:0;">
+            <span class="item-name">${opt.label || opt.id}</span>
+            <span class="item-meta">${opt.id}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input class="input" type="text" style="width:120px;font-size:10px;padding:3px 6px;"
+              placeholder="mdi:weather-sunny"
+              .value=${opt.icon}
+              @input=${(e: Event) => updatePeriodOption(self, idx, { icon: (e.target as HTMLInputElement).value })}
+              aria-label="${t('config.title_period_icon')}"
+            />
+            <button class="btn-icon xs"
+              aria-label="${t('config.title_period_color')}"
+              @click=${() => { self._titlePeriodColorIdx = self._titlePeriodColorIdx === idx ? null : idx; }}>
+              <span style="width:10px;height:10px;border-radius:50%;background:${resolveColorDot(opt.color)};display:block;"></span>
+            </button>
+          </div>
+        </div>
+        ${self._titlePeriodColorIdx === idx ? renderPeriodColorPicker(self, idx) : nothing}
+      `)}
+    </div>
+  `;
+}
+
+function renderPeriodColorPicker(self: GlassConfigPanel, idx: number) {
+  const COLORS = ['neutral', 'success', 'warning', 'info', 'accent', 'alert'];
+  return html`
+    <div style="display:flex;gap:4px;flex-wrap:wrap;padding:4px 8px 8px;">
+      ${COLORS.map((c) => html`
+        <button class="chip ${self._titlePeriodOptions[idx]?.color === c ? 'active' : ''}"
+          style="padding:3px 8px;font-size:10px;"
+          @click=${() => updatePeriodOption(self, idx, { color: c })}>
+          ${c}
+        </button>
+      `)}
+    </div>
+  `;
+}
+
+function resolveColorDot(color: string): string {
+  const map: Record<string, string> = {
+    success: '#4ade80', warning: '#fbbf24', info: '#60a5fa',
+    accent: '#818cf8', alert: '#f87171', neutral: 'rgba(255,255,255,0.25)',
+  };
+  return map[color] || color;
+}
+
+export function selectPeriodEntity(self: GlassConfigPanel, entityId: string): void {
+  self._beginSuppressAutoSave();
+  self._titlePeriodDropdownOpen = false;
+  self._titlePeriodEntity = entityId;
+  // Read options from HA entity and build initial period_options
+  const entity = self.hass?.states[entityId];
+  const haOptions = (entity?.attributes?.options as string[]) || [];
+  // Preserve existing config for options that still exist
+  const existingMap = new Map(self._titlePeriodOptions.map((o) => [o.id, o]));
+  self._titlePeriodOptions = haOptions.map((opt) => {
+    const existing = existingMap.get(opt);
+    return existing ? { ...existing } : { id: opt, label: opt, icon: '', color: 'neutral' };
+  });
+}
+
+export function updatePeriodOption(self: GlassConfigPanel, idx: number, patch: Partial<{ label: string; icon: string; color: string }>): void {
+  const arr = [...self._titlePeriodOptions];
+  arr[idx] = { ...arr[idx], ...patch };
+  self._titlePeriodOptions = arr;
 }
 
 // — Source editor (one per source in the array) —

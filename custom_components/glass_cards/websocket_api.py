@@ -502,6 +502,20 @@ async def ws_set_climate_config(
     {
         vol.Required("type"): "glass_cards/set_title_config",
         vol.Optional("title"): str,
+        vol.Optional("period_entity"): vol.Any(
+            "", vol.All(str, vol.Match(r"^input_select\.[\w-]+$"))
+        ),
+        vol.Optional("period_options"): [
+            {
+                vol.Required("id"): str,
+                vol.Optional("label", default=""): str,
+                vol.Optional("icon", default=""): str,
+                vol.Optional("color", default="neutral"): vol.Any(
+                    vol.In(list(VALID_MODE_COLORS)),
+                    vol.Match(r"^#[0-9a-fA-F]{6}$"),
+                ),
+            }
+        ],
         vol.Optional("sources"): [
             {
                 vol.Required("source_type"): vol.In(
@@ -540,6 +554,12 @@ async def ws_set_title_config(
 
     if "title" in msg:
         store.data.title_card.title = msg["title"]
+    if "period_entity" in msg:
+        store.data.title_card.period_entity = msg["period_entity"]
+    if "period_options" in msg:
+        store.data.title_card.period_options = [
+            TitleModeEntry.from_dict(o) for o in msg["period_options"]
+        ]
     if "sources" in msg:
         store.data.title_card.sources = [
             TitleSourceEntry.from_dict(s) for s in msg["sources"]

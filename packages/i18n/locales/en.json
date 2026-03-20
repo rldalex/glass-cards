@@ -18,7 +18,8 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "move_up": "Move up",
-    "move_down": "Move down"
+    "move_down": "Move down",
+    "none": "None"
   },
 
   "light": {
@@ -479,6 +480,11 @@
     "title_title_placeholder": "My Home",
     "title_mode_source": "Sources",
     "title_mode_source_desc": "Add one or more sources for the title modes.",
+    "title_period_indicator": "Period indicator",
+    "title_period_indicator_desc": "Display the current period from an input_select with a sliding animation.",
+    "title_period_select": "Choose an input_select",
+    "title_period_icon": "Period icon",
+    "title_period_color": "Period color",
     "title_add_source": "Add a source",
     "title_remove_source": "Remove source",
     "title_source_label": "Group label",

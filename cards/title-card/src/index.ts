@@ -20,9 +20,18 @@ interface TitleSourceEntry {
   modes: TitleModeEntry[];
 }
 
+interface PeriodOptionEntry {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+}
+
 interface TitleBackendConfig {
   title: string;
   sources: TitleSourceEntry[];
+  period_entity: string;
+  period_options: PeriodOptionEntry[];
 }
 
 // Colors mapped to CSS custom properties
@@ -60,7 +69,7 @@ class GlassTitleCard extends BaseCard {
   @state() private _foldOpen = false;
   @state() private _activatingSceneId: string | null = null;
 
-  private _titleConfig: TitleBackendConfig = { title: '', sources: [] };
+  private _titleConfig: TitleBackendConfig = { title: '', sources: [], period_entity: '', period_options: [] };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
   private _configLoading = false;
@@ -187,6 +196,42 @@ class GlassTitleCard extends BaseCard {
       100% { box-shadow: inset 0 0 0 0 currentColor; }
     }
     .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
+
+    /* ── Period indicator ── */
+    .period-indicator {
+      position: relative;
+      height: 14px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .period-item {
+      width: 100%;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+      position: absolute;
+      top: 0;
+      transition: all var(--t-layout);
+    }
+    .period-item::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+    }
+    .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
+    .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
+    .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
+    .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
+    .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
   `];
 
   connectedCallback(): void {
@@ -224,6 +269,7 @@ class GlassTitleCard extends BaseCard {
 
   protected getTrackedEntityIds(): string[] {
     const ids: string[] = [];
+    if (this._titleConfig.period_entity) ids.push(this._titleConfig.period_entity);
     for (const src of this._titleConfig.sources) {
       if (src.source_type === 'input_select' && src.entity) {
         ids.push(src.entity);
@@ -396,6 +442,7 @@ class GlassTitleCard extends BaseCard {
     return html`
       <div class="title-card">
         <div class="title-text">${title}</div>
+        ${this._renderPeriodIndicator()}
         ${hasSources ? html`
           <button
             class="dash-trigger"
@@ -417,6 +464,49 @@ class GlassTitleCard extends BaseCard {
         ` : nothing}
       </div>
     `;
+  }
+
+  // — Period indicator —
+
+  private _renderPeriodIndicator(): TemplateResult | typeof nothing {
+    const { period_entity, period_options } = this._titleConfig;
+    if (!period_entity || period_options.length === 0 || !this.hass) return nothing;
+
+    const entity = this.hass.states[period_entity];
+    if (!entity) return nothing;
+
+    const currentValue = entity.state;
+    const currentIdx = period_options.findIndex((o) => o.id === currentValue);
+
+    // Keep container stable even when state is unavailable/unknown
+    if (currentIdx === -1) return html`<div class="period-indicator"></div>`;
+
+    const activeOpt = period_options[currentIdx];
+    const activeColor = resolveColor(activeOpt.color || 'neutral');
+
+    return html`
+      <div class="period-indicator" aria-live="polite" aria-label="${activeOpt.label || currentValue}">
+        ${period_options.map((opt, i) => {
+          const pos = this._getPeriodPos(i, currentIdx);
+          return html`
+            <div class="period-item ${pos}"
+              style="${pos === 'pos-center' ? `color:${activeColor.text}` : ''}">
+              ${opt.icon ? html`<ha-icon .icon=${opt.icon} style="--mdc-icon-size:11px;display:flex;align-items:center;justify-content:center;margin-right:5px;"></ha-icon>` : nothing}
+              ${opt.label || opt.id}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _getPeriodPos(itemIdx: number, activeIdx: number): string {
+    const diff = itemIdx - activeIdx;
+    if (diff <= -2) return 'pos-far-left';
+    if (diff === -1) return 'pos-left';
+    if (diff === 0) return 'pos-center';
+    if (diff === 1) return 'pos-right';
+    return 'pos-far-right';
   }
 
   // — Render a single source group —

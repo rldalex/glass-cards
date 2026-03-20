@@ -309,18 +309,28 @@ class TitleCardConfig:
 
     title: str = ""
     sources: list[TitleSourceEntry] = field(default_factory=list)
+    period_entity: str = ""
+    period_options: list[TitleModeEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "title": self.title,
             "sources": [s.to_dict() for s in self.sources],
+            "period_entity": self.period_entity,
+            "period_options": [o.to_dict() for o in self.period_options],
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TitleCardConfig:
         """Deserialize from dict with backward compat for single-source format."""
         title = str(data.get("title", ""))
+        period_entity = str(data.get("period_entity", ""))
+        period_options = [
+            TitleModeEntry.from_dict(o)
+            for o in data.get("period_options", [])
+            if isinstance(o, dict)
+        ]
 
         # New multi-source format
         raw_sources = data.get("sources", [])
@@ -332,6 +342,8 @@ class TitleCardConfig:
                     for s in raw_sources
                     if isinstance(s, dict)
                 ],
+                period_entity=period_entity,
+                period_options=period_options,
             )
 
         # Backward compat: migrate single-source to multi-source
@@ -350,9 +362,11 @@ class TitleCardConfig:
                     entity=str(data.get("mode_entity", "")),
                     modes=modes,
                 )],
+                period_entity=period_entity,
+                period_options=period_options,
             )
 
-        return cls(title=title)
+        return cls(title=title, period_entity=period_entity, period_options=period_options)
 
 
 @dataclass
