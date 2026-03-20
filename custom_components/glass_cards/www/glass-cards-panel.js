@@ -3311,7 +3311,7 @@
         ${function(e,t){const i=[];let a=0;for(;a<e.length;){const o=e[a];if("compact"===o.layout){const r=a+1<e.length&&"compact"===e[a+1].layout?e[a+1]:null;r?(i.push(Le(o,t,!0,!1)),i.push(Le(r,t,!0,!0)),a+=2):(i.push(Le(o,t,!1,!1)),a++)}else i.push(Le(o,t,!1,!1)),a++}return i}(i,o)}
       </div>
     </div>
-  `}const Ve=[{key:"input_select",label:"Input Select",icon:"mdi:form-select"},{key:"scenes",label:"Scènes",icon:"mdi:palette"},{key:"booleans",label:"Toggles",icon:"mdi:toggle-switch"}],qe=["neutral","success","warning","info","accent","alert"],Ue={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t4)"},Ke={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}};function Be(e){const t=e._titleText;if(!t)return U`<div class="preview-empty">${$e("config.title_title_placeholder")}</div>`;const i=[];for(const s of e._titleSources)if("input_select"===s.source_type&&s.entity&&e.hass){const t=e.hass.states[s.entity];if(t){const e=s.modes.find(e=>e.id===t.state);e?.color&&"neutral"!==e.color&&i.push(e.color)}}else if("booleans"===s.source_type&&e.hass)for(const t of s.modes)if("on"===e.hass?.states[t.id]?.state){const e=t.color||"success";"neutral"!==e&&i.push(e)}const a=e._titleSources.length>0&&e._titleSources.some(e=>e.modes.length>0);let o="background:var(--t4);width:20px;";if(i.length>0){const e=i.map(e=>(e=>Ue[e]??(e.startsWith("#")?e:"var(--t4)"))(e)),t=Math.min(20+4*i.length,36);if(1===e.length)o=`background:${e[0]};width:${t}px;box-shadow:0 0 6px ${e[0]};`;else{const i=e.length;o=`background:linear-gradient(90deg, ${e.flatMap((e,t)=>[`${e} ${Math.round(t/i*100)}%`,`${e} ${Math.round((t+1)/i*100)}%`]).join(", ")});width:${t}px;box-shadow:${e.map(e=>`0 0 6px ${e}`).join(", ")};`}}let r=F;if(e.hass){const t=e.hass.states["input_select.mode_maison"];if(t){const e=t.state,i=Ke[e];i&&(r=U`
+  `}const Ve=[{key:"input_select",label:"Input Select",icon:"mdi:form-select"},{key:"scenes",label:"Scènes",icon:"mdi:palette"},{key:"booleans",label:"Toggles",icon:"mdi:toggle-switch"}],qe=["neutral","success","warning","info","accent","alert"],Ue={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t4)"},Ke={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}};function Be(e){const t=e._titleText;if(!t)return U`<div class="preview-empty">${$e("config.title_title_placeholder")}</div>`;const i=[];for(const s of e._titleSources)if("input_select"===s.source_type&&s.entity&&e.hass){const t=e.hass.states[s.entity];if(t){const e=s.modes.find(e=>e.id===t.state);e?.color&&"neutral"!==e.color&&i.push(e.color)}}else if("booleans"===s.source_type&&e.hass)for(const t of s.modes)if("on"===e.hass?.states[t.id]?.state){const e=t.color||"success";"neutral"!==e&&i.push(e)}const a=e._titleSources.length>0&&e._titleSources.some(e=>e.modes.length>0);let o="background:var(--t4);width:20px;";if(i.length>0){const e=i.map(e=>(e=>Ue[e]??(e.startsWith("#")?e:"var(--t4)"))(e)),t=Math.min(20+4*i.length,36);if(1===e.length)o=`background:${e[0]};width:${t}px;box-shadow:0 0 6px ${e[0]};`;else{const i=e.length;o=`background:linear-gradient(90deg, ${e.flatMap((e,t)=>[`${e} ${Math.round(t/i*100)}%`,`${e} ${Math.round((t+1)/i*100)}%`]).join(", ")});width:${t}px;box-shadow:${e.map(e=>`0 0 6px ${e}`).join(", ")};`}}let r=F;if(e.hass){const t=e.hass.states["input_select.periode_journee"];if(t){const e=t.state,i=Ke[e];i&&(r=U`
           <div class="preview-period" style="color:${i.color}">
             <ha-icon .icon=${i.icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
             ${e}
@@ -3593,7 +3593,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Matin"
 
@@ -3604,7 +3604,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Après-midi"
 
@@ -3615,7 +3615,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Soir"
 
@@ -3626,7 +3626,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Nuit"</pre>
 

@@ -63,7 +63,7 @@ const PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
 
 /** Hardcoded period entity — auto-detected, no config needed. */
-const PERIOD_ENTITY_ID = 'input_select.mode_maison';
+const PERIOD_ENTITY_ID = 'input_select.periode_journee';
 
 /** Scene activation timeout duration (ms). */
 const SCENE_HIGHLIGHT_MS = 2000;

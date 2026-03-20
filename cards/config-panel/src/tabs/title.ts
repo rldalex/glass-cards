@@ -77,7 +77,7 @@ export function renderTitlePreview(self: GlassConfigPanel) {
   // Period indicator preview — auto-detected from hardcoded entity
   let periodHtml: TemplateResult | typeof nothing = nothing;
   if (self.hass) {
-    const periodEntity = self.hass.states['input_select.mode_maison'];
+    const periodEntity = self.hass.states['input_select.periode_journee'];
     if (periodEntity) {
       const currentValue = periodEntity.state;
       const visual = PERIOD_VISUALS[currentValue];
@@ -179,7 +179,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Matin"
 
@@ -190,7 +190,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Après-midi"
 
@@ -201,7 +201,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Soir"
 
@@ -212,7 +212,7 @@ automation:
     action:
       - service: input_select.select_option
         target:
-          entity_id: input_select.mode_maison
+          entity_id: input_select.periode_journee
         data:
           option: "Nuit"</pre>
 
