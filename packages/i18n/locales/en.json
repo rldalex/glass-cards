@@ -481,7 +481,7 @@
     "title_mode_source": "Sources",
     "title_mode_source_desc": "Add one or more sources for the title modes.",
     "title_period_indicator": "Period indicator",
-    "title_period_info": "Create an input_select named 'mode_maison' with options: Matin, Après-midi, Soir, Nuit. The indicator will appear automatically.",
+    "title_period_info": "Create an input_select named 'periode_journee' with options: Matin, Après-midi, Soir, Nuit. The indicator will appear automatically.",
     "title_add_source": "Add a source",
     "title_remove_source": "Remove source",
     "title_source_label": "Group label",

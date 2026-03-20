@@ -162,8 +162,8 @@ export function renderTitleTab(self: GlassConfigPanel) {
         ${t('config.title_period_info')}
       </div>
       <pre class="yaml-block">input_select:
-  mode_maison:
-    name: Mode Maison
+  periode_journee:
+    name: Période de la journée
     options:
       - "Matin"
       - "Après-midi"
