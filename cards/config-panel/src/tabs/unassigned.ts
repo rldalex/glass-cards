@@ -192,7 +192,7 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
           <div class="section-label" style="margin-top:16px;display:flex;align-items:center;">
             <ha-icon .icon=${domainIcon(domain)} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;margin-right:6px;"></ha-icon>
             ${domainLabel(domain)}
-            <span style="margin-left:6px;font-size:11px;font-weight:500;color:var(--t3);">(${items.length})</span>
+            <span style="margin-left:0.375rem;font-size:var(--fz-base);font-weight:500;color:var(--t3);">(${items.length})</span>
           </div>
           <div class="item-list">
             ${items.map((e) => {
@@ -235,7 +235,7 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
                         aria-label="${t('config.unassigned_rename')}: ${e.name}"
                       >
                         ${e.name}
-                        <ha-icon .icon=${'mdi:pencil'} style="--mdc-icon-size:11px;color:var(--t4);margin-left:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>
+                        <ha-icon .icon=${'mdi:pencil'} style="--mdc-icon-size:var(--icon-sm);color:var(--t4);display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>
                       </button>
                     `}
                     <span class="item-meta">${e.entityId}</span>
@@ -243,7 +243,7 @@ export function renderUnassignedTab(self: GlassConfigPanel) {
                   <div class="dropdown ${isOpen ? 'open' : ''}" style="flex-shrink:0;max-width:160px;">
                     <button
                       class="dropdown-trigger"
-                      style="padding:4px 8px;font-size:11px;min-width:0;${!e.areaId ? 'color:var(--c-warning);' : ''}"
+                      style="padding:0.25rem 0.5rem;font-size:var(--fz-base);min-width:0;${!e.areaId ? 'color:var(--c-warning);' : ''}"
                       @click=${(ev: Event) => {
                         ev.stopPropagation();
                         self._unassignedAreaSearch = '';

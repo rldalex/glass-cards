@@ -314,6 +314,54 @@ export const baseStyles = css`
         color: var(--t4);
       }
 
+      /* ── Entity rename (unassigned tab) ── */
+      .entity-name-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-sm);
+        padding: 0.375rem 0.625rem;
+        font-family: inherit;
+        font-size: var(--fz-base);
+        font-weight: 600;
+        color: var(--t1);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--t-fast), border-color var(--t-fast);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .entity-name-btn:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .entity-name-btn:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+        .entity-name-btn:hover ha-icon { color: var(--t2) !important; }
+      }
+      .entity-rename-input {
+        display: block;
+        width: 100%;
+        background: var(--s2);
+        border: 1px solid var(--c-accent);
+        border-radius: var(--radius-sm);
+        padding: 0.375rem 0.625rem;
+        font-family: inherit;
+        font-size: var(--fz-base);
+        font-weight: 600;
+        color: var(--t1);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(var(--rgb-accent), 0.2);
+      }
+
       /* ── Card count badge ── */
       .card-count {
         font-size: var(--fz-sm);
