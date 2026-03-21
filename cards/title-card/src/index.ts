@@ -72,8 +72,8 @@ const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = 
 };
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
 
-/** Default period entity — empty means no period indicator until configured. */
-const DEFAULT_PERIOD_ENTITY_ID = '';
+/** Default period entity used when "Auto" is selected in config panel. */
+const DEFAULT_PERIOD_ENTITY_ID = 'input_select.periode_journee';
 
 /** Scene activation timeout duration (ms). */
 const SCENE_HIGHLIGHT_MS = 2000;
