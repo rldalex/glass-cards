@@ -233,17 +233,17 @@ class GlassTitleCard extends BaseCard {
     /* ── Period indicator ── */
     .period-indicator {
       position: relative;
-      height: 0.875rem;
+      height: 0.75rem;
       overflow: hidden;
       width: 100%;
     }
     .period-item {
       width: 100%;
-      height: 0.875rem;
+      height: 0.75rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--fz-sm);
+      font-size: var(--fz-xs);
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 1.5px;
@@ -527,7 +527,7 @@ class GlassTitleCard extends BaseCard {
           return html`
             <div class="period-item ${pos}"
               style="${pos === 'pos-center' ? `color:${activeVisual.color}` : ''}">
-              <ha-icon .icon=${visual.icon} style="--mdc-icon-size:11px;display:flex;align-items:center;justify-content:center;margin-right:5px;"></ha-icon>
+              <ha-icon .icon=${visual.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
               ${opt}
             </div>
           `;
