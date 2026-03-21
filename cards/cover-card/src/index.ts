@@ -189,7 +189,7 @@ class GlassCoverCard extends BaseCard {
       transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
     }
     .header-btn ha-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: color var(--t-fast);
     }
@@ -259,7 +259,7 @@ class GlassCoverCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .cv-icon-btn ha-icon {
-      --mdc-icon-size: 1.125rem;
+      --mdc-icon-size: var(--icon-md);
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: all var(--t-fast);
     }
@@ -346,7 +346,7 @@ class GlassCoverCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .transport-btn ha-icon {
-      --mdc-icon-size: 1.375rem;
+      --mdc-icon-size: var(--icon-lg);
       display: flex; align-items: center; justify-content: center;
       color: var(--t2); transition: color var(--t-fast);
     }
@@ -371,7 +371,7 @@ class GlassCoverCard extends BaseCard {
       width: 1.75rem; height: 1.75rem; flex-shrink: 0;
     }
     .slider-icon ha-icon {
-      --mdc-icon-size: 1.125rem;
+      --mdc-icon-size: var(--icon-md);
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
@@ -388,7 +388,7 @@ class GlassCoverCard extends BaseCard {
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
@@ -668,7 +668,7 @@ class GlassCoverCard extends BaseCard {
         <div class="tint" style="background:radial-gradient(ellipse at 50% 50%, var(--cv-color, #a78bfa), transparent 70%);opacity:${total > 0 ? (openCount / total * 0.18).toFixed(3) : '0'};"></div>
         <div class="card-inner">
           ${covers.length === 0 ? html`
-            <div style="padding:16px;text-align:center;font-size:12px;color:var(--t4);grid-column:1/-1;">${t('config.cover_no_covers')}</div>
+            <div style="padding:16px;text-align:center;font-size:var(--fz-base);color:var(--t4);grid-column:1/-1;">${t('config.cover_no_covers')}</div>
           ` : nothing}
           ${!this.areaId ? this._renderDashboardGrid(covers) : this._renderGrid(covers)}
         </div>

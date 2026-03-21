@@ -268,7 +268,7 @@ class GlassFanCard extends BaseCard {
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .fan-icon-btn ha-icon {
-      --mdc-icon-size: 1.125rem;
+      --mdc-icon-size: var(--icon-md);
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
     }
@@ -418,7 +418,7 @@ class GlassFanCard extends BaseCard {
       width: 1.75rem; height: 1.75rem; flex-shrink: 0;
     }
     .slider-icon ha-icon {
-      --mdc-icon-size: 1.125rem;
+      --mdc-icon-size: var(--icon-md);
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
@@ -435,7 +435,7 @@ class GlassFanCard extends BaseCard {
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {

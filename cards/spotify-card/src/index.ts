@@ -153,7 +153,7 @@ class GlassSpotifyCard extends BaseCard {
       font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.5px; color: var(--t4); display: flex; align-items: center; gap: 0.25rem;
     }
-    .card-title ha-icon { color: #1DB954; --mdc-icon-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
+    .card-title ha-icon { color: #1DB954; --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
 
     .spotify-card { position: relative; width: 100%; padding: 0.875rem; box-sizing: border-box; overflow: hidden; }
     .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0; }
@@ -191,7 +191,7 @@ class GlassSpotifyCard extends BaseCard {
       cursor: pointer; padding: 0; outline: none;
     }
     .search-clear.visible { display: flex; }
-    .search-clear ha-icon { --mdc-icon-size: 0.875rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    .search-clear ha-icon { --mdc-icon-size: var(--icon-sm); color: var(--t3); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .search-clear:hover { background: var(--s3); } }
     @media (pointer: coarse) { .search-clear:active { animation: bounce 0.3s ease; } }
     .search-clear:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
@@ -207,7 +207,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .search-toggle ha-icon {
-      --mdc-icon-size: 0.875rem; color: var(--t4);
+      --mdc-icon-size: var(--icon-sm); color: var(--t4);
       display: flex; align-items: center; justify-content: center;
       transition: transform var(--t-fast), color var(--t-fast);
     }
@@ -256,7 +256,7 @@ class GlassSpotifyCard extends BaseCard {
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    .tab-btn ha-icon { --mdc-icon-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
+    .tab-btn ha-icon { --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
     .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
@@ -299,7 +299,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     .result-art.round { border-radius: 50%; }
     .result-art img { width: 100%; height: 100%; object-fit: cover; }
-    .result-art ha-icon { --mdc-icon-size: 1.125rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .result-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
 
     .result-info { flex: 1; min-width: 0; }
     .result-title {
@@ -369,7 +369,7 @@ class GlassSpotifyCard extends BaseCard {
       box-shadow: 0 4px 12px rgba(var(--rgb-black),0.4);
       pointer-events: none;
     }
-    .playlist-art-play ha-icon { --mdc-icon-size: 0.875rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    .playlist-art-play ha-icon { --mdc-icon-size: var(--icon-sm); color: #000; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) {
       .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
     }
@@ -501,7 +501,7 @@ class GlassSpotifyCard extends BaseCard {
       background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
     .picker-track-art img { width: 100%; height: 100%; object-fit: cover; }
-    .picker-track-art ha-icon { --mdc-icon-size: 1.125rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .picker-track-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
     .picker-track-info { flex: 1; min-width: 0; }
     .picker-track-title { font-size: var(--fz-base); font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .picker-track-artist { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -546,7 +546,7 @@ class GlassSpotifyCard extends BaseCard {
       transition: all var(--t-fast);
     }
     .picker-speaker.selected .picker-speaker-check { border-color: #1DB954; background: #1DB954; }
-    .picker-speaker-check ha-icon { --mdc-icon-size: 0.875rem; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
+    .picker-speaker-check ha-icon { --mdc-icon-size: var(--icon-sm); color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
     .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
 
     .picker-play-bar {
@@ -562,7 +562,7 @@ class GlassSpotifyCard extends BaseCard {
     .picker-play-btn.primary { background: #1DB954; color: #fff; }
     .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
     @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
-    .picker-play-btn.primary ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
+    .picker-play-btn.primary ha-icon { --mdc-icon-size: var(--icon-md); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
     @media (pointer: coarse) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
 
@@ -1258,7 +1258,7 @@ class GlassSpotifyCard extends BaseCard {
           />
           <button
             class="search-clear ${this._searchQuery ? 'visible' : ''}"
-            aria-label="Clear"
+            aria-label="${t('spotify.clear_search')}"
             @click=${this._clearSearch}
           >
             <ha-icon .icon=${'mdi:close'}></ha-icon>
@@ -1527,7 +1527,7 @@ class GlassSpotifyCard extends BaseCard {
         <div class="glass speaker-picker">
           <div class="picker-header">
             <div class="picker-title">${t('spotify.play_on')}</div>
-            <button class="picker-close" aria-label="Close" @click=${this._closePicker}>
+            <button class="picker-close" aria-label="${t('common.close')}" @click=${this._closePicker}>
               <ha-icon .icon=${'mdi:close'}></ha-icon>
             </button>
           </div>

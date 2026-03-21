@@ -1658,7 +1658,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .transport-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: var(--icon-md);
       }
       @media (hover: hover) and (pointer: fine) {
         .transport-btn:hover { background: rgba(var(--rgb-white),0.08); color: #fff; }
@@ -1711,7 +1711,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-nav-arrow ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1.5rem; color: rgba(var(--rgb-white),0.7);
+        --mdc-icon-size: var(--icon-xl); color: rgba(var(--rgb-white),0.7);
         filter: drop-shadow(0 1px 4px rgba(var(--rgb-black),0.5));
         transition: color var(--t-fast);
       }
@@ -1804,7 +1804,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .volume-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: var(--icon-md);
       }
       @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: #fff; } }
       .volume-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
@@ -1828,7 +1828,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .chip ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.875rem;
+        --mdc-icon-size: var(--icon-sm);
       }
       @media (hover: hover) and (pointer: fine) {
         .chip:hover { background: var(--s3); color: #fff; border-color: var(--b3); }
@@ -1868,7 +1868,7 @@ export class GlassMediaCard extends BaseCard {
       }
       .mr-icon-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.875rem;
+        --mdc-icon-size: var(--icon-sm);
       }
       @media (hover: hover) and (pointer: fine) {
         .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: #fff; }
@@ -2020,7 +2020,7 @@ export class GlassMediaCard extends BaseCard {
         .queue-item .btn-icon:hover { color: #fff; }
       }
       .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      .queue-remove { opacity: 0.4; --mdc-icon-size: 0.875rem; }
+      .queue-remove { opacity: 0.4; --mdc-icon-size: var(--icon-sm); }
       @media (hover: hover) and (pointer: fine) {
         .queue-remove:hover { opacity: 1; color: var(--c-alert, #ef4444) !important; }
       }

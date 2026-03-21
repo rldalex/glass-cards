@@ -63,6 +63,12 @@ export const glassTokens: CSSResult = css`
     --c-light-glow: #fbbf24;
     --c-temp-hot: #f87171;
     --c-temp-cold: #60a5fa;
+
+    --icon-xs: 0.625rem;
+    --icon-sm: 0.875rem;
+    --icon-md: 1.125rem;
+    --icon-lg: 1.375rem;
+    --icon-xl: 1.5rem;
   }
 `;
 

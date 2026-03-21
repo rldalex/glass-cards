@@ -322,7 +322,7 @@ export class GlassLightCard extends BaseCard {
         -webkit-tap-highlight-color: transparent;
       }
       .light-icon-btn ha-icon {
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: var(--icon-md);
         display: flex; align-items: center; justify-content: center;
       }
       .light-icon-btn.on {
@@ -462,95 +462,17 @@ export class GlassLightCard extends BaseCard {
       }
 
       /* ── Slider ── */
-      .slider {
-        position: relative;
-        width: 100%;
-        height: 2.25rem;
-        border-radius: var(--radius-lg);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        overflow: visible;
-      }
-      .slider-fill {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        border-radius: inherit;
-        pointer-events: none;
-        overflow: hidden;
-      }
-      .slider-fill.warm {
-        background: linear-gradient(90deg, rgba(var(--rgb-light-glow), 0.15), rgba(var(--rgb-light-glow), 0.3));
-      }
-      .slider-fill.dynamic {
-        background: linear-gradient(
-          90deg,
-          var(--slider-fill-start, rgba(var(--rgb-light-glow), 0.15)),
-          var(--slider-fill-end, rgba(var(--rgb-light-glow), 0.3))
-        );
-      }
-      .slider-fill.temp-gradient {
-        width: 100% !important;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 179, 71, 0.2) 0%,
-          rgba(255, 245, 230, 0.15) 50%,
-          rgba(135, 206, 235, 0.2) 100%
-        );
-        opacity: 0.7;
-      }
-      .slider-thumb {
-        position: absolute;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 0.5rem;
-        height: 1.25rem;
-        border-radius: 4px;
-        background: rgba(var(--rgb-white), 0.7);
-        box-shadow: 0 0 8px rgba(var(--rgb-white), 0.2);
-        pointer-events: none;
-      }
-      .slider-lbl {
-        position: absolute;
-        top: 50%;
-        left: 0.75rem;
-        transform: translateY(-50%);
-        font-size: var(--fz-base);
-        font-weight: 600;
-        color: var(--t2);
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .slider-lbl ha-icon {
-        --mdc-icon-size: 1rem;
-        opacity: 0.6;
+      .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
+      .slider-icon {
         display: flex; align-items: center; justify-content: center;
+        width: 1.75rem; height: 1.75rem; flex-shrink: 0;
       }
-      .slider-val {
-        position: absolute;
-        top: 50%;
-        right: 0.75rem;
-        transform: translateY(-50%);
-        font-size: var(--fz-base);
-        font-weight: 600;
+      .slider-icon ha-icon {
+        --mdc-icon-size: 1.125rem;
+        display: flex; align-items: center; justify-content: center;
         color: var(--t3);
-        pointer-events: none;
       }
-      .slider-native {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-        margin: 0;
-        padding: 0;
-        -webkit-appearance: none;
-        appearance: none;
-      }
+      glass-slider { flex: 1; }
 
       /* ── Color Controls ── */
       .color-row {
@@ -1439,27 +1361,16 @@ export class GlassLightCard extends BaseCard {
 
   // — Render: Control Fold —
 
-  private _getBrightnessFill(info: LightInfo): { fillClass: string; fillStyle: string } {
+  private _getSliderColor(info: LightInfo): string {
     if (info.type === 'rgb' && info.rgbColor) {
       const [r, g, b] = info.rgbColor;
-      return {
-        fillClass: 'dynamic',
-        fillStyle: `--slider-fill-start:rgba(${r},${g},${b},0.15);--slider-fill-end:rgba(${r},${g},${b},0.35)`,
-      };
+      return `${r},${g},${b}`;
     }
     if (info.type === 'color_temp' && info.colorTempKelvin) {
-      const ti = getTempInfo(info.colorTempKelvin);
-      const hex = ti.color;
-      // Parse hex to rgb for rgba
-      const hr = parseInt(hex.slice(1, 3), 16);
-      const hg = parseInt(hex.slice(3, 5), 16);
-      const hb = parseInt(hex.slice(5, 7), 16);
-      return {
-        fillClass: 'dynamic',
-        fillStyle: `--slider-fill-start:rgba(${hr},${hg},${hb},0.15);--slider-fill-end:rgba(${hr},${hg},${hb},0.35)`,
-      };
+      const hex = getTempInfo(info.colorTempKelvin).color;
+      return `${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)}`;
     }
-    return { fillClass: 'warm', fillStyle: '' };
+    return 'var(--rgb-light-glow)';
   }
 
   private _getFoldColor(info: LightInfo): string {
@@ -1478,7 +1389,7 @@ export class GlassLightCard extends BaseCard {
   private _renderControlFold(info: LightInfo, isLast = false): TemplateResult {
     const isExpanded = this._expandedEntity === info.entityId && info.isOn;
     const isRgb = info.type === 'rgb';
-    const { fillClass, fillStyle } = this._getBrightnessFill(info);
+    const sliderColor = this._getSliderColor(info);
     const foldColor = this._getFoldColor(info);
 
     return html`
@@ -1489,18 +1400,7 @@ export class GlassLightCard extends BaseCard {
             <span class="ctrl-label">${info.name}</span>
 
             ${info.type !== 'simple'
-              ? this._renderSlider(
-                  `bri:${info.entityId}`,
-                  fillClass,
-                  info.brightnessPct,
-                  'mdi:brightness-6',
-                  t('light.intensity'),
-                  (v) => `${v}%`,
-                  1,
-                  100,
-                  (v) => this._setBrightness(info.entityId, v),
-                  fillStyle,
-                )
+              ? this._renderBrightnessSlider(info, sliderColor)
               : nothing}
             ${info.type === 'color_temp' ? this._renderTempSlider(info) : nothing}
             ${info.type === 'rgb' ? this._renderColorRow(info) : nothing}
@@ -1554,7 +1454,7 @@ export class GlassLightCard extends BaseCard {
               class="cdot effect-chip ${currentEffect === effect || (!currentEffect && effect === 'off') ? 'active' : ''}"
               @click=${() => this._setEffect(info.entityId, effect)}
               aria-label="${t(`light.effect_${effect}`)}"
-              style="width:auto;height:auto;border-radius:var(--radius-md);padding:4px 8px;font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t3);border:1px solid var(--b2);background:var(--s1)"
+              style="width:auto;height:auto;border-radius:var(--radius-md);padding:4px 8px;font-size:var(--fz-xs);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t3);border:1px solid var(--b2);background:var(--s1)"
             >${t(`light.effect_${effect}`)}</button>
           `,
         )}
@@ -1631,49 +1531,24 @@ export class GlassLightCard extends BaseCard {
     `;
   }
 
-  // — Render: Slider —
+  // — Render: Brightness Slider —
 
-  private _renderSlider(
-    sliderKey: string,
-    fillClass: string,
-    value: number,
-    iconName: string,
-    label: string,
-    valTextFn: (v: number) => string,
-    min: number,
-    max: number,
-    onChange: (v: number) => void,
-    fillStyle = '',
-  ): TemplateResult {
-    const localVal = this._dragValues.get(sliderKey) ?? value;
-    const pct = ((localVal - min) / (max - min)) * 100;
-    const fillInline = fillStyle ? `width:${pct}%;${fillStyle}` : `width:${pct}%`;
+  private _renderBrightnessSlider(info: LightInfo, sliderColor: string): TemplateResult {
+    const briKey = `bri:${info.entityId}`;
+    const localVal = this._dragValues.get(briKey) ?? info.brightnessPct;
 
     return html`
-      <div class="slider">
-        <div class="slider-fill ${fillClass}" style=${fillInline}></div>
-        <div class="slider-thumb" style="left:${pct}%"></div>
-        <div class="slider-lbl">
-          <ha-icon .icon=${iconName}></ha-icon>
-          ${label}
-        </div>
-        <div class="slider-val">${valTextFn(localVal)}</div>
-        <input
-          type="range"
-          class="slider-native"
-          min=${min}
-          max=${max}
-          .value=${String(localVal)}
-          aria-label=${label}
-          @input=${(e: Event) => {
-            const v = Number((e.target as HTMLInputElement).value);
-            this._onSliderInput(sliderKey, v, onChange);
-          }}
-          @change=${(e: Event) => {
-            const v = Number((e.target as HTMLInputElement).value);
-            this._onSliderChange(sliderKey, v, onChange);
-          }}
-        />
+      <div class="slider-wrap">
+        <div class="slider-icon"><ha-icon .icon=${'mdi:brightness-6'}></ha-icon></div>
+        <glass-slider
+          .value=${localVal}
+          .min=${1}
+          .max=${100}
+          color="${sliderColor}"
+          .label=${`${localVal}%`}
+          @glass-slider-input=${(e: CustomEvent) => this._onSliderInput(briKey, e.detail.value, (v) => this._setBrightness(info.entityId, v))}
+          @glass-slider-change=${(e: CustomEvent) => this._onSliderChange(briKey, e.detail.value, (v) => this._setBrightness(info.entityId, v))}
+        ></glass-slider>
       </div>
     `;
   }
@@ -1681,42 +1556,24 @@ export class GlassLightCard extends BaseCard {
   // — Render: Temp Slider —
 
   private _renderTempSlider(info: LightInfo): TemplateResult {
-    const kelvin = info.colorTempKelvin || info.minKelvin;
     const tempKey = `temp:${info.entityId}`;
+    const kelvin = info.colorTempKelvin || info.minKelvin;
     const localKelvin = this._dragValues.get(tempKey) ?? kelvin;
-    const pct = Math.min(
-      Math.max(
-        ((localKelvin - info.minKelvin) / (info.maxKelvin - info.minKelvin)) * 100,
-        2,
-      ),
-      98,
-    );
+    const tempHex = getTempInfo(localKelvin).color;
+    const tempColor = `${parseInt(tempHex.slice(1, 3), 16)},${parseInt(tempHex.slice(3, 5), 16)},${parseInt(tempHex.slice(5, 7), 16)}`;
 
     return html`
-      <div class="slider">
-        <div class="slider-fill temp-gradient"></div>
-        <div class="slider-thumb" style="left:${pct}%"></div>
-        <div class="slider-lbl">
-          <ha-icon .icon=${'mdi:thermometer'}></ha-icon>
-          ${t('light.temperature')}
-        </div>
-        <div class="slider-val">${localKelvin}K</div>
-        <input
-          type="range"
-          class="slider-native"
-          min=${info.minKelvin}
-          max=${info.maxKelvin}
-          .value=${String(localKelvin)}
-          aria-label="${t('light.color_temp_label')}"
-          @input=${(e: Event) => {
-            const v = Number((e.target as HTMLInputElement).value);
-            this._onSliderInput(tempKey, v, (k) => this._setColorTemp(info.entityId, k));
-          }}
-          @change=${(e: Event) => {
-            const v = Number((e.target as HTMLInputElement).value);
-            this._onSliderChange(tempKey, v, (k) => this._setColorTemp(info.entityId, k));
-          }}
-        />
+      <div class="slider-wrap">
+        <div class="slider-icon"><ha-icon .icon=${'mdi:thermometer'}></ha-icon></div>
+        <glass-slider
+          .value=${localKelvin}
+          .min=${info.minKelvin}
+          .max=${info.maxKelvin}
+          color="${tempColor}"
+          .label=${`${localKelvin}K`}
+          @glass-slider-input=${(e: CustomEvent) => this._onSliderInput(tempKey, e.detail.value, (k) => this._setColorTemp(info.entityId, k))}
+          @glass-slider-change=${(e: CustomEvent) => this._onSliderChange(tempKey, e.detail.value, (k) => this._setColorTemp(info.entityId, k))}
+        ></glass-slider>
       </div>
     `;
   }

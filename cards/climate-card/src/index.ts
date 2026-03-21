@@ -1541,7 +1541,7 @@ export class GlassClimateCard extends BaseCard {
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {

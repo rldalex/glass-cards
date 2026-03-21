@@ -397,7 +397,7 @@ class GlassWeatherCard extends BaseCard {
     }
     .wc-day-row:first-child .wc-day-label { color: var(--t2); }
     .wc-day-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       width: 0.875rem; height: 0.875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
@@ -445,7 +445,7 @@ class GlassWeatherCard extends BaseCard {
     }
     .wc-hour-row.now .wc-hour-time { color: var(--t2); }
     .wc-hour-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       width: 0.875rem; height: 0.875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
@@ -1036,7 +1036,7 @@ class GlassWeatherCard extends BaseCard {
       return this._renderContent();
     } catch (e) {
       console.error('[glass-weather-card] render error:', e);
-      return html`<div class="weather-card-wrap"><div class="glass weather-card"><div class="card-inner" style="padding:16px;text-align:center;color:var(--c-alert);font-size:11px;">
+      return html`<div class="weather-card-wrap"><div class="glass weather-card"><div class="card-inner" style="padding:16px;text-align:center;color:var(--c-alert);font-size:var(--fz-base);">
         <ha-icon .icon=${'mdi:alert-circle-outline'} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"></ha-icon>
         Weather render error</div></div></div>`;
     }
@@ -1047,7 +1047,7 @@ class GlassWeatherCard extends BaseCard {
     if (!ws) {
       return html`<div class="weather-card-wrap">
         ${this._weatherConfig.show_header ? html`<div class="card-header"><span class="card-title">${t('weather.title')}</span></div>` : nothing}
-        <div class="glass weather-card"><div class="card-inner" style="padding:20px;text-align:center;color:var(--t3);font-size:11px;">${t('common.no_entity')}</div></div>
+        <div class="glass weather-card"><div class="card-inner" style="padding:20px;text-align:center;color:var(--t3);font-size:var(--fz-base);">${t('common.no_entity')}</div></div>
       </div>`;
     }
 

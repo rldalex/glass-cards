@@ -268,7 +268,8 @@
     "remove_track": "Remove from library",
     "saved": "Saved",
     "not_saved": "Not saved",
-    "items_count": "{current} / {total}"
+    "items_count": "{current} / {total}",
+    "clear_search": "Clear search"
   },
 
   "media": {

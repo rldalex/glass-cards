@@ -140,6 +140,7 @@ class GlassTitleCard extends BaseCard {
     /* ── Dash trigger ── */
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
+      min-height: 2.75rem;
       padding: 0.25rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
@@ -188,7 +189,7 @@ class GlassTitleCard extends BaseCard {
     /* ── Chips group ── */
     .chips-group-label {
       font-size: var(--fz-xs); font-weight: 600; text-transform: uppercase;
-      letter-spacing: 1px; color: var(--t4);
+      letter-spacing: 1px; color: var(--t3);
       text-align: center; padding: 0.375rem 0 0.125rem;
     }
     .chips-group + .chips-group .chips-group-label {
@@ -215,7 +216,7 @@ class GlassTitleCard extends BaseCard {
     }
     .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
     .chip ha-icon {
-      --mdc-icon-size: 0.875rem;
+      --mdc-icon-size: var(--icon-sm);
       display: flex; align-items: center; justify-content: center;
     }
     @media (pointer: coarse) {
@@ -246,7 +247,7 @@ class GlassTitleCard extends BaseCard {
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      color: var(--t4);
+      color: var(--t3);
       white-space: nowrap;
       user-select: none;
       -webkit-user-select: none;

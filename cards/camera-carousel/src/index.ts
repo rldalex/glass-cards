@@ -957,7 +957,7 @@ class GlassCameraCarouselCard extends BaseCard {
         z-index: 5; opacity: 0.7;
       }
       .carousel-nav ha-icon {
-        --mdc-icon-size: 1.125rem; color: rgba(var(--rgb-white),0.8);
+        --mdc-icon-size: var(--icon-md); color: rgba(var(--rgb-white),0.8);
         display: flex; align-items: center; justify-content: center;
       }
       .carousel-nav:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: -2px; }

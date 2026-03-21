@@ -302,5 +302,9 @@ export function selectRoom(self: GlassConfigPanel, areaId: string) {
 }
 
 export function goBack(_self: GlassConfigPanel) {
-  history.back();
+  if (history.length > 1) {
+    history.back();
+  } else {
+    window.location.href = '/';
+  }
 }

@@ -209,8 +209,8 @@ export class GlassNavbarCard extends BaseCard {
         background: transparent;
         border: none;
         border-radius: var(--radius-lg);
-        min-width: 2.625rem;
-        height: 2.625rem;
+        min-width: 2.75rem;
+        height: 2.75rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -248,7 +248,7 @@ export class GlassNavbarCard extends BaseCard {
       }
 
       .nav-item ha-icon {
-        --mdc-icon-size: 1.375rem;
+        --mdc-icon-size: var(--icon-lg);
         flex-shrink: 0;
         transition: color 0.6s ease;
         display: flex; align-items: center; justify-content: center;
@@ -337,7 +337,7 @@ export class GlassNavbarCard extends BaseCard {
         transition: opacity var(--t-fast);
       }
       .nav-temp-badge ha-icon {
-        --mdc-icon-size: 0.625rem;
+        --mdc-icon-size: var(--icon-xs);
       }
       .nav-item.has-temp-hot .nav-temp-badge {
         opacity: 1;
@@ -1238,7 +1238,7 @@ export class GlassNavbarCard extends BaseCard {
       `;
     } catch (e) {
       console.error('[glass-navbar-card] render error:', e);
-      return html`<div class="dashboard-cards"></div><div class="glass" style="padding:16px;text-align:center;color:var(--c-alert);font-size:11px;">
+      return html`<div class="dashboard-cards"></div><div class="glass" style="padding:16px;text-align:center;color:var(--c-alert);font-size:var(--fz-base);">
         <ha-icon .icon=${'mdi:alert-circle-outline'} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"></ha-icon>
         Navbar render error</div>`;
     }

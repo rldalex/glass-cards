@@ -2,7 +2,7 @@ import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateR
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -604,6 +604,7 @@ export class GlassPresenceCard extends BaseCard {
     glassMixin,
     foldMixin,
     marqueeMixin,
+    bounceMixin,
     unavailableMixin,
     css`
       :host {
@@ -702,7 +703,7 @@ export class GlassPresenceCard extends BaseCard {
       img.avatar { display: block; }
       .avatar-fallback ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1.375rem; color: rgba(var(--rgb-white),0.85);
+        --mdc-icon-size: var(--icon-lg); color: rgba(var(--rgb-white),0.85);
       }
 
       @media (hover: hover) and (pointer: fine) {
@@ -736,7 +737,7 @@ export class GlassPresenceCard extends BaseCard {
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
       .source-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.625rem; color: var(--t4);
+        --mdc-icon-size: var(--icon-xs); color: var(--t4);
       }
 
       .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
@@ -766,7 +767,7 @@ export class GlassPresenceCard extends BaseCard {
       }
       .heart-pulse ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: var(--icon-md);
       }
       .distance-center.near .heart-pulse { display: flex; align-items: center; }
       .distance-center.near .distance-info { display: none; }
@@ -845,7 +846,7 @@ export class GlassPresenceCard extends BaseCard {
       .fold-battery.low { color: var(--c-alert); }
       .fold-battery ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.875rem; color: inherit;
+        --mdc-icon-size: var(--icon-sm); color: inherit;
       }
       .fold-meta {
         display: flex; align-items: center; gap: 0.375rem;
@@ -868,7 +869,7 @@ export class GlassPresenceCard extends BaseCard {
       .health-pill-icon { flex-shrink: 0; display: flex; align-items: center; }
       .health-pill-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.875rem;
+        --mdc-icon-size: var(--icon-sm);
       }
       .health-pill-data { display: flex; flex-direction: column; min-width: 0; }
       .health-pill-value { font-size: var(--fz-md); font-weight: 700; line-height: 1.1; color: var(--t1); }
@@ -921,6 +922,11 @@ export class GlassPresenceCard extends BaseCard {
       }
       .notif-send:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
       .notif-send:active { transform: scale(0.96); }
+
+      @media (pointer: coarse) {
+        .avatar-wrapper:active,
+        .notif-send:active { animation: bounce 0.3s ease; }
+      }
     `,
   ];
 }
