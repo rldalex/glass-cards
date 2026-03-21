@@ -15,7 +15,7 @@ export class GlassSlider extends LitElement {
   @property({ type: Number }) step = 1;
   @property({ type: String }) color = 'var(--rgb-accent)';
   @property({ type: String }) label = '';
-  @property({ type: Boolean }) disabled = false;
+  @property({ type: Boolean, reflect: true }) disabled = false;
 
   private _dragging = false;
   private _dragValue = 0;
@@ -39,6 +39,11 @@ export class GlassSlider extends LitElement {
         touch-action: none;
         user-select: none;
         -webkit-user-select: none;
+        outline: none;
+      }
+      .track:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
       }
       :host([disabled]) .track {
         opacity: 0.4;
@@ -86,16 +91,18 @@ export class GlassSlider extends LitElement {
     `,
   ];
 
-  private _pct(): number {
+  private _displayPct(val?: number): number {
     const range = this.max - this.min;
     if (range <= 0) return 0;
-    const v = this._dragging ? this._dragValue : this.value;
+    const v = val ?? (this._dragging ? this._dragValue : this.value);
     return Math.max(0, Math.min(100, ((v - this.min) / range) * 100));
   }
 
   private _snap(raw: number): number {
     if (this.step <= 0) return raw;
-    return Math.round(raw / this.step) * this.step;
+    const snapped = Math.round(raw / this.step) * this.step;
+    const decimals = (this.step.toString().split('.')[1] || '').length;
+    return parseFloat(snapped.toFixed(decimals));
   }
 
   private _pctToValue(pct: number): number {
@@ -106,7 +113,6 @@ export class GlassSlider extends LitElement {
 
   protected updated(changed: PropertyValues): void {
     super.updated(changed);
-    // When value changes externally while not dragging, update visuals
     if (!this._dragging && (changed.has('value') || changed.has('min') || changed.has('max') || changed.has('color'))) {
       this._applyVisuals();
     }
@@ -117,7 +123,7 @@ export class GlassSlider extends LitElement {
   }
 
   private _applyVisuals(): void {
-    const pct = this._pct();
+    const pct = this._displayPct();
     const fill = this.renderRoot.querySelector('.fill') as HTMLElement | null;
     const thumb = this.renderRoot.querySelector('.thumb') as HTMLElement | null;
     if (fill) fill.style.transform = `scaleX(${pct / 100})`;
@@ -142,8 +148,7 @@ export class GlassSlider extends LitElement {
       const val = this._pctToValue(rawPct);
       this._dragValue = val;
 
-      // Update visuals via transforms
-      const displayPct = ((val - this.min) / (this.max - this.min)) * 100;
+      const displayPct = this._displayPct(val);
       fill.style.transform = `scaleX(${displayPct / 100})`;
       thumb.style.transform = `translate(calc(${displayPct}cqw - 50%), -50%)`;
 
@@ -170,6 +175,36 @@ export class GlassSlider extends LitElement {
     track.addEventListener('lostpointercapture', () => cleanup(), { signal });
   }
 
+  private _onKeyDown(e: KeyboardEvent): void {
+    if (this.disabled) return;
+    const s = this.step > 0 ? this.step : 1;
+    let val: number;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp':
+        val = Math.min(this.max, this._snap(this.value + s));
+        break;
+      case 'ArrowLeft': case 'ArrowDown':
+        val = Math.max(this.min, this._snap(this.value - s));
+        break;
+      case 'Home':
+        val = this.min;
+        break;
+      case 'End':
+        val = this.max;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    this._dragValue = val;
+    this._applyVisuals();
+    this.dispatchEvent(new CustomEvent('glass-slider-change', {
+      detail: { value: val },
+      bubbles: true,
+      composed: true,
+    }));
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this._ac?.abort();
@@ -189,6 +224,7 @@ export class GlassSlider extends LitElement {
         aria-label="${this.label || 'slider'}"
         style="container-type:inline-size;--_slider-color:${this.color}"
         @pointerdown=${this._onPointerDown}
+        @keydown=${this._onKeyDown}
       >
         <div class="fill"></div>
         <div class="thumb"></div>
@@ -198,7 +234,7 @@ export class GlassSlider extends LitElement {
   }
 }
 
-customElements.define('glass-slider', GlassSlider);
+try { customElements.define('glass-slider', GlassSlider); } catch { /* already registered */ }
 
 declare global {
   interface HTMLElementTagNameMap {

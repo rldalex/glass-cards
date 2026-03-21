@@ -144,7 +144,7 @@ class GlassTitleCard extends BaseCard {
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
-      transition: all var(--t-fast);
+      transition: background var(--t-fast);
     }
     @media (hover: hover) and (pointer: fine) {
       .dash-trigger:hover { background: var(--s1); }
@@ -157,7 +157,7 @@ class GlassTitleCard extends BaseCard {
     .dash-line {
       width: 1.25rem; height: 0.125rem; border-radius: 1px;
       background: var(--t4);
-      transition: all var(--t-med);
+      transition: background var(--t-med), width var(--t-med), box-shadow var(--t-med);
     }
 
     /* ── Fold section ── */
@@ -207,7 +207,7 @@ class GlassTitleCard extends BaseCard {
       padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) and (pointer: fine) {
@@ -252,7 +252,7 @@ class GlassTitleCard extends BaseCard {
       -webkit-user-select: none;
       position: absolute;
       top: 0;
-      transition: all var(--t-layout);
+      transition: transform var(--t-layout), opacity var(--t-layout);
     }
     .period-item::after {
       content: '';

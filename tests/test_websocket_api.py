@@ -138,6 +138,22 @@ class TestSetNavbar:
         mock_store._store.async_save.assert_called()
 
     @pytest.mark.asyncio
+    async def test_save_failure_sends_error(self, hass_with_store, mock_connection, mock_store):
+        """Should send storage_error when async_save fails."""
+        from homeassistant.exceptions import HomeAssistantError
+
+        mock_store._store.async_save.side_effect = HomeAssistantError("disk full")
+        await ws_set_navbar(
+            hass_with_store, mock_connection,
+            {"id": 99, "type": "glass_cards/set_navbar", "room_order": ["a"]},
+        )
+        mock_connection.send_error.assert_called_once()
+        args = mock_connection.send_error.call_args[0]
+        assert args[1] == "storage_error"
+        mock_connection.send_result.assert_not_called()
+        mock_store._store.async_save.side_effect = None
+
+    @pytest.mark.asyncio
     async def test_set_hidden_rooms(self, hass_with_store, mock_connection, mock_store):
         """Should update hidden rooms."""
         await ws_set_navbar(
@@ -617,16 +633,16 @@ class TestSetPresenceConfig:
 
     @pytest.mark.asyncio
     async def test_set_person_entities(self, hass_with_store, mock_connection, mock_store):
-        """Should update person_entities mapping."""
+        """Should update person_entities list."""
         await ws_set_presence_config(
             hass_with_store, mock_connection,
             {
                 "id": 131, "type": "glass_cards/set_presence_config",
-                "person_entities": {"person.alex": ["sensor.phone_battery"]},
+                "person_entities": ["person.alex", "person.marie"],
             },
         )
         result = mock_connection.send_result.call_args[0][1]
-        assert result["person_entities"] == {"person.alex": ["sensor.phone_battery"]}
+        assert result["person_entities"] == ["person.alex", "person.marie"]
 
 
 class TestSetCameraCarouselConfig:

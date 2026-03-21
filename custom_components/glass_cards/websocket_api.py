@@ -297,10 +297,11 @@ async def ws_delete_room(
         connection.send_error(msg["id"], "not_found", f"Room {area_id} not found")
         return
 
-    del store.data.rooms[area_id]
+    room = store.data.rooms.pop(area_id)
     try:
         await store.async_save()
     except HomeAssistantError as exc:
+        store.data.rooms[area_id] = room
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
     connection.send_result(msg["id"], {"deleted": area_id})
