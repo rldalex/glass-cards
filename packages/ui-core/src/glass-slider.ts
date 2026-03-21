@@ -1,6 +1,5 @@
 import { LitElement, html, css, type CSSResult, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
-import { glassTokens } from './index';
 
 /**
  * `<glass-slider>` — Reusable pill-shaped slider with GPU-accelerated transforms.
@@ -21,8 +20,10 @@ export class GlassSlider extends LitElement {
   private _dragValue = 0;
   private _ac: AbortController | null = null;
 
+  // Token CSS variables (--radius-*, --rgb-*, --fz-*, --s1, --b1, --t3) are
+  // inherited from the parent card which includes glassTokens. No need to
+  // re-declare them here — avoids circular import with ./index.
   static styles: CSSResult[] = [
-    glassTokens,
     css`
       :host {
         display: block;
