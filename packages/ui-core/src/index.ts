@@ -39,6 +39,7 @@ export const glassTokens: CSSResult = css`
     --rgb-accent: 129, 140, 248;
     --rgb-purple: 167, 139, 250;
     --rgb-light-glow: 251, 191, 36;
+    --rgb-spotify: 29, 185, 84;
 
     --t1: rgba(var(--rgb-white), 0.88);
     --t2: rgba(var(--rgb-white), 0.6);
@@ -61,8 +62,15 @@ export const glassTokens: CSSResult = css`
     --c-accent: var(--accent-color, #818cf8);
     --c-purple: #a78bfa;
     --c-light-glow: #fbbf24;
+    --c-spotify: #1DB954;
+    --c-spotify-hover: #1ed760;
     --c-temp-hot: #f87171;
     --c-temp-cold: #60a5fa;
+
+    --blur-sm: blur(8px);
+    --blur-md: blur(16px) saturate(1.3);
+    --blur-lg: blur(40px) saturate(1.4);
+    --blur-xl: blur(50px) saturate(1.5);
 
     --icon-xs: 0.625rem;
     --icon-sm: 0.875rem;

@@ -1,6 +1,6 @@
 import { css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
-import { BaseCard, BackendService } from '@glass-cards/base-card';
+import { BaseCard, BackendService, fireHaptic } from '@glass-cards/base-card';
 import { glassTokens, hostMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
@@ -72,8 +72,8 @@ const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = 
 };
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
 
-/** Default period entity used when no period_entity is configured. */
-const DEFAULT_PERIOD_ENTITY_ID = 'input_select.periode_journee';
+/** Default period entity — empty means no period indicator until configured. */
+const DEFAULT_PERIOD_ENTITY_ID = '';
 
 /** Scene activation timeout duration (ms). */
 const SCENE_HIGHLIGHT_MS = 2000;
@@ -406,6 +406,7 @@ class GlassTitleCard extends BaseCard {
 
   private _activateScene(sceneEntityId: string) {
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     this.hass.callService('scene', 'turn_on', {}, { entity_id: sceneEntityId });
 
     // Temporary highlight

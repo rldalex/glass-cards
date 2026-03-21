@@ -7,6 +7,7 @@ import {
   getDashboardEntityIds,
   resolveEntityAreaId,
   isEntityVisibleNow,
+  fireHaptic,
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
@@ -425,11 +426,13 @@ export class GlassClimateCard extends BaseCard {
 
   private _setHvacMode(entityId: string, mode: string): void {
     if (!this.hass) return;
+    fireHaptic(this, 'selection');
     this.hass.callService('climate', 'set_hvac_mode', { hvac_mode: mode }, { entity_id: entityId });
   }
 
   private _setPreset(entityId: string, preset: string): void {
     if (!this.hass) return;
+    fireHaptic(this, 'selection');
     this.hass.callService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: entityId });
   }
 
@@ -445,6 +448,7 @@ export class GlassClimateCard extends BaseCard {
 
   private _setTemperature(entityId: string, temp: number): void {
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     this._pendingTemps.set(`temp_${entityId}`, temp);
     this.requestUpdate();
     const key = `temp_throttle_${entityId}`;
@@ -1147,13 +1151,13 @@ export class GlassClimateCard extends BaseCard {
     }
     .cl-row[data-action="heating"] .cl-icon-btn ha-icon,
     .cl-row[data-action="preheating"] .cl-icon-btn ha-icon {
-      color: var(--cl-heat); animation: pulse-heat 2s ease-in-out infinite;
+      color: var(--cl-heat); animation: pulse-heat 2s ease-in-out infinite; will-change: filter;
     }
     .cl-row[data-action="cooling"] .cl-icon-btn {
       background: var(--cl-cool-bg); border-color: var(--cl-cool-border);
     }
     .cl-row[data-action="cooling"] .cl-icon-btn ha-icon {
-      color: var(--cl-cool); animation: pulse-cool 2s ease-in-out infinite;
+      color: var(--cl-cool); animation: pulse-cool 2s ease-in-out infinite; will-change: filter;
     }
     .cl-row[data-action="idle"] .cl-icon-btn { background: var(--s2); border-color: var(--b2); }
     .cl-row[data-action="idle"] .cl-icon-btn ha-icon { color: var(--t2); }
@@ -1347,8 +1351,8 @@ export class GlassClimateCard extends BaseCard {
     /* Normal fold inner (external, connected) */
     .normal-fold-inner {
       background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
-      backdrop-filter: blur(40px) saturate(1.4);
-      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      backdrop-filter: var(--blur-lg);
+      -webkit-backdrop-filter: var(--blur-lg);
       border: 1px solid var(--b2);
       border-top: none;
       border-radius: 0 0 var(--radius-xl) var(--radius-xl);

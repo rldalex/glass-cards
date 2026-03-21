@@ -686,6 +686,7 @@
     "unassigned_assigned": "Assigned",
     "unassigned_count": "{count} unassigned entity(ies)",
     "unassigned_no_results": "No results.",
-    "unassigned_rename": "Rename entity"
+    "unassigned_rename": "Rename entity",
+    "unassigned_change_icon": "Change icon"
   }
 }

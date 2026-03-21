@@ -4,6 +4,7 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  fireHaptic,
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
@@ -508,6 +509,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _togglePlayPause(player: MediaPlayerInfo): void {
+    fireHaptic(this, 'light');
     if (isPlaying(player.state)) {
       if (hasFeature(player, F_PAUSE)) {
         this._callService(player.entityId, 'media_pause');
@@ -522,10 +524,12 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _previous(entityId: string): void {
+    fireHaptic(this, 'light');
     this._callService(entityId, 'media_previous_track');
   }
 
   private _next(entityId: string): void {
+    fireHaptic(this, 'light');
     this._callService(entityId, 'media_next_track');
     // Schedule queue refresh if queue tab is open
     if (this._foldOpen && this._foldTab === 'queue') {
@@ -771,6 +775,7 @@ export class GlassMediaCard extends BaseCard {
 
     const onMove = (evt: PointerEvent) => update(evt);
     const cleanup = () => {
+      fireHaptic(this, 'selection');
       bar.removeEventListener('pointermove', onMove);
       bar.removeEventListener('pointerup', cleanup);
       bar.removeEventListener('pointercancel', cleanup);
@@ -1392,10 +1397,10 @@ export class GlassMediaCard extends BaseCard {
         0%   { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
         100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
       }
-      .swipe-exit-left  { animation: swipe-exit-l 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; }
-      .swipe-enter-right { animation: swipe-enter-r 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; }
-      .swipe-exit-right  { animation: swipe-exit-r 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; }
-      .swipe-enter-left  { animation: swipe-enter-l 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; }
+      .swipe-exit-left  { animation: swipe-exit-l 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-enter-right { animation: swipe-enter-r 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-exit-right  { animation: swipe-exit-r 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-enter-left  { animation: swipe-enter-l 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; will-change: transform, opacity; }
 
       /* ── Dash wrap ── */
       .dash-wrap {
@@ -1486,8 +1491,8 @@ export class GlassMediaCard extends BaseCard {
 
       /* ── Glass pill (shared for top badges) ── */
       .glass-pill {
-        backdrop-filter: blur(16px) saturate(1.3);
-        -webkit-backdrop-filter: blur(16px) saturate(1.3);
+        backdrop-filter: var(--blur-md);
+        -webkit-backdrop-filter: var(--blur-md);
         background: rgba(var(--rgb-black),0.22);
         border: 1px solid rgba(var(--rgb-white),0.12);
         box-shadow: 0 2px 8px rgba(var(--rgb-black),0.2);
@@ -1762,8 +1767,8 @@ export class GlassMediaCard extends BaseCard {
         overflow: hidden;
         opacity: 0; transition: opacity 0.25s;
         background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
-        backdrop-filter: blur(40px) saturate(1.4);
-        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        backdrop-filter: var(--blur-lg);
+        -webkit-backdrop-filter: var(--blur-lg);
         border: 1px solid var(--b2);
         border-top: none;
         border-radius: 0 0 var(--radius-xl) var(--radius-xl);

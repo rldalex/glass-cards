@@ -93,3 +93,12 @@ export const ROOM_ICONS = [
 ];
 
 export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'climate' | 'spotify' | 'media' | 'presence' | 'fan' | 'camera_carousel' | 'dashboard' | 'unassigned';
+
+export type DragContext = 'rooms' | 'lights' | 'covers' | 'fans' | 'climates' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order';
+
+export interface DragState {
+  dragIdx: number | null;
+  dropIdx: number | null;
+  dragContext: DragContext;
+  dragModeSrcIdx: number | null;
+}

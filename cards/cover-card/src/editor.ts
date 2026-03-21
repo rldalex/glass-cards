@@ -1,4 +1,2 @@
-import { GlassCardEditor } from '@glass-cards/base-card';
-
-class GlassCoverCardEditor extends GlassCardEditor {}
-try { customElements.define('glass-cover-card-editor', GlassCoverCardEditor); } catch { /* already registered */ }
+import { defineEditor } from '@glass-cards/base-card';
+defineEditor('glass-cover-card-editor');

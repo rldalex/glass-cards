@@ -6,6 +6,7 @@ import {
   getAreaEntities,
   getDashboardEntityIds,
   isEntityVisibleNow,
+  fireHaptic,
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
@@ -301,9 +302,11 @@ class GlassFanCard extends BaseCard {
     }
     .fan-row.on .fan-icon-btn ha-icon.spinning {
       animation: spin-fan var(--spin-duration, 2s) linear infinite;
+      will-change: transform;
     }
     .fan-row.on .fan-icon-btn ha-icon.spinning.reverse {
       animation: spin-fan-reverse var(--spin-duration, 2s) linear infinite;
+      will-change: transform;
     }
 
     /* ── Expand Button ── */
@@ -896,6 +899,7 @@ class GlassFanCard extends BaseCard {
   private _toggleFan(fan: FanInfo, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     if (fan.isOn) {
       this.hass.callService('fan', 'turn_off', {}, { entity_id: fan.entityId });
     } else {
@@ -936,6 +940,7 @@ class GlassFanCard extends BaseCard {
 
   private _setSpeed(fan: FanInfo, pct: number): void {
     if (!this.hass) return;
+    fireHaptic(this, 'selection');
     if (pct === 0) {
       this.hass.callService('fan', 'turn_off', {}, { entity_id: fan.entityId });
       return;
@@ -966,6 +971,7 @@ class GlassFanCard extends BaseCard {
   private _setDirection(fan: FanInfo, dir: string, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'selection');
     this.hass.callService('fan', 'set_direction', { direction: dir }, { entity_id: fan.entityId });
   }
 

@@ -1,4 +1,4 @@
-export { GlassCardEditor } from './editor';
+export { GlassCardEditor, defineEditor } from './editor';
 import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
@@ -92,6 +92,10 @@ export abstract class BaseCard extends LitElement {
     this._config = config;
   }
 
+  static getStubConfig(): Record<string, unknown> {
+    return {};
+  }
+
   // Override in multi-entity cards to compare relevant entity states
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
@@ -161,6 +165,18 @@ export abstract class BaseCard extends LitElement {
       this.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, 300);
   }
+}
+
+// — Haptic Feedback —
+
+export type HapticType = 'success' | 'warning' | 'failure' | 'light' | 'medium' | 'heavy' | 'selection';
+
+/**
+ * Fire a haptic feedback event (HA companion app pattern).
+ * Call on toggle, slider release, mode selection, etc.
+ */
+export function fireHaptic(el: HTMLElement, type: HapticType = 'light'): void {
+  el.dispatchEvent(new CustomEvent('haptic', { bubbles: true, composed: true, detail: type }));
 }
 
 // — Area Utilities —

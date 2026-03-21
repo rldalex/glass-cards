@@ -6,6 +6,7 @@ import {
   getAreaEntities,
   getDashboardEntityIds,
   isEntityVisibleNow,
+  fireHaptic,
   type EntityScheduleMap,
   type HassEntity,
   type LovelaceCardConfig,
@@ -549,8 +550,8 @@ export class GlassLightCard extends BaseCard {
         align-items: center;
         justify-content: center;
         background: rgba(var(--rgb-black), 0.4);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
         animation: cpFadeIn 0.2s ease;
       }
       @keyframes cpFadeIn {
@@ -1077,10 +1078,12 @@ export class GlassLightCard extends BaseCard {
   // — Actions —
 
   private _toggleLight(entityId: string) {
+    fireHaptic(this, 'light');
     this.hass?.callService('light', 'toggle', {}, { entity_id: entityId });
   }
 
   private _toggleAll() {
+    fireHaptic(this, 'medium');
     const lights = this._getLights();
     const anyOn = lights.some((l) => l.state === 'on');
     const service = anyOn ? 'turn_off' : 'turn_on';
@@ -1142,6 +1145,7 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _onSliderChange(key: string, value: number, send: (v: number) => void) {
+    fireHaptic(this, 'selection');
     // Persist the exact committed value so stale-clear logic compares correctly
     const next = new Map(this._dragValues);
     next.set(key, value);

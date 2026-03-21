@@ -363,10 +363,8 @@ export const formStyles = css`
         width: 100%; max-width: 25rem; max-height: 70vh;
         display: flex; flex-direction: column;
         border-radius: var(--radius-xl);
-        background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
-        backdrop-filter: blur(40px) saturate(1.4);
-        -webkit-backdrop-filter: blur(40px) saturate(1.4);
-        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.25), 0 2px 8px rgba(var(--rgb-black),0.15);
+        background: linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%);
+        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.25);
         border: 1px solid var(--b2);
         overflow: hidden;
         animation: popup-in 0.2s var(--ease-out);

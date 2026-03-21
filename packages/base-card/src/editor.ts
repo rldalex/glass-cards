@@ -72,3 +72,15 @@ export class GlassCardEditor extends LitElement {
 }
 
 try { customElements.define('glass-card-editor', GlassCardEditor); } catch { /* already registered */ }
+
+/**
+ * Factory to define a card-specific editor element.
+ * Each card calls `defineEditor('glass-xxx-card-editor')` instead of
+ * duplicating a 4-line file with an empty subclass.
+ */
+export function defineEditor(tagName: string): void {
+  try {
+    const EditorClass = class extends GlassCardEditor {};
+    customElements.define(tagName, EditorClass);
+  } catch { /* already registered */ }
+}

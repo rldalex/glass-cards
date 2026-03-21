@@ -1,4 +1,2 @@
-import { GlassCardEditor } from '@glass-cards/base-card';
-
-class GlassNavbarCardEditor extends GlassCardEditor {}
-try { customElements.define('glass-navbar-card-editor', GlassNavbarCardEditor); } catch { /* already registered */ }
+import { defineEditor } from '@glass-cards/base-card';
+defineEditor('glass-navbar-card-editor');

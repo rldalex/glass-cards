@@ -686,6 +686,7 @@
     "unassigned_assigned": "Assignée",
     "unassigned_count": "{count} entité(s) sans pièce",
     "unassigned_no_results": "Aucun résultat.",
-    "unassigned_rename": "Renommer l'entité"
+    "unassigned_rename": "Renommer l'entité",
+    "unassigned_change_icon": "Changer l'icône"
   }
 }

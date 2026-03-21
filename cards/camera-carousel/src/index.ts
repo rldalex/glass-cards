@@ -948,8 +948,8 @@ class GlassCameraCarouselCard extends BaseCard {
         position: absolute; top: 50%; transform: translateY(-50%);
         width: 2rem; height: 2rem; border-radius: 50%;
         background: rgba(var(--rgb-black),0.4); border: 1px solid rgba(var(--rgb-white),0.1);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: var(--blur-sm);
+        backdrop-filter: var(--blur-sm);
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; padding: 0; outline: none;
         font-family: inherit; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);

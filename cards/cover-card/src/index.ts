@@ -4,6 +4,7 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  fireHaptic,
   type HassEntity,
 } from '@glass-cards/base-card';
 import './editor';
@@ -559,18 +560,21 @@ class GlassCoverCard extends BaseCard {
   private _openCover(cv: CoverInfo, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
   }
 
   private _closeCover(cv: CoverInfo, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
   }
 
   private _stopCover(cv: CoverInfo, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'light');
     this.hass.callService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
   }
 
@@ -619,6 +623,7 @@ class GlassCoverCard extends BaseCard {
   private _setPreset(cv: CoverInfo, position: number, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
+    fireHaptic(this, 'selection');
     if (cv.features & F.SET_POSITION) {
       this.hass.callService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
     } else if (position > 0) {

@@ -1,6 +1,6 @@
 import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
-import { BaseCard, BackendService } from '@glass-cards/base-card';
+import { BaseCard, BackendService, fireHaptic } from '@glass-cards/base-card';
 import './editor';
 import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
@@ -297,6 +297,7 @@ export class GlassPresenceCard extends BaseCard {
 
   private async _sendNotification(person: PersonData): Promise<void> {
     if (!this.hass || !person.notifyService || !this._notifText.trim()) return;
+    fireHaptic(this, 'success');
     try {
       // Support both "mobile_app_xxx" and "notify.mobile_app_xxx" formats
       let domain = 'notify';

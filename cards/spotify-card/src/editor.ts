@@ -1,4 +1,2 @@
-import { GlassCardEditor } from '@glass-cards/base-card';
-
-class GlassSpotifyCardEditor extends GlassCardEditor {}
-try { customElements.define('glass-spotify-card-editor', GlassSpotifyCardEditor); } catch { /* already registered */ }
+import { defineEditor } from '@glass-cards/base-card';
+defineEditor('glass-spotify-card-editor');

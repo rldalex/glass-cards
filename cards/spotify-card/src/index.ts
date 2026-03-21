@@ -1,6 +1,6 @@
 import { css, html, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
-import { BaseCard, BackendService } from '@glass-cards/base-card';
+import { BaseCard, BackendService, fireHaptic } from '@glass-cards/base-card';
 import './editor';
 import { glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
@@ -153,7 +153,7 @@ class GlassSpotifyCard extends BaseCard {
       font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.5px; color: var(--t4); display: flex; align-items: center; gap: 0.25rem;
     }
-    .card-title ha-icon { color: #1DB954; --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
+    .card-title ha-icon { color: var(--c-spotify); --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
 
     .spotify-card { position: relative; width: 100%; padding: 0.875rem; box-sizing: border-box; overflow: hidden; }
     .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0; }
@@ -161,7 +161,7 @@ class GlassSpotifyCard extends BaseCard {
     .tint {
       position: absolute; inset: 0; border-radius: inherit;
       pointer-events: none; z-index: 0;
-      background: radial-gradient(ellipse at 20% 20%, rgba(29,185,84,0.12), transparent 70%);
+      background: radial-gradient(ellipse at 20% 20%, rgba(var(--rgb-spotify),0.12), transparent 70%);
       opacity: 0.6;
     }
 
@@ -177,7 +177,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent; box-sizing: border-box;
     }
     .search-input::placeholder { color: var(--t4); }
-    .search-input:focus { border-color: rgba(29,185,84,0.3); background: var(--s3); box-shadow: 0 0 0 2px rgba(29,185,84,0.1); }
+    .search-input:focus { border-color: rgba(var(--rgb-spotify),0.3); background: var(--s3); box-shadow: 0 0 0 2px rgba(var(--rgb-spotify),0.1); }
     .search-icon {
       position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
       pointer-events: none; display: flex; align-items: center; justify-content: center;
@@ -215,7 +215,7 @@ class GlassSpotifyCard extends BaseCard {
     @media (hover: hover) and (pointer: fine) { .search-toggle:hover ha-icon { color: var(--t2); } }
     @media (pointer: coarse) { .search-toggle:active { animation: bounce 0.3s ease; } }
     .search-toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .search-toggle.open ha-icon { transform: rotate(180deg); color: #1DB954; }
+    .search-toggle.open ha-icon { transform: rotate(180deg); color: var(--c-spotify); }
 
     /* Content fold (CSS Grid 0fr/1fr) */
     .sp-fold {
@@ -237,7 +237,7 @@ class GlassSpotifyCard extends BaseCard {
     /* Fold separator */
     .sp-fold-sep {
       height: 0.0625rem; margin: 0.125rem 0.75rem 0;
-      background: linear-gradient(90deg, transparent, rgba(29,185,84,0.15), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-spotify),0.15), transparent);
       opacity: 0; transition: opacity var(--t-fast);
     }
     .sp-fold.open + .sp-fold-sep { opacity: 1; }
@@ -261,7 +261,7 @@ class GlassSpotifyCard extends BaseCard {
     .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .tab-btn:active { animation: bounce 0.3s ease; } }
-    .tab-btn.active { background: rgba(29,185,84,0.1); color: #1DB954; }
+    .tab-btn.active { background: rgba(var(--rgb-spotify),0.1); color: var(--c-spotify); }
     .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
 
     /* Content area */
@@ -319,7 +319,7 @@ class GlassSpotifyCard extends BaseCard {
 
     .result-play {
       width: 2rem; height: 2rem; border-radius: 50%;
-      background: #1DB954; border: none;
+      background: var(--c-spotify); border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
@@ -362,7 +362,7 @@ class GlassSpotifyCard extends BaseCard {
     .playlist-art-play {
       position: absolute; bottom: 0.375rem; right: 0.375rem;
       width: 1.75rem; height: 1.75rem; border-radius: 50%;
-      background: #1DB954;
+      background: var(--c-spotify);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transform: translateY(4px);
       transition: all var(--t-fast);
@@ -402,7 +402,7 @@ class GlassSpotifyCard extends BaseCard {
     /* Play all button */
     .play-all-btn {
       display: flex; align-items: center; gap: 0.25rem;
-      background: rgba(30, 215, 96, 0.12); border: none; color: #1ed760;
+      background: rgba(30, 215, 96, 0.12); border: none; color: var(--c-spotify-hover);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       cursor: pointer; padding: 0.25rem 0.625rem; border-radius: var(--radius-full);
       outline: none; -webkit-tap-highlight-color: transparent;
@@ -431,16 +431,16 @@ class GlassSpotifyCard extends BaseCard {
       display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
       padding: 1.5rem 1rem; text-align: center;
     }
-    .setup-banner ha-icon { --mdc-icon-size: 2.5rem; color: #1DB954; display: flex; align-items: center; justify-content: center; }
+    .setup-banner ha-icon { --mdc-icon-size: 2.5rem; color: var(--c-spotify); display: flex; align-items: center; justify-content: center; }
     .setup-banner-text { font-size: var(--fz-base); color: var(--t3); line-height: 1.5; }
     .setup-link {
-      font-size: var(--fz-base); font-weight: 600; color: #1DB954;
-      background: rgba(29,185,84,0.1); border: 1px solid rgba(29,185,84,0.2);
+      font-size: var(--fz-base); font-weight: 600; color: var(--c-spotify);
+      background: rgba(var(--rgb-spotify),0.1); border: 1px solid rgba(var(--rgb-spotify),0.2);
       border-radius: var(--radius-md); padding: 0.375rem 0.875rem;
       cursor: pointer; text-decoration: none; outline: none;
       -webkit-tap-highlight-color: transparent; transition: all var(--t-fast);
     }
-    @media (hover: hover) and (pointer: fine) { .setup-link:hover { background: rgba(29,185,84,0.2); } }
+    @media (hover: hover) and (pointer: fine) { .setup-link:hover { background: rgba(var(--rgb-spotify),0.2); } }
     @media (pointer: coarse) { .setup-link:active { animation: bounce 0.3s ease; } }
     .setup-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
@@ -521,7 +521,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent; color: inherit;
       flex-shrink: 0;
     }
-    .picker-speaker.selected { border-color: rgba(29,185,84,0.4); background: rgba(29,185,84,0.08); }
+    .picker-speaker.selected { border-color: rgba(var(--rgb-spotify),0.4); background: rgba(var(--rgb-spotify),0.08); }
     @media (hover: hover) and (pointer: fine) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
     @media (hover: hover) and (pointer: fine) { .picker-speaker:active { transform: scale(0.98); } }
     @media (pointer: coarse) { .picker-speaker:active { animation: bounce 0.3s ease; } }
@@ -533,19 +533,19 @@ class GlassSpotifyCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast);
     }
-    .picker-speaker.selected .picker-speaker-icon { background: rgba(29,185,84,0.15); border-color: rgba(29,185,84,0.3); }
+    .picker-speaker.selected .picker-speaker-icon { background: rgba(var(--rgb-spotify),0.15); border-color: rgba(var(--rgb-spotify),0.3); }
     .picker-speaker-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
-    .picker-speaker.selected .picker-speaker-icon ha-icon { color: #1DB954; }
+    .picker-speaker.selected .picker-speaker-icon ha-icon { color: var(--c-spotify); }
     .picker-speaker-name { flex: 1; font-size: var(--fz-base); font-weight: 600; color: var(--t2); }
     .picker-speaker-status { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); white-space: nowrap; }
-    .picker-speaker-status.playing { color: rgba(29,185,84,0.6); }
+    .picker-speaker-status.playing { color: rgba(var(--rgb-spotify),0.6); }
     .picker-speaker-check {
       width: 1.25rem; height: 1.25rem; border-radius: 50%;
       border: 2px solid var(--b2); background: transparent;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast);
     }
-    .picker-speaker.selected .picker-speaker-check { border-color: #1DB954; background: #1DB954; }
+    .picker-speaker.selected .picker-speaker-check { border-color: var(--c-spotify); background: var(--c-spotify); }
     .picker-speaker-check ha-icon { --mdc-icon-size: var(--icon-sm); color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
     .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
 
@@ -559,9 +559,9 @@ class GlassSpotifyCard extends BaseCard {
       transition: all var(--t-fast); outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    .picker-play-btn.primary { background: #1DB954; color: #fff; }
+    .picker-play-btn.primary { background: var(--c-spotify); color: #fff; }
     .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
-    @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
+    @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: var(--c-spotify-hover); } }
     .picker-play-btn.primary ha-icon { --mdc-icon-size: var(--icon-md); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
     @media (pointer: coarse) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
@@ -963,6 +963,7 @@ class GlassSpotifyCard extends BaseCard {
 
   private async _playOnSelectedSpeakers(): Promise<void> {
     if (!this.hass || !this._pickerItem || this._selectedSpeakers.size === 0) return;
+    fireHaptic(this, 'light');
     const item = this._pickerItem;
     const uri = item.uri ?? `spotify:${item.type}:${item.id}`;
     const entityIds = [...this._selectedSpeakers];
@@ -1135,6 +1136,7 @@ class GlassSpotifyCard extends BaseCard {
 
   private async _toggleSaved(trackId: string): Promise<void> {
     if (!this._backend) return;
+    fireHaptic(this, 'success');
     const isSaved = this._savedMap.get(trackId) ?? false;
     // Optimistic update
     const newMap = new Map(this._savedMap);
