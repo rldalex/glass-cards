@@ -38,3 +38,4 @@ ha-test-config/
 # Claude Code
 .claude/
 .mcp.json
+.superpowers/
