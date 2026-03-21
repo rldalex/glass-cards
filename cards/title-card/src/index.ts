@@ -140,8 +140,8 @@ class GlassTitleCard extends BaseCard {
     /* ── Dash trigger ── */
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.25rem 1rem;
+      min-height: 1.75rem;
+      padding: 0.125rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
