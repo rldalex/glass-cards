@@ -9,5 +9,5 @@ asyncio_mode = "auto"
 pythonpath = [".", "tests/ha_stubs"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true

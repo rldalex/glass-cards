@@ -86,10 +86,14 @@ async def _get_spotify_token(hass: HomeAssistant, entity_id: str = "") -> str:
         raise SpotifyNotConfiguredError(
             f"Spotify token missing or malformed: {exc}"
         ) from exc
-    except Exception as exc:
+    except (OSError, TimeoutError) as exc:
         raise SpotifyAPIError(
             503,
-            f"Failed to refresh Spotify token (temporary): {exc}",
+            f"Failed to refresh Spotify token (network): {exc}",
+        ) from exc
+    except Exception as exc:
+        raise SpotifyNotConfiguredError(
+            f"Failed to refresh Spotify token: {exc}"
         ) from exc
 
 
