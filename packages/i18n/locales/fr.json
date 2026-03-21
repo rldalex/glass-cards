@@ -19,7 +19,8 @@
     "expand": "Développer",
     "move_up": "Déplacer vers le haut",
     "move_down": "Déplacer vers le bas",
-    "none": "Aucun"
+    "none": "Aucun",
+    "rooms": "Pièces"
   },
 
   "light": {
@@ -81,7 +82,23 @@
     "cond_stormy": "Orage",
     "cond_windy": "Venteux",
     "cond_windy_variant": "Venteux nuageux",
-    "cond_exceptional": "Exceptionnel"
+    "cond_exceptional": "Exceptionnel",
+    "compass_N": "N",
+    "compass_NNE": "NNE",
+    "compass_NE": "NE",
+    "compass_ENE": "ENE",
+    "compass_E": "E",
+    "compass_ESE": "ESE",
+    "compass_SE": "SE",
+    "compass_SSE": "SSE",
+    "compass_S": "S",
+    "compass_SSW": "SSO",
+    "compass_SW": "SO",
+    "compass_WSW": "OSO",
+    "compass_W": "O",
+    "compass_WNW": "ONO",
+    "compass_NW": "NO",
+    "compass_NNW": "NNO"
   },
 
   "cover": {

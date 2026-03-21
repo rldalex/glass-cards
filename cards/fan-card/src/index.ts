@@ -4,12 +4,14 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  getDashboardEntityIds,
   isEntityVisibleNow,
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
+import './editor';
 
 // — Feature bitmask (HA FanEntityFeature) —
 
@@ -145,6 +147,14 @@ function presetLabel(mode: string): string {
 // — Component —
 
 class GlassFanCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-fan-card-editor');
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
   @property({ attribute: false }) areaId?: string;
   @property({ attribute: false }) visibleAreaIds?: string[];
 
@@ -164,7 +174,6 @@ class GlassFanCard extends BaseCard {
   private _dashboardHiddenEntities = new Set<string>();
   private _dashboardHiddenLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
-  private _sliderCleanups: (() => void)[] = [];
   private _schedules: EntityScheduleMap | null = null;
   private _schedulesLoaded = false;
 
@@ -172,57 +181,55 @@ class GlassFanCard extends BaseCard {
     return !this.areaId;
   }
 
-  static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, bounceMixin, css`
+  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
     :host {
-      display: block;
       width: 100%;
-      max-width: 500px;
+      max-width: 31.25rem;
       margin: 0 auto;
-      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     /* ── Card Header ── */
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+      padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
     }
-    .card-header-left { display: flex; align-items: center; gap: 8px; }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
     .card-title {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.5px; color: var(--t4);
     }
     .card-count {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 14px; height: 14px; padding: 0 4px;
-      border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
       transition: all var(--t-med);
     }
-    .card-count.some { background: rgba(129,140,248,0.15); color: var(--c-accent); }
+    .card-count.some { background: rgba(var(--rgb-accent),0.15); color: var(--c-accent); }
     .card-count.none { background: var(--s2); color: var(--t3); }
-    .card-count.all  { background: rgba(129,140,248,0.2); color: var(--c-accent); }
+    .card-count.all  { background: rgba(var(--rgb-accent),0.2); color: var(--c-accent); }
 
     /* ── Toggle All ── */
     .toggle-all {
-      position: relative; width: 40px; height: 22px; border-radius: 11px;
+      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
       transition: all var(--t-fast); padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .toggle-all::after {
-      content: ''; position: absolute; top: 3px; left: 3px;
-      width: 14px; height: 14px; border-radius: 50%;
+      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
       background: var(--t3);
       transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
     }
-    .toggle-all.on { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.3); }
+    .toggle-all.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
     .toggle-all.on::after {
       transform: translateX(18px); background: var(--c-accent);
-      box-shadow: 0 0 8px rgba(129,140,248,0.4);
+      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
     }
-    .toggle-all:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* ── Card Body ── */
-    .fan-card { position: relative; padding: 2px 14px; }
+    .fan-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
       position: relative; z-index: 1;
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
@@ -234,16 +241,16 @@ class GlassFanCard extends BaseCard {
 
     /* ── Fan Row ── */
     .fan-row {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 0.625rem;
       grid-column: 1 / -1;
-      padding: 8px 4px; position: relative;
+      padding: 0.5rem 0.25rem; position: relative;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
     .fan-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
-    .fan-row.compact-right { padding-left: 10px; }
+    .fan-row.compact-right { padding-left: 0.625rem; }
     .fan-row.compact-right::before {
-      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
+      background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.08) 30%, rgba(var(--rgb-white),0.08) 70%, transparent);
     }
     @media (hover: hover) and (pointer: fine) {
       .fan-row:hover { background: var(--s1); }
@@ -254,18 +261,18 @@ class GlassFanCard extends BaseCard {
 
     /* ── Icon Button ── */
     .fan-icon-btn {
-      width: 36px; height: 36px; border-radius: var(--radius-md);
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .fan-icon-btn ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 1.125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
     }
-    .fan-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .fan-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .fan-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
       .fan-icon-btn:hover ha-icon { color: var(--t2); }
@@ -277,10 +284,10 @@ class GlassFanCard extends BaseCard {
       .fan-icon-btn:active { animation: bounce 0.3s ease; }
     }
     .fan-row.on .fan-icon-btn {
-      background: rgba(129,140,248,0.1); border-color: rgba(129,140,248,0.15);
+      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
     }
     .fan-row.on .fan-icon-btn ha-icon {
-      color: var(--c-accent); filter: drop-shadow(0 0 6px rgba(129,140,248,0.4));
+      color: var(--c-accent); filter: drop-shadow(0 0 6px rgba(var(--rgb-accent),0.4));
     }
 
     /* ── Spinning animation ── */
@@ -302,52 +309,52 @@ class GlassFanCard extends BaseCard {
     /* ── Expand Button ── */
     .fan-expand-btn {
       flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 0.625rem;
       background: none; border: none; padding: 0;
       font-family: inherit; cursor: pointer; outline: none;
       text-align: left; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
     .fan-expand-btn:focus-visible {
-      outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px;
+      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
 
     /* ── Fan Info ── */
     .fan-info { flex: 1; min-width: 0; }
     .fan-name {
-      font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
       white-space: nowrap; overflow: hidden;
     }
-    .fan-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .fan-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .fan-speed-text {
-      font-size: 10px; font-weight: 500; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
       transition: color var(--t-med);
     }
-    .fan-row.on .fan-speed-text { color: rgba(129,140,248,0.55); }
+    .fan-row.on .fan-speed-text { color: rgba(var(--rgb-accent),0.55); }
 
     .fan-direction {
-      font-size: 10px; font-weight: 400; color: var(--t4);
-      display: flex; align-items: center; gap: 3px;
+      font-size: var(--fz-sm); font-weight: 400; color: var(--t4);
+      display: flex; align-items: center; gap: 0.1875rem;
     }
     .fan-direction ha-icon {
-      --mdc-icon-size: 11px;
+      --mdc-icon-size: 0.6875rem;
       display: flex; align-items: center; justify-content: center;
     }
 
     .fan-dot {
-      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
     .fan-row.on .fan-dot {
-      background: var(--c-accent); box-shadow: 0 0 8px rgba(129,140,248,0.4);
+      background: var(--c-accent); box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
     }
 
     /* ── Fold separator ── */
     .fold-sep {
       grid-column: 1 / -1;
-      height: 1px; margin: 0 12px; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), transparent);
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
       opacity: 0; transition: opacity var(--t-layout);
     }
     .fold-sep.visible { opacity: 1; }
@@ -366,28 +373,28 @@ class GlassFanCard extends BaseCard {
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
     .ctrl-panel {
-      padding: 6px 0 4px;
-      display: flex; flex-direction: column; gap: 10px;
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.625rem;
     }
     .ctrl-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
-      color: rgba(129,140,248,0.6); text-transform: uppercase;
+      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
+      color: rgba(var(--rgb-accent),0.6); text-transform: uppercase;
     }
 
     /* ── Speed steps ── */
-    .speed-steps { display: flex; gap: 4px; }
+    .speed-steps { display: flex; gap: 0.25rem; }
     .speed-step {
-      flex: 1; height: 36px; border-radius: var(--radius-md);
+      flex: 1; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s1); border: 1px solid var(--b1);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-family: inherit; font-size: 11px; font-weight: 700; color: var(--t3);
-      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 2px 0;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 700; color: var(--t3);
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0.125rem 0;
       -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) and (pointer: fine) {
       .speed-step:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
     }
-    .speed-step:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .speed-step:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .speed-step:active { transform: scale(0.96); }
     }
@@ -395,72 +402,46 @@ class GlassFanCard extends BaseCard {
       .speed-step:active { animation: bounce 0.3s ease; }
     }
     .speed-step.active {
-      background: rgba(129,140,248,0.1); border-color: rgba(129,140,248,0.15);
+      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
       color: var(--c-accent);
     }
     .speed-step-pct {
-      font-size: 7px; font-weight: 600; color: var(--t4);
-      letter-spacing: 0.3px; margin-top: 1px;
+      font-size: var(--fz-xxs); font-weight: 600; color: var(--t4);
+      letter-spacing: 0.3px; margin-top: 0.0625rem;
     }
-    .speed-step.active .speed-step-pct { color: rgba(129,140,248,0.55); }
+    .speed-step.active .speed-step-pct { color: rgba(var(--rgb-accent),0.55); }
 
     /* ── Slider ── */
-    .slider-wrap { display: flex; align-items: center; gap: 8px; }
+    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
     .slider-icon {
       display: flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; flex-shrink: 0;
+      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
     }
     .slider-icon ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 1.125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
-    .slider {
-      position: relative; flex: 1; height: 36px;
-      border-radius: var(--radius-lg); background: var(--s1);
-      border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
-      touch-action: none; user-select: none; -webkit-user-select: none;
-    }
-    .slider-fill {
-      position: absolute; top: 0; left: 0; height: 100%;
-      border-radius: inherit; pointer-events: none;
-      transition: width 0.05s linear;
-    }
-    .slider-fill.accent {
-      background: linear-gradient(90deg, rgba(129,140,248,0.15), rgba(129,140,248,0.25));
-    }
-    .slider-fill.warm {
-      background: linear-gradient(90deg, rgba(251,191,36,0.15), rgba(251,191,36,0.3));
-    }
-    .slider-thumb {
-      position: absolute; top: 50%; transform: translate(-50%, -50%);
-      width: 8px; height: 20px; border-radius: 4px;
-      background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
-      pointer-events: none; transition: left 0.05s linear;
-    }
-    .slider-val {
-      position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
-      font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
-    }
+    glass-slider { flex: 1; }
 
     /* ── Mode chips ── */
-    .mode-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .mode-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
     .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: 11px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: all var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 14px;
+      --mdc-icon-size: 0.875rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
-    .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .chip:active { transform: scale(0.96); }
     }
@@ -468,100 +449,100 @@ class GlassFanCard extends BaseCard {
       .chip:active { animation: bounce 0.3s ease; }
     }
     .chip.active {
-      border-color: rgba(129,140,248,0.15); background: rgba(129,140,248,0.1);
-      color: rgba(129,140,248,0.8);
+      border-color: rgba(var(--rgb-accent),0.15); background: rgba(var(--rgb-accent),0.1);
+      color: rgba(var(--rgb-accent),0.8);
     }
 
     /* ── Direction toggle ── */
-    .direction-row { display: flex; align-items: center; gap: 10px; }
+    .direction-row { display: flex; align-items: center; gap: 0.625rem; }
     .direction-label {
-      font-size: 11px; font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 6px;
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
     }
     .direction-label ha-icon {
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: 1rem;
       display: flex; align-items: center; justify-content: center;
       opacity: 0.6;
     }
     .direction-btns {
-      display: flex; gap: 0; border-radius: 10px;
+      display: flex; gap: 0; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1); overflow: hidden;
     }
     .dir-btn {
-      width: 36px; height: 28px; display: flex;
+      width: 2.25rem; height: 1.75rem; display: flex;
       align-items: center; justify-content: center;
       background: transparent; border: none; color: var(--t3);
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .dir-btn ha-icon {
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: 1rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
       .dir-btn:hover { background: var(--s3); color: var(--t2); }
     }
-    .dir-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .dir-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .dir-btn:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {
       .dir-btn:active { animation: bounce 0.3s ease; }
     }
-    .dir-btn.active { background: rgba(129,140,248,0.1); color: var(--c-accent); }
+    .dir-btn.active { background: rgba(var(--rgb-accent),0.1); color: var(--c-accent); }
     .dir-btn + .dir-btn { border-left: 1px solid var(--b1); }
 
     /* ── Oscillation toggle ── */
-    .osc-row { display: flex; align-items: center; gap: 10px; }
+    .osc-row { display: flex; align-items: center; gap: 0.625rem; }
     .osc-label {
-      font-size: 11px; font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 6px;
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
     }
     .osc-label ha-icon {
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: 1rem;
       display: flex; align-items: center; justify-content: center;
       opacity: 0.6;
     }
     .toggle-sm {
-      position: relative; width: 38px; height: 20px; border-radius: 10px;
+      position: relative; width: 2.375rem; height: 1.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2);
       cursor: pointer; transition: all var(--t-fast);
       padding: 0; outline: none; font-family: inherit; flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
     .toggle-sm::after {
-      content: ''; position: absolute; top: 2px; left: 2px;
-      width: 14px; height: 14px; border-radius: 50%;
+      content: ''; position: absolute; top: 0.125rem; left: 0.125rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
       background: var(--t3); transition: all var(--t-fast);
     }
-    .toggle-sm.on { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.3); }
+    .toggle-sm.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
     .toggle-sm.on::after {
       transform: translateX(18px); background: var(--c-accent);
-      box-shadow: 0 0 8px rgba(129,140,248,0.4);
+      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
     }
-    .toggle-sm:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .toggle-sm:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* ── Ceiling light row ── */
     .ceiling-light-row {
-      display: flex; align-items: center; gap: 10px; padding: 6px 0;
+      display: flex; align-items: center; gap: 0.625rem; padding: 0.375rem 0;
     }
     .ceiling-light-label {
-      font-size: 11px; font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 6px;
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
     }
     .ceiling-light-label ha-icon {
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: 1rem;
       display: flex; align-items: center; justify-content: center;
       opacity: 0.6;
     }
 
     /* ── Separator ── */
-    .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
 
     /* ── Empty state ── */
     .empty-state {
       grid-column: 1 / -1;
-      padding: 16px; text-align: center; font-size: 12px; color: var(--t4);
+      padding: 1rem; text-align: center; font-size: var(--fz-base); color: var(--t4);
     }
   `];
 
@@ -607,8 +588,6 @@ class GlassFanCard extends BaseCard {
     this._dashboardHiddenLoaded = false;
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
-    for (const cleanup of this._sliderCleanups) cleanup();
-    this._sliderCleanups = [];
   }
 
   protected _collapseExpanded(): void {
@@ -696,14 +675,8 @@ class GlassFanCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    if (this._isDashboardMode && this.hass && this.visibleAreaIds?.length && this.hass.entities && this.hass.devices) {
-      const ids: string[] = [];
-      for (const aId of this.visibleAreaIds) {
-        for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('fan.')) ids.push(e.entity_id);
-        }
-      }
-      return ids;
+    if (this._isDashboardMode && this.hass) {
+      return getDashboardEntityIds('fan', this.hass, this.visibleAreaIds);
     }
     return this._getFanInfos().map((f) => f.entityId);
   }
@@ -1024,81 +997,49 @@ class GlassFanCard extends BaseCard {
     this._expandedEntity = this._expandedEntity === fan.entityId ? null : fan.entityId;
   }
 
-  // — Slider interaction —
+  // — Slider helpers —
 
-  private _onSpeedSliderDown(fan: FanInfo, e: PointerEvent): void {
-    e.stopPropagation();
-    const slider = e.currentTarget as HTMLElement;
-    slider.setPointerCapture(e.pointerId);
-    const ac = new AbortController();
-    const { signal } = ac;
-
-    const update = (evt: PointerEvent) => {
-      const rect = slider.getBoundingClientRect();
-      const rawPct = Math.max(0, Math.min(100, Math.round(((evt.clientX - rect.left) / rect.width) * 100)));
-      const snapped = snapPct(rawPct, fan.speedCount);
-      const next = new Map(this._dragValues);
-      next.set(`speed:${fan.entityId}`, snapped);
-      this._dragValues = next;
-    };
-
-    update(e);
-
-    const done = () => {
-      ac.abort();
-      try { slider.releasePointerCapture(e.pointerId); } catch { /* already released */ }
-      this._sliderCleanups = this._sliderCleanups.filter((c) => c !== done);
-      // Send final value to HA
-      const finalPct = this._dragValues.get(`speed:${fan.entityId}`) ?? 0;
-      this._setSpeed(fan, finalPct);
-    };
-    this._sliderCleanups.push(done);
-    slider.addEventListener('pointermove', (evt) => update(evt as PointerEvent), { signal });
-    slider.addEventListener('pointerup', done, { signal });
-    slider.addEventListener('pointercancel', done, { signal });
-    slider.addEventListener('lostpointercapture', done, { signal });
+  private _onSpeedSliderInput(fan: FanInfo, value: number): void {
+    const snapped = snapPct(value, fan.speedCount);
+    const next = new Map(this._dragValues);
+    next.set(`speed:${fan.entityId}`, snapped);
+    this._dragValues = next;
   }
 
-  private _onLightSliderDown(fan: FanInfo, e: PointerEvent): void {
-    e.stopPropagation();
+  private _onSpeedSliderChange(fan: FanInfo, value: number): void {
+    const snapped = snapPct(value, fan.speedCount);
+    this._setSpeed(fan, snapped);
+    const next = new Map(this._dragValues);
+    next.delete(`speed:${fan.entityId}`);
+    this._dragValues = next;
+  }
+
+  private _onLightSliderInput(fan: FanInfo, value: number): void {
     if (!fan.lightEntityId || !this.hass) return;
-    const slider = e.currentTarget as HTMLElement;
-    slider.setPointerCapture(e.pointerId);
-    const ac = new AbortController();
-    const { signal } = ac;
+    const next = new Map(this._dragValues);
+    next.set(`light:${fan.entityId}`, value);
+    this._dragValues = next;
+
+    // Throttled HA call
+    const key = `light:${fan.entityId}`;
+    const existing = this._throttleTimers.get(key);
+    if (existing) clearTimeout(existing);
     const lightEntityId = fan.lightEntityId;
+    this._throttleTimers.set(key, setTimeout(() => {
+      this._throttleTimers.delete(key);
+      const val = this._dragValues.get(key) ?? value;
+      const brightness = Math.round((val / 100) * 255);
+      this.hass?.callService('light', 'turn_on', { brightness }, { entity_id: lightEntityId });
+    }, 100));
+  }
 
-    const update = (evt: PointerEvent) => {
-      const rect = slider.getBoundingClientRect();
-      const pct = Math.max(0, Math.min(100, Math.round(((evt.clientX - rect.left) / rect.width) * 100)));
-      const next = new Map(this._dragValues);
-      next.set(`light:${fan.entityId}`, pct);
-      this._dragValues = next;
-
-      // Throttled HA call
-      const key = `light:${fan.entityId}`;
-      const existing = this._throttleTimers.get(key);
-      if (existing) clearTimeout(existing);
-      this._throttleTimers.set(key, setTimeout(() => {
-        this._throttleTimers.delete(key);
-        const val = this._dragValues.get(key) ?? pct;
-        const brightness = Math.round((val / 100) * 255);
-        this.hass?.callService('light', 'turn_on', { brightness }, { entity_id: lightEntityId });
-      }, 100));
-    };
-
-    update(e);
-
-    const done = () => {
-      ac.abort();
-      try { slider.releasePointerCapture(e.pointerId); } catch { /* already released */ }
-      this._sliderCleanups = this._sliderCleanups.filter((c) => c !== done);
-    };
-    this._sliderCleanups.push(done);
-    slider.addEventListener('pointermove', (evt) => update(evt as PointerEvent), { signal });
-    slider.addEventListener('pointerup', done, { signal });
-    slider.addEventListener('pointercancel', done, { signal });
-    slider.addEventListener('lostpointercapture', done, { signal });
+  private _onLightSliderChange(fan: FanInfo, value: number): void {
+    if (!fan.lightEntityId || !this.hass) return;
+    const brightness = Math.round((value / 100) * 255);
+    this.hass.callService('light', 'turn_on', { brightness }, { entity_id: fan.lightEntityId });
+    const next = new Map(this._dragValues);
+    next.delete(`light:${fan.entityId}`);
+    this._dragValues = next;
   }
 
   // — Render —
@@ -1243,7 +1184,8 @@ class GlassFanCard extends BaseCard {
       speedText = t('fan.off');
     }
 
-    const rowClasses = ['fan-row', fan.isOn ? 'on' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+    const unavailable = isEntityUnavailable(fan.entity.state);
+    const rowClasses = ['fan-row', fan.isOn ? 'on' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '', unavailable ? 'entity-unavailable' : '']
       .filter(Boolean).join(' ');
 
     return html`
@@ -1279,6 +1221,7 @@ class GlassFanCard extends BaseCard {
           </div>
           <div class="fan-dot"></div>
         </button>
+        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -1335,11 +1278,14 @@ class GlassFanCard extends BaseCard {
             <!-- Speed slider (complex fans only) -->
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${'mdi:speedometer'}></ha-icon></div>
-              <div class="slider" @pointerdown=${(e: PointerEvent) => this._onSpeedSliderDown(fan, e)}>
-                <div class="slider-fill accent" style="width:${displayPct}%;"></div>
-                <div class="slider-thumb" style="left:${displayPct}%;"></div>
-                <div class="slider-val">${displayPct}%</div>
-              </div>
+              <glass-slider
+                .value=${displayPct}
+                .step=${Math.round(100 / fan.speedCount)}
+                color="var(--rgb-accent)"
+                .label=${`${displayPct}%`}
+                @glass-slider-input=${(e: CustomEvent) => this._onSpeedSliderInput(fan, e.detail.value)}
+                @glass-slider-change=${(e: CustomEvent) => this._onSpeedSliderChange(fan, e.detail.value)}
+              ></glass-slider>
             </div>
           ` : nothing}
         ` : nothing}
@@ -1438,11 +1384,13 @@ class GlassFanCard extends BaseCard {
       ${lightIsOn ? html`
         <div class="slider-wrap">
           <div class="slider-icon"><ha-icon .icon=${'mdi:brightness-6'}></ha-icon></div>
-          <div class="slider" @pointerdown=${(e: PointerEvent) => this._onLightSliderDown(fan, e)}>
-            <div class="slider-fill warm" style="width:${displayPct}%;"></div>
-            <div class="slider-thumb" style="left:${displayPct}%;"></div>
-            <div class="slider-val">${displayPct}%</div>
-          </div>
+          <glass-slider
+            .value=${displayPct}
+            color="var(--rgb-light-glow)"
+            .label=${`${displayPct}%`}
+            @glass-slider-input=${(e: CustomEvent) => this._onLightSliderInput(fan, e.detail.value)}
+            @glass-slider-change=${(e: CustomEvent) => this._onLightSliderChange(fan, e.detail.value)}
+          ></glass-slider>
         </div>
       ` : nothing}
     `;

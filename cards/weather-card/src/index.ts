@@ -1,8 +1,9 @@
 import { css, html, svg, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService, type HassEntity } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t, type TranslationKey } from '@glass-cards/i18n';
+import './editor';
 
 // — HA condition → internal key mapping —
 
@@ -43,10 +44,11 @@ const CONDITIONS: Record<string, ConditionMeta> = {
   exceptional:   { icon: 'mdi:alert-circle-outline',    textKey: 'weather.cond_exceptional',   tint: '#fca5a5', tintOp: 0.10, sparkStroke: 'rgba(252,165,165,0.5)', sparkFill: 'rgba(252,165,165,0.12)' },
 };
 
-const COMPASS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+const COMPASS_KEYS = ['compass_N','compass_NNE','compass_NE','compass_ENE','compass_E','compass_ESE','compass_SE','compass_SSE','compass_S','compass_SSW','compass_SW','compass_WSW','compass_W','compass_WNW','compass_NW','compass_NNW'] as const;
 function bearingToDir(b: number | undefined): string {
   if (b == null) return '';
-  return COMPASS[Math.round(((+b % 360 + 360) % 360) / 22.5) % 16];
+  const key = COMPASS_KEYS[Math.round(((+b % 360 + 360) % 360) / 22.5) % 16];
+  return t(`weather.${key}` as TranslationKey);
 }
 
 function pad(n: number): string { return n < 10 ? '0' + n : '' + n; }
@@ -105,6 +107,14 @@ interface WeatherBackendConfig {
 // ================================================================
 
 class GlassWeatherCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-weather-card-editor');
+  }
+
+  getCardSize() {
+    return 2;
+  }
+
   // — State —
   @state() private _activeTab: 'daily' | 'hourly' | null = null;
   @state() private _forecastDaily: DailyForecast[] = [];
@@ -141,40 +151,39 @@ class GlassWeatherCard extends BaseCard {
 
   // — Styles —
 
-  static styles: CSSResult[] = [glassTokens, glassMixin, foldMixin, bounceMixin, css`
+  static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, foldMixin, bounceMixin, css`
     :host {
-      display: block;
       width: 100%;
-      max-width: 500px;
+      max-width: 31.25rem;
       margin: 0 auto;
     }
 
     .weather-card-wrap {
-      display: flex; flex-direction: column; gap: 6px;
+      display: flex; flex-direction: column; gap: 0.375rem;
     }
 
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px;
+      padding: 0 0.375rem;
     }
     .card-title {
-      font-size: 9px; font-weight: 700;
+      font-size: var(--fz-xs); font-weight: 700;
       text-transform: uppercase; letter-spacing: 1.5px;
       color: var(--t4);
     }
     .card-location {
-      font-size: 9px; font-weight: 500; color: var(--t3);
+      font-size: var(--fz-xs); font-weight: 500; color: var(--t3);
     }
 
     .weather-card {
       position: relative;
-      width: 100%; padding: 14px 14px 6px;
+      width: 100%; padding: 0.875rem 0.875rem 0.375rem;
       box-sizing: border-box;
     }
 
     .card-inner {
       position: relative; z-index: 1;
-      display: flex; flex-direction: column; gap: 8px;
+      display: flex; flex-direction: column; gap: 0.5rem;
     }
 
     /* ── Header: clock + weather ── */
@@ -183,19 +192,19 @@ class GlassWeatherCard extends BaseCard {
     }
 
     .wc-clock-zone {
-      display: flex; flex-direction: column; gap: 1px;
+      display: flex; flex-direction: column; gap: 0.0625rem;
     }
     .wc-clock-hm {
-      font-size: 28px; font-weight: 300; line-height: 1;
+      font-size: var(--fz-display); font-weight: 300; line-height: 1;
       color: var(--t1); letter-spacing: -0.8px;
       font-variant-numeric: tabular-nums;
     }
     .wc-clock-sec {
-      font-size: 12px; font-weight: 300; color: var(--t4);
-      margin-left: 1px;
+      font-size: var(--fz-base); font-weight: 300; color: var(--t4);
+      margin-left: 0.0625rem;
     }
     .wc-clock-date {
-      font-size: 10px; font-weight: 500; color: var(--t4);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
     }
     .wc-clock-day {
       font-weight: 600; color: var(--t3);
@@ -203,34 +212,34 @@ class GlassWeatherCard extends BaseCard {
     }
 
     .wc-weather-zone {
-      display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.0625rem;
     }
     .wc-temp-row {
-      display: flex; align-items: baseline; gap: 2px;
+      display: flex; align-items: baseline; gap: 0.125rem;
     }
     .wc-temp {
-      font-size: 28px; font-weight: 700; line-height: 1;
+      font-size: var(--fz-display); font-weight: 700; line-height: 1;
       color: var(--t1); letter-spacing: -0.5px;
     }
     .wc-temp-unit {
-      font-size: 12px; font-weight: 400; color: var(--t3);
+      font-size: var(--fz-base); font-weight: 400; color: var(--t3);
     }
     .wc-cond-row {
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 0.25rem;
     }
     .wc-cond-icon {
-      --mdc-icon-size: 13px;
-      width: 13px; height: 13px;
+      --mdc-icon-size: 0.8125rem;
+      width: 0.8125rem; height: 0.8125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
       transition: color var(--t-med), filter var(--t-med);
     }
-    .wc-cond-icon.sunny { color: #fbbf24; filter: drop-shadow(0 0 4px rgba(251,191,36,0.35)); }
+    .wc-cond-icon.sunny { color: #fbbf24; filter: drop-shadow(0 0 4px rgba(var(--rgb-warning),0.35)); }
     .wc-cond-icon.partly_cloudy { color: #fcd34d; }
     .wc-cond-icon.cloudy { color: var(--t2); }
-    .wc-cond-icon.rainy { color: #60a5fa; filter: drop-shadow(0 0 4px rgba(96,165,250,0.3)); }
+    .wc-cond-icon.rainy { color: #60a5fa; filter: drop-shadow(0 0 4px rgba(var(--rgb-info),0.3)); }
     .wc-cond-icon.pouring { color: #3b82f6; filter: drop-shadow(0 0 4px rgba(59,130,246,0.4)); }
-    .wc-cond-icon.stormy { color: #a78bfa; filter: drop-shadow(0 0 4px rgba(167,139,250,0.35)); }
+    .wc-cond-icon.stormy { color: #a78bfa; filter: drop-shadow(0 0 4px rgba(var(--rgb-purple),0.35)); }
     .wc-cond-icon.lightning { color: #c084fc; filter: drop-shadow(0 0 5px rgba(192,132,252,0.4)); }
     .wc-cond-icon.snowy { color: #e0f2fe; }
     .wc-cond-icon.snowy_rainy { color: #93c5fd; }
@@ -238,13 +247,13 @@ class GlassWeatherCard extends BaseCard {
     .wc-cond-icon.foggy { color: var(--t3); }
     .wc-cond-icon.windy { color: #6ee7b7; filter: drop-shadow(0 0 3px rgba(110,231,183,0.3)); }
     .wc-cond-icon.windy_variant { color: #6ee7b7; }
-    .wc-cond-icon.clear_night { color: #818cf8; filter: drop-shadow(0 0 4px rgba(129,140,248,0.35)); }
+    .wc-cond-icon.clear_night { color: #818cf8; filter: drop-shadow(0 0 4px rgba(var(--rgb-accent),0.35)); }
     .wc-cond-icon.exceptional { color: #fca5a5; filter: drop-shadow(0 0 4px rgba(252,165,165,0.3)); }
     .wc-cond-text {
-      font-size: 10px; font-weight: 500; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
     }
     .wc-feels {
-      font-size: 9px; font-weight: 500; color: var(--t4);
+      font-size: var(--fz-xs); font-weight: 500; color: var(--t4);
     }
 
     /* ── Canvas animation ── */
@@ -256,7 +265,7 @@ class GlassWeatherCard extends BaseCard {
     /* ── Sparkline ── */
     .wc-spark-zone {
       position: relative;
-      width: 100%; height: 64px;
+      width: 100%; height: 4rem;
       border-radius: var(--radius-sm);
       overflow: hidden;
     }
@@ -276,25 +285,25 @@ class GlassWeatherCard extends BaseCard {
     .wc-spark-labels {
       position: absolute; inset: 0;
       display: flex; justify-content: space-between; align-items: flex-end;
-      padding: 0 4px 4px;
+      padding: 0 0.25rem 0.25rem;
       pointer-events: none;
     }
     .wc-spark-lbl {
-      font-size: 8px; font-weight: 600; color: var(--t4);
+      font-size: var(--fz-xxs); font-weight: 600; color: var(--t4);
       text-align: center;
     }
     .wc-spark-now {
       position: absolute;
       top: 0; bottom: 0;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+      width: 0.0625rem;
+      background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.15), transparent);
       pointer-events: none;
     }
     .wc-spark-now-dot {
       position: absolute; top: 0;
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 0.375rem; height: 0.375rem; border-radius: 50%;
       background: var(--t1);
-      box-shadow: 0 0 6px rgba(255,255,255,0.4);
+      box-shadow: 0 0 6px rgba(var(--rgb-white),0.4);
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
@@ -302,61 +311,61 @@ class GlassWeatherCard extends BaseCard {
     /* ── Metrics Grid ── */
     .wc-metrics {
       display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
+      gap: 0.0625rem;
       border-radius: var(--radius-sm);
       background: var(--b1);
       overflow: hidden;
     }
     .wc-metric {
-      display: flex; align-items: center; justify-content: center; gap: 3px;
-      padding: 5px 4px;
+      display: flex; align-items: center; justify-content: center; gap: 0.1875rem;
+      padding: 0.3125rem 0.25rem;
       background: var(--s1);
     }
     .wc-metric ha-icon {
-      --mdc-icon-size: 11px;
-      width: 11px; height: 11px;
+      --mdc-icon-size: 0.6875rem;
+      width: 0.6875rem; height: 0.6875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t4);
     }
-    .wc-metric.humidity ha-icon { color: rgba(96,165,250,0.5); }
+    .wc-metric.humidity ha-icon { color: rgba(var(--rgb-info),0.5); }
     .wc-metric.pressure ha-icon { color: rgba(148,163,184,0.5); }
     .wc-metric.wind ha-icon { color: rgba(110,231,183,0.5); }
-    .wc-metric.uv ha-icon { color: rgba(251,191,36,0.5); }
+    .wc-metric.uv ha-icon { color: rgba(var(--rgb-warning),0.5); }
     .wc-metric.visibility ha-icon { color: rgba(148,163,184,0.4); }
-    .wc-metric.sunrise ha-icon { color: rgba(251,191,36,0.4); }
+    .wc-metric.sunrise ha-icon { color: rgba(var(--rgb-warning),0.4); }
     .wc-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
-    .wc-metric-val { font-size: 10px; font-weight: 600; color: var(--t2); }
-    .wc-metric-unit { font-size: 8px; font-weight: 400; color: var(--t4); }
-    .wc-metric-dir { font-size: 8px; font-weight: 600; color: var(--t4); margin-left: 1px; }
+    .wc-metric-val { font-size: var(--fz-sm); font-weight: 600; color: var(--t2); }
+    .wc-metric-unit { font-size: var(--fz-xxs); font-weight: 400; color: var(--t4); }
+    .wc-metric-dir { font-size: var(--fz-xxs); font-weight: 600; color: var(--t4); margin-left: 0.0625rem; }
 
     /* ── Forecast tabs ── */
     /* ── Fold separator ── */
     .wc-fold-sep {
-      height: 1px; margin: 0 12px; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), transparent);
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
       opacity: 0; transition: opacity var(--t-layout);
     }
     .wc-fold-sep.visible { opacity: 1; }
 
     .wc-forecast-zone {
-      display: flex; flex-direction: column; gap: 4px;
-      margin-top: 2px;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      margin-top: 0.125rem;
     }
     .wc-fc-tabs {
-      display: flex; gap: 3px;
+      display: flex; gap: 0.1875rem;
       margin: 0 auto; width: fit-content;
     }
     .wc-fc-tab {
-      padding: 4px 12px;
+      padding: 0.25rem 0.75rem;
       border: 1px solid var(--b1);
       border-radius: var(--radius-full);
       background: transparent; color: var(--t4);
-      font-family: inherit; font-size: 9px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-xs); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.8px;
       cursor: pointer; transition: all var(--t-fast);
       outline: none;
     }
-    .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+    .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(var(--rgb-white),0.25); }
     @media (hover: hover) and (pointer: fine) {
       .wc-fc-tab:active { transform: scale(0.96); }
     }
@@ -372,24 +381,24 @@ class GlassWeatherCard extends BaseCard {
 
     /* ── Daily list ── */
     .wc-daily-list, .wc-hourly-list {
-      display: flex; flex-direction: column; gap: 1px;
-      padding: 2px 0;
+      display: flex; flex-direction: column; gap: 0.0625rem;
+      padding: 0.125rem 0;
     }
     .wc-day-row {
-      display: grid; grid-template-columns: 42px 18px 1fr 42px 38px;
-      align-items: center; gap: 5px;
-      padding: 5px 4px;
+      display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.625rem 2.375rem;
+      align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.25rem;
       border-radius: var(--radius-sm);
       transition: background var(--t-fast);
     }
     .wc-day-row:first-child { background: var(--s2); }
     .wc-day-label {
-      font-size: 10px; font-weight: 600; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
     }
     .wc-day-row:first-child .wc-day-label { color: var(--t2); }
     .wc-day-icon {
-      --mdc-icon-size: 14px;
-      width: 14px; height: 14px;
+      --mdc-icon-size: 0.875rem;
+      width: 0.875rem; height: 0.875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
@@ -409,48 +418,48 @@ class GlassWeatherCard extends BaseCard {
     .wc-day-icon.clear_night, .wc-hour-icon.clear_night { color: #818cf8; }
     .wc-day-icon.exceptional, .wc-hour-icon.exceptional { color: #fca5a5; }
     .wc-day-cond {
-      font-size: 10px; font-weight: 500; color: var(--t4);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .wc-day-temps {
-      display: flex; align-items: baseline; gap: 2px; justify-content: flex-end;
+      display: flex; align-items: baseline; gap: 0.125rem; justify-content: flex-end;
     }
-    .wc-day-hi { font-size: 11px; font-weight: 700; color: var(--t1); }
-    .wc-day-lo { font-size: 10px; font-weight: 500; color: var(--t4); }
+    .wc-day-hi { font-size: var(--fz-base); font-weight: 700; color: var(--t1); }
+    .wc-day-lo { font-size: var(--fz-sm); font-weight: 500; color: var(--t4); }
     .wc-day-precip {
-      font-size: 9px; font-weight: 500; color: rgba(96,165,250,0.5);
+      font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-info),0.5);
       text-align: right;
     }
 
     /* ── Hourly list ── */
     .wc-hour-row {
-      display: grid; grid-template-columns: 42px 18px 1fr 38px 32px;
-      align-items: center; gap: 5px;
-      padding: 5px 4px;
+      display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.375rem 2rem;
+      align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.25rem;
       border-radius: var(--radius-sm);
       transition: background var(--t-fast);
     }
     .wc-hour-row.now { background: var(--s2); }
     .wc-hour-time {
-      font-size: 10px; font-weight: 600; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
     }
     .wc-hour-row.now .wc-hour-time { color: var(--t2); }
     .wc-hour-icon {
-      --mdc-icon-size: 14px;
-      width: 14px; height: 14px;
+      --mdc-icon-size: 0.875rem;
+      width: 0.875rem; height: 0.875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
     .wc-hour-cond {
-      font-size: 10px; font-weight: 500; color: var(--t4);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .wc-hour-temp {
-      font-size: 11px; font-weight: 700; color: var(--t1);
+      font-size: var(--fz-base); font-weight: 700; color: var(--t1);
       text-align: right;
     }
     .wc-hour-precip {
-      font-size: 9px; font-weight: 500; color: rgba(96,165,250,0.5);
+      font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-info),0.5);
       text-align: right;
     }
 
@@ -1023,6 +1032,17 @@ class GlassWeatherCard extends BaseCard {
 
   protected render(): TemplateResult | typeof nothing {
     void this._lang;
+    try {
+      return this._renderContent();
+    } catch (e) {
+      console.error('[glass-weather-card] render error:', e);
+      return html`<div class="weather-card-wrap"><div class="glass weather-card"><div class="card-inner" style="padding:16px;text-align:center;color:var(--c-alert);font-size:11px;">
+        <ha-icon .icon=${'mdi:alert-circle-outline'} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"></ha-icon>
+        Weather render error</div></div></div>`;
+    }
+  }
+
+  private _renderContent(): TemplateResult | typeof nothing {
     const ws = this._getWeatherState();
     if (!ws) {
       return html`<div class="weather-card-wrap">

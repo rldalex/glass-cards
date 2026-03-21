@@ -12,7 +12,7 @@ function renderFanPreviewRow(f: PreviewFan, accentRgba: string, compact: boolean
   return html`
     <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${sepStyle}">
       ${sepLine}
-      <div style="width:22px;height:22px;border-radius:6px;background:${f.isOn ? `${accentRgba}0.1)` : 'var(--s2)'};border:1px solid ${f.isOn ? `${accentRgba}0.15)` : 'var(--b1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="width:22px;height:22px;border-radius:var(--radius-xs);background:${f.isOn ? `${accentRgba}0.1)` : 'var(--s2)'};border:1px solid ${f.isOn ? `${accentRgba}0.15)` : 'var(--b1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <ha-icon .icon=${f.icon} style="--mdc-icon-size:13px;color:${f.isOn ? '#818cf8' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${f.isOn ? `filter:drop-shadow(0 0 4px ${accentRgba}0.4));animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}"></ha-icon>
       </div>
       <div style="flex:1;min-width:0;">
@@ -83,9 +83,9 @@ export function renderFanPreview(self: GlassConfigPanel) {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('fan.title')}</span>
-            <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:8px;background:${onCount > 0 ? `${accentRgba}0.15)` : 'var(--s2)'};color:${onCount > 0 ? '#818cf8' : 'var(--t3)'};">${onCount}/${fans.length}</span>
+            <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:${onCount > 0 ? `${accentRgba}0.15)` : 'var(--s2)'};color:${onCount > 0 ? '#818cf8' : 'var(--t3)'};">${onCount}/${fans.length}</span>
           </div>
-          <div style="width:28px;height:14px;border-radius:7px;background:${onCount > 0 ? `${accentRgba}0.25)` : 'var(--s2)'};position:relative;">
+          <div style="width:28px;height:14px;border-radius:var(--radius-sm);background:${onCount > 0 ? `${accentRgba}0.25)` : 'var(--s2)'};position:relative;">
             <div style="width:10px;height:10px;border-radius:50%;background:${onCount > 0 ? '#818cf8' : 'var(--t4)'};position:absolute;top:2px;${onCount > 0 ? 'right:2px;' : 'left:2px;'}transition:all var(--t-fast);"></div>
           </div>
         </div>

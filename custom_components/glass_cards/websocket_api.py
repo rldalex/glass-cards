@@ -210,7 +210,11 @@ async def ws_set_room(
     if "visible" in msg:
         room.visible = msg["visible"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], room.to_dict())
 
 
@@ -262,7 +266,11 @@ async def ws_set_navbar(
     if "humidity_threshold" in msg:
         store.data.navbar.humidity_threshold = msg["humidity_threshold"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.navbar.to_dict())
 
 
@@ -290,7 +298,11 @@ async def ws_delete_room(
         return
 
     del store.data.rooms[area_id]
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], {"deleted": area_id})
 
 
@@ -327,7 +339,11 @@ async def ws_set_weather(
     if "show_header" in msg:
         store.data.weather.show_header = msg["show_header"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.weather.to_dict())
 
 
@@ -352,7 +368,11 @@ async def ws_set_light_config(
     if "show_header" in msg:
         store.data.light_card.show_header = msg["show_header"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.light_card.to_dict())
 
 
@@ -377,7 +397,11 @@ async def ws_set_fan_config(
     if "show_header" in msg:
         store.data.fan_card.show_header = msg["show_header"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.fan_card.to_dict())
 
 
@@ -436,7 +460,11 @@ async def ws_set_cover_config(
                 ep[eid] = deduped_vals
         store.data.cover_card.entity_presets = ep
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.cover_card.to_dict())
 
 
@@ -494,7 +522,11 @@ async def ws_set_climate_config(
                 deduped_d.append(eid)
         store.data.climate_card.dashboard_entities = deduped_d
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.climate_card.to_dict())
 
 
@@ -565,7 +597,11 @@ async def ws_set_title_config(
             TitleSourceEntry.from_dict(s) for s in msg["sources"]
         ]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.title_card.to_dict())
 
 
@@ -616,7 +652,11 @@ async def ws_set_media_config(
     if "show_header" in msg:
         store.data.media_card.show_header = msg["show_header"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.media_card.to_dict())
 
 
@@ -650,7 +690,11 @@ async def ws_set_dashboard(
     if "hide_sidebar" in msg:
         store.data.dashboard.hide_sidebar = msg["hide_sidebar"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.dashboard.to_dict())
 
 
@@ -699,7 +743,11 @@ async def ws_set_presence_config(
     if "driving_sensors" in msg:
         store.data.presence_card.driving_sensors = msg["driving_sensors"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.presence_card.to_dict())
 
 
@@ -743,7 +791,11 @@ async def ws_set_camera_carousel_config(
     if "cycle_interval" in msg:
         store.data.camera_carousel.cycle_interval = msg["cycle_interval"]
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.camera_carousel.to_dict())
 
 
@@ -848,7 +900,11 @@ async def ws_set_spotify_config(
                 deduped.append(eid)
         store.data.spotify_card.visible_speakers = deduped
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     connection.send_result(msg["id"], store.data.spotify_card.to_dict())
 
 
@@ -1230,7 +1286,11 @@ async def ws_set_schedule(
         # Empty periods = remove schedule
         removed = store.data.entity_schedules.pop(entity_id, None)
         if removed is not None:
-            await store.async_save()
+            try:
+                await store.async_save()
+            except HomeAssistantError as exc:
+                connection.send_error(msg["id"], "storage_error", str(exc))
+                return
         connection.send_result(
             msg["id"], {"entity_id": entity_id, "periods": []}
         )
@@ -1256,7 +1316,11 @@ async def ws_set_schedule(
         entity_id=entity_id, periods=periods
     )
 
-    await store.async_save()
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
     schedule = store.data.entity_schedules.get(entity_id)
     connection.send_result(
         msg["id"], schedule.to_dict() if schedule else {"entity_id": entity_id, "periods": []}

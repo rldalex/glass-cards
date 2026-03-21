@@ -1,7 +1,8 @@
 import { css, html, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
+import './editor';
+import { glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 
@@ -95,6 +96,14 @@ function typeBadgeKey(type: string): string {
 // ================================================================
 
 class GlassSpotifyCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-spotify-card-editor');
+  }
+
+  getCardSize() {
+    return 4;
+  }
+
   // — State —
   @state() private _view: ViewMode = 'library';
   @state() private _tab: TabId = 'all';
@@ -133,20 +142,20 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Styles —
 
-  static styles: CSSResult[] = [glassTokens, glassMixin, bounceMixin, eqMixin, css`
-    :host { display: block; width: 100%; max-width: 500px; margin: 0 auto; font-family: 'Plus Jakarta Sans', sans-serif; }
+  static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin, css`
+    :host { width: 100%; max-width: 31.25rem; margin: 0 auto; }
 
-    .spotify-card-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
 
-    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; min-height: 22px; }
-    .card-header-left { display: flex; align-items: center; gap: 8px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 0.375rem; min-height: 1.375rem; }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
     .card-title {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--t4); display: flex; align-items: center; gap: 4px;
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t4); display: flex; align-items: center; gap: 0.25rem;
     }
-    .card-title ha-icon { color: #1DB954; --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
+    .card-title ha-icon { color: #1DB954; --mdc-icon-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
 
-    .spotify-card { position: relative; width: 100%; padding: 14px; box-sizing: border-box; overflow: hidden; }
+    .spotify-card { position: relative; width: 100%; padding: 0.875rem; box-sizing: border-box; overflow: hidden; }
     .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0; }
 
     .tint {
@@ -157,40 +166,40 @@ class GlassSpotifyCard extends BaseCard {
     }
 
     /* Search */
-    .search-row { display: flex; gap: 6px; align-items: center; }
+    .search-row { display: flex; gap: 0.375rem; align-items: center; }
     .search-input-wrap { position: relative; flex: 1; }
     .search-input {
-      width: 100%; height: 36px; padding: 0 36px 0 34px;
+      width: 100%; height: 2.25rem; padding: 0 2.25rem 0 2.125rem;
       border-radius: var(--radius-lg); background: var(--s2);
       border: 1px solid var(--b2); color: var(--t1);
-      font-family: inherit; font-size: 12px; font-weight: 500;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 500;
       outline: none; transition: all var(--t-fast);
       -webkit-tap-highlight-color: transparent; box-sizing: border-box;
     }
     .search-input::placeholder { color: var(--t4); }
     .search-input:focus { border-color: rgba(29,185,84,0.3); background: var(--s3); box-shadow: 0 0 0 2px rgba(29,185,84,0.1); }
     .search-icon {
-      position: absolute; top: 50%; left: 10px; transform: translateY(-50%);
+      position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
       pointer-events: none; display: flex; align-items: center; justify-content: center;
     }
-    .search-icon ha-icon { --mdc-icon-size: 16px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .search-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
     .search-clear {
-      position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
-      width: 24px; height: 24px; border-radius: 6px;
+      position: absolute; top: 50%; right: 1.875rem; transform: translateY(-50%);
+      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
       background: transparent; border: none;
       display: none; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
     }
     .search-clear.visible { display: flex; }
-    .search-clear ha-icon { --mdc-icon-size: 14px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .search-clear:hover { background: var(--s3); } }
-    @media (hover: none) { .search-clear:active { animation: bounce 0.3s ease; } }
-    .search-clear:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .search-clear ha-icon { --mdc-icon-size: 0.875rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .search-clear:hover { background: var(--s3); } }
+    @media (pointer: coarse) { .search-clear:active { animation: bounce 0.3s ease; } }
+    .search-clear:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
     /* Fold toggle arrow (inside search bar) */
     .search-toggle {
-      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
-      width: 24px; height: 24px; border-radius: 6px;
+      position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
+      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
       background: transparent; border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
@@ -198,14 +207,14 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .search-toggle ha-icon {
-      --mdc-icon-size: 14px; color: var(--t4);
+      --mdc-icon-size: 0.875rem; color: var(--t4);
       display: flex; align-items: center; justify-content: center;
       transition: transform var(--t-fast), color var(--t-fast);
     }
-    @media (hover: hover) { .search-toggle:hover { background: var(--s3); } }
-    @media (hover: hover) { .search-toggle:hover ha-icon { color: var(--t2); } }
-    @media (hover: none) { .search-toggle:active { animation: bounce 0.3s ease; } }
-    .search-toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .search-toggle:hover { background: var(--s3); } }
+    @media (hover: hover) and (pointer: fine) { .search-toggle:hover ha-icon { color: var(--t2); } }
+    @media (pointer: coarse) { .search-toggle:active { animation: bounce 0.3s ease; } }
+    .search-toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     .search-toggle.open ha-icon { transform: rotate(180deg); color: #1DB954; }
 
     /* Content fold (CSS Grid 0fr/1fr) */
@@ -217,9 +226,9 @@ class GlassSpotifyCard extends BaseCard {
     .sp-fold-inner {
       overflow: hidden; opacity: 0; min-height: 0;
       transition: opacity var(--t-fast) 0s;
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 0.625rem;
     }
-    .sp-fold.open .sp-fold-inner { padding-top: 10px; }
+    .sp-fold.open .sp-fold-inner { padding-top: 0.625rem; }
     .sp-fold.open .sp-fold-inner {
       opacity: 1;
       transition: opacity var(--t-fast) 0.1s;
@@ -227,7 +236,7 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Fold separator */
     .sp-fold-sep {
-      height: 1px; margin: 2px 12px 0;
+      height: 0.0625rem; margin: 0.125rem 0.75rem 0;
       background: linear-gradient(90deg, transparent, rgba(29,185,84,0.15), transparent);
       opacity: 0; transition: opacity var(--t-fast);
     }
@@ -239,137 +248,137 @@ class GlassSpotifyCard extends BaseCard {
       background: var(--s1); border: 1px solid var(--b1); overflow: hidden;
     }
     .tab-btn {
-      flex: 1; height: 30px;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
+      flex: 1; height: 1.875rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.25rem;
       background: transparent; border: none; color: var(--t3);
-      font-family: inherit; font-size: 10px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.6px;
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    .tab-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
-    .tab-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) { .tab-btn:active { transform: scale(0.96); } }
-    @media (hover: none) { .tab-btn:active { animation: bounce 0.3s ease; } }
+    .tab-btn ha-icon { --mdc-icon-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
+    .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .tab-btn:active { animation: bounce 0.3s ease; } }
     .tab-btn.active { background: rgba(29,185,84,0.1); color: #1DB954; }
     .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
 
     /* Content area */
     .content-area {
-      display: flex; flex-direction: column; gap: 6px;
-      max-height: 380px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+      display: flex; flex-direction: column; gap: 0.375rem;
+      max-height: 23.75rem; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
     }
     .content-area::-webkit-scrollbar { display: none; }
 
     /* Section title */
     .section-title {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.2px; color: var(--t4); padding: 4px 2px 2px; flex-shrink: 0;
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--t4); padding: 0.25rem 0.125rem 0.125rem; flex-shrink: 0;
     }
 
     /* Result row */
     .result-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 6px 4px; cursor: pointer; position: relative;
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.375rem 0.25rem; cursor: pointer; position: relative;
       transition: background var(--t-fast); border-radius: var(--radius-md);
       flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
       font-family: inherit; text-align: left; color: inherit; outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    @media (hover: hover) { .result-row:hover { background: var(--s1); } }
-    @media (hover: hover) { .result-row:active { transform: scale(0.99); } }
-    @media (hover: none) { .result-row:active { animation: bounce 0.3s ease; } }
-    .result-row:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .result-row:hover { background: var(--s1); } }
+    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: scale(0.99); } }
+    @media (pointer: coarse) { .result-row:active { animation: bounce 0.3s ease; } }
+    .result-row:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
     .result-art {
-      width: 42px; height: 42px; border-radius: var(--radius-sm); flex-shrink: 0;
+      width: 2.625rem; height: 2.625rem; border-radius: var(--radius-sm); flex-shrink: 0;
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; position: relative;
     }
     .result-art.round { border-radius: 50%; }
     .result-art img { width: 100%; height: 100%; object-fit: cover; }
-    .result-art ha-icon { --mdc-icon-size: 18px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .result-art ha-icon { --mdc-icon-size: 1.125rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
 
     .result-info { flex: 1; min-width: 0; }
     .result-title {
-      font-size: 12px; font-weight: 600; color: var(--t1); line-height: 1.2;
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.2;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .result-meta {
-      font-size: 10px; font-weight: 500; color: var(--t3); margin-top: 1px;
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3); margin-top: 0.0625rem;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 0.25rem;
     }
     .result-type-badge {
-      font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-      padding: 1px 4px; border-radius: 9999px;
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 0.0625rem 0.25rem; border-radius: var(--radius-full);
       background: var(--s3); color: var(--t4); flex-shrink: 0;
     }
 
     .result-play {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 2rem; height: 2rem; border-radius: 50%;
       background: #1DB954; border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
       opacity: 0; transform: scale(0.8); flex-shrink: 0;
     }
-    .result-play ha-icon { --mdc-icon-size: 16px; color: #000; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
-    @media (hover: hover) { .result-play:active { transform: scale(0.92); } }
-    @media (hover: none) { .result-play:active { animation: bounce 0.3s ease; } }
-    .result-play:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .result-play ha-icon { --mdc-icon-size: 1rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
+    @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
+    @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
+    .result-play:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* Playlist grid (horizontal scroll) */
     .playlist-scroll {
-      display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden;
-      padding: 2px 2px 4px; margin: 0 -2px; scrollbar-width: none; flex-shrink: 0;
+      display: flex; gap: 0.5rem; overflow-x: auto; overflow-y: hidden;
+      padding: 0.125rem 0.125rem 0.25rem; margin: 0 -0.125rem; scrollbar-width: none; flex-shrink: 0;
     }
     .playlist-scroll::-webkit-scrollbar { display: none; }
 
     .playlist-card {
-      flex-shrink: 0; width: 84px;
-      display: flex; flex-direction: column; gap: 6px;
+      flex-shrink: 0; width: 5.25rem;
+      display: flex; flex-direction: column; gap: 0.375rem;
       cursor: pointer; padding: 0; background: none; border: none;
       outline: none; text-align: left; font-family: inherit;
       -webkit-tap-highlight-color: transparent; color: inherit;
     }
-    @media (hover: hover) { .playlist-card:active { transform: scale(0.97); } }
-    @media (hover: none) { .playlist-card:active { animation: bounce 0.3s ease; } }
-    .playlist-card:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) { .playlist-card:active { transform: scale(0.97); } }
+    @media (pointer: coarse) { .playlist-card:active { animation: bounce 0.3s ease; } }
+    .playlist-card:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     .playlist-art {
-      width: 84px; height: 84px; border-radius: var(--radius-md);
+      width: 5.25rem; height: 5.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; position: relative; transition: border-color var(--t-fast);
     }
-    @media (hover: hover) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
+    @media (hover: hover) and (pointer: fine) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
     .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
-    .playlist-art ha-icon { --mdc-icon-size: 32px; color: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; }
+    .playlist-art ha-icon { --mdc-icon-size: 2rem; color: rgba(var(--rgb-white),0.4); display: flex; align-items: center; justify-content: center; }
 
     .playlist-art-play {
-      position: absolute; bottom: 6px; right: 6px;
-      width: 28px; height: 28px; border-radius: 50%;
+      position: absolute; bottom: 0.375rem; right: 0.375rem;
+      width: 1.75rem; height: 1.75rem; border-radius: 50%;
       background: #1DB954;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transform: translateY(4px);
       transition: all var(--t-fast);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(var(--rgb-black),0.4);
       pointer-events: none;
     }
-    .playlist-art-play ha-icon { --mdc-icon-size: 14px; color: #000; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) {
+    .playlist-art-play ha-icon { --mdc-icon-size: 0.875rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) {
       .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
     }
 
     .playlist-name {
-      font-size: 10px; font-weight: 600; color: var(--t2); line-height: 1.3;
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t2); line-height: 1.3;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .playlist-count { font-size: 9px; font-weight: 500; color: var(--t4); }
+    .playlist-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
 
     /* Drilldown header */
     .drilldown-header {
@@ -378,134 +387,134 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Back button */
     .back-btn {
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 0.25rem;
       background: none; border: none; color: var(--t3);
-      font-family: inherit; font-size: 11px; font-weight: 600;
-      cursor: pointer; padding: 4px 2px; outline: none;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      cursor: pointer; padding: 0.25rem 0.125rem; outline: none;
       -webkit-tap-highlight-color: transparent;
       transition: color var(--t-fast);
     }
-    .back-btn ha-icon { --mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .back-btn:hover { color: var(--t1); } }
-    @media (hover: none) { .back-btn:active { animation: bounce 0.3s ease; } }
-    .back-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .back-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .back-btn:hover { color: var(--t1); } }
+    @media (pointer: coarse) { .back-btn:active { animation: bounce 0.3s ease; } }
+    .back-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* Play all button */
     .play-all-btn {
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 0.25rem;
       background: rgba(30, 215, 96, 0.12); border: none; color: #1ed760;
-      font-family: inherit; font-size: 11px; font-weight: 600;
-      cursor: pointer; padding: 4px 10px; border-radius: var(--radius-full);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      cursor: pointer; padding: 0.25rem 0.625rem; border-radius: var(--radius-full);
       outline: none; -webkit-tap-highlight-color: transparent;
       transition: background var(--t-fast), color var(--t-fast);
     }
-    .play-all-btn ha-icon { --mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .play-all-btn:hover { background: rgba(30, 215, 96, 0.22); } }
-    @media (hover: none) { .play-all-btn:active { animation: bounce 0.3s ease; } }
+    .play-all-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .play-all-btn:hover { background: rgba(30, 215, 96, 0.22); } }
+    @media (pointer: coarse) { .play-all-btn:active { animation: bounce 0.3s ease; } }
     .play-all-btn:focus-visible { outline: 2px solid rgba(30, 215, 96, 0.4); outline-offset: 2px; }
 
     /* Empty & error states */
     .empty-state {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 32px 16px; gap: 8px;
+      padding: 2rem 1rem; gap: 0.5rem;
     }
-    .empty-state ha-icon { --mdc-icon-size: 32px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
-    .empty-state-text { font-size: 11px; font-weight: 500; color: var(--t4); text-align: center; }
+    .empty-state ha-icon { --mdc-icon-size: 2rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .empty-state-text { font-size: var(--fz-base); font-weight: 500; color: var(--t4); text-align: center; }
 
     .error-banner {
-      padding: 8px 12px; border-radius: var(--radius-md);
-      background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2);
-      font-size: 11px; font-weight: 500; color: var(--c-alert);
+      padding: 0.5rem 0.75rem; border-radius: var(--radius-md);
+      background: rgba(var(--rgb-alert),0.1); border: 1px solid rgba(var(--rgb-alert),0.2);
+      font-size: var(--fz-base); font-weight: 500; color: var(--c-alert);
     }
 
     .setup-banner {
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-      padding: 24px 16px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+      padding: 1.5rem 1rem; text-align: center;
     }
-    .setup-banner ha-icon { --mdc-icon-size: 40px; color: #1DB954; display: flex; align-items: center; justify-content: center; }
-    .setup-banner-text { font-size: 12px; color: var(--t3); line-height: 1.5; }
+    .setup-banner ha-icon { --mdc-icon-size: 2.5rem; color: #1DB954; display: flex; align-items: center; justify-content: center; }
+    .setup-banner-text { font-size: var(--fz-base); color: var(--t3); line-height: 1.5; }
     .setup-link {
-      font-size: 11px; font-weight: 600; color: #1DB954;
+      font-size: var(--fz-base); font-weight: 600; color: #1DB954;
       background: rgba(29,185,84,0.1); border: 1px solid rgba(29,185,84,0.2);
-      border-radius: var(--radius-md); padding: 6px 14px;
+      border-radius: var(--radius-md); padding: 0.375rem 0.875rem;
       cursor: pointer; text-decoration: none; outline: none;
       -webkit-tap-highlight-color: transparent; transition: all var(--t-fast);
     }
-    @media (hover: hover) { .setup-link:hover { background: rgba(29,185,84,0.2); } }
-    @media (hover: none) { .setup-link:active { animation: bounce 0.3s ease; } }
-    .setup-link:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) { .setup-link:hover { background: rgba(29,185,84,0.2); } }
+    @media (pointer: coarse) { .setup-link:active { animation: bounce 0.3s ease; } }
+    .setup-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* Load more button */
     .load-more-btn {
       display: flex; align-items: center; justify-content: center;
-      padding: 8px; border-radius: var(--radius-md);
+      padding: 0.5rem; border-radius: var(--radius-md);
       background: var(--s1); border: 1px solid var(--b1);
-      color: var(--t3); font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
       transition: all var(--t-fast); flex-shrink: 0;
     }
-    @media (hover: hover) { .load-more-btn:hover { background: var(--s2); color: var(--t1); } }
-    @media (hover: none) { .load-more-btn:active { animation: bounce 0.3s ease; } }
-    .load-more-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .load-more-btn:hover { background: var(--s2); color: var(--t1); } }
+    @media (pointer: coarse) { .load-more-btn:active { animation: bounce 0.3s ease; } }
+    .load-more-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
     /* Speaker picker overlay */
     .picker-backdrop {
       position: fixed; inset: 0; z-index: 10000;
-      background: rgba(0,0,0,0.5);
+      background: rgba(var(--rgb-black),0.5);
       display: flex; align-items: flex-end; justify-content: center;
-      padding: 16px; padding-bottom: 80px;
+      padding: 1rem; padding-bottom: 5rem;
       opacity: 0; pointer-events: none;
       transition: opacity 0.2s ease;
     }
     .picker-backdrop.visible { opacity: 1; pointer-events: auto; }
 
     .speaker-picker {
-      width: 100%; max-width: 400px;
-      padding: 16px;
-      max-height: calc(100dvh - 160px);
+      width: 100%; max-width: 25rem;
+      padding: 1rem;
+      max-height: calc(100dvh - 10rem);
       display: flex; flex-direction: column;
       transform: translateY(20px);
       transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
     }
     .picker-backdrop.visible .speaker-picker { transform: translateY(0); }
 
-    .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .picker-title { font-size: 13px; font-weight: 700; color: var(--t1); }
+    .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .picker-title { font-size: var(--fz-md); font-weight: 700; color: var(--t1); }
     .picker-close {
-      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none; transition: all var(--t-fast);
     }
-    .picker-close ha-icon { --mdc-icon-size: 16px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .picker-close:hover { background: var(--s3); } }
-    @media (hover: none) { .picker-close:active { animation: bounce 0.3s ease; } }
-    .picker-close:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .picker-close ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .picker-close:hover { background: var(--s3); } }
+    @media (pointer: coarse) { .picker-close:active { animation: bounce 0.3s ease; } }
+    .picker-close:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
     .picker-track {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem; margin-bottom: 0.75rem;
       background: var(--s1); border-radius: var(--radius-md); border: 1px solid var(--b1);
     }
     .picker-track-art {
-      width: 40px; height: 40px; border-radius: var(--radius-sm); flex-shrink: 0;
+      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); flex-shrink: 0;
       background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
     .picker-track-art img { width: 100%; height: 100%; object-fit: cover; }
-    .picker-track-art ha-icon { --mdc-icon-size: 18px; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .picker-track-art ha-icon { --mdc-icon-size: 1.125rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
     .picker-track-info { flex: 1; min-width: 0; }
-    .picker-track-title { font-size: 12px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .picker-track-artist { font-size: 10px; font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-track-title { font-size: var(--fz-base); font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-track-artist { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .picker-speakers {
-      display: flex; flex-direction: column; gap: 4px;
+      display: flex; flex-direction: column; gap: 0.25rem;
       overflow-y: auto; flex: 1; min-height: 0;
       scrollbar-width: none;
     }
     .picker-speakers::-webkit-scrollbar { display: none; }
     .picker-speaker {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px; border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem; border-radius: var(--radius-md);
       background: var(--s1); border: 1px solid var(--b1);
       cursor: pointer; transition: all var(--t-fast);
       font-family: inherit; outline: none; width: 100%;
@@ -513,49 +522,49 @@ class GlassSpotifyCard extends BaseCard {
       flex-shrink: 0;
     }
     .picker-speaker.selected { border-color: rgba(29,185,84,0.4); background: rgba(29,185,84,0.08); }
-    @media (hover: hover) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
-    @media (hover: hover) { .picker-speaker:active { transform: scale(0.98); } }
-    @media (hover: none) { .picker-speaker:active { animation: bounce 0.3s ease; } }
-    .picker-speaker:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
+    @media (hover: hover) and (pointer: fine) { .picker-speaker:active { transform: scale(0.98); } }
+    @media (pointer: coarse) { .picker-speaker:active { animation: bounce 0.3s ease; } }
+    .picker-speaker:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
     .picker-speaker-icon {
-      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      width: 2rem; height: 2rem; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast);
     }
     .picker-speaker.selected .picker-speaker-icon { background: rgba(29,185,84,0.15); border-color: rgba(29,185,84,0.3); }
-    .picker-speaker-icon ha-icon { --mdc-icon-size: 16px; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    .picker-speaker-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
     .picker-speaker.selected .picker-speaker-icon ha-icon { color: #1DB954; }
-    .picker-speaker-name { flex: 1; font-size: 12px; font-weight: 600; color: var(--t2); }
-    .picker-speaker-status { font-size: 9px; font-weight: 500; color: var(--t4); white-space: nowrap; }
+    .picker-speaker-name { flex: 1; font-size: var(--fz-base); font-weight: 600; color: var(--t2); }
+    .picker-speaker-status { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); white-space: nowrap; }
     .picker-speaker-status.playing { color: rgba(29,185,84,0.6); }
     .picker-speaker-check {
-      width: 20px; height: 20px; border-radius: 50%;
+      width: 1.25rem; height: 1.25rem; border-radius: 50%;
       border: 2px solid var(--b2); background: transparent;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast);
     }
     .picker-speaker.selected .picker-speaker-check { border-color: #1DB954; background: #1DB954; }
-    .picker-speaker-check ha-icon { --mdc-icon-size: 14px; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
+    .picker-speaker-check ha-icon { --mdc-icon-size: 0.875rem; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
     .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
 
     .picker-play-bar {
-      display: flex; gap: 8px; padding-top: 8px; flex-shrink: 0;
+      display: flex; gap: 0.5rem; padding-top: 0.5rem; flex-shrink: 0;
     }
     .picker-play-btn {
-      flex: 1; padding: 10px; border-radius: var(--radius-md);
-      border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
+      flex: 1; padding: 0.625rem; border-radius: var(--radius-md);
+      border: none; cursor: pointer; font-family: inherit; font-size: var(--fz-base); font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
       transition: all var(--t-fast); outline: none;
       -webkit-tap-highlight-color: transparent;
     }
     .picker-play-btn.primary { background: #1DB954; color: #fff; }
     .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
-    @media (hover: hover) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
-    .picker-play-btn.primary ha-icon { --mdc-icon-size: 18px; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
-    @media (hover: none) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
+    @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: #1ed760; } }
+    .picker-play-btn.primary ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
+    @media (pointer: coarse) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
 
     /* Now playing indicator */
     .result-row.now-playing {
@@ -569,7 +578,7 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Heart (favorite) button */
     .heart-btn {
-      width: 24px; height: 24px;
+      width: 1.5rem; height: 1.5rem;
       border-radius: var(--radius-sm);
       background: transparent; border: none;
       display: flex; align-items: center; justify-content: center;
@@ -579,7 +588,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .heart-btn ha-icon {
-      --mdc-icon-size: 16px;
+      --mdc-icon-size: 1rem;
       display: flex; align-items: center; justify-content: center;
     }
     .heart-btn.saved ha-icon {
@@ -597,19 +606,19 @@ class GlassSpotifyCard extends BaseCard {
     /* Load more (library pagination) */
     .load-more {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 0.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 0.5rem;
     }
     .items-count {
-      font-size: 10px;
+      font-size: var(--fz-sm);
       color: var(--t3);
     }
 
     /* Loading spinner placeholder */
-    .loading-text { font-size: 11px; color: var(--t4); text-align: center; padding: 16px 0; }
+    .loading-text { font-size: var(--fz-base); color: var(--t4); text-align: center; padding: 1rem 0; }
   `];
 
   // — Entity helpers —
@@ -642,6 +651,13 @@ class GlassSpotifyCard extends BaseCard {
   }
 
   // — Lifecycle —
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!super.shouldUpdate(changedProps)) return false;
+    // In speaker picker view, skip hass-only updates — speakers are snapshotted at open time
+    if (this._view === 'speaker_picker' && changedProps.size === 1 && changedProps.has('hass')) return false;
+    return true;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -1507,7 +1523,7 @@ class GlassSpotifyCard extends BaseCard {
     const artist = getArtistNames(item);
     const hasSelection = this._selectedSpeakers.size > 0;
     return html`
-      <div class="picker-backdrop visible" @click=${(e: Event) => { if ((e.target as HTMLElement).classList.contains('picker-backdrop')) this._closePicker(); }}>
+      <div class="picker-backdrop visible" role="presentation" @click=${(e: Event) => { if ((e.target as HTMLElement).classList.contains('picker-backdrop')) this._closePicker(); }}>
         <div class="glass speaker-picker">
           <div class="picker-header">
             <div class="picker-title">${t('spotify.play_on')}</div>

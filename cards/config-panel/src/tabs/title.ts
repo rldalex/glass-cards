@@ -22,13 +22,26 @@ const DOT_MAP: Record<string, string> = {
 };
 const resolveD = (c: string) => DOT_MAP[c] ?? (c.startsWith('#') ? c : 'var(--t4)');
 
-/** Hardcoded period visuals from the prototype. */
-const PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
+/** Default period visuals used when no period_options are configured. */
+const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
   'Matin':       { icon: 'mdi:weather-sunset-up',   color: '#f0a050' },
   'Après-midi':  { icon: 'mdi:white-balance-sunny',  color: '#7db8e0' },
   'Soir':        { icon: 'mdi:weather-sunset-down',  color: '#e08040' },
   'Nuit':        { icon: 'mdi:weather-night',        color: '#8b8ff0' },
 };
+const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
+const DEFAULT_PERIOD_ENTITY_ID = 'input_select.periode_journee';
+
+function resolvePeriodVisual(
+  optionId: string,
+  periodOptions: { id: string; icon: string; color: string }[],
+): { icon: string; color: string } {
+  const configured = periodOptions.find((o) => o.id === optionId);
+  if (configured && (configured.icon || configured.color)) {
+    return { icon: configured.icon || PERIOD_DEFAULT_VISUAL.icon, color: configured.color || PERIOD_DEFAULT_VISUAL.color };
+  }
+  return DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
+}
 
 // — Preview —
 
@@ -60,7 +73,7 @@ export function renderTitlePreview(self: GlassConfigPanel) {
   const hasSources = self._titleSources.length > 0 && self._titleSources.some((s) => s.modes.length > 0);
   const dashHasActive = activeColors.length > 0;
 
-  let dashStyle = 'background:var(--t4);width:20px;';
+  let dashStyle = 'background:var(--t4);width:1.25rem;';
   if (dashHasActive) {
     const dots = activeColors.map((c) => resolveD(c));
     const w = Math.min(20 + activeColors.length * 4, 36);
@@ -74,21 +87,20 @@ export function renderTitlePreview(self: GlassConfigPanel) {
     }
   }
 
-  // Period indicator preview — auto-detected from hardcoded entity
+  // Period indicator preview — uses configured entity or default
   let periodHtml: TemplateResult | typeof nothing = nothing;
   if (self.hass) {
-    const periodEntity = self.hass.states['input_select.periode_journee'];
+    const periodEntityId = self._titlePeriodEntity || DEFAULT_PERIOD_ENTITY_ID;
+    const periodEntity = self.hass.states[periodEntityId];
     if (periodEntity) {
       const currentValue = periodEntity.state;
-      const visual = PERIOD_VISUALS[currentValue];
-      if (visual) {
-        periodHtml = html`
-          <div class="preview-period" style="color:${visual.color}">
-            <ha-icon .icon=${visual.icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
-            ${currentValue}
-          </div>
-        `;
-      }
+      const visual = resolvePeriodVisual(currentValue, self._titlePeriodOptions);
+      periodHtml = html`
+        <div class="preview-period" style="color:${visual.color}">
+          <ha-icon .icon=${visual.icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
+          ${currentValue}
+        </div>
+      `;
     }
   }
 

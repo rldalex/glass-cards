@@ -1,9 +1,10 @@
 import { LitElement, html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
-import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
+import './editor';
 
 interface RoomConfig {
   icon?: string | null;
@@ -25,6 +26,14 @@ interface AreaMeta {
 }
 
 export class GlassRoomPopup extends LitElement {
+  static getConfigElement() {
+    return document.createElement('glass-room-popup-editor');
+  }
+
+  getCardSize() {
+    return 0;
+  }
+
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private _lang = getLanguage();
   @state() private _areaId: string | null = null;
@@ -63,20 +72,19 @@ export class GlassRoomPopup extends LitElement {
 
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     bounceMixin,
     css`
       :host {
-        display: block;
         pointer-events: none;
-        font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
       .overlay {
         position: fixed;
         inset: 0;
         z-index: 9995;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(var(--rgb-black), 0.5);
         opacity: 0;
         transition: opacity 0.3s var(--ease-std);
         pointer-events: none;
@@ -88,15 +96,15 @@ export class GlassRoomPopup extends LitElement {
 
       .dialog {
         position: fixed;
-        bottom: 90px;
+        bottom: 5.625rem;
         left: 50%;
         z-index: 9999;
         transform: translateX(-50%) scale(0.3);
         transform-origin: center bottom;
-        width: calc(100vw - 16px);
-        max-width: 500px;
-        min-height: calc(100vh - 120px);
-        max-height: calc(100vh - 120px);
+        width: calc(100vw - 1rem);
+        max-width: 31.25rem;
+        min-height: calc(100vh - 7.5rem);
+        max-height: calc(100vh - 7.5rem);
         overflow-y: auto;
         overflow-x: hidden;
         scrollbar-width: none;
@@ -105,7 +113,7 @@ export class GlassRoomPopup extends LitElement {
         transition:
           transform 0.45s var(--ease-out),
           opacity 0.3s var(--ease-std);
-        padding: 16px;
+        padding: 1rem;
         box-sizing: border-box;
       }
       .dialog::-webkit-scrollbar {
@@ -157,11 +165,11 @@ export class GlassRoomPopup extends LitElement {
       .header {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 0.75rem;
         margin-bottom: 0;
       }
       .header-sep {
-        height: 1px; margin: 8px 12px;
+        height: 0.0625rem; margin: 0.5rem 0.75rem;
         background: linear-gradient(90deg, transparent, var(--b2), transparent);
       }
       .header-left {
@@ -171,8 +179,8 @@ export class GlassRoomPopup extends LitElement {
         flex-shrink: 0;
       }
       .header-icon {
-        width: 40px;
-        height: 40px;
+        width: 2.5rem;
+        height: 2.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -192,7 +200,7 @@ export class GlassRoomPopup extends LitElement {
       }
       .header-icon.has-light ha-icon {
         color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6));
       }
       .header-icon.has-music ha-icon {
         animation: pulse-music 0.8s ease-in-out infinite;
@@ -213,11 +221,11 @@ export class GlassRoomPopup extends LitElement {
         }
       }
       .scene-dash {
-        width: 16px;
-        height: 3px;
+        width: 1rem;
+        height: 0.1875rem;
         background: var(--t4);
         border-radius: 4px;
-        margin-top: 6px;
+        margin-top: 0.375rem;
         opacity: 0;
         transform-origin: center;
         transform: scaleX(0.75);
@@ -234,27 +242,27 @@ export class GlassRoomPopup extends LitElement {
         min-width: 0;
       }
       .header-name {
-        font-size: 16px;
+        font-size: var(--fz-lg);
         font-weight: 700;
         color: var(--t1);
       }
       .header-meta {
         display: flex;
-        gap: 10px;
-        font-size: 12px;
+        gap: 0.625rem;
+        font-size: var(--fz-base);
         color: var(--t3);
         font-weight: 500;
       }
       .sensor-warn {
         color: var(--c-warning, #f59e0b);
-        font-size: 10px;
+        font-size: var(--fz-sm);
         font-style: italic;
       }
       .close-btn {
         background: transparent;
         border: 1px solid var(--b1);
-        width: 28px;
-        height: 28px;
+        width: 1.75rem;
+        height: 1.75rem;
         border-radius: var(--radius-sm);
         color: var(--t3);
         cursor: pointer;
@@ -311,15 +319,15 @@ export class GlassRoomPopup extends LitElement {
       .scene-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        padding: 0 0 12px;
+        gap: 0.375rem;
+        padding: 0 0 0.75rem;
       }
       .scene-chip {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(var(--rgb-white), 0.04);
         border: 1px solid var(--b1);
         border-radius: var(--radius-md);
-        padding: 5px 12px;
-        font-size: 10px;
+        padding: 0.3125rem 0.75rem;
+        font-size: var(--fz-sm);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.8px;
@@ -350,15 +358,15 @@ export class GlassRoomPopup extends LitElement {
         }
       }
       .scene-chip.active {
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(var(--rgb-white), 0.12);
+        border-color: rgba(var(--rgb-white), 0.18);
         color: var(--t1);
       }
 
       .cards {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 0.75rem;
       }
 
     `,

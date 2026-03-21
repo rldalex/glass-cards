@@ -1,3 +1,4 @@
+export { GlassCardEditor } from './editor';
 import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
@@ -239,6 +240,27 @@ export function isEntityVisibleNow(
     }
     return now >= start && now <= end;
   });
+}
+
+// — Dashboard entity helper —
+
+/**
+ * Collect all entity IDs for a given domain across visible areas.
+ * Used in dashboard mode by multi-entity cards (light, climate, fan, cover).
+ */
+export function getDashboardEntityIds(
+  domain: string,
+  hass: HomeAssistant,
+  visibleAreaIds: string[] | undefined,
+): string[] {
+  if (!visibleAreaIds?.length) return [];
+  const ids: string[] = [];
+  for (const aId of visibleAreaIds) {
+    for (const e of getAreaEntities(aId, hass.entities, hass.devices)) {
+      if (e.entity_id.startsWith(`${domain}.`)) ids.push(e.entity_id);
+    }
+  }
+  return ids;
 }
 
 // — BackendService —

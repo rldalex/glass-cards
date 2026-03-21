@@ -4,13 +4,15 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  getDashboardEntityIds,
   isEntityVisibleNow,
   type EntityScheduleMap,
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import {
-  glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin,
+  glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin,
+  unavailableMixin, isEntityUnavailable,
   rgbToHs, rgbToHex, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
 } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
@@ -131,17 +133,17 @@ export class GlassLightCard extends BaseCard {
 
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     foldMixin,
     marqueeMixin,
     bounceMixin,
+    unavailableMixin,
     css`
       :host {
-        display: block;
         width: 100%;
-        max-width: 500px;
+        max-width: 31.25rem;
         margin: 0 auto;
-        font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
       /* ── Card Header ── */
@@ -149,17 +151,17 @@ export class GlassLightCard extends BaseCard {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 6px;
-        padding: 0 6px;
-        min-height: 22px;
+        margin-bottom: 0.375rem;
+        padding: 0 0.375rem;
+        min-height: 1.375rem;
       }
       .card-header-left {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 0.5rem;
       }
       .card-title {
-        font-size: 9px;
+        font-size: var(--fz-xs);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1.5px;
@@ -169,11 +171,11 @@ export class GlassLightCard extends BaseCard {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 14px;
-        height: 14px;
-        padding: 0 4px;
+        min-width: 0.875rem;
+        height: 0.875rem;
+        padding: 0 0.25rem;
         border-radius: var(--radius-full);
-        font-size: 9px;
+        font-size: var(--fz-xs);
         font-weight: 600;
         transition: all var(--t-med);
       }
@@ -182,20 +184,20 @@ export class GlassLightCard extends BaseCard {
         color: var(--t3);
       }
       .card-count.some {
-        background: rgba(251, 191, 36, 0.15);
+        background: rgba(var(--rgb-light-glow), 0.15);
         color: var(--c-light-glow);
       }
       .card-count.all {
-        background: rgba(251, 191, 36, 0.2);
+        background: rgba(var(--rgb-light-glow), 0.2);
         color: var(--c-light-glow);
       }
 
       /* ── Toggle All ── */
       .toggle-all {
         position: relative;
-        width: 40px;
-        height: 22px;
-        border-radius: 11px;
+        width: 2.5rem;
+        height: 1.375rem;
+        border-radius: var(--radius-md);
         background: var(--s2);
         border: 1px solid var(--b2);
         cursor: pointer;
@@ -208,10 +210,10 @@ export class GlassLightCard extends BaseCard {
       .toggle-all::after {
         content: '';
         position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 14px;
-        height: 14px;
+        top: 0.1875rem;
+        left: 0.1875rem;
+        width: 0.875rem;
+        height: 0.875rem;
         border-radius: 50%;
         background: var(--t3);
         transition:
@@ -220,19 +222,19 @@ export class GlassLightCard extends BaseCard {
           box-shadow var(--t-fast);
       }
       .toggle-all.on {
-        background: rgba(251, 191, 36, 0.2);
-        border-color: rgba(251, 191, 36, 0.3);
+        background: rgba(var(--rgb-light-glow), 0.2);
+        border-color: rgba(var(--rgb-light-glow), 0.3);
       }
       .toggle-all.on::after {
-        transform: translateX(18px);
+        transform: translateX(1.125rem);
         background: var(--c-light-glow);
-        box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.4);
       }
 
       /* ── Card Body ── */
       .card {
         position: relative;
-        padding: 2px 14px;
+        padding: 0.125rem 0.875rem;
       }
       .card-inner {
         position: relative;
@@ -257,9 +259,9 @@ export class GlassLightCard extends BaseCard {
       .light-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0.625rem;
         grid-column: 1 / -1;
-        padding: 8px 4px;
+        padding: 0.5rem 0.25rem;
         position: relative;
         transition: background var(--t-fast);
         border-radius: var(--radius-md);
@@ -278,7 +280,7 @@ export class GlassLightCard extends BaseCard {
         overflow: hidden;
       }
       .light-row.compact-right {
-        padding-left: 10px;
+        padding-left: 0.625rem;
       }
       .light-row.compact-right::before {
         content: '';
@@ -286,20 +288,20 @@ export class GlassLightCard extends BaseCard {
         left: 0;
         top: 20%;
         bottom: 20%;
-        width: 1px;
+        width: 0.0625rem;
         background: linear-gradient(
           to bottom,
           transparent,
-          rgba(255, 255, 255, 0.08) 30%,
-          rgba(255, 255, 255, 0.08) 70%,
+          rgba(var(--rgb-white), 0.08) 30%,
+          rgba(var(--rgb-white), 0.08) 70%,
           transparent
         );
       }
 
       /* ── Icon Button ── */
       .light-icon-btn {
-        width: 36px;
-        height: 36px;
+        width: 2.25rem;
+        height: 2.25rem;
         border-radius: var(--radius-md);
         background: var(--s2);
         border: 1px solid var(--b1);
@@ -320,14 +322,14 @@ export class GlassLightCard extends BaseCard {
         -webkit-tap-highlight-color: transparent;
       }
       .light-icon-btn ha-icon {
-        --mdc-icon-size: 18px;
+        --mdc-icon-size: 1.125rem;
         display: flex; align-items: center; justify-content: center;
       }
       .light-icon-btn.on {
-        background: rgba(251, 191, 36, 0.1);
-        border-color: rgba(251, 191, 36, 0.15);
+        background: rgba(var(--rgb-light-glow), 0.1);
+        border-color: rgba(var(--rgb-light-glow), 0.15);
         color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4));
+        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.4));
       }
       .light-icon-btn.on.rgb {
         background: var(--light-rgb-bg);
@@ -342,7 +344,7 @@ export class GlassLightCard extends BaseCard {
         min-width: 0;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0.625rem;
         background: transparent;
         border: none;
         padding: 0;
@@ -359,7 +361,7 @@ export class GlassLightCard extends BaseCard {
         min-width: 0;
       }
       .light-name {
-        font-size: 13px;
+        font-size: var(--fz-md);
         font-weight: 600;
         color: var(--t1);
         line-height: 1.2;
@@ -369,37 +371,37 @@ export class GlassLightCard extends BaseCard {
       .light-sub {
         display: flex;
         align-items: center;
-        gap: 5px;
-        margin-top: 2px;
+        gap: 0.3125rem;
+        margin-top: 0.125rem;
       }
       .light-brightness-text {
-        font-size: 10px;
+        font-size: var(--fz-sm);
         font-weight: 500;
         color: var(--t3);
         transition: color var(--t-med);
       }
       .light-row[data-on='true'] .light-brightness-text {
-        color: rgba(251, 191, 36, 0.55);
+        color: rgba(var(--rgb-light-glow), 0.55);
       }
       .light-row[data-on='true'][data-rgb] .light-brightness-text {
-        color: var(--light-rgb-sub, rgba(251, 191, 36, 0.55));
+        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.55));
       }
       .light-temp-dot {
-        width: 4px;
-        height: 4px;
+        width: 0.25rem;
+        height: 0.25rem;
         border-radius: 50%;
         transition: background var(--t-med);
       }
       .light-temp-text {
-        font-size: 10px;
+        font-size: var(--fz-sm);
         font-weight: 400;
         color: var(--t4);
       }
 
       /* ── Status Dot ── */
       .light-dot {
-        width: 6px;
-        height: 6px;
+        width: 0.375rem;
+        height: 0.375rem;
         border-radius: 50%;
         flex-shrink: 0;
         background: var(--t4);
@@ -407,7 +409,7 @@ export class GlassLightCard extends BaseCard {
       }
       .light-row[data-on='true'] .light-dot {
         background: var(--c-light-glow);
-        box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.5);
       }
       .light-row[data-on='true'][data-rgb] .light-dot {
         background: var(--light-rgb);
@@ -434,36 +436,36 @@ export class GlassLightCard extends BaseCard {
         transition-delay: 0.1s;
       }
       .fold-sep {
-        height: 1px;
-        margin: 0 12px;
+        height: 0.0625rem;
+        margin: 0 0.75rem;
         overflow: hidden;
-        background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
+        background: linear-gradient(90deg, transparent, var(--fold-color, rgba(var(--rgb-light-glow),0.25)), transparent);
         opacity: 0;
         transition: opacity var(--t-layout);
         grid-column: 1 / -1;
       }
       .fold-sep.visible { opacity: 1; }
       .ctrl-panel {
-        padding: 6px 0 4px;
+        padding: 0.375rem 0 0.25rem;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0.625rem;
       }
       .ctrl-label {
-        font-size: 10px;
+        font-size: var(--fz-sm);
         font-weight: 600;
         letter-spacing: 0.5px;
-        color: rgba(251, 191, 36, 0.6);
+        color: rgba(var(--rgb-light-glow), 0.6);
       }
       .ctrl-panel[data-rgb] .ctrl-label {
-        color: var(--light-rgb-sub, rgba(251, 191, 36, 0.6));
+        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.6));
       }
 
       /* ── Slider ── */
       .slider {
         position: relative;
         width: 100%;
-        height: 36px;
+        height: 2.25rem;
         border-radius: var(--radius-lg);
         background: var(--s1);
         border: 1px solid var(--b1);
@@ -479,13 +481,13 @@ export class GlassLightCard extends BaseCard {
         overflow: hidden;
       }
       .slider-fill.warm {
-        background: linear-gradient(90deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.3));
+        background: linear-gradient(90deg, rgba(var(--rgb-light-glow), 0.15), rgba(var(--rgb-light-glow), 0.3));
       }
       .slider-fill.dynamic {
         background: linear-gradient(
           90deg,
-          var(--slider-fill-start, rgba(251, 191, 36, 0.15)),
-          var(--slider-fill-end, rgba(251, 191, 36, 0.3))
+          var(--slider-fill-start, rgba(var(--rgb-light-glow), 0.15)),
+          var(--slider-fill-end, rgba(var(--rgb-light-glow), 0.3))
         );
       }
       .slider-fill.temp-gradient {
@@ -502,37 +504,37 @@ export class GlassLightCard extends BaseCard {
         position: absolute;
         top: 50%;
         transform: translate(-50%, -50%);
-        width: 8px;
-        height: 20px;
+        width: 0.5rem;
+        height: 1.25rem;
         border-radius: 4px;
-        background: rgba(255, 255, 255, 0.7);
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        background: rgba(var(--rgb-white), 0.7);
+        box-shadow: 0 0 8px rgba(var(--rgb-white), 0.2);
         pointer-events: none;
       }
       .slider-lbl {
         position: absolute;
         top: 50%;
-        left: 12px;
+        left: 0.75rem;
         transform: translateY(-50%);
-        font-size: 11px;
+        font-size: var(--fz-base);
         font-weight: 600;
         color: var(--t2);
         pointer-events: none;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 0.375rem;
       }
       .slider-lbl ha-icon {
-        --mdc-icon-size: 16px;
+        --mdc-icon-size: 1rem;
         opacity: 0.6;
         display: flex; align-items: center; justify-content: center;
       }
       .slider-val {
         position: absolute;
         top: 50%;
-        right: 12px;
+        right: 0.75rem;
         transform: translateY(-50%);
-        font-size: 11px;
+        font-size: var(--fz-base);
         font-weight: 600;
         color: var(--t3);
         pointer-events: none;
@@ -553,13 +555,13 @@ export class GlassLightCard extends BaseCard {
       /* ── Color Controls ── */
       .color-row {
         display: flex;
-        gap: 8px;
+        gap: 0.5rem;
         align-items: center;
-        padding: 2px 0;
+        padding: 0.125rem 0;
       }
       .cdot {
-        width: 26px;
-        height: 26px;
+        width: 1.625rem;
+        height: 1.625rem;
         border-radius: 50%;
         border: 2px solid transparent;
         cursor: pointer;
@@ -584,10 +586,10 @@ export class GlassLightCard extends BaseCard {
       @media (pointer: coarse) {
         .cdot:active { animation: bounce 0.3s ease; }
       }
-      .cdot.active { border-color: rgba(255, 255, 255, 0.6); }
+      .cdot.active { border-color: rgba(var(--rgb-white), 0.6); }
       .color-picker-btn {
-        width: 26px;
-        height: 26px;
+        width: 1.625rem;
+        height: 1.625rem;
         border-radius: 50%;
         border: 2px solid transparent;
         cursor: pointer;
@@ -624,7 +626,7 @@ export class GlassLightCard extends BaseCard {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(var(--rgb-black), 0.4);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         animation: cpFadeIn 0.2s ease;
@@ -634,22 +636,22 @@ export class GlassLightCard extends BaseCard {
         to { opacity: 1; }
       }
       .color-picker-dialog {
-        background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
         backdrop-filter: blur(40px) saturate(1.4);
         -webkit-backdrop-filter: blur(40px) saturate(1.4);
         border: 1px solid var(--b2);
         border-radius: var(--radius-xl);
-        padding: 20px;
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
-        box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.15);
-        max-width: 300px;
+        gap: 1rem;
+        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.15);
+        max-width: 18.75rem;
         width: 90vw;
       }
       .color-picker-dialog .cp-title {
-        font-size: 11px;
+        font-size: var(--fz-base);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -657,8 +659,8 @@ export class GlassLightCard extends BaseCard {
       }
       .cp-wheel-wrap {
         position: relative;
-        width: 220px;
-        height: 220px;
+        width: 13.75rem;
+        height: 13.75rem;
       }
       .cp-wheel-wrap canvas {
         width: 100%;
@@ -668,11 +670,11 @@ export class GlassLightCard extends BaseCard {
       }
       .cp-cursor {
         position: absolute;
-        width: 24px;
-        height: 24px;
+        width: 1.5rem;
+        height: 1.5rem;
         border-radius: 50%;
         border: 3px solid white;
-        box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
+        box-shadow: 0 0 6px rgba(var(--rgb-black),0.6), 0 0 0 1px rgba(var(--rgb-black),0.2);
         pointer-events: none;
         transform: translate(-50%, calc(-50% - 28px));
         transition: left 0.05s, top 0.05s;
@@ -680,27 +682,27 @@ export class GlassLightCard extends BaseCard {
       .cp-cursor::after {
         content: '';
         position: absolute;
-        bottom: -8px;
+        bottom: -0.5rem;
         left: 50%;
         transform: translateX(-50%);
-        width: 2px;
-        height: 10px;
-        background: rgba(255,255,255,0.5);
+        width: 0.125rem;
+        height: 0.625rem;
+        background: rgba(var(--rgb-white),0.5);
         border-radius: 1px;
       }
       .cp-preview {
         width: 100%;
-        height: 36px;
+        height: 2.25rem;
         border-radius: var(--radius-md);
         border: 1px solid var(--b2);
       }
       .cp-hex {
-        font-size: 12px; font-weight: 600; color: var(--t2);
+        font-size: var(--fz-base); font-weight: 600; color: var(--t2);
         font-family: monospace; letter-spacing: 0.5px;
       }
       .cp-close {
         font-family: inherit;
-        font-size: 12px;
+        font-size: var(--fz-base);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.8px;
@@ -708,7 +710,7 @@ export class GlassLightCard extends BaseCard {
         background: var(--s2);
         border: 1px solid var(--b2);
         border-radius: var(--radius-md);
-        padding: 8px 24px;
+        padding: 0.5rem 1.5rem;
         cursor: pointer;
         outline: none;
         -webkit-tap-highlight-color: transparent;
@@ -737,11 +739,11 @@ export class GlassLightCard extends BaseCard {
         to { opacity: 1; transform: translateY(0); }
       }
       .dashboard-overflow {
-        font-size: 10px;
+        font-size: var(--fz-sm);
         font-weight: 500;
         color: var(--t3);
         text-align: center;
-        padding: 6px 0 2px;
+        padding: 0.375rem 0 0.125rem;
         letter-spacing: 0.3px;
         grid-column: 1 / -1;
       }
@@ -895,14 +897,8 @@ export class GlassLightCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    if (this._isDashboardMode && this.hass && this.visibleAreaIds?.length && this.hass.entities && this.hass.devices) {
-      const ids: string[] = [];
-      for (const aId of this.visibleAreaIds) {
-        for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('light.')) ids.push(e.entity_id);
-        }
-      }
-      return ids;
+    if (this._isDashboardMode && this.hass) {
+      return getDashboardEntityIds('light', this.hass, this.visibleAreaIds);
     }
     return this._getLights().map((e) => e.entity_id);
   }
@@ -1391,7 +1387,8 @@ export class GlassLightCard extends BaseCard {
   // — Render: Light Row —
 
   private _renderLightRow(info: LightInfo, compact: boolean, isRight: boolean): TemplateResult {
-    const rowClasses = ['light-row', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+    const unavailable = isEntityUnavailable(info.entity.state);
+    const rowClasses = ['light-row', compact ? 'compact' : '', isRight ? 'compact-right' : '', unavailable ? 'entity-unavailable' : '']
       .filter(Boolean)
       .join(' ');
 
@@ -1435,6 +1432,7 @@ export class GlassLightCard extends BaseCard {
           </div>
           <span class="light-dot"></span>
         </button>
+        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -1474,7 +1472,7 @@ export class GlassLightCard extends BaseCard {
       const b = parseInt(color.slice(5, 7), 16);
       return `rgba(${r},${g},${b},0.3)`;
     }
-    return 'rgba(251,191,36,0.25)';
+    return 'rgba(var(--rgb-light-glow),0.25)';
   }
 
   private _renderControlFold(info: LightInfo, isLast = false): TemplateResult {
@@ -1572,7 +1570,7 @@ export class GlassLightCard extends BaseCard {
     const hex = rgbToHex(rgb);
 
     return html`
-      <div class="color-picker-overlay" @click=${(e: Event) => {
+      <div class="color-picker-overlay" role="presentation" @click=${(e: Event) => {
         if ((e.target as HTMLElement).classList.contains('color-picker-overlay')) this._closeColorPicker();
       }}>
         <div class="color-picker-dialog">

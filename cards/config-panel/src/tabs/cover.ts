@@ -24,7 +24,7 @@ function renderCoverPreviewRow(
 
   return html`
     <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${isRight ? 'padding-left:8px;border-left:1px solid var(--b2);' : ''}">
-      <div style="width:22px;height:22px;border-radius:6px;background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
+      <div style="width:22px;height:22px;border-radius:var(--radius-xs);background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
         <ha-icon .icon=${icons[isOpen ? 0 : 1]} style="--mdc-icon-size:13px;color:${isOpen ? '#a78bfa' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${isOpen ? 'filter:drop-shadow(0 0 4px rgba(167,139,250,0.4));' : ''}"></ha-icon>
       </div>
       <div style="flex:1;min-width:0;">
@@ -75,7 +75,7 @@ export function renderCoverPreview(self: GlassConfigPanel) {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('cover.title')}</span>
-            <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:8px;background:${openCount > 0 ? 'rgba(167,139,250,0.15)' : 'var(--s2)'};color:${openCount > 0 ? '#a78bfa' : 'var(--t3)'};">${openCount}/${entities.length}</span>
+            <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:${openCount > 0 ? 'rgba(167,139,250,0.15)' : 'var(--s2)'};color:${openCount > 0 ? '#a78bfa' : 'var(--t3)'};">${openCount}/${entities.length}</span>
           </div>
           <div style="display:flex;gap:3px;">
             <div style="width:18px;height:18px;border-radius:4px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
@@ -233,7 +233,7 @@ export function renderCoverTab(self: GlassConfigPanel) {
                             return html`
                               <span style="
                                 display:inline-flex;align-items:center;gap:3px;
-                                padding:3px 7px;border-radius:var(--radius-md);
+                                padding:0.1875rem 0.4375rem;border-radius:var(--radius-md);
                                 border:1px solid ${isCustom ? 'rgba(167,139,250,0.2)' : 'var(--b2)'};
                                 background:${isCustom ? 'rgba(167,139,250,0.05)' : 'var(--s1)'};
                                 font-size:10px;font-weight:600;color:${isCustom ? 'var(--c-accent)' : 'var(--t3)'};
@@ -268,7 +268,7 @@ export function renderCoverTab(self: GlassConfigPanel) {
                             <button
                               style="
                                 display:inline-flex;align-items:center;
-                                padding:3px 6px;border-radius:var(--radius-md);
+                                padding:0.1875rem 0.375rem;border-radius:var(--radius-md);
                                 border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
                                 font-size:10px;font-weight:600;color:var(--c-accent);
                                 cursor:pointer;font-family:inherit;
@@ -285,7 +285,7 @@ export function renderCoverTab(self: GlassConfigPanel) {
                               <button
                                 style="
                                   display:inline-flex;align-items:center;gap:2px;
-                                  padding:3px 6px;border-radius:var(--radius-md);
+                                  padding:0.1875rem 0.375rem;border-radius:var(--radius-md);
                                   border:1px solid var(--b2);background:var(--s1);
                                   font-size:9px;font-weight:600;color:var(--t4);
                                   cursor:pointer;font-family:inherit;
@@ -324,7 +324,7 @@ export function renderCoverTab(self: GlassConfigPanel) {
           return html`
             <span style="
               display:inline-flex;align-items:center;gap:4px;
-              padding:5px 10px;border-radius:var(--radius-md);
+              padding:0.3125rem 0.625rem;border-radius:var(--radius-md);
               border:1px solid var(--b2);background:var(--s1);
               font-size:11px;font-weight:600;color:var(--t2);
             ">
@@ -360,7 +360,7 @@ export function renderCoverTab(self: GlassConfigPanel) {
           <button
             style="
               display:inline-flex;align-items:center;gap:4px;
-              padding:5px 10px;border-radius:var(--radius-md);
+              padding:0.3125rem 0.625rem;border-radius:var(--radius-md);
               border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
               font-size:11px;font-weight:600;color:var(--c-accent);
               cursor:pointer;font-family:inherit;

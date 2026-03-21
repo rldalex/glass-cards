@@ -19,7 +19,8 @@
     "expand": "Expand",
     "move_up": "Move up",
     "move_down": "Move down",
-    "none": "None"
+    "none": "None",
+    "rooms": "Rooms"
   },
 
   "light": {
@@ -81,7 +82,23 @@
     "cond_stormy": "Stormy",
     "cond_windy": "Windy",
     "cond_windy_variant": "Windy cloudy",
-    "cond_exceptional": "Exceptional"
+    "cond_exceptional": "Exceptional",
+    "compass_N": "N",
+    "compass_NNE": "NNE",
+    "compass_NE": "NE",
+    "compass_ENE": "ENE",
+    "compass_E": "E",
+    "compass_ESE": "ESE",
+    "compass_SE": "SE",
+    "compass_SSE": "SSE",
+    "compass_S": "S",
+    "compass_SSW": "SSW",
+    "compass_SW": "SW",
+    "compass_WSW": "WSW",
+    "compass_W": "W",
+    "compass_WNW": "WNW",
+    "compass_NW": "NW",
+    "compass_NNW": "NNW"
   },
 
   "cover": {

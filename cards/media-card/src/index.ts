@@ -7,7 +7,7 @@ import {
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, eqMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -120,6 +120,14 @@ const SOURCE_ICONS: Record<string, string> = {
 };
 
 export class GlassMediaCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-media-card-editor');
+  }
+
+  getCardSize() {
+    return 4;
+  }
+
   @property() areaId?: string;
   @state() private _foldOpen = false;
   @state() private _mediaConfig: MediaBackendConfig = {
@@ -159,6 +167,13 @@ export class GlassMediaCard extends BaseCard {
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!super.shouldUpdate(changedProps)) return false;
+    // During swipe animation, skip hass-only updates to avoid unnecessary re-renders
+    if (this._swipeAnimating && changedProps.size === 1 && changedProps.has('hass')) return false;
+    return true;
   }
 
   connectedCallback(): void {
@@ -736,40 +751,6 @@ export class GlassMediaCard extends BaseCard {
     bar.addEventListener('lostpointercapture', cleanup);
   }
 
-  /* ── Volume slider (pill) ── */
-
-  private _onVolumePointerDown(e: PointerEvent, entityId: string): void {
-    e.stopPropagation();
-    const bar = e.currentTarget as HTMLElement;
-    bar.setPointerCapture(e.pointerId);
-    const fill = bar.querySelector('.slider-fill') as HTMLElement;
-    const thumb = bar.querySelector('.slider-thumb') as HTMLElement;
-    const val = bar.querySelector('.slider-val') as HTMLElement;
-
-    const update = (evt: PointerEvent) => {
-      const r = bar.getBoundingClientRect();
-      const pct = Math.max(0, Math.min(100, ((evt.clientX - r.left) / r.width) * 100));
-      fill.style.width = pct + '%';
-      thumb.style.left = pct + '%';
-      if (val) val.textContent = Math.round(pct) + '%';
-      this._setVolume(entityId, pct / 100);
-    };
-    update(e);
-
-    const onMove = (evt: PointerEvent) => update(evt);
-    const cleanup = () => {
-      bar.removeEventListener('pointermove', onMove);
-      bar.removeEventListener('pointerup', cleanup);
-      bar.removeEventListener('pointercancel', cleanup);
-      bar.removeEventListener('lostpointercapture', cleanup);
-    };
-
-    bar.addEventListener('pointermove', onMove);
-    bar.addEventListener('pointerup', cleanup);
-    bar.addEventListener('pointercancel', cleanup);
-    bar.addEventListener('lostpointercapture', cleanup);
-  }
-
   /* ── Multiroom volume slider ── */
 
   private _onMrVolPointerDown(e: PointerEvent, entityId: string): void {
@@ -1032,11 +1013,13 @@ export class GlassMediaCard extends BaseCard {
               <ha-icon .icon=${master.isMuted ? 'mdi:volume-off' : master.volume > 0.5 ? 'mdi:volume-high' : 'mdi:volume-medium'}></ha-icon>
             </button>
           ` : nothing}
-          <div class="slider" @pointerdown=${(e: PointerEvent) => this._onVolumePointerDown(e, master.entityId)}>
-            <div class="slider-fill accent" style="width:${Math.round((master.isMuted ? 0 : master.volume) * 100)}%"></div>
-            <div class="slider-thumb" style="left:${Math.round((master.isMuted ? 0 : master.volume) * 100)}%"></div>
-            <span class="slider-val">${Math.round((master.isMuted ? 0 : master.volume) * 100)}%</span>
-          </div>
+          <glass-slider
+            .value=${Math.round((master.isMuted ? 0 : master.volume) * 100)}
+            color="var(--rgb-white)"
+            .label=${`${Math.round((master.isMuted ? 0 : master.volume) * 100)}%`}
+            @glass-slider-input=${(e: CustomEvent) => this._setVolume(master.entityId, e.detail.value / 100)}
+            @glass-slider-change=${(e: CustomEvent) => this._setVolume(master.entityId, e.detail.value / 100)}
+          ></glass-slider>
         </div>
       ` : nothing}
 
@@ -1356,42 +1339,41 @@ export class GlassMediaCard extends BaseCard {
 
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     marqueeMixin,
     bounceMixin,
     eqMixin,
     css`
       :host {
-        display: block;
         width: 100%;
-        max-width: 500px;
+        max-width: 31.25rem;
         margin: 0 auto;
-        font-family: 'Plus Jakarta Sans', sans-serif;
         /* media player tokens */
         --mp-color: #818cf8;
-        --mp-bg: rgba(129,140,248,0.1);
-        --mp-border: rgba(129,140,248,0.15);
-        --mp-glow: rgba(129,140,248,0.4);
-        --mp-sub: rgba(129,140,248,0.55);
+        --mp-bg: rgba(var(--rgb-accent),0.1);
+        --mp-border: rgba(var(--rgb-accent),0.15);
+        --mp-glow: rgba(var(--rgb-accent),0.4);
+        --mp-sub: rgba(var(--rgb-accent),0.55);
       }
 
       /* ── Header ── */
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+        padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
       }
-      .card-header-left { display: flex; align-items: center; gap: 8px; }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
       .card-title {
-        font-size: 9px; font-weight: 700; text-transform: uppercase;
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
         letter-spacing: 1.5px; color: var(--t4);
       }
       .card-source {
-        font-size: 10px; font-weight: 500; color: var(--t4);
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         max-width: 50%;
         opacity: 0; transition: opacity var(--t-fast);
       }
-      .card-source.active { opacity: 1; color: rgba(255,255,255,0.6); }
+      .card-source.active { opacity: 1; color: rgba(var(--rgb-white),0.6); }
 
       /* ── Swipe slide animation ── */
       @keyframes swipe-exit-l {
@@ -1429,10 +1411,10 @@ export class GlassMediaCard extends BaseCard {
         background: #111;
         border: 1px solid var(--b2);
         box-shadow:
-          0 8px 32px rgba(0,0,0,0.3),
-          0 2px 8px rgba(0,0,0,0.2),
-          inset 0 1px 0 rgba(255,255,255,0.04),
-          inset 0 -1px 0 rgba(0,0,0,0.1);
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
         touch-action: pan-y;
         user-select: none; -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
@@ -1459,11 +1441,11 @@ export class GlassMediaCard extends BaseCard {
         position: absolute; inset: 0; pointer-events: none; z-index: 1;
         background: linear-gradient(
           to bottom,
-          rgba(0,0,0,0.08) 0%,
-          rgba(0,0,0,0) 25%,
-          rgba(0,0,0,0) 50%,
-          rgba(0,0,0,0.15) 75%,
-          rgba(0,0,0,0.4) 100%
+          rgba(var(--rgb-black),0.08) 0%,
+          rgba(var(--rgb-black),0) 25%,
+          rgba(var(--rgb-black),0) 50%,
+          rgba(var(--rgb-black),0.15) 75%,
+          rgba(var(--rgb-black),0.4) 100%
         );
       }
 
@@ -1474,14 +1456,14 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-deco::before {
         content: ''; position: absolute;
-        width: 280px; height: 280px; border-radius: 50%;
-        top: -80px; right: -60px;
-        background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 70%);
+        width: 17.5rem; height: 17.5rem; border-radius: 50%;
+        top: -5rem; right: -3.75rem;
+        background: radial-gradient(circle, rgba(var(--rgb-white),0.05), transparent 70%);
       }
       .dash-deco::after {
         content: ''; position: absolute;
-        width: 220px; height: 220px; border-radius: 50%;
-        bottom: -50px; left: -40px;
+        width: 13.75rem; height: 13.75rem; border-radius: 50%;
+        bottom: -3.125rem; left: -2.5rem;
         background: radial-gradient(circle, rgba(168,85,247,0.06), transparent 70%);
       }
       .dash-placeholder {
@@ -1489,8 +1471,8 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center;
       }
       .dash-placeholder ha-icon {
-        --mdc-icon-size: 80px;
-        color: rgba(255,255,255,0.06);
+        --mdc-icon-size: 5rem;
+        color: rgba(var(--rgb-white),0.06);
         display: flex; align-items: center; justify-content: center;
       }
 
@@ -1498,17 +1480,17 @@ export class GlassMediaCard extends BaseCard {
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        min-height: 340px;
-        padding: 14px;
+        min-height: 21.25rem;
+        padding: 0.875rem;
       }
 
       /* ── Glass pill (shared for top badges) ── */
       .glass-pill {
         backdrop-filter: blur(16px) saturate(1.3);
         -webkit-backdrop-filter: blur(16px) saturate(1.3);
-        background: rgba(0,0,0,0.22);
-        border: 1px solid rgba(255,255,255,0.12);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        background: rgba(var(--rgb-black),0.22);
+        border: 1px solid rgba(var(--rgb-white),0.12);
+        box-shadow: 0 2px 8px rgba(var(--rgb-black),0.2);
       }
 
       /* ── Glass panel (bottom info card) — frosted glass, artwork bleeds through ── */
@@ -1516,11 +1498,11 @@ export class GlassMediaCard extends BaseCard {
         border-radius: var(--radius-lg);
         backdrop-filter: blur(10px) saturate(1.4);
         -webkit-backdrop-filter: blur(10px) saturate(1.4);
-        background: rgba(0,0,0,0.25);
-        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(var(--rgb-black),0.25);
+        border: 1px solid rgba(var(--rgb-white),0.12);
         box-shadow:
-          0 4px 16px rgba(0,0,0,0.12),
-          inset 0 1px 0 rgba(255,255,255,0.08);
+          0 4px 16px rgba(var(--rgb-black),0.12),
+          inset 0 1px 0 rgba(var(--rgb-white),0.08);
       }
 
       /* ── Top bar ── */
@@ -1528,36 +1510,36 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: space-between;
       }
       .dash-speaker {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 4px 10px 4px 6px;
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        padding: 0.25rem 0.625rem 0.25rem 0.375rem;
         border-radius: var(--radius-full, 9999px);
-        font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9);
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.9);
         overflow: hidden; white-space: nowrap;
       }
       .dash-speaker ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 13px;
+        --mdc-icon-size: 0.8125rem;
       }
       .dash-group-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 2px 8px; border-radius: 20px;
-        color: rgba(255,255,255,0.9);
-        font-size: 10px; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        padding: 0.125rem 0.5rem; border-radius: var(--radius-xl);
+        color: rgba(var(--rgb-white),0.9);
+        font-size: var(--fz-sm); font-weight: 600;
       }
       .dash-group-badge ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 12px;
+        --mdc-icon-size: 0.75rem;
       }
 
       /* ── Equalizer bars ── */
       .dash-eq {
-        display: flex; align-items: flex-end; gap: 2px;
-        height: 14px; margin-left: 6px;
+        display: flex; align-items: flex-end; gap: 0.125rem;
+        height: 0.875rem; margin-left: 0.375rem;
       }
       .dash-eq-bar {
-        width: 3px; border-radius: 1.5px;
+        width: 0.1875rem; border-radius: 1.5px;
         background: #fff;
-        box-shadow: 0 0 3px rgba(255,255,255,0.6);
+        box-shadow: 0 0 3px rgba(var(--rgb-white),0.6);
       }
       .dash-eq.playing .dash-eq-bar:nth-child(1) {
         height: 40%; animation: eq-lo 0.65s ease-in-out infinite alternate;
@@ -1584,24 +1566,24 @@ export class GlassMediaCard extends BaseCard {
       /* ── Bottom info panel ── */
       .dash-info-panel {
         position: relative; z-index: 10;
-        display: flex; flex-direction: column; gap: 8px;
-        padding: 12px 14px;
+        display: flex; flex-direction: column; gap: 0.5rem;
+        padding: 0.75rem 0.875rem;
       }
 
       /* ── Track info ── */
       .dash-track {
-        display: flex; flex-direction: column; gap: 2px;
+        display: flex; flex-direction: column; gap: 0.125rem;
         min-width: 0;
       }
       .dash-track-title {
-        font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
+        font-size: var(--fz-lg); font-weight: 700; color: #fff; line-height: 1.2;
         overflow: hidden; white-space: nowrap;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.3);
+        text-shadow: 0 1px 4px rgba(var(--rgb-black),0.5), 0 0 12px rgba(var(--rgb-black),0.3);
       }
       .dash-track-artist {
-        font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75);
+        font-size: var(--fz-base); font-weight: 500; color: rgba(var(--rgb-white),0.75);
         overflow: hidden; white-space: nowrap;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        text-shadow: 0 1px 3px rgba(var(--rgb-black),0.5);
       }
 
       /* ── Time row ── */
@@ -1609,27 +1591,27 @@ export class GlassMediaCard extends BaseCard {
         display: flex; justify-content: space-between; align-items: center;
       }
       .dash-track-time {
-        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.4);
+        font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-white),0.4);
         font-variant-numeric: tabular-nums;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        text-shadow: 0 1px 2px rgba(var(--rgb-black),0.4);
       }
       .dash-track-source {
-        font-size: 8px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.5px; color: rgba(255,255,255,0.3);
-        padding: 1px 6px; border-radius: 4px;
-        background: rgba(255,255,255,0.06);
+        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.5px; color: rgba(var(--rgb-white),0.3);
+        padding: 0.0625rem 0.375rem; border-radius: 4px;
+        background: rgba(var(--rgb-white),0.06);
       }
       .dash-source-row {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        margin-top: -2px;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        margin-top: -0.125rem;
       }
       .dash-coordinator-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.5);
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        font-size: var(--fz-xs); font-weight: 600; color: rgba(var(--rgb-white),0.5);
       }
       .dash-coordinator-badge ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 11px;
+        --mdc-icon-size: 0.6875rem;
       }
 
       /* ── Progress bar ── */
@@ -1637,72 +1619,72 @@ export class GlassMediaCard extends BaseCard {
         margin-top: 0;
       }
       .dash-progress {
-        position: relative; width: 100%; height: 4px;
+        position: relative; width: 100%; height: 0.25rem;
         border-radius: 2px; background: var(--s2);
         cursor: pointer; touch-action: none;
         transition: height var(--t-fast);
       }
       @media (hover: hover) and (pointer: fine) {
-        .dash-progress:hover { height: 6px; }
+        .dash-progress:hover { height: 0.375rem; }
         .dash-progress:hover .dash-progress-thumb { opacity: 1; }
       }
       .dash-progress-fill {
         position: absolute; top: 0; left: 0; height: 100%;
         border-radius: inherit;
-        background: rgba(255,255,255,0.85);
-        box-shadow: 0 0 8px rgba(255,255,255,0.3);
+        background: rgba(var(--rgb-white),0.85);
+        box-shadow: 0 0 8px rgba(var(--rgb-white),0.3);
         transition: width 0.3s linear;
         pointer-events: none;
       }
       .dash-progress-thumb {
         position: absolute; top: 50%; transform: translate(-50%, -50%);
-        width: 10px; height: 10px; border-radius: 50%;
-        background: #fff; box-shadow: 0 0 6px rgba(0,0,0,0.3);
+        width: 0.625rem; height: 0.625rem; border-radius: 50%;
+        background: #fff; box-shadow: 0 0 6px rgba(var(--rgb-black),0.3);
         pointer-events: none; opacity: 0; transition: opacity var(--t-fast);
       }
 
       /* ── Transport ── */
       .dash-transport {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        margin-top: 2px;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        margin-top: 0.125rem;
       }
       .transport-btn {
-        width: 36px; height: 36px; border-radius: var(--radius-md);
+        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
         background: transparent; border: 1px solid transparent;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent;
-        color: rgba(255,255,255,0.85);
+        color: rgba(var(--rgb-white),0.85);
       }
       .transport-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 18px;
+        --mdc-icon-size: 1.125rem;
       }
       @media (hover: hover) and (pointer: fine) {
-        .transport-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .transport-btn:hover { background: rgba(var(--rgb-white),0.08); color: #fff; }
       }
-      .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
       .transport-btn.active {
         color: #fff;
-        background: rgba(255,255,255,0.12);
-        border-color: rgba(255,255,255,0.25);
+        background: rgba(var(--rgb-white),0.12);
+        border-color: rgba(var(--rgb-white),0.25);
       }
 
-      .transport-skip { width: 40px; height: 40px; }
-      .transport-skip ha-icon { --mdc-icon-size: 26px; }
-      .transport-skip { color: rgba(255,255,255,0.85); }
+      .transport-skip { width: 2.5rem; height: 2.5rem; }
+      .transport-skip ha-icon { --mdc-icon-size: 1.625rem; }
+      .transport-skip { color: rgba(var(--rgb-white),0.85); }
 
       .transport-main {
-        width: 52px; height: 52px; border-radius: 16px;
-        background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+        width: 3.25rem; height: 3.25rem; border-radius: var(--radius-lg);
+        background: rgba(var(--rgb-white),0.12); border: 1px solid rgba(var(--rgb-white),0.15);
         color: #fff;
       }
-      .transport-main ha-icon { --mdc-icon-size: 28px; }
+      .transport-main ha-icon { --mdc-icon-size: 1.75rem; }
       @media (hover: hover) and (pointer: fine) {
         .transport-main:hover {
-          background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.25);
+          background: rgba(var(--rgb-white),0.2); border-color: rgba(var(--rgb-white),0.25);
         }
         .transport-main:active { transform: scale(0.96); }
       }
@@ -1711,17 +1693,17 @@ export class GlassMediaCard extends BaseCard {
       /* ── Idle state ── */
       .dash-idle {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        flex: 1; gap: 8px; padding: 20px;
+        flex: 1; gap: 0.5rem; padding: 1.25rem;
       }
       .dash-idle ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 32px; color: var(--t4);
+        --mdc-icon-size: 2rem; color: var(--t4);
       }
-      .dash-idle span { font-size: 11px; color: var(--t3); font-weight: 500; }
+      .dash-idle span { font-size: var(--fz-base); color: var(--t3); font-weight: 500; }
 
       /* ── Navigation arrows (hover on sides) ── */
       .dash-nav-arrow {
-        position: absolute; top: 0; bottom: 0; width: 40px; z-index: 8;
+        position: absolute; top: 0; bottom: 0; width: 2.5rem; z-index: 8;
         display: flex; align-items: center; justify-content: center;
         background: none; border: none; cursor: pointer; padding: 0;
         opacity: 0; transition: opacity var(--t-fast);
@@ -1729,44 +1711,44 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-nav-arrow ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 24px; color: rgba(255,255,255,0.7);
-        filter: drop-shadow(0 1px 4px rgba(0,0,0,0.5));
+        --mdc-icon-size: 1.5rem; color: rgba(var(--rgb-white),0.7);
+        filter: drop-shadow(0 1px 4px rgba(var(--rgb-black),0.5));
         transition: color var(--t-fast);
       }
       .dash-nav-left { left: 0; border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
       .dash-nav-right { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
       @media (hover: hover) and (pointer: fine) {
         .dash-nav-left:hover, .dash-nav-right:hover {
-          background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent);
+          background: linear-gradient(90deg, rgba(var(--rgb-black),0.25), transparent);
         }
         .dash-nav-right:hover {
-          background: linear-gradient(270deg, rgba(0,0,0,0.25), transparent);
+          background: linear-gradient(270deg, rgba(var(--rgb-black),0.25), transparent);
         }
         .dash-nav-arrow:hover ha-icon { color: #fff; }
         .dash-hero:hover .dash-nav-arrow { opacity: 1; }
       }
       @media (pointer: coarse) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .dash-nav-arrow:active { transform: scale(0.95); } }
-      .dash-nav-arrow:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .dash-nav-arrow:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
       /* ── Room dots (dashboard swipe indicator) ── */
       .dash-dots {
-        display: flex; justify-content: center; gap: 6px;
-        padding: 8px 0 2px;
+        display: flex; justify-content: center; gap: 0.375rem;
+        padding: 0.5rem 0 0.125rem;
       }
       .dash-dot {
-        width: 6px; height: 6px; border-radius: 50%;
-        background: rgba(255,255,255,0.2); border: none;
+        width: 0.375rem; height: 0.375rem; border-radius: 50%;
+        background: rgba(var(--rgb-white),0.2); border: none;
         padding: 0; cursor: pointer; transition: all var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .dash-dot.active {
-        background: rgba(255,255,255,0.7);
+        background: rgba(var(--rgb-white),0.7);
         transform: scale(1.3);
       }
-      @media (hover: hover) and (pointer: fine) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
+      @media (hover: hover) and (pointer: fine) { .dash-dot:hover { background: rgba(var(--rgb-white),0.5); } }
       @media (pointer: coarse) { .dash-dot:active { animation: bounce 0.3s ease; } }
-      .dash-dot:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
+      .dash-dot:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.5); outline-offset: 2px; }
 
       /* ══════════════════════════════════════════
          Connected Fold
@@ -1779,224 +1761,203 @@ export class GlassMediaCard extends BaseCard {
       .ctrl-fold-inner {
         overflow: hidden;
         opacity: 0; transition: opacity 0.25s;
-        background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
         backdrop-filter: blur(40px) saturate(1.4);
         -webkit-backdrop-filter: blur(40px) saturate(1.4);
         border: 1px solid var(--b2);
         border-top: none;
         border-radius: 0 0 var(--radius-xl) var(--radius-xl);
         box-shadow:
-          0 8px 32px rgba(0,0,0,0.3),
-          0 2px 8px rgba(0,0,0,0.2),
-          inset 0 -1px 0 rgba(0,0,0,0.1);
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
       }
       .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
       .ctrl-label {
-        font-size: 9px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: -4px;
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1px; color: rgba(var(--rgb-white),0.5); margin-bottom: -0.25rem;
       }
 
       .dash-fold-sep-top {
-        height: 1px; margin: 0 12px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        height: 0.0625rem; margin: 0 0.75rem;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
       }
       .dash-fold-panel {
-        display: flex; flex-direction: column; gap: 10px;
-        padding: 12px 16px 14px;
+        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 1rem 0.875rem;
       }
       .dash-fold-sep {
-        height: 1px; margin: 2px 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        height: 0.0625rem; margin: 0.125rem 0;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
       }
 
       /* ── Volume row ── */
-      .volume-row { display: flex; align-items: center; gap: 8px; }
+      .volume-row { display: flex; align-items: center; gap: 0.5rem; }
       .volume-btn {
-        width: 28px; height: 28px; border-radius: var(--radius-sm);
+        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
         background: transparent; border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent; flex-shrink: 0;
-        color: rgba(255,255,255,0.85);
+        color: rgba(var(--rgb-white),0.85);
       }
       .volume-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 18px;
+        --mdc-icon-size: 1.125rem;
       }
       @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: #fff; } }
-      .volume-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .volume-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
       .volume-btn.muted { color: var(--c-alert); }
 
-      /* ── Slider (pill) ── */
-      .slider {
-        position: relative; flex: 1; height: 36px;
-        border-radius: var(--radius-lg); background: var(--s1);
-        border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
-        touch-action: none; user-select: none; -webkit-user-select: none;
-      }
-      .slider-fill {
-        position: absolute; top: 0; left: 0; height: 100%;
-        border-radius: inherit; pointer-events: none;
-        transition: width var(--t-fast);
-      }
-      .slider-fill.accent { background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2)); }
-      .slider-thumb {
-        position: absolute; top: 50%; transform: translate(-50%, -50%);
-        width: 8px; height: 20px; border-radius: 4px;
-        background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
-        pointer-events: none;
-      }
-      .slider-val {
-        position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
-        font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); pointer-events: none;
-      }
+      /* ── Volume slider ── */
+      glass-slider { flex: 1; }
 
       /* ── Chips ── */
-      .chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+      .chips-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
       .chip {
-        display: inline-flex; align-items: center; gap: 5px;
-        padding: 5px 10px; border-radius: var(--radius-md);
+        display: inline-flex; align-items: center; gap: 0.3125rem;
+        padding: 0.3125rem 0.625rem; border-radius: var(--radius-md);
         border: 1px solid var(--b2); background: var(--s1);
-        font-family: inherit; font-size: 10px; font-weight: 600;
+        font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
         text-transform: uppercase; letter-spacing: 0.8px;
-        color: rgba(255,255,255,0.7); cursor: pointer; transition: all var(--t-fast);
+        color: rgba(var(--rgb-white),0.7); cursor: pointer; transition: all var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .chip ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px;
+        --mdc-icon-size: 0.875rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .chip:hover { background: var(--s3); color: #fff; border-color: var(--b3); }
       }
-      .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
       @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
       .chip.active {
-        border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1);
+        border-color: rgba(var(--rgb-white),0.25); background: rgba(var(--rgb-white),0.1);
         color: #fff;
       }
 
       /* ── Multiroom grid ── */
       .multiroom-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem;
       }
       .mr-cell {
-        display: flex; flex-direction: column; gap: 4px;
-        padding: 6px; border-radius: var(--radius-md);
+        display: flex; flex-direction: column; gap: 0.25rem;
+        padding: 0.375rem; border-radius: var(--radius-md);
         background: var(--s1); border: 1px solid var(--b1);
         transition: all var(--t-fast);
       }
       .mr-cell.joined {
-        background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15);
+        background: rgba(var(--rgb-white),0.04); border-color: rgba(var(--rgb-white),0.15);
       }
       .mr-cell-top {
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; gap: 0.375rem;
       }
       .mr-icon-btn {
-        width: 28px; height: 28px; border-radius: var(--radius-sm);
+        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
         background: var(--s2); border: 1px solid var(--b1);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         cursor: pointer; padding: 0; outline: none;
         transition: all var(--t-fast);
         -webkit-tap-highlight-color: transparent;
-        color: rgba(255,255,255,0.6);
+        color: rgba(var(--rgb-white),0.6);
       }
       .mr-icon-btn ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px;
+        --mdc-icon-size: 0.875rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: #fff; }
       }
       @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
       @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
-      .mr-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .mr-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
       .mr-cell.joined .mr-icon-btn {
-        background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff;
+        background: rgba(var(--rgb-white),0.08); border-color: rgba(var(--rgb-white),0.15); color: #fff;
       }
 
       .mr-info { flex: 1; min-width: 0; }
       .mr-name {
-        font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .mr-cell.joined .mr-name { color: #fff; }
       .mr-coordinator {
-        font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-        color: rgba(255,255,255,0.5);
+        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+        color: rgba(var(--rgb-white),0.5);
       }
 
       /* Multiroom volume slider */
       .mr-vol-slider {
-        position: relative; width: 100%; height: 20px;
-        border-radius: 6px; background: var(--s2);
+        position: relative; width: 100%; height: 1.25rem;
+        border-radius: var(--radius-xs); background: var(--s2);
         border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
         touch-action: none; user-select: none; -webkit-user-select: none;
       }
       .mr-vol-fill {
         position: absolute; top: 0; left: 0; height: 100%;
         border-radius: inherit; pointer-events: none;
-        background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.12));
+        background: linear-gradient(90deg, rgba(var(--rgb-white),0.06), rgba(var(--rgb-white),0.12));
         transition: width var(--t-fast);
       }
       .mr-cell.joined .mr-vol-fill {
-        background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
+        background: linear-gradient(90deg, rgba(var(--rgb-white),0.1), rgba(var(--rgb-white),0.2));
       }
       .mr-vol-val {
-        position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
-        font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.5); pointer-events: none;
+        position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
+        font-size: var(--fz-xxs); font-weight: 600; color: rgba(var(--rgb-white),0.5); pointer-events: none;
         font-variant-numeric: tabular-nums;
       }
-      .mr-cell.joined .mr-vol-val { color: rgba(255,255,255,0.7); }
+      .mr-cell.joined .mr-vol-val { color: rgba(var(--rgb-white),0.7); }
       .mr-vol-icon {
-        position: absolute; top: 0; bottom: 0; left: 6px;
+        position: absolute; top: 0; bottom: 0; left: 0.375rem;
         display: flex; align-items: center;
         pointer-events: none;
       }
       .mr-vol-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 11px; color: rgba(255,255,255,0.5);
+        --mdc-icon-size: 0.6875rem; color: rgba(var(--rgb-white),0.5);
       }
-      .mr-cell.joined .mr-vol-icon ha-icon { color: rgba(255,255,255,0.7); }
+      .mr-cell.joined .mr-vol-icon ha-icon { color: rgba(var(--rgb-white),0.7); }
 
       /* ── Segmented control ── */
       .segmented {
         display: inline-flex; gap: 0;
-        border-radius: 12px; background: var(--s1);
-        border: 1px solid var(--b1); padding: 3px;
-        margin-bottom: 8px; width: 100%;
+        border-radius: var(--radius-lg); background: var(--s1);
+        border: 1px solid var(--b1); padding: 0.1875rem;
+        margin-bottom: 0.5rem; width: 100%;
       }
       .seg-btn {
         flex: 1;
-        padding: 7px 0; border-radius: 9px;
-        font-family: inherit; font-size: 11px; font-weight: 600;
-        color: rgba(255,255,255,0.6); cursor: pointer; transition: all var(--t-fast);
+        padding: 0.4375rem 0; border-radius: var(--radius-sm);
+        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+        color: rgba(var(--rgb-white),0.6); cursor: pointer; transition: all var(--t-fast);
         border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }
       .seg-btn.active {
-        background: rgba(255,255,255,0.12); color: #fff;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        background: rgba(var(--rgb-white),0.12); color: #fff;
+        box-shadow: 0 1px 4px rgba(var(--rgb-black),0.2);
       }
       @media (hover: hover) and (pointer: fine) {
-        .seg-btn:hover:not(.active) { color: rgba(255,255,255,0.85); }
+        .seg-btn:hover:not(.active) { color: rgba(var(--rgb-white),0.85); }
       }
-      .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .seg-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
       /* ── Queue tab ── */
       .queue-loading, .queue-empty {
         text-align: center;
-        padding: 20px 0;
-        font-size: 11px;
-        color: rgba(255,255,255,0.6);
+        padding: 1.25rem 0;
+        font-size: var(--fz-base);
+        color: rgba(var(--rgb-white),0.6);
         font-weight: 500;
       }
       .queue-list {
-        max-height: 280px;
+        max-height: 17.5rem;
         overflow-y: auto;
         scrollbar-width: none;
       }
@@ -2004,15 +1965,15 @@ export class GlassMediaCard extends BaseCard {
       .queue-item {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 6px 4px;
+        gap: 0.5rem;
+        padding: 0.375rem 0.25rem;
       }
       .queue-num {
-        width: 20px;
+        width: 1.25rem;
         flex-shrink: 0;
-        font-size: 11px;
+        font-size: var(--fz-base);
         font-weight: 500;
-        color: rgba(255,255,255,0.5);
+        color: rgba(var(--rgb-white),0.5);
         text-align: center;
       }
       .queue-info {
@@ -2023,43 +1984,43 @@ export class GlassMediaCard extends BaseCard {
         overflow: hidden;
       }
       .queue-title {
-        font-size: 12px;
+        font-size: var(--fz-base);
         font-weight: 500;
         color: #fff;
         overflow: hidden;
         white-space: nowrap;
       }
       .queue-artist {
-        font-size: 10px;
-        color: rgba(255,255,255,0.6);
+        font-size: var(--fz-sm);
+        color: rgba(var(--rgb-white),0.6);
       }
       .queue-badge {
-        font-size: 9px;
-        padding: 1px 5px;
+        font-size: var(--fz-xs);
+        padding: 0.0625rem 0.3125rem;
         border-radius: var(--radius-sm);
-        background: rgba(255,255,255,0.08);
-        color: rgba(255,255,255,0.85);
+        background: rgba(var(--rgb-white),0.08);
+        color: rgba(var(--rgb-white),0.85);
         flex-shrink: 0;
       }
       .queue-item .btn-icon {
-        width: 24px; height: 24px;
+        width: 1.5rem; height: 1.5rem;
         border-radius: var(--radius-sm);
         background: transparent; border: none;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; padding: 0; outline: none;
-        color: rgba(255,255,255,0.6); flex-shrink: 0;
+        color: rgba(var(--rgb-white),0.6); flex-shrink: 0;
         transition: color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
       .queue-item .btn-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 16px;
+        --mdc-icon-size: 1rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .queue-item .btn-icon:hover { color: #fff; }
       }
-      .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-      .queue-remove { opacity: 0.4; --mdc-icon-size: 14px; }
+      .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      .queue-remove { opacity: 0.4; --mdc-icon-size: 0.875rem; }
       @media (hover: hover) and (pointer: fine) {
         .queue-remove:hover { opacity: 1; color: var(--c-alert, #ef4444) !important; }
       }

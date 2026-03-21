@@ -10,10 +10,20 @@ from custom_components.glass_cards.websocket_api import (
     ws_get_config,
     ws_get_room,
     ws_get_schedules,
+    ws_set_camera_carousel_config,
     ws_set_climate_config,
+    ws_set_cover_config,
+    ws_set_dashboard,
+    ws_set_fan_config,
+    ws_set_light_config,
+    ws_set_media_config,
     ws_set_navbar,
+    ws_set_presence_config,
     ws_set_room,
     ws_set_schedule,
+    ws_set_spotify_config,
+    ws_set_title_config,
+    ws_set_weather,
 )
 
 
@@ -408,3 +418,286 @@ class TestSetClimateConfig:
         result = mock_connection.send_result.call_args[0][1]
         assert "climate_card" in result
         assert result["climate_card"]["show_header"] is True
+
+
+class TestSetWeather:
+    """Tests for ws_set_weather."""
+
+    @pytest.mark.asyncio
+    async def test_set_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """Should update weather entity_id."""
+        await ws_set_weather(
+            hass_with_store, mock_connection,
+            {"id": 60, "type": "glass_cards/set_weather", "entity_id": "weather.home"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_id"] == "weather.home"
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_weather(
+            hass_with_store, mock_connection,
+            {"id": 61, "type": "glass_cards/set_weather", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+
+    @pytest.mark.asyncio
+    async def test_set_hidden_metrics(self, hass_with_store, mock_connection, mock_store):
+        """Should update hidden_metrics."""
+        await ws_set_weather(
+            hass_with_store, mock_connection,
+            {"id": 62, "type": "glass_cards/set_weather", "hidden_metrics": ["humidity", "wind"]},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["hidden_metrics"] == ["humidity", "wind"]
+
+
+class TestSetLightConfig:
+    """Tests for ws_set_light_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_light_config(
+            hass_with_store, mock_connection,
+            {"id": 70, "type": "glass_cards/set_light_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+
+class TestSetFanConfig:
+    """Tests for ws_set_fan_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_fan_config(
+            hass_with_store, mock_connection,
+            {"id": 80, "type": "glass_cards/set_fan_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+
+class TestSetCoverConfig:
+    """Tests for ws_set_cover_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_cover_config(
+            hass_with_store, mock_connection,
+            {"id": 90, "type": "glass_cards/set_cover_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_dashboard_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update dashboard_entities with deduplication."""
+        await ws_set_cover_config(
+            hass_with_store, mock_connection,
+            {
+                "id": 91, "type": "glass_cards/set_cover_config",
+                "dashboard_entities": ["cover.salon", "cover.chambre", "cover.salon"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["dashboard_entities"] == ["cover.salon", "cover.chambre"]
+
+    @pytest.mark.asyncio
+    async def test_set_presets(self, hass_with_store, mock_connection, mock_store):
+        """Should update global presets."""
+        await ws_set_cover_config(
+            hass_with_store, mock_connection,
+            {"id": 92, "type": "glass_cards/set_cover_config", "presets": [0, 25, 50, 100]},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["presets"] == [0, 25, 50, 100]
+
+
+class TestSetTitleConfig:
+    """Tests for ws_set_title_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_title(self, hass_with_store, mock_connection, mock_store):
+        """Should update title text."""
+        await ws_set_title_config(
+            hass_with_store, mock_connection,
+            {"id": 100, "type": "glass_cards/set_title_config", "title": "My Home"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["title"] == "My Home"
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_period_entity(self, hass_with_store, mock_connection, mock_store):
+        """Should update period_entity."""
+        await ws_set_title_config(
+            hass_with_store, mock_connection,
+            {"id": 101, "type": "glass_cards/set_title_config", "period_entity": "input_select.periode"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["period_entity"] == "input_select.periode"
+
+
+class TestSetMediaConfig:
+    """Tests for ws_set_media_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_media_config(
+            hass_with_store, mock_connection,
+            {"id": 110, "type": "glass_cards/set_media_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_extra_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update extra_entities."""
+        await ws_set_media_config(
+            hass_with_store, mock_connection,
+            {
+                "id": 111, "type": "glass_cards/set_media_config",
+                "extra_entities": {"salon": ["media_player.tv"]},
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["extra_entities"] == {"salon": ["media_player.tv"]}
+
+
+class TestSetDashboard:
+    """Tests for ws_set_dashboard."""
+
+    @pytest.mark.asyncio
+    async def test_set_enabled_cards(self, hass_with_store, mock_connection, mock_store):
+        """Should update enabled_cards."""
+        await ws_set_dashboard(
+            hass_with_store, mock_connection,
+            {"id": 120, "type": "glass_cards/set_dashboard", "enabled_cards": ["weather", "light"]},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["enabled_cards"] == ["weather", "light"]
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_hide_sidebar(self, hass_with_store, mock_connection, mock_store):
+        """Should update hide_sidebar."""
+        await ws_set_dashboard(
+            hass_with_store, mock_connection,
+            {"id": 121, "type": "glass_cards/set_dashboard", "hide_sidebar": True},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["hide_sidebar"] is True
+
+
+class TestSetPresenceConfig:
+    """Tests for ws_set_presence_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_presence_config(
+            hass_with_store, mock_connection,
+            {"id": 130, "type": "glass_cards/set_presence_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_person_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update person_entities mapping."""
+        await ws_set_presence_config(
+            hass_with_store, mock_connection,
+            {
+                "id": 131, "type": "glass_cards/set_presence_config",
+                "person_entities": {"person.alex": ["sensor.phone_battery"]},
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["person_entities"] == {"person.alex": ["sensor.phone_battery"]}
+
+
+class TestSetCameraCarouselConfig:
+    """Tests for ws_set_camera_carousel_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_camera_carousel_config(
+            hass_with_store, mock_connection,
+            {"id": 140, "type": "glass_cards/set_camera_carousel_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_auto_cycle(self, hass_with_store, mock_connection, mock_store):
+        """Should update auto_cycle and cycle_interval."""
+        await ws_set_camera_carousel_config(
+            hass_with_store, mock_connection,
+            {"id": 141, "type": "glass_cards/set_camera_carousel_config", "auto_cycle": True, "cycle_interval": 10},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["auto_cycle"] is True
+        assert result["cycle_interval"] == 10
+
+    @pytest.mark.asyncio
+    async def test_set_entity_order(self, hass_with_store, mock_connection, mock_store):
+        """Should update entity_order."""
+        await ws_set_camera_carousel_config(
+            hass_with_store, mock_connection,
+            {"id": 142, "type": "glass_cards/set_camera_carousel_config", "entity_order": ["camera.front", "camera.back"]},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_order"] == ["camera.front", "camera.back"]
+
+
+class TestSetSpotifyConfig:
+    """Tests for ws_set_spotify_config."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_spotify_config(
+            hass_with_store, mock_connection,
+            {"id": 150, "type": "glass_cards/set_spotify_config", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """Should update entity_id."""
+        await ws_set_spotify_config(
+            hass_with_store, mock_connection,
+            {"id": 151, "type": "glass_cards/set_spotify_config", "entity_id": "media_player.spotify"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_id"] == "media_player.spotify"
+
+    @pytest.mark.asyncio
+    async def test_set_visible_speakers(self, hass_with_store, mock_connection, mock_store):
+        """Should update visible_speakers with deduplication."""
+        await ws_set_spotify_config(
+            hass_with_store, mock_connection,
+            {
+                "id": 152, "type": "glass_cards/set_spotify_config",
+                "visible_speakers": ["media_player.sonos", "media_player.echo", "media_player.sonos"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["visible_speakers"] == ["media_player.sonos", "media_player.echo"]

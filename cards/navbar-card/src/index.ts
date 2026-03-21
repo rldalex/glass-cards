@@ -8,7 +8,7 @@ import {
   type HomeAssistant,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -142,39 +142,42 @@ export class GlassNavbarCard extends BaseCard {
     return document.createElement('glass-navbar-card-editor');
   }
 
+  static getStubConfig() {
+    return { type: 'custom:glass-navbar-card' };
+  }
+
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     bounceMixin,
     css`
       :host {
-        display: block;
         width: 100%;
-        max-width: 500px;
+        max-width: 31.25rem;
         margin: 0 auto;
-        padding: 6px 0 80px; /* top + space for fixed navbar */
-        box-sizing: border-box;
+        padding: 0.375rem 0 5rem; /* top + space for fixed navbar */
       }
 
       .dashboard-cards {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 0 12px 45px;
+        gap: 0.75rem;
+        padding: 0 0.75rem 2.8125rem;
       }
 
       .navbar {
         position: fixed;
-        bottom: 16px;
+        bottom: 1rem;
         left: 50%;
         transform: translateX(-50%);
-        max-width: 500px;
-        width: calc(100vw - 32px);
-        height: 58px;
-        border-radius: 20px;
+        max-width: 31.25rem;
+        width: calc(100vw - 2rem);
+        height: 3.625rem;
+        border-radius: var(--radius-xl);
         display: flex;
         align-items: center;
-        padding: 0 6px;
+        padding: 0 0.375rem;
         box-sizing: border-box;
         z-index: 9997;
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -183,38 +186,38 @@ export class GlassNavbarCard extends BaseCard {
       .nav-scroll {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 0.25rem;
         overflow-x: auto;
         scrollbar-width: none;
         flex: 1;
-        padding-block: 8px;
+        padding-block: 0.5rem;
       }
       .nav-scroll::before,
       .nav-scroll::after {
         content: '';
-        flex: 1 0 8px;
+        flex: 1 0 0.5rem;
       }
       .nav-scroll::-webkit-scrollbar {
         display: none;
       }
 
       /* Adaptive inactive icon color based on background luminance */
-      .navbar { --nav-inactive: rgba(255,255,255,0.45); }
-      .navbar.bg-light { --nav-inactive: rgba(0,0,0,0.45); }
+      .navbar { --nav-inactive: rgba(var(--rgb-white),0.45); }
+      .navbar.bg-light { --nav-inactive: rgba(var(--rgb-black),0.45); }
 
       .nav-item {
         background: transparent;
         border: none;
-        border-radius: 14px;
-        min-width: 42px;
-        height: 42px;
+        border-radius: var(--radius-lg);
+        min-width: 2.625rem;
+        height: 2.625rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0 10px;
+        padding: 0 0.625rem;
         cursor: pointer;
         position: relative;
-        color: rgba(255,255,255,0.45);
+        color: rgba(var(--rgb-white),0.45);
         font-family: inherit;
         outline: none;
         flex-shrink: 0;
@@ -223,29 +226,29 @@ export class GlassNavbarCard extends BaseCard {
           color 0.6s ease;
       }
       .navbar.bg-light .nav-item {
-        color: rgba(0,0,0,0.45);
+        color: rgba(var(--rgb-black),0.45);
       }
       @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
           background: var(--s2);
         }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .nav-item:active {
           animation: bounce 0.3s ease;
         }
       }
       .nav-item.active {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(var(--rgb-white), 0.1);
         color: var(--t1);
       }
       .navbar.bg-light .nav-item.active {
-        background: rgba(0, 0, 0, 0.08);
-        color: rgba(0, 0, 0, 0.85);
+        background: rgba(var(--rgb-black), 0.08);
+        color: rgba(var(--rgb-black), 0.85);
       }
 
       .nav-item ha-icon {
-        --mdc-icon-size: 22px;
+        --mdc-icon-size: 1.375rem;
         flex-shrink: 0;
         transition: color 0.6s ease;
         display: flex; align-items: center; justify-content: center;
@@ -254,16 +257,16 @@ export class GlassNavbarCard extends BaseCard {
       /* 1. Pulse-light: oscillating glow on lights-on icons */
       .nav-item.has-light .nav-content > ha-icon {
         color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6));
         animation: pulse-light 3s ease-in-out infinite;
       }
       @keyframes pulse-light {
         0%,
         100% {
-          filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+          filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6));
         }
         50% {
-          filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.2));
+          filter: drop-shadow(0 0 2px rgba(var(--rgb-light-glow), 0.2));
         }
       }
 
@@ -274,21 +277,21 @@ export class GlassNavbarCard extends BaseCard {
         flex-shrink: 0;
       }
       .nav-item.active .nav-content {
-        gap: 6px;
+        gap: 0.375rem;
       }
 
       /* 2. Humidity bar centered on nav-content (icon + label, excludes badge) */
       .humidity-bar {
         position: absolute;
-        bottom: -6px;
+        bottom: -0.375rem;
         left: 50%;
         transform: translateX(-50%);
-        width: 14px;
-        height: 3px;
+        width: 0.875rem;
+        height: 0.1875rem;
         border-radius: 2px;
         background: var(--c-temp-cold);
         opacity: 0.8;
-        box-shadow: 0 0 6px rgba(96, 165, 250, 0.4);
+        box-shadow: 0 0 6px rgba(var(--rgb-info), 0.4);
       }
 
       /* 3. Music icon bounce */
@@ -321,10 +324,10 @@ export class GlassNavbarCard extends BaseCard {
       /* 4. Temp badges (hot/cold) */
       .nav-temp-badge {
         position: absolute;
-        top: 2px;
-        right: 4px;
-        width: 14px;
-        height: 14px;
+        top: 0.125rem;
+        right: 0.25rem;
+        width: 0.875rem;
+        height: 0.875rem;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -334,18 +337,18 @@ export class GlassNavbarCard extends BaseCard {
         transition: opacity var(--t-fast);
       }
       .nav-temp-badge ha-icon {
-        --mdc-icon-size: 10px;
+        --mdc-icon-size: 0.625rem;
       }
       .nav-item.has-temp-hot .nav-temp-badge {
         opacity: 1;
         color: var(--c-temp-hot);
-        filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.6));
+        filter: drop-shadow(0 0 4px rgba(var(--rgb-alert), 0.6));
         animation: pulse-temp-hot 2s infinite ease-in-out;
       }
       .nav-item.has-temp-cold .nav-temp-badge {
         opacity: 1;
         color: var(--c-temp-cold);
-        filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+        filter: drop-shadow(0 0 4px rgba(var(--rgb-info), 0.6));
         animation: pulse-temp-cold 2s infinite ease-in-out;
       }
       @keyframes pulse-temp-hot {
@@ -356,7 +359,7 @@ export class GlassNavbarCard extends BaseCard {
         }
         50% {
           transform: scale(1.15);
-          filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.6));
+          filter: drop-shadow(0 0 6px rgba(var(--rgb-alert), 0.6));
         }
       }
       @keyframes pulse-temp-cold {
@@ -367,32 +370,32 @@ export class GlassNavbarCard extends BaseCard {
         }
         50% {
           transform: scale(1.15);
-          filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.6));
+          filter: drop-shadow(0 0 6px rgba(var(--rgb-info), 0.6));
         }
       }
 
       /* 5. Dynamic scroll masking */
       .nav-scroll.mask-right {
-        -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
-        mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 1.25rem), transparent 100%);
+        mask-image: linear-gradient(to right, black calc(100% - 1.25rem), transparent 100%);
       }
       .nav-scroll.mask-left {
-        -webkit-mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
-        mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to left, black calc(100% - 1.25rem), transparent 100%);
+        mask-image: linear-gradient(to left, black calc(100% - 1.25rem), transparent 100%);
       }
       .nav-scroll.mask-both {
         -webkit-mask-image: linear-gradient(
           to right,
           transparent 0%,
-          black 20px,
-          black calc(100% - 20px),
+          black 1.25rem,
+          black calc(100% - 1.25rem),
           transparent 100%
         );
         mask-image: linear-gradient(
           to right,
           transparent 0%,
-          black 20px,
-          black calc(100% - 20px),
+          black 1.25rem,
+          black calc(100% - 1.25rem),
           transparent 100%
         );
       }
@@ -407,7 +410,7 @@ export class GlassNavbarCard extends BaseCard {
         grid-template-columns: 1fr;
       }
       .nav-label {
-        font-size: 11px;
+        font-size: var(--fz-base);
         font-weight: 600;
         white-space: nowrap;
         min-width: 0;
@@ -429,14 +432,14 @@ export class GlassNavbarCard extends BaseCard {
         margin-left: auto;
       }
       .nav-settings ha-icon {
-        --mdc-icon-size: 20px;
-        color: rgba(255,255,255,0.45);
+        --mdc-icon-size: 1.25rem;
+        color: rgba(var(--rgb-white),0.45);
         opacity: 0.65;
         transition: color 0.6s ease, opacity var(--t-fast);
         display: flex; align-items: center; justify-content: center;
       }
       .navbar.bg-light .nav-settings ha-icon {
-        color: rgba(0,0,0,0.45);
+        color: rgba(var(--rgb-black),0.45);
       }
       @media (hover: hover) and (pointer: fine) {
         .nav-settings:hover ha-icon {
@@ -446,7 +449,7 @@ export class GlassNavbarCard extends BaseCard {
           color: var(--t1);
         }
       }
-      @media (hover: none) {
+      @media (pointer: coarse) {
         .nav-settings:active {
           animation: bounce 0.3s ease;
         }
@@ -1209,29 +1212,36 @@ export class GlassNavbarCard extends BaseCard {
 
   render() {
     void this._lang;
-    // Always render the dashboard-cards container — it holds imperatively managed children
-    // that would be destroyed if render() returned nothing
-    const showNavbar = !this._editMode && this._items.length > 0;
-    const scrollClass = `nav-scroll${this._scrollMask !== 'none' ? ` ${this._scrollMask}` : ''}`;
-    return html`
-      <div class="dashboard-cards"></div>
-      ${showNavbar
-        ? html`<nav class="navbar glass glass-float${this._bgIsLight ? ' bg-light' : ''}">
-            <div class=${scrollClass}>
-              ${this._items.map((item) => this._renderNavItem(item))}
-              <button
-                class="nav-item nav-settings"
-                @click=${() => { history.pushState(null, '', '/glass-cards'); window.dispatchEvent(new Event('location-changed')); }}
-                aria-label=${t('config.title')}
-              >
-                <span class="nav-content">
-                  <ha-icon .icon=${'mdi:cog'}></ha-icon>
-                </span>
-              </button>
-            </div>
-          </nav>`
-        : nothing}
-    `;
+    try {
+      // Always render the dashboard-cards container — it holds imperatively managed children
+      // that would be destroyed if render() returned nothing
+      const showNavbar = !this._editMode && this._items.length > 0;
+      const scrollClass = `nav-scroll${this._scrollMask !== 'none' ? ` ${this._scrollMask}` : ''}`;
+      return html`
+        <div class="dashboard-cards"></div>
+        ${showNavbar
+          ? html`<nav class="navbar glass glass-float${this._bgIsLight ? ' bg-light' : ''}" role="navigation" aria-label="${t('common.rooms')}">
+              <div class=${scrollClass}>
+                ${this._items.map((item) => this._renderNavItem(item))}
+                <button
+                  class="nav-item nav-settings"
+                  @click=${() => { history.pushState(null, '', '/glass-cards'); window.dispatchEvent(new Event('location-changed')); }}
+                  aria-label=${t('config.title')}
+                >
+                  <span class="nav-content">
+                    <ha-icon .icon=${'mdi:cog'}></ha-icon>
+                  </span>
+                </button>
+              </div>
+            </nav>`
+          : nothing}
+      `;
+    } catch (e) {
+      console.error('[glass-navbar-card] render error:', e);
+      return html`<div class="dashboard-cards"></div><div class="glass" style="padding:16px;text-align:center;color:var(--c-alert);font-size:11px;">
+        <ha-icon .icon=${'mdi:alert-circle-outline'} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"></ha-icon>
+        Navbar render error</div>`;
+    }
   }
 }
 

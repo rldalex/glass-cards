@@ -1,7 +1,8 @@
 import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL } from '@glass-cards/ui-core';
+import './editor';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -107,6 +108,14 @@ function safeNum(v: unknown): number | null {
 /* ── Card ── */
 
 export class GlassPresenceCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-presence-card-editor');
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
   @state() private _presenceConfig: PresenceBackendConfig = {
     show_header: true,
     person_entities: [],
@@ -397,9 +406,10 @@ export class GlassPresenceCard extends BaseCard {
 
   private _renderPerson(p: PersonData, isRight: boolean, colorIdx = 0): TemplateResult {
     const colors = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
+    const unavailable = isEntityUnavailable(p.state);
 
     return html`
-      <div class="person-block ${isRight ? 'right' : ''}">
+      <div class="person-block ${isRight ? 'right' : ''} ${unavailable ? 'entity-unavailable' : ''}">
         <button
           class="avatar-wrapper"
           aria-label=${t('presence.avatar_aria', { name: p.name })}
@@ -435,6 +445,7 @@ export class GlassPresenceCard extends BaseCard {
             </div>
           </div>
         </div>
+        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -589,43 +600,43 @@ export class GlassPresenceCard extends BaseCard {
 
   static styles: CSSResult[] = [
     glassTokens,
+    hostMixin,
     glassMixin,
     foldMixin,
     marqueeMixin,
+    unavailableMixin,
     css`
       :host {
-        display: block;
         width: 100%;
-        max-width: 500px;
+        max-width: 31.25rem;
         margin: 0 auto;
-        font-family: 'Plus Jakarta Sans', sans-serif;
       }
 
       /* ── Header ── */
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
-        width: 100%; padding: 0 6px; min-height: 22px; margin-bottom: 6px;
+        width: 100%; padding: 0 0.375rem; min-height: 1.375rem; margin-bottom: 0.375rem;
         box-sizing: border-box;
       }
-      .card-header-left { display: flex; align-items: center; gap: 8px; }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
       .card-title {
-        font-size: 9px; font-weight: 700;
+        font-size: var(--fz-xs); font-weight: 700;
         text-transform: uppercase; letter-spacing: 1.5px;
         color: var(--t4);
       }
       .card-count {
         display: inline-flex; align-items: center; justify-content: center;
-        min-width: 14px; height: 14px; padding: 0 4px;
+        min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
         border-radius: var(--radius-full);
-        font-size: 9px; font-weight: 600;
+        font-size: var(--fz-xs); font-weight: 600;
         transition: all var(--t-med);
       }
-      .card-count.all-home { background: rgba(74,222,128,0.15); color: var(--c-success); }
-      .card-count.all-away { background: rgba(248,113,113,0.15); color: var(--c-alert); }
-      .card-count.mixed { background: rgba(251,191,36,0.15); color: var(--c-warning); }
+      .card-count.all-home { background: rgba(var(--rgb-success),0.15); color: var(--c-success); }
+      .card-count.all-away { background: rgba(var(--rgb-alert),0.15); color: var(--c-alert); }
+      .card-count.mixed { background: rgba(var(--rgb-warning),0.15); color: var(--c-warning); }
 
       /* ── Presence card ── */
-      .presence-card { padding: 7px 14px; width: 100%; box-sizing: border-box; }
+      .presence-card { padding: 0.4375rem 0.875rem; width: 100%; box-sizing: border-box; }
 
       .card-tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -642,7 +653,7 @@ export class GlassPresenceCard extends BaseCard {
         opacity: 0.09;
       }
       .presence-card[data-presence="mixed"] .card-tint {
-        background: linear-gradient(to right, rgba(74,222,128,0.15), transparent 40%, transparent 60%, rgba(248,113,113,0.15));
+        background: linear-gradient(to right, rgba(var(--rgb-success),0.15), transparent 40%, transparent 60%, rgba(var(--rgb-alert),0.15));
         opacity: 0.5;
       }
 
@@ -652,13 +663,13 @@ export class GlassPresenceCard extends BaseCard {
       }
 
       /* Solo: person left, chips right */
-      .card-inner.solo-layout { justify-content: space-between; gap: 8px; }
+      .card-inner.solo-layout { justify-content: space-between; gap: 0.5rem; }
 
       /* Family: stacked pair rows */
       .card-inner.family-layout { flex-direction: column; gap: 0; }
       .family-row { display: flex; align-items: center; width: 100%; }
       .family-sep {
-        height: 1px; margin: 8px 12px;
+        height: 0.0625rem; margin: 0.5rem 0.75rem;
         background: linear-gradient(90deg, transparent, var(--b2), transparent);
       }
       .family-row.solo-row { justify-content: center; }
@@ -666,7 +677,7 @@ export class GlassPresenceCard extends BaseCard {
 
       /* ── Person block ── */
       .person-block {
-        display: flex; align-items: center; gap: 10px;
+        display: flex; align-items: center; gap: 0.625rem;
         flex: 1; min-width: 0;
       }
       .person-block.right { flex-direction: row-reverse; text-align: right; }
@@ -679,83 +690,83 @@ export class GlassPresenceCard extends BaseCard {
       }
       .avatar-wrapper:not(:focus-visible) { outline: none; }
       .avatar-wrapper:active { transform: scale(0.96); }
-      .avatar-wrapper:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+      .avatar-wrapper:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
       .avatar {
-        width: 38px; height: 38px; border-radius: 50%;
+        width: 2.375rem; height: 2.375rem; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         transition: border-color var(--t-med);
         object-fit: cover;
       }
-      .avatar-fallback { border: 2px solid rgba(255,255,255,0.1); }
+      .avatar-fallback { border: 2px solid rgba(var(--rgb-white),0.1); }
       img.avatar { display: block; }
       .avatar-fallback ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 22px; color: rgba(255,255,255,0.85);
+        --mdc-icon-size: 1.375rem; color: rgba(var(--rgb-white),0.85);
       }
 
-      @media (hover: hover) {
-        .avatar-wrapper:hover .avatar { border-color: rgba(255,255,255,0.3); }
+      @media (hover: hover) and (pointer: fine) {
+        .avatar-wrapper:hover .avatar { border-color: rgba(var(--rgb-white),0.3); }
       }
 
       .avatar-status {
-        position: absolute; bottom: -1px; right: -1px;
-        width: 12px; height: 12px; border-radius: 50%;
+        position: absolute; bottom: -0.0625rem; right: -0.0625rem;
+        width: 0.75rem; height: 0.75rem; border-radius: 50%;
         border: 2px solid rgba(15,25,35,0.9);
         transition: background var(--t-med), box-shadow var(--t-med);
       }
-      .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
-      .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(248,113,113,0.5); }
-      .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+      .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(var(--rgb-success),0.5); }
+      .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5); }
+      .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(var(--rgb-info),0.5); }
 
       .person-info { min-width: 0; flex: 1; }
-      .person-name { font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2; }
+      .person-name { font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2; }
       .person-block.right .person-name { text-align: right; }
 
-      .person-sub { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+      .person-sub { display: flex; flex-direction: column; gap: 0.125rem; margin-top: 0.125rem; }
       .person-block.right .person-sub { align-items: flex-end; }
 
-      .person-line { display: flex; align-items: center; gap: 4px; min-width: 0; }
+      .person-line { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
       .person-block.right .person-line { flex-direction: row-reverse; }
 
       .person-location {
-        font-size: 10px; font-weight: 500; color: var(--t3);
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
         white-space: nowrap; overflow: hidden; min-width: 0;
       }
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
       .source-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 10px; color: var(--t4);
+        --mdc-icon-size: 0.625rem; color: var(--t4);
       }
 
       .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
       .driving-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 12px; color: var(--c-info); opacity: 0.7;
+        --mdc-icon-size: 0.75rem; color: var(--c-info); opacity: 0.7;
       }
 
       /* ── Distance ── */
       .distance-center { flex-shrink: 0; display: flex; align-items: center; padding: 0; gap: 0; }
       .distance-line {
-        width: 20px; height: 1px;
+        width: 1.25rem; height: 0.0625rem;
         background: linear-gradient(to right, var(--b1), var(--b3));
       }
       .distance-line.right { background: linear-gradient(to right, var(--b3), var(--b1)); }
       .distance-info {
         display: flex; flex-direction: column; align-items: center;
-        gap: 1px; padding: 0 4px;
+        gap: 0.0625rem; padding: 0 0.25rem;
       }
-      .distance-value { font-size: 14px; font-weight: 700; color: var(--t2); white-space: nowrap; line-height: 1; }
-      .distance-unit { font-size: 9px; font-weight: 400; color: var(--t4); text-align: center; line-height: 1; }
+      .distance-value { font-size: var(--fz-lg); font-weight: 700; color: var(--t2); white-space: nowrap; line-height: 1; }
+      .distance-unit { font-size: var(--fz-xs); font-weight: 400; color: var(--t4); text-align: center; line-height: 1; }
 
       .heart-pulse {
-        display: none; color: #f472b6; line-height: 1; padding: 0 4px;
+        display: none; color: #f472b6; line-height: 1; padding: 0 0.25rem;
         filter: drop-shadow(0 0 4px rgba(244,114,182,0.35));
         animation: pulse-beat 2.5s ease-in-out infinite;
       }
       .heart-pulse ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 18px;
+        --mdc-icon-size: 1.125rem;
       }
       .distance-center.near .heart-pulse { display: flex; align-items: center; }
       .distance-center.near .distance-info { display: none; }
@@ -765,33 +776,33 @@ export class GlassPresenceCard extends BaseCard {
       }
 
       /* ── Solo health chips ── */
-      .solo-health-chips { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+      .solo-health-chips { display: flex; align-items: center; gap: 0.3125rem; flex-shrink: 0; }
       .solo-chip {
-        display: flex; align-items: center; gap: 3px;
-        padding: 4px 8px; border-radius: var(--radius-full);
+        display: flex; align-items: center; gap: 0.1875rem;
+        padding: 0.25rem 0.5rem; border-radius: var(--radius-full);
         background: var(--s2); border: 1px solid var(--b1);
         white-space: nowrap; line-height: 1;
       }
       .solo-chip ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 12px;
+        --mdc-icon-size: 0.75rem;
       }
-      .solo-chip-val { font-size: 11px; font-weight: 600; }
+      .solo-chip-val { font-size: var(--fz-base); font-weight: 600; }
       .solo-chip.bpm ha-icon, .solo-chip.bpm .solo-chip-val { color: var(--c-alert); opacity: 0.8; }
       .solo-chip.spo2 ha-icon, .solo-chip.spo2 .solo-chip-val { color: var(--c-info); opacity: 0.8; }
       .solo-chip.steps ha-icon, .solo-chip.steps .solo-chip-val { color: var(--c-success); opacity: 0.8; }
 
       /* ── Fold ── */
       .fold-sep {
-        height: 1px; margin: 8px 12px 0;
-        background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
+        height: 0.0625rem; margin: 0.5rem 0.75rem 0;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple),0.25), transparent);
         opacity: 0; transition: opacity 0.25s var(--ease-std);
       }
-      .fold-sep.home { background: linear-gradient(90deg, transparent, rgba(74,222,128,0.3), transparent); }
-      .fold-sep.mixed { background: linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent); }
-      .fold-sep.away { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.3), transparent); }
+      .fold-sep.home { background: linear-gradient(90deg, transparent, rgba(var(--rgb-success),0.3), transparent); }
+      .fold-sep.mixed { background: linear-gradient(90deg, transparent, rgba(var(--rgb-info),0.3), transparent); }
+      .fold-sep.away { background: linear-gradient(90deg, transparent, rgba(var(--rgb-alert),0.3), transparent); }
       .fold-sep.visible { opacity: 1; }
-      .fold-sep.bottom { margin: 0 12px 4px; }
+      .fold-sep.bottom { margin: 0 0.75rem 0.25rem; }
 
       .ctrl-fold {
         display: grid; grid-template-rows: 0fr;
@@ -802,67 +813,67 @@ export class GlassPresenceCard extends BaseCard {
       .ctrl-fold-inner { overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease-std); }
       .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
-      .fold-content { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+      .fold-content { display: flex; flex-direction: column; gap: 0.375rem; padding-top: 0.5rem; }
 
       /* ── Health zone ── */
       .health-zone-label {
-        font-size: 10px; font-weight: 500; color: var(--t4);
-        display: flex; align-items: center; gap: 5px;
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+        display: flex; align-items: center; gap: 0.3125rem;
       }
       .health-zone-name { color: var(--t3); font-weight: 600; }
 
       .health-address-row {
-        display: flex; align-items: center; gap: 5px;
-        padding: 5px 8px; border-radius: var(--radius-sm);
+        display: flex; align-items: center; gap: 0.3125rem;
+        padding: 0.3125rem 0.5rem; border-radius: var(--radius-sm);
         background: var(--s1); border: 1px solid var(--b1);
       }
       .health-address-row > ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 12px; color: var(--t4); flex-shrink: 0;
+        --mdc-icon-size: 0.75rem; color: var(--t4); flex-shrink: 0;
       }
       .address-text {
-        font-size: 10px; font-weight: 400; color: var(--t3);
+        font-size: var(--fz-sm); font-weight: 400; color: var(--t3);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         flex: 1; min-width: 0;
       }
       .fold-battery {
-        display: flex; align-items: center; gap: 3px;
-        font-size: 10px; font-weight: 500; flex-shrink: 0; margin-left: auto;
+        display: flex; align-items: center; gap: 0.1875rem;
+        font-size: var(--fz-sm); font-weight: 500; flex-shrink: 0; margin-left: auto;
       }
       .fold-battery.high { color: var(--c-success); }
       .fold-battery.medium { color: var(--c-warning); }
       .fold-battery.low { color: var(--c-alert); }
       .fold-battery ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px; color: inherit;
+        --mdc-icon-size: 0.875rem; color: inherit;
       }
       .fold-meta {
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; gap: 0.375rem;
         margin-left: auto; flex-shrink: 0;
       }
       .fold-last-seen {
-        font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap;
+        font-size: var(--fz-sm); font-weight: 400; color: var(--t4); white-space: nowrap;
       }
 
-      .health-pills { display: flex; gap: 6px; }
+      .health-pills { display: flex; gap: 0.375rem; }
       .health-pill {
-        flex: 1; display: flex; align-items: center; gap: 6px;
-        padding: 6px 10px; border-radius: var(--radius-md);
+        flex: 1; display: flex; align-items: center; gap: 0.375rem;
+        padding: 0.375rem 0.625rem; border-radius: var(--radius-md);
         background: var(--s1); border: 1px solid var(--b1);
         transition: background var(--t-fast), border-color var(--t-fast);
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         .health-pill:hover { background: var(--s3); border-color: var(--b2); }
       }
       .health-pill-icon { flex-shrink: 0; display: flex; align-items: center; }
       .health-pill-icon ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 14px;
+        --mdc-icon-size: 0.875rem;
       }
       .health-pill-data { display: flex; flex-direction: column; min-width: 0; }
-      .health-pill-value { font-size: 13px; font-weight: 700; line-height: 1.1; color: var(--t1); }
+      .health-pill-value { font-size: var(--fz-md); font-weight: 700; line-height: 1.1; color: var(--t1); }
       .health-pill-label {
-        font-size: 8px; font-weight: 500; text-transform: uppercase;
+        font-size: var(--fz-xxs); font-weight: 500; text-transform: uppercase;
         letter-spacing: 0.8px; color: var(--t4); line-height: 1.2;
       }
 
@@ -874,28 +885,28 @@ export class GlassPresenceCard extends BaseCard {
       .health-pill.steps .health-pill-value { color: var(--c-success); opacity: 0.85; }
 
       /* ── Notification zone ── */
-      .notif-zone { padding: 8px 0 4px; display: flex; gap: 8px; flex-direction: column; }
+      .notif-zone { padding: 0.5rem 0 0.25rem; display: flex; gap: 0.5rem; flex-direction: column; }
       .notif-to {
-        font-size: 10px; font-weight: 500; color: var(--t4);
-        display: flex; align-items: center; gap: 5px;
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+        display: flex; align-items: center; gap: 0.3125rem;
       }
       .notif-to-name { color: var(--t2); font-weight: 600; }
 
-      .notif-row { display: flex; gap: 8px; align-items: flex-end; }
+      .notif-row { display: flex; gap: 0.5rem; align-items: flex-end; }
       .notif-input {
-        flex: 1; padding: 8px 12px; border-radius: 12px;
+        flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
         border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: 12px;
-        outline: none; resize: none; height: 36px; box-sizing: border-box;
+        color: var(--t1); font-family: inherit; font-size: var(--fz-base);
+        outline: none; resize: none; height: 2.25rem; box-sizing: border-box;
         transition: border-color var(--t-fast);
       }
       .notif-input::placeholder { color: var(--t4); }
       .notif-input:focus { border-color: var(--b3); }
 
       .notif-send {
-        width: 36px; height: 36px; border-radius: var(--radius-lg);
-        border: 1px solid rgba(74,222,128,0.2);
-        background: rgba(74,222,128,0.1); color: var(--c-success);
+        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-lg);
+        border: 1px solid rgba(var(--rgb-success),0.2);
+        background: rgba(var(--rgb-success),0.1); color: var(--c-success);
         cursor: pointer; display: flex; align-items: center; justify-content: center;
         flex-shrink: 0; transition: background var(--t-fast), border-color var(--t-fast);
         padding: 0; outline: none; font-size: 0;
@@ -903,12 +914,12 @@ export class GlassPresenceCard extends BaseCard {
       }
       .notif-send ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 16px;
+        --mdc-icon-size: 1rem;
       }
-      @media (hover: hover) {
-        .notif-send:hover { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); }
+      @media (hover: hover) and (pointer: fine) {
+        .notif-send:hover { background: rgba(var(--rgb-success),0.2); border-color: rgba(var(--rgb-success),0.3); }
       }
-      .notif-send:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+      .notif-send:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
       .notif-send:active { transform: scale(0.96); }
     `,
   ];

@@ -18,21 +18,41 @@ export const glassTokens: CSSResult = css`
     --radius-lg: 14px;
     --radius-md: 10px;
     --radius-sm: 8px;
+    --radius-xs: 6px;
     --radius-full: 9999px;
 
-    --t1: rgba(255, 255, 255, 0.88);
-    --t2: rgba(255, 255, 255, 0.6);
-    --t3: rgba(255, 255, 255, 0.45);
-    --t4: rgba(255, 255, 255, 0.25);
+    --fz-display: 28px;
+    --fz-xl: 22px;
+    --fz-lg: 14px;
+    --fz-md: 13px;
+    --fz-base: 11px;
+    --fz-sm: 10px;
+    --fz-xs: 9px;
+    --fz-xxs: 8px;
 
-    --s1: rgba(255, 255, 255, 0.04);
-    --s2: rgba(255, 255, 255, 0.06);
-    --s3: rgba(255, 255, 255, 0.08);
-    --s4: rgba(255, 255, 255, 0.12);
+    --rgb-white: 255, 255, 255;
+    --rgb-black: 0, 0, 0;
+    --rgb-success: 74, 222, 128;
+    --rgb-alert: 248, 113, 113;
+    --rgb-warning: 251, 191, 36;
+    --rgb-info: 96, 165, 250;
+    --rgb-accent: 129, 140, 248;
+    --rgb-purple: 167, 139, 250;
+    --rgb-light-glow: 251, 191, 36;
 
-    --b1: rgba(255, 255, 255, 0.06);
-    --b2: rgba(255, 255, 255, 0.08);
-    --b3: rgba(255, 255, 255, 0.15);
+    --t1: rgba(var(--rgb-white), 0.88);
+    --t2: rgba(var(--rgb-white), 0.6);
+    --t3: rgba(var(--rgb-white), 0.45);
+    --t4: rgba(var(--rgb-white), 0.25);
+
+    --s1: rgba(var(--rgb-white), 0.04);
+    --s2: rgba(var(--rgb-white), 0.06);
+    --s3: rgba(var(--rgb-white), 0.08);
+    --s4: rgba(var(--rgb-white), 0.12);
+
+    --b1: rgba(var(--rgb-white), 0.06);
+    --b2: rgba(var(--rgb-white), 0.08);
+    --b3: rgba(var(--rgb-white), 0.15);
 
     --c-success: var(--success-color, #4ade80);
     --c-alert: var(--error-color, #f87171);
@@ -43,6 +63,16 @@ export const glassTokens: CSSResult = css`
     --c-light-glow: #fbbf24;
     --c-temp-hot: #f87171;
     --c-temp-cold: #60a5fa;
+  }
+`;
+
+// — Host Mixin —
+
+export const hostMixin: CSSResult = css`
+  :host {
+    display: block;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 `;
 
@@ -433,6 +463,35 @@ export function colorFromWheelEvent(
   const pos = { x: (x * scale) / radius * 50 + 50, y: (y * scale) / radius * 50 + 50 };
   return { rgb, hex, hs: { h: hue, s: sat }, pos };
 }
+
+// — Unavailable Entity Mixin —
+
+export const unavailableMixin: CSSResult = css`
+  .entity-unavailable {
+    opacity: 0.4;
+    pointer-events: none;
+    position: relative;
+  }
+  .entity-unavailable .unavailable-badge {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    --mdc-icon-size: 0.75rem;
+    color: var(--c-warning);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+`;
+
+export function isEntityUnavailable(state: string | undefined): boolean {
+  return !state || state === 'unavailable' || state === 'unknown';
+}
+
+// — Glass Slider Component —
+import './glass-slider';
+export { GlassSlider } from './glass-slider';
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {

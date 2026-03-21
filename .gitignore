@@ -26,6 +26,8 @@ Thumbs.db
 
 # Documentation (kept local only)
 *.md
+!README.md
+!CHANGELOG.md
 templates/
 
 # Python

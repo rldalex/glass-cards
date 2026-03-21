@@ -7,7 +7,8 @@ import {
   type HassEntity,
   type EntityRegistryEntry,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin } from '@glass-cards/ui-core';
+import './editor';
+import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CameraEntityFeature) —
@@ -210,6 +211,14 @@ function cameraIcon(entity: HassEntity): string {
 // ================================================================
 
 class GlassCameraCarouselCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-camera-carousel-card-editor');
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
   @property() areaId?: string;
 
   @state() private _carouselIndex = 0;
@@ -795,38 +804,37 @@ class GlassCameraCarouselCard extends BaseCard {
 
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     marqueeMixin,
     bounceMixin,
     css`
       :host {
-        display: block;
         width: 100%;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        max-width: 500px;
+        max-width: 31.25rem;
         margin: 0 auto;
 
         --cam-color: #60a5fa;
-        --cam-bg: rgba(96,165,250,0.1);
-        --cam-border: rgba(96,165,250,0.15);
-        --cam-glow: rgba(96,165,250,0.4);
-        --cam-sub: rgba(96,165,250,0.6);
+        --cam-bg: rgba(var(--rgb-info),0.1);
+        --cam-border: rgba(var(--rgb-info),0.15);
+        --cam-glow: rgba(var(--rgb-info),0.4);
+        --cam-sub: rgba(var(--rgb-info),0.6);
       }
 
       .card-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+        padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
       }
-      .card-header-left { display: flex; align-items: center; gap: 8px; }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
       .card-title {
-        font-size: 9px; font-weight: 700; text-transform: uppercase;
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 14px; position: relative; box-sizing: border-box; }
+      .carousel-card { width: 100%; padding: 0.875rem; position: relative; box-sizing: border-box; }
       .carousel-inner {
         position: relative; z-index: 1;
-        display: flex; flex-direction: column; gap: 10px;
+        display: flex; flex-direction: column; gap: 0.625rem;
       }
 
       .tint {
@@ -863,8 +871,8 @@ class GlassCameraCarouselCard extends BaseCard {
       }
       .carousel-slide-inner.idle-feed {
         background:
-          radial-gradient(circle at 30% 40%, rgba(96,165,250,0.06) 0%, transparent 50%),
-          radial-gradient(circle at 70% 60%, rgba(129,140,248,0.04) 0%, transparent 50%),
+          radial-gradient(circle at 30% 40%, rgba(var(--rgb-info),0.06) 0%, transparent 50%),
+          radial-gradient(circle at 70% 60%, rgba(var(--rgb-accent),0.04) 0%, transparent 50%),
           linear-gradient(135deg, #0d1520 0%, #0a0f18 100%);
       }
       .carousel-slide-inner.off-feed {
@@ -885,21 +893,21 @@ class GlassCameraCarouselCard extends BaseCard {
       .stream-overlay-top {
         position: absolute; top: 0; left: 0; right: 0; z-index: 2;
         display: flex; align-items: center; justify-content: space-between;
-        padding: 8px 10px;
-        background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+        padding: 0.5rem 0.625rem;
+        background: linear-gradient(180deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
       }
       .stream-cam-name {
-        font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);
-        display: flex; align-items: center; gap: 5px;
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
+        display: flex; align-items: center; gap: 0.3125rem;
       }
       .stream-cam-name ha-icon { display: flex; align-items: center; justify-content: center; }
       .rec-indicator {
-        display: inline-flex; align-items: center; gap: 3px;
-        font-size: 9px; font-weight: 700; color: var(--c-alert);
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        font-size: var(--fz-xs); font-weight: 700; color: var(--c-alert);
         letter-spacing: 0.5px;
       }
       .rec-circle {
-        width: 6px; height: 6px; border-radius: 50%; background: var(--c-alert);
+        width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--c-alert);
         animation: rec-pulse 1.5s ease-in-out infinite;
       }
       @keyframes rec-pulse {
@@ -907,39 +915,40 @@ class GlassCameraCarouselCard extends BaseCard {
         50% { opacity: 0.4; box-shadow: 0 0 0px var(--c-alert); }
       }
       .stream-time {
-        font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.5);
+        font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-white),0.5);
         font-variant-numeric: tabular-nums;
       }
       .stream-overlay-bottom {
         position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
         display: flex; align-items: center; justify-content: space-between;
-        padding: 8px 10px;
-        background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+        padding: 0.5rem 0.625rem;
+        background: linear-gradient(0deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
       }
-      .stream-ai-tags { display: flex; gap: 4px; }
+      .stream-ai-tags { display: flex; gap: 0.25rem; }
       .stream-ai-tag {
-        display: inline-flex; align-items: center; gap: 3px;
-        padding: 2px 6px; border-radius: var(--radius-sm);
-        font-size: 9px; font-weight: 600;
-        background: rgba(96,165,250,0.15); color: var(--cam-color);
-        border: 1px solid rgba(96,165,250,0.2);
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        padding: 0.125rem 0.375rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-xs); font-weight: 600;
+        background: rgba(var(--rgb-info),0.15); color: var(--cam-color);
+        border: 1px solid rgba(var(--rgb-info),0.2);
       }
       .stream-ai-tag ha-icon { display: flex; align-items: center; justify-content: center; }
       .stream-placeholder {
-        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
         z-index: 3; background: none; border: none; padding: 0; cursor: pointer;
         outline: none; -webkit-tap-highlight-color: transparent;
         font-family: inherit;
       }
-      .stream-placeholder:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 4px; border-radius: var(--radius-md); }
-      .stream-placeholder span { font-size: 10px; color: var(--t4); font-weight: 500; }
+      .stream-placeholder:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 4px; border-radius: var(--radius-md); }
+      .stream-placeholder span { font-size: var(--fz-sm); color: var(--t4); font-weight: 500; }
       button.stream-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; justify-content: center; }
 
       /* — Nav arrows — */
       .carousel-nav {
         position: absolute; top: 50%; transform: translateY(-50%);
-        width: 32px; height: 32px; border-radius: 50%;
-        background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+        width: 2rem; height: 2rem; border-radius: 50%;
+        background: rgba(var(--rgb-black),0.4); border: 1px solid rgba(var(--rgb-white),0.1);
+        -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; padding: 0; outline: none;
@@ -948,42 +957,42 @@ class GlassCameraCarouselCard extends BaseCard {
         z-index: 5; opacity: 0.7;
       }
       .carousel-nav ha-icon {
-        --mdc-icon-size: 18px; color: rgba(255,255,255,0.8);
+        --mdc-icon-size: 1.125rem; color: rgba(var(--rgb-white),0.8);
         display: flex; align-items: center; justify-content: center;
       }
-      .carousel-nav:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: -2px; }
+      .carousel-nav:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: -2px; }
       .carousel-nav:active { transform: translateY(-50%) scale(0.92); }
-      .carousel-nav.prev { left: 8px; }
-      .carousel-nav.next { right: 8px; }
+      .carousel-nav.prev { left: 0.5rem; }
+      .carousel-nav.next { right: 0.5rem; }
 
       @media (hover: hover) and (pointer: fine) {
-        .carousel-nav:hover { background: rgba(0,0,0,0.6); opacity: 1; }
+        .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
       }
 
       /* — Dots — */
       .carousel-dots {
-        display: flex; align-items: center; justify-content: center; gap: 6px;
+        display: flex; align-items: center; justify-content: center; gap: 0.375rem;
       }
       .carousel-dot-btn {
-        width: 8px; height: 8px; border-radius: 50%; padding: 0;
+        width: 0.5rem; height: 0.5rem; border-radius: 50%; padding: 0;
         border: none; background: var(--t4); cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4,0,0.2,1); outline: none;
         -webkit-tap-highlight-color: transparent;
       }
-      .carousel-dot-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 2px; }
+      .carousel-dot-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 2px; }
       .carousel-dot-btn.active {
-        width: 20px; border-radius: 4px;
+        width: 1.25rem; border-radius: 4px;
         background: var(--cam-color); box-shadow: 0 0 8px var(--cam-glow);
       }
       .carousel-dot-btn.recording {
-        background: var(--c-alert); box-shadow: 0 0 6px rgba(248,113,113,0.5);
+        background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5);
       }
       .carousel-dot-btn.recording.active {
         background: var(--c-alert);
         animation: rec-pulse 1.5s ease-in-out infinite;
       }
       .carousel-dot-btn.motion-dot {
-        background: var(--c-warning); box-shadow: 0 0 6px rgba(251,191,36,0.4);
+        background: var(--c-warning); box-shadow: 0 0 6px rgba(var(--rgb-warning),0.4);
       }
 
       @media (hover: hover) and (pointer: fine) {
@@ -992,10 +1001,10 @@ class GlassCameraCarouselCard extends BaseCard {
 
       /* — Info bar — */
       .carousel-info {
-        display: flex; align-items: center; gap: 10px; padding: 0 2px;
+        display: flex; align-items: center; gap: 0.625rem; padding: 0 0.125rem;
       }
       .carousel-cam-icon {
-        width: 32px; height: 32px; border-radius: var(--radius-md);
+        width: 2rem; height: 2rem; border-radius: var(--radius-md);
         background: var(--s2); border: 1px solid var(--b1);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
@@ -1007,42 +1016,42 @@ class GlassCameraCarouselCard extends BaseCard {
       .carousel-cam-icon.on ha-icon { color: var(--cam-color); }
       .carousel-info-text { flex: 1; min-width: 0; }
       .carousel-cam-name {
-        font-size: 13px; font-weight: 600; color: var(--t1);
+        font-size: var(--fz-md); font-weight: 600; color: var(--t1);
         overflow: hidden; white-space: nowrap;
       }
       .carousel-cam-sub {
-        display: flex; align-items: center; gap: 5px; margin-top: 1px;
+        display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.0625rem;
       }
-      .carousel-state { font-size: 10px; font-weight: 500; color: var(--t3); }
+      .carousel-state { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
       .carousel-state.live { color: var(--cam-sub); }
-      .carousel-ai-mini { display: flex; gap: 2px; align-items: center; }
+      .carousel-ai-mini { display: flex; gap: 0.125rem; align-items: center; }
       .ai-badge {
         display: inline-flex; align-items: center; justify-content: center;
-        width: 16px; height: 16px; border-radius: var(--radius-sm);
-        font-size: 10px; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        width: 1rem; height: 1rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-sm); transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
       }
-      .ai-badge.active { background: rgba(96,165,250,0.12); color: var(--cam-color); }
+      .ai-badge.active { background: rgba(var(--rgb-info),0.12); color: var(--cam-color); }
       .ai-badge ha-icon {
         display: flex; align-items: center; justify-content: center;
         filter: drop-shadow(0 0 4px var(--cam-glow));
       }
 
       /* — Quick actions — */
-      .carousel-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .carousel-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; }
       .action-btn {
-        display: inline-flex; align-items: center; gap: 5px;
-        padding: 6px 12px; border-radius: var(--radius-md);
+        display: inline-flex; align-items: center; gap: 0.3125rem;
+        padding: 0.375rem 0.75rem; border-radius: var(--radius-md);
         border: 1px solid var(--b2); background: var(--s1);
-        font-family: inherit; font-size: 11px; font-weight: 600;
+        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
         color: var(--t3); cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .action-btn ha-icon { display: flex; align-items: center; justify-content: center; }
-      .action-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+      .action-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
       .action-btn:active { transform: scale(0.96); }
       .action-btn.active { border-color: var(--cam-border); background: var(--cam-bg); color: var(--cam-color); }
-      .action-btn.active-alert { border-color: rgba(248,113,113,0.2); background: rgba(248,113,113,0.1); color: var(--c-alert); }
-      .action-btn.active-warning { border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.1); color: var(--c-warning); }
+      .action-btn.active-alert { border-color: rgba(var(--rgb-alert),0.2); background: rgba(var(--rgb-alert),0.1); color: var(--c-alert); }
+      .action-btn.active-warning { border-color: rgba(var(--rgb-warning),0.2); background: rgba(var(--rgb-warning),0.1); color: var(--c-warning); }
 
       @media (hover: hover) and (pointer: fine) {
         .action-btn:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }

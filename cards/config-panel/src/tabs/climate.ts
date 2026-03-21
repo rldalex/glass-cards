@@ -21,7 +21,7 @@ function _renderListPreview(entities: { entityId: string; name: string; visible:
     <div style="padding:6px 10px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:12px;font-weight:600;color:var(--t1);">${t('climate.title')}</span>
-        <span style="min-width:14px;height:14px;padding:0 4px;font-size:9px;font-weight:600;border-radius:7px;background:var(--s3);color:var(--t2);display:flex;align-items:center;justify-content:center;">${activeCount}/${total}</span>
+        <span style="min-width:14px;height:14px;padding:0 4px;font-size:9px;font-weight:600;border-radius:var(--radius-sm);background:var(--s3);color:var(--t2);display:flex;align-items:center;justify-content:center;">${activeCount}/${total}</span>
       </div>
       ${entities.slice(0, 4).map((e) => html`
         <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;opacity:${e.visible ? '1' : '0.3'};">
@@ -61,7 +61,7 @@ function _renderNormalPreview(entities: { entityId: string; name: string; visibl
       ${visibleEntities.length > 1 ? html`
         <div style="display:flex;gap:4px;margin-bottom:4px;">
           ${visibleEntities.slice(0, 4).map((e, i) => html`
-            <span style="font-size:9px;padding:2px 6px;border-radius:8px;${i === 0 ? 'background:var(--s3);color:var(--t1);font-weight:600;' : 'color:var(--t3);'}">${e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
+            <span style="font-size:9px;padding:2px 6px;border-radius:var(--radius-sm);${i === 0 ? 'background:var(--s3);color:var(--t1);font-weight:600;' : 'color:var(--t3);'}">${e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
           `)}
         </div>
       ` : nothing}

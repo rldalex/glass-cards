@@ -216,14 +216,14 @@ export function renderSpotifySetupGuide(_self: GlassConfigPanel) {
   return html`
     <div class="tab-panel" id="panel-spotify">
       <div style="
-        padding: 20px; border-radius: var(--radius-lg);
+        padding: 1.25rem; border-radius: var(--radius-lg);
         background: var(--s2); border: 1px solid var(--b2);
         text-align: center;
       ">
         <ha-icon .icon=${'mdi:spotify'} style="
-          color: #1DB954; --mdc-icon-size: 48px;
+          color: #1DB954; --mdc-icon-size: 3rem;
           display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 16px;
+          margin: 0 auto 1rem;
         "></ha-icon>
         <div style="font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: 8px;">
           ${t('config.spotify_not_configured')}
@@ -235,11 +235,11 @@ export function renderSpotifySetupGuide(_self: GlassConfigPanel) {
         <div style="text-align: left; padding: 0 8px;">
           ${[1, 2, 3, 4].map((n) => html`
             <div style="
-              display: flex; align-items: flex-start; gap: 10px;
-              margin-bottom: 12px; font-size: 13px; color: var(--t2);
+              display: flex; align-items: flex-start; gap: 0.625rem;
+              margin-bottom: 0.75rem; font-size: 13px; color: var(--t2);
             ">
               <span style="
-                flex-shrink: 0; width: 22px; height: 22px;
+                flex-shrink: 0; width: 1.375rem; height: 1.375rem;
                 border-radius: 50%; background: var(--s3);
                 display: flex; align-items: center; justify-content: center;
                 font-size: 12px; font-weight: 600; color: var(--t1);
@@ -252,8 +252,8 @@ export function renderSpotifySetupGuide(_self: GlassConfigPanel) {
         </div>
 
         <div style="
-          font-size: 12px; color: var(--t3); margin-top: 16px;
-          padding: 10px; border-radius: var(--radius-md);
+          font-size: 12px; color: var(--t3); margin-top: 1rem;
+          padding: 0.625rem; border-radius: var(--radius-md);
           background: var(--s1); border: 1px solid var(--b1);
         ">
           ${t('config.spotify_setup_note')}

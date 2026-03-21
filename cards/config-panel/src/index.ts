@@ -1,12 +1,10 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { configPanelStyles } from './styles';
 import { property, state } from 'lit/decorators.js';
-import { bus } from '@glass-cards/event-bus';
-import { glassTokens, glassMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 import {
   BackendService,
-  getAreaEntities,
   type EntityScheduleMap,
   type HomeAssistant,
 } from '@glass-cards/base-card';
@@ -14,9 +12,9 @@ import {
   type RoomEntry, type CardEntry, type SceneEntry, type LightEntry, type SchedulePeriodEdit,
   type TabId,
   DEFAULT_TEMP_HIGH, DEFAULT_TEMP_LOW, DEFAULT_HUMIDITY_THRESHOLD,
-  DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS,
-  getCardMeta,
 } from './types';
+
+// Tab renderers
 import { renderCoverPreview, renderCoverTab, selectCoverRoom, toggleCoverEntityVisibility, cycleCoverLayout, getAllCoverEntities, toggleCoverDashboardEntity, initCoverDashboardOrder, onDropDashboardCover, onDropCover, addCoverPreset, removeCoverPreset, addCoverEntityPreset, removeCoverEntityPreset, resetCoverEntityPresets } from './tabs/cover';
 import { renderDashboardPreview, renderDashboardTab, renderDashboardCardSub, toggleDashboardCard, toggleDashboardExpand, onDropDashboardCard } from './tabs/dashboard';
 import { renderLightPreview, renderLightTab, renderLightRow, selectLightRoom, toggleLightVisible, cycleLightLayout, toggleScheduleExpand, addSchedulePeriod, removeSchedulePeriod, updateSchedulePeriod, toggleScheduleRecurring, renderScheduleContent, formatDateTimeShort, formatPeriodDisplay, parseDateTimeValue, openRangePicker, closePicker, pickerPrevMonth, pickerNextMonth, pickerSelectDay, pickerSetTime, pickerConfirm, toAbsDay, getMonthDays, getMonthLabel, getDayLabels, renderDateTimePicker } from './tabs/light';
@@ -31,6 +29,10 @@ import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeat
 import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
 import { renderClimatePreview, renderClimateTab, selectClimateRoom, toggleClimateEntityVisibility, moveClimate, onDropClimate, getAllClimateEntities } from './tabs/climate';
 import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, renameEntity, type EntityAreaEntry } from './tabs/unassigned';
+
+// Extracted modules
+import * as P from './persistence';
+import * as DD from './drag-drop';
 
 
 // — Component —
@@ -79,11 +81,12 @@ export class GlassConfigPanel extends LitElement {
   // Title card config (multi-source)
   @state() _titleText = '';
   @state() _titleSources: { source_type: 'input_select' | 'scenes' | 'booleans'; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[] = [];
+  @state() _titlePeriodEntity = '';
+  @state() _titlePeriodOptions: { id: string; label: string; icon: string; color: string }[] = [];
   @state() _titleEditingSourceIdx: number | null = null;
   @state() _titleAddSourceDropdownOpen = false;
   @state() _titleAddEntityDropdownOpen = false;
   _titleAddEntitySearch = '';
-  // Backward compat aliases for icon/color picker that use flat mode index
   get _titleModes(): { id: string; label: string; icon: string; color: string }[] {
     return this._titleSources.flatMap((s) => s.modes);
   }
@@ -123,7 +126,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _climateRoomDropdownOpen = false;
   @state() _climateRoomEntities: { entityId: string; name: string; visible: boolean }[] = [];
 
-  // Media card config
+  // Presence / Media config
   @state() _presenceShowHeader = true;
   @state() _presencePersonEntities: string[] = [];
   @state() _presenceSmartphoneSensors: Record<string, string> = {};
@@ -147,7 +150,7 @@ export class GlassConfigPanel extends LitElement {
   @state() _spotifyDropdownOpen = false;
   @state() _spotifyMaxItems = 6;
   @state() _spotifyVisibleSpeakers: string[] = [];
-  @state() _spotifyConfigured: boolean | null = null; // null = checking
+  @state() _spotifyConfigured: boolean | null = null;
 
   // Camera carousel config
   @state() _cameraShowHeader = true;
@@ -214,7 +217,7 @@ export class GlassConfigPanel extends LitElement {
     '_showLights', '_showTemperature', '_showHumidity', '_showMedia',
     '_autoSort', '_tempHigh', '_tempLow', '_humidityThreshold',
     '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
-    '_titleText', '_titleSources',
+    '_titleText', '_titleSources', '_titlePeriodEntity', '_titlePeriodOptions',
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
@@ -228,16 +231,16 @@ export class GlassConfigPanel extends LitElement {
 
   static styles = [
     glassTokens,
+    hostMixin,
     glassMixin,
     bounceMixin,
-    configPanelStyles,
+    ...configPanelStyles,
   ];
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
     if (changedProps.size > 1) return true;
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-    // Detect language change (pure check, no side effects)
     if (oldHass && oldHass.language !== this.hass?.language) return true;
     return !this._loaded;
   }
@@ -289,14 +292,12 @@ export class GlassConfigPanel extends LitElement {
     this._tabSearch = '';
   }
 
-
   updated(changedProps: PropertyValues) {
     super.updated(changedProps);
     if (changedProps.has('hass')) {
       if (this.hass?.language && setLanguage(this.hass.language)) {
         this._lang = getLanguage();
       }
-      // Invalidate backend on WS reconnect
       if (this.hass && this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._loaded = false;
@@ -308,7 +309,6 @@ export class GlassConfigPanel extends LitElement {
         this._loadConfig();
       }
     }
-    // Auto-save: skip initial load and programmatic loads, debounce on user changes
     if (!this._loaded || this._loading || this._saving) return;
     if (!this._configReady) {
       this._configReady = true;
@@ -326,7 +326,6 @@ export class GlassConfigPanel extends LitElement {
     }
   }
 
-  /** Suppress auto-save for the next updated() cycle (use before programmatic state changes). */
   _beginSuppressAutoSave() { this._suppressAutoSave = true; }
 
   private _scheduleAutoSave() {
@@ -337,395 +336,53 @@ export class GlassConfigPanel extends LitElement {
     }, 800);
   }
 
-  async _loadConfig() {
-    if (!this.hass || this._loading) return;
-    this._loading = true;
-    try {
-      await this._loadConfigInner();
-      this._loaded = true;
-    } catch {
-      this._loaded = false;
-    } finally {
-      this._loading = false;
-    }
+  // ─── Persistence delegates ───
+
+  async _loadConfig() { return P.loadConfig(this); }
+  async _loadRoomCards() { return P.loadRoomCards(this); }
+  async _loadRoomLights() { return P.loadRoomLights(this); }
+  async _loadRoomCovers() { return P.loadRoomCovers(this); }
+  async _loadRoomFans() { return P.loadRoomFans(this); }
+  async _loadRoomClimates() { return P.loadRoomClimates(this); }
+  _loadRoomMediaPlayers() { P.loadRoomMediaPlayers(this); }
+  async _loadFanConfig() { return P.loadFanConfig(this); }
+  async _loadClimateConfig() { return P.loadClimateConfig(this); }
+  async _loadMediaConfig() { return P.loadMediaConfig(this); }
+  async _loadDashboardConfig() { return P.loadDashboardConfig(this); }
+  async _loadPresenceConfig() { return P.loadPresenceConfig(this); }
+  async _loadCameraCarouselConfig() { return P.loadCameraCarouselConfig(this); }
+  async _loadWeatherConfig() { return P.loadWeatherConfig(this); }
+  async _loadSpotifyConfig() { return P.loadSpotifyConfig(this); }
+  async _loadTitleConfig() { return P.loadTitleConfig(this); }
+  _save() { P.save(this); }
+  async _saveSchedule(entityId: string) { return P.saveSchedule(this, entityId); }
+  async _reset() { return P.resetConfig(this); }
+  async _saveClimate() { return P.saveClimate(this); }
+  async _saveDashboard() { return P.saveDashboard(this); }
+  async _resetCover() { return P.resetCover(this); }
+  async _checkSpotifyStatus() { return P.checkSpotifyStatus(this); }
+
+  // ─── Drag & Drop delegates ───
+
+  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) { DD.onDragStart(this, idx, context, srcIdx); }
+  _onDragOver(idx: number, e: DragEvent, srcIdx?: number) { DD.onDragOver(this, idx, e, srcIdx); }
+  _onDragLeave() { DD.onDragLeave(this); }
+  _onDropGeneric(idx: number, e: DragEvent) { DD.onDropGeneric(this, idx, e); }
+  _onDragEnd() { DD.onDragEnd(this); }
+
+  // ─── Toast ───
+
+  _showToast(error = false) {
+    if (this._toastTimeout !== undefined) clearTimeout(this._toastTimeout);
+    this._toastError = error;
+    this._toast = true;
+    this._toastTimeout = setTimeout(() => {
+      this._toast = false;
+      this._toastTimeout = undefined;
+    }, 2000);
   }
 
-  private async _loadConfigInner() {
-    if (!this.hass) return;
-
-    // Build rooms from HA areas
-    const areas = Object.values(this.hass.areas).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-
-    // Load backend config
-    let navbarConfig = {
-      room_order: [] as string[],
-      hidden_rooms: [] as string[],
-      show_lights: true,
-      show_temperature: true,
-      show_humidity: true,
-      show_media: true,
-      auto_sort: true,
-      temp_high: DEFAULT_TEMP_HIGH,
-      temp_low: DEFAULT_TEMP_LOW,
-      humidity_threshold: DEFAULT_HUMIDITY_THRESHOLD,
-    };
-    let weatherConfig = {
-      entity_id: '',
-      hidden_metrics: [] as string[],
-      show_daily: true,
-      show_hourly: true,
-      show_header: true,
-    };
-    let dashboardConfig = {
-      enabled_cards: ['weather'] as string[],
-      card_order: ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'] as string[],
-      hide_header: false,
-      hide_sidebar: false,
-    };
-    let lightCardConfig = {
-      show_header: true,
-    };
-    let titleCardConfig = {
-      title: '',
-      sources: [] as { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[],
-      period_entity: '',
-      period_options: [] as { id: string; label: string; icon: string; color: string }[],
-    };
-    let coverCardConfig = {
-      show_header: true,
-      dashboard_entities: [] as string[],
-      dashboard_compact: true,
-      presets: [0, 25, 50, 75, 100] as number[],
-      entity_presets: {} as Record<string, number[]>,
-    };
-    let spotifyCardConfig = {
-      show_header: true,
-      entity_id: '',
-      sort_order: 'recent_first' as 'recent_first' | 'oldest_first',
-      max_items_per_section: 6,
-      visible_speakers: [] as string[],
-    };
-    let fanCardConfig = {
-      show_header: true,
-    };
-    let mediaCardConfig = {
-      variant: 'list' as string,
-      dashboard_variant: 'list' as string,
-      room_variants: {} as Record<string, string>,
-      extra_entities: {} as Record<string, string[]>,
-      show_header: true,
-    };
-    let presenceCardConfig = {
-      show_header: true,
-      person_entities: [] as string[],
-      smartphone_sensors: {} as Record<string, string>,
-      notify_services: {} as Record<string, string>,
-      driving_sensors: {} as Record<string, string>,
-    };
-    let climateCardConfig = {
-      show_header: true,
-      display_mode: 'list' as string,
-      dashboard_display_mode: 'list' as string,
-      dashboard_entities: [] as string[],
-    };
-    let cameraCarouselConfig = {
-      show_header: true,
-      entity_order: [] as string[],
-      auto_cycle: false,
-      cycle_interval: 10,
-    };
-    const roomConfigs: Record<string, { icon?: string | null }> = {};
-    try {
-      if (!this._backend) throw new Error('No backend');
-      const result = await this._backend.send<{
-        navbar: typeof navbarConfig;
-        rooms: Record<string, { icon?: string | null }>;
-        weather: typeof weatherConfig;
-        light_card: typeof lightCardConfig;
-        title_card: typeof titleCardConfig;
-        cover_card: typeof coverCardConfig;
-        fan_card: typeof fanCardConfig;
-        spotify_card: typeof spotifyCardConfig;
-        media_card: typeof mediaCardConfig;
-        presence_card: typeof presenceCardConfig;
-        climate_card: typeof climateCardConfig;
-        camera_carousel: typeof cameraCarouselConfig;
-        dashboard: typeof dashboardConfig;
-      }>('get_config');
-      navbarConfig = result.navbar;
-      Object.assign(roomConfigs, result.rooms);
-      if (result.weather) weatherConfig = result.weather;
-      if (result.light_card) lightCardConfig = result.light_card;
-      if (result.title_card) titleCardConfig = result.title_card;
-      if (result.cover_card) coverCardConfig = result.cover_card;
-      if (result.fan_card) fanCardConfig = result.fan_card;
-      if (result.spotify_card) spotifyCardConfig = result.spotify_card;
-      if (result.media_card) mediaCardConfig = result.media_card;
-      if (result.presence_card) presenceCardConfig = result.presence_card;
-      if (result.climate_card) climateCardConfig = result.climate_card;
-      if (result.camera_carousel) cameraCarouselConfig = result.camera_carousel;
-      if (result.dashboard) dashboardConfig = result.dashboard;
-    } catch {
-      // Backend not available
-    }
-
-    this._showLights = navbarConfig.show_lights ?? true;
-    this._showTemperature = navbarConfig.show_temperature ?? true;
-    this._showHumidity = navbarConfig.show_humidity ?? true;
-    this._showMedia = navbarConfig.show_media ?? true;
-    this._autoSort = navbarConfig.auto_sort ?? true;
-    this._tempHigh = navbarConfig.temp_high ?? DEFAULT_TEMP_HIGH;
-    this._tempLow = navbarConfig.temp_low ?? DEFAULT_TEMP_LOW;
-    this._humidityThreshold = navbarConfig.humidity_threshold ?? DEFAULT_HUMIDITY_THRESHOLD;
-
-    this._weatherEntity = weatherConfig.entity_id ?? '';
-    this._weatherHiddenMetrics = weatherConfig.hidden_metrics ?? [];
-    this._weatherShowDaily = weatherConfig.show_daily ?? true;
-    this._weatherShowHourly = weatherConfig.show_hourly ?? true;
-    this._weatherShowHeader = weatherConfig.show_header ?? true;
-
-    this._lightShowHeader = lightCardConfig.show_header ?? true;
-
-    this._titleText = titleCardConfig.title ?? '';
-    this._titleSources = (titleCardConfig.sources ?? []).map((s) => ({
-      source_type: (s.source_type || '') as 'input_select' | 'scenes' | 'booleans',
-      entity: s.entity || '',
-      label: s.label || '',
-      modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
-    }));
-    this._coverShowHeader = coverCardConfig.show_header ?? true;
-    this._fanShowHeader = fanCardConfig.show_header ?? true;
-    this._coverDashboardEntities = coverCardConfig.dashboard_entities ?? [];
-    this._coverDashboardCompact = coverCardConfig.dashboard_compact ?? true;
-    this._coverPresets = coverCardConfig.presets ?? [0, 25, 50, 75, 100];
-    this._coverEntityPresets = coverCardConfig.entity_presets ?? {};
-    this._initCoverDashboardOrder();
-
-    this._spotifyShowHeader = spotifyCardConfig.show_header ?? true;
-    this._spotifyEntity = spotifyCardConfig.entity_id ?? '';
-    this._spotifySortOrder = spotifyCardConfig.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
-    this._spotifyMaxItems = spotifyCardConfig.max_items_per_section ?? 6;
-    this._spotifyVisibleSpeakers = spotifyCardConfig.visible_speakers ?? [];
-    this._checkSpotifyStatus();
-
-    this._mediaShowHeader = mediaCardConfig.show_header ?? true;
-    this._mediaExtraEntities = mediaCardConfig.extra_entities ?? {};
-
-    this._presenceShowHeader = presenceCardConfig.show_header ?? true;
-    this._presencePersonEntities = presenceCardConfig.person_entities ?? [];
-    this._presenceSmartphoneSensors = presenceCardConfig.smartphone_sensors ?? {};
-    this._presenceNotifyServices = presenceCardConfig.notify_services ?? {};
-    this._presenceDrivingSensors = presenceCardConfig.driving_sensors ?? {};
-
-    this._climateShowHeader = climateCardConfig.show_header ?? true;
-    this._climateDisplayMode = climateCardConfig.display_mode === 'normal' ? 'normal' : 'list';
-    this._climateDashboardDisplayMode = climateCardConfig.dashboard_display_mode === 'normal' ? 'normal' : 'list';
-    this._climateDashboardEntities = climateCardConfig.dashboard_entities ?? [];
-
-    this._cameraShowHeader = cameraCarouselConfig.show_header ?? true;
-    this._cameraEntityOrder = cameraCarouselConfig.entity_order ?? [];
-    this._cameraAutoCycle = cameraCarouselConfig.auto_cycle ?? false;
-    this._cameraCycleInterval = cameraCarouselConfig.cycle_interval ?? 10;
-
-    this._dashboardEnabledCards = dashboardConfig.enabled_cards ?? ['weather'];
-    this._dashboardCardOrder = dashboardConfig.card_order ?? ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
-    this._dashboardHideHeader = dashboardConfig.hide_header ?? false;
-    this._dashboardHideSidebar = dashboardConfig.hide_sidebar ?? false;
-
-    const hiddenSet = new Set(navbarConfig.hidden_rooms);
-    const orderMap = new Map<string, number>();
-    navbarConfig.room_order.forEach((id, i) => orderMap.set(id, i));
-
-    const hass = this.hass;
-    if (!hass) return;
-    const rooms: RoomEntry[] = [];
-    const emptyRooms: { areaId: string; name: string; icon: string }[] = [];
-
-    for (const area of areas) {
-      const entities = getAreaEntities(area.area_id, hass.entities, hass.devices);
-      const backendIcon = roomConfigs[area.area_id]?.icon;
-      const icon = backendIcon || area.icon || 'mdi:home';
-
-      // Separate empty rooms (no entities) — they won't appear in the navbar
-      if (entities.length === 0) {
-        emptyRooms.push({ areaId: area.area_id, name: area.name, icon });
-        continue;
-      }
-
-      // Aggregate live state — same logic as navbar card
-      let lightsOn = 0;
-      let temperature: string | null = null;
-      let tempValue: number | null = null;
-      let humidity: string | null = null;
-      let humidityValue: number | null = null;
-      let mediaPlaying = false;
-
-      for (const entry of entities) {
-        const entity = hass.states[entry.entity_id];
-        if (!entity) continue;
-        const domain = entry.entity_id.split('.')[0];
-
-        if (domain === 'light' && entity.state === 'on') lightsOn++;
-        if (domain === 'sensor') {
-          const dc = entity.attributes.device_class;
-          if (dc === 'temperature' && !temperature) {
-            temperature = `${entity.state}°`;
-            tempValue = parseFloat(entity.state);
-          }
-          if (dc === 'humidity' && !humidity) {
-            humidity = `${entity.state}%`;
-            humidityValue = parseFloat(entity.state);
-          }
-        }
-        if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
-      }
-
-      rooms.push({
-        areaId: area.area_id,
-        name: area.name,
-        icon,
-        entityCount: entities.length,
-        visible: !hiddenSet.has(area.area_id),
-        lightsOn,
-        temperature,
-        tempValue,
-        humidity,
-        humidityValue,
-        mediaPlaying,
-      });
-    }
-
-    // Track initial icons for dirty-checking on save
-    this._initialIcons.clear();
-    for (const room of rooms) {
-      this._initialIcons.set(room.areaId, room.icon);
-    }
-
-    // Sort by backend order, then alphabetically; visible rooms first
-    rooms.sort((a, b) => {
-      if (a.visible !== b.visible) return a.visible ? -1 : 1;
-      const aOrder = orderMap.get(a.areaId);
-      const bOrder = orderMap.get(b.areaId);
-      if (aOrder !== undefined && bOrder !== undefined) return aOrder - bOrder;
-      if (aOrder !== undefined) return -1;
-      if (bOrder !== undefined) return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    this._rooms = rooms;
-    this._emptyRooms = emptyRooms;
-    if (!this._selectedRoom && rooms.length > 0) {
-      this._selectedRoom = rooms[0].areaId;
-    }
-    this._loadRoomCards();
-  }
-
-  async _loadRoomCards() {
-    if (!this.hass || !this._selectedRoom) {
-      this._cards = [];
-      this._scenes = [];
-      return;
-    }
-
-    const targetRoom = this._selectedRoom;
-    const entities = getAreaEntities(
-      targetRoom,
-      this.hass.entities,
-      this.hass.devices,
-    );
-
-    // Load room config from backend
-    let storedOrder: string[] | null = null;
-    let hiddenEntities = new Set<string>();
-    let hiddenScenes = new Set<string>();
-    let sceneOrder: string[] = [];
-    try {
-      if (!this._backend) throw new Error('No backend');
-      const result = await this._backend.send<{
-        card_order: string[];
-        hidden_entities: string[];
-        hidden_scenes: string[];
-        scene_order: string[];
-        visible?: boolean;
-      } | null>('get_room', { area_id: targetRoom });
-      if (this._selectedRoom !== targetRoom) return;
-      if (result) {
-        storedOrder = result.card_order.length > 0 ? result.card_order : null;
-        hiddenEntities = new Set(result.hidden_entities);
-        hiddenScenes = new Set(result.hidden_scenes ?? []);
-        sceneOrder = result.scene_order ?? [];
-      }
-    } catch {
-      // Backend not available
-    }
-
-    // Build scenes list
-    const hass = this.hass;
-    const sceneEntities = entities.filter((e) => e.entity_id.startsWith('scene.'));
-    const sceneOrderMap = new Map<string, number>();
-    sceneOrder.forEach((id, i) => sceneOrderMap.set(id, i));
-
-    const scenes: SceneEntry[] = sceneEntities.map((e) => {
-      const state = hass.states[e.entity_id];
-      return {
-        entityId: e.entity_id,
-        name: (state?.attributes.friendly_name as string) || e.entity_id.split('.')[1],
-        visible: !hiddenScenes.has(e.entity_id),
-      };
-    });
-
-    scenes.sort((a, b) => {
-      const aIdx = sceneOrderMap.get(a.entityId);
-      const bIdx = sceneOrderMap.get(b.entityId);
-      if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
-      if (aIdx !== undefined) return -1;
-      if (bIdx !== undefined) return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    this._scenes = scenes;
-
-    // Count visible entities per domain (subtract hidden_entities)
-    const domainCounts = new Map<string, number>();
-    for (const e of entities) {
-      if (hiddenEntities.has(e.entity_id)) continue;
-      const d = e.entity_id.split('.')[0];
-      domainCounts.set(d, (domainCounts.get(d) || 0) + 1);
-    }
-
-    // Build ordered list: stored order first, then any extra domains with entities
-    const orderedIds = storedOrder ? [...storedOrder] : [...DEFAULT_CARD_ORDER];
-    const orderedSet = new Set(orderedIds);
-
-    // Add domains that have entities but aren't in the stored order
-    for (const domain of domainCounts.keys()) {
-      if (!orderedSet.has(domain) && CARD_ICONS[domain]) {
-        orderedIds.push(domain);
-      }
-    }
-
-    this._cards = orderedIds
-      .filter((id) => {
-        // Only show domains that have entities AND an implemented card
-        return (domainCounts.get(id) || 0) > 0 && IMPLEMENTED_CARDS.has(id);
-      })
-      .map((id) => {
-        const meta = getCardMeta(id);
-        const count = domainCounts.get(id) || 0;
-        return {
-          id,
-          nameKey: meta.nameKey,
-          icon: meta.icon,
-          descKey: meta.descKey,
-          count,
-          visible: storedOrder ? storedOrder.includes(id) : count > 0,
-        };
-      });
-  }
-
-  // — Tab switching —
+  // ─── Tab switching ───
 
   _switchTab(tab: TabId) {
     this._tab = tab;
@@ -778,1337 +435,103 @@ export class GlassConfigPanel extends LitElement {
     }
   }
 
-  // — Drag & Drop —
-
-  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) {
-    this._dragIdx = idx;
-    this._dragContext = context;
-    if (context === 'title_modes') this._dragModeSrcIdx = srcIdx ?? null;
-  }
-
-  _onDragOver(idx: number, e: DragEvent, srcIdx?: number) {
-    e.preventDefault();
-    if (this._dragIdx === null || this._dragIdx === idx) return;
-    // Block cross-source drag for title_modes
-    if (this._dragContext === 'title_modes' && srcIdx !== undefined && srcIdx !== this._dragModeSrcIdx) return;
-    this._dropIdx = idx;
-  }
-
-  _onDragLeave() {
-    this._dropIdx = null;
-  }
-
-  _onDropGeneric(idx: number, e: DragEvent) {
-    e.preventDefault();
-    if (this._dragIdx === null || this._dragIdx === idx) {
-      this._dragIdx = null;
-      this._dropIdx = null;
-      return;
-    }
-    const ctx = this._dragContext;
-    if (ctx === 'rooms') {
-      const arr = [...this._rooms];
-      const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._rooms = arr;
-    } else if (ctx === 'cards') {
-      const arr = [...this._cards];
-      const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._cards = arr;
-    } else if (ctx === 'scenes') {
-      const arr = [...this._scenes];
-      const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._scenes = arr;
-    } else if (ctx === 'lights') {
-      const arr = [...this._lights];
-      const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._lights = arr;
-    } else if (ctx === 'title_sources') {
-      const arr = [...this._titleSources];
-      const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._titleSources = arr;
-      // Update editing index to follow moved source
-      if (this._titleEditingSourceIdx === this._dragIdx) {
-        this._titleEditingSourceIdx = idx;
-      } else if (this._titleEditingSourceIdx !== null) {
-        const oldEdit = this._titleEditingSourceIdx;
-        const from = this._dragIdx;
-        if (from < oldEdit && idx >= oldEdit) this._titleEditingSourceIdx = oldEdit - 1;
-        else if (from > oldEdit && idx <= oldEdit) this._titleEditingSourceIdx = oldEdit + 1;
-      }
-    } else if (ctx === 'title_modes' && this._dragModeSrcIdx !== null) {
-      const sources = [...this._titleSources];
-      const src = sources[this._dragModeSrcIdx];
-      if (src) {
-        const modes = [...src.modes];
-        const [moved] = modes.splice(this._dragIdx, 1);
-        modes.splice(idx, 0, moved);
-        sources[this._dragModeSrcIdx] = { ...src, modes };
-        this._titleSources = sources;
-      }
-      this._dragModeSrcIdx = null;
-    }
-    this._dragIdx = null;
-    this._dropIdx = null;
-  }
-
-  _onDragEnd() {
-    this._dragIdx = null;
-    this._dropIdx = null;
-    this._dragModeSrcIdx = null;
-  }
-
-  // — Room actions —
+  // ─── Tab action delegates ───
 
   _toggleRoomVisible(areaId: string) { toggleRoomVisible(this, areaId); }
-
   _openIconPicker(areaId: string) { openIconPicker(this, areaId); }
-
   _setRoomIcon(areaId: string, icon: string) { setRoomIcon(this, areaId, icon); }
-
-  // — Card actions —
-
   _toggleCardVisible(id: string) { toggleCardVisible(this, id); }
-
   _toggleSceneVisible(entityId: string) { toggleSceneVisible(this, entityId); }
-
-  // — Room dropdown —
-
   _selectRoom(areaId: string) { selectRoom(this, areaId); }
-
-  // — Save —
-
-  private async _saveNavbar() {
-    const backend = this._backend;
-    if (!backend || this._saving) return;
-    this._saving = true;
-    try {
-      await backend.send('set_navbar', {
-        room_order: this._rooms.filter((r) => r.visible).map((r) => r.areaId),
-        hidden_rooms: this._rooms.filter((r) => !r.visible).map((r) => r.areaId),
-        show_lights: this._showLights,
-        show_temperature: this._showTemperature,
-        show_humidity: this._showHumidity,
-        show_media: this._showMedia,
-        auto_sort: this._autoSort,
-        temp_high: this._tempHigh,
-        temp_low: this._tempLow,
-        humidity_threshold: this._humidityThreshold,
-      });
-      // Save only changed room icons in parallel
-      const iconSaves = this._rooms
-        .filter((room) => room.icon !== this._initialIcons.get(room.areaId))
-        .map((room) => {
-          const area = this.hass?.areas[room.areaId];
-          const haIcon = area?.icon || 'mdi:home';
-          const iconToSave = room.icon === haIcon ? null : room.icon;
-          return backend.send('set_room', {
-            area_id: room.areaId,
-            icon: iconToSave,
-          });
-        });
-      if (iconSaves.length > 0) await Promise.all(iconSaves);
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('navbar-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  private async _savePopup() {
-    if (!this._backend || this._saving || !this._selectedRoom) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_room', {
-        area_id: this._selectedRoom,
-        card_order: this._cards.filter((c) => c.visible).map((c) => c.id),
-        hidden_scenes: this._scenes.filter((s) => !s.visible).map((s) => s.entityId),
-        scene_order: this._scenes.map((s) => s.entityId),
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('room-config-changed', { areaId: this._selectedRoom });
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  _save() {
-    if (this._tab === 'navbar') {
-      this._saveNavbar();
-    } else if (this._tab === 'popup') {
-      this._savePopup();
-    } else if (this._tab === 'light') {
-      this._saveLights();
-    } else if (this._tab === 'weather') {
-      this._saveWeather();
-    } else if (this._tab === 'title') {
-      this._saveTitle();
-    } else if (this._tab === 'cover') {
-      this._saveCover();
-    } else if (this._tab === 'climate') {
-      this._saveClimate();
-    } else if (this._tab === 'fan') {
-      this._saveFan();
-    } else if (this._tab === 'spotify') {
-      this._saveSpotify();
-    } else if (this._tab === 'media') {
-      this._saveMedia();
-    } else if (this._tab === 'presence') {
-      this._savePresence();
-    } else if (this._tab === 'camera_carousel') {
-      this._saveCameraCarousel();
-    } else if (this._tab === 'unassigned') {
-      // No save — assignments go directly to HA entity registry
-    } else {
-      this._saveDashboard();
-    }
-  }
-
-  // — Light Card config —
-
-  _selectLightRoom(areaId: string) { this._beginSuppressAutoSave(); selectLightRoom(this, areaId); }
-
-  async _loadRoomLights() {
-    this._beginSuppressAutoSave();
-    if (!this.hass || !this._lightRoom) {
-      this._lights = [];
-      return;
-    }
-
-    const targetRoom = this._lightRoom;
-    const entities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
-    const lightEntities = entities.filter((e) => e.entity_id.startsWith('light.'));
-
-    // Load room config from backend
-    let hiddenEntities = new Set<string>();
-    let entityOrder: string[] = [];
-    let entityLayouts: Record<string, string> = {};
-    try {
-      if (!this._backend) throw new Error('No backend');
-      const result = await this._backend.send<{
-        hidden_entities: string[];
-        entity_order: string[];
-        entity_layouts: Record<string, string>;
-      } | null>('get_room', { area_id: targetRoom });
-      if (this._lightRoom !== targetRoom) return;
-      if (result) {
-        hiddenEntities = new Set(result.hidden_entities ?? []);
-        entityOrder = result.entity_order ?? [];
-        entityLayouts = result.entity_layouts ?? {};
-      }
-    } catch {
-      // Backend not available
-    }
-
-    // Build ordered list
-    const hass = this.hass;
-    const orderMap = new Map<string, number>();
-    entityOrder.forEach((id, i) => orderMap.set(id, i));
-
-    const lights: LightEntry[] = lightEntities.map((e) => {
-      const state = hass.states[e.entity_id];
-      const isOn = state?.state === 'on';
-      const brightness = state?.attributes.brightness as number | undefined;
-      const brightnessPct = isOn && brightness !== undefined ? Math.round((brightness / 255) * 100) : 0;
-      return {
-        entityId: e.entity_id,
-        name: state?.attributes.friendly_name as string || e.entity_id.split('.')[1],
-        isOn,
-        brightnessPct,
-        layout: (entityLayouts[e.entity_id] as 'full' | 'compact') || 'compact',
-        visible: !hiddenEntities.has(e.entity_id),
-      };
-    });
-
-    // Sort: visible first, then by backend order, then by name
-    lights.sort((a, b) => {
-      if (a.visible !== b.visible) return a.visible ? -1 : 1;
-      const aIdx = orderMap.get(a.entityId);
-      const bIdx = orderMap.get(b.entityId);
-      if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
-      if (aIdx !== undefined) return -1;
-      if (bIdx !== undefined) return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    this._lights = lights;
-
-    // Load schedules
-    try {
-      if (this._backend) {
-        const schedules = await this._backend.send<EntityScheduleMap>('get_schedules');
-        if (this._lightRoom !== targetRoom) return;
-        this._schedulesLoaded = schedules ?? {};
-        this._scheduleEdits = new Map();
-        for (const l of lights) {
-          const sched = this._schedulesLoaded[l.entityId];
-          this._scheduleEdits.set(
-            l.entityId,
-            sched?.periods?.map((p) => ({ start: p.start, end: p.end, recurring: p.recurring ?? false })) ?? [],
-          );
-        }
-      }
-    } catch {
-      // Backend not available
-    }
-  }
-
-  _toggleLightVisible(entityId: string) { toggleLightVisible(this, entityId); }
-
-  _cycleLightLayout(entityId: string) { cycleLightLayout(this, entityId); }
-
-  _toggleScheduleExpand(entityId: string) { toggleScheduleExpand(this, entityId); }
-
-  _addSchedulePeriod(entityId: string) { addSchedulePeriod(this, entityId); }
-
-  _removeSchedulePeriod(entityId: string, idx: number) { removeSchedulePeriod(this, entityId, idx); }
-
-  _updateSchedulePeriod(entityId: string, idx: number, field: 'start' | 'end', value: string) { updateSchedulePeriod(this, entityId, idx, field, value); }
-
-  _toggleScheduleRecurring(entityId: string, idx: number) { toggleScheduleRecurring(this, entityId, idx); }
-
-  async _saveSchedule(entityId: string) {
-    if (!this._backend) return;
-    const periods = this._scheduleEdits.get(entityId) ?? [];
-    const validPeriods = periods.filter((p) => p.start && p.end);
-    try {
-      await this._backend.send('set_schedule', {
-        entity_id: entityId,
-        periods: validPeriods,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('schedule-changed', { entityId });
-    } catch {
-      if (!this._mounted) return;
-      this._showToast(true);
-    }
-  }
-
-  // — DateTime range picker —
-
-  _parseDateTimeValue(value: string) { return parseDateTimeValue(this, value); }
-
-  _openRangePicker(entityId: string, periodIdx: number) { openRangePicker(this, entityId, periodIdx); }
-
-  _closePicker() { closePicker(this); }
-
-  _pickerPrevMonth() { pickerPrevMonth(this); }
-
-  _pickerNextMonth() { pickerNextMonth(this); }
-
-  _pickerSelectDay(day: number, isOtherMonth: boolean) { pickerSelectDay(this, day, isOtherMonth); }
-
-  _pickerSetTime(which: 'startHour' | 'startMinute' | 'endHour' | 'endMinute', e: Event) { pickerSetTime(this, which, e); }
-
-  _pickerConfirm() { pickerConfirm(this); }
-
-  _toAbsDay(year: number, month: number, day: number): number { return toAbsDay(this, year, month, day); }
-
-  _getMonthDays() { return getMonthDays(this); }
-
-  _getMonthLabel(): string { return getMonthLabel(this); }
-
-  _getDayLabels(): string[] { return getDayLabels(this); }
-
-  _renderDateTimePicker() { return renderDateTimePicker(this); }
-
-  private async _saveLights() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      // Save light card global config
-      await this._backend.send('set_light_config', {
-        show_header: this._lightShowHeader,
-      });
-
-      if (!this._lightRoom) {
-        if (!this._mounted) return;
-        this._showToast();
-        bus.emit('light-config-changed', undefined);
-        return;
-      }
-      // Load existing hidden_entities to preserve non-light hidden entries
-      let existingHidden: string[] = [];
-      try {
-        const existing = await this._backend.send<{
-          hidden_entities: string[];
-        } | null>('get_room', { area_id: this._lightRoom });
-        if (existing) existingHidden = existing.hidden_entities ?? [];
-      } catch { /* ignore */ }
-
-      const lightEntityIds = new Set(this._lights.map((l) => l.entityId));
-      const nonLightHidden = existingHidden.filter((id) => !lightEntityIds.has(id));
-      const hiddenLights = this._lights.filter((l) => !l.visible).map((l) => l.entityId);
-
-      const layouts: Record<string, string> = {};
-      for (const l of this._lights) {
-        if (l.layout === 'full') {
-          layouts[l.entityId] = l.layout;
-        }
-      }
-      await this._backend.send('set_room', {
-        area_id: this._lightRoom,
-        entity_order: this._lights.map((l) => l.entityId),
-        hidden_entities: [...nonLightHidden, ...hiddenLights],
-        entity_layouts: layouts,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('light-config-changed', undefined);
-      bus.emit('room-config-changed', { areaId: this._lightRoom });
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _reset() {
-    if (this._loading) return;
-    this._loaded = false;
-    await this._loadConfig();
-    if (this._lightRoom) {
-      await this._loadRoomLights();
-    }
-  }
-
-  _showToast(error = false) {
-    if (this._toastTimeout !== undefined) clearTimeout(this._toastTimeout);
-    this._toastError = error;
-    this._toast = true;
-    this._toastTimeout = setTimeout(() => {
-      this._toast = false;
-      this._toastTimeout = undefined;
-    }, 2000);
-  }
-
   _goBack() { goBack(this); }
 
-  // — Preview —
+  _selectLightRoom(areaId: string) { this._beginSuppressAutoSave(); selectLightRoom(this, areaId); }
+  _toggleLightVisible(entityId: string) { toggleLightVisible(this, entityId); }
+  _cycleLightLayout(entityId: string) { cycleLightLayout(this, entityId); }
+  _toggleScheduleExpand(entityId: string) { toggleScheduleExpand(this, entityId); }
+  _addSchedulePeriod(entityId: string) { addSchedulePeriod(this, entityId); }
+  _removeSchedulePeriod(entityId: string, idx: number) { removeSchedulePeriod(this, entityId, idx); }
+  _updateSchedulePeriod(entityId: string, idx: number, field: 'start' | 'end', value: string) { updateSchedulePeriod(this, entityId, idx, field, value); }
+  _toggleScheduleRecurring(entityId: string, idx: number) { toggleScheduleRecurring(this, entityId, idx); }
 
-  _renderNavbarPreview() { return renderNavbarPreview(this); }
-
-  _renderPopupPreview() { return renderPopupPreview(this); }
-
-  // — Render: Navbar tab —
-
-  _renderNavbarTab() { return renderNavbarTab(this); }
-
-  _renderRoomRow(room: RoomEntry, idx: number) { return renderRoomRow(this, room, idx); }
-
-  // — Render: Popup tab —
-
-  _renderPopupTab() { return renderPopupTab(this); }
-
-  _renderCardRow(card: CardEntry, idx: number) { return renderCardRow(this, card, idx); }
-
-  _renderSceneRow(scene: SceneEntry, idx: number) { return renderSceneRow(this, scene, idx); }
-
-  // — Render: Light tab —
-
-  _renderLightPreview() { return renderLightPreview(this); }
-
-  _renderLightTab() { return renderLightTab(this); }
-
-  _renderLightRow(light: LightEntry, idx: number) { return renderLightRow(this, light, idx); }
-
-  _formatDateTimeShort(value: string): string { return formatDateTimeShort(this, value); }
-
-  _formatPeriodDisplay(p: SchedulePeriodEdit): string { return formatPeriodDisplay(this, p); }
-
-  _renderScheduleContent(entityId: string) { return renderScheduleContent(this, entityId); }
-
-  // — Cover card config —
+  _parseDateTimeValue(value: string) { return parseDateTimeValue(this, value); }
+  _openRangePicker(entityId: string, periodIdx: number) { openRangePicker(this, entityId, periodIdx); }
+  _closePicker() { closePicker(this); }
+  _pickerPrevMonth() { pickerPrevMonth(this); }
+  _pickerNextMonth() { pickerNextMonth(this); }
+  _pickerSelectDay(day: number, isOtherMonth: boolean) { pickerSelectDay(this, day, isOtherMonth); }
+  _pickerSetTime(which: 'startHour' | 'startMinute' | 'endHour' | 'endMinute', e: Event) { pickerSetTime(this, which, e); }
+  _pickerConfirm() { pickerConfirm(this); }
+  _toAbsDay(year: number, month: number, day: number): number { return toAbsDay(this, year, month, day); }
+  _getMonthDays() { return getMonthDays(this); }
+  _getMonthLabel(): string { return getMonthLabel(this); }
+  _getDayLabels(): string[] { return getDayLabels(this); }
+  _renderDateTimePicker() { return renderDateTimePicker(this); }
 
   _selectCoverRoom(areaId: string) { this._beginSuppressAutoSave(); selectCoverRoom(this, areaId); }
-
-  async _loadRoomCovers() {
-    if (!this._backend || !this._coverRoom || !this.hass) return;
-    const targetRoom = this._coverRoom;
-    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
-    const coverIds = areaEntities
-      .filter((e) => e.entity_id.startsWith('cover.'))
-      .map((e) => e.entity_id);
-
-    // Load room config for hidden_entities / entity_order / entity_layouts
-    let roomConfig: { hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null = null;
-    try {
-      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null>('get_room', { area_id: targetRoom });
-    } catch { /* ignore */ }
-
-    // Discard stale result if room changed during async call
-    if (this._coverRoom !== targetRoom) return;
-
-    const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
-    const order = roomConfig?.entity_order ?? [];
-    const entityLayouts = roomConfig?.entity_layouts ?? {};
-
-    // Sort by order
-    const sorted = [...coverIds].sort((a, b) => {
-      const ai = order.indexOf(a);
-      const bi = order.indexOf(b);
-      if (ai !== -1 && bi !== -1) return ai - bi;
-      if (ai !== -1) return -1;
-      if (bi !== -1) return 1;
-      return 0;
-    });
-
-    this._coverRoomEntities = sorted.map((id) => {
-      const entity = this.hass?.states[id];
-      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-      const dc = (entity?.attributes?.device_class as string) || 'shutter';
-      return { entityId: id, name, visible: !hiddenSet.has(id), deviceClass: dc, layout: (entityLayouts[id] as 'full' | 'compact') || 'compact' };
-    });
-  }
-
   _toggleCoverEntityVisibility(entityId: string) { toggleCoverEntityVisibility(this, entityId); }
-
   _cycleCoverLayout(entityId: string) { cycleCoverLayout(this, entityId); }
-
   _getAllCoverEntities() { return getAllCoverEntities(this); }
-
   _toggleCoverDashboardEntity(entityId: string) { toggleCoverDashboardEntity(this, entityId); }
-
   _initCoverDashboardOrder() { initCoverDashboardOrder(this); }
-
   _onDropDashboardCover(idx: number, e: DragEvent) { onDropDashboardCover(this, idx, e); }
-
-  private async _saveCover() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      // Save global cover config — ordered dashboard entities (selected ones in order)
-      const orderedDashboardEntities = this._coverDashboardOrder.filter((id) =>
-        this._coverDashboardEntities.includes(id),
-      );
-      await this._backend.send('set_cover_config', {
-        show_header: this._coverShowHeader,
-        dashboard_compact: this._coverDashboardCompact,
-        dashboard_entities: orderedDashboardEntities,
-        presets: this._coverPresets,
-        entity_presets: this._coverEntityPresets,
-      });
-
-      // Save room-level cover config if a room is selected
-      if (this._coverRoom && this._coverRoomEntities.length > 0) {
-        // Load existing room config to preserve non-cover entries
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        let existingLayouts: Record<string, string> = {};
-        try {
-          const existing = await this._backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-            entity_layouts: Record<string, string>;
-          } | null>('get_room', { area_id: this._coverRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-            existingLayouts = existing.entity_layouts ?? {};
-          }
-        } catch { /* ignore */ }
-
-        const coverEntityIds = new Set(this._coverRoomEntities.map((e) => e.entityId));
-        const nonCoverHidden = existingHidden.filter((id) => !coverEntityIds.has(id));
-        const hiddenCovers = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const nonCoverOrder = existingOrder.filter((id) => !coverEntityIds.has(id));
-        const entityOrder = [...nonCoverOrder, ...this._coverRoomEntities.map((e) => e.entityId)];
-
-        // Merge cover layouts with existing non-cover layouts
-        const layouts: Record<string, string> = { ...existingLayouts };
-        for (const e of this._coverRoomEntities) {
-          layouts[e.entityId] = e.layout;
-        }
-
-        await this._backend.send('set_room', {
-          area_id: this._coverRoom,
-          hidden_entities: [...nonCoverHidden, ...hiddenCovers],
-          entity_order: entityOrder,
-          entity_layouts: layouts,
-        });
-      }
-
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('cover-config-changed', undefined);
-      if (this._coverRoom) bus.emit('room-config-changed', { areaId: this._coverRoom });
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  _renderCoverPreview() { return renderCoverPreview(this); }
-
-  _renderCoverTab() { return renderCoverTab(this); }
-
-  // — Fan Card config —
-
-  _renderFanPreview() { return renderFanPreview(this); }
-
-  _renderFanTab() { return renderFanTab(this); }
-
-  _selectFanRoom(areaId: string) { this._beginSuppressAutoSave(); selectFanRoom(this, areaId); }
-
-  _toggleFanEntityVisibility(entityId: string) { toggleFanEntityVisibility(this, entityId); }
-
-  _cycleFanLayout(entityId: string) { cycleFanLayout(this, entityId); }
-
-  _onDropFan(idx: number, e: DragEvent) { onDropFan(this, idx, e); }
-
-  async _loadRoomFans() {
-    if (!this._backend || !this._fanRoom || !this.hass) return;
-    const targetRoom = this._fanRoom;
-    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
-    const fanIds = areaEntities
-      .filter((e) => e.entity_id.startsWith('fan.'))
-      .map((e) => e.entity_id);
-
-    // Load room config for hidden_entities / entity_order / entity_layouts
-    let roomConfig: { hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null = null;
-    try {
-      roomConfig = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> } | null>('get_room', { area_id: targetRoom });
-    } catch { /* ignore */ }
-
-    // Discard stale result if room changed during async call
-    if (this._fanRoom !== targetRoom) return;
-
-    const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
-    const order = roomConfig?.entity_order ?? [];
-    const entityLayouts = roomConfig?.entity_layouts ?? {};
-
-    // Sort by order
-    const sorted = [...fanIds].sort((a, b) => {
-      const ai = order.indexOf(a);
-      const bi = order.indexOf(b);
-      if (ai !== -1 && bi !== -1) return ai - bi;
-      if (ai !== -1) return -1;
-      if (bi !== -1) return 1;
-      return 0;
-    });
-
-    this._fanRoomEntities = sorted.map((id) => {
-      const entity = this.hass?.states[id];
-      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-      return { entityId: id, name, visible: !hiddenSet.has(id), layout: (entityLayouts[id] as 'full' | 'compact') || 'compact' };
-    });
-  }
-
-  private async _saveFan() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_fan_config', {
-        show_header: this._fanShowHeader,
-      });
-
-      // Save room-level fan config if a room is selected
-      if (this._fanRoom && this._fanRoomEntities.length > 0) {
-        // Load existing room config to preserve non-fan entries
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        let existingLayouts: Record<string, string> = {};
-        try {
-          const existing = await this._backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-            entity_layouts: Record<string, string>;
-          } | null>('get_room', { area_id: this._fanRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-            existingLayouts = existing.entity_layouts ?? {};
-          }
-        } catch { /* ignore */ }
-
-        const fanEntityIds = new Set(this._fanRoomEntities.map((e) => e.entityId));
-        const nonFanHidden = existingHidden.filter((id) => !fanEntityIds.has(id));
-        const hiddenFans = this._fanRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const nonFanOrder = existingOrder.filter((id) => !fanEntityIds.has(id));
-        const entityOrder = [...nonFanOrder, ...this._fanRoomEntities.map((e) => e.entityId)];
-
-        // Merge fan layouts with existing non-fan layouts
-        const layouts: Record<string, string> = { ...existingLayouts };
-        for (const e of this._fanRoomEntities) {
-          layouts[e.entityId] = e.layout;
-        }
-
-        await this._backend.send('set_room', {
-          area_id: this._fanRoom,
-          hidden_entities: [...nonFanHidden, ...hiddenFans],
-          entity_order: entityOrder,
-          entity_layouts: layouts,
-        });
-      }
-
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('fan-config-changed', undefined);
-      if (this._fanRoom) bus.emit('room-config-changed', { areaId: this._fanRoom });
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadFanConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this.hass) return;
-    if (!this._backend) this._backend = new BackendService(this.hass);
-    try {
-      const result = await this._backend.send<{
-        fan_card?: { show_header: boolean };
-      }>('get_config');
-      if (result?.fan_card) {
-        this._fanShowHeader = result.fan_card.show_header ?? true;
-      }
-    } catch { /* ignore */ }
-    await this._loadRoomFans();
-  }
-
-  // — Climate Card config —
-
-  _selectClimateRoom(areaId: string) { this._beginSuppressAutoSave(); selectClimateRoom(this, areaId); }
-
-  async _loadRoomClimates(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this.hass || !this._climateRoom) return;
-    if (!this._backend) this._backend = new BackendService(this.hass);
-    const targetRoom = this._climateRoom;
-    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
-    const climateIds = areaEntities
-      .filter((e) => e.entity_id.startsWith('climate.'))
-      .map((e) => e.entity_id);
-
-    let roomHidden: string[] = [];
-    let roomOrder: string[] = [];
-    try {
-      const result = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] }>('get_room', { area_id: targetRoom });
-      roomHidden = result?.hidden_entities || [];
-      roomOrder = result?.entity_order || [];
-    } catch { /* ignore */ }
-
-    // Discard stale result if room changed during async call
-    if (this._climateRoom !== targetRoom) return;
-
-    const orderMap = new Map(roomOrder.map((id, i) => [id, i]));
-    const sorted = [...climateIds].sort((a, b) => {
-      const oa = orderMap.get(a) ?? 999;
-      const ob = orderMap.get(b) ?? 999;
-      if (oa !== ob) return oa - ob;
-      return a.localeCompare(b);
-    });
-
-    this._climateRoomEntities = sorted.map((id) => {
-      const state = this.hass?.states[id];
-      const name = (state?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-      return { entityId: id, name, visible: !roomHidden.includes(id) };
-    });
-  }
-
-  async _loadClimateConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this.hass) return;
-    if (!this._backend) this._backend = new BackendService(this.hass);
-    try {
-      const result = await this._backend.send<{
-        climate_card?: { show_header: boolean; display_mode: string; dashboard_display_mode: string; dashboard_entities: string[] };
-      }>('get_config');
-      if (result?.climate_card) {
-        this._climateShowHeader = result.climate_card.show_header ?? true;
-        this._climateDisplayMode = (result.climate_card.display_mode === 'normal' ? 'normal' : 'list');
-        this._climateDashboardDisplayMode = (result.climate_card.dashboard_display_mode === 'normal' ? 'normal' : 'list');
-        this._climateDashboardEntities = result.climate_card.dashboard_entities ?? [];
-      }
-    } catch { /* ignore */ }
-    if (this._climateRoom) await this._loadRoomClimates();
-  }
-
-  async _saveClimate(): Promise<void> {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      const allIds = this._climateRoomEntities.map((e) => e.entityId);
-      const hiddenIds = this._climateRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-
-      await this._backend.send('set_climate_config', {
-        show_header: this._climateShowHeader,
-        display_mode: this._climateDisplayMode,
-        dashboard_display_mode: this._climateDashboardDisplayMode,
-        dashboard_entities: this._climateDashboardEntities,
-      });
-
-      if (this._climateRoom && this._climateRoomEntities.length > 0) {
-        // Load existing room config to preserve non-climate entries
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        try {
-          const existing = await this._backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-          } | null>('get_room', { area_id: this._climateRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-          }
-        } catch { /* ignore */ }
-
-        const climateEntityIds = new Set(this._climateRoomEntities.map((e) => e.entityId));
-        const nonClimateHidden = existingHidden.filter((id) => !climateEntityIds.has(id));
-        const nonClimateOrder = existingOrder.filter((id) => !climateEntityIds.has(id));
-
-        await this._backend.send('set_room', {
-          area_id: this._climateRoom,
-          hidden_entities: [...nonClimateHidden, ...hiddenIds],
-          entity_order: [...nonClimateOrder, ...allIds],
-        });
-
-        bus.emit('room-config-changed', { areaId: this._climateRoom });
-      }
-
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('climate-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  _toggleClimateEntityVisibility(entityId: string) { toggleClimateEntityVisibility(this, entityId); }
-  _moveClimate(idx: number, dir: number) { moveClimate(this, idx, dir); }
-  _onDropClimate(idx: number, e: DragEvent) { onDropClimate(this, idx, e); }
-  _getAllClimateEntities() { return getAllClimateEntities(this); }
-  _renderClimatePreview() { return renderClimatePreview(this); }
-  _renderClimateTab() { return renderClimateTab(this); }
-
   _onDropCover(idx: number, e: DragEvent) { onDropCover(this, idx, e); }
-
-  async _resetCover() {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        cover_card?: { show_header: boolean; dashboard_entities: string[]; dashboard_compact?: boolean; presets: number[]; entity_presets?: Record<string, number[]> };
-      }>('get_config');
-      if (result?.cover_card) {
-        this._coverShowHeader = result.cover_card.show_header ?? true;
-        this._coverDashboardEntities = result.cover_card.dashboard_entities ?? [];
-        this._coverDashboardCompact = result.cover_card.dashboard_compact ?? true;
-        this._coverPresets = result.cover_card.presets ?? [0, 25, 50, 75, 100];
-        this._coverEntityPresets = result.cover_card.entity_presets ?? {};
-        this._coverEntityPresetInput = {};
-        this._initCoverDashboardOrder();
-      }
-    } catch { /* ignore */ }
-    await this._loadRoomCovers();
-  }
-
   _addCoverPreset() { addCoverPreset(this); }
-
   _removeCoverPreset(val: number) { removeCoverPreset(this, val); }
-
   _addCoverEntityPreset(entityId: string) { addCoverEntityPreset(this, entityId); }
-
   _removeCoverEntityPreset(entityId: string, val: number) { removeCoverEntityPreset(this, entityId, val); }
-
   _resetCoverEntityPresets(entityId: string) { resetCoverEntityPresets(this, entityId); }
-
   _toggleCoverPresetsExpand(entityId: string) {
     this._coverPresetsExpandedEntity = this._coverPresetsExpandedEntity === entityId ? null : entityId;
   }
 
-  // — Media card config —
+  _selectFanRoom(areaId: string) { this._beginSuppressAutoSave(); selectFanRoom(this, areaId); }
+  _toggleFanEntityVisibility(entityId: string) { toggleFanEntityVisibility(this, entityId); }
+  _cycleFanLayout(entityId: string) { cycleFanLayout(this, entityId); }
+  _onDropFan(idx: number, e: DragEvent) { onDropFan(this, idx, e); }
 
-  private async _saveMedia() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_media_config', {
-        show_header: this._mediaShowHeader,
-        extra_entities: this._mediaExtraEntities,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('media-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadMediaConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        media_card: { show_header: boolean; extra_entities: Record<string, string[]> };
-      }>('get_config');
-      if (result?.media_card) {
-        this._mediaShowHeader = result.media_card.show_header ?? true;
-        this._mediaExtraEntities = result.media_card.extra_entities ?? {};
-      }
-    } catch { /* ignore */ }
-  }
-
-  _renderMediaPreview() { return renderMediaPreview(this); }
-
-  _renderMediaTab() { return renderMediaTab(this); }
+  _selectClimateRoom(areaId: string) { this._beginSuppressAutoSave(); selectClimateRoom(this, areaId); }
+  _toggleClimateEntityVisibility(entityId: string) { toggleClimateEntityVisibility(this, entityId); }
+  _moveClimate(idx: number, dir: number) { moveClimate(this, idx, dir); }
+  _onDropClimate(idx: number, e: DragEvent) { onDropClimate(this, idx, e); }
+  _getAllClimateEntities() { return getAllClimateEntities(this); }
 
   _selectMediaRoom(areaId: string) { this._beginSuppressAutoSave(); selectMediaRoom(this, areaId); }
-
   _addMediaExtraEntity(entityId: string) { addMediaExtraEntity(this, entityId); }
-
   _removeMediaExtraEntity(entityId: string) { removeMediaExtraEntity(this, entityId); }
 
-  _loadRoomMediaPlayers() {
-    if (!this.hass || !this._mediaRoom) {
-      this._mediaRoomNativePlayers = [];
-      return;
-    }
-    const entities = getAreaEntities(this._mediaRoom, this.hass.entities, this.hass.devices);
-    this._mediaRoomNativePlayers = entities
-      .filter((e) => e.entity_id.startsWith('media_player.'))
-      .map((e) => e.entity_id);
-  }
-
-  // — Dashboard config —
-
   _toggleDashboardCard(card: string) { toggleDashboardCard(this, card); }
-
   _toggleDashboardExpand(card: string) { toggleDashboardExpand(this, card); }
-
   _onDropDashboardCard(idx: number, e: DragEvent) { onDropDashboardCard(this, idx, e); }
 
-  async _saveDashboard() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_dashboard', {
-        enabled_cards: this._dashboardEnabledCards,
-        card_order: this._dashboardCardOrder,
-        hide_header: this._dashboardHideHeader,
-        hide_sidebar: this._dashboardHideSidebar,
-      });
-      await this._backend.send('set_light_config', {
-        show_header: this._lightShowHeader,
-      });
-      await this._backend.send('set_weather', {
-        show_header: this._weatherShowHeader,
-      });
-      const orderedDashCovers = this._coverDashboardOrder.filter((id) =>
-        this._coverDashboardEntities.includes(id),
-      );
-      await this._backend.send('set_cover_config', {
-        show_header: this._coverShowHeader,
-        dashboard_compact: this._coverDashboardCompact,
-        dashboard_entities: orderedDashCovers,
-        presets: this._coverPresets,
-        entity_presets: this._coverEntityPresets,
-      });
-      await this._backend.send('set_spotify_config', {
-        show_header: this._spotifyShowHeader,
-      });
-      await this._backend.send('set_fan_config', {
-        show_header: this._fanShowHeader,
-      });
-      await this._backend.send('set_media_config', {
-        show_header: this._mediaShowHeader,
-        extra_entities: this._mediaExtraEntities,
-      });
-      await this._backend.send('set_presence_config', {
-        show_header: this._presenceShowHeader,
-        person_entities: this._presencePersonEntities,
-        smartphone_sensors: this._presenceSmartphoneSensors,
-        notify_services: this._presenceNotifyServices,
-        driving_sensors: this._presenceDrivingSensors,
-      });
-      await this._backend.send('set_climate_config', {
-        show_header: this._climateShowHeader,
-        display_mode: this._climateDisplayMode,
-        dashboard_display_mode: this._climateDashboardDisplayMode,
-        dashboard_entities: this._climateDashboardEntities,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('dashboard-config-changed', undefined);
-      bus.emit('light-config-changed', undefined);
-      bus.emit('weather-config-changed', undefined);
-      bus.emit('cover-config-changed', undefined);
-      bus.emit('fan-config-changed', undefined);
-      bus.emit('spotify-config-changed', undefined);
-      bus.emit('media-config-changed', undefined);
-      bus.emit('presence-config-changed', undefined);
-      bus.emit('climate-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadDashboardConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
-        light_card?: { show_header?: boolean };
-        weather?: { show_header?: boolean };
-        cover_card?: { show_header?: boolean };
-        fan_card?: { show_header?: boolean };
-        spotify_card?: { show_header?: boolean };
-        media_card?: { show_header?: boolean; extra_entities?: Record<string, string[]> };
-        presence_card?: { show_header?: boolean };
-        camera_carousel?: { show_header?: boolean };
-      }>('get_config');
-      if (result?.dashboard) {
-        this._dashboardEnabledCards = result.dashboard.enabled_cards ?? ['weather'];
-        this._dashboardCardOrder = result.dashboard.card_order ?? ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'];
-        this._dashboardHideHeader = result.dashboard.hide_header ?? false;
-        this._dashboardHideSidebar = result.dashboard.hide_sidebar ?? false;
-      }
-      this._lightShowHeader = result?.light_card?.show_header ?? true;
-      this._weatherShowHeader = result?.weather?.show_header ?? true;
-      this._coverShowHeader = result?.cover_card?.show_header ?? true;
-      this._fanShowHeader = result?.fan_card?.show_header ?? true;
-      this._spotifyShowHeader = result?.spotify_card?.show_header ?? true;
-      this._mediaShowHeader = result?.media_card?.show_header ?? true;
-      this._mediaExtraEntities = result?.media_card?.extra_entities ?? {};
-      this._presenceShowHeader = result?.presence_card?.show_header ?? true;
-      this._cameraShowHeader = result?.camera_carousel?.show_header ?? true;
-    } catch { /* ignore */ }
-  }
-
-  _renderDashboardPreview() { return renderDashboardPreview(this); }
-
-  _renderDashboardTab() { return renderDashboardTab(this); }
-
-  _renderDashboardCardSub(key: string, enabled: boolean, expanded: boolean): TemplateResult | typeof nothing { return renderDashboardCardSub(this, key, enabled, expanded); }
-
-  // — Presence config —
-
-  private async _savePresence() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_presence_config', {
-        show_header: this._presenceShowHeader,
-        person_entities: this._presencePersonEntities,
-        smartphone_sensors: this._presenceSmartphoneSensors,
-        notify_services: this._presenceNotifyServices,
-        driving_sensors: this._presenceDrivingSensors,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('presence-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadPresenceConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        presence_card?: {
-          show_header?: boolean;
-          person_entities?: string[];
-          smartphone_sensors?: Record<string, string>;
-          notify_services?: Record<string, string>;
-          driving_sensors?: Record<string, string>;
-        };
-      }>('get_config');
-      if (result?.presence_card) {
-        this._presenceShowHeader = result.presence_card.show_header ?? true;
-        this._presencePersonEntities = result.presence_card.person_entities ?? [];
-        this._presenceSmartphoneSensors = result.presence_card.smartphone_sensors ?? {};
-        this._presenceNotifyServices = result.presence_card.notify_services ?? {};
-        this._presenceDrivingSensors = result.presence_card.driving_sensors ?? {};
-      }
-    } catch { /* ignore */ }
-  }
-
   _getAvailablePersonEntities() { return getAvailablePersonEntities(this); }
-
   _getAvailableSmartphoneSensors() { return getAvailableSmartphoneSensors(this); }
-
   _getAvailableDrivingSensors() { return getAvailableDrivingSensors(this); }
-
   _getAvailableNotifyServices(): string[] { return getAvailableNotifyServices(this); }
-
   _togglePresencePerson(entityId: string) { togglePresencePerson(this, entityId); }
 
-  _renderPresencePreview() { return renderPresencePreview(this); }
-
-  _renderPresenceTab() { return renderPresenceTab(this); }
-
-  // — Camera carousel config —
-
-  private async _saveCameraCarousel() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_camera_carousel_config', {
-        show_header: this._cameraShowHeader,
-        entity_order: this._cameraEntityOrder,
-        auto_cycle: this._cameraAutoCycle,
-        cycle_interval: this._cameraCycleInterval,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('camera-carousel-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadCameraCarouselConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        camera_carousel?: {
-          show_header?: boolean;
-          entity_order?: string[];
-          auto_cycle?: boolean;
-          cycle_interval?: number;
-        };
-      }>('get_config');
-      if (result?.camera_carousel) {
-        this._cameraShowHeader = result.camera_carousel.show_header ?? true;
-        this._cameraEntityOrder = result.camera_carousel.entity_order ?? [];
-        this._cameraAutoCycle = result.camera_carousel.auto_cycle ?? false;
-        this._cameraCycleInterval = result.camera_carousel.cycle_interval ?? 10;
-      }
-    } catch { /* ignore */ }
-  }
-
-  _renderCameraCarouselPreview() { return renderCameraCarouselPreview(this); }
-
-  _renderCameraCarouselTab() { return renderCameraCarouselTab(this); }
-
-  // — Weather config —
-
-  _toggleWeatherMetric(metric: string) { toggleWeatherMetric(this, metric); }
-
-  _selectWeatherEntity(entityId: string) { selectWeatherEntity(this, entityId); }
-
-  private async _saveWeather() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_weather', {
-        ...(this._weatherEntity ? { entity_id: this._weatherEntity } : {}),
-        hidden_metrics: this._weatherHiddenMetrics,
-        show_daily: this._weatherShowDaily,
-        show_hourly: this._weatherShowHourly,
-        show_header: this._weatherShowHeader,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('weather-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  _renderWeatherPreview() { return renderWeatherPreview(this); }
-
-  _windBearingToDir(bearing: number): string { return windBearingToDir(this, bearing); }
-
-  _renderWeatherTab() { return renderWeatherTab(this); }
-
-  async _loadWeatherConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean; show_header: boolean };
-      }>('get_config');
-      if (result?.weather) {
-        this._weatherEntity = result.weather.entity_id ?? '';
-        this._weatherHiddenMetrics = result.weather.hidden_metrics ?? [];
-        this._weatherShowDaily = result.weather.show_daily ?? true;
-        this._weatherShowHourly = result.weather.show_hourly ?? true;
-        this._weatherShowHeader = result.weather.show_header ?? true;
-      }
-    } catch { /* ignore */ }
-  }
-
-  // — Spotify card config —
-
-  async _checkSpotifyStatus() {
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{ configured: boolean }>('spotify_status');
-      if (!this._mounted) return;
-      this._spotifyConfigured = result?.configured ?? false;
-    } catch {
-      this._spotifyConfigured = false;
-    }
-  }
-
-  private async _saveSpotify() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_spotify_config', {
-        show_header: this._spotifyShowHeader,
-        entity_id: this._spotifyEntity,
-        sort_order: this._spotifySortOrder,
-        max_items_per_section: this._spotifyMaxItems,
-        visible_speakers: this._spotifyVisibleSpeakers,
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('spotify-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadSpotifyConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    try {
-      const result = await this._backend.send<{
-        spotify_card: { show_header: boolean; entity_id: string; sort_order: string; max_items_per_section: number; visible_speakers?: string[] };
-      }>('get_config');
-      if (result?.spotify_card) {
-        this._spotifyShowHeader = result.spotify_card.show_header ?? true;
-        this._spotifyEntity = result.spotify_card.entity_id ?? '';
-        this._spotifySortOrder = result.spotify_card.sort_order === 'oldest_first' ? 'oldest_first' : 'recent_first';
-        this._spotifyMaxItems = result.spotify_card.max_items_per_section ?? 6;
-        this._spotifyVisibleSpeakers = result.spotify_card.visible_speakers ?? [];
-      }
-    } catch { /* ignore */ }
-  }
-
   _selectSpotifyEntity(entityId: string) { selectSpotifyEntity(this, entityId); }
-
-  _renderSpotifyPreview() { return renderSpotifyPreview(this); }
-
-  _renderSpotifySetupGuide() { return renderSpotifySetupGuide(this); }
-
-  _renderSpotifyTab() { return renderSpotifyTab(this); }
-
   _toggleSpotifySpeaker(entityId: string) { toggleSpotifySpeaker(this, entityId); }
-
   _onDropSpeaker(idx: number, e: DragEvent) { onDropSpeaker(this, idx, e); }
 
-  // — Title card config —
+  _toggleWeatherMetric(metric: string) { toggleWeatherMetric(this, metric); }
+  _selectWeatherEntity(entityId: string) { selectWeatherEntity(this, entityId); }
+  _windBearingToDir(bearing: number): string { return windBearingToDir(this, bearing); }
 
-  private async _saveTitle() {
-    if (!this._backend || this._saving) return;
-    this._saving = true;
-    try {
-      await this._backend.send('set_title_config', {
-        title: this._titleText,
-        sources: this._titleSources.map((s) => ({
-          source_type: s.source_type,
-          entity: s.entity || '',
-          label: s.label || '',
-          modes: s.modes,
-        })),
-      });
-      if (!this._mounted) return;
-      this._showToast();
-      bus.emit('title-config-changed', undefined);
-    } catch {
-      this._showToast(true);
-    } finally {
-      this._saving = false;
-    }
-  }
-
-  async _loadTitleConfig(): Promise<void> {
-    this._beginSuppressAutoSave();
-    if (!this._backend) return;
-    // Close pickers to avoid stale flatIdx after data reload
-    this._iconPopupModeIdx = null;
-    this._titleEditingSourceIdx = null;
-    this._titleAddSourceDropdownOpen = false;
-    this._titleAddEntityDropdownOpen = false;
-    try {
-      const result = await this._backend.send<{
-        title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
-      }>('get_config');
-      if (result?.title_card) {
-        this._titleText = result.title_card.title ?? '';
-        this._titleSources = (result.title_card.sources ?? []).map((s) => ({
-          source_type: (s.source_type || '') as 'input_select' | 'scenes' | 'booleans',
-          entity: s.entity || '',
-          label: s.label || '',
-          modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
-        }));
-      }
-    } catch { /* ignore */ }
-  }
-
-  _addTitleSource(sourceType: 'input_select' | 'scenes' | 'booleans') {
-    addTitleSource(this, sourceType);
-  }
-
-  _removeTitleSource(idx: number) {
-    removeTitleSource(this, idx);
-  }
-
-  _setTitleSourceEntity(srcIdx: number, entityId: string) {
-    setTitleSourceEntity(this, srcIdx, entityId);
-  }
-
-  _setTitleSourceLabel(srcIdx: number, label: string) {
-    setTitleSourceLabel(this, srcIdx, label);
-  }
-
-  _addTitleModeEntity(srcIdx: number, entityId: string) {
-    addTitleModeEntity(this, srcIdx, entityId);
-  }
-
-  _removeTitleModeEntity(srcIdx: number, entityId: string) {
-    removeTitleModeEntity(this, srcIdx, entityId);
-  }
-
-  _moveTitleMode(srcIdx: number, modeIdx: number, direction: -1 | 1) {
-    moveTitleMode(this, srcIdx, modeIdx, direction);
-  }
-
-  _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) {
-    updateTitleMode(this, idx, field, value);
-  }
+  _addTitleSource(sourceType: 'input_select' | 'scenes' | 'booleans') { addTitleSource(this, sourceType); }
+  _removeTitleSource(idx: number) { removeTitleSource(this, idx); }
+  _setTitleSourceEntity(srcIdx: number, entityId: string) { setTitleSourceEntity(this, srcIdx, entityId); }
+  _setTitleSourceLabel(srcIdx: number, label: string) { setTitleSourceLabel(this, srcIdx, label); }
+  _addTitleModeEntity(srcIdx: number, entityId: string) { addTitleModeEntity(this, srcIdx, entityId); }
+  _removeTitleModeEntity(srcIdx: number, entityId: string) { removeTitleModeEntity(this, srcIdx, entityId); }
+  _moveTitleMode(srcIdx: number, modeIdx: number, direction: -1 | 1) { moveTitleMode(this, srcIdx, modeIdx, direction); }
+  _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) { updateTitleMode(this, idx, field, value); }
 
   _iconLoading = false;
-
   async _openIconPopup(modeIdx: number) {
     if (this._iconLoading) return;
     if (this._iconList.length === 0) {
       this._iconLoading = true;
-      // Try to get the full MDI list from HA via a temporary ha-icon-picker
       const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
       picker.hass = this.hass;
       picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
@@ -2134,20 +557,7 @@ export class GlassConfigPanel extends LitElement {
       this._iconPopupModeIdx = modeIdx;
     }
   }
-
   _getFilteredIcons(): string[] { return getFilteredIcons(this); }
-
-  _renderIconPopup() { return renderIconPopup(this); }
-
-  _renderTitlePreview() { return renderTitlePreview(this); }
-
-  _renderTitleTab() { return renderTitleTab(this); }
-
-  // — Unassigned entities —
-
-  _renderUnassignedPreview() { return renderUnassignedPreview(this); }
-
-  _renderUnassignedTab() { return renderUnassignedTab(this); }
 
   _loadUnassignedEntities() {
     this._unassignedEntities = collectAllEntities(this);
@@ -2156,12 +566,54 @@ export class GlassConfigPanel extends LitElement {
     this._unassignedEntitySearch = '';
     this._unassignedAreaSearch = '';
   }
-
   _assignEntityArea(entityId: string, areaId: string) { assignEntityArea(this, entityId, areaId); }
-
   _renameEntity(entityId: string, newName: string) { renameEntity(this, entityId, newName); }
 
-  // — Tab Select —
+  // ─── Render delegates ───
+
+  _renderNavbarPreview() { return renderNavbarPreview(this); }
+  _renderPopupPreview() { return renderPopupPreview(this); }
+  _renderLightPreview() { return renderLightPreview(this); }
+  _renderWeatherPreview() { return renderWeatherPreview(this); }
+  _renderTitlePreview() { return renderTitlePreview(this); }
+  _renderMediaPreview() { return renderMediaPreview(this); }
+  _renderCoverPreview() { return renderCoverPreview(this); }
+  _renderClimatePreview() { return renderClimatePreview(this); }
+  _renderFanPreview() { return renderFanPreview(this); }
+  _renderSpotifyPreview() { return renderSpotifyPreview(this); }
+  _renderPresencePreview() { return renderPresencePreview(this); }
+  _renderCameraCarouselPreview() { return renderCameraCarouselPreview(this); }
+  _renderDashboardPreview() { return renderDashboardPreview(this); }
+
+  _renderNavbarTab() { return renderNavbarTab(this); }
+  _renderRoomRow(room: RoomEntry, idx: number) { return renderRoomRow(this, room, idx); }
+  _renderPopupTab() { return renderPopupTab(this); }
+  _renderCardRow(card: CardEntry, idx: number) { return renderCardRow(this, card, idx); }
+  _renderSceneRow(scene: SceneEntry, idx: number) { return renderSceneRow(this, scene, idx); }
+  _renderLightTab() { return renderLightTab(this); }
+  _renderLightRow(light: LightEntry, idx: number) { return renderLightRow(this, light, idx); }
+  _formatDateTimeShort(value: string): string { return formatDateTimeShort(this, value); }
+  _formatPeriodDisplay(p: SchedulePeriodEdit): string { return formatPeriodDisplay(this, p); }
+  _renderScheduleContent(entityId: string) { return renderScheduleContent(this, entityId); }
+  _renderCoverTab() { return renderCoverTab(this); }
+  _renderFanTab() { return renderFanTab(this); }
+  _renderClimateTab() { return renderClimateTab(this); }
+  _renderMediaTab() { return renderMediaTab(this); }
+  _renderDashboardTab() { return renderDashboardTab(this); }
+  _renderDashboardCardSub(key: string, enabled: boolean, expanded: boolean): TemplateResult | typeof nothing { return renderDashboardCardSub(this, key, enabled, expanded); }
+  _renderPresenceTab() { return renderPresenceTab(this); }
+  _renderCameraCarouselTab() { return renderCameraCarouselTab(this); }
+  _renderWeatherTab() { return renderWeatherTab(this); }
+  _renderSpotifyPreview2() { return renderSpotifyPreview(this); }
+  _renderSpotifySetupGuide() { return renderSpotifySetupGuide(this); }
+  _renderSpotifyTab() { return renderSpotifyTab(this); }
+  _renderIconPopup() { return renderIconPopup(this); }
+  _renderTitlePreview2() { return renderTitlePreview(this); }
+  _renderTitleTab() { return renderTitleTab(this); }
+  _renderUnassignedPreview() { return renderUnassignedPreview(this); }
+  _renderUnassignedTab() { return renderUnassignedTab(this); }
+
+  // ─── Tab Select ───
 
   private static _TAB_META: { id: TabId; icon: string; labelKey: Parameters<typeof t>[0] }[] = [
     { id: 'dashboard', icon: 'mdi:view-dashboard', labelKey: 'config.tab_dashboard' },
@@ -2224,10 +676,10 @@ export class GlassConfigPanel extends LitElement {
     `;
   }
 
-  // — Main render —
+  // ─── Main render ───
 
   render() {
-    void this._lang; // Trigger re-render on language change
+    void this._lang;
     if (!this.hass) return nothing;
 
     return html`

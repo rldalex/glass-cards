@@ -6,7 +6,8 @@ import {
   getAreaEntities,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin } from '@glass-cards/ui-core';
+import './editor';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CoverEntityFeature) —
@@ -128,6 +129,14 @@ interface RoomCoverConfig {
 // — Card —
 
 class GlassCoverCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-cover-card-editor');
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
   @property() areaId?: string;
 
   @state() private _expanded: string | null = null;
@@ -140,49 +149,47 @@ class GlassCoverCard extends BaseCard {
   private _roomLoading = false;
   private _lastAreaId: string | undefined;
   private _throttleTimers = new Map<string, number>();
-  private _sliderCleanups: (() => void)[] = [];
+
   private _coversCache: CoverInfo[] | null = null;
   private _coversCacheKey = '';
 
-  static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, bounceMixin, css`
+  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
     :host {
-      display: block;
       width: 100%;
-      max-width: 500px;
+      max-width: 31.25rem;
       margin: 0 auto;
-      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     .cover-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px;
-      margin-bottom: 6px; min-height: 22px;
+      padding: 0 0.375rem;
+      margin-bottom: 0.375rem; min-height: 1.375rem;
     }
-    .cover-header-left { display: flex; align-items: center; gap: 8px; }
+    .cover-header-left { display: flex; align-items: center; gap: 0.5rem; }
     .cover-title {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.5px; color: var(--t4);
     }
     .cover-count {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 14px; height: 14px; padding: 0 4px;
-      border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
       transition: all var(--t-med);
     }
-    .cover-count.some { background: rgba(167,139,250,0.15); color: var(--cv-color, #a78bfa); }
+    .cover-count.some { background: rgba(var(--rgb-purple),0.15); color: var(--cv-color, #a78bfa); }
     .cover-count.none { background: var(--s2); color: var(--t3); }
-    .cover-count.all  { background: rgba(167,139,250,0.2); color: var(--cv-color, #a78bfa); }
+    .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
 
-    .cover-header-actions { display: flex; gap: 4px; }
+    .cover-header-actions { display: flex; gap: 0.25rem; }
     .header-btn {
-      width: 22px; height: 22px; border-radius: var(--radius-sm);
+      width: 1.375rem; height: 1.375rem; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
       transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
     }
     .header-btn ha-icon {
-      --mdc-icon-size: 14px;
+      --mdc-icon-size: 0.875rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: color var(--t-fast);
     }
@@ -190,15 +197,15 @@ class GlassCoverCard extends BaseCard {
       .header-btn:hover { background: var(--s3); border-color: var(--b3); }
       .header-btn:hover ha-icon { color: var(--t1); }
     }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .header-btn:active { transform: scale(0.96); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .header-btn:active { animation: bounce 0.3s ease; }
     }
-    .header-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .header-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
-    .cover-card { position: relative; padding: 2px 14px; }
+    .cover-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
       position: relative; z-index: 1;
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
@@ -213,16 +220,16 @@ class GlassCoverCard extends BaseCard {
 
     /* ── Row ── */
     .cv-row {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 0.625rem;
       grid-column: 1 / -1;
-      padding: 8px 4px; position: relative;
+      padding: 0.5rem 0.25rem; position: relative;
       border-radius: var(--radius-md);
       transition: background var(--t-fast);
     }
     .cv-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
-    .cv-row.compact-right { padding-left: 10px; }
+    .cv-row.compact-right { padding-left: 0.625rem; }
     .cv-row.compact-right::before {
-      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px;
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
       background: linear-gradient(180deg, transparent, var(--b2), transparent);
     }
     @media (hover: hover) and (pointer: fine) {
@@ -235,16 +242,16 @@ class GlassCoverCard extends BaseCard {
 
     .cv-expand-btn {
       flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 0.625rem;
       background: none; border: none; padding: 0;
       font-family: inherit; cursor: pointer; outline: none;
       text-align: left;
       -webkit-tap-highlight-color: transparent;
     }
-    .cv-expand-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
+    .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
 
     .cv-icon-btn {
-      width: 36px; height: 36px; border-radius: var(--radius-md);
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast);
@@ -252,7 +259,7 @@ class GlassCoverCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
     }
     .cv-icon-btn ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 1.125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3); transition: all var(--t-fast);
     }
@@ -260,48 +267,48 @@ class GlassCoverCard extends BaseCard {
       .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
       .cv-icon-btn:hover ha-icon { color: var(--t2); }
     }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .cv-icon-btn:active { transform: scale(0.96); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .cv-icon-btn:active { animation: bounce 0.3s ease; }
     }
-    .cv-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    .cv-row.open .cv-icon-btn { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.15); }
-    .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(167,139,250,0.4)); }
+    .cv-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .cv-row.open .cv-icon-btn { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
+    .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(var(--rgb-purple),0.4)); }
 
     .cv-info { flex: 1; min-width: 0; }
     .cv-name {
-      font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
       overflow: hidden; white-space: nowrap;
     }
-    .cv-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .cv-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .cv-state-text {
-      font-size: 10px; font-weight: 500; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
       transition: color var(--t-med);
     }
-    .cv-row.open .cv-state-text { color: rgba(167,139,250,0.6); }
+    .cv-row.open .cv-state-text { color: rgba(var(--rgb-purple),0.6); }
     .cv-position {
-      font-size: 16px; font-weight: 700; color: var(--t3);
+      font-size: var(--fz-lg); font-weight: 700; color: var(--t3);
       font-variant-numeric: tabular-nums; flex-shrink: 0;
       transition: color var(--t-med);
     }
-    .cv-position .unit { font-size: 10px; font-weight: 500; }
+    .cv-position .unit { font-size: var(--fz-sm); font-weight: 500; }
     .cv-row.open .cv-position { color: var(--cv-color, #a78bfa); }
 
     .cv-dot {
-      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
     .cv-row.open .cv-dot {
-      background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(167,139,250,0.4);
+      background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
     }
 
     /* ── Fold ── */
     .fold-sep {
       grid-column: 1 / -1;
-      height: 1px; margin: 0 12px; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple),0.25), transparent);
       opacity: 0; transition: opacity var(--t-layout);
     }
     .fold-sep.visible { opacity: 1; }
@@ -319,27 +326,27 @@ class GlassCoverCard extends BaseCard {
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
     .ctrl-panel {
-      padding: 6px 0 4px;
-      display: flex; flex-direction: column; gap: 10px;
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.625rem;
     }
     .ctrl-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
-      color: rgba(167,139,250,0.6); text-transform: uppercase;
+      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
+      color: rgba(var(--rgb-purple),0.6); text-transform: uppercase;
     }
 
     /* Transport */
     .transport-row {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
     }
     .transport-btn {
-      width: 44px; height: 44px; border-radius: 14px;
+      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
     .transport-btn ha-icon {
-      --mdc-icon-size: 22px;
+      --mdc-icon-size: 1.375rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t2); transition: color var(--t-fast);
     }
@@ -347,77 +354,56 @@ class GlassCoverCard extends BaseCard {
       .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
       .transport-btn:hover ha-icon { color: var(--t1); }
     }
-    @media (hover: hover) {
+    @media (hover: hover) and (pointer: fine) {
       .transport-btn:active { transform: scale(0.96); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .transport-btn:active { animation: bounce 0.3s ease; }
     }
-    .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    .transport-btn.accent { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.15); }
+    .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .transport-btn.accent { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
     .transport-btn.accent ha-icon { color: var(--cv-color, #a78bfa); }
 
     /* Slider */
-    .slider-wrap { display: flex; align-items: center; gap: 8px; }
+    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
     .slider-icon {
       display: flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; flex-shrink: 0;
+      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
     }
     .slider-icon ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 1.125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t3);
     }
-    .slider {
-      position: relative; flex: 1; height: 36px;
-      border-radius: var(--radius-lg); background: var(--s1);
-      border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
-      touch-action: none; user-select: none; -webkit-user-select: none;
-    }
-    .slider-fill {
-      position: absolute; top: 0; left: 0; height: 100%;
-      border-radius: inherit; pointer-events: none;
-      background: linear-gradient(90deg, rgba(167,139,250,0.15), rgba(167,139,250,0.25));
-      transition: width 0.05s linear;
-    }
-    .slider-thumb {
-      position: absolute; top: 50%; transform: translate(-50%, -50%);
-      width: 8px; height: 20px; border-radius: 4px;
-      background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
-      pointer-events: none; transition: left 0.05s linear;
-    }
-    .slider-val {
-      position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
-      font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
-    }
+    glass-slider { flex: 1; }
 
     /* Presets */
-    .preset-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .preset-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
     .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: 11px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: all var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 14px;
+      --mdc-icon-size: 0.875rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
-    .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
-    @media (hover: hover) {
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
       .chip:active { transform: scale(0.96); }
     }
-    @media (hover: none) {
+    @media (pointer: coarse) {
       .chip:active { animation: bounce 0.3s ease; }
     }
-    .chip.active { border-color: rgba(167,139,250,0.15); background: rgba(167,139,250,0.1); color: var(--cv-color, #a78bfa); }
+    .chip.active { border-color: rgba(var(--rgb-purple),0.15); background: rgba(var(--rgb-purple),0.1); color: var(--cv-color, #a78bfa); }
 
-    .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
   `];
 
   connectedCallback(): void {
@@ -440,8 +426,6 @@ class GlassCoverCard extends BaseCard {
     this._roomLoading = false;
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
-    for (const cleanup of this._sliderCleanups) cleanup();
-    this._sliderCleanups = [];
   }
 
   protected _collapseExpanded(): void {
@@ -648,38 +632,6 @@ class GlassCoverCard extends BaseCard {
     this._expanded = this._expanded === entityId ? null : entityId;
   }
 
-  // — Slider interaction —
-
-  private _onSliderDown(cv: CoverInfo, type: 'position' | 'tilt', e: PointerEvent) {
-    e.stopPropagation();
-    const slider = e.currentTarget as HTMLElement;
-    slider.setPointerCapture(e.pointerId);
-    const ac = new AbortController();
-    const { signal } = ac;
-
-    const update = (evt: PointerEvent) => {
-      const rect = slider.getBoundingClientRect();
-      const pct = Math.max(0, Math.min(100, Math.round(((evt.clientX - rect.left) / rect.width) * 100)));
-      if (type === 'position') {
-        this._setPosition(cv, pct);
-      } else {
-        this._setTiltPosition(cv, pct);
-      }
-    };
-
-    update(e);
-
-    const done = () => {
-      ac.abort();
-      try { slider.releasePointerCapture(e.pointerId); } catch { /* already released */ }
-      this._sliderCleanups = this._sliderCleanups.filter((c) => c !== done);
-    };
-    this._sliderCleanups.push(done);
-    slider.addEventListener('pointermove', (evt) => update(evt as PointerEvent), { signal });
-    slider.addEventListener('pointerup', done, { signal });
-    slider.addEventListener('pointercancel', done, { signal });
-  }
-
   // — Render —
 
   protected render() {
@@ -795,7 +747,8 @@ class GlassCoverCard extends BaseCard {
 
   private _renderCoverRow(cv: CoverInfo, compact = false, isRight = false) {
     const isExpanded = this._expanded === cv.entityId;
-    const rowClasses = ['cv-row', cv.isOpen ? 'open' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '']
+    const unavailable = isEntityUnavailable(cv.entity.state);
+    const rowClasses = ['cv-row', cv.isOpen ? 'open' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '', unavailable ? 'entity-unavailable' : '']
       .filter(Boolean).join(' ');
     return html`
       <div class=${rowClasses}>
@@ -823,6 +776,7 @@ class GlassCoverCard extends BaseCard {
           ` : nothing}
           <div class="cv-dot"></div>
         </button>
+        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -908,11 +862,13 @@ class GlassCoverCard extends BaseCard {
         ${hasPosition ? html`
           <div class="slider-wrap">
             <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, false)}></ha-icon></div>
-            <div class="slider" @pointerdown=${(e: PointerEvent) => this._onSliderDown(cv, 'position', e)}>
-              <div class="slider-fill" style="width:${cv.position ?? 0}%;"></div>
-              <div class="slider-thumb" style="left:${cv.position ?? 0}%;"></div>
-              <div class="slider-val">${cv.position ?? 0}%</div>
-            </div>
+            <glass-slider
+              .value=${cv.position ?? 0}
+              color="var(--rgb-purple)"
+              .label=${`${cv.position ?? 0}%`}
+              @glass-slider-input=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
+              @glass-slider-change=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
+            ></glass-slider>
             <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, true)}></ha-icon></div>
           </div>
         ` : nothing}
@@ -922,11 +878,13 @@ class GlassCoverCard extends BaseCard {
           <span class="ctrl-label">${t('cover.tilt')}</span>
           <div class="slider-wrap">
             <div class="slider-icon"><ha-icon .icon=${'mdi:blinds'}></ha-icon></div>
-            <div class="slider" @pointerdown=${(e: PointerEvent) => this._onSliderDown(cv, 'tilt', e)}>
-              <div class="slider-fill" style="width:${cv.tiltPosition ?? 0}%;"></div>
-              <div class="slider-thumb" style="left:${cv.tiltPosition ?? 0}%;"></div>
-              <div class="slider-val">${cv.tiltPosition ?? 0}%</div>
-            </div>
+            <glass-slider
+              .value=${cv.tiltPosition ?? 0}
+              color="var(--rgb-purple)"
+              .label=${`${cv.tiltPosition ?? 0}%`}
+              @glass-slider-input=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
+              @glass-slider-change=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
+            ></glass-slider>
             <div class="slider-icon"><ha-icon .icon=${'mdi:blinds-open'}></ha-icon></div>
           </div>
         ` : nothing}

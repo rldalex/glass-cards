@@ -45,7 +45,7 @@ export function renderMediaPreview(self: GlassConfigPanel) {
           ${self._mediaShowHeader ? html`
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
               <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('media.title')}</span>
-              <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:8px;background:rgba(96,165,250,0.15);color:#60a5fa;">${playingCount}/${totalCount || 1}</span>
+              <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:rgba(96,165,250,0.15);color:#60a5fa;">${playingCount}/${totalCount || 1}</span>
             </div>
           ` : nothing}
           <div class="mp-track">

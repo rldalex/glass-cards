@@ -1,8 +1,9 @@
 import { css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
+import './editor';
 
 // — Backend config shapes (multi-source) —
 
@@ -20,9 +21,18 @@ interface TitleSourceEntry {
   modes: TitleModeEntry[];
 }
 
+interface TitlePeriodOption {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+}
+
 interface TitleBackendConfig {
   title: string;
   sources: TitleSourceEntry[];
+  period_entity: string;
+  period_options: TitlePeriodOption[];
 }
 
 // Colors mapped to CSS custom properties
@@ -53,8 +63,8 @@ function resolveColor(colorKey: string): { text: string; dot: string; glow: stri
   return COLOR_MAP.neutral;
 }
 
-/** Hardcoded period visuals from the prototype. */
-const PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
+/** Default period visuals used when no period_options are configured. */
+const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
   'Matin':       { icon: 'mdi:weather-sunset-up',   color: '#f0a050' },
   'Après-midi':  { icon: 'mdi:white-balance-sunny',  color: '#7db8e0' },
   'Soir':        { icon: 'mdi:weather-sunset-down',  color: '#e08040' },
@@ -62,17 +72,25 @@ const PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
 };
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
 
-/** Hardcoded period entity — auto-detected, no config needed. */
-const PERIOD_ENTITY_ID = 'input_select.periode_journee';
+/** Default period entity used when no period_entity is configured. */
+const DEFAULT_PERIOD_ENTITY_ID = 'input_select.periode_journee';
 
 /** Scene activation timeout duration (ms). */
 const SCENE_HIGHLIGHT_MS = 2000;
 
 class GlassTitleCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-title-card-editor');
+  }
+
+  getCardSize() {
+    return 2;
+  }
+
   @state() private _foldOpen = false;
   @state() private _activatingSceneId: string | null = null;
 
-  private _titleConfig: TitleBackendConfig = { title: '', sources: [] };
+  private _titleConfig: TitleBackendConfig = { title: '', sources: [], period_entity: '', period_options: [] };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
   private _configLoading = false;
@@ -80,28 +98,39 @@ class GlassTitleCard extends BaseCard {
   private _sceneTimeout = 0;
   private _boundClickOutside = this._onClickOutside.bind(this);
 
-  static styles = [glassTokens, bounceMixin, css`
+  private get _periodEntityId(): string {
+    return this._titleConfig.period_entity || DEFAULT_PERIOD_ENTITY_ID;
+  }
+
+  private _getPeriodVisual(optionId: string): { icon: string; color: string } {
+    const configured = this._titleConfig.period_options.find((o) => o.id === optionId);
+    if (configured && (configured.icon || configured.color)) {
+      return { icon: configured.icon || PERIOD_DEFAULT_VISUAL.icon, color: configured.color || PERIOD_DEFAULT_VISUAL.color };
+    }
+    return DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
+  }
+
+  static styles = [glassTokens, hostMixin, bounceMixin, css`
     :host {
-      display: block;
       width: 100%;
-      max-width: 500px;
+      max-width: 31.25rem;
       margin: 0 auto;
     }
 
     .title-card {
       display: flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 4px 16px 0;
+      gap: 0.25rem; padding: 0.25rem 1rem 0;
       text-align: center;
     }
 
     .title-text {
-      font-size: 22px; font-weight: 700; color: var(--t1);
+      font-size: var(--fz-xl); font-weight: 700; color: var(--t1);
       letter-spacing: -0.3px; line-height: 1.2;
-      display: flex; align-items: center; gap: 14px;
+      display: flex; align-items: center; gap: 0.875rem;
       width: 100%;
     }
     .title-text::before, .title-text::after {
-      content: ''; flex: 1; height: 1px;
+      content: ''; flex: 1; height: 0.0625rem;
       background: linear-gradient(90deg, transparent, var(--b3));
     }
     .title-text::after {
@@ -111,7 +140,7 @@ class GlassTitleCard extends BaseCard {
     /* ── Dash trigger ── */
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
-      padding: 4px 16px;
+      padding: 0.25rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
@@ -120,13 +149,13 @@ class GlassTitleCard extends BaseCard {
     @media (hover: hover) and (pointer: fine) {
       .dash-trigger:hover { background: var(--s1); }
     }
-    .dash-trigger:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .dash-trigger:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
     @media (pointer: coarse) {
       .dash-trigger:active { transform: scale(0.96); }
     }
 
     .dash-line {
-      width: 20px; height: 2px; border-radius: 1px;
+      width: 1.25rem; height: 0.125rem; border-radius: 1px;
       background: var(--t4);
       transition: all var(--t-med);
     }
@@ -152,41 +181,41 @@ class GlassTitleCard extends BaseCard {
 
     /* Fold separator */
     .fold-sep {
-      height: 1px; width: 80%; margin: 4px auto;
+      height: 0.0625rem; width: 80%; margin: 0.25rem auto;
       background: linear-gradient(90deg, transparent, var(--b3), transparent);
     }
 
     /* ── Chips group ── */
     .chips-group-label {
-      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      font-size: var(--fz-xs); font-weight: 600; text-transform: uppercase;
       letter-spacing: 1px; color: var(--t4);
-      text-align: center; padding: 6px 0 2px;
+      text-align: center; padding: 0.375rem 0 0.125rem;
     }
     .chips-group + .chips-group .chips-group-label {
       border-top: 1px solid var(--b1);
-      margin: 0 20%; padding-top: 8px;
+      margin: 0 20%; padding-top: 0.5rem;
     }
 
     .chips-row {
       display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 6px; padding: 4px 4px 8px;
+      gap: 0.375rem; padding: 0.25rem 0.25rem 0.5rem;
     }
 
     /* ── Chip ── */
     .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: 11px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: all var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
-    .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
     .chip ha-icon {
-      --mdc-icon-size: 14px;
+      --mdc-icon-size: 0.875rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (pointer: coarse) {
@@ -203,17 +232,17 @@ class GlassTitleCard extends BaseCard {
     /* ── Period indicator ── */
     .period-indicator {
       position: relative;
-      height: 14px;
+      height: 0.875rem;
       overflow: hidden;
       width: 100%;
     }
     .period-item {
       width: 100%;
-      height: 14px;
+      height: 0.875rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: var(--fz-sm);
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 1.5px;
@@ -228,7 +257,7 @@ class GlassTitleCard extends BaseCard {
     .period-item::after {
       content: '';
       display: inline-block;
-      width: 16px;
+      width: 1rem;
     }
     .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
     .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
@@ -271,7 +300,7 @@ class GlassTitleCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    const ids: string[] = [PERIOD_ENTITY_ID];
+    const ids: string[] = [this._periodEntityId];
     for (const src of this._titleConfig.sources) {
       if (src.source_type === 'input_select' && src.entity) {
         ids.push(src.entity);
@@ -473,7 +502,7 @@ class GlassTitleCard extends BaseCard {
   private _renderPeriodIndicator(): TemplateResult | typeof nothing {
     if (!this.hass) return nothing;
 
-    const entity = this.hass.states[PERIOD_ENTITY_ID];
+    const entity = this.hass.states[this._periodEntityId];
     if (!entity) return nothing;
 
     // Read options directly from the HA entity
@@ -486,13 +515,13 @@ class GlassTitleCard extends BaseCard {
     // Keep container stable even when state is unavailable/unknown
     if (currentIdx === -1) return html`<div class="period-indicator"></div>`;
 
-    const activeVisual = PERIOD_VISUALS[currentValue] || PERIOD_DEFAULT_VISUAL;
+    const activeVisual = this._getPeriodVisual(currentValue);
 
     return html`
       <div class="period-indicator" aria-live="polite" aria-label="${currentValue}">
         ${options.map((opt, i) => {
           const pos = this._getPeriodPos(i, currentIdx);
-          const visual = PERIOD_VISUALS[opt] || PERIOD_DEFAULT_VISUAL;
+          const visual = this._getPeriodVisual(opt);
           return html`
             <div class="period-item ${pos}"
               style="${pos === 'pos-center' ? `color:${activeVisual.color}` : ''}">

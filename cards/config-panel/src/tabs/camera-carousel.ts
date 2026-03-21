@@ -20,7 +20,7 @@ export function renderCameraCarouselPreview(_self: GlassConfigPanel) {
   return html`
     <div style="padding:10px;">
       <!-- Viewport -->
-      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#0a0f18;border:1px solid var(--b1);margin-bottom:8px;">
+      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius-md);overflow:hidden;background:#0a0f18;border:1px solid var(--b1);margin-bottom:8px;">
         <div style="position:absolute;inset:0;background:radial-gradient(circle at 25% 35%,rgba(40,60,90,0.4) 0%,transparent 40%),radial-gradient(circle at 65% 55%,rgba(30,50,70,0.3) 0%,transparent 45%),linear-gradient(135deg,#141e2e 0%,#0d1520 40%,#111a28 100%);">
           <!-- Top overlay -->
           <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:5px 7px;background:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 100%);">
@@ -64,7 +64,7 @@ export function renderCameraCarouselPreview(_self: GlassConfigPanel) {
 
       <!-- Info bar -->
       <div style="display:flex;align-items:center;gap:7px;padding:0 2px;margin-bottom:6px;">
-        <div style="width:22px;height:22px;border-radius:7px;background:${camColor}0.1);border:1px solid ${camColor}0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <div style="width:22px;height:22px;border-radius:var(--radius-sm);background:${camColor}0.1);border:1px solid ${camColor}0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <ha-icon .icon=${'mdi:cctv'} style="--mdc-icon-size:12px;color:#60a5fa;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </div>
         <div style="flex:1;min-width:0;">
@@ -85,7 +85,7 @@ export function renderCameraCarouselPreview(_self: GlassConfigPanel) {
       <!-- Actions -->
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
         ${['mdi:power', 'mdi:camera', 'mdi:record-circle', 'mdi:motion-sensor'].map((icon, i) => html`
-          <div style="display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:6px;border:1px solid ${i === 0 ? `${camColor}0.15)` : 'var(--b2)'};background:${i === 0 ? `${camColor}0.1)` : 'var(--s1)'};font-size:8px;font-weight:600;color:${i === 0 ? '#60a5fa' : 'var(--t3)'};">
+          <div style="display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:var(--radius-xs);border:1px solid ${i === 0 ? `${camColor}0.15)` : 'var(--b2)'};background:${i === 0 ? `${camColor}0.1)` : 'var(--s1)'};font-size:8px;font-weight:600;color:${i === 0 ? '#60a5fa' : 'var(--t3)'};">
             <ha-icon .icon=${icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
           </div>
         `)}

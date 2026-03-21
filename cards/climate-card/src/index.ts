@@ -4,12 +4,13 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  getDashboardEntityIds,
   resolveEntityAreaId,
   isEntityVisibleNow,
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import {
   renderRangeSlider,
@@ -28,6 +29,7 @@ import {
 } from './climate-modes';
 import { renderArcGauge } from './climate-arc';
 import { ThermalCanvas } from './climate-canvas';
+import './editor';
 
 // — Constants —
 
@@ -50,6 +52,14 @@ interface RoomClimateConfig {
 // — Component —
 
 export class GlassClimateCard extends BaseCard {
+  static getConfigElement() {
+    return document.createElement('glass-climate-card-editor');
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
   @property({ attribute: false }) areaId?: string;
   @property({ attribute: false }) visibleAreaIds?: string[];
 
@@ -211,14 +221,8 @@ export class GlassClimateCard extends BaseCard {
   }
 
   protected getTrackedEntityIds(): string[] {
-    if (this._isDashboardMode && this.hass && this.visibleAreaIds?.length && this.hass.entities && this.hass.devices) {
-      const ids: string[] = [];
-      for (const aId of this.visibleAreaIds) {
-        for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('climate.')) ids.push(e.entity_id);
-        }
-      }
-      return ids;
+    if (this._isDashboardMode && this.hass) {
+      return getDashboardEntityIds('climate', this.hass, this.visibleAreaIds);
     }
     return this._getClimateIds();
   }
@@ -620,8 +624,7 @@ export class GlassClimateCard extends BaseCard {
   }
 
   private _getIcon(entityId: string, entity: HassEntity): string {
-    const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
-    if (isUnavailable) return 'mdi:thermostat-off';
+    if (isEntityUnavailable(entity.state)) return 'mdi:thermostat-off';
     const registryIcon = this.hass?.entities[entityId]?.icon;
     const attrIcon = entity.attributes.icon as string | undefined;
     return registryIcon || attrIcon || HVAC_ICONS[entity.state] || 'mdi:thermostat';
@@ -719,7 +722,7 @@ export class GlassClimateCard extends BaseCard {
   private _renderListRow(entityId: string, entity: HassEntity): TemplateResult {
     const attrs = entity.attributes;
     const name = (attrs.friendly_name as string) || entityId.split('.')[1] || entityId;
-    const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
+    const unavailable = isEntityUnavailable(entity.state);
     const isOff = entity.state === 'off';
     const hvacAction = this._getHvacAction(entity);
     const currentTemp = attrs.current_temperature as number | undefined;
@@ -733,18 +736,18 @@ export class GlassClimateCard extends BaseCard {
     const modeBadgeText = presetMode && presetMode !== 'none' ? presetMode : hvacMode;
 
     return html`
-      <div class="cl-row ${isUnavailable ? 'unavailable' : ''}" data-action=${hvacAction}>
+      <div class="cl-row ${unavailable ? 'entity-unavailable' : ''}" data-action=${hvacAction}>
         <button
           class="cl-icon-btn"
           @click=${(e: Event) => this._toggle(entityId, entity, e)}
           aria-label=${isOff ? t('climate.turn_on_aria') : t('climate.turn_off_aria')}
-          ?disabled=${isUnavailable}
+          ?disabled=${unavailable}
         >
           <ha-icon .icon=${icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>
         <button
           class="cl-expand-btn"
-          @click=${() => { if (!isUnavailable) this._expanded = isExpanded ? null : entityId; }}
+          @click=${() => { if (!unavailable) this._expanded = isExpanded ? null : entityId; }}
           aria-expanded=${isExpanded ? 'true' : 'false'}
           aria-label=${t('climate.controls_aria')}
         >
@@ -756,19 +759,19 @@ export class GlassClimateCard extends BaseCard {
             </div>
           </div>
           <div class="cl-temps">
-            <div class="cl-temp-current">${isUnavailable ? '--' : (currentTemp != null ? html`${currentTemp.toFixed(1)}<span class="unit">°</span>` : '--')}</div>
+            <div class="cl-temp-current">${unavailable ? '--' : (currentTemp != null ? html`${currentTemp.toFixed(1)}<span class="unit">°</span>` : '--')}</div>
             ${!isOff && targetTemp != null ? html`<div class="cl-temp-target">→ ${targetTemp.toFixed(1)}°</div>` : nothing}
           </div>
           <div class="cl-dot"></div>
         </button>
+        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
 
   private _renderListFold(entityId: string, entity: HassEntity): TemplateResult | typeof nothing {
     const isExpanded = this._expanded === entityId;
-    const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
-    if (isUnavailable) return nothing;
+    if (isEntityUnavailable(entity.state)) return nothing;
 
     const hvacAction = this._getHvacAction(entity);
     const sepColor = hvacAction === 'cooling' ? 'cool' : '';
@@ -1000,13 +1003,11 @@ export class GlassClimateCard extends BaseCard {
   //  STYLES
   // ════════════════════════════════════════════════════════════════
 
-  static styles = [glassTokens, glassMixin, foldMixin, marqueeMixin, bounceMixin, css`
+  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
     :host {
-      display: block;
       width: 100%;
-      max-width: 500px;
+      max-width: 31.25rem;
       margin: 0 auto;
-      font-family: 'Plus Jakarta Sans', sans-serif;
       color: var(--t1);
 
       /* Climate tokens */
@@ -1023,9 +1024,9 @@ export class GlassClimateCard extends BaseCard {
       --cl-cool-sub: rgba(56,189,248,0.6);
 
       --cl-auto: #a78bfa;
-      --cl-auto-bg: rgba(167,139,250,0.1);
-      --cl-auto-border: rgba(167,139,250,0.15);
-      --cl-auto-glow: rgba(167,139,250,0.4);
+      --cl-auto-bg: rgba(var(--rgb-purple),0.1);
+      --cl-auto-border: rgba(var(--rgb-purple),0.15);
+      --cl-auto-glow: rgba(var(--rgb-purple),0.4);
 
       --cl-dry: #eab308;
       --cl-fan: #06b6d4;
@@ -1035,29 +1036,29 @@ export class GlassClimateCard extends BaseCard {
     /* ── Card Header ── */
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+      padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
     }
-    .card-header-left { display: flex; align-items: center; gap: 8px; }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
     .card-title {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.5px; color: var(--t4);
     }
     .card-count {
       display: inline-flex; align-items: center; justify-content: center;
-      min-width: 14px; height: 14px; padding: 0 4px;
-      border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
       transition: all var(--t-med);
     }
     .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
     .card-count.none { background: var(--s2); color: var(--t3); }
     .card-count.all  { background: rgba(249,115,22,0.2); color: var(--cl-heat); }
-    .card-header-right { font-size: 10px; font-weight: 500; color: var(--t3); }
+    .card-header-right { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
 
     /* ── Card Body ── */
     .climate-card { position: relative; overflow: hidden; }
-    .climate-card.list-mode { padding: 2px 14px; }
+    .climate-card.list-mode { padding: 0.125rem 0.875rem; }
     .climate-card.normal-mode {
-      padding: 14px;
+      padding: 0.875rem;
       touch-action: pan-y; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent; cursor: default;
       transition: border-color var(--t-fast), border-radius var(--t-layout);
@@ -1098,8 +1099,8 @@ export class GlassClimateCard extends BaseCard {
     }
 
     .empty-state {
-      padding: 16px; text-align: center;
-      font-size: 12px; color: var(--t3);
+      padding: 1rem; text-align: center;
+      font-size: var(--fz-base); color: var(--t3);
     }
 
     /* ════════════════════════════════════════════
@@ -1108,11 +1109,11 @@ export class GlassClimateCard extends BaseCard {
 
     /* ── Row ── */
     .cl-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 4px; position: relative; flex-shrink: 0;
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem 0.25rem; position: relative; flex-shrink: 0;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
-    .cl-row.unavailable { opacity: 0.4; pointer-events: none; }
+    /* unavailable styling handled by unavailableMixin (.entity-unavailable) */
     @media (hover: hover) and (pointer: fine) {
       .cl-row:hover { background: var(--s1); }
     }
@@ -1122,7 +1123,7 @@ export class GlassClimateCard extends BaseCard {
 
     /* ── Icon Button ── */
     .cl-icon-btn {
-      width: 36px; height: 36px; border-radius: var(--radius-md);
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
@@ -1131,7 +1132,7 @@ export class GlassClimateCard extends BaseCard {
     .cl-icon-btn ha-icon {
       color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
     }
-    .cl-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .cl-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .cl-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
       .cl-icon-btn:hover ha-icon { color: var(--t2); }
@@ -1169,26 +1170,26 @@ export class GlassClimateCard extends BaseCard {
     /* ── Expand Button ── */
     .cl-expand-btn {
       flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 0.625rem;
       background: none; border: none; padding: 0;
       font-family: inherit; cursor: pointer; outline: none;
       text-align: left; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
     .cl-expand-btn:focus-visible {
-      outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px;
+      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
 
     /* ── Info ── */
     .cl-info { flex: 1; min-width: 0; }
     .cl-name {
-      font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
       white-space: nowrap; overflow: hidden;
     }
-    .cl-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .cl-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .cl-action-text {
-      font-size: 10px; font-weight: 500; color: var(--t3);
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
       transition: color var(--t-med);
     }
     .cl-row[data-action="heating"] .cl-action-text,
@@ -1196,8 +1197,8 @@ export class GlassClimateCard extends BaseCard {
     .cl-row[data-action="cooling"] .cl-action-text { color: var(--cl-cool-sub); }
 
     .cl-mode-badge {
-      font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-      padding: 1px 5px; border-radius: var(--radius-full);
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 0.0625rem 0.3125rem; border-radius: var(--radius-full);
       background: var(--s2); color: var(--t4); flex-shrink: 0;
     }
     .cl-row[data-action="heating"] .cl-mode-badge,
@@ -1214,13 +1215,13 @@ export class GlassClimateCard extends BaseCard {
       flex-shrink: 0;
     }
     .cl-temp-current {
-      font-size: 18px; font-weight: 700; color: var(--t1);
+      font-size: var(--fz-xl); font-weight: 700; color: var(--t1);
       line-height: 1; font-variant-numeric: tabular-nums;
     }
-    .cl-temp-current .unit { font-size: 11px; font-weight: 500; color: var(--t3); }
+    .cl-temp-current .unit { font-size: var(--fz-base); font-weight: 500; color: var(--t3); }
     .cl-temp-target {
-      font-size: 10px; font-weight: 600; color: var(--t3);
-      font-variant-numeric: tabular-nums; margin-top: 1px;
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
+      font-variant-numeric: tabular-nums; margin-top: 0.0625rem;
     }
     .cl-row[data-action="heating"] .cl-temp-target,
     .cl-row[data-action="preheating"] .cl-temp-target { color: var(--cl-heat-sub); }
@@ -1228,7 +1229,7 @@ export class GlassClimateCard extends BaseCard {
 
     /* ── Dot ── */
     .cl-dot {
-      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
       background: var(--t4); transition: all var(--t-med);
     }
     .cl-row[data-action="heating"] .cl-dot,
@@ -1241,14 +1242,14 @@ export class GlassClimateCard extends BaseCard {
 
     /* ── Fold separator ── */
     .fold-sep {
-      height: 0; margin: 0 12px; overflow: hidden;
+      height: 0; margin: 0 0.75rem; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
       opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
     }
     .fold-sep.cool {
       background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
     }
-    .fold-sep.visible { height: 1px; opacity: 1; }
+    .fold-sep.visible { height: 0.0625rem; opacity: 1; }
 
     /* ── Controls fold (list mode) ── */
     .ctrl-fold {
@@ -1262,22 +1263,22 @@ export class GlassClimateCard extends BaseCard {
     }
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
     .ctrl-panel {
-      padding: 6px 0 4px;
-      display: flex; flex-direction: column; gap: 12px;
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
     }
-    .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
-    .ctrl-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
+    .ctrl-label { font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
     .ctrl-label.heat { color: var(--cl-heat-sub); }
     .ctrl-label.cool { color: var(--cl-cool-sub); }
     .ctrl-label.neutral { color: var(--t3); }
 
     /* ── Large temperature stepper (list mode fold) ── */
     .temp-control {
-      display: flex; align-items: center; justify-content: center; gap: 16px;
-      padding: 8px 0;
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+      padding: 0.5rem 0;
     }
     .temp-stepper-btn {
-      width: 44px; height: 44px; border-radius: 14px;
+      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
@@ -1290,28 +1291,28 @@ export class GlassClimateCard extends BaseCard {
     }
     @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
-    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
 
     .temp-display {
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      min-width: 100px;
+      display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+      min-width: 6.25rem;
     }
     .temp-display-label {
-      font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+      font-size: var(--fz-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
       color: var(--t4);
     }
     .temp-display-value {
-      font-size: 40px; font-weight: 700; line-height: 1;
+      font-size: 2.5rem; font-weight: 700; line-height: 1;
       font-variant-numeric: tabular-nums; transition: color var(--t-fast);
     }
     .temp-display-value.heat { color: var(--cl-heat); }
     .temp-display-value.cool { color: var(--cl-cool); }
     .temp-display-value.off { color: var(--t3); }
-    .temp-display-value .unit { font-size: 18px; font-weight: 500; }
+    .temp-display-value .unit { font-size: var(--fz-xl); font-weight: 500; }
     .temp-display-current {
-      font-size: 11px; font-weight: 500; color: var(--t3);
-      display: flex; align-items: center; gap: 4px;
+      font-size: var(--fz-base); font-weight: 500; color: var(--t3);
+      display: flex; align-items: center; gap: 0.25rem;
     }
     .temp-display-current ha-icon { display: flex; align-items: center; justify-content: center; }
 
@@ -1337,7 +1338,7 @@ export class GlassClimateCard extends BaseCard {
     /* Touch hint at card bottom when fold closed */
     .normal-mode::after {
       content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
-      height: 2px; border-radius: 1px;
+      height: 0.125rem; border-radius: 1px;
       background: linear-gradient(90deg, transparent, var(--b3), transparent);
       opacity: 0; transition: opacity var(--t-med); z-index: 2;
     }
@@ -1345,16 +1346,16 @@ export class GlassClimateCard extends BaseCard {
 
     /* Normal fold inner (external, connected) */
     .normal-fold-inner {
-      background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
       backdrop-filter: blur(40px) saturate(1.4);
       -webkit-backdrop-filter: blur(40px) saturate(1.4);
       border: 1px solid var(--b2);
       border-top: none;
       border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1);
+      box-shadow: 0 8px 32px rgba(var(--rgb-black),0.3), 0 2px 8px rgba(var(--rgb-black),0.2), inset 0 -1px 0 rgba(var(--rgb-black),0.1);
     }
     .normal-fold-inner .ctrl-panel {
-      padding: 12px 14px 14px; gap: 10px;
+      padding: 0.75rem 0.875rem 0.875rem; gap: 0.625rem;
     }
 
     /* Long-press visual feedback */
@@ -1368,7 +1369,7 @@ export class GlassClimateCard extends BaseCard {
     }
 
     .ctrl-fold-sep-top {
-      height: 1px; margin: 0 12px;
+      height: 0.0625rem; margin: 0 0.75rem;
       background: linear-gradient(90deg, transparent, var(--b3), transparent);
       transition: background var(--t-med);
     }
@@ -1382,20 +1383,20 @@ export class GlassClimateCard extends BaseCard {
     /* ── Entity tabs ── */
     .entity-tabs {
       display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
-      border-radius: 12px; background: var(--s1);
-      border: 1px solid var(--b1); padding: 3px;
+      border-radius: var(--radius-lg); background: var(--s1);
+      border: 1px solid var(--b1); padding: 0.1875rem;
     }
     .entity-tabs::-webkit-scrollbar { display: none; }
 
     .entity-tab {
-      flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-      padding: 7px 10px; border-radius: 9px; min-width: 0;
-      font-family: inherit; font-size: 11px; font-weight: 600;
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
+      padding: 0.4375rem 0.625rem; border-radius: var(--radius-sm); min-width: 0;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: all var(--t-fast);
       border: none; background: transparent; outline: none;
       -webkit-tap-highlight-color: transparent; white-space: nowrap;
     }
-    .entity-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .entity-tab:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
     @media (hover: hover) { .entity-tab:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .entity-tab:active { animation: bounce 0.3s ease; } }
     @media (hover: hover) and (pointer: fine) {
@@ -1403,7 +1404,7 @@ export class GlassClimateCard extends BaseCard {
     }
 
     .entity-tab .tab-dot {
-      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+      width: 0.3125rem; height: 0.3125rem; border-radius: 50%; flex-shrink: 0;
       transition: all var(--t-med);
     }
     .entity-tab .tab-dot.heating,
@@ -1418,7 +1419,7 @@ export class GlassClimateCard extends BaseCard {
 
     .entity-tab.active {
       background: var(--s4); color: var(--t1);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 1px 4px rgba(var(--rgb-black),0.2);
     }
     .entity-tab.active.heat {
       background: var(--cl-heat-bg); color: var(--cl-heat);
@@ -1434,7 +1435,7 @@ export class GlassClimateCard extends BaseCard {
       display: flex; flex-direction: column; align-items: center;
       padding: 0; gap: 0;
     }
-    .arc-gauge { position: relative; width: 240px; height: 160px; }
+    .arc-gauge { position: relative; width: 15rem; height: 10rem; }
     .arc-gauge svg { width: 100%; height: 100%; }
 
     .arc-bg { fill: none; stroke: var(--s2); stroke-width: 8; stroke-linecap: round; }
@@ -1448,38 +1449,38 @@ export class GlassClimateCard extends BaseCard {
     .arc-progress.off { stroke: var(--t4); filter: none; }
 
     .arc-target-dot {
-      fill: rgba(255,255,255,0.9);
-      filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+      fill: rgba(var(--rgb-white),0.9);
+      filter: drop-shadow(0 0 4px rgba(var(--rgb-white),0.5));
       transition: all 0.6s var(--ease-out);
     }
     .arc-tick { stroke: var(--t4); stroke-width: 1; opacity: 0.3; }
     .arc-tick-major { stroke: var(--t3); stroke-width: 1.5; opacity: 0.5; }
     .arc-tick-label {
-      font-size: 8px; font-weight: 500; fill: var(--t4);
+      font-size: var(--fz-xxs); font-weight: 500; fill: var(--t4);
       text-anchor: middle; dominant-baseline: middle;
     }
 
     /* Center display */
     .gauge-center {
-      position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      width: 160px;
+      position: absolute; bottom: 0.875rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+      width: 10rem;
     }
     .gauge-current-temp {
-      font-size: 48px; font-weight: 300; line-height: 1;
+      font-size: 3rem; font-weight: 300; line-height: 1;
       font-variant-numeric: tabular-nums; letter-spacing: -2px;
       color: var(--t1); transition: color var(--t-med);
     }
     .gauge-current-temp .unit {
-      font-size: 20px; font-weight: 400; color: var(--t3);
-      vertical-align: super; margin-left: -2px;
+      font-size: var(--fz-xl); font-weight: 400; color: var(--t3);
+      vertical-align: super; margin-left: -0.125rem;
     }
     .gauge-current-temp.off { color: var(--t3); }
 
     .gauge-action-label {
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      font-size: var(--fz-sm); font-weight: 600; text-transform: uppercase;
       letter-spacing: 0.8px; color: var(--t3); transition: color var(--t-med);
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 0.25rem;
     }
     .gauge-action-label ha-icon { display: flex; align-items: center; justify-content: center; }
     .gauge-action-label.heat { color: var(--cl-heat-sub); }
@@ -1488,39 +1489,38 @@ export class GlassClimateCard extends BaseCard {
     .gauge-action-label.off { color: var(--t4); }
 
     .gauge-sub-info {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 10px; font-weight: 500; color: var(--t3);
+      display: flex; align-items: center; gap: 0.375rem;
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
     }
     .gauge-sub-info ha-icon { opacity: 0.5; display: flex; align-items: center; justify-content: center; }
 
     /* ── Normal mode temp stepper (glass sub-panel) ── */
     .temp-control-panel {
-      display: flex; align-items: center; justify-content: center; gap: 14px;
-      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: center; gap: 0.875rem;
+      padding: 0.625rem 1rem;
       border-radius: var(--radius-lg);
-      backdrop-filter: blur(4px) saturate(1.2);
-      -webkit-backdrop-filter: blur(4px) saturate(1.2);
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+      /* backdrop-filter removed — parent .glass already applies blur(40px) */
+      background: rgba(var(--rgb-black),0.25);
+      border: 1px solid rgba(var(--rgb-white),0.08);
+      box-shadow: 0 4px 16px rgba(var(--rgb-black),0.15), inset 0 1px 0 rgba(var(--rgb-white),0.04);
     }
     .normal-stepper {
-      width: 40px; height: 40px; border-radius: 12px;
+      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
     }
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;
-      min-width: 100px;
+      min-width: 6.25rem;
     }
     .target-label {
-      font-size: 8px; font-weight: 700; text-transform: uppercase;
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1px; color: var(--t4);
     }
     .target-value {
-      font-size: 28px; font-weight: 600; line-height: 1.1;
+      font-size: var(--fz-display); font-weight: 600; line-height: 1.1;
       font-variant-numeric: tabular-nums; letter-spacing: -1px;
       transition: color var(--t-med);
     }
-    .target-value .unit { font-size: 14px; font-weight: 400; color: var(--t3); }
+    .target-value .unit { font-size: var(--fz-lg); font-weight: 400; color: var(--t3); }
     .target-value.heat { color: var(--cl-heat); }
     .target-value.cool { color: var(--cl-cool); }
     .target-value.auto-val { color: var(--cl-auto); }
@@ -1531,23 +1531,23 @@ export class GlassClimateCard extends BaseCard {
        ════════════════════════════════════════════ */
 
     /* ── Chip row (HVAC modes, presets, fan, swing) ── */
-    .chip-row { display: flex; gap: 4px; flex-wrap: wrap; }
+    .chip-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
     .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: 11px; font-weight: 600;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: all var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
-      --mdc-icon-size: 14px;
+      --mdc-icon-size: 0.875rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
-    .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) { .chip:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
     .chip.active {
@@ -1559,16 +1559,16 @@ export class GlassClimateCard extends BaseCard {
     /* ── Stepper row (inline small stepper, used by climate-controls.ts) ── */
     .stepper-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 2px 0;
+      padding: 0.125rem 0;
     }
     .stepper-label {
-      font-size: 11px; font-weight: 600; color: var(--t2);
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2);
       display: flex; align-items: center;
     }
-    .stepper { display: flex; align-items: center; gap: 8px; }
+    .stepper { display: flex; align-items: center; gap: 0.5rem; }
     .stepper-value {
-      font-size: 14px; font-weight: 700; color: var(--t1);
-      min-width: 52px; text-align: center;
+      font-size: var(--fz-lg); font-weight: 700; color: var(--t1);
+      min-width: 3.25rem; text-align: center;
     }
 
     /* ── btn-icon ── */
@@ -1579,8 +1579,8 @@ export class GlassClimateCard extends BaseCard {
       outline: none; font-family: inherit;
       transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
     }
-    .btn-icon.xs { width: 28px; height: 28px; }
-    .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+    .btn-icon.xs { width: 1.75rem; height: 1.75rem; }
+    .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
       .btn-icon:hover { background: var(--s3); border-color: var(--b3); }
     }
@@ -1589,13 +1589,13 @@ export class GlassClimateCard extends BaseCard {
     .btn-icon:disabled { opacity: 0.3; pointer-events: none; }
 
     /* ── Range slider ── */
-    .range-slider-row { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+    .range-slider-row { display: flex; flex-direction: column; gap: 0.375rem; padding: 0.25rem 0; }
     .range-labels { display: flex; justify-content: space-between; }
-    .range-label { font-size: 12px; font-weight: 700; }
+    .range-label { font-size: var(--fz-base); font-weight: 700; }
     .range-label.heat { color: var(--cl-heat); }
     .range-label.cool { color: var(--cl-cool); }
     .range-track {
-      position: relative; height: 28px;
+      position: relative; height: 1.75rem;
       background: var(--s1); border-radius: var(--radius-lg);
       border: 1px solid var(--b1);
       touch-action: none; user-select: none; -webkit-user-select: none;
@@ -1608,13 +1608,13 @@ export class GlassClimateCard extends BaseCard {
     }
     .range-thumb {
       position: absolute; top: 50%; transform: translate(-50%, -50%);
-      width: 16px; height: 16px; border-radius: 50%;
+      width: 1rem; height: 1rem; border-radius: 50%;
       border: 2px solid; cursor: grab; outline: none;
       transition: box-shadow var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
     .range-thumb:active { cursor: grabbing; }
-    .range-thumb:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
+    .range-thumb:focus-visible { box-shadow: 0 0 0 3px rgba(var(--rgb-white),0.25); }
     .range-thumb.low {
       background: var(--cl-heat); border-color: var(--cl-heat);
       box-shadow: 0 0 8px rgba(249,115,22,0.4);
@@ -1625,17 +1625,17 @@ export class GlassClimateCard extends BaseCard {
     }
 
     /* ── Aux heat toggle ── */
-    .aux-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
-    .aux-label { font-size: 11px; font-weight: 600; color: var(--t2); flex: 1; }
+    .aux-row { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0; }
+    .aux-label { font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1; }
     .toggle {
-      position: relative; width: 40px; height: 22px; border-radius: 11px;
+      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
       transition: all var(--t-fast); padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .toggle .toggle-knob {
-      content: ''; position: absolute; top: 3px; left: 3px;
-      width: 14px; height: 14px; border-radius: 50%;
+      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
       background: var(--t3);
       transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
     }
@@ -1644,7 +1644,7 @@ export class GlassClimateCard extends BaseCard {
       transform: translateX(18px); background: var(--cl-heat);
       box-shadow: 0 0 8px rgba(249,115,22,0.4);
     }
-    .toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
   `];
 }
 
