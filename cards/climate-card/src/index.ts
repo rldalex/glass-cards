@@ -1648,4 +1648,4 @@ export class GlassClimateCard extends BaseCard {
   `];
 }
 
-customElements.define('glass-climate-card', GlassClimateCard);
+try { customElements.define('glass-climate-card', GlassClimateCard); } catch { /* already registered */ }

@@ -1063,4 +1063,4 @@ class GlassCameraCarouselCard extends BaseCard {
   ];
 }
 
-customElements.define('glass-camera-carousel-card', GlassCameraCarouselCard);
+try { customElements.define('glass-camera-carousel-card', GlassCameraCarouselCard); } catch { /* already registered */ }
