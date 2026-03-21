@@ -81,6 +81,18 @@ export function renderSpotifyTab(self: GlassConfigPanel) {
 
   return html`
     <div class="tab-panel" id="panel-spotify">
+      <button class="feature-row" role="switch" aria-checked="${self._spotifyShowHeader ? 'true' : 'false'}"
+        @click=${() => { self._spotifyShowHeader = !self._spotifyShowHeader; }}>
+        <div class="feature-icon">
+          <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+        </div>
+        <div class="feature-text">
+          <div class="feature-name">${t('config.spotify_show_header')}</div>
+            <div class="feature-desc">${t('config.spotify_show_header_desc')}</div>
+        </div>
+        <span class="toggle ${self._spotifyShowHeader ? 'on' : ''}"><span class="toggle-thumb"></span></span>
+      </button>
+
       <div class="section-label">${t('config.spotify_entity')}</div>
       <div class="section-desc">${t('config.spotify_entity_desc')}</div>
       <div class="dropdown ${self._spotifyDropdownOpen ? 'open' : ''}">

@@ -168,65 +168,12 @@ export function renderTitleTab(self: GlassConfigPanel) {
         </div>
       </div>
 
-      <!-- Period indicator info -->
-      <div class="section-label" style="margin-top:16px;">${t('config.title_period_indicator')}</div>
-      <div class="section-desc" style="line-height:1.6;">
-        ${t('config.title_period_info')}
-      </div>
-      <pre class="yaml-block">input_select:
-  periode_journee:
-    name: Période de la journée
-    options:
-      - "Matin"
-      - "Après-midi"
-      - "Soir"
-      - "Nuit"
-    initial: "Matin"
+      <!-- Period indicator -->
+      <div class="section-label" style="margin-top:16px;">${t('config.title_period_entity')}</div>
+      <div class="section-desc">${t('config.title_period_entity_desc')}</div>
+      ${renderPeriodEntityPicker(self)}
 
-automation:
-  - alias: "Mode Matin"
-    trigger:
-      - platform: sun
-        event: sunrise
-    action:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.periode_journee
-        data:
-          option: "Matin"
-
-  - alias: "Mode Après-midi"
-    trigger:
-      - platform: time
-        at: "12:00:00"
-    action:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.periode_journee
-        data:
-          option: "Après-midi"
-
-  - alias: "Mode Soir"
-    trigger:
-      - platform: sun
-        event: sunset
-    action:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.periode_journee
-        data:
-          option: "Soir"
-
-  - alias: "Mode Nuit"
-    trigger:
-      - platform: time
-        at: "23:00:00"
-    action:
-      - service: input_select.select_option
-        target:
-          entity_id: input_select.periode_journee
-        data:
-          option: "Nuit"</pre>
+      ${renderPeriodOptionsEditor(self)}
 
       <div class="save-bar">
         <button class="btn btn-ghost" @click=${() => self._loadTitleConfig()}>${t('common.reset')}</button>
@@ -236,6 +183,127 @@ automation:
 }
 
 
+
+// — Period entity picker —
+
+function renderPeriodEntityPicker(self: GlassConfigPanel) {
+  const inputSelectEntities = self.hass
+    ? Object.keys(self.hass.states).filter((id) => id.startsWith('input_select.')).sort()
+    : [];
+  const currentEntity = self._titlePeriodEntity;
+
+  return html`
+    <div class="dropdown ${self._titlePeriodDropdownOpen ? 'open' : ''}">
+      <button
+        class="dropdown-trigger"
+        @click=${() => { if (!self._titlePeriodDropdownOpen) self._titlePeriodSearch = ''; self._titlePeriodDropdownOpen = !self._titlePeriodDropdownOpen; }}
+        aria-expanded=${self._titlePeriodDropdownOpen ? 'true' : 'false'}
+        aria-haspopup="listbox"
+      >
+        <ha-icon .icon=${currentEntity ? 'mdi:form-select' : 'mdi:clock-outline'}></ha-icon>
+        <span>${currentEntity || t('config.title_period_auto')}</span>
+        <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+      </button>
+      <div class="dropdown-menu" role="listbox">
+        <input
+          class="dropdown-search"
+          type="text"
+          placeholder=${t('config.search_entity')}
+          .value=${self._titlePeriodSearch}
+          @input=${(e: InputEvent) => { self._titlePeriodSearch = (e.target as HTMLInputElement).value; self.requestUpdate(); }}
+          @click=${(e: Event) => e.stopPropagation()}
+        />
+        <button
+          class="dropdown-item ${!currentEntity ? 'active' : ''}"
+          role="option"
+          aria-selected=${!currentEntity ? 'true' : 'false'}
+          @click=${() => self._setTitlePeriodEntity('')}
+        >
+          <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
+          ${t('config.title_period_auto')}
+        </button>
+        ${inputSelectEntities
+          .filter((id) => !self._titlePeriodSearch || id.toLowerCase().includes(self._titlePeriodSearch.toLowerCase()))
+          .map((id) => html`
+            <button
+              class="dropdown-item ${id === currentEntity ? 'active' : ''}"
+              role="option"
+              aria-selected=${id === currentEntity ? 'true' : 'false'}
+              @click=${() => self._setTitlePeriodEntity(id)}
+            >
+              <ha-icon .icon=${'mdi:form-select'}></ha-icon>
+              ${id}
+            </button>
+          `)}
+      </div>
+    </div>
+  `;
+}
+
+// — Period options editor —
+
+function renderPeriodOptionsEditor(self: GlassConfigPanel) {
+  // Resolve options: from configured entity or from default entity
+  const periodEntityId = self._titlePeriodEntity || DEFAULT_PERIOD_ENTITY_ID;
+  const periodEntity = self.hass?.states[periodEntityId];
+  const haOptions = (periodEntity?.attributes?.options as string[] | undefined) ?? [];
+
+  if (haOptions.length === 0) return nothing;
+
+  // Ensure _titlePeriodOptions has entries for all HA options
+  const optionsMap = new Map(self._titlePeriodOptions.map((o) => [o.id, o]));
+
+  return html`
+    <div class="section-label" style="margin-top:12px;">${t('config.title_period_options')}</div>
+    <div class="section-desc">${t('config.title_period_options_desc')}</div>
+    <div class="title-modes-list">
+      ${haOptions.map((optionId) => {
+        const configured = optionsMap.get(optionId);
+        const idx = self._titlePeriodOptions.findIndex((o) => o.id === optionId);
+        const icon = configured?.icon || '';
+        const color = configured?.color || '';
+        const defaultVisual = DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
+
+        // Ensure this option exists in the array
+        if (idx === -1) {
+          // Add it on-the-fly
+          self._titlePeriodOptions = [...self._titlePeriodOptions, { id: optionId, label: optionId, icon: '', color: '' }];
+          return nothing;
+        }
+
+        return html`
+          <div class="title-mode-row">
+            <div class="title-mode-header">
+              <ha-icon .icon=${icon || defaultVisual.icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;color:${resolveD(color || (DEFAULT_PERIOD_VISUALS[optionId]?.color || 'neutral'))}"></ha-icon>
+              <span class="title-mode-id">${optionId}</span>
+            </div>
+            <div class="title-mode-fields-row">
+              <button
+                class="title-icon-btn ${icon ? 'has-icon' : ''}"
+                @click=${() => self._openPeriodIconPopup(idx)}
+                aria-label="${t('config.title_mode_icon')}"
+              >
+                <ha-icon .icon=${icon || 'mdi:emoticon-outline'}></ha-icon>
+              </button>
+            </div>
+            <div class="title-color-row">
+              <span class="title-color-label">${t('config.title_mode_color')}</span>
+              <div class="title-color-chips">
+                ${COLORS.map((c) => html`
+                  <button
+                    class="title-color-chip ${c} ${color === c ? 'active' : ''}"
+                    @click=${() => self._updateTitlePeriodOption(idx, 'color', c)}
+                    aria-label="${t('config.title_mode_color')}: ${c}"
+                  ></button>
+                `)}
+              </div>
+            </div>
+          </div>
+        `;
+      })}
+    </div>
+  `;
+}
 
 // — Source editor (one per source in the array) —
 
@@ -492,12 +560,30 @@ function renderModeRow(self: GlassConfigPanel, src: TitleSource, srcIdx: number,
 // — Icon popup —
 
 export function renderIconPopup(self: GlassConfigPanel) {
-  if (self._iconPopupModeIdx === null) return nothing;
+  // Determine which context: mode icon or period icon
+  const isModePopup = self._iconPopupModeIdx !== null;
+  const isPeriodPopup = self._periodIconPopupIdx !== null;
+  if (!isModePopup && !isPeriodPopup) return nothing;
+
   const icons = self._getFilteredIcons();
-  const currentIcon = self._titleModes[self._iconPopupModeIdx]?.icon ?? '';
+  const modeIdx = self._iconPopupModeIdx;
+  const periodIdx = self._periodIconPopupIdx;
+  const currentIcon = isModePopup && modeIdx !== null
+    ? (self._titleModes[modeIdx]?.icon ?? '')
+    : periodIdx !== null ? (self._titlePeriodOptions[periodIdx]?.icon ?? '') : '';
+
+  const closePopup = () => { self._iconPopupModeIdx = null; self._periodIconPopupIdx = null; };
+  const selectIcon = (icon: string) => {
+    if (isModePopup && self._iconPopupModeIdx != null) {
+      self._updateTitleMode(self._iconPopupModeIdx, 'icon', icon);
+    } else if (isPeriodPopup && self._periodIconPopupIdx != null) {
+      self._updateTitlePeriodOption(self._periodIconPopupIdx, 'icon', icon);
+    }
+    closePopup();
+  };
 
   return html`
-    <div class="icon-popup-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) self._iconPopupModeIdx = null; }}>
+    <div class="icon-popup-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) closePopup(); }}>
       <div class="icon-popup">
         <div class="icon-popup-header">
           <span class="icon-popup-title">${t('config.title_mode_icon')}</span>
@@ -514,10 +600,7 @@ export function renderIconPopup(self: GlassConfigPanel) {
             <div class="icon-popup-grid">
               <button
                 class="icon-pick ${currentIcon === '' ? 'selected' : ''}"
-                @click=${() => {
-                  if (self._iconPopupModeIdx != null) self._updateTitleMode(self._iconPopupModeIdx, 'icon', '');
-                  self._iconPopupModeIdx = null;
-                }}
+                @click=${() => selectIcon('')}
                 aria-label=${t('config.title_no_icon')}
               >
                 <ha-icon .icon=${'mdi:cancel'} style="opacity:0.4;"></ha-icon>
@@ -525,10 +608,7 @@ export function renderIconPopup(self: GlassConfigPanel) {
               ${icons.map((icon) => html`
                 <button
                   class="icon-pick ${icon === currentIcon ? 'selected' : ''}"
-                  @click=${() => {
-                    if (self._iconPopupModeIdx != null) self._updateTitleMode(self._iconPopupModeIdx, 'icon', icon);
-                    self._iconPopupModeIdx = null;
-                  }}
+                  @click=${() => selectIcon(icon)}
                   aria-label=${icon}
                 >
                   <ha-icon .icon=${icon}></ha-icon>
@@ -621,17 +701,6 @@ export function removeTitleModeEntity(self: GlassConfigPanel, srcIdx: number, en
     ...sources[srcIdx],
     modes: sources[srcIdx].modes.filter((m) => m.id !== entityId),
   };
-  self._titleSources = sources;
-}
-
-export function moveTitleMode(self: GlassConfigPanel, srcIdx: number, modeIdx: number, direction: -1 | 1) {
-  const sources = [...self._titleSources];
-  if (!sources[srcIdx]) return;
-  const modes = [...sources[srcIdx].modes];
-  const target = modeIdx + direction;
-  if (target < 0 || target >= modes.length) return;
-  [modes[modeIdx], modes[target]] = [modes[target], modes[modeIdx]];
-  sources[srcIdx] = { ...sources[srcIdx], modes };
   self._titleSources = sources;
 }
 

@@ -75,7 +75,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
           </div>
           <span
             class="toggle ${self._presenceShowHeader ? 'on' : ''}"
-          ></span>
+          ><span class="toggle-thumb"></span></span>
         </button>
       </div>
 
@@ -105,7 +105,7 @@ export function renderPresenceTab(self: GlassConfigPanel) {
                   role="switch"
                   aria-checked=${(selected || autoMode) ? 'true' : 'false'}
                   aria-label="${p.name}"
-                ></button>
+                ><span class="toggle-thumb"></span></button>
               </div>
             `;
           })}

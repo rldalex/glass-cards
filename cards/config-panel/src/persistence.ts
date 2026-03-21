@@ -56,7 +56,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
   };
   let dashboardConfig = {
     enabled_cards: ['weather'] as string[],
-    card_order: ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence'] as string[],
+    card_order: ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'] as string[],
     hide_header: false,
     hide_sidebar: false,
   };
@@ -87,9 +87,6 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     show_header: true,
   };
   let mediaCardConfig = {
-    variant: 'list' as string,
-    dashboard_variant: 'list' as string,
-    room_variants: {} as Record<string, string>,
     extra_entities: {} as Record<string, string[]>,
     show_header: true,
   };
@@ -1267,6 +1264,12 @@ export async function saveDashboard(self: GlassConfigPanel): Promise<void> {
       dashboard_display_mode: self._climateDashboardDisplayMode,
       dashboard_entities: self._climateDashboardEntities,
     });
+    await self._backend.send('set_camera_carousel_config', {
+      show_header: self._cameraShowHeader,
+      entity_order: self._cameraEntityOrder,
+      auto_cycle: self._cameraAutoCycle,
+      cycle_interval: self._cameraCycleInterval,
+    });
     if (!self._mounted) return;
     self._showToast();
     bus.emit('dashboard-config-changed', undefined);
@@ -1278,6 +1281,7 @@ export async function saveDashboard(self: GlassConfigPanel): Promise<void> {
     bus.emit('media-config-changed', undefined);
     bus.emit('presence-config-changed', undefined);
     bus.emit('climate-config-changed', undefined);
+    bus.emit('camera-carousel-config-changed', undefined);
   } catch {
     self._showToast(true);
   } finally {

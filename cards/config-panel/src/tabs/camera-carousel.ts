@@ -94,11 +94,48 @@ export function renderCameraCarouselPreview(_self: GlassConfigPanel) {
   `;
 }
 
+// — Helpers —
+
+export function initCameraEntityOrder(self: GlassConfigPanel) {
+  if (!self.hass) return;
+  const allCameraIds = Object.keys(self.hass.states)
+    .filter((id) => id.startsWith('camera.'))
+    .sort();
+  // Merge: keep existing order for known entities, append new ones at end
+  const known = new Set(allCameraIds);
+  const ordered = self._cameraEntityOrder.filter((id) => known.has(id));
+  const orderedSet = new Set(ordered);
+  for (const id of allCameraIds) {
+    if (!orderedSet.has(id)) ordered.push(id);
+  }
+  self._cameraEntityOrder = ordered;
+}
+
+export function onDropCameraEntity(self: GlassConfigPanel, idx: number, e: DragEvent) {
+  e.preventDefault();
+  if (self._dragIdx === null || self._dragIdx === idx || self._dragContext !== 'camera_order') {
+    self._dragIdx = null;
+    self._dropIdx = null;
+    return;
+  }
+  const arr = [...self._cameraEntityOrder];
+  const [moved] = arr.splice(self._dragIdx, 1);
+  arr.splice(idx, 0, moved);
+  self._cameraEntityOrder = arr;
+  self._dragIdx = null;
+  self._dropIdx = null;
+}
+
 // — Tab —
 
 export function renderCameraCarouselTab(self: GlassConfigPanel) {
+  // Ensure entity order is initialized
+  if (self.hass && self._cameraEntityOrder.length === 0) {
+    initCameraEntityOrder(self);
+  }
+
   return html`
-    <div class="tab-content">
+    <div class="tab-panel" id="panel-camera_carousel">
       <!-- Show header toggle -->
       <button class="feature-row" role="switch" aria-checked="${self._cameraShowHeader ? 'true' : 'false'}"
         @click=${() => { self._cameraShowHeader = !self._cameraShowHeader; }}>
@@ -138,6 +175,44 @@ export function renderCameraCarouselTab(self: GlassConfigPanel) {
               }
             }}
           />
+        </div>
+      ` : nothing}
+
+      <!-- Camera entity order -->
+      ${self._cameraEntityOrder.length > 0 ? html`
+        <div class="section-label">${t('config.camera_entity_order')} (${self._cameraEntityOrder.length})</div>
+        <div class="section-desc">${t('config.camera_entity_order_desc')}</div>
+        <div class="item-list">
+          ${self._cameraEntityOrder.map((entityId, idx) => {
+            const isDragging = self._dragIdx === idx && self._dragContext === 'camera_order';
+            const isDropTarget = self._dropIdx === idx && self._dragContext === 'camera_order';
+            const entity = self.hass?.states[entityId];
+            const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
+            const rowClasses = [
+              'item-row',
+              isDragging ? 'dragging' : '',
+              isDropTarget ? 'drop-target' : '',
+            ].filter(Boolean).join(' ');
+            return html`
+              <div
+                class=${rowClasses}
+                draggable="true"
+                @dragstart=${() => self._onDragStart(idx, 'camera_order')}
+                @dragover=${(ev: DragEvent) => self._onDragOver(idx, ev)}
+                @dragleave=${() => self._onDragLeave()}
+                @drop=${(ev: DragEvent) => self._onDropCameraEntity(idx, ev)}
+                @dragend=${() => self._onDragEnd()}
+              >
+                <span class="drag-handle">
+                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                </span>
+                <div class="item-info">
+                  <span class="item-name">${name}</span>
+                  <span class="item-meta">${entityId}</span>
+                </div>
+              </div>
+            `;
+          })}
         </div>
       ` : nothing}
 

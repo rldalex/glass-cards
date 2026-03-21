@@ -183,7 +183,7 @@ export function renderNavbarTab(self: GlassConfigPanel) {
             type="number"
             step="0.5"
             .value=${String(self._tempHigh)}
-            @change=${(e: Event) => { self._tempHigh = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_TEMP_HIGH; }}
+            @change=${(e: Event) => { const v = parseFloat((e.target as HTMLInputElement).value); self._tempHigh = isNaN(v) ? DEFAULT_TEMP_HIGH : v; }}
             aria-label="${t('config.navbar_temp_high')}"
           />
           <span class="threshold-unit">°C</span>
@@ -198,7 +198,7 @@ export function renderNavbarTab(self: GlassConfigPanel) {
             type="number"
             step="0.5"
             .value=${String(self._tempLow)}
-            @change=${(e: Event) => { self._tempLow = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_TEMP_LOW; }}
+            @change=${(e: Event) => { const v = parseFloat((e.target as HTMLInputElement).value); self._tempLow = isNaN(v) ? DEFAULT_TEMP_LOW : v; }}
             aria-label="${t('config.navbar_temp_low')}"
           />
           <span class="threshold-unit">°C</span>
@@ -213,7 +213,7 @@ export function renderNavbarTab(self: GlassConfigPanel) {
             type="number"
             step="1"
             .value=${String(self._humidityThreshold)}
-            @change=${(e: Event) => { self._humidityThreshold = parseFloat((e.target as HTMLInputElement).value) || DEFAULT_HUMIDITY_THRESHOLD; }}
+            @change=${(e: Event) => { const v = parseFloat((e.target as HTMLInputElement).value); self._humidityThreshold = isNaN(v) ? DEFAULT_HUMIDITY_THRESHOLD : v; }}
             aria-label="${t('config.navbar_humidity_threshold')}"
           />
           <span class="threshold-unit">%</span>

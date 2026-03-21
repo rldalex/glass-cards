@@ -3,7 +3,7 @@ import type { GlassConfigPanel } from './index';
 export function onDragStart(
   self: GlassConfigPanel,
   idx: number,
-  context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes',
+  context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'climates' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order',
   srcIdx?: number,
 ): void {
   self._dragIdx = idx;
@@ -51,6 +51,11 @@ export function onDropGeneric(self: GlassConfigPanel, idx: number, e: DragEvent)
     const [moved] = arr.splice(self._dragIdx, 1);
     arr.splice(idx, 0, moved);
     self._lights = arr;
+  } else if (ctx === 'climates') {
+    const arr = [...self._climateRoomEntities];
+    const [moved] = arr.splice(self._dragIdx, 1);
+    arr.splice(idx, 0, moved);
+    self._climateRoomEntities = arr;
   } else if (ctx === 'title_sources') {
     const arr = [...self._titleSources];
     const [moved] = arr.splice(self._dragIdx, 1);

@@ -90,6 +90,9 @@ export function renderClimateTab(self: GlassConfigPanel) {
   const entities = self._climateRoomEntities;
   const isDropdownOpen = self._climateRoomDropdownOpen;
 
+  // All climate entities for dashboard selection
+  const allClimateEntities = getAllClimateEntities(self);
+
   return html`
     <div class="tab-panel" id="panel-climate">
       <div class="section-label">${t('config.tab_climate')}</div>
@@ -161,6 +164,32 @@ export function renderClimateTab(self: GlassConfigPanel) {
         <span>${t('config.climate_show_header')}</span>
       </div>
 
+      <!-- Dashboard entities -->
+      ${allClimateEntities.length > 0 ? html`
+        <div class="section-label" style="margin-top:14px;">${t('config.climate_dashboard_entities')}</div>
+        <div class="section-desc">${t('config.climate_dashboard_entities_desc')}</div>
+        <div class="item-list">
+          ${allClimateEntities.map((ce) => {
+            const sel = self._climateDashboardEntities.includes(ce.entityId);
+            return html`
+              <div class="item-row ${!sel ? 'disabled' : ''}">
+                <div class="item-info">
+                  <span class="item-name">${ce.name}</span>
+                  <span class="item-meta">${ce.entityId}</span>
+                </div>
+                <button
+                  class="toggle ${sel ? 'on' : ''}"
+                  @click=${() => toggleClimateDashboardEntity(self, ce.entityId)}
+                  role="switch"
+                  aria-checked=${sel ? 'true' : 'false'}
+                  aria-label="${sel ? t('common.hide') : t('common.show')} ${ce.name}"
+                ></button>
+              </div>
+            `;
+          })}
+        </div>
+      ` : nothing}
+
       <!-- Entity list -->
       ${entities.length === 0 ? html`
         <div class="banner" style="margin-top:12px;">
@@ -169,32 +198,42 @@ export function renderClimateTab(self: GlassConfigPanel) {
         </div>
       ` : html`
         <div class="item-list" style="margin-top:12px;">
-          ${entities.map((e, idx) => html`
-            <div class="item-row" draggable="true"
-              @dragstart=${(ev: DragEvent) => { ev.dataTransfer?.setData('text/plain', String(idx)); }}
-              @dragover=${(ev: DragEvent) => ev.preventDefault()}
-              @drop=${(ev: DragEvent) => onDropClimate(self, idx, ev)}>
-              <div class="item-info" style="flex:1;min-width:0;">
-                <span class="item-name">${e.name}</span>
-                <span class="item-meta">${e.entityId}</span>
+          ${entities.map((e, idx) => {
+            const isDragging = self._dragIdx === idx && self._dragContext === 'climates';
+            const isDropTarget = self._dropIdx === idx && self._dragContext === 'climates';
+            const rowClasses = [
+              'item-row',
+              !e.visible ? 'disabled' : '',
+              isDragging ? 'dragging' : '',
+              isDropTarget ? 'drop-target' : '',
+            ].filter(Boolean).join(' ');
+            return html`
+              <div
+                class=${rowClasses}
+                draggable="true"
+                @dragstart=${() => self._onDragStart(idx, 'climates')}
+                @dragover=${(ev: DragEvent) => self._onDragOver(idx, ev)}
+                @dragleave=${() => self._onDragLeave()}
+                @drop=${(ev: DragEvent) => self._onDropGeneric(idx, ev)}
+                @dragend=${() => self._onDragEnd()}
+              >
+                <span class="drag-handle">
+                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                </span>
+                <div class="item-info" style="flex:1;min-width:0;">
+                  <span class="item-name">${e.name}</span>
+                  <span class="item-meta">${e.entityId}</span>
+                </div>
+                <button
+                  class="toggle ${e.visible ? 'on' : ''}"
+                  @click=${() => toggleClimateEntityVisibility(self, e.entityId)}
+                  role="switch"
+                  aria-checked=${e.visible ? 'true' : 'false'}
+                  aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                ></button>
               </div>
-              <div style="display:flex;align-items:center;gap:4px;">
-                <button class="btn-icon xs" @click=${() => moveClimate(self, idx, -1)}
-                  aria-label=${t('common.move_up')} ?disabled=${idx === 0}>
-                  <ha-icon .icon=${'mdi:chevron-up'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                </button>
-                <button class="btn-icon xs" @click=${() => moveClimate(self, idx, 1)}
-                  aria-label=${t('common.move_down')} ?disabled=${idx === entities.length - 1}>
-                  <ha-icon .icon=${'mdi:chevron-down'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                </button>
-                <button class="btn-icon xs" @click=${() => toggleClimateEntityVisibility(self, e.entityId)}
-                  aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}">
-                  <ha-icon .icon=${e.visible ? 'mdi:eye' : 'mdi:eye-off'}
-                    style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;${!e.visible ? 'opacity:0.4;' : ''}"></ha-icon>
-                </button>
-              </div>
-            </div>
-          `)}
+            `;
+          })}
         </div>
       `}
 
@@ -220,25 +259,23 @@ export function toggleClimateEntityVisibility(self: GlassConfigPanel, entityId: 
   );
 }
 
-export function moveClimate(self: GlassConfigPanel, idx: number, dir: number): void {
-  const target = idx + dir;
-  if (target < 0 || target >= self._climateRoomEntities.length) return;
-  const arr = [...self._climateRoomEntities];
-  [arr[idx], arr[target]] = [arr[target], arr[idx]];
-  self._climateRoomEntities = arr;
+export function toggleClimateDashboardEntity(self: GlassConfigPanel, entityId: string): void {
+  const set = new Set(self._climateDashboardEntities);
+  if (set.has(entityId)) {
+    set.delete(entityId);
+  } else {
+    set.add(entityId);
+  }
+  self._climateDashboardEntities = [...set];
 }
 
-export function onDropClimate(self: GlassConfigPanel, targetIdx: number, e: DragEvent): void {
-  e.preventDefault();
-  const srcIdx = Number(e.dataTransfer?.getData('text/plain'));
-  if (isNaN(srcIdx) || srcIdx === targetIdx) return;
-  const arr = [...self._climateRoomEntities];
-  const [moved] = arr.splice(srcIdx, 1);
-  arr.splice(targetIdx, 0, moved);
-  self._climateRoomEntities = arr;
-}
-
-export function getAllClimateEntities(self: GlassConfigPanel): string[] {
+function getAllClimateEntities(self: GlassConfigPanel): { entityId: string; name: string }[] {
   if (!self.hass) return [];
-  return Object.keys(self.hass.states).filter((id) => id.startsWith('climate.'));
+  const climates: { entityId: string; name: string }[] = [];
+  for (const [id, entity] of Object.entries(self.hass.states)) {
+    if (!id.startsWith('climate.')) continue;
+    const name = (entity.attributes?.friendly_name as string) || id.split('.')[1] || id;
+    climates.push({ entityId: id, name });
+  }
+  return climates.sort((a, b) => a.name.localeCompare(b.name));
 }

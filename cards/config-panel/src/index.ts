@@ -24,10 +24,10 @@ import { renderNavbarPreview, renderNavbarTab, renderRoomRow, toggleRoomVisible,
 import { renderPopupPreview, renderPopupTab, renderCardRow, renderSceneRow, toggleCardVisible, toggleSceneVisible } from './tabs/popup';
 import { renderPresencePreview, renderPresenceTab, getAvailablePersonEntities, getAvailableSmartphoneSensors, getAvailableDrivingSensors, getAvailableNotifyServices, togglePresencePerson } from './tabs/presence';
 import { renderSpotifyPreview, renderSpotifyTab, renderSpotifySetupGuide, selectSpotifyEntity, toggleSpotifySpeaker, onDropSpeaker } from './tabs/spotify';
-import { renderTitlePreview, renderTitleTab, renderIconPopup, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, moveTitleMode, updateTitleMode, getFilteredIcons } from './tabs/title';
+import { renderTitlePreview, renderTitleTab, renderIconPopup, addTitleSource, removeTitleSource, setTitleSourceEntity, setTitleSourceLabel, addTitleModeEntity, removeTitleModeEntity, updateTitleMode, getFilteredIcons } from './tabs/title';
 import { renderWeatherPreview, renderWeatherTab, toggleWeatherMetric, selectWeatherEntity, windBearingToDir } from './tabs/weather';
-import { renderCameraCarouselPreview, renderCameraCarouselTab } from './tabs/camera-carousel';
-import { renderClimatePreview, renderClimateTab, selectClimateRoom, toggleClimateEntityVisibility, moveClimate, onDropClimate, getAllClimateEntities } from './tabs/climate';
+import { renderCameraCarouselPreview, renderCameraCarouselTab, initCameraEntityOrder, onDropCameraEntity } from './tabs/camera-carousel';
+import { renderClimatePreview, renderClimateTab, selectClimateRoom, toggleClimateEntityVisibility, toggleClimateDashboardEntity } from './tabs/climate';
 import { renderUnassignedPreview, renderUnassignedTab, collectAllEntities, assignEntityArea, renameEntity, type EntityAreaEntry } from './tabs/unassigned';
 
 // Extracted modules
@@ -86,7 +86,10 @@ export class GlassConfigPanel extends LitElement {
   @state() _titleEditingSourceIdx: number | null = null;
   @state() _titleAddSourceDropdownOpen = false;
   @state() _titleAddEntityDropdownOpen = false;
+  @state() _titlePeriodDropdownOpen = false;
+  @state() _periodIconPopupIdx: number | null = null;
   _titleAddEntitySearch = '';
+  _titlePeriodSearch = '';
   get _titleModes(): { id: string; label: string; icon: string; color: string }[] {
     return this._titleSources.flatMap((s) => s.modes);
   }
@@ -197,7 +200,7 @@ export class GlassConfigPanel extends LitElement {
   // Drag state
   @state() _dragIdx: number | null = null;
   @state() _dropIdx: number | null = null;
-  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' = 'rooms';
+  @state() _dragContext: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'climates' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order' = 'rooms';
   @state() _dragModeSrcIdx: number | null = null;
 
   _backend?: BackendService;
@@ -221,7 +224,7 @@ export class GlassConfigPanel extends LitElement {
     '_lightShowHeader', '_lights',
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder', '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
     '_fanShowHeader', '_fanRoomEntities',
-    '_climateShowHeader', '_climateDisplayMode', '_climateDashboardDisplayMode', '_climateRoomEntities',
+    '_climateShowHeader', '_climateDisplayMode', '_climateDashboardDisplayMode', '_climateDashboardEntities', '_climateRoomEntities',
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
     '_mediaShowHeader', '_mediaExtraEntities',
     '_spotifyShowHeader', '_spotifyEntity', '_spotifySortOrder', '_spotifyMaxItems', '_spotifyVisibleSpeakers',
@@ -267,7 +270,7 @@ export class GlassConfigPanel extends LitElement {
   }
 
   _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
+    if (!this._dropdownOpen && !this._lightDropdownOpen && !this._weatherDropdownOpen && !this._titleAddSourceDropdownOpen && !this._titleAddEntityDropdownOpen && !this._titlePeriodDropdownOpen && !this._coverRoomDropdownOpen && !this._climateRoomDropdownOpen && !this._fanRoomDropdownOpen && !this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen && !this._spotifyDropdownOpen && !this._presenceDropdownOpen && !this._unassignedDropdownEntity && !this._tabSelectOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -280,6 +283,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
+    this._titlePeriodDropdownOpen = false;
 
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
@@ -364,7 +368,7 @@ export class GlassConfigPanel extends LitElement {
 
   // ─── Drag & Drop delegates ───
 
-  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes', srcIdx?: number) { DD.onDragStart(this, idx, context, srcIdx); }
+  _onDragStart(idx: number, context: 'rooms' | 'cards' | 'scenes' | 'lights' | 'covers' | 'fans' | 'climates' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order', srcIdx?: number) { DD.onDragStart(this, idx, context, srcIdx); }
   _onDragOver(idx: number, e: DragEvent, srcIdx?: number) { DD.onDragOver(this, idx, e, srcIdx); }
   _onDragLeave() { DD.onDragLeave(this); }
   _onDropGeneric(idx: number, e: DragEvent) { DD.onDropGeneric(this, idx, e); }
@@ -394,6 +398,7 @@ export class GlassConfigPanel extends LitElement {
     this._weatherDropdownOpen = false;
     this._titleAddSourceDropdownOpen = false;
     this._titleAddEntityDropdownOpen = false;
+    this._titlePeriodDropdownOpen = false;
 
     this._coverRoomDropdownOpen = false;
     this._climateRoomDropdownOpen = false;
@@ -492,9 +497,7 @@ export class GlassConfigPanel extends LitElement {
 
   _selectClimateRoom(areaId: string) { this._beginSuppressAutoSave(); selectClimateRoom(this, areaId); }
   _toggleClimateEntityVisibility(entityId: string) { toggleClimateEntityVisibility(this, entityId); }
-  _moveClimate(idx: number, dir: number) { moveClimate(this, idx, dir); }
-  _onDropClimate(idx: number, e: DragEvent) { onDropClimate(this, idx, e); }
-  _getAllClimateEntities() { return getAllClimateEntities(this); }
+  _toggleClimateDashboardEntity(entityId: string) { toggleClimateDashboardEntity(this, entityId); }
 
   _selectMediaRoom(areaId: string) { this._beginSuppressAutoSave(); selectMediaRoom(this, areaId); }
   _addMediaExtraEntity(entityId: string) { addMediaExtraEntity(this, entityId); }
@@ -514,6 +517,9 @@ export class GlassConfigPanel extends LitElement {
   _toggleSpotifySpeaker(entityId: string) { toggleSpotifySpeaker(this, entityId); }
   _onDropSpeaker(idx: number, e: DragEvent) { onDropSpeaker(this, idx, e); }
 
+  _initCameraEntityOrder() { initCameraEntityOrder(this); }
+  _onDropCameraEntity(idx: number, e: DragEvent) { onDropCameraEntity(this, idx, e); }
+
   _toggleWeatherMetric(metric: string) { toggleWeatherMetric(this, metric); }
   _selectWeatherEntity(entityId: string) { selectWeatherEntity(this, entityId); }
   _windBearingToDir(bearing: number): string { return windBearingToDir(this, bearing); }
@@ -524,8 +530,30 @@ export class GlassConfigPanel extends LitElement {
   _setTitleSourceLabel(srcIdx: number, label: string) { setTitleSourceLabel(this, srcIdx, label); }
   _addTitleModeEntity(srcIdx: number, entityId: string) { addTitleModeEntity(this, srcIdx, entityId); }
   _removeTitleModeEntity(srcIdx: number, entityId: string) { removeTitleModeEntity(this, srcIdx, entityId); }
-  _moveTitleMode(srcIdx: number, modeIdx: number, direction: -1 | 1) { moveTitleMode(this, srcIdx, modeIdx, direction); }
   _updateTitleMode(idx: number, field: 'label' | 'icon' | 'color', value: string) { updateTitleMode(this, idx, field, value); }
+
+  _setTitlePeriodEntity(entityId: string) {
+    this._titlePeriodDropdownOpen = false;
+    this._titlePeriodEntity = entityId;
+    // Auto-populate period options from input_select options
+    if (entityId && this.hass) {
+      const entity = this.hass.states[entityId];
+      if (entity) {
+        const options = (entity.attributes.options as string[] | undefined) ?? [];
+        const existingMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
+        this._titlePeriodOptions = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: '' });
+      }
+    } else if (!entityId) {
+      this._titlePeriodOptions = [];
+    }
+  }
+
+  _updateTitlePeriodOption(idx: number, field: 'icon' | 'color', value: string) {
+    const opts = [...this._titlePeriodOptions];
+    if (!opts[idx]) return;
+    opts[idx] = { ...opts[idx], [field]: value };
+    this._titlePeriodOptions = opts;
+  }
 
   _iconLoading = false;
   async _openIconPopup(modeIdx: number) {
@@ -555,6 +583,35 @@ export class GlassConfigPanel extends LitElement {
     if (modeIdx < this._titleModes.length) {
       this._iconSearch = '';
       this._iconPopupModeIdx = modeIdx;
+    }
+  }
+  async _openPeriodIconPopup(periodIdx: number) {
+    if (this._iconLoading) return;
+    if (this._iconList.length === 0) {
+      this._iconLoading = true;
+      const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
+      picker.hass = this.hass;
+      picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
+      try {
+        this.shadowRoot?.appendChild(picker);
+        await new Promise((r) => setTimeout(r, 50));
+        const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
+        if (gp?.getItems) {
+          const items = await gp.getItems();
+          if (items?.length) {
+            this._iconList = items.map((i) => i.id);
+          }
+        }
+      } catch { /* ignore */ } finally {
+        if (this.shadowRoot?.contains(picker)) {
+          this.shadowRoot.removeChild(picker);
+        }
+        this._iconLoading = false;
+      }
+    }
+    if (periodIdx < this._titlePeriodOptions.length) {
+      this._iconSearch = '';
+      this._periodIconPopupIdx = periodIdx;
     }
   }
   _getFilteredIcons(): string[] { return getFilteredIcons(this); }
