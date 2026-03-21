@@ -1,6 +1,5 @@
 import { bus } from '@glass-cards/event-bus';
 import {
-  BackendService,
   getAreaEntities,
   type EntityScheduleMap,
 } from '@glass-cards/base-card';
@@ -567,8 +566,7 @@ export async function loadRoomFans(self: GlassConfigPanel): Promise<void> {
 
 export async function loadRoomClimates(self: GlassConfigPanel): Promise<void> {
   self._beginSuppressAutoSave();
-  if (!self.hass || !self._climateRoom) return;
-  if (!self._backend) self._backend = new BackendService(self.hass);
+  if (!self.hass || !self._climateRoom || !self._backend) return;
   const targetRoom = self._climateRoom;
   const areaEntities = getAreaEntities(targetRoom, self.hass.entities, self.hass.devices);
   const climateIds = areaEntities
@@ -615,8 +613,7 @@ export function loadRoomMediaPlayers(self: GlassConfigPanel): void {
 
 export async function loadFanConfig(self: GlassConfigPanel): Promise<void> {
   self._beginSuppressAutoSave();
-  if (!self.hass) return;
-  if (!self._backend) self._backend = new BackendService(self.hass);
+  if (!self.hass || !self._backend) return;
   try {
     const result = await self._backend.send<{
       fan_card?: { show_header: boolean };
@@ -630,8 +627,7 @@ export async function loadFanConfig(self: GlassConfigPanel): Promise<void> {
 
 export async function loadClimateConfig(self: GlassConfigPanel): Promise<void> {
   self._beginSuppressAutoSave();
-  if (!self.hass) return;
-  if (!self._backend) self._backend = new BackendService(self.hass);
+  if (!self.hass || !self._backend) return;
   try {
     const result = await self._backend.send<{
       climate_card?: { show_header: boolean; display_mode: string; dashboard_display_mode: string; dashboard_entities: string[] };

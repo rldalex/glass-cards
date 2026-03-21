@@ -19,6 +19,12 @@ def _strict_int(value: Any) -> int:
     if isinstance(value, bool):
         raise vol.Invalid("Expected int, got bool")
     return int(value)
+
+
+def _dedupe_ordered(items: list[str]) -> list[str]:
+    """Deduplicate a list while preserving order."""
+    seen: set[str] = set()
+    return [x for x in items if not (x in seen or seen.add(x))]  # type: ignore[func-returns-value]
 from .permissions import can_edit, can_read
 from .models import (
     DEFAULT_COVER_PRESETS,
@@ -443,13 +449,7 @@ async def ws_set_cover_config(
     if "dashboard_compact" in msg:
         store.data.cover_card.dashboard_compact = msg["dashboard_compact"]
     if "dashboard_entities" in msg:
-        seen: set[str] = set()
-        deduped_entities: list[str] = []
-        for eid in msg["dashboard_entities"]:
-            if eid not in seen:
-                seen.add(eid)
-                deduped_entities.append(eid)
-        store.data.cover_card.dashboard_entities = deduped_entities
+        store.data.cover_card.dashboard_entities = _dedupe_ordered(msg["dashboard_entities"])
     if "presets" in msg:
         deduped = sorted(set(msg["presets"]))
         store.data.cover_card.presets = deduped if deduped else list(DEFAULT_COVER_PRESETS)
@@ -505,23 +505,11 @@ async def ws_set_climate_config(
     if "dashboard_display_mode" in msg:
         store.data.climate_card.dashboard_display_mode = msg["dashboard_display_mode"]
     if "entity_order" in msg:
-        seen: set[str] = set()
-        deduped: list[str] = []
-        for eid in msg["entity_order"]:
-            if eid not in seen:
-                seen.add(eid)
-                deduped.append(eid)
-        store.data.climate_card.entity_order = deduped
+        store.data.climate_card.entity_order = _dedupe_ordered(msg["entity_order"])
     if "hidden_entities" in msg:
         store.data.climate_card.hidden_entities = list(set(msg["hidden_entities"]))
     if "dashboard_entities" in msg:
-        seen_d: set[str] = set()
-        deduped_d: list[str] = []
-        for eid in msg["dashboard_entities"]:
-            if eid not in seen_d:
-                seen_d.add(eid)
-                deduped_d.append(eid)
-        store.data.climate_card.dashboard_entities = deduped_d
+        store.data.climate_card.dashboard_entities = _dedupe_ordered(msg["dashboard_entities"])
 
     try:
         await store.async_save()
@@ -641,12 +629,7 @@ async def ws_set_media_config(
     if "extra_entities" in msg:
         ep: dict[str, list[str]] = {}
         for area_id, entities in msg["extra_entities"].items():
-            seen: set[str] = set()
-            deduped: list[str] = []
-            for eid in entities:
-                if eid not in seen:
-                    seen.add(eid)
-                    deduped.append(eid)
+            deduped = _dedupe_ordered(entities)
             if deduped:
                 ep[area_id] = deduped
         store.data.media_card.extra_entities = ep
@@ -780,13 +763,7 @@ async def ws_set_camera_carousel_config(
     if "show_header" in msg:
         store.data.camera_carousel.show_header = msg["show_header"]
     if "entity_order" in msg:
-        seen: set[str] = set()
-        deduped: list[str] = []
-        for eid in msg["entity_order"]:
-            if eid not in seen:
-                seen.add(eid)
-                deduped.append(eid)
-        store.data.camera_carousel.entity_order = deduped
+        store.data.camera_carousel.entity_order = _dedupe_ordered(msg["entity_order"])
     if "auto_cycle" in msg:
         store.data.camera_carousel.auto_cycle = msg["auto_cycle"]
     if "cycle_interval" in msg:
@@ -893,13 +870,7 @@ async def ws_set_spotify_config(
     if "max_items_per_section" in msg:
         store.data.spotify_card.max_items_per_section = msg["max_items_per_section"]
     if "visible_speakers" in msg:
-        seen: set[str] = set()
-        deduped: list[str] = []
-        for eid in msg["visible_speakers"]:
-            if eid not in seen:
-                seen.add(eid)
-                deduped.append(eid)
-        store.data.spotify_card.visible_speakers = deduped
+        store.data.spotify_card.visible_speakers = _dedupe_ordered(msg["visible_speakers"])
 
     try:
         await store.async_save()

@@ -7,6 +7,7 @@ to call the Spotify Web API directly for search, browse, and queue.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from collections import deque
@@ -145,7 +146,7 @@ async def spotify_request(
             body = await resp.read()
             if not body or not body.strip():
                 return None
-            import json
+
             return json.loads(body)
         if resp.status == 429:
             retry_after = int(resp.headers.get("Retry-After", "5"))
@@ -163,7 +164,6 @@ async def spotify_request(
         raw = await resp.read()
         if not raw or not raw.strip():
             return None
-        import json
         return json.loads(raw)
 
 

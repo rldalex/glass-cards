@@ -386,7 +386,9 @@ export function selectWeatherEntity(self: GlassConfigPanel, entityId: string) {
   self._weatherDropdownOpen = false;
 }
 
+const COMPASS_KEYS = ['compass_N','compass_NNE','compass_NE','compass_ENE','compass_E','compass_ESE','compass_SE','compass_SSE','compass_S','compass_SSW','compass_SW','compass_WSW','compass_W','compass_WNW','compass_NW','compass_NNW'] as const;
+
 export function windBearingToDir(_self: GlassConfigPanel, bearing: number): string {
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
-  return dirs[Math.round(bearing / 45) % 8];
+  const key = COMPASS_KEYS[Math.round(((bearing % 360 + 360) % 360) / 22.5) % 16];
+  return t(`weather.${key}` as Parameters<typeof t>[0]);
 }
