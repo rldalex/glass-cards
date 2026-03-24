@@ -12,6 +12,7 @@ export const baseStyles = css`
         box-sizing: border-box;
       }
       :host {
+        position: relative;
         min-height: 100vh;
         padding: 2rem 1rem 3rem;
         color: var(--t1);
@@ -76,6 +77,12 @@ export const baseStyles = css`
         font-family: inherit;
         transition: background var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+      .page-back::before {
+        content: '';
+        position: absolute;
+        inset: -0.375rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .page-back:hover {
@@ -136,12 +143,12 @@ export const baseStyles = css`
       .banner {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.625rem 0.875rem;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-lg);
         font-size: var(--fz-base);
         font-weight: 500;
-        margin-bottom: 0.875rem;
+        margin-bottom: 1rem;
         background: rgba(var(--rgb-info), 0.08);
         border: 1px solid rgba(var(--rgb-info), 0.12);
         color: var(--t2);
@@ -163,8 +170,8 @@ export const baseStyles = css`
       .item-row {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.625rem;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-md);
         background: var(--s1);
         border: 1px solid var(--b1);
@@ -198,13 +205,13 @@ export const baseStyles = css`
         opacity: 0.4;
       }
       .item-row.drop-target {
-        border-color: var(--c-accent);
         background: rgba(var(--rgb-accent), 0.06);
+        box-shadow: inset 0 -2px 0 var(--c-accent);
       }
       .item-row .feature-icon ha-icon { --mdc-icon-size: 1rem; }
 
       .card-row {
-        padding: 0.625rem;
+        padding: 0.75rem;
       }
 
       /* ── Drag handle ── */
@@ -219,6 +226,12 @@ export const baseStyles = css`
         flex-shrink: 0;
         border-radius: 4px;
         transition: color var(--t-fast);
+        position: relative;
+      }
+      .drag-handle::before {
+        content: '';
+        position: absolute;
+        inset: -0.75rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .drag-handle:hover {
@@ -252,6 +265,12 @@ export const baseStyles = css`
           background var(--t-fast),
           border-color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+      .room-icon-btn::before {
+        content: '';
+        position: absolute;
+        inset: -0.375rem;
       }
       .room-icon-btn ha-icon {
         --mdc-icon-size: 1rem;
@@ -296,7 +315,7 @@ export const baseStyles = css`
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.0625rem;
+        gap: 0.125rem;
       }
       .item-name {
         font-size: var(--fz-base);
@@ -322,7 +341,7 @@ export const baseStyles = css`
         background: var(--s1);
         border: 1px solid var(--b1);
         border-radius: var(--radius-sm);
-        padding: 0.375rem 0.625rem;
+        padding: 0.375rem 0.5rem;
         font-family: inherit;
         font-size: var(--fz-base);
         font-weight: 600;
@@ -353,7 +372,7 @@ export const baseStyles = css`
         background: var(--s2);
         border: 1px solid var(--c-accent);
         border-radius: var(--radius-sm);
-        padding: 0.375rem 0.625rem;
+        padding: 0.375rem 0.5rem;
         font-family: inherit;
         font-size: var(--fz-base);
         font-weight: 600;
@@ -377,8 +396,8 @@ export const baseStyles = css`
       /* ── Toggle ── */
       .toggle {
         position: relative;
-        width: 2.375rem;
-        height: 1.25rem;
+        width: 2.75rem;
+        height: 1.5rem;
         border-radius: var(--radius-md);
         background: var(--s2);
         border: 1px solid var(--b2);
@@ -395,10 +414,10 @@ export const baseStyles = css`
       .toggle::after {
         content: '';
         position: absolute;
-        top: 0.125rem;
-        left: 0.125rem;
-        width: 0.875rem;
-        height: 0.875rem;
+        top: 0.1875rem;
+        left: 0.1875rem;
+        width: 1rem;
+        height: 1rem;
         border-radius: 50%;
         background: var(--t3);
         transition:
@@ -411,7 +430,7 @@ export const baseStyles = css`
         border-color: rgba(var(--rgb-success), 0.3);
       }
       .toggle.on::after {
-        transform: translateX(18px);
+        transform: translateX(1.25rem);
         background: var(--c-success);
         box-shadow: 0 0 8px rgba(var(--rgb-success), 0.4);
       }
@@ -430,14 +449,25 @@ export const baseStyles = css`
         border: none; background: transparent;
         color: var(--t3); cursor: pointer;
         padding: 0; outline: none; flex-shrink: 0;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+        position: relative;
       }
       .btn-icon.sm { width: 2rem; height: 2rem; border-radius: var(--radius-md); }
       .btn-icon.xs { width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm); }
       .btn-icon ha-icon { display: flex; align-items: center; justify-content: center; }
       .btn-icon.xs ha-icon { --mdc-icon-size: 0.875rem; }
       .btn-icon.sm ha-icon { --mdc-icon-size: 1rem; }
+      .btn-icon.sm::before {
+        content: '';
+        position: absolute;
+        inset: -0.375rem;
+      }
+      .btn-icon.xs::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
+      }
       @media (hover: hover) and (pointer: fine) { .btn-icon:hover { background: var(--s2); color: var(--t2); } }
       @media (pointer: coarse) { .btn-icon:active { animation: bounce 0.3s ease; } }
       .btn-icon:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
@@ -447,13 +477,13 @@ export const baseStyles = css`
         display: flex;
         flex-direction: column;
         gap: 0.125rem;
-        margin-bottom: 0.875rem;
+        margin-bottom: 1rem;
       }
       .feature-row {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.625rem;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-md);
         transition: background var(--t-fast);
         border: none;
@@ -505,7 +535,7 @@ export const baseStyles = css`
       .feature-desc {
         font-size: var(--fz-xs);
         color: var(--t3);
-        margin-top: 0.0625rem;
+        margin-top: 0.125rem;
       }
       .feature-row .feature-name {
         color: var(--t1);
@@ -526,7 +556,7 @@ export const baseStyles = css`
         transition-delay: 0.08s;
       }
       .feature-sub-content {
-        padding: 0.375rem 0.625rem 0.5rem;
+        padding: 0.375rem 0.5rem 0.5rem;
       }
 
       /* ── Threshold inputs ── */
@@ -534,13 +564,13 @@ export const baseStyles = css`
         display: flex;
         flex-direction: column;
         gap: 0.375rem;
-        margin-bottom: 0.875rem;
+        margin-bottom: 1rem;
       }
       .threshold-row {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        padding: 0.375rem 0.625rem;
+        gap: 0.5rem;
+        padding: 0.375rem 0.5rem;
       }
       .threshold-icon {
         width: 1.75rem;
@@ -631,15 +661,26 @@ export const baseStyles = css`
         opacity: 0.35;
       }
 
+      /* ── Sub-section group ── */
+      .sub-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
+      .sub-section + .sub-section {
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--b1);
+      }
+
       /* ── Fold separator (from kit) ── */
       .fold-sep {
         height: 0.0625rem;
         margin: 0 0.75rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+        background: linear-gradient(90deg, transparent, var(--fold-color, var(--c-accent)), transparent);
         opacity: 0;
-        transition: opacity var(--t-fast);
+        transition: opacity var(--t-layout);
       }
-      .fold-sep.visible { opacity: 1; }
+      .fold-sep.visible { opacity: 0.45; }
 
       /* ── Save bar ── */
       .save-bar {
@@ -667,13 +708,13 @@ export const baseStyles = css`
         outline: none;
         -webkit-tap-highlight-color: transparent;
         height: 2.25rem;
-        padding: 0 0.875rem;
+        padding: 0 0.75rem;
         border-radius: var(--radius-lg);
         font-size: var(--fz-base);
       }
       .btn-sm {
         height: 1.75rem;
-        padding: 0 0.625rem;
+        padding: 0 0.5rem;
         font-size: var(--fz-base);
         border-radius: var(--radius-md);
       }
@@ -724,11 +765,11 @@ export const baseStyles = css`
 
       /* ── Toast ── */
       .toast {
-        position: fixed;
+        position: absolute;
         bottom: 2rem;
         left: 50%;
         transform: translateX(-50%) translateY(20px);
-        padding: 0.625rem 1.125rem;
+        padding: 0.5rem 1rem;
         border-radius: var(--radius-lg);
         backdrop-filter: blur(20px);
         font-family: inherit;
@@ -769,14 +810,14 @@ export const baseStyles = css`
       .segmented {
         display: inline-flex; gap: 0;
         border-radius: var(--radius-lg); background: var(--s1);
-        border: 1px solid var(--b1); padding: 0.1875rem;
+        border: 1px solid var(--b1); padding: 0.25rem;
         width: 100%; margin-bottom: 0.5rem;
       }
       .seg-btn {
         flex: 1;
-        padding: 0.4375rem 0; border-radius: var(--radius-sm);
+        padding: 0.5rem 0; border-radius: var(--radius-sm);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
         border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }
@@ -834,7 +875,7 @@ export const baseStyles = css`
       }
       .entity-rename-row .input {
         flex: 1; min-width: 0;
-        padding: 0.375rem 0.625rem;
+        padding: 0.375rem 0.5rem;
         font-size: var(--fz-base);
       }
       .entity-rename-row .btn-icon {
@@ -844,4 +885,625 @@ export const baseStyles = css`
       .entity-rename-row .btn-icon ha-icon {
         --mdc-icon-size: 0.875rem;
       }
+
+      /* ═══════════════════════════════════════════════
+         Navigation (ex nav.ts)
+         ═══════════════════════════════════════════════ */
+
+      /* ── Panel layout — vertical stack ── */
+      .panel-layout {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 4rem);
+      }
+
+      /* ── Top nav (horizontal) ── */
+      .panel-sidebar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0 0.25rem 0.75rem;
+        border-bottom: 1px solid var(--b1);
+        margin-bottom: 0.75rem;
+        flex-shrink: 0;
+      }
+      .panel-sidebar .nav-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--t3);
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+        font-size: var(--fz-sm);
+        font-family: inherit;
+        font-weight: 600;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        white-space: nowrap;
+      }
+      .panel-sidebar .nav-btn ha-icon {
+        --mdc-icon-size: 1.125rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color var(--t-fast);
+      }
+      .panel-sidebar .nav-btn.active {
+        background: var(--s3);
+        border-color: var(--b2);
+        color: var(--t1);
+      }
+      .panel-sidebar .nav-btn.active ha-icon {
+        color: var(--c-accent);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .panel-sidebar .nav-btn:not(.active):hover {
+          background: var(--s1);
+          color: var(--t1);
+          border-color: var(--b1);
+        }
+      }
+      @media (pointer: coarse) {
+        .panel-sidebar .nav-btn:active { animation: bounce 0.3s ease; }
+      }
+      .panel-sidebar .nav-btn:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+
+      /* ── Content area ── */
+      .panel-content {
+        flex: 1;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      /* ── Breadcrumb ── */
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 1rem;
+        font-size: var(--fz-sm);
+        color: var(--t4);
+      }
+      .breadcrumb button {
+        border: none;
+        background: none;
+        color: var(--t3);
+        cursor: pointer;
+        padding: 0.25rem 0.375rem;
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: 500;
+        transition: background var(--t-fast), color var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .breadcrumb button:hover {
+          color: var(--t1);
+          background: var(--s1);
+        }
+      }
+      .breadcrumb button:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .breadcrumb .sep {
+        color: var(--t4);
+        font-weight: 300;
+        opacity: 0.5;
+      }
+      .breadcrumb .current {
+        color: var(--t1);
+        font-weight: 600;
+      }
+
+      /* ── Room grid ── */
+      .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+        gap: 0.5rem;
+      }
+      .room-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 0.5rem;
+        border-radius: var(--radius-lg);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        color: var(--t2);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .room-card ha-icon {
+        --mdc-icon-size: 1.5rem;
+        color: var(--t3);
+        transition: color var(--t-fast);
+      }
+      .room-card-icon {
+        width: 36px; height: 36px;
+        border-radius: var(--radius-md);
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .room-card-icon ha-icon {
+        --mdc-icon-size: 20px;
+        --mdc-icon-color: var(--icon-color, var(--t3));
+        color: var(--icon-color, var(--t3));
+      }
+      .room-card .room-name {
+        text-align: center;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .room-card:hover {
+          background: var(--s3);
+          border-color: var(--b2);
+          color: var(--t1);
+        }
+      }
+      .room-card:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .room-card.disabled {
+        opacity: 0.35;
+        cursor: default;
+        pointer-events: none;
+        color: var(--t4);
+      }
+      .badge-soon {
+        font-size: 0.5rem;
+        font-weight: 700;
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--t4);
+        background: var(--s2);
+        padding: 0.125rem 0.375rem;
+        border-radius: var(--radius-sm);
+      }
+
+      /* ── Empty state ── */
+      .empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        color: var(--t4);
+        font-size: var(--fz-sm);
+        font-weight: 500;
+      }
+
+      /* ── Mobile nav adjustments ── */
+      @media (max-width: 600px) {
+        .panel-sidebar {
+          padding: 0 0.125rem 0.5rem;
+        }
+        .panel-sidebar .nav-btn {
+          font-size: var(--fz-xs);
+          padding: 0.375rem 0.5rem;
+          gap: 0.25rem;
+        }
+        .panel-sidebar .nav-btn ha-icon { --mdc-icon-size: 1rem; }
+        .room-grid {
+          grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+          gap: 0.375rem;
+        }
+        .room-card {
+          padding: 0.75rem 0.375rem;
+          gap: 0.375rem;
+        }
+        .room-card ha-icon { --mdc-icon-size: 1.25rem; }
+        .room-card .room-name { font-size: var(--fz-xs); }
+      }
+
+      /* ═══════════════════════════════════════════════
+         Room detail sections (ex room-detail.ts)
+         ═══════════════════════════════════════════════ */
+
+      .room-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
+
+      /* ── Section header (fold trigger) ── */
+      /* ── Scene chips ── */
+      .scene-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        padding: 0 0.25rem 0.75rem;
+      }
+      .scene-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        min-height: 2.25rem;
+        border-radius: var(--radius-full);
+        border: 1px solid var(--b1);
+        background: var(--s1);
+        color: var(--t3);
+        font-family: inherit;
+        font-size: var(--fz-xs);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .scene-chip ha-icon {
+        --mdc-icon-size: 0.75rem;
+        --mdc-icon-color: var(--t4);
+        color: var(--t4);
+        display: flex;
+      }
+      .scene-chip .chip-drag {
+        --mdc-icon-size: 0.625rem;
+        --mdc-icon-color: var(--t4);
+        color: var(--t4);
+        margin-left: -0.125rem;
+      }
+      .scene-chip.on {
+        background: rgba(129, 140, 248, 0.1);
+        border-color: rgba(129, 140, 248, 0.2);
+        color: var(--c-accent);
+      }
+      .scene-chip.on ha-icon {
+        --mdc-icon-color: var(--c-accent);
+        color: var(--c-accent);
+      }
+      .scene-chip.dragging { opacity: 0.3; }
+      .scene-chip.drop-target {
+        border-color: var(--c-accent);
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .scene-chip:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+          color: var(--t2);
+        }
+        .scene-chip.on:hover {
+          background: rgba(129, 140, 248, 0.15);
+        }
+      }
+
+      .section-header-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+      .section-header-wrap .drag-handle {
+        flex-shrink: 0;
+        cursor: grab;
+        color: var(--t4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        padding: 0.5rem 0;
+      }
+      .section-header-wrap .drag-handle ha-icon {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: var(--t4);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .section-header-wrap .drag-handle:hover {
+          color: var(--t2);
+          background: var(--s2);
+          border-radius: var(--radius-xs);
+        }
+      }
+      .section-header-wrap.off { opacity: 0.35; }
+      .section-header-wrap.off .section-header { pointer-events: none; }
+      .dragging > .section-header-wrap { opacity: 0.25; }
+      .drop-target > .section-header-wrap {
+        background: rgba(129, 140, 248, 0.06);
+        border-radius: var(--radius-sm);
+      }
+
+      /* Chevron in header-wrap */
+      .section-header-wrap > .section-chevron {
+        --mdc-icon-size: 1.125rem;
+        --mdc-icon-color: var(--t4);
+        color: var(--t4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform var(--t-med), color var(--t-fast);
+        cursor: pointer;
+        flex-shrink: 0;
+        padding: 0.5rem 0.25rem;
+      }
+      .section-header-wrap > .section-chevron.open {
+        transform: rotate(180deg);
+        color: var(--t2);
+        --mdc-icon-color: var(--t2);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.25rem;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        border: none;
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        transition: background var(--t-fast);
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        font-family: inherit;
+      }
+      .section-header-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .section-header-icon ha-icon {
+        --mdc-icon-size: 0.9375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .section-header ha-icon {
+        --mdc-icon-size: 1.125rem;
+        color: var(--t3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color var(--t-fast);
+      }
+      .section-header .section-title {
+        flex: 1;
+        font-weight: 600;
+        color: var(--t2);
+        font-size: var(--fz-base);
+        letter-spacing: -0.2px;
+        transition: color var(--t-fast);
+      }
+      .section-header .section-chevron {
+        --mdc-icon-size: 1rem;
+        transition: transform var(--t-med), color var(--t-fast);
+        color: var(--t4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .section-header .section-chevron.open {
+        transform: rotate(180deg);
+        color: var(--t2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .section-header:hover {
+          background: var(--s1);
+        }
+      }
+      .section-header:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+
+      /* ── Section fold animation ── */
+      .section-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .section-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .section-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--t-fast), visibility 0s var(--t-layout);
+      }
+      .section-fold.open .section-fold-inner {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity var(--t-fast) 0.1s, visibility 0s;
+      }
+      .section-content {
+        padding: 0.75rem 0.25rem 0.5rem;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Wizard (ex wizard.ts)
+         ═══════════════════════════════════════════════ */
+
+      .wizard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1rem 0;
+      }
+
+      /* ── Progress dots ── */
+      .wizard-progress {
+        display: flex;
+        gap: 0.375rem;
+        align-items: center;
+      }
+      .wizard-dot {
+        width: 0.4375rem;
+        height: 0.4375rem;
+        border-radius: 50%;
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        transition: background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+      }
+      .wizard-dot.active {
+        background: var(--c-accent);
+        border-color: var(--c-accent);
+        box-shadow: 0 0 6px rgba(var(--rgb-accent, 139,92,246), 0.35);
+        transform: scale(1.25);
+      }
+      .wizard-dot.done {
+        background: var(--c-success);
+        border-color: var(--c-success);
+      }
+
+      /* ── Step card ── */
+      .wizard-card {
+        width: 100%;
+      }
+
+      /* ── Step icon ── */
+      .wizard-step-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: var(--radius-lg);
+        background: rgba(var(--rgb-accent, 139,92,246), 0.1);
+        border: 1px solid rgba(var(--rgb-accent, 139,92,246), 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+      .wizard-step-icon ha-icon {
+        --mdc-icon-size: 1.25rem;
+        color: var(--c-accent);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .wizard-step-icon.success {
+        background: rgba(var(--rgb-success, 34,197,94), 0.1);
+        border-color: rgba(var(--rgb-success, 34,197,94), 0.15);
+      }
+      .wizard-step-icon.success ha-icon {
+        color: var(--c-success);
+      }
+
+      /* ── Room chips ── */
+      .wizard-room-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+      }
+      .wizard-room-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-md);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        color: var(--t2);
+        font-weight: 500;
+        white-space: nowrap;
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      .wizard-room-chip ha-icon {
+        --mdc-icon-size: 0.875rem;
+        color: var(--t3);
+        display: flex; align-items: center; justify-content: center;
+      }
+
+      /* ── Wizard actions ── */
+      .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--b1);
+      }
+      .wizard-actions-right {
+        display: flex;
+        gap: 0.375rem;
+        align-items: center;
+      }
+
+      /* ── Orphan count ── */
+      .wizard-orphan-count {
+        font-size: var(--fz-lg);
+        font-weight: 700;
+        color: var(--t1);
+        margin-bottom: 0.25rem;
+      }
+
+      /* ── Dashboard card grid ── */
+      .dash-card { position: relative; cursor: grab; user-select: none; -webkit-user-select: none; }
+      .dash-card.off { opacity: 0.5; border-style: dashed; }
+      .dash-card.off .room-card-icon { border-style: dashed; }
+      .dash-card.dragging { opacity: 0.25; transform: scale(0.95); }
+      .dash-card.drop-target { border-color: var(--c-accent); background: rgba(129, 140, 248, 0.06); }
+
+      .dash-toggle {
+        position: absolute; top: 6px; right: 6px;
+        width: 32px; height: 18px; border-radius: 9px;
+        background: var(--s2); border: 1px solid var(--b2);
+        cursor: pointer; transition: background 0.2s var(--ease-std), border-color 0.2s var(--ease-std);
+        padding: 0; outline: none; z-index: 2;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dash-toggle::before {
+        content: '';
+        position: absolute;
+        inset: -0.75rem -0.375rem;
+      }
+      .dash-toggle::after {
+        content: ''; position: absolute; top: 2px; left: 2px;
+        width: 12px; height: 12px; border-radius: 50%;
+        background: var(--t4); transition: transform 0.2s var(--ease-std), background 0.2s var(--ease-std), box-shadow 0.2s var(--ease-std);
+      }
+      .dash-toggle.on { background: rgba(74, 222, 128, 0.2); border-color: rgba(74, 222, 128, 0.3); }
+      .dash-toggle.on::after { transform: translateX(14px); background: var(--c-success); box-shadow: 0 0 6px rgba(74, 222, 128, 0.4); }
+
+      .dash-order {
+        position: absolute; top: 6px; left: 6px;
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--s3); border: 1px solid var(--b1);
+        font-size: 8px; font-weight: 700; color: var(--t3);
+        display: flex; align-items: center; justify-content: center; z-index: 2;
+      }
+
+      .dash-drag-hint {
+        position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+        color: var(--t4); opacity: 0; transition: opacity 0.2s var(--ease-std); pointer-events: none;
+      }
+      .dash-drag-hint ha-icon {
+        --mdc-icon-size: 0.75rem;
+        --mdc-icon-color: var(--t4);
+      }
+      .dash-card:hover .dash-drag-hint { opacity: 0.6; }
 `;

@@ -117,7 +117,7 @@ interface CoverBackendConfig {
   show_header: boolean;
   dashboard_entities: string[];
   dashboard_compact: boolean;
-  presets: number[];
+  presets?: number[];
   entity_presets: Record<string, number[]>;
 }
 
@@ -142,7 +142,7 @@ class GlassCoverCard extends BaseCard {
 
   @state() private _expanded: string | null = null;
 
-  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], dashboard_compact: true, presets: [0, 25, 50, 75, 100], entity_presets: {} };
+  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], dashboard_compact: true, entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
@@ -150,6 +150,7 @@ class GlassCoverCard extends BaseCard {
   private _roomLoading = false;
   private _lastAreaId: string | undefined;
   private _throttleTimers = new Map<string, number>();
+  private _lastDirection = new Map<string, 'opening' | 'closing'>();
 
   private _coversCache: CoverInfo[] | null = null;
   private _coversCacheKey = '';
@@ -277,6 +278,7 @@ class GlassCoverCard extends BaseCard {
     .cv-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     .cv-row.open .cv-icon-btn { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
     .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(var(--rgb-purple),0.4)); }
+    .entity-unavailable .cv-icon-btn { border-color: var(--c-alert); }
 
     .cv-info { flex: 1; min-width: 0; }
     .cv-name {
@@ -303,6 +305,14 @@ class GlassCoverCard extends BaseCard {
     }
     .cv-row.open .cv-dot {
       background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .cv-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
     }
 
     /* ── Fold ── */
@@ -435,6 +445,7 @@ class GlassCoverCard extends BaseCard {
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+
     if (changedProps.has('hass') && this.hass) {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
@@ -551,10 +562,28 @@ class GlassCoverCard extends BaseCard {
 
   // — Actions —
 
-  private _toggleCover(cv: CoverInfo, e: Event) {
-    e.stopPropagation();
+  private _toggleCover(cv: CoverInfo, e?: Event) {
+    e?.stopPropagation();
     if (!this.hass) return;
-    this.hass.callService('cover', 'toggle', {}, { entity_id: cv.entityId });
+    const state = cv.entity.state;
+    if (state === 'opening' || state === 'closing') {
+      this._lastDirection.set(cv.entityId, state);
+      this.hass.callService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
+    } else if (state === 'closed') {
+      this._lastDirection.delete(cv.entityId);
+      this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+    } else {
+      // open or partially open — check if we stopped mid-way
+      const last = this._lastDirection.get(cv.entityId);
+      this._lastDirection.delete(cv.entityId);
+      if (last === 'opening') {
+        this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+      } else if (last === 'closing') {
+        this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+      } else {
+        this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+      }
+    }
   }
 
   private _openCover(cv: CoverInfo, e: Event) {
@@ -755,8 +784,20 @@ class GlassCoverCard extends BaseCard {
     const unavailable = isEntityUnavailable(cv.entity.state);
     const rowClasses = ['cv-row', cv.isOpen ? 'open' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '', unavailable ? 'entity-unavailable' : '']
       .filter(Boolean).join(' ');
+    const gesture = this._bindGesture({
+      onTap: () => this._toggleCover(cv),
+      onLongPress: () => this._toggleExpand(cv.entityId),
+      exclude: '.cv-icon-btn',
+    });
     return html`
-      <div class=${rowClasses}>
+      <div
+        class=${rowClasses}
+        @pointerdown=${gesture.pointerdown}
+        @pointerup=${gesture.pointerup}
+        @pointermove=${gesture.pointermove}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
+      >
         <button
           class="cv-icon-btn"
           @click=${(e: Event) => this._toggleCover(cv, e)}
@@ -766,7 +807,6 @@ class GlassCoverCard extends BaseCard {
         </button>
         <button
           class="cv-expand-btn"
-          @click=${() => this._toggleExpand(cv.entityId)}
           aria-expanded=${isExpanded ? 'true' : 'false'}
           aria-label=${t('cover.expand_aria', { name: cv.name })}
         >
@@ -779,9 +819,10 @@ class GlassCoverCard extends BaseCard {
           ${cv.position !== null ? html`
             <div class="cv-position">${cv.position}<span class="unit">%</span></div>
           ` : nothing}
-          <div class="cv-dot"></div>
+          ${unavailable
+            ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
+            : html`<div class="cv-dot"></div>`}
         </button>
-        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -805,15 +846,13 @@ class GlassCoverCard extends BaseCard {
     const hasPosition = !!(sf & F.SET_POSITION);
     const hasTilt = !!(sf & F.SET_TILT_POSITION);
 
-    // Presets: per-entity overrides take priority over global defaults
+    // Presets: per-entity overrides take priority over hardcoded defaults
     const presets: { label: string; icon: string; position: number }[] = [];
     if (hasPosition) {
       const entityPresets = this._coverConfig.entity_presets[cv.entityId];
       const configPresets = entityPresets && entityPresets.length > 0
         ? entityPresets
-        : this._coverConfig.presets.length > 0
-          ? this._coverConfig.presets
-          : [0, 25, 50, 75, 100];
+        : [0, 25, 50, 75, 100];
       for (const p of configPresets) {
         const isOpen = p >= 50;
         const label = p === 0

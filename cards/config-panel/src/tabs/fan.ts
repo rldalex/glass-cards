@@ -17,30 +17,29 @@ interface FanRoomEntity {
 
 // — Preview helpers —
 
-function renderFanPreviewRow(f: PreviewFan, accentRgba: string, compact: boolean, isRight: boolean) {
-  const sepStyle = isRight ? 'padding-left:8px;position:relative;' : '';
-  const sepLine = isRight ? html`<div style="position:absolute;left:0;top:20%;bottom:20%;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.08) 30%,rgba(255,255,255,0.08) 70%,transparent);"></div>` : nothing;
+function renderFanPreviewRow(f: PreviewFan, compact: boolean, isRight: boolean) {
+  const rowClasses = `pw-fan-row${compact ? ' compact' : ''}${isRight ? ' compact-right' : ''}`;
+  const onOff = f.isOn ? 'on' : 'off';
   return html`
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${sepStyle}">
-      ${sepLine}
-      <div style="width:22px;height:22px;border-radius:var(--radius-xs);background:${f.isOn ? `${accentRgba}0.1)` : 'var(--s2)'};border:1px solid ${f.isOn ? `${accentRgba}0.15)` : 'var(--b1)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <ha-icon .icon=${f.icon} style="--mdc-icon-size:13px;color:${f.isOn ? '#818cf8' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${f.isOn ? `filter:drop-shadow(0 0 4px ${accentRgba}0.4));animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}"></ha-icon>
+    <div class=${rowClasses}>
+      <div class="pw-fan-icon ${onOff}">
+        <ha-icon .icon=${f.icon} style=${f.isOn ? `animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}></ha-icon>
       </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</div>
-        <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-          <span style="font-size:8px;color:${f.isOn ? `${accentRgba}0.6)` : 'var(--t4)'};">${f.isOn ? `${f.pct}%` : t('fan.off')}</span>
+      <div class="pw-fan-info">
+        <div class="pw-fan-name">${f.name}</div>
+        <div class="pw-fan-meta">
+          <span class="pw-fan-status ${onOff}">${f.isOn ? `${f.pct}%` : t('fan.off')}</span>
           ${f.isOn ? html`
-            <span style="font-size:7px;color:var(--t4);">${t('fan.speed_step', { step: f.step, total: f.total })}</span>
+            <span class="pw-fan-speed">${t('fan.speed_step', { step: f.step, total: f.total })}</span>
           ` : nothing}
         </div>
       </div>
-      <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${f.isOn ? '#818cf8' : 'var(--t4)'};${f.isOn ? `box-shadow:0 0 6px ${accentRgba}0.4);` : ''}"></div>
+      <div class="pw-fan-dot ${onOff}"></div>
     </div>
   `;
 }
 
-function renderFanPreviewRows(fans: PreviewFan[], accentRgba: string) {
+function renderFanPreviewRows(fans: PreviewFan[]) {
   const results: unknown[] = [];
   let i = 0;
   while (i < fans.length) {
@@ -48,15 +47,15 @@ function renderFanPreviewRows(fans: PreviewFan[], accentRgba: string) {
     if (fan.layout === 'compact') {
       const next = i + 1 < fans.length && fans[i + 1].layout === 'compact' ? fans[i + 1] : null;
       if (next) {
-        results.push(renderFanPreviewRow(fan, accentRgba, true, false));
-        results.push(renderFanPreviewRow(next, accentRgba, true, true));
+        results.push(renderFanPreviewRow(fan, true, false));
+        results.push(renderFanPreviewRow(next, true, true));
         i += 2;
       } else {
-        results.push(renderFanPreviewRow(fan, accentRgba, false, false));
+        results.push(renderFanPreviewRow(fan, false, false));
         i++;
       }
     } else {
-      results.push(renderFanPreviewRow(fan, accentRgba, false, false));
+      results.push(renderFanPreviewRow(fan, false, false));
       i++;
     }
   }
@@ -68,7 +67,6 @@ function renderFanPreviewRows(fans: PreviewFan[], accentRgba: string) {
 export class ConfigTabFan extends BaseConfigTab {
   @state() _fanShowHeader = true;
   @state() _fanRoom = '';
-  @state() _fanRoomDropdownOpen = false;
   @state() _fanRoomEntities: FanRoomEntity[] = [];
 
   // Local drag state
@@ -84,6 +82,10 @@ export class ConfigTabFan extends BaseConfigTab {
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+    if (changedProps.has('areaId') && this.areaId) {
+      this._fanRoom = this.areaId;
+      void this._loadRoomFans();
+    }
     this._checkAutoSave(changedProps);
   }
 
@@ -199,12 +201,6 @@ export class ConfigTabFan extends BaseConfigTab {
 
   // — Actions —
 
-  private _selectRoom(areaId: string): void {
-    this._fanRoom = areaId;
-    this._fanRoomDropdownOpen = false;
-    this._loadRoomFans();
-  }
-
   private _toggleEntityVisibility(entityId: string): void {
     this._fanRoomEntities = this._fanRoomEntities.map((e) =>
       e.entityId === entityId ? { ...e, visible: !e.visible } : e,
@@ -254,16 +250,6 @@ export class ConfigTabFan extends BaseConfigTab {
     this._dropIdx = null;
   }
 
-  // — Auto-select first room on connect —
-
-  override connectedCallback(): void {
-    super.connectedCallback();
-    if (!this._fanRoom && this.rooms.length > 0) {
-      this._fanRoom = this.rooms[0].areaId;
-      this._loadRoomFans();
-    }
-  }
-
   // — Render —
 
   renderPreview(): TemplateResult | typeof nothing {
@@ -288,28 +274,26 @@ export class ConfigTabFan extends BaseConfigTab {
         });
 
     const onCount = fans.filter((f) => f.isOn).length;
-    const accentRgba = 'rgba(129,140,248,';
-
+    const onOff = onCount > 0 ? 'on' : 'off';
     return html`
       <div class="preview-fan">
         ${this._fanShowHeader ? html`
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('fan.title')}</span>
-              <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:${onCount > 0 ? `${accentRgba}0.15)` : 'var(--s2)'};color:${onCount > 0 ? '#818cf8' : 'var(--t3)'};">${onCount}/${fans.length}</span>
+          <div class="pw-fan-header">
+            <div class="pw-fan-header-left">
+              <span class="pw-fan-header-title">${t('fan.title')}</span>
+              <span class="pw-fan-header-badge ${onOff}">${onCount}/${fans.length}</span>
             </div>
-            <div style="width:28px;height:14px;border-radius:var(--radius-sm);background:${onCount > 0 ? `${accentRgba}0.25)` : 'var(--s2)'};position:relative;">
-              <div style="width:10px;height:10px;border-radius:50%;background:${onCount > 0 ? '#818cf8' : 'var(--t4)'};position:absolute;top:2px;${onCount > 0 ? 'right:2px;' : 'left:2px;'}transition:all var(--t-fast);"></div>
+            <div class="pw-fan-toggle-track ${onOff}">
+              <div class="pw-fan-toggle-knob ${onOff}"></div>
             </div>
           </div>
         ` : nothing}
-        <div class="preview-fan-card glass" style="padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;">
-          <!-- Tint -->
-          <div style="grid-column:1/-1;position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#818cf8,transparent 70%);opacity:${fans.length > 0 ? (onCount / fans.length * 0.18).toFixed(3) : '0'};"></div>
+        <div class="preview-fan-card glass pw-fan-card">
+          <div class="pw-fan-tint" style="opacity:${fans.length > 0 ? (onCount / fans.length * 0.18).toFixed(3) : '0'};"></div>
           ${fans.length === 0 ? html`
-            <div style="grid-column:1/-1;padding:8px;text-align:center;font-size:10px;color:var(--t4);">—</div>
+            <div class="pw-fan-empty">&mdash;</div>
           ` : nothing}
-          ${renderFanPreviewRows(fans, accentRgba)}
+          ${renderFanPreviewRows(fans)}
         </div>
       </div>
     `;
@@ -318,8 +302,6 @@ export class ConfigTabFan extends BaseConfigTab {
   renderTab(): TemplateResult {
     void this._lang;
     if (!this.hass) return html``;
-
-    const currentRoom = this.rooms.find((r) => r.areaId === this._fanRoom);
 
     return html`
       <div class="preview-encart">
@@ -353,33 +335,6 @@ export class ConfigTabFan extends BaseConfigTab {
         <div class="section-label">${t('config.fan_room')}</div>
         <div class="section-desc">${t('config.fan_room_desc')}</div>
 
-        <!-- Room selector dropdown -->
-        <div class="dropdown ${this._fanRoomDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { this._fanRoomDropdownOpen = !this._fanRoomDropdownOpen; }}
-            aria-expanded=${this._fanRoomDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${currentRoom?.icon || 'mdi:home'}></ha-icon>
-            <span>${currentRoom?.name || t('common.select')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${this.rooms.map((r) => html`
-              <button
-                class="dropdown-item ${r.areaId === this._fanRoom ? 'active' : ''}"
-                role="option"
-                aria-selected=${r.areaId === this._fanRoom ? 'true' : 'false'}
-                @click=${() => this._selectRoom(r.areaId)}
-              >
-                <ha-icon .icon=${r.icon}></ha-icon>
-                ${r.name}
-              </button>
-            `)}
-          </div>
-        </div>
-
         ${this._fanRoom ? html`
           ${this._fanRoomEntities.length > 0 ? html`
             <div class="section-label">${t('config.fan_list_title')} (${this._fanRoomEntities.length})</div>
@@ -395,37 +350,39 @@ export class ConfigTabFan extends BaseConfigTab {
                   isDropTarget ? 'drop-target' : '',
                 ].filter(Boolean).join(' ');
                 return html`
-                  <div
-                    class=${rowClasses}
-                    draggable="true"
-                    @dragstart=${() => this._onLocalDragStart(idx)}
-                    @dragover=${(ev: DragEvent) => this._onLocalDragOver(idx, ev)}
-                    @dragleave=${() => this._onLocalDragLeave()}
-                    @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
-                    @dragend=${() => this._onLocalDragEnd()}
-                  >
-                    <span class="drag-handle">
-                      <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                    </span>
-                    <div class="item-info">
-                      <span class="item-name">${e.name}</span>
-                      <span class="item-meta">${e.entityId}</span>
-                    </div>
-                    <button
-                      class="layout-btn"
-                      @click=${() => this._cycleLayout(e.entityId)}
-                      aria-label="${t('config.light_change_layout_aria')}"
-                      title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                  <div class="item-card">
+                    <div
+                      class=${rowClasses}
+                      draggable="true"
+                      @dragstart=${() => this._onLocalDragStart(idx)}
+                      @dragover=${(ev: DragEvent) => this._onLocalDragOver(idx, ev)}
+                      @dragleave=${() => this._onLocalDragLeave()}
+                      @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
+                      @dragend=${() => this._onLocalDragEnd()}
                     >
-                      ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
-                    </button>
-                    <button
-                      class="toggle ${e.visible ? 'on' : ''}"
-                      @click=${() => this._toggleEntityVisibility(e.entityId)}
-                      role="switch"
-                      aria-checked=${e.visible ? 'true' : 'false'}
-                      aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                    ></button>
+                      <span class="drag-handle">
+                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                      </span>
+                      <div class="item-info">
+                        <span class="item-name">${e.name}</span>
+                        <span class="item-meta">${e.entityId}</span>
+                      </div>
+                      <button
+                        class="layout-btn"
+                        @click=${() => this._cycleLayout(e.entityId)}
+                        aria-label="${t('config.light_change_layout_aria')}"
+                        title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                      >
+                        ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                      </button>
+                      <button
+                        class="toggle ${e.visible ? 'on' : ''}"
+                        @click=${() => this._toggleEntityVisibility(e.entityId)}
+                        role="switch"
+                        aria-checked=${e.visible ? 'true' : 'false'}
+                        aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                      ></button>
+                    </div>
                   </div>
                 `;
               })}

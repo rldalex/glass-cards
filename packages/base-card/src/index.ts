@@ -3,6 +3,7 @@ import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
+import { initMarqueeObserver } from '@glass-cards/ui-core';
 
 // — HA Types —
 
@@ -80,6 +81,16 @@ export interface EntityRegistryEntry {
   icon: string | null;
 }
 
+// — Gesture Types —
+
+export interface GestureCallbacks {
+  onTap?: () => void;
+  onLongPress?: () => void;
+  onSwipe?: (direction: 'left' | 'right') => void;
+  /** CSS selectors to exclude from gesture detection (e.g. 'button', '.slider') */
+  exclude?: string;
+}
+
 // — BaseCard —
 
 export abstract class BaseCard extends LitElement {
@@ -87,6 +98,10 @@ export abstract class BaseCard extends LitElement {
   @state() protected _lang = getLanguage();
   protected _config?: LovelaceCardConfig;
   protected _busCleanups: (() => void)[] = [];
+  private _marqueeCleanup: (() => void) | null = null;
+  private _gestureTimer = 0;
+  private _gestureFired = false;
+  private _gestureStart: { x: number; y: number; t: number } | null = null;
 
   setConfig(config: LovelaceCardConfig): void {
     this._config = config;
@@ -129,6 +144,7 @@ export abstract class BaseCard extends LitElement {
     this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
     document.addEventListener('click', this._boundDocClick, true);
+    this._marqueeCleanup = initMarqueeObserver(this.shadowRoot);
   }
 
   protected _listen<K extends keyof GlassEventMap>(
@@ -143,6 +159,9 @@ export abstract class BaseCard extends LitElement {
     this._busCleanups.forEach((cleanup) => cleanup());
     this._busCleanups = [];
     document.removeEventListener('click', this._boundDocClick, true);
+    this._marqueeCleanup?.();
+    this._marqueeCleanup = null;
+    clearTimeout(this._gestureTimer);
   }
 
   private _handleDocumentClick(e: Event): void {
@@ -153,6 +172,62 @@ export abstract class BaseCard extends LitElement {
   /** Override in subclasses to collapse any expanded/fold state on outside click. */
   protected _collapseExpanded(): void {
     // no-op — subclasses override
+  }
+
+  // — Gesture handling —
+
+  protected _bindGesture(callbacks: GestureCallbacks) {
+    return {
+      pointerdown: (e: PointerEvent) => this._onGestureDown(e, callbacks),
+      pointerup: (e: PointerEvent) => this._onGestureUp(e, callbacks),
+      pointermove: (e: PointerEvent) => this._onGestureMove(e),
+      pointercancel: () => this._onGestureCancel(),
+      contextmenu: (e: Event) => e.preventDefault(),
+    };
+  }
+
+  private _onGestureDown(e: PointerEvent, cb: GestureCallbacks): void {
+    if (cb.exclude && (e.target as HTMLElement).closest(cb.exclude)) return;
+    this._gestureStart = { x: e.clientX, y: e.clientY, t: Date.now() };
+    this._gestureFired = false;
+    clearTimeout(this._gestureTimer);
+    if (cb.onLongPress) {
+      this._gestureTimer = window.setTimeout(() => {
+        this._gestureFired = true;
+        fireHaptic(this, 'medium');
+        cb.onLongPress!();
+      }, 500);
+    }
+  }
+
+  private _onGestureUp(e: PointerEvent, cb: GestureCallbacks): void {
+    clearTimeout(this._gestureTimer);
+    if (this._gestureFired || !this._gestureStart) { this._gestureStart = null; return; }
+    const dx = e.clientX - this._gestureStart.x;
+    const elapsed = Date.now() - this._gestureStart.t;
+    this._gestureStart = null;
+    // Swipe detection
+    if (cb.onSwipe && Math.abs(dx) > 50 && elapsed < 500) {
+      cb.onSwipe(dx < 0 ? 'left' : 'right');
+      return;
+    }
+    // Tap
+    cb.onTap?.();
+  }
+
+  private _onGestureMove(e: PointerEvent): void {
+    if (this._gestureFired || !this._gestureStart) return;
+    const dx = Math.abs(e.clientX - this._gestureStart.x);
+    const dy = Math.abs(e.clientY - this._gestureStart.y);
+    if (dx > 15 || dy > 15) {
+      clearTimeout(this._gestureTimer);
+      this._gestureStart = null;
+    }
+  }
+
+  private _onGestureCancel(): void {
+    clearTimeout(this._gestureTimer);
+    this._gestureStart = null;
   }
 
   /**

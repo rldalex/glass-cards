@@ -37,6 +37,10 @@ __pycache__/
 # Docker HA test config
 ha-test-config/
 
+# Temporary screenshots & logs
+tmp-*.png
+.playwright-mcp/
+
 # Claude Code
 .claude/
 .mcp.json

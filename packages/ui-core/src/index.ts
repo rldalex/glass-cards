@@ -40,11 +40,13 @@ export const glassTokens: CSSResult = css`
     --rgb-purple: 167, 139, 250;
     --rgb-light-glow: 251, 191, 36;
     --rgb-spotify: 29, 185, 84;
+    --rgb-heat: 249, 115, 22;
+    --rgb-cool: 56, 189, 248;
 
     --t1: rgba(var(--rgb-white), 0.88);
     --t2: rgba(var(--rgb-white), 0.6);
-    --t3: rgba(var(--rgb-white), 0.45);
-    --t4: rgba(var(--rgb-white), 0.25);
+    --t3: rgba(var(--rgb-white), 0.55);
+    --t4: rgba(var(--rgb-white), 0.35);
 
     --s1: rgba(var(--rgb-white), 0.04);
     --s2: rgba(var(--rgb-white), 0.06);
@@ -66,6 +68,8 @@ export const glassTokens: CSSResult = css`
     --c-spotify-hover: #1ed760;
     --c-temp-hot: #f87171;
     --c-temp-cold: #60a5fa;
+    --c-heat: #f97316;
+    --c-cool: #38bdf8;
 
     --blur-sm: blur(8px);
     --blur-md: blur(16px) saturate(1.3);
@@ -145,11 +149,17 @@ export const marqueeMixin: CSSResult = css`
     overflow: hidden;
     white-space: nowrap;
     position: relative;
+    text-overflow: ellipsis;
+  }
+  .marquee.scrolling {
     mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    text-overflow: clip;
   }
   .marquee .marquee-inner {
     display: inline-block;
+  }
+  .marquee.scrolling .marquee-inner {
     animation: marquee-scroll var(--marquee-duration, 8s) linear infinite;
     will-change: transform;
   }
@@ -159,24 +169,110 @@ export const marqueeMixin: CSSResult = css`
   }
 `;
 
-/** Character threshold for marquee in full-width rows. */
+/** @deprecated Use marqueeText() without maxChars — kept for backward compat. */
 export const MARQUEE_FULL = 18;
-/** Character threshold for marquee in compact (half-width) rows. */
+/** @deprecated Use marqueeText() without maxChars — kept for backward compat. */
 export const MARQUEE_COMPACT = 12;
 
 /**
- * Render text with automatic marquee scrolling when too long.
- * @param text — the text to display
- * @param maxChars — character threshold above which marquee activates (default MARQUEE_FULL)
- * @param duration — CSS animation duration (default '8s')
+ * Observe all .marquee elements inside a ShadowRoot and toggle the
+ * `.scrolling` class based on real overflow (scrollWidth > clientWidth).
+ *
+ * Call once in connectedCallback(); returns a cleanup function to call
+ * in disconnectedCallback().
+ */
+export function initMarqueeObserver(root: ShadowRoot | null): (() => void) {
+  if (!root) return () => {};
+
+  const check = (el: Element) => {
+    const inner = el.querySelector('.marquee-inner') as HTMLElement | null;
+    if (!inner) return;
+    // Pause animation and reset to single text for measurement
+    el.classList.remove('scrolling');
+    const singleText = inner.dataset.text ?? inner.textContent?.split('\u00A0\u00A0\u00A0')[0] ?? '';
+    inner.dataset.text = singleText;
+    inner.textContent = singleText;
+    // Double rAF ensures layout is complete before measuring (CLAUDE.md convention)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (el.scrollWidth > el.clientWidth + 1) {
+          // Text overflows — duplicate for seamless scroll loop
+          inner.textContent = `${singleText}\u00A0\u00A0\u00A0${singleText}\u00A0\u00A0\u00A0`;
+          el.classList.add('scrolling');
+        }
+      });
+    });
+  };
+
+  const ro = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      check(entry.target);
+    }
+  });
+
+  // MutationObserver to detect new .marquee elements added to the DOM
+  const mo = new MutationObserver(() => {
+    syncObserved();
+  });
+
+  const observed = new Set<Element>();
+
+  const syncObserved = () => {
+    const marquees = root.querySelectorAll('.marquee');
+    // Observe new elements
+    marquees.forEach((m) => {
+      if (!observed.has(m)) {
+        observed.add(m);
+        ro.observe(m);
+        check(m);
+      }
+    });
+    // Unobserve removed elements
+    for (const m of observed) {
+      if (!m.isConnected) {
+        ro.unobserve(m);
+        observed.delete(m);
+      }
+    }
+  };
+
+  mo.observe(root, { childList: true, subtree: true });
+  syncObserved();
+
+  return () => {
+    ro.disconnect();
+    mo.disconnect();
+    observed.clear();
+  };
+}
+
+/** @deprecated Use initMarqueeObserver() instead. */
+export function updateMarquees(root: ShadowRoot | null): void {
+  if (!root) return;
+  const marquees = root.querySelectorAll('.marquee');
+  for (const m of marquees) {
+    m.classList.remove('scrolling');
+    requestAnimationFrame(() => {
+      if (m.scrollWidth > m.clientWidth + 1) {
+        m.classList.add('scrolling');
+      }
+    });
+  }
+}
+
+/**
+ * Render text with automatic marquee scrolling.
+ * Always wraps in a .marquee span — the actual scrolling is controlled
+ * by initMarqueeObserver() which adds .scrolling only when the text
+ * overflows its container.
  */
 export function marqueeText(
   text: string,
   maxChars = MARQUEE_FULL,
   duration = '8s',
 ): TemplateResult | string {
-  if (text.length <= maxChars) return text;
-  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner">${text}\u00A0\u00A0\u00A0${text}\u00A0\u00A0\u00A0</span></span>`;
+  if (!text || text.length <= maxChars) return text || '';
+  return html`<span class="marquee" style="--marquee-duration:${duration}"><span class="marquee-inner" data-text="${text}">${text}</span></span>`;
 }
 
 // — Press Mixin (mobile touch feedback) —

@@ -141,27 +141,27 @@ export class ConfigTabCamera extends BaseConfigTab {
     const isLive = current.state !== 'idle';
 
     return html`
-      <div style="padding:10px;">
+      <div class="pw-cam-wrap">
         <!-- Viewport -->
-        <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius-md);overflow:hidden;background:#0a0f18;border:1px solid var(--b1);margin-bottom:8px;">
-          <div style="position:absolute;inset:0;background:radial-gradient(circle at 25% 35%,rgba(40,60,90,0.4) 0%,transparent 40%),radial-gradient(circle at 65% 55%,rgba(30,50,70,0.3) 0%,transparent 45%),linear-gradient(135deg,#141e2e 0%,#0d1520 40%,#111a28 100%);">
+        <div class="pw-cam-frame">
+          <div class="pw-cam-bg">
             <!-- Top overlay -->
-            <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:5px 7px;background:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 100%);">
-              <div style="font-size:7px;font-weight:600;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:3px;">
-                <ha-icon .icon=${'mdi:cctv'} style="--mdc-icon-size:8px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <div class="pw-cam-overlay-top">
+              <div class="pw-cam-label">
+                <ha-icon .icon=${'mdi:cctv'}></ha-icon>
                 ${current.name}
-                <span style="display:inline-flex;align-items:center;gap:2px;font-size:6px;font-weight:700;color:var(--c-alert);">
-                  <span style="width:4px;height:4px;border-radius:50%;background:var(--c-alert);"></span> REC
+                <span class="pw-cam-rec">
+                  <span class="pw-cam-rec-dot"></span> REC
                 </span>
               </div>
             </div>
             <!-- Bottom overlay -->
             ${current.ai.length > 0 ? html`
-              <div style="position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:flex-end;padding:5px 7px;background:linear-gradient(0deg,rgba(0,0,0,0.5) 0%,transparent 100%);">
-                <div style="display:flex;gap:3px;">
+              <div class="pw-cam-overlay-bottom">
+                <div class="pw-cam-ai-list">
                   ${current.ai.map((ai) => html`
-                    <div style="display:inline-flex;align-items:center;gap:2px;padding:1px 4px;border-radius:4px;font-size:6px;font-weight:600;background:${camColor}0.15);color:#60a5fa;border:1px solid ${camColor}0.2);">
-                      <ha-icon .icon=${'mdi:human'} style="--mdc-icon-size:7px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                    <div class="pw-cam-ai-badge" style="background:${camColor}0.15);border:1px solid ${camColor}0.2);">
+                      <ha-icon .icon=${'mdi:human'}></ha-icon>
                       ${ai}
                     </div>
                   `)}
@@ -169,35 +169,35 @@ export class ConfigTabCamera extends BaseConfigTab {
               </div>
             ` : nothing}
             <!-- Nav arrows -->
-            <div style="position:absolute;top:50%;left:4px;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
-              <ha-icon .icon=${'mdi:chevron-left'} style="--mdc-icon-size:12px;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <div class="pw-cam-arrow pw-cam-arrow--left">
+              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
             </div>
-            <div style="position:absolute;top:50%;right:4px;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
-              <ha-icon .icon=${'mdi:chevron-right'} style="--mdc-icon-size:12px;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <div class="pw-cam-arrow pw-cam-arrow--right">
+              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </div>
           </div>
         </div>
 
         <!-- Dots -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:6px;">
-          <div style="width:14px;height:5px;border-radius:3px;background:#60a5fa;box-shadow:0 0 6px ${camColor}0.4);"></div>
-          <div style="width:5px;height:5px;border-radius:50%;background:var(--c-alert);box-shadow:0 0 4px rgba(248,113,113,0.5);"></div>
-          <div style="width:5px;height:5px;border-radius:50%;background:var(--t4);"></div>
+        <div class="pw-cam-dots">
+          <div class="pw-cam-dot pw-cam-dot--active" style="box-shadow:0 0 6px ${camColor}0.4);"></div>
+          <div class="pw-cam-dot pw-cam-dot--rec"></div>
+          <div class="pw-cam-dot pw-cam-dot--idle"></div>
         </div>
 
         <!-- Info bar -->
-        <div style="display:flex;align-items:center;gap:7px;padding:0 2px;margin-bottom:6px;">
-          <div style="width:22px;height:22px;border-radius:var(--radius-sm);background:${camColor}0.1);border:1px solid ${camColor}0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <ha-icon .icon=${'mdi:cctv'} style="--mdc-icon-size:12px;color:#60a5fa;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        <div class="pw-cam-info">
+          <div class="pw-cam-icon" style="background:${camColor}0.1);border:1px solid ${camColor}0.15);">
+            <ha-icon .icon=${'mdi:cctv'}></ha-icon>
           </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${current.name}</div>
-            <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-              <span style="font-size:7px;font-weight:500;color:${isLive ? `${camColor}0.6)` : 'var(--t3)'};">${isLive ? 'En direct' : 'Veille'}</span>
+          <div class="pw-cam-detail">
+            <div class="pw-cam-name">${current.name}</div>
+            <div class="pw-cam-status-row">
+              <span class="pw-cam-status" style="color:${isLive ? `${camColor}0.6)` : 'var(--t3)'};">${isLive ? 'En direct' : 'Veille'}</span>
               ${current.ai.length > 0 ? html`
-                <div style="display:flex;gap:2px;align-items:center;">
-                  <div style="width:12px;height:12px;border-radius:4px;background:${camColor}0.12);display:flex;align-items:center;justify-content:center;">
-                    <ha-icon .icon=${'mdi:human'} style="--mdc-icon-size:8px;color:#60a5fa;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                <div class="pw-cam-ai-mini">
+                  <div class="pw-cam-ai-dot" style="background:${camColor}0.12);">
+                    <ha-icon .icon=${'mdi:human'}></ha-icon>
                   </div>
                 </div>
               ` : nothing}
@@ -206,10 +206,10 @@ export class ConfigTabCamera extends BaseConfigTab {
         </div>
 
         <!-- Actions -->
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <div class="pw-cam-actions">
           ${['mdi:power', 'mdi:camera', 'mdi:record-circle', 'mdi:motion-sensor'].map((icon, i) => html`
-            <div style="display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:var(--radius-xs);border:1px solid ${i === 0 ? `${camColor}0.15)` : 'var(--b2)'};background:${i === 0 ? `${camColor}0.1)` : 'var(--s1)'};font-size:8px;font-weight:600;color:${i === 0 ? '#60a5fa' : 'var(--t3)'};">
-              <ha-icon .icon=${icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <div class="pw-cam-action ${i === 0 ? '' : 'pw-cam-action--default'}" style="${i === 0 ? `border:1px solid ${camColor}0.15);background:${camColor}0.1);color:var(--c-info);` : ''}">
+              <ha-icon .icon=${icon}></ha-icon>
             </div>
           `)}
         </div>
@@ -305,21 +305,23 @@ export class ConfigTabCamera extends BaseConfigTab {
                 isDropTarget ? 'drop-target' : '',
               ].filter(Boolean).join(' ');
               return html`
-                <div
-                  class=${rowClasses}
-                  draggable="true"
-                  @dragstart=${() => this._localDragStart(idx)}
-                  @dragover=${(ev: DragEvent) => this._localDragOver(idx, ev)}
-                  @dragleave=${() => this._localDragLeave()}
-                  @drop=${(ev: DragEvent) => this._onDropCameraEntity(idx, ev)}
-                  @dragend=${() => this._localDragEnd()}
-                >
-                  <span class="drag-handle">
-                    <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                  </span>
-                  <div class="item-info">
-                    <span class="item-name">${name}</span>
-                    <span class="item-meta">${entityId}</span>
+                <div class="item-card">
+                  <div
+                    class=${rowClasses}
+                    draggable="true"
+                    @dragstart=${() => this._localDragStart(idx)}
+                    @dragover=${(ev: DragEvent) => this._localDragOver(idx, ev)}
+                    @dragleave=${() => this._localDragLeave()}
+                    @drop=${(ev: DragEvent) => this._onDropCameraEntity(idx, ev)}
+                    @dragend=${() => this._localDragEnd()}
+                  >
+                    <span class="drag-handle">
+                      <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                    </span>
+                    <div class="item-info">
+                      <span class="item-name">${name}</span>
+                      <span class="item-meta">${entityId}</span>
+                    </div>
                   </div>
                 </div>
               `;

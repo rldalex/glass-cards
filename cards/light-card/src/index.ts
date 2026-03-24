@@ -108,7 +108,7 @@ export class GlassLightCard extends BaseCard {
   @state() private _colorPickerRgb: [number, number, number] | null = null;
   @state() private _colorPickerPos: { x: number; y: number } | null = null;
   private _colorPickerHs: { h: number; s: number } | null = null;
-  @state() private _showHeader = true;
+@state() private _showHeader = true;
   private _lightConfigLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private _roomConfig: {
@@ -338,6 +338,9 @@ export class GlassLightCard extends BaseCard {
         color: var(--light-rgb);
         filter: drop-shadow(0 0 6px var(--light-rgb-glow));
       }
+      .entity-unavailable .light-icon-btn {
+        border-color: var(--c-alert);
+      }
 
       /* ── Expand Button ── */
       .light-expand-btn {
@@ -415,6 +418,14 @@ export class GlassLightCard extends BaseCard {
       .light-row[data-on='true'][data-rgb] .light-dot {
         background: var(--light-rgb);
         box-shadow: 0 0 8px var(--light-rgb-glow);
+      }
+
+      /* Unavailable badge inline (replaces dot) */
+      .light-expand-btn .unavailable-badge {
+        position: static;
+        flex-shrink: 0;
+        --mdc-icon-size: 0.75rem;
+        color: var(--c-warning);
       }
 
       /* ── Control Fold ── */
@@ -510,6 +521,27 @@ export class GlassLightCard extends BaseCard {
         .cdot:active { animation: bounce 0.3s ease; }
       }
       .cdot.active { border-color: rgba(var(--rgb-white), 0.6); }
+      .effect-chip {
+        width: auto; height: auto;
+        border-radius: var(--radius-md);
+        padding: 4px 8px;
+        font-size: var(--fz-xs); font-weight: 600;
+        letter-spacing: 0.5px; text-transform: uppercase;
+        color: var(--t3); border: 1px solid var(--b2); background: var(--s1);
+        transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+      }
+      .effect-chip.active {
+        color: var(--t1);
+        border-color: rgba(var(--rgb-white), 0.35);
+        background: var(--s2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .effect-chip:hover { transform: none; background: var(--s2); }
+        .effect-chip:active { transform: none; }
+      }
+      @media (pointer: coarse) {
+        .effect-chip:active { animation: none; transform: scale(0.96); }
+      }
       .color-picker-btn {
         width: 1.625rem;
         height: 1.625rem;
@@ -1112,14 +1144,13 @@ export class GlassLightCard extends BaseCard {
     return false;
   }
 
-  private _toggleExpand(entityId: string, isOn: boolean, info?: LightInfo) {
-    // If light has no controls, toggle it instead of expanding (on or off)
+  private _expandFold(entityId: string, isOn: boolean, info?: LightInfo) {
     if (!info) info = this._getLightInfos().find((l) => l.entityId === entityId);
-    if (info && !this._hasControls(info)) {
+    if (info && !this._hasControls(info)) return;
+    if (!isOn) {
       this._toggleLight(entityId);
       return;
     }
-    if (!isOn) return;
     if (this._expandedEntity === entityId) {
       this._expandedEntity = null;
     } else {
@@ -1174,11 +1205,7 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _setEffect(entityId: string, effect: string) {
-    if (effect === 'off') {
-      this.hass?.callService('light', 'turn_on', {}, { entity_id: entityId });
-    } else {
-      this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
-    }
+    this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
   }
 
   private _openColorPicker(entityId: string, currentRgb: [number, number, number] | null) {
@@ -1331,12 +1358,23 @@ export class GlassLightCard extends BaseCard {
       .filter(Boolean)
       .join(' ');
 
+    const gesture = this._bindGesture({
+      onTap: () => this._toggleLight(info.entityId),
+      onLongPress: () => this._expandFold(info.entityId, info.isOn, info),
+      exclude: '.light-icon-btn',
+    });
+
     return html`
       <div
         class=${rowClasses}
         data-on=${info.isOn}
         style=${rgbStyle}
         ?data-rgb=${info.isOn && info.type === 'rgb' && !!info.rgbColor}
+        @pointerdown=${gesture.pointerdown}
+        @pointerup=${gesture.pointerup}
+        @pointermove=${gesture.pointermove}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
       >
         <button
           class=${iconClasses}
@@ -1348,7 +1386,6 @@ export class GlassLightCard extends BaseCard {
         </button>
         <button
           class="light-expand-btn"
-          @click=${() => this._toggleExpand(info.entityId, info.isOn, info)}
           aria-label="${info.isOn ? t('light.expand_aria', { name: info.name }) : info.name}"
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
@@ -1356,9 +1393,10 @@ export class GlassLightCard extends BaseCard {
             <div class="light-name">${marqueeText(info.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
             <div class="light-sub">${this._renderSubText(info)}</div>
           </div>
-          <span class="light-dot"></span>
+          ${unavailable
+            ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
+            : html`<span class="light-dot"></span>`}
         </button>
-        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -1458,7 +1496,6 @@ export class GlassLightCard extends BaseCard {
               class="cdot effect-chip ${currentEffect === effect || (!currentEffect && effect === 'off') ? 'active' : ''}"
               @click=${() => this._setEffect(info.entityId, effect)}
               aria-label="${t(`light.effect_${effect}`)}"
-              style="width:auto;height:auto;border-radius:var(--radius-md);padding:4px 8px;font-size:var(--fz-xs);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t3);border:1px solid var(--b2);background:var(--s1)"
             >${t(`light.effect_${effect}`)}</button>
           `,
         )}

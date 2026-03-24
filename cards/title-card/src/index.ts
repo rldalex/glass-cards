@@ -103,11 +103,16 @@ class GlassTitleCard extends BaseCard {
   }
 
   private _getPeriodVisual(optionId: string): { icon: string; color: string } {
+    const defaults = DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
     const configured = this._titleConfig.period_options.find((o) => o.id === optionId);
-    if (configured && (configured.icon || configured.color)) {
-      return { icon: configured.icon || PERIOD_DEFAULT_VISUAL.icon, color: configured.color || PERIOD_DEFAULT_VISUAL.color };
-    }
-    return DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
+    if (!configured) return defaults;
+    // Only use configured color if it's a hex value (user customization);
+    // semantic names (alert, warning, etc.) are config panel defaults — prefer proto hex colors
+    const isCustomColor = configured.color?.startsWith('#');
+    return {
+      icon: configured.icon || defaults.icon,
+      color: isCustomColor ? configured.color : defaults.color,
+    };
   }
 
   static styles = [glassTokens, hostMixin, bounceMixin, css`
@@ -119,7 +124,7 @@ class GlassTitleCard extends BaseCard {
 
     .title-card {
       display: flex; flex-direction: column; align-items: center;
-      gap: 0.25rem; padding: 0.25rem 1rem 0;
+      gap: 0; padding: 0.125rem 1rem 0;
       text-align: center;
     }
 
@@ -140,7 +145,7 @@ class GlassTitleCard extends BaseCard {
     /* ── Dash trigger ── */
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
-      min-height: 1.75rem;
+      min-height: 1.25rem;
       padding: 0.125rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
@@ -255,10 +260,13 @@ class GlassTitleCard extends BaseCard {
       top: 0;
       transition: transform var(--t-layout), opacity var(--t-layout);
     }
+    .period-item ha-icon {
+      margin-right: 0.25rem;
+    }
     .period-item::after {
       content: '';
       display: inline-block;
-      width: 1rem;
+      width: calc(9px + 0.25rem);
     }
     .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
     .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
@@ -518,6 +526,7 @@ class GlassTitleCard extends BaseCard {
     if (currentIdx === -1) return html`<div class="period-indicator"></div>`;
 
     const activeVisual = this._getPeriodVisual(currentValue);
+    const activeColor = resolveColor(activeVisual.color);
 
     return html`
       <div class="period-indicator" aria-live="polite" aria-label="${currentValue}">
@@ -526,8 +535,8 @@ class GlassTitleCard extends BaseCard {
           const visual = this._getPeriodVisual(opt);
           return html`
             <div class="period-item ${pos}"
-              style="${pos === 'pos-center' ? `color:${activeVisual.color}` : ''}">
-              <ha-icon .icon=${visual.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
+              style="${pos === 'pos-center' ? `color:${activeColor.text}` : ''}">
+              <ha-icon .icon=${visual.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;"></ha-icon>
               ${opt}
             </div>
           `;

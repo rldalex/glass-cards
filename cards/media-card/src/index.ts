@@ -155,12 +155,8 @@ export class GlassMediaCard extends BaseCard {
   private _playersCacheKey = '';
   private _volumeThrottles = new Map<string, number>();
   private _progressTimer = 0;
-  private _lpTimer = 0;
-  private _lpFired = false;
-  private _swipeFired = false;
   private _swipeAnimating = false;
   private _swipeAnimTimer = 0;
-  private _pointerStart = { x: 0, y: 0, t: 0 };
   private _queueRefreshTimer = 0;
   private _prevMediaTitle = '';
   private _lastMaster: MediaPlayerInfo | null = null;
@@ -201,7 +197,6 @@ export class GlassMediaCard extends BaseCard {
     this._backend = undefined;
     this._volumeThrottles.clear();
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
-    if (this._lpTimer) { clearTimeout(this._lpTimer); this._lpTimer = 0; }
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
     if (this._queueRefreshTimer) { clearTimeout(this._queueRefreshTimer); this._queueRefreshTimer = 0; }
     if (this._lastMasterStaleTimer) { clearTimeout(this._lastMasterStaleTimer); this._lastMasterStaleTimer = 0; }
@@ -223,6 +218,7 @@ export class GlassMediaCard extends BaseCard {
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+
     if (changedProps.has('areaId')) {
       this._foldOpen = false;
       this._foldTab = 'controls';
@@ -635,61 +631,6 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Flash overlay ── */
 
-  /* ── Gesture handlers (long-press / swipe on hero) ── */
-
-  private _onHeroPointerDown(e: PointerEvent, _master: MediaPlayerInfo): void {
-    if ((e.target as HTMLElement).closest('button')) return;
-    this._pointerStart = { x: e.clientX, y: e.clientY, t: Date.now() };
-    this._lpFired = false;
-    this._swipeFired = false;
-    this._lpTimer = window.setTimeout(() => {
-      this._lpFired = true;
-      this._foldOpen = !this._foldOpen;
-      // Pre-load queue when fold opens so we know whether to show tabs
-      if (this._foldOpen) this._loadQueue();
-      // Scroll card into view when fold opens (wait for fold CSS transition)
-      if (this._foldOpen) {
-        setTimeout(() => {
-          const fold = this.renderRoot?.querySelector('.ctrl-fold') as HTMLElement | null;
-          fold?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 350);
-      }
-    }, 500);
-  }
-
-  private _onHeroPointerMove(e: PointerEvent): void {
-    if (this._lpFired || this._swipeFired) return;
-    const dx = e.clientX - this._pointerStart.x;
-    const dy = e.clientY - this._pointerStart.y;
-    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-      clearTimeout(this._lpTimer);
-      this._lpTimer = 0;
-    }
-  }
-
-  private _onHeroPointerUp(e: PointerEvent, _master: MediaPlayerInfo, roomCount: number): void {
-    clearTimeout(this._lpTimer);
-    if (this._lpFired) return;
-    const dx = e.clientX - this._pointerStart.x;
-    const elapsed = Date.now() - this._pointerStart.t;
-
-    // Swipe detection (dashboard only, multiple rooms) — animated
-    if (this.isDashboard && roomCount > 1 && Math.abs(dx) > 50 && elapsed < 500) {
-      this._swipeFired = true;
-      if (dx < 0) {
-        this._swipeToRoom('left', (this._roomIndex + 1) % roomCount);
-      } else {
-        this._swipeToRoom('right', (this._roomIndex - 1 + roomCount) % roomCount);
-      }
-      return;
-    }
-
-  }
-
-  private _onHeroPointerCancel(): void {
-    clearTimeout(this._lpTimer);
-  }
-
   /* ── Animated room switch ── */
 
   private _swipeToRoom(direction: 'left' | 'right', newIndex: number): void {
@@ -815,13 +756,34 @@ export class GlassMediaCard extends BaseCard {
     const groupMembers = coordinator?.groupMembers || [];
     const groupCount = groupMembers.length;
 
+    const heroGesture = this._bindGesture({
+      onLongPress: () => {
+        this._foldOpen = !this._foldOpen;
+        if (this._foldOpen) this._loadQueue();
+        if (this._foldOpen) {
+          setTimeout(() => {
+            const fold = this.renderRoot?.querySelector('.ctrl-fold') as HTMLElement | null;
+            fold?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 350);
+        }
+      },
+      onSwipe: (dir) => {
+        if (this.isDashboard && roomCount > 1) {
+          if (dir === 'left') this._swipeToRoom('left', (this._roomIndex + 1) % roomCount);
+          else this._swipeToRoom('right', (this._roomIndex - 1 + roomCount) % roomCount);
+        }
+      },
+      exclude: 'button',
+    });
+
     return html`
       <div class="dash-wrap ${this._foldOpen ? 'fold-open' : ''}">
         <div class="dash-hero ${this._swipeClass}"
-          @pointerdown=${(e: PointerEvent) => this._onHeroPointerDown(e, master)}
-          @pointermove=${(e: PointerEvent) => this._onHeroPointerMove(e)}
-          @pointerup=${(e: PointerEvent) => this._onHeroPointerUp(e, master, roomCount)}
-          @pointercancel=${() => this._onHeroPointerCancel()}
+          @pointerdown=${heroGesture.pointerdown}
+          @pointerup=${heroGesture.pointerup}
+          @pointermove=${heroGesture.pointermove}
+          @pointercancel=${heroGesture.pointercancel}
+          @contextmenu=${heroGesture.contextmenu}
         >
           <!-- Full-bleed artwork background -->
           ${master.albumArt ? html`

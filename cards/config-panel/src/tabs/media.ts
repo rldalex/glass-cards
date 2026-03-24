@@ -19,7 +19,6 @@ export class ConfigTabMedia extends BaseConfigTab {
   @state() _mediaShowHeader = true;
   @state() _mediaExtraEntities: Record<string, string[]> = {};
   @state() _mediaRoom = '';
-  @state() _mediaRoomDropdownOpen = false;
   @state() _mediaRoomNativePlayers: string[] = [];
   @state() _mediaAddDropdownOpen = false;
   @state() _mediaEntitySearch = '';
@@ -32,6 +31,10 @@ export class ConfigTabMedia extends BaseConfigTab {
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+    if (changedProps.has('areaId') && this.areaId) {
+      this._mediaRoom = this.areaId;
+      this._loadRoomMediaPlayers();
+    }
     this._checkAutoSave(changedProps);
   }
 
@@ -72,14 +75,6 @@ export class ConfigTabMedia extends BaseConfigTab {
   }
 
   // — Actions —
-
-  private _selectMediaRoom(areaId: string): void {
-    this._mediaRoom = areaId;
-    this._mediaRoomDropdownOpen = false;
-    this._mediaAddDropdownOpen = false;
-    this._mediaEntitySearch = '';
-    this._loadRoomMediaPlayers();
-  }
 
   private _addMediaExtraEntity(entityId: string): void {
     const roomId = this._mediaRoom;
@@ -127,7 +122,7 @@ export class ConfigTabMedia extends BaseConfigTab {
   }
 
   private _closeDropdownsOnOutsideClick(e: MouseEvent): void {
-    if (!this._mediaRoomDropdownOpen && !this._mediaAddDropdownOpen) return;
+    if (!this._mediaAddDropdownOpen) return;
     const path = e.composedPath();
     const root = this.shadowRoot;
     if (!root) return;
@@ -135,7 +130,6 @@ export class ConfigTabMedia extends BaseConfigTab {
     for (const dd of dropdowns) {
       if (path.includes(dd)) return;
     }
-    this._mediaRoomDropdownOpen = false;
     this._mediaAddDropdownOpen = false;
   }
 
@@ -187,9 +181,9 @@ export class ConfigTabMedia extends BaseConfigTab {
           <!-- Bottom glass panel -->
           <div class="mp-glass-panel">
             ${this._mediaShowHeader ? html`
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('media.title')}</span>
-                <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:rgba(96,165,250,0.15);color:#60a5fa;">${playingCount}/${totalCount || 1}</span>
+              <div class="pw-mp-header-row">
+                <span class="pw-mp-header-label">${t('media.title')}</span>
+                <span class="pw-mp-header-badge">${playingCount}/${totalCount || 1}</span>
               </div>
             ` : nothing}
             <div class="mp-track">
@@ -222,7 +216,6 @@ export class ConfigTabMedia extends BaseConfigTab {
     void this._lang;
     if (!this.hass) return html``;
 
-    const currentRoom = this.rooms.find((r) => r.areaId === this._mediaRoom);
     const roomId = this._mediaRoom;
     const extraEntities = roomId ? (this._mediaExtraEntities[roomId] ?? []) : [];
 
@@ -276,33 +269,6 @@ export class ConfigTabMedia extends BaseConfigTab {
         <div class="section-label">${t('config.media_room')}</div>
         <div class="section-desc">${t('config.media_room_desc')}</div>
 
-        <!-- Room selector dropdown -->
-        <div class="dropdown ${this._mediaRoomDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { this._mediaRoomDropdownOpen = !this._mediaRoomDropdownOpen; }}
-            aria-expanded=${this._mediaRoomDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${currentRoom?.icon || 'mdi:home'}></ha-icon>
-            <span>${currentRoom?.name || t('config.media_select_room')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${this.rooms.map((r) => html`
-              <button
-                class="dropdown-item ${r.areaId === this._mediaRoom ? 'active' : ''}"
-                role="option"
-                aria-selected=${r.areaId === this._mediaRoom ? 'true' : 'false'}
-                @click=${() => this._selectMediaRoom(r.areaId)}
-              >
-                <ha-icon .icon=${r.icon}></ha-icon>
-                ${r.name}
-              </button>
-            `)}
-          </div>
-        </div>
-
         ${roomId ? html`
           <!-- Native players (read-only) -->
           <div class="section-label">${t('config.media_native_players')} (${this._mediaRoomNativePlayers.length})</div>
@@ -314,12 +280,14 @@ export class ConfigTabMedia extends BaseConfigTab {
                 const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
                 const isPlaying = entity?.state === 'playing';
                 return html`
-                  <div class="item-row">
-                    <div class="item-info" style="padding-left:8px;">
-                      <span class="item-name">${name}</span>
-                      <span class="item-meta">${id}</span>
+                  <div class="item-card">
+                    <div class="item-row">
+                      <div class="item-info pw-mp-item-info">
+                        <span class="item-name">${name}</span>
+                        <span class="item-meta">${id}</span>
+                      </div>
+                      <div class="dot" style="background:${isPlaying ? '#60a5fa' : 'var(--t4)'};${isPlaying ? 'box-shadow:0 0 6px rgba(96,165,250,0.4);' : ''}"></div>
                     </div>
-                    <div class="dot" style="background:${isPlaying ? '#60a5fa' : 'var(--t4)'};${isPlaying ? 'box-shadow:0 0 6px rgba(96,165,250,0.4);' : ''}"></div>
                   </div>
                 `;
               })}
@@ -340,18 +308,20 @@ export class ConfigTabMedia extends BaseConfigTab {
                 const entity = this.hass?.states[id];
                 const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
                 return html`
-                  <div class="item-row">
-                    <div class="item-info" style="padding-left:8px;">
-                      <span class="item-name">${name}</span>
-                      <span class="item-meta">${id}</span>
+                  <div class="item-card">
+                    <div class="item-row">
+                      <div class="item-info pw-mp-item-info">
+                        <span class="item-name">${name}</span>
+                        <span class="item-meta">${id}</span>
+                      </div>
+                      <button
+                        class="btn-icon xs"
+                        @click=${() => this._removeMediaExtraEntity(id)}
+                        aria-label="${t('common.hide')} ${name}"
+                      >
+                        <ha-icon .icon=${'mdi:close'}></ha-icon>
+                      </button>
                     </div>
-                    <button
-                      class="btn-icon xs"
-                      @click=${() => this._removeMediaExtraEntity(id)}
-                      aria-label="${t('common.hide')} ${name}"
-                    >
-                      <ha-icon .icon=${'mdi:close'}></ha-icon>
-                    </button>
                   </div>
                 `;
               })}
@@ -399,7 +369,7 @@ export class ConfigTabMedia extends BaseConfigTab {
                 `;
               })}
               ${available.length === 0 ? html`
-                <div style="padding:8px 12px;font-size:12px;color:var(--t4);text-align:center;">—</div>
+                <div class="pw-mp-empty-msg">—</div>
               ` : nothing}
             </div>
           </div>

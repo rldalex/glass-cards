@@ -99,6 +99,14 @@ class RoomConfig:
     icon: str | None = None
     label: str | None = None
     visible: bool = True
+    temperature_entity: str | None = None
+    humidity_entity: str | None = None
+    temp_high: float | None = None
+    temp_low: float | None = None
+    humidity_threshold: float | None = None
+    show_lights: bool = True
+    show_temperature: bool = True
+    show_humidity: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -113,6 +121,14 @@ class RoomConfig:
             "icon": self.icon,
             "label": self.label,
             "visible": self.visible,
+            "temperature_entity": self.temperature_entity,
+            "humidity_entity": self.humidity_entity,
+            "temp_high": self.temp_high,
+            "temp_low": self.temp_low,
+            "humidity_threshold": self.humidity_threshold,
+            "show_lights": self.show_lights,
+            "show_temperature": self.show_temperature,
+            "show_humidity": self.show_humidity,
         }
 
     @classmethod
@@ -140,6 +156,14 @@ class RoomConfig:
             icon=data.get("icon") if isinstance(data.get("icon"), str) else None,
             label=data.get("label") if isinstance(data.get("label"), str) else None,
             visible=bool(data.get("visible", True)),
+            temperature_entity=data.get("temperature_entity") if isinstance(data.get("temperature_entity"), str) else None,
+            humidity_entity=data.get("humidity_entity") if isinstance(data.get("humidity_entity"), str) else None,
+            temp_high=float(data["temp_high"]) if "temp_high" in data and data["temp_high"] is not None else None,
+            temp_low=float(data["temp_low"]) if "temp_low" in data and data["temp_low"] is not None else None,
+            humidity_threshold=float(data["humidity_threshold"]) if "humidity_threshold" in data and data["humidity_threshold"] is not None else None,
+            show_lights=bool(data.get("show_lights", True)),
+            show_temperature=bool(data.get("show_temperature", True)),
+            show_humidity=bool(data.get("show_humidity", True)),
         )
 
 
@@ -149,37 +173,15 @@ class NavbarConfig:
 
     room_order: list[str] = field(default_factory=list)
     hidden_rooms: list[str] = field(default_factory=list)
-    show_lights: bool = True
-    show_temperature: bool = True
-    show_humidity: bool = True
-    show_media: bool = True
     auto_sort: bool = True
-    temp_high: float = 24.0
-    temp_low: float = 17.0
-    humidity_threshold: float = 65.0
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "room_order": self.room_order,
             "hidden_rooms": self.hidden_rooms,
-            "show_lights": self.show_lights,
-            "show_temperature": self.show_temperature,
-            "show_humidity": self.show_humidity,
-            "show_media": self.show_media,
             "auto_sort": self.auto_sort,
-            "temp_high": self.temp_high,
-            "temp_low": self.temp_low,
-            "humidity_threshold": self.humidity_threshold,
         }
-
-    @staticmethod
-    def _safe_float(value: Any, default: float) -> float:
-        """Convert to float, returning default on failure."""
-        try:
-            return float(value) if value is not None else default
-        except (ValueError, TypeError):
-            return default
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> NavbarConfig:
@@ -189,14 +191,7 @@ class NavbarConfig:
         return cls(
             room_order=[str(x) for x in raw_room_order if isinstance(x, str)],
             hidden_rooms=[str(x) for x in raw_hidden_rooms if isinstance(x, str)],
-            show_lights=bool(data.get("show_lights", True)),
-            show_temperature=bool(data.get("show_temperature", True)),
-            show_humidity=bool(data.get("show_humidity", True)),
-            show_media=bool(data.get("show_media", True)),
             auto_sort=bool(data.get("auto_sort", True)),
-            temp_high=cls._safe_float(data.get("temp_high"), 24.0),
-            temp_low=cls._safe_float(data.get("temp_low"), 17.0),
-            humidity_threshold=cls._safe_float(data.get("humidity_threshold"), 65.0),
         )
 
 
@@ -694,6 +689,7 @@ class DashboardConfig:
     card_order: list[str] = field(default_factory=lambda: list(DEFAULT_CARD_ORDER))
     hide_header: bool = False
     hide_sidebar: bool = False
+    dynamic_background: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -702,6 +698,7 @@ class DashboardConfig:
             "card_order": self.card_order,
             "hide_header": self.hide_header,
             "hide_sidebar": self.hide_sidebar,
+            "dynamic_background": self.dynamic_background,
         }
 
     @classmethod
@@ -725,6 +722,7 @@ class DashboardConfig:
             card_order=order,
             hide_header=bool(data.get("hide_header", False)),
             hide_sidebar=bool(data.get("hide_sidebar", False)),
+            dynamic_background=bool(data.get("dynamic_background", True)),
         )
 
 
@@ -746,6 +744,7 @@ class GlassCardsData:
     presence_card: PresenceCardConfig = field(default_factory=PresenceCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
+    wizard_completed: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -766,6 +765,7 @@ class GlassCardsData:
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
             },
+            "wizard_completed": self.wizard_completed,
         }
 
     @classmethod
@@ -794,4 +794,5 @@ class GlassCardsData:
                 for k, v in data.get("entity_schedules", {}).items()
                 if isinstance(v, dict)
             },
+            wizard_completed=bool(data.get("wizard_completed", False)),
         )

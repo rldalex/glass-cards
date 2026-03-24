@@ -538,7 +538,7 @@ export class ConfigTabTitle extends BaseConfigTab {
           <ha-icon .icon=${srcDef?.icon || 'mdi:help'}></ha-icon>
           <span class="title-source-type">${sourceLabel}</span>
           <span class="title-source-badge">${src.modes.length}</span>
-          <div style="flex:1"></div>
+          <div class="pw-tt-spacer"></div>
           <button
             class="btn-icon xs"
             @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; this._titleAddEntityDropdownOpen = false; }}
@@ -573,7 +573,7 @@ export class ConfigTabTitle extends BaseConfigTab {
 
             <!-- Mode list -->
             ${src.modes.length > 0 ? html`
-              <div class="section-label" style="margin-top:10px;">${t('config.title_modes')}</div>
+              <div class="section-label pw-tt-mt-sm">${t('config.title_modes')}</div>
               <div class="title-modes-list">
                 ${src.modes.map((mode, modeIdx) => this._renderModeRow(src, srcIdx, mode, modeIdx))}
               </div>
@@ -832,7 +832,7 @@ export class ConfigTabTitle extends BaseConfigTab {
     const optionsMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
 
     return html`
-      <div class="section-label" style="margin-top:12px;">${t('config.title_period_options')}</div>
+      <div class="section-label pw-tt-mt-md">${t('config.title_period_options')}</div>
       <div class="section-desc">${t('config.title_period_options_desc')}</div>
       <div class="title-modes-list">
         ${haOptions.map((optionId) => {
@@ -979,14 +979,14 @@ export class ConfigTabTitle extends BaseConfigTab {
           @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
         />
 
-        <div class="section-label" style="margin-top:12px;">${t('config.title_mode_source')}</div>
+        <div class="section-label pw-tt-mt-md">${t('config.title_mode_source')}</div>
         <div class="section-desc">${t('config.title_mode_source_desc')}</div>
 
         <!-- Existing sources -->
         ${sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
 
         <!-- Add source button -->
-        <div style="margin-top:8px;">
+        <div class="pw-tt-mt-add">
           <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
             <button
               class="dropdown-trigger"
@@ -1014,7 +1014,7 @@ export class ConfigTabTitle extends BaseConfigTab {
         </div>
 
         <!-- Period indicator -->
-        <div class="section-label" style="margin-top:16px;">${t('config.title_period_entity')}</div>
+        <div class="section-label pw-tt-mt-lg">${t('config.title_period_entity')}</div>
         <div class="section-desc">${t('config.title_period_entity_desc')}</div>
         ${this._renderPeriodEntityPicker()}
 

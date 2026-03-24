@@ -102,10 +102,6 @@ export class GlassNavbarCard extends BaseCard {
   private _navbarConfig: {
     room_order: string[];
     hidden_rooms: string[];
-    show_lights?: boolean;
-    show_temperature?: boolean;
-    show_humidity?: boolean;
-    show_media?: boolean;
     auto_sort?: boolean;
     temp_high?: number;
     temp_low?: number;
@@ -114,7 +110,7 @@ export class GlassNavbarCard extends BaseCard {
   private _configLoaded = false;
   private _configLoading = false;
   private _dashboardLoading = false;
-  private _roomConfigs: Record<string, { icon?: string | null }> = {};
+  private _roomConfigs: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean }> = {};
   private _flipPositions = new Map<string, number>();
   private _litTimestamps = new Map<string, number>();
   private _backend?: BackendService;
@@ -677,15 +673,11 @@ export class GlassNavbarCard extends BaseCard {
         navbar: {
           room_order: string[];
           hidden_rooms: string[];
-          show_lights?: boolean;
-          show_temperature?: boolean;
-          show_humidity?: boolean;
-          show_media?: boolean;
           temp_high?: number;
           temp_low?: number;
           humidity_threshold?: number;
         };
-        rooms: Record<string, { icon?: string | null }>;
+        rooms: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean }>;
         dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
       }>('get_config');
       this._navbarConfig = result.navbar;
@@ -1134,16 +1126,16 @@ export class GlassNavbarCard extends BaseCard {
 
   private _renderNavItem(item: NavItem) {
     const isActive = this._activeArea === item.areaId;
-    const showLights = this._navbarConfig?.show_lights !== false;
-    const showTemp = this._navbarConfig?.show_temperature !== false;
-    const showHumidity = this._navbarConfig?.show_humidity !== false;
-    const showMedia = this._navbarConfig?.show_media !== false;
+    const roomCfg = this._roomConfigs[item.areaId];
+    const showLights = roomCfg?.show_lights !== false;
+    const showTemp = roomCfg?.show_temperature !== false;
+    const showHumidity = roomCfg?.show_humidity !== false;
     const tempHigh = this._navbarConfig?.temp_high ?? DEFAULT_TEMP_HIGH;
     const tempLow = this._navbarConfig?.temp_low ?? DEFAULT_TEMP_LOW;
     const humidityThreshold = this._navbarConfig?.humidity_threshold ?? DEFAULT_HUMIDITY_THRESHOLD;
     const hasLight = showLights && item.lightsOn > 0;
     const hasHumidity = showHumidity && item.humidityValue !== null && item.humidityValue >= humidityThreshold;
-    const hasMusic = showMedia && item.mediaPlaying;
+    const hasMusic = item.mediaPlaying;
     const hasTempHot = showTemp && item.tempValue !== null && item.tempValue >= tempHigh;
     const hasTempCold = showTemp && item.tempValue !== null && !hasTempHot && item.tempValue <= tempLow;
 

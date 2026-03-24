@@ -11,14 +11,14 @@ export const formStyles = css`
       .dropdown {
         position: relative;
         width: 100%;
-        margin-bottom: 0.875rem;
+        margin-bottom: 1rem;
       }
       .dropdown-trigger {
         width: 100%;
         display: inline-flex;
         align-items: center;
         gap: 0.375rem;
-        padding: 0.5rem 0.875rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-lg);
         border: 1px solid var(--b2);
         background: var(--s2);
@@ -27,7 +27,7 @@ export const formStyles = css`
         font-size: var(--fz-base);
         font-weight: 600;
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast);
         outline: none;
         -webkit-tap-highlight-color: transparent;
       }
@@ -73,7 +73,7 @@ export const formStyles = css`
         opacity: 0;
         transform: translateY(-4px);
         pointer-events: none;
-        transition: all var(--t-fast);
+        transition: opacity var(--t-fast), transform var(--t-fast);
         scrollbar-width: thin;
         scrollbar-color: rgba(var(--rgb-white),0.1) transparent;
       }
@@ -105,7 +105,7 @@ export const formStyles = css`
         font-weight: 500;
         color: var(--t2);
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), color var(--t-fast);
         border: none;
         background: transparent;
         width: 100%;
@@ -199,13 +199,22 @@ export const formStyles = css`
         border-color: rgba(var(--rgb-accent), 0.25);
       }
 
+      /* ── Chip group ── */
+      .chip-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        padding: 0 0.25rem;
+        margin-bottom: 0.125rem;
+      }
+
       /* ── Chip (UI kit) ── */
       .chip {
-        display: inline-flex; align-items: center; gap: 0.3125rem;
-        padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        padding: 0.25rem 0.75rem; border-radius: var(--radius-md);
         border: 1px solid var(--b2); background: var(--s1);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+        color: var(--t3); cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       @media (hover: hover) and (pointer: fine) {
@@ -226,7 +235,7 @@ export const formStyles = css`
         height: 0.75rem;
       }
       .title-modes-list {
-        display: flex; flex-direction: column; gap: 0.625rem;
+        display: flex; flex-direction: column; gap: 0.5rem;
       }
       .title-mode-row {
         display: flex; flex-direction: column; gap: 0.5rem;
@@ -247,7 +256,7 @@ export const formStyles = css`
       }
       .title-source-header {
         display: flex; align-items: center; gap: 0.5rem;
-        padding: 0.625rem 0.75rem;
+        padding: 0.5rem 0.75rem;
       }
       .title-source-block.dragging {
         opacity: 0.4;
@@ -304,7 +313,7 @@ export const formStyles = css`
       .title-color-chip {
         width: 1.25rem; height: 1.25rem; border-radius: 50%;
         border: 2px solid transparent; cursor: pointer;
-        transition: all var(--t-fast); outline: none;
+        transition: transform var(--t-fast), border-color var(--t-fast); outline: none;
       }
       @media (hover: hover) and (pointer: fine) {
         .title-color-chip:hover { transform: scale(1.1); }
@@ -352,7 +361,7 @@ export const formStyles = css`
 
       /* ── Icon picker popup (glass) ── */
       .icon-popup-overlay {
-        position: fixed; inset: 0; z-index: 10000;
+        position: absolute; inset: 0; z-index: 10000;
         background: rgba(var(--rgb-black), 0.5);
         display: flex; align-items: center; justify-content: center;
         padding: 1.5rem;
@@ -371,8 +380,8 @@ export const formStyles = css`
       }
       @keyframes popup-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
       .icon-popup-header {
-        padding: 0.875rem 1rem 0.625rem;
-        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 1rem 0.5rem;
+        display: flex; flex-direction: column; gap: 0.5rem;
         border-bottom: 0.0625rem solid var(--b1);
       }
       .icon-popup-title {
@@ -380,7 +389,7 @@ export const formStyles = css`
         letter-spacing: 1px; color: var(--t3);
       }
       .icon-popup-search {
-        width: 100%; padding: 0.625rem 0.875rem; border-radius: var(--radius-lg);
+        width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
         border: 1px solid var(--b2); background: var(--s1);
         color: var(--t1); font-family: inherit; font-size: var(--fz-md);
         outline: none; transition: border-color var(--t-fast);
@@ -389,7 +398,7 @@ export const formStyles = css`
       .icon-popup-search:focus { border-color: var(--b3); }
       .icon-popup-search::placeholder { color: var(--t4); }
       .icon-popup-grid-wrap {
-        flex: 1; overflow-y: auto; padding: 0.625rem;
+        flex: 1; overflow-y: auto; padding: 0.5rem;
         scrollbar-width: thin;
         scrollbar-color: var(--s3) transparent;
       }
@@ -411,7 +420,10 @@ export const formStyles = css`
 
       /* ── Presence mapping cards ── */
       .presence-mapping-card {
-        margin-top: 0.625rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
         padding: 0.75rem;
         background: var(--s2);
         border-radius: var(--radius-md);
@@ -421,17 +433,10 @@ export const formStyles = css`
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-bottom: 0.625rem;
       }
       .presence-mapping-header .feature-icon {
         width: 1.75rem;
         height: 1.75rem;
-      }
-      .presence-mapping-field {
-        margin-bottom: 0.5rem;
-      }
-      .presence-mapping-field:last-child {
-        margin-bottom: 0;
       }
       .presence-mapping-label {
         display: block;
@@ -439,7 +444,6 @@ export const formStyles = css`
         color: var(--t3);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
       }
       .presence-mapping-field select.input {
         width: 100%;
@@ -523,7 +527,7 @@ export const formStyles = css`
         cursor: pointer;
         flex-shrink: 0;
         padding: 0;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
         outline: none;
         -webkit-tap-highlight-color: transparent;
         --mdc-icon-size: 1rem;
@@ -570,7 +574,7 @@ export const formStyles = css`
         transition-delay: 0.1s;
       }
       .schedule-body {
-        padding: 0.625rem 0.75rem 0.75rem 2.25rem;
+        padding: 0.5rem 0.75rem 0.75rem 2.25rem;
       }
       .schedule-header {
         font-size: var(--fz-sm);
@@ -607,7 +611,7 @@ export const formStyles = css`
       /* ── Input (from kit) ── */
       .input {
         width: 100%;
-        padding: 0.625rem 0.875rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-lg);
         border: 1px solid var(--b2);
         background: var(--s1);
@@ -642,14 +646,14 @@ export const formStyles = css`
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
         flex-shrink: 0;
         --mdc-icon-size: 0.75rem;
       }
       .check-box ha-icon {
         opacity: 0;
         transform: scale(0);
-        transition: all var(--t-fast);
+        transition: opacity var(--t-fast), transform var(--t-fast);
         color: #fff;
       }
       .check-item.checked .check-box {
@@ -691,7 +695,7 @@ export const formStyles = css`
         cursor: pointer;
         padding: 0;
         --mdc-icon-size: 0.875rem;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast);
         outline: none;
       }
       @media (hover: hover) and (pointer: fine) {
@@ -726,7 +730,7 @@ export const formStyles = css`
         align-items: flex-start;
         gap: 0.375rem;
         margin-top: 0.75rem;
-        padding: 0.5rem 0.625rem;
+        padding: 0.5rem 0.5rem;
         background: var(--s1);
         border-radius: var(--radius-sm);
         border: 1px solid var(--b1);
@@ -747,7 +751,7 @@ export const formStyles = css`
       .datetime-display {
         flex: 1;
         min-width: 0;
-        padding: 0.375rem 0.625rem;
+        padding: 0.375rem 0.5rem;
         border-radius: var(--radius-md);
         border: 1px solid var(--b2);
         background: var(--s1);
@@ -777,7 +781,7 @@ export const formStyles = css`
 
       /* ── DateTime picker popup ── */
       .picker-overlay {
-        position: fixed;
+        position: absolute;
         inset: 0;
         z-index: 1000;
         display: flex;
@@ -823,8 +827,14 @@ export const formStyles = css`
         cursor: pointer;
         padding: 0;
         outline: none;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), color var(--t-fast);
         --mdc-icon-size: 1rem;
+        position: relative;
+      }
+      .picker-nav::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .picker-nav:hover { background: var(--s2); color: var(--t1); }
@@ -862,7 +872,7 @@ export const formStyles = css`
         background: transparent;
         border: none;
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), color var(--t-fast);
         outline: none;
         font-family: inherit;
         padding: 0;
@@ -907,7 +917,7 @@ export const formStyles = css`
         display: flex;
         justify-content: center;
         gap: 0.5rem;
-        margin-bottom: 0.625rem;
+        margin-bottom: 0.5rem;
       }
       .picker-phase-btn {
         padding: 0.25rem 0.75rem;
@@ -919,7 +929,7 @@ export const formStyles = css`
         font-size: var(--fz-base);
         font-weight: 600;
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
         outline: none;
       }
       .picker-phase-btn.active {
@@ -934,7 +944,7 @@ export const formStyles = css`
         align-items: center;
         justify-content: center;
         gap: 1rem;
-        margin-top: 0.875rem;
+        margin-top: 1rem;
         padding-top: 0.75rem;
         border-top: 0.0625rem solid var(--b1);
       }
@@ -979,7 +989,216 @@ export const formStyles = css`
 
       /* ── Picker confirm button ── */
       .picker-confirm {
-        margin-top: 0.875rem;
+        margin-top: 1rem;
         width: 100%;
+      }
+
+      /* ══════════════════════════════════════
+         Cover entity presets (from prototype)
+         ══════════════════════════════════════ */
+
+      /* ── Item fold separator ── */
+      .item-fold-sep {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.3), transparent);
+        opacity: 0;
+        transition: opacity 0.35s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+        margin: 0 0.75rem;
+      }
+      .item-fold-sep.visible { opacity: 1; }
+
+      /* ── Entity presets fold ── */
+      .entity-presets-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.35s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+      }
+      .entity-presets-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .entity-presets-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .entity-presets-fold.open .entity-presets-fold-inner {
+        opacity: 1;
+        transition-delay: 0.1s;
+      }
+      .entity-presets-content {
+        padding: 0.5rem 0.75rem 0.75rem 2.25rem;
+        margin: 0 4px 6px;
+        background: rgba(167, 139, 250, 0.03);
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      }
+      .entity-presets-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--t4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+      }
+
+      /* ── Preset chips ── */
+      .preset-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        align-items: center;
+      }
+      .preset-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--t2);
+      }
+      .preset-chip ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
+      .preset-chip.small {
+        padding: 0.25rem 0.5rem;
+        font-size: 10px;
+      }
+      .preset-chip.small ha-icon { --mdc-icon-size: 12px; }
+      .preset-chip.custom {
+        border-color: rgba(167, 139, 250, 0.2);
+        background: rgba(167, 139, 250, 0.05);
+        color: var(--c-accent);
+      }
+      .preset-chip-remove {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t4);
+        transition: color var(--t-fast);
+        outline: none;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .preset-chip-remove:hover { color: var(--c-alert); }
+      }
+      .preset-chip-remove ha-icon { --mdc-icon-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+      /* ── Preset add ── */
+      .preset-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+      }
+      .preset-input {
+        width: 56px;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: 11px;
+        outline: none;
+        transition: border-color var(--t-fast);
+      }
+      .preset-input:focus { border-color: var(--b3); }
+      .preset-input::placeholder { color: var(--t4); }
+      .preset-input.small { width: 44px; font-size: 10px; padding: 0.25rem 0.375rem; }
+      .preset-add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        background: rgba(167, 139, 250, 0.1);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--c-accent);
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast);
+        outline: none;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .preset-add-btn:hover {
+          background: rgba(167, 139, 250, 0.18);
+          border-color: rgba(167, 139, 250, 0.4);
+        }
+      }
+      .preset-add-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
+      .preset-add-btn.small { font-size: 10px; padding: 0.125rem 0.375rem; }
+      .preset-add-btn.small ha-icon { --mdc-icon-size: 12px; }
+      .preset-reset-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        font-family: inherit;
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--t4);
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+        outline: none;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .preset-reset-btn:hover {
+          background: var(--s3);
+          color: var(--t3);
+          border-color: var(--b3);
+        }
+      }
+      .preset-reset-btn ha-icon { --mdc-icon-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+      /* ── Presets expand button (cover-specific) ── */
+      .presets-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast);
+        outline: none;
+        flex-shrink: 0;
+        padding: 0;
+        --mdc-icon-size: 14px;
+        position: relative;
+      }
+      .presets-btn::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
+      }
+      .presets-btn ha-icon { display: flex; align-items: center; justify-content: center; color: var(--t3); }
+      @media (hover: hover) and (pointer: fine) {
+        .presets-btn:hover {
+          background: var(--s3);
+          border-color: var(--b3);
+        }
+      }
+      .presets-btn.active {
+        background: rgba(167, 139, 250, 0.08);
+        border-color: rgba(167, 139, 250, 0.2);
+      }
+      .presets-btn.active ha-icon { color: var(--c-purple, #a78bfa); }
+      @media (pointer: coarse) {
+        .presets-btn:active { animation: bounce 0.3s ease; }
+      }
+      .presets-btn:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
       }
 `;

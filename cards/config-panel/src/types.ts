@@ -1,5 +1,7 @@
 import type { TranslationKey } from '@glass-cards/i18n';
 
+export type { NavState } from './nav-state.js';
+
 // — Shared Types —
 
 export interface RoomEntry {
@@ -92,7 +94,7 @@ export const ROOM_ICONS = [
   'mdi:lightbulb', 'mdi:snowflake', 'mdi:fire', 'mdi:lock',
 ];
 
-export type TabId = 'navbar' | 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'climate' | 'spotify' | 'media' | 'presence' | 'fan' | 'camera_carousel' | 'dashboard' | 'unassigned';
+export type TabId = 'popup' | 'light' | 'weather' | 'title' | 'cover' | 'climate' | 'spotify' | 'media' | 'presence' | 'fan' | 'camera_carousel' | 'dashboard' | 'unassigned';
 
 export type DragContext = 'rooms' | 'lights' | 'covers' | 'fans' | 'climates' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order';
 

@@ -96,6 +96,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_camera_carousel_config)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
+    websocket_api.async_register_command(hass, ws_set_wizard_completed)
 
 
 def _get_store(hass: HomeAssistant) -> GlassCardsStore:
@@ -177,6 +178,14 @@ async def ws_get_room(
         vol.Optional("icon"): vol.Any(str, None),
         vol.Optional("label"): vol.Any(str, None),
         vol.Optional("visible"): bool,
+        vol.Optional("temperature_entity"): vol.Any(str, None),
+        vol.Optional("humidity_entity"): vol.Any(str, None),
+        vol.Optional("temp_high"): vol.Any(float, int, None),
+        vol.Optional("temp_low"): vol.Any(float, int, None),
+        vol.Optional("humidity_threshold"): vol.Any(float, int, None),
+        vol.Optional("show_lights"): bool,
+        vol.Optional("show_temperature"): bool,
+        vol.Optional("show_humidity"): bool,
     }
 )
 @websocket_api.async_response
@@ -215,6 +224,22 @@ async def ws_set_room(
         room.label = msg["label"]
     if "visible" in msg:
         room.visible = msg["visible"]
+    if "temperature_entity" in msg:
+        room.temperature_entity = msg["temperature_entity"]
+    if "humidity_entity" in msg:
+        room.humidity_entity = msg["humidity_entity"]
+    if "temp_high" in msg:
+        room.temp_high = float(msg["temp_high"]) if msg["temp_high"] is not None else None
+    if "temp_low" in msg:
+        room.temp_low = float(msg["temp_low"]) if msg["temp_low"] is not None else None
+    if "humidity_threshold" in msg:
+        room.humidity_threshold = float(msg["humidity_threshold"]) if msg["humidity_threshold"] is not None else None
+    if "show_lights" in msg:
+        room.show_lights = msg["show_lights"]
+    if "show_temperature" in msg:
+        room.show_temperature = msg["show_temperature"]
+    if "show_humidity" in msg:
+        room.show_humidity = msg["show_humidity"]
 
     try:
         await store.async_save()
@@ -229,14 +254,7 @@ async def ws_set_room(
         vol.Required("type"): "glass_cards/set_navbar",
         vol.Optional("room_order"): [str],
         vol.Optional("hidden_rooms"): [str],
-        vol.Optional("show_lights"): bool,
-        vol.Optional("show_temperature"): bool,
-        vol.Optional("show_humidity"): bool,
-        vol.Optional("show_media"): bool,
         vol.Optional("auto_sort"): bool,
-        vol.Optional("temp_high"): vol.Coerce(float),
-        vol.Optional("temp_low"): vol.Coerce(float),
-        vol.Optional("humidity_threshold"): vol.Coerce(float),
     }
 )
 @websocket_api.async_response
@@ -255,22 +273,8 @@ async def ws_set_navbar(
         store.data.navbar.room_order = msg["room_order"]
     if "hidden_rooms" in msg:
         store.data.navbar.hidden_rooms = msg["hidden_rooms"]
-    if "show_lights" in msg:
-        store.data.navbar.show_lights = msg["show_lights"]
-    if "show_temperature" in msg:
-        store.data.navbar.show_temperature = msg["show_temperature"]
-    if "show_humidity" in msg:
-        store.data.navbar.show_humidity = msg["show_humidity"]
-    if "show_media" in msg:
-        store.data.navbar.show_media = msg["show_media"]
     if "auto_sort" in msg:
         store.data.navbar.auto_sort = msg["auto_sort"]
-    if "temp_high" in msg:
-        store.data.navbar.temp_high = msg["temp_high"]
-    if "temp_low" in msg:
-        store.data.navbar.temp_low = msg["temp_low"]
-    if "humidity_threshold" in msg:
-        store.data.navbar.humidity_threshold = msg["humidity_threshold"]
 
     try:
         await store.async_save()
@@ -651,6 +655,7 @@ async def ws_set_media_config(
         vol.Optional("card_order"): [vol.In(list(VALID_DASHBOARD_CARDS))],
         vol.Optional("hide_header"): bool,
         vol.Optional("hide_sidebar"): bool,
+        vol.Optional("dynamic_background"): bool,
     }
 )
 @websocket_api.async_response
@@ -673,6 +678,8 @@ async def ws_set_dashboard(
         store.data.dashboard.hide_header = msg["hide_header"]
     if "hide_sidebar" in msg:
         store.data.dashboard.hide_sidebar = msg["hide_sidebar"]
+    if "dynamic_background" in msg:
+        store.data.dashboard.dynamic_background = msg["dynamic_background"]
 
     try:
         await store.async_save()
@@ -1297,3 +1304,30 @@ async def ws_set_schedule(
     connection.send_result(
         msg["id"], schedule.to_dict() if schedule else {"entity_id": entity_id, "periods": []}
     )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_wizard_completed",
+        vol.Required("completed"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_set_wizard_completed(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Mark the setup wizard as completed or reset it."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+    store.data.wizard_completed = msg["completed"]
+
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
+    connection.send_result(msg["id"], {"wizard_completed": store.data.wizard_completed})

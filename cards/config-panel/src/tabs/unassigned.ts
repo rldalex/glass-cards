@@ -363,7 +363,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
         <div class="section-desc">${t('config.unassigned_desc')}</div>
 
         ${unassignedCount > 0 ? html`
-          <div class="banner" style="color:var(--c-warning);">
+          <div class="banner pw-ua-banner-warn">
             <ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon>
             <span>${t('config.unassigned_count', { count: String(unassignedCount) })}</span>
           </div>
@@ -378,8 +378,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
           <!-- Entity search -->
           <input
             type="text"
-            class="dropdown-search"
-            style="width:100%;margin:8px 0;"
+            class="dropdown-search pw-ua-search"
             placeholder="${t('config.search_entity')}"
             aria-label="${t('config.search_entity')}"
             .value=${this._unassignedEntitySearch}
@@ -394,10 +393,10 @@ export class ConfigTabUnassigned extends BaseConfigTab {
           ` : nothing}
 
           ${[...grouped.entries()].map(([domain, items]) => html`
-            <div class="section-label" style="margin-top:16px;display:flex;align-items:center;">
-              <ha-icon .icon=${domainIcon(domain)} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;margin-right:6px;"></ha-icon>
+            <div class="section-label pw-ua-domain-group">
+              <ha-icon .icon=${domainIcon(domain)} class="pw-ua-domain-icon"></ha-icon>
               ${domainLabel(domain)}
-              <span style="margin-left:0.375rem;font-size:var(--fz-base);font-weight:500;color:var(--t3);">(${items.length})</span>
+              <span class="pw-ua-domain-count">(${items.length})</span>
             </div>
             <div class="item-list">
               ${items.map((e) => {
@@ -405,7 +404,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                 const isEditing = this._unassignedEditingEntity === e.entityId;
                 return html`
                   <div class="item-row">
-                    <div class="item-info" style="flex:1;min-width:0;">
+                    <div class="item-info pw-ua-entity-info">
                       ${isEditing ? html`
                         <input
                           type="text"
@@ -440,21 +439,20 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                           aria-label="${t('config.unassigned_rename')}: ${e.name}"
                         >
                           ${e.name}
-                          <ha-icon .icon=${'mdi:pencil'} style="--mdc-icon-size:var(--icon-sm);color:var(--t4);display:flex;align-items:center;justify-content:center;flex-shrink:0;"></ha-icon>
+                          <ha-icon .icon=${'mdi:pencil'} class="pw-ua-edit-icon"></ha-icon>
                         </button>
                       `}
                       <span class="item-meta">${e.entityId}</span>
                     </div>
                     <button
-                      class="btn-icon xs"
-                      style="flex-shrink:0;"
+                      class="btn-icon xs pw-ua-icon-btn-shrink"
                       title="${t('config.unassigned_change_icon')}"
                       aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
                       @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
                     >
-                      <ha-icon .icon=${e.icon || domainIcon(e.domain)} style="--mdc-icon-size:var(--icon-sm);display:flex;align-items:center;justify-content:center;"></ha-icon>
+                      <ha-icon .icon=${e.icon || domainIcon(e.domain)} class="pw-ua-entity-icon"></ha-icon>
                     </button>
-                    <div class="dropdown ${isOpen ? 'open' : ''}" style="flex-shrink:0;max-width:160px;">
+                    <div class="dropdown ${isOpen ? 'open' : ''} pw-ua-dropdown-wrap">
                       <button
                         class="dropdown-trigger"
                         style="padding:0.25rem 0.5rem;font-size:var(--fz-base);min-width:0;${!e.areaId ? 'color:var(--c-warning);' : ''}"
@@ -466,7 +464,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                         aria-expanded=${isOpen ? 'true' : 'false'}
                         aria-haspopup="listbox"
                       >
-                        <span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.areaName ?? t('config.unassigned_select_area')}</span>
+                        <span class="pw-ua-area-text">${e.areaName ?? t('config.unassigned_select_area')}</span>
                         <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
                       </button>
                       <div class="dropdown-menu" role="listbox">

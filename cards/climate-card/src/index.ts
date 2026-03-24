@@ -98,11 +98,6 @@ export class GlassClimateCard extends BaseCard {
   private _rangeDragEntity: string | null = null;
   private _rangeDragCleanup: (() => void) | null = null;
 
-  // Long-press (normal mode)
-  private _lpTimer: ReturnType<typeof setTimeout> | null = null;
-  private _lpStartX = 0;
-  private _lpStartY = 0;
-
   // Thermal canvas (normal mode)
   private _thermalCanvas?: ThermalCanvas;
 
@@ -158,10 +153,6 @@ export class GlassClimateCard extends BaseCard {
     if (this._rangeDragCleanup) {
       this._rangeDragCleanup();
       this._rangeDragCleanup = null;
-    }
-    if (this._lpTimer) {
-      clearTimeout(this._lpTimer);
-      this._lpTimer = null;
     }
     if (this._thermalCanvas) {
       this._thermalCanvas.destroy();
@@ -550,41 +541,6 @@ export class GlassClimateCard extends BaseCard {
     this._rangeDragCleanup = cleanup;
   }
 
-  // — Long-press gesture (normal mode) —
-
-  private _onPointerDown(e: PointerEvent): void {
-    if ((e.target as HTMLElement).closest('button, .entity-tab, .temp-stepper-btn, .chip')) return;
-    this._lpStartX = e.clientX;
-    this._lpStartY = e.clientY;
-    this._lpTimer = setTimeout(() => {
-      this._lpTimer = null;
-      this._foldOpen = !this._foldOpen;
-      // Visual feedback
-      const card = this.renderRoot.querySelector('.climate-card') as HTMLElement | null;
-      if (card) {
-        card.classList.add('lp-pulse');
-        card.addEventListener('animationend', () => card.classList.remove('lp-pulse'), { once: true });
-      }
-    }, 500);
-  }
-
-  private _onPointerMove(e: PointerEvent): void {
-    if (!this._lpTimer) return;
-    const dx = e.clientX - this._lpStartX;
-    const dy = e.clientY - this._lpStartY;
-    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-      clearTimeout(this._lpTimer);
-      this._lpTimer = null;
-    }
-  }
-
-  private _onPointerUp(): void {
-    if (this._lpTimer) {
-      clearTimeout(this._lpTimer);
-      this._lpTimer = null;
-    }
-  }
-
   // — Thermal canvas —
 
   private _updateThermalCanvas(): void {
@@ -766,9 +722,10 @@ export class GlassClimateCard extends BaseCard {
             <div class="cl-temp-current">${unavailable ? '--' : (currentTemp != null ? html`${currentTemp.toFixed(1)}<span class="unit">°</span>` : '--')}</div>
             ${!isOff && targetTemp != null ? html`<div class="cl-temp-target">→ ${targetTemp.toFixed(1)}°</div>` : nothing}
           </div>
-          <div class="cl-dot"></div>
+          ${unavailable
+            ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
+            : html`<div class="cl-dot"></div>`}
         </button>
-        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -899,14 +856,27 @@ export class GlassClimateCard extends BaseCard {
     const foldSepClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat-sep'
       : hvacAction === 'cooling' ? 'cool-sep' : '';
 
+    const gesture = this._bindGesture({
+      onLongPress: () => {
+        this._foldOpen = !this._foldOpen;
+        const card = this.renderRoot.querySelector('.climate-card') as HTMLElement | null;
+        if (card) {
+          card.classList.add('lp-pulse');
+          card.addEventListener('animationend', () => card.classList.remove('lp-pulse'), { once: true });
+        }
+      },
+      exclude: 'button, .entity-tab, .temp-stepper-btn, .chip',
+    });
+
     return html`
       ${this._showHeader ? this._renderHeader(climates) : nothing}
       <div class="climate-wrap ${this._foldOpen ? 'fold-open' : ''}">
         <div class="glass climate-card normal-mode"
-          @pointerdown=${(e: PointerEvent) => this._onPointerDown(e)}
-          @pointermove=${(e: PointerEvent) => this._onPointerMove(e)}
-          @pointerup=${() => this._onPointerUp()}
-          @pointercancel=${() => this._onPointerUp()}>
+          @pointerdown=${gesture.pointerdown}
+          @pointermove=${gesture.pointermove}
+          @pointerup=${gesture.pointerup}
+          @pointercancel=${gesture.pointercancel}
+          @contextmenu=${gesture.contextmenu}>
           <div class="tint ${tintClass}"></div>
           <div class="thermal-canvas" id="thermal-canvas-wrap">
             <canvas id="thermal-canvas"></canvas>
@@ -940,9 +910,7 @@ export class GlassClimateCard extends BaseCard {
           const friendlyName = (entity.attributes.friendly_name as string) || entity.entity_id;
           const hvacAction = this._getHvacAction(entity);
           const isSelected = entity.entity_id === selectedId;
-          const colorClass = isSelected
-            ? ((hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : hvacAction === 'cooling' ? 'cool' : '')
-            : '';
+          const colorClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : hvacAction === 'cooling' ? 'cool' : '';
 
           // Resolve room icon for this entity
           const regEntry = this.hass?.entities[entity.entity_id];
@@ -1117,7 +1085,7 @@ export class GlassClimateCard extends BaseCard {
       padding: 0.5rem 0.25rem; position: relative; flex-shrink: 0;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
-    /* unavailable styling handled by unavailableMixin (.entity-unavailable) */
+    .entity-unavailable .cl-icon-btn { border-color: var(--c-alert); }
     @media (hover: hover) and (pointer: fine) {
       .cl-row:hover { background: var(--s1); }
     }
@@ -1242,6 +1210,14 @@ export class GlassClimateCard extends BaseCard {
     }
     .cl-row[data-action="cooling"] .cl-dot {
       background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .cl-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
     }
 
     /* ── Fold separator ── */
@@ -1420,6 +1396,9 @@ export class GlassClimateCard extends BaseCard {
     }
     .entity-tab .tab-dot.idle { background: var(--t3); }
     .entity-tab .tab-dot.off { background: var(--t4); }
+
+    .entity-tab.heat { color: var(--cl-heat-sub); }
+    .entity-tab.cool { color: var(--cl-cool-sub); }
 
     .entity-tab.active {
       background: var(--s4); color: var(--t1);

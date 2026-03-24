@@ -220,56 +220,35 @@ export class ConfigTabSpotify extends BaseConfigTab {
   private _renderSetupGuide(): TemplateResult {
     return html`
       <div class="tab-panel" id="panel-spotify">
-        <div style="
-          padding: 1.25rem; border-radius: var(--radius-lg);
-          background: var(--s2); border: 1px solid var(--b2);
-          text-align: center;
-        ">
-          <ha-icon .icon=${'mdi:spotify'} style="
-            color: #1DB954; --mdc-icon-size: 3rem;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1rem;
-          "></ha-icon>
-          <div style="font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: 8px;">
+        <div class="pw-sp-setup-box">
+          <ha-icon .icon=${'mdi:spotify'} class="pw-sp-setup-icon"></ha-icon>
+          <div class="pw-sp-setup-title">
             ${t('config.spotify_not_configured')}
           </div>
-          <div style="font-size: 13px; color: var(--t3); margin-bottom: 20px; line-height: 1.5;">
+          <div class="pw-sp-setup-desc">
             ${t('config.spotify_setup_guide')}
           </div>
 
-          <div style="text-align: left; padding: 0 8px;">
+          <div class="pw-sp-steps">
             ${[1, 2, 3, 4].map((n) => html`
-              <div style="
-                display: flex; align-items: flex-start; gap: 0.625rem;
-                margin-bottom: 0.75rem; font-size: 13px; color: var(--t2);
-              ">
-                <span style="
-                  flex-shrink: 0; width: 1.375rem; height: 1.375rem;
-                  border-radius: 50%; background: var(--s3);
-                  display: flex; align-items: center; justify-content: center;
-                  font-size: 12px; font-weight: 600; color: var(--t1);
-                ">${n}</span>
-                <span style="line-height: 22px;">
+              <div class="pw-sp-step">
+                <span class="pw-sp-step-num">${n}</span>
+                <span class="pw-sp-step-text">
                   ${t(`config.spotify_setup_step${n}` as Parameters<typeof t>[0])}
                 </span>
               </div>
             `)}
           </div>
 
-          <div style="
-            font-size: 12px; color: var(--t3); margin-top: 1rem;
-            padding: 0.625rem; border-radius: var(--radius-md);
-            background: var(--s1); border: 1px solid var(--b1);
-          ">
+          <div class="pw-sp-note">
             ${t('config.spotify_setup_note')}
           </div>
 
           <button
-            class="btn btn-accent"
-            style="margin-top: 20px;"
+            class="btn btn-accent pw-sp-setup-btn"
             @click=${() => { window.open('/config/integrations/dashboard', '_blank'); }}
           >
-            <ha-icon .icon=${'mdi:cog'} style="--mdc-icon-size: 16px; display: flex; align-items: center; justify-content: center;"></ha-icon>
+            <ha-icon .icon=${'mdi:cog'}></ha-icon>
             ${t('config.spotify_open_settings')}
           </button>
         </div>
@@ -336,7 +315,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
             aria-expanded=${this._spotifyDropdownOpen ? 'true' : 'false'}
             aria-haspopup="listbox"
           >
-            <ha-icon .icon=${'mdi:spotify'} style="color: #1DB954;"></ha-icon>
+            <ha-icon .icon=${'mdi:spotify'} class="pw-sp-entity-icon"></ha-icon>
             <span>${selectedEntity || t('common.select')}</span>
             <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
@@ -441,7 +420,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
                 <span class="drag-handle">
                   <ha-icon .icon=${'mdi:drag'}></ha-icon>
                 </span>
-              ` : html`<span style="width:24px;"></span>`}
+              ` : html`<span class="pw-sp-drag-spacer"></span>`}
               <div class="item-info">
                 <span class="item-name">${sp.name}</span>
                 <span class="item-meta">${sp.entityId}</span>

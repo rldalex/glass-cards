@@ -290,6 +290,7 @@ class GlassFanCard extends BaseCard {
     .fan-row.on .fan-icon-btn ha-icon {
       color: var(--c-accent); filter: drop-shadow(0 0 6px rgba(var(--rgb-accent),0.4));
     }
+    .entity-unavailable .fan-icon-btn { border-color: var(--c-alert); }
 
     /* ── Spinning animation ── */
     @keyframes spin-fan {
@@ -351,6 +352,14 @@ class GlassFanCard extends BaseCard {
     }
     .fan-row.on .fan-dot {
       background: var(--c-accent); box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .fan-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
     }
 
     /* ── Fold separator ── */
@@ -896,8 +905,8 @@ class GlassFanCard extends BaseCard {
 
   // — Actions —
 
-  private _toggleFan(fan: FanInfo, e: Event): void {
-    e.stopPropagation();
+  private _toggleFan(fan: FanInfo, e?: Event): void {
+    e?.stopPropagation();
     if (!this.hass) return;
     fireHaptic(this, 'light');
     if (fan.isOn) {
@@ -995,12 +1004,11 @@ class GlassFanCard extends BaseCard {
   }
 
   private _toggleExpand(fan: FanInfo): void {
-    // Simple fans with no controls: toggle on/off instead of expanding
-    if (!this._hasControls(fan)) {
-      this._toggleFan(fan, new Event('click'));
-      return;
+    if (this._expandedEntity === fan.entityId) {
+      this._expandedEntity = null;
+    } else {
+      this._expandedEntity = fan.entityId;
     }
-    this._expandedEntity = this._expandedEntity === fan.entityId ? null : fan.entityId;
   }
 
   // — Slider helpers —
@@ -1194,8 +1202,21 @@ class GlassFanCard extends BaseCard {
     const rowClasses = ['fan-row', fan.isOn ? 'on' : '', compact ? 'compact' : '', isRight ? 'compact-right' : '', unavailable ? 'entity-unavailable' : '']
       .filter(Boolean).join(' ');
 
+    const gesture = this._bindGesture({
+      onTap: () => this._toggleFan(fan),
+      onLongPress: () => this._toggleExpand(fan),
+      exclude: '.fan-icon-btn',
+    });
+
     return html`
-      <div class=${rowClasses}>
+      <div
+        class=${rowClasses}
+        @pointerdown=${gesture.pointerdown}
+        @pointerup=${gesture.pointerup}
+        @pointermove=${gesture.pointermove}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
+      >
         <button
           class="fan-icon-btn"
           @click=${(e: Event) => this._toggleFan(fan, e)}
@@ -1209,7 +1230,6 @@ class GlassFanCard extends BaseCard {
         </button>
         <button
           class="fan-expand-btn"
-          @click=${() => this._toggleExpand(fan)}
           aria-expanded=${hasControls && isExpanded ? 'true' : 'false'}
           aria-label=${hasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
         >
@@ -1225,9 +1245,10 @@ class GlassFanCard extends BaseCard {
               ` : nothing}
             </div>
           </div>
-          <div class="fan-dot"></div>
+          ${unavailable
+            ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
+            : html`<div class="fan-dot"></div>`}
         </button>
-        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }

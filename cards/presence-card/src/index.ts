@@ -152,6 +152,7 @@ export class GlassPresenceCard extends BaseCard {
 
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+
     if (changedProps.has('hass') && this.hass) {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
@@ -422,17 +423,21 @@ export class GlassPresenceCard extends BaseCard {
             this._activePerson = next;
           }}
         >
-          ${p.entityPicture
-            ? html`<img class="avatar" src=${p.entityPicture} alt=${p.name} />`
+          ${unavailable
+            ? html`<div class="avatar avatar-fallback avatar-unavailable"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></div>`
             : html`
-                <div
-                  class="avatar avatar-fallback"
-                  style="background: linear-gradient(135deg, ${colors.from}, ${colors.to})"
-                >
-                  <ha-icon .icon=${'mdi:account'}></ha-icon>
-                </div>
+                ${p.entityPicture
+                  ? html`<img class="avatar" src=${p.entityPicture} alt=${p.name} />`
+                  : html`
+                      <div
+                        class="avatar avatar-fallback"
+                        style="background: linear-gradient(135deg, ${colors.from}, ${colors.to})"
+                      >
+                        <ha-icon .icon=${'mdi:account'}></ha-icon>
+                      </div>
+                    `}
+                <div class="avatar-status ${stateClass(p.state)}"></div>
               `}
-          <div class="avatar-status ${stateClass(p.state)}"></div>
         </button>
         <div class="person-info">
           <div class="person-name">${p.name}</div>
@@ -446,7 +451,6 @@ export class GlassPresenceCard extends BaseCard {
             </div>
           </div>
         </div>
-        ${unavailable ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>` : nothing}
       </div>
     `;
   }
@@ -720,6 +724,16 @@ export class GlassPresenceCard extends BaseCard {
       .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(var(--rgb-success),0.5); }
       .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5); }
       .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(var(--rgb-info),0.5); }
+
+      .avatar-unavailable {
+        border: 2px solid var(--c-alert);
+        background: rgba(var(--rgb-alert), 0.1);
+        color: var(--c-warning);
+      }
+      .avatar-unavailable ha-icon {
+        --mdc-icon-size: var(--icon-md);
+        color: var(--c-warning);
+      }
 
       .person-info { min-width: 0; flex: 1; }
       .person-name { font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2; }

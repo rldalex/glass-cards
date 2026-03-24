@@ -33,21 +33,22 @@ function renderCoverPreviewRow(
   const isOpen = entity?.state === 'open' || entity?.state === 'opening';
   const pos = entity?.attributes.current_position as number | undefined;
 
+  const rowClasses = `pw-cv-row ${compact ? 'compact' : 'full'}${isRight ? ' right' : ''}`;
   return html`
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 2px;position:relative;z-index:1;${compact ? 'min-width:0;overflow:hidden;' : 'grid-column:1/-1;'}${isRight ? 'padding-left:8px;border-left:1px solid var(--b2);' : ''}">
-      <div style="width:22px;height:22px;border-radius:var(--radius-xs);background:${isOpen ? 'rgba(167,139,250,0.1)' : 'var(--s2)'};border:1px solid ${isOpen ? 'rgba(167,139,250,0.15)' : 'var(--b1)'};display:flex;align-items:center;justify-content:center;">
-        <ha-icon .icon=${icons[isOpen ? 0 : 1]} style="--mdc-icon-size:13px;color:${isOpen ? '#a78bfa' : 'var(--t3)'};display:flex;align-items:center;justify-content:center;${isOpen ? 'filter:drop-shadow(0 0 4px rgba(167,139,250,0.4));' : ''}"></ha-icon>
+    <div class=${rowClasses}>
+      <div class="pw-cv-icon ${isOpen ? 'open' : ''}">
+        <ha-icon .icon=${icons[isOpen ? 0 : 1]}></ha-icon>
       </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:10px;font-weight:600;color:var(--t1);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</div>
-        <div style="display:flex;align-items:center;gap:4px;margin-top:1px;">
-          <span style="font-size:8px;color:${isOpen ? 'rgba(167,139,250,0.6)' : 'var(--t4)'};">${isOpen ? t('cover.open') : t('cover.closed')}</span>
+      <div class="pw-cv-info">
+        <div class="pw-cv-name">${e.name}</div>
+        <div class="pw-cv-sub">
+          <span class="pw-cv-state ${isOpen ? 'open' : ''}">${isOpen ? t('cover.open') : t('cover.closed')}</span>
         </div>
       </div>
       ${!compact && pos !== undefined ? html`
-        <span style="font-size:12px;font-weight:700;color:${isOpen ? '#a78bfa' : 'var(--t3)'};font-variant-numeric:tabular-nums;">${pos}<span style="font-size:8px;font-weight:500;">%</span></span>
+        <span class="pw-cv-pos ${isOpen ? 'open' : ''}">${pos}<span class="pw-cv-pos-unit">%</span></span>
       ` : nothing}
-      <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${isOpen ? '#a78bfa' : 'var(--t4)'};${isOpen ? 'box-shadow:0 0 6px rgba(167,139,250,0.4);' : ''}"></div>
+      <div class="pw-cv-dot ${isOpen ? 'open' : ''}"></div>
     </div>
   `;
 }
@@ -76,16 +77,14 @@ function renderCoverPreviewRows(
 // — Component —
 
 export class ConfigTabCover extends BaseConfigTab {
+
   @state() _coverShowHeader = true;
   @state() _coverDashboardCompact = true;
   @state() _coverDashboardEntities: string[] = [];
   @state() _coverDashboardOrder: string[] = [];
-  @state() _coverPresets: number[] = [0, 25, 50, 75, 100];
   @state() _coverEntityPresets: Record<string, number[]> = {};
   @state() _coverRoom = '';
-  @state() _coverRoomDropdownOpen = false;
   @state() _coverRoomEntities: CoverRoomEntity[] = [];
-  @state() _coverPresetInput = '';
   @state() _coverEntityPresetInput: Record<string, string> = {};
   @state() _coverPresetsExpandedEntity: string | null = null;
 
@@ -96,22 +95,18 @@ export class ConfigTabCover extends BaseConfigTab {
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder',
-    '_coverPresets', '_coverEntityPresets', '_coverRoomEntities',
+    '_coverEntityPresets', '_coverRoomEntities',
   ]);
 
   // — Lifecycle —
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
-    this._checkAutoSave(changedProps);
-  }
-
-  override connectedCallback(): void {
-    super.connectedCallback();
-    if (!this._coverRoom && this.rooms.length > 0) {
-      this._coverRoom = this.rooms[0].areaId;
-      this._loadRoomCovers();
+    if (changedProps.has('areaId') && this.areaId) {
+      this._coverRoom = this.areaId;
+      void this._loadRoomCovers();
     }
+    this._checkAutoSave(changedProps);
   }
 
   // — Persistence —
@@ -127,7 +122,6 @@ export class ConfigTabCover extends BaseConfigTab {
     this._coverShowHeader = c.show_header ?? true;
     this._coverDashboardCompact = c.dashboard_compact ?? true;
     this._coverDashboardEntities = c.dashboard_entities ?? [];
-    this._coverPresets = c.presets ?? [0, 25, 50, 75, 100];
     this._coverEntityPresets = c.entity_presets ?? {};
     this._initDashboardOrder();
   }
@@ -140,7 +134,6 @@ export class ConfigTabCover extends BaseConfigTab {
       show_header: this._coverShowHeader,
       dashboard_compact: this._coverDashboardCompact,
       dashboard_entities: orderedDashboardEntities,
-      presets: this._coverPresets,
       entity_presets: this._coverEntityPresets,
     };
   }
@@ -271,12 +264,6 @@ export class ConfigTabCover extends BaseConfigTab {
 
   // — Actions —
 
-  private _selectRoom(areaId: string): void {
-    this._coverRoom = areaId;
-    this._coverRoomDropdownOpen = false;
-    this._loadRoomCovers();
-  }
-
   private _toggleEntityVisibility(entityId: string): void {
     this._coverRoomEntities = this._coverRoomEntities.map((e) =>
       e.entityId === entityId ? { ...e, visible: !e.visible } : e,
@@ -320,23 +307,11 @@ export class ConfigTabCover extends BaseConfigTab {
 
   // — Preset actions —
 
-  private _addPreset(): void {
-    const val = parseInt(this._coverPresetInput, 10);
-    if (isNaN(val) || val < 0 || val > 100) return;
-    if (this._coverPresets.includes(val)) { this._coverPresetInput = ''; return; }
-    this._coverPresets = [...this._coverPresets, val].sort((a, b) => a - b);
-    this._coverPresetInput = '';
-  }
-
-  private _removePreset(val: number): void {
-    this._coverPresets = this._coverPresets.filter((p) => p !== val);
-  }
-
   private _addEntityPreset(entityId: string): void {
     const raw = this._coverEntityPresetInput[entityId] ?? '';
     const val = parseInt(raw, 10);
     if (isNaN(val) || val < 0 || val > 100) return;
-    const current = this._coverEntityPresets[entityId] ?? [...this._coverPresets];
+    const current = this._coverEntityPresets[entityId] ?? [0, 25, 50, 75, 100];
     if (current.includes(val)) {
       this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [entityId]: '' };
       return;
@@ -417,33 +392,98 @@ export class ConfigTabCover extends BaseConfigTab {
       return s?.state === 'open' || s?.state === 'opening';
     }).length;
 
+    // Pick the first entity for expanded preview
+    const expanded = entities[0];
+    const expEntity = expanded ? this.hass?.states[expanded.entityId] : undefined;
+    const expOpen = expEntity?.state === 'open' || expEntity?.state === 'opening';
+    const expPos = (expEntity?.attributes.current_position as number | undefined) ?? 0;
+    const expIcons = expanded ? (PREVIEW_DC_ICONS[expanded.deviceClass] || PREVIEW_DC_ICONS.shutter) : PREVIEW_DC_ICONS.shutter;
+    const entityPresets = expanded ? (this._coverEntityPresets[expanded.entityId] ?? [0, 25, 50, 75, 100]) : [0, 25, 50, 75, 100];
+
     return html`
       <div class="preview-cover">
         ${this._coverShowHeader ? html`
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 4px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);">${t('cover.title')}</span>
-              <span style="font-size:8px;font-weight:600;padding:1px 4px;border-radius:var(--radius-sm);background:${openCount > 0 ? 'rgba(167,139,250,0.15)' : 'var(--s2)'};color:${openCount > 0 ? '#a78bfa' : 'var(--t3)'};">${openCount}/${entities.length}</span>
+          <div class="pw-cv-header">
+            <div class="pw-cv-header-left">
+              <span class="pw-cv-header-title">${t('cover.title')}</span>
+              <span class="pw-cv-header-count ${openCount > 0 ? 'active' : 'idle'}">${openCount}/${entities.length}</span>
             </div>
-            <div style="display:flex;gap:3px;">
-              <div style="width:18px;height:18px;border-radius:4px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
-                <ha-icon .icon=${'mdi:arrow-up'} style="--mdc-icon-size:10px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <div class="pw-cv-header-actions">
+              <div class="pw-cv-header-btn">
+                <ha-icon .icon=${'mdi:arrow-up'}></ha-icon>
               </div>
-              <div style="width:18px;height:18px;border-radius:4px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;">
-                <ha-icon .icon=${'mdi:arrow-down'} style="--mdc-icon-size:10px;color:var(--t3);display:flex;align-items:center;justify-content:center;"></ha-icon>
+              <div class="pw-cv-header-btn">
+                <ha-icon .icon=${'mdi:arrow-down'}></ha-icon>
               </div>
             </div>
           </div>
         ` : nothing}
-        <div class="preview-cover-card glass" style="padding:8px 10px;display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;">
+        <div class="preview-cover-card glass">
           <!-- Tint -->
-          <div style="position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#a78bfa,transparent 70%);opacity:${entities.length > 0 ? (openCount / entities.length * 0.18).toFixed(3) : '0'};"></div>
+          <div class="pw-cv-tint" style="opacity:${entities.length > 0 ? (openCount / entities.length * 0.18).toFixed(3) : '0'};"></div>
           ${entities.length === 0 ? html`
-            <div style="padding:8px;text-align:center;font-size:10px;color:var(--t4);grid-column:1/-1;">—</div>
+            <div class="pw-cv-empty">—</div>
           ` : nothing}
-          ${renderCoverPreviewRows(this.hass, entities.slice(0, 4))}
-          ${entities.length > 4 ? html`
-            <div style="font-size:9px;color:var(--t4);text-align:center;padding-top:2px;position:relative;z-index:1;grid-column:1/-1;">+${entities.length - 4}</div>
+          ${expanded ? html`
+            <!-- Expanded entity row -->
+            <div class="pw-cv-row">
+              <div class="pw-cv-icon ${expOpen ? 'open' : ''}">
+                <ha-icon .icon=${expIcons[expOpen ? 0 : 1]}></ha-icon>
+              </div>
+              <div class="pw-cv-info">
+                <div class="pw-cv-name">${expanded.name}</div>
+                <div class="pw-cv-state ${expOpen ? 'open' : ''}">${expOpen ? t('cover.open') : t('cover.closed')}</div>
+              </div>
+              <span class="pw-cv-pos ${expOpen ? 'open' : ''}">${expPos}<span class="pw-cv-pos-unit">%</span></span>
+              <div class="pw-cv-dot ${expOpen ? 'open' : ''}"></div>
+            </div>
+            <!-- Fold separator -->
+            <div class="pw-cv-fold-sep"></div>
+            <!-- Controls panel -->
+            <div class="pw-cv-controls">
+              <span class="pw-cv-controls-label">${expanded.name}</span>
+              <!-- Transport -->
+              <div class="pw-cv-transport">
+                <div class="pw-cv-transport-btn ${expPos === 100 ? 'accent' : ''}">
+                  <ha-icon .icon=${'mdi:arrow-up'}></ha-icon>
+                </div>
+                <div class="pw-cv-transport-btn">
+                  <ha-icon .icon=${'mdi:stop'}></ha-icon>
+                </div>
+                <div class="pw-cv-transport-btn ${expPos === 0 ? 'accent' : ''}">
+                  <ha-icon .icon=${'mdi:arrow-down'}></ha-icon>
+                </div>
+              </div>
+              <!-- Slider -->
+              <div class="pw-cv-slider">
+                <ha-icon .icon=${expIcons[1]}></ha-icon>
+                <div class="pw-cv-bar">
+                  <div class="pw-cv-bar-fill" style="width:${expPos}%;"></div>
+                </div>
+                <ha-icon .icon=${expIcons[0]}></ha-icon>
+              </div>
+              <!-- Separator -->
+              <div class="pw-cv-sep"></div>
+              <!-- Presets -->
+              <div class="pw-cv-presets">
+                ${entityPresets.map((p) => {
+                  const isActive = expPos === p;
+                  return html`
+                    <span class="pw-cv-preset ${isActive ? 'active' : ''}">
+                      <ha-icon .icon=${p >= 50 ? expIcons[0] : expIcons[1]}></ha-icon>
+                      ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
+                    </span>
+                  `;
+                })}
+              </div>
+            </div>
+          ` : nothing}
+          ${entities.length > 1 ? html`
+            <!-- Remaining entities (compact) -->
+            <div class="pw-cv-remaining-sep"></div>
+            <div class="pw-cv-grid">
+              ${renderCoverPreviewRows(this.hass, entities.slice(1, 5))}
+            </div>
           ` : nothing}
         </div>
       </div>
@@ -453,8 +493,6 @@ export class ConfigTabCover extends BaseConfigTab {
   renderTab(): TemplateResult {
     void this._lang;
     if (!this.hass) return html``;
-
-    const currentRoom = this.rooms.find((r) => r.areaId === this._coverRoom);
 
     return html`
       <div class="preview-encart">
@@ -482,37 +520,6 @@ export class ConfigTabCover extends BaseConfigTab {
               class="toggle ${this._coverShowHeader ? 'on' : ''}"
             ></span>
           </button>
-        </div>
-
-        <!-- Per-room cover config -->
-        <div class="section-label">${t('config.cover_room')}</div>
-        <div class="section-desc">${t('config.cover_room_desc')}</div>
-
-        <!-- Room selector dropdown -->
-        <div class="dropdown ${this._coverRoomDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { this._coverRoomDropdownOpen = !this._coverRoomDropdownOpen; }}
-            aria-expanded=${this._coverRoomDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${currentRoom?.icon || 'mdi:home'}></ha-icon>
-            <span>${currentRoom?.name || t('common.select')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${this.rooms.map((r) => html`
-              <button
-                class="dropdown-item ${r.areaId === this._coverRoom ? 'active' : ''}"
-                role="option"
-                aria-selected=${r.areaId === this._coverRoom ? 'true' : 'false'}
-                @click=${() => this._selectRoom(r.areaId)}
-              >
-                <ha-icon .icon=${r.icon}></ha-icon>
-                ${r.name}
-              </button>
-            `)}
-          </div>
         </div>
 
         ${this._coverRoom ? html`
@@ -551,7 +558,7 @@ export class ConfigTabCover extends BaseConfigTab {
                         <span class="item-meta">${e.entityId}</span>
                       </div>
                       <button
-                        class="schedule-btn ${hasCustomPresets ? 'active' : ''}"
+                        class="presets-btn ${hasCustomPresets ? 'active' : ''}"
                         @click=${() => this._togglePresetsExpand(e.entityId)}
                         aria-label="${t('config.cover_entity_presets')}"
                         aria-expanded=${isExpanded ? 'true' : 'false'}
@@ -575,83 +582,61 @@ export class ConfigTabCover extends BaseConfigTab {
                         aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
                       ></button>
                     </div>
-                    <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
-                    <div class="schedule-fold ${isExpanded ? 'open' : ''}">
-                      <div class="schedule-fold-inner">
-                        <div style="padding:8px 12px 10px 36px;">
-                          <div style="font-size:9px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${t('config.cover_entity_presets')}</div>
-                          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-                            ${(this._coverEntityPresets[e.entityId] ?? this._coverPresets).map((p) => {
+                    <div class="item-fold-sep ${isExpanded ? 'visible' : ''}"></div>
+                    <div class="entity-presets-fold ${isExpanded ? 'open' : ''}">
+                      <div class="entity-presets-fold-inner">
+                        <div class="entity-presets-content">
+                          <div class="entity-presets-label">${hasCustomPresets ? t('config.cover_entity_presets') : t('config.cover_presets')}</div>
+                          <div class="preset-chips">
+                            ${(this._coverEntityPresets[e.entityId] ?? [0, 25, 50, 75, 100]).map((p) => {
                               const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
-                              const isCustom = !!this._coverEntityPresets[e.entityId];
                               return html`
-                                <span style="
-                                  display:inline-flex;align-items:center;gap:3px;
-                                  padding:0.1875rem 0.4375rem;border-radius:var(--radius-md);
-                                  border:1px solid ${isCustom ? 'rgba(167,139,250,0.2)' : 'var(--b2)'};
-                                  background:${isCustom ? 'rgba(167,139,250,0.05)' : 'var(--s1)'};
-                                  font-size:10px;font-weight:600;color:${isCustom ? 'var(--c-accent)' : 'var(--t3)'};
-                                ">
-                                  <ha-icon .icon=${pIcon} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                <span class="preset-chip small ${hasCustomPresets ? 'custom' : ''}">
+                                  <ha-icon .icon=${pIcon}></ha-icon>
                                   ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
-                                  ${isCustom ? html`
+                                  ${hasCustomPresets ? html`
                                     <button
-                                      style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:color var(--t-fast);"
+                                      class="preset-chip-remove"
                                       @click=${() => this._removeEntityPreset(e.entityId, p)}
                                       aria-label="${t('common.delete')} ${p}%"
                                     >
-                                      <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                      <ha-icon .icon=${'mdi:close'}></ha-icon>
                                     </button>
                                   ` : nothing}
                                 </span>
                               `;
                             })}
-                            <span style="display:inline-flex;align-items:center;gap:3px;">
-                              <input
-                                class="input"
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="5"
-                                .value=${this._coverEntityPresetInput[e.entityId] ?? ''}
-                                @input=${(ev: Event) => { this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [e.entityId]: (ev.target as HTMLInputElement).value }; }}
-                                @keydown=${(ev: KeyboardEvent) => { if (ev.key === 'Enter') this._addEntityPreset(e.entityId); }}
-                                placeholder="%"
-                                style="width:48px;font-size:10px;padding:3px 6px;"
-                              />
+                          </div>
+                          <div class="preset-add">
+                            <input
+                              class="preset-input small"
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="5"
+                              .value=${this._coverEntityPresetInput[e.entityId] ?? ''}
+                              @input=${(ev: Event) => { this._coverEntityPresetInput = { ...this._coverEntityPresetInput, [e.entityId]: (ev.target as HTMLInputElement).value }; }}
+                              @keydown=${(ev: KeyboardEvent) => { if (ev.key === 'Enter') this._addEntityPreset(e.entityId); }}
+                              placeholder="%"
+                            />
+                            <button
+                              class="preset-add-btn small"
+                              style="opacity:${this._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};pointer-events:${this._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};"
+                              @click=${() => this._addEntityPreset(e.entityId)}
+                              aria-label="${t('config.cover_preset_add')}"
+                            >
+                              <ha-icon .icon=${'mdi:plus'}></ha-icon>
+                              ${t('config.cover_preset_add')}
+                            </button>
+                            ${hasCustomPresets ? html`
                               <button
-                                style="
-                                  display:inline-flex;align-items:center;
-                                  padding:0.1875rem 0.375rem;border-radius:var(--radius-md);
-                                  border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
-                                  font-size:10px;font-weight:600;color:var(--c-accent);
-                                  cursor:pointer;font-family:inherit;
-                                  opacity:${this._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};
-                                  pointer-events:${this._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};
-                                  transition:opacity var(--t-fast);
-                                "
-                                @click=${() => this._addEntityPreset(e.entityId)}
-                                aria-label="${t('config.cover_preset_add')}"
+                                class="preset-reset-btn"
+                                @click=${() => this._resetEntityPresets(e.entityId)}
+                                aria-label="${t('common.reset')}"
                               >
-                                <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                                <ha-icon .icon=${'mdi:restore'}></ha-icon>
                               </button>
-                              ${this._coverEntityPresets[e.entityId] ? html`
-                                <button
-                                  style="
-                                    display:inline-flex;align-items:center;gap:2px;
-                                    padding:0.1875rem 0.375rem;border-radius:var(--radius-md);
-                                    border:1px solid var(--b2);background:var(--s1);
-                                    font-size:9px;font-weight:600;color:var(--t4);
-                                    cursor:pointer;font-family:inherit;
-                                    transition:all var(--t-fast);
-                                  "
-                                  @click=${() => this._resetEntityPresets(e.entityId)}
-                                  aria-label="${t('common.reset')}"
-                                >
-                                  <ha-icon .icon=${'mdi:restore'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                                </button>
-                              ` : nothing}
-                            </span>
+                            ` : nothing}
                           </div>
                         </div>
                       </div>
@@ -667,68 +652,6 @@ export class ConfigTabCover extends BaseConfigTab {
             </div>
           `}
         ` : nothing}
-
-        <!-- Preset config -->
-        <div class="section-label">${t('config.cover_presets')}</div>
-        <div class="section-desc">${t('config.cover_presets_desc')}</div>
-
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-          ${this._coverPresets.map((p) => {
-            const pIcon = p >= 50 ? 'mdi:window-shutter-open' : 'mdi:window-shutter';
-            return html`
-              <span style="
-                display:inline-flex;align-items:center;gap:4px;
-                padding:0.3125rem 0.625rem;border-radius:var(--radius-md);
-                border:1px solid var(--b2);background:var(--s1);
-                font-size:11px;font-weight:600;color:var(--t2);
-              ">
-                <ha-icon .icon=${pIcon} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
-                <button
-                  style="
-                    background:none;border:none;cursor:pointer;padding:0;
-                    display:flex;align-items:center;justify-content:center;
-                    color:var(--t4);transition:color var(--t-fast);
-                  "
-                  @click=${() => this._removePreset(p)}
-                  aria-label="${t('common.delete')} ${p}%"
-                >
-                  <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-                </button>
-              </span>
-            `;
-          })}
-          <span style="display:inline-flex;align-items:center;gap:4px;">
-            <input
-              class="input"
-              type="number"
-              min="0"
-              max="100"
-              step="5"
-              .value=${this._coverPresetInput}
-              @input=${(e: Event) => { this._coverPresetInput = (e.target as HTMLInputElement).value; }}
-              @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._addPreset(); }}
-              placeholder=${t('config.cover_preset_placeholder')}
-              style="width:64px;font-size:11px;padding:5px 8px;"
-            />
-            <button
-              style="
-                display:inline-flex;align-items:center;gap:4px;
-                padding:0.3125rem 0.625rem;border-radius:var(--radius-md);
-                border:1px solid rgba(167,139,250,0.3);background:rgba(167,139,250,0.1);
-                font-size:11px;font-weight:600;color:var(--c-accent);
-                cursor:pointer;font-family:inherit;
-                opacity:${this._coverPresetInput ? '1' : '0.4'};
-                pointer-events:${this._coverPresetInput ? 'auto' : 'none'};
-                transition:opacity var(--t-fast);
-              "
-              @click=${() => this._addPreset()}
-            >
-              <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-              ${t('config.cover_preset_add')}
-            </button>
-          </span>
-        </div>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing, type PropertyValues } from 'lit';
+import { LitElement, html, nothing, type TemplateResult, type PropertyValues } from 'lit';
 import { configPanelStyles } from './styles';
 import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
@@ -12,14 +12,16 @@ import {
   type TabId, type DragContext,
 } from './types';
 
-// Tab renderers
+import { type NavState, DEFAULT_NAV, pushNav, readNavFromHistory, navEquals } from './nav-state.js';
+
+// Tab renderers (still needed — views render them)
 import './tabs/cover';
-import './tabs/dashboard';
+// tabs/dashboard removed — absorbed into views/dashboard-view
 import './tabs/light';
 import './tabs/media';
 import './tabs/fan';
-import './tabs/navbar';
-import './tabs/popup';
+// tabs/navbar removed — absorbed into views/room-list
+// tabs/popup removed — absorbed into views/room-detail
 import './tabs/presence';
 import './tabs/spotify';
 import './tabs/title';
@@ -27,6 +29,13 @@ import './tabs/weather';
 import './tabs/camera-carousel';
 import './tabs/climate';
 import './tabs/unassigned';
+
+// View components
+import './views/room-list.js';
+import './views/room-detail.js';
+import './views/dashboard-view.js';
+import './views/advanced.js';
+import './views/wizard.js';
 
 // Extracted modules
 import * as P from './persistence';
@@ -41,16 +50,14 @@ export class GlassConfigPanel extends LitElement {
   _mounted = false;
 
   @state() _lang = getLanguage();
-  @state() _tab: TabId = 'dashboard';
-  @state() _tabSelectOpen = false;
-  @state() _tabSearch = '';
+  @state() _nav: NavState = DEFAULT_NAV;
   @state() _rooms: RoomEntry[] = [];
   @state() _emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @state() _selectedRoom = '';
   @state() _toast = false;
   @state() _saving = false;
 
-  // Navbar config — managed by ConfigTabNavbar
+  // Navbar config — room ordering, visibility, auto_sort
   _navbarConfig: Record<string, unknown> = {};
 
   // Popup config — managed by ConfigTabPopup
@@ -99,11 +106,36 @@ export class GlassConfigPanel extends LitElement {
   _loaded = false;
   _loading = false;
   _configReady = false;
+  _wizardCompleted = true; // default true, overridden by loadConfig
   _suppressAutoSave = false;
   _autoSaveTimer?: ReturnType<typeof setTimeout>;
   _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() _toastError = false;
-  _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
+
+  private _popstateHandler?: (e: PopStateEvent) => void;
+
+  /** Backward-compat getter for persistence.ts which routes save() by tab id */
+  get _tab(): TabId {
+    const sub = this._nav.subSection;
+    if (sub) {
+      const map: Record<string, TabId> = {
+        dashboard: 'dashboard', title: 'title',
+        spotify: 'spotify', presence: 'presence', camera: 'camera_carousel',
+        weather: 'weather', popup: 'popup', orphans: 'unassigned',
+        light: 'light', cover: 'cover', climate: 'climate', media: 'media', fan: 'fan',
+      };
+      return map[sub] ?? 'dashboard';
+    }
+    return 'dashboard';
+  }
+
+  /** Backward-compat getter for persistence.ts active tab element lookup */
+  get _activeTabEl(): Element | null {
+    const tag = `config-tab-${this._tab.replace('_', '-')}`;
+    return this.shadowRoot?.querySelector(tag)
+      ?? this.shadowRoot?.querySelector(`config-tab-${this._tab}`)
+      ?? null;
+  }
 
   static styles = [
     glassTokens, hostMixin, glassMixin, bounceMixin,
@@ -121,33 +153,34 @@ export class GlassConfigPanel extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._mounted = true;
-    document.addEventListener('click', this._boundCloseDropdowns);
     this.addEventListener('tab-dirty', this._onTabDirty);
     this.addEventListener('tab-toast', this._onTabToast as EventListener);
     this.addEventListener('rooms-changed', this._onRoomsChanged as EventListener);
+    this.addEventListener('rooms-reordered', this._onRoomsReordered as EventListener);
+    this.addEventListener('room-visibility-toggle', this._onRoomVisibilityToggle as EventListener);
+
+    this._popstateHandler = (e: PopStateEvent) => {
+      const nav = readNavFromHistory(e);
+      if (nav) this._nav = nav;
+    };
+    window.addEventListener('popstate', this._popstateHandler);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._mounted = false;
-    document.removeEventListener('click', this._boundCloseDropdowns);
     this.removeEventListener('tab-dirty', this._onTabDirty);
     this.removeEventListener('tab-toast', this._onTabToast as EventListener);
     this.removeEventListener('rooms-changed', this._onRoomsChanged as EventListener);
+    this.removeEventListener('rooms-reordered', this._onRoomsReordered as EventListener);
+    this.removeEventListener('room-visibility-toggle', this._onRoomVisibilityToggle as EventListener);
+    if (this._popstateHandler) {
+      window.removeEventListener('popstate', this._popstateHandler);
+      this._popstateHandler = undefined;
+    }
     if (this._toastTimeout !== undefined) { clearTimeout(this._toastTimeout); this._toastTimeout = undefined; }
     if (this._autoSaveTimer !== undefined) { clearTimeout(this._autoSaveTimer); this._autoSaveTimer = undefined; }
     this._backend = undefined;
-  }
-
-  _closeDropdownsOnOutsideClick(e: MouseEvent) {
-    if (!this._tabSelectOpen) return;
-    const path = e.composedPath();
-    const root = this.shadowRoot;
-    if (!root) return;
-    const dropdowns = root.querySelectorAll('.dropdown, .tab-select-wrap');
-    for (const dd of dropdowns) { if (path.includes(dd)) return; }
-    this._tabSelectOpen = false;
-    this._tabSearch = '';
   }
 
   updated(changedProps: PropertyValues) {
@@ -163,7 +196,11 @@ export class GlassConfigPanel extends LitElement {
       }
     }
     if (!this._loaded || this._loading || this._saving) return;
-    if (!this._configReady) { this._configReady = true; return; }
+    if (!this._configReady) {
+      this._configReady = true;
+      if (!this._wizardCompleted) this._nav = { section: 'wizard' };
+      return;
+    }
     if (this._suppressAutoSave) { this._suppressAutoSave = false; return; }
   }
 
@@ -174,19 +211,55 @@ export class GlassConfigPanel extends LitElement {
     const detail = (e as CustomEvent<{ rooms: RoomEntry[] }>).detail;
     this._rooms = detail.rooms;
   };
+
+  private _onRoomsReordered = (e: Event) => {
+    const detail = (e as CustomEvent<{ rooms: RoomEntry[] }>).detail;
+    this._rooms = detail.rooms;
+    this._saveNavbarOrder();
+  };
+
+  private _onRoomVisibilityToggle = (e: Event) => {
+    const { areaId, visible } = (e as CustomEvent<{ areaId: string; visible: boolean }>).detail;
+    this._rooms = this._rooms.map((r) =>
+      r.areaId === areaId ? { ...r, visible } : r
+    );
+    this._saveNavbarOrder();
+  };
+
+  private async _saveNavbarOrder() {
+    if (!this._backend) return;
+    try {
+      await this._backend.send('set_navbar', {
+        room_order: this._rooms.filter((r) => r.visible).map((r) => r.areaId),
+        hidden_rooms: this._rooms.filter((r) => !r.visible).map((r) => r.areaId),
+      });
+      this._showToast();
+    } catch {
+      this._showToast(true);
+    }
+  }
+
   private _onTabToast = (e: CustomEvent<{ success: boolean }>) => {
     this._toastError = !e.detail.success; this._toast = true;
     if (this._toastTimeout !== undefined) clearTimeout(this._toastTimeout);
     this._toastTimeout = setTimeout(() => { this._toast = false; }, 2500);
   };
 
-  get _activeTabEl(): Element | null {
-    return this.shadowRoot?.querySelector(`[data-tab="${this._tab}"]`) ?? null;
-  }
-
   private _scheduleAutoSave() {
     if (this._autoSaveTimer !== undefined) clearTimeout(this._autoSaveTimer);
     this._autoSaveTimer = setTimeout(() => { this._autoSaveTimer = undefined; if (!this._saving) this._save(); }, 800);
+  }
+
+  // ─── Navigation ───
+
+  private _navigateTo(nav: NavState) {
+    if (navEquals(this._nav, nav)) return;
+    pushNav(this._nav);
+    this._nav = nav;
+  }
+
+  _goBack() {
+    window.location.href = '/';
   }
 
   // ─── Persistence delegates ───
@@ -200,24 +273,22 @@ export class GlassConfigPanel extends LitElement {
     const coverTab = this.shadowRoot?.querySelector('config-tab-cover') as import('./tabs/cover').ConfigTabCover | null;
     if (coverTab) coverTab.reload();
   }
-  async _loadFanConfig() { const fanTab = this._activeTabEl as import('./tabs/fan').ConfigTabFan | null; if (fanTab) fanTab.reload(); }
-  async _loadClimateConfig() { const climateTab = this._activeTabEl as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.reload(); }
+  async _loadFanConfig() { const fanTab = this.shadowRoot?.querySelector('config-tab-fan') as import('./tabs/fan').ConfigTabFan | null; if (fanTab) fanTab.reload(); }
+  async _loadClimateConfig() { const climateTab = this.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.reload(); }
   async _loadMediaConfig() { const mediaTab = this.shadowRoot?.querySelector('config-tab-media') as import('./tabs/media').ConfigTabMedia | null; if (mediaTab) mediaTab.reload(); }
   async _loadDashboardConfig() {
-    const dashboardTab = this.shadowRoot?.querySelector('config-tab-dashboard') as import('./tabs/dashboard').ConfigTabDashboard | null;
-    if (dashboardTab) dashboardTab.reload();
+    // Dashboard view manages its own state from configData prop
   }
-  async _loadPresenceConfig() { const presenceTab = this._activeTabEl as import('./tabs/presence').ConfigTabPresence | null; if (presenceTab) presenceTab.reload(); }
-  async _loadCameraCarouselConfig() { const cameraTab = this._activeTabEl as import('./tabs/camera-carousel').ConfigTabCamera | null; if (cameraTab) cameraTab.reload(); }
+  async _loadPresenceConfig() { const presenceTab = this.shadowRoot?.querySelector('config-tab-presence') as import('./tabs/presence').ConfigTabPresence | null; if (presenceTab) presenceTab.reload(); }
+  async _loadCameraCarouselConfig() { const cameraTab = this.shadowRoot?.querySelector('config-tab-camera') as import('./tabs/camera-carousel').ConfigTabCamera | null; if (cameraTab) cameraTab.reload(); }
   async _loadWeatherConfig() { return P.loadWeatherConfig(this); }
   async _loadSpotifyConfig() { const spotifyTab = this.shadowRoot?.querySelector('config-tab-spotify') as import('./tabs/spotify').ConfigTabSpotify | null; if (spotifyTab) spotifyTab.reload(); }
   async _loadTitleConfig() { const titleTab = this.shadowRoot?.querySelector('config-tab-title') as import('./tabs/title').ConfigTabTitle | null; if (titleTab) titleTab.reload(); }
   _save() { P.save(this); }
   async _reset() { return P.resetConfig(this); }
-  async _saveClimate() { const climateTab = this._activeTabEl as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.save(); }
+  async _saveClimate() { const climateTab = this.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.save(); }
   async _saveDashboard() {
-    const dashboardTab = this.shadowRoot?.querySelector('config-tab-dashboard') as import('./tabs/dashboard').ConfigTabDashboard | null;
-    if (dashboardTab) dashboardTab.save();
+    // Dashboard view manages its own save
   }
   async _checkSpotifyStatus() { /* Spotify status is now checked internally by ConfigTabSpotify */ }
 
@@ -237,69 +308,102 @@ export class GlassConfigPanel extends LitElement {
     this._toastTimeout = setTimeout(() => { this._toast = false; this._toastTimeout = undefined; }, 2000);
   }
 
-  // ─── Tab switching ───
+  // ─── Sidebar ───
 
-  _switchTab(tab: TabId) {
-    this._tab = tab; this._tabSelectOpen = false; this._tabSearch = '';
-    if (tab === 'light') {
-      requestAnimationFrame(() => {
-        const lightTab = this.shadowRoot?.querySelector('config-tab-light') as import('./tabs/light').ConfigTabLight | null;
-        if (lightTab) lightTab.initRoom();
-      });
-    }
-    if (tab === 'media') {
-      requestAnimationFrame(() => {
-        const mediaTab = this.shadowRoot?.querySelector('config-tab-media') as import('./tabs/media').ConfigTabMedia | null;
-        if (mediaTab) mediaTab.initRoom();
-      });
-    }
-  }
+  private _renderSidebar(): TemplateResult {
+    const sections = [
+      { id: 'dashboard', icon: 'mdi:view-dashboard', label: t('config.nav_dashboard') },
+      { id: 'rooms', icon: 'mdi:home-group', label: t('config.nav_rooms') },
+      { id: 'advanced', icon: 'mdi:tune-variant', label: t('config.nav_advanced') },
+    ] as const;
 
-  // ─── Tab action delegates ───
-
-  _goBack() {
-    if (history.length > 1) { history.back(); } else { window.location.href = '/'; }
-  }
-
-  // ─── Tab Select ───
-
-  private static _TAB_META: { id: TabId; icon: string; labelKey: Parameters<typeof t>[0] }[] = [
-    { id: 'dashboard', icon: 'mdi:view-dashboard', labelKey: 'config.tab_dashboard' },
-    { id: 'title', icon: 'mdi:format-title', labelKey: 'config.tab_title' },
-    { id: 'navbar', icon: 'mdi:dock-bottom', labelKey: 'config.tab_navbar' },
-    { id: 'popup', icon: 'mdi:card-outline', labelKey: 'config.tab_popup' },
-    { id: 'light', icon: 'mdi:lightbulb-group', labelKey: 'config.tab_light' },
-    { id: 'weather', icon: 'mdi:weather-partly-cloudy', labelKey: 'config.tab_weather' },
-    { id: 'media', icon: 'mdi:speaker', labelKey: 'config.tab_media' },
-    { id: 'cover', icon: 'mdi:blinds', labelKey: 'config.tab_cover' },
-    { id: 'climate', icon: 'mdi:thermostat', labelKey: 'config.tab_climate' },
-    { id: 'fan', icon: 'mdi:fan', labelKey: 'config.tab_fan' },
-    { id: 'spotify', icon: 'mdi:spotify', labelKey: 'config.tab_spotify' },
-    { id: 'presence', icon: 'mdi:account-group', labelKey: 'config.tab_presence' },
-    { id: 'camera_carousel', icon: 'mdi:cctv', labelKey: 'config.tab_camera_carousel' },
-    { id: 'unassigned', icon: 'mdi:home-map-marker', labelKey: 'config.tab_unassigned' },
-  ];
-
-  _renderTabSelect() {
-    const current = GlassConfigPanel._TAB_META.find((m) => m.id === this._tab);
-    const search = this._tabSearch.toLowerCase();
     return html`
-      <div class="tab-select-wrap ${this._tabSelectOpen ? 'open' : ''}">
-        <button class="tab-select-trigger" @click=${() => { this._tabSelectOpen = !this._tabSelectOpen; this._tabSearch = ''; }} aria-haspopup="listbox" aria-expanded=${this._tabSelectOpen ? 'true' : 'false'}>
-          <ha-icon .icon=${current?.icon || 'mdi:cog'}></ha-icon>
-          <span>${current ? t(current.labelKey) : ''}</span>
-          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
-        <div class="tab-select-menu" role="listbox">
-          <input type="text" class="tab-select-search" placeholder="${t('config.search_entity')}" .value=${this._tabSearch} @input=${(e: Event) => { this._tabSearch = (e.target as HTMLInputElement).value; }} @click=${(e: Event) => e.stopPropagation()} />
-          ${GlassConfigPanel._TAB_META.map((m) => {
-            const label = t(m.labelKey);
-            const hidden = search && !label.toLowerCase().includes(search) && !m.id.includes(search);
-            return html`<button class="tab-select-option ${m.id === this._tab ? 'selected' : ''} ${hidden ? 'hidden' : ''}" role="option" aria-selected=${m.id === this._tab ? 'true' : 'false'} @click=${() => this._switchTab(m.id)}><ha-icon .icon=${m.icon}></ha-icon>${label}</button>`;
-          })}
-        </div>
-      </div>
+      <nav class="panel-sidebar">
+        ${sections.map((s) => html`
+          <button class="nav-btn ${this._nav.section === s.id ? 'active' : ''}"
+            @click=${() => this._navigateTo({ section: s.id as NavState['section'] })}
+            aria-label=${s.label}>
+            <ha-icon .icon=${s.icon}></ha-icon>
+            <span>${s.label}</span>
+          </button>
+        `)}
+      </nav>
     `;
+  }
+
+  // ─── Breadcrumb ───
+
+  private _renderBreadcrumb(): TemplateResult | typeof nothing {
+    if (this._nav.section === 'rooms' && this._nav.roomId) {
+      const area = this.hass?.areas?.[this._nav.roomId];
+      return html`
+        <div class="breadcrumb">
+          <button @click=${() => this._navigateTo({ section: 'rooms' })}>${t('config.nav_rooms')}</button>
+          <span class="sep">›</span>
+          <span class="current">${area?.name || this._nav.roomId}</span>
+        </div>
+      `;
+    }
+    if (this._nav.subSection) {
+      const label = this._nav.section === 'dashboard' ? t('config.nav_dashboard') : t('config.nav_advanced');
+      return html`
+        <div class="breadcrumb">
+          <button @click=${() => this._navigateTo({ section: this._nav.section })}>${label}</button>
+          <span class="sep">›</span>
+          <span class="current">${this._nav.subSection}</span>
+        </div>
+      `;
+    }
+    return nothing;
+  }
+
+  // ─── Content router ───
+
+  private _renderContent(): TemplateResult | typeof nothing {
+    switch (this._nav.section) {
+      case 'wizard':
+        return html`<config-wizard
+          .hass=${this.hass}
+          .backend=${this._backend}
+          @wizard-done=${() => { this._wizardCompleted = true; this._navigateTo({ section: 'rooms' }); }}
+        ></config-wizard>`;
+      case 'rooms':
+        if (this._nav.roomId) {
+          return html`<config-room-detail
+            .hass=${this.hass}
+            .areaId=${this._nav.roomId}
+            .configData=${this._navbarConfig}
+            .backend=${this._backend}
+            .rooms=${this._rooms}
+          ></config-room-detail>`;
+        }
+        return html`<config-room-list
+          .hass=${this.hass}
+          .rooms=${this._rooms}
+          @room-select=${(e: CustomEvent) => this._navigateTo({ section: 'rooms', roomId: e.detail })}
+        ></config-room-list>`;
+      case 'dashboard':
+        return html`<config-dashboard-view
+          .hass=${this.hass}
+          .backend=${this._backend}
+          .configData=${this._dashboardConfig}
+          .rooms=${this._rooms}
+          .subSection=${this._nav.subSection}
+          @sub-select=${(e: CustomEvent) => this._navigateTo({ section: 'dashboard', subSection: e.detail })}
+        ></config-dashboard-view>`;
+      case 'advanced':
+        return html`<config-advanced-view
+          .hass=${this.hass}
+          .backend=${this._backend}
+          .configData=${this._navbarConfig}
+          .rooms=${this._rooms}
+          .subSection=${this._nav.subSection}
+          @sub-select=${(e: CustomEvent) => this._navigateTo({ section: 'advanced', subSection: e.detail })}
+          @reconfig-wizard=${() => this._navigateTo({ section: 'wizard' })}
+        ></config-advanced-view>`;
+      default:
+        return nothing;
+    }
   }
 
   // ─── Main render ───
@@ -318,22 +422,13 @@ export class GlassConfigPanel extends LitElement {
         </div>
 
         <div class="glass config-panel">
-          ${this._renderTabSelect()}
-
-          ${this._tab === 'navbar' ? html`<config-tab-navbar data-tab="navbar" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .emptyRooms=${this._emptyRooms} .configData=${this._navbarConfig}></config-tab-navbar>`
-            : this._tab === 'popup' ? html`<config-tab-popup data-tab="popup" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._popupConfig}></config-tab-popup>`
-            : this._tab === 'light' ? html`<config-tab-light data-tab="light" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._lightConfig}></config-tab-light>`
-            : this._tab === 'weather' ? html`<config-tab-weather data-tab="weather" .hass=${this.hass} .backend=${this._backend} .configData=${this._weatherConfig}></config-tab-weather>`
-            : this._tab === 'title' ? html`<config-tab-title data-tab="title" .hass=${this.hass} .backend=${this._backend} .configData=${this._titleConfig}></config-tab-title>`
-            : this._tab === 'media' ? html`<config-tab-media data-tab="media" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._mediaConfig}></config-tab-media>`
-            : this._tab === 'cover' ? html`<config-tab-cover data-tab="cover" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._coverConfig}></config-tab-cover>`
-            : this._tab === 'climate' ? html`<config-tab-climate data-tab="climate" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._climateConfig}></config-tab-climate>`
-            : this._tab === 'fan' ? html`<config-tab-fan data-tab="fan" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._fanConfig}></config-tab-fan>`
-            : this._tab === 'spotify' ? html`<config-tab-spotify data-tab="spotify" .hass=${this.hass} .backend=${this._backend} .configData=${this._spotifyConfig}></config-tab-spotify>`
-            : this._tab === 'presence' ? html`<config-tab-presence data-tab="presence" .hass=${this.hass} .backend=${this._backend} .configData=${this._presenceConfig}></config-tab-presence>`
-            : this._tab === 'camera_carousel' ? html`<config-tab-camera data-tab="camera_carousel" .hass=${this.hass} .backend=${this._backend} .configData=${this._cameraConfig} @tab-dirty=${this._onTabDirty} @tab-toast=${this._onTabToast}></config-tab-camera>`
-            : this._tab === 'unassigned' ? html`<config-tab-unassigned data-tab="unassigned" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms}></config-tab-unassigned>`
-            : html`<config-tab-dashboard data-tab="dashboard" .hass=${this.hass} .backend=${this._backend} .rooms=${this._rooms} .configData=${this._dashboardConfig}></config-tab-dashboard>`}
+          <div class="panel-layout">
+            ${this._renderSidebar()}
+            <div class="panel-content">
+              ${this._renderBreadcrumb()}
+              ${this._renderContent()}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { LitElement, nothing, type PropertyValues, type TemplateResult } from 'lit';
+import { css, LitElement, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
@@ -16,6 +16,7 @@ export abstract class BaseConfigTab extends LitElement {
   @property({ attribute: false }) rooms: RoomEntry[] = [];
   @property({ attribute: false }) emptyRooms: { areaId: string; name: string; icon: string }[] = [];
   @property({ attribute: false }) dragState: DragState = { dragIdx: null, dropIdx: null, dragContext: 'rooms', dragModeSrcIdx: null };
+  @property() areaId?: string;
 
   /** Config slice from parent — when set, calls loadFromConfig() automatically. */
   @property({ attribute: false })
@@ -27,11 +28,14 @@ export abstract class BaseConfigTab extends LitElement {
   get configData(): Record<string, unknown> { return this._configData; }
   private _configData: Record<string, unknown> = {};
 
+  protected _initializedForArea: string | null = null;
+
   @state() _lang = getLanguage();
 
   static styles = [
     glassTokens, hostMixin, glassMixin, bounceMixin,
     ...configPanelStyles,
+    css`:host { padding: 0.5rem 0; min-height: auto; }`,
   ];
 
   protected updated(changedProps: PropertyValues): void {
@@ -103,5 +107,14 @@ export abstract class BaseConfigTab extends LitElement {
         return;
       }
     }
+  }
+
+  /** Called by subclasses in firstUpdated to initialize room-specific data.
+   *  Skips if already initialized for the same areaId. */
+  protected _initRoomIfNeeded(): boolean {
+    if (!this.areaId) return false;
+    if (this._initializedForArea === this.areaId) return false;
+    this._initializedForArea = this.areaId;
+    return true;
   }
 }

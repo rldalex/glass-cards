@@ -278,21 +278,23 @@ export class ConfigTabPresence extends BaseConfigTab {
               const selected = this._presencePersonEntities.includes(p.entityId);
               const autoMode = this._presencePersonEntities.length === 0;
               return html`
-                <div class="item-row ${!selected && !autoMode ? 'disabled' : ''}">
-                  <div class="feature-icon">
-                    <ha-icon .icon=${'mdi:account'}></ha-icon>
+                <div class="item-card">
+                  <div class="item-row ${!selected && !autoMode ? 'disabled' : ''}">
+                    <div class="feature-icon">
+                      <ha-icon .icon=${'mdi:account'}></ha-icon>
+                    </div>
+                    <div class="item-info">
+                      <span class="item-name">${p.name}</span>
+                      <span class="item-meta">${p.entityId}</span>
+                    </div>
+                    <button
+                      class="toggle ${selected || autoMode ? 'on' : ''}"
+                      @click=${() => this._togglePresencePerson(p.entityId)}
+                      role="switch"
+                      aria-checked=${(selected || autoMode) ? 'true' : 'false'}
+                      aria-label="${p.name}"
+                    ></button>
                   </div>
-                  <div class="item-info">
-                    <span class="item-name">${p.name}</span>
-                    <span class="item-meta">${p.entityId}</span>
-                  </div>
-                  <button
-                    class="toggle ${selected || autoMode ? 'on' : ''}"
-                    @click=${() => this._togglePresencePerson(p.entityId)}
-                    role="switch"
-                    aria-checked=${(selected || autoMode) ? 'true' : 'false'}
-                    aria-label="${p.name}"
-                  ></button>
                 </div>
               `;
             })}

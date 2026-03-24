@@ -30,7 +30,7 @@ export function onDropGeneric(self: GlassConfigPanel, idx: number, e: DragEvent)
     self._dropIdx = null;
     return;
   }
-  // Note: 'rooms' drag is handled internally by ConfigTabNavbar
+  // Note: 'rooms' drag is handled internally by ConfigRoomList
   // Note: 'cards'/'scenes' drag is handled internally by ConfigTabPopup
   // Note: 'lights' drag is handled internally by ConfigTabLight
   // Note: title_sources and title_modes drag is handled internally by ConfigTabTitle

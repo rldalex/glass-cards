@@ -3,7 +3,6 @@ import {
 } from '@glass-cards/base-card';
 import {
   type RoomEntry,
-  DEFAULT_TEMP_HIGH, DEFAULT_TEMP_LOW, DEFAULT_HUMIDITY_THRESHOLD,
 } from './types';
 import type { GlassConfigPanel } from './index';
 
@@ -34,14 +33,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
   let navbarConfig = {
     room_order: [] as string[],
     hidden_rooms: [] as string[],
-    show_lights: true,
-    show_temperature: true,
-    show_humidity: true,
-    show_media: true,
     auto_sort: true,
-    temp_high: DEFAULT_TEMP_HIGH,
-    temp_low: DEFAULT_TEMP_LOW,
-    humidity_threshold: DEFAULT_HUMIDITY_THRESHOLD,
   };
   let weatherConfig = {
     entity_id: '',
@@ -122,6 +114,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
       climate_card: typeof climateCardConfig;
       camera_carousel: typeof cameraCarouselConfig;
       dashboard: typeof dashboardConfig;
+      wizard_completed?: boolean;
     }>('get_config');
     navbarConfig = result.navbar;
     Object.assign(roomConfigs, result.rooms);
@@ -136,6 +129,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     if (result.climate_card) climateCardConfig = result.climate_card;
     if (result.camera_carousel) cameraCarouselConfig = result.camera_carousel;
     if (result.dashboard) dashboardConfig = result.dashboard;
+    if (result.wizard_completed !== undefined) self._wizardCompleted = result.wizard_completed;
   } catch {
     // Backend not available
   }
@@ -271,9 +265,8 @@ export async function loadMediaConfig(self: GlassConfigPanel): Promise<void> {
   if (mediaTab) mediaTab.reload();
 }
 
-export async function loadDashboardConfig(self: GlassConfigPanel): Promise<void> {
-  const dashboardTab = self.shadowRoot?.querySelector('config-tab-dashboard') as import('./tabs/dashboard').ConfigTabDashboard | null;
-  if (dashboardTab) dashboardTab.reload();
+export async function loadDashboardConfig(_self: GlassConfigPanel): Promise<void> {
+  // Dashboard view manages its own state from configData prop — no-op
 }
 
 export async function loadPresenceConfig(self: GlassConfigPanel): Promise<void> {
@@ -305,10 +298,7 @@ export async function loadTitleConfig(self: GlassConfigPanel): Promise<void> {
 
 // ─── Save ───
 
-export async function saveNavbar(self: GlassConfigPanel): Promise<void> {
-  const navbarTab = self.shadowRoot?.querySelector('config-tab-navbar') as import('./tabs/navbar').ConfigTabNavbar | null;
-  if (navbarTab) await navbarTab.save();
-}
+// saveNavbar — removed (navbar tab deleted)
 
 // savePopup — moved to ConfigTabPopup.save()
 
@@ -351,9 +341,8 @@ export async function saveTitle(self: GlassConfigPanel): Promise<void> {
   if (titleTab) titleTab.save();
 }
 
-export async function saveDashboard(self: GlassConfigPanel): Promise<void> {
-  const dashboardTab = self.shadowRoot?.querySelector('config-tab-dashboard') as import('./tabs/dashboard').ConfigTabDashboard | null;
-  if (dashboardTab) await dashboardTab.save();
+export async function saveDashboard(_self: GlassConfigPanel): Promise<void> {
+  // Dashboard view manages its own save via auto-save — no-op
 }
 
 // ─── Reset ───
@@ -370,12 +359,46 @@ export async function checkSpotifyStatus(_self: GlassConfigPanel): Promise<void>
   // Spotify status is now checked internally by ConfigTabSpotify
 }
 
+// ─── Per-tabId Debounced Save ───
+
+/** Maps for per-tab save management */
+const _saveTimers = new Map<string, number>();
+const _saving = new Map<string, boolean>();
+
+/**
+ * Schedule a debounced save for a specific tab section.
+ * Ensures only one save is in-flight per tabId; queues new saves if blocked.
+ * @param tabId - Unique identifier for the tab/section (e.g., 'light', 'cover', 'climate')
+ * @param saveFn - Async function that performs the save
+ * @param delay - Debounce delay in milliseconds (default: 800)
+ */
+export function scheduleTabSave(tabId: string, saveFn: () => Promise<void>, delay = 800): void {
+  const existing = _saveTimers.get(tabId);
+  if (existing) clearTimeout(existing);
+
+  const timer = window.setTimeout(async () => {
+    _saveTimers.delete(tabId);
+    // Guard: if already saving this tab, re-schedule
+    if (_saving.get(tabId)) {
+      scheduleTabSave(tabId, saveFn, delay);
+      return;
+    }
+    _saving.set(tabId, true);
+    try {
+      await saveFn();
+    } finally {
+      _saving.set(tabId, false);
+    }
+  }, delay);
+
+  _saveTimers.set(tabId, timer);
+}
+
+// ─── Navigation-based Save (existing behavior) ───
+
 export function save(self: GlassConfigPanel): void {
-  if (self._tab === 'navbar') {
-    saveNavbar(self);
-  } else if (self._tab === 'popup') {
-    const popupTab = self.shadowRoot?.querySelector('config-tab-popup') as import('./tabs/popup').ConfigTabPopup | null;
-    if (popupTab) popupTab.save();
+  if (self._tab === 'popup') {
+    // Popup config is now managed by room-detail view
   } else if (self._tab === 'light') {
     const lightTab = self.shadowRoot?.querySelector('config-tab-light') as import('./tabs/light').ConfigTabLight | null;
     if (lightTab) lightTab.save();

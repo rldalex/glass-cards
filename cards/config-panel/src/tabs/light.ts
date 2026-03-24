@@ -11,7 +11,6 @@ import type { LightEntry, SchedulePeriodEdit } from '../types';
 export class ConfigTabLight extends BaseConfigTab {
   @state() _lights: LightEntry[] = [];
   @state() _lightRoom = '';
-  @state() _lightDropdownOpen = false;
   @state() _lightShowHeader = true;
 
   // Schedule state
@@ -62,6 +61,10 @@ export class ConfigTabLight extends BaseConfigTab {
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+    if (changedProps.has('areaId') && this.areaId) {
+      this._lightRoom = this.areaId;
+      void this._loadRoomLights();
+    }
     if (this._suppressAutoSave) {
       this._suppressAutoSave = false;
       return;
@@ -238,12 +241,6 @@ export class ConfigTabLight extends BaseConfigTab {
   }
 
   // — Actions —
-
-  private _selectLightRoom(areaId: string): void {
-    this._lightRoom = areaId;
-    this._lightDropdownOpen = false;
-    this._loadRoomLights();
-  }
 
   private _toggleLightVisible(entityId: string): void {
     this._lights = this._lights.map((l) =>
@@ -886,7 +883,6 @@ export class ConfigTabLight extends BaseConfigTab {
 
   renderTab(): TemplateResult {
     void this._lang;
-    const selectedRoomObj = this.rooms.find((r) => r.areaId === this._lightRoom);
 
     return html`
       <div class="preview-encart">
@@ -914,38 +910,6 @@ export class ConfigTabLight extends BaseConfigTab {
               class="toggle ${this._lightShowHeader ? 'on' : ''}"
             ></span>
           </button>
-        </div>
-
-        <div class="section-label">${t('config.light_room')}</div>
-        <div class="section-desc">
-          ${t('config.light_room_desc')}
-        </div>
-        <div class="dropdown ${this._lightDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => (this._lightDropdownOpen = !this._lightDropdownOpen)}
-            aria-expanded=${this._lightDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${selectedRoomObj?.icon || 'mdi:home'}></ha-icon>
-            <span>${selectedRoomObj?.name || t('common.select')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${this.rooms.map(
-              (room) => html`
-                <button
-                  class="dropdown-item ${room.areaId === this._lightRoom ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${room.areaId === this._lightRoom ? 'true' : 'false'}
-                  @click=${() => this._selectLightRoom(room.areaId)}
-                >
-                  <ha-icon .icon=${room.icon}></ha-icon>
-                  ${room.name}
-                </button>
-              `,
-            )}
-          </div>
         </div>
 
         ${this._lights.length > 0
