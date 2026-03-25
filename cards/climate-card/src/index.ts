@@ -398,19 +398,19 @@ export class GlassClimateCard extends BaseCard {
 
     if (isOff) {
       if (features & CF.TURN_ON) {
-        this.hass.callService('climate', 'turn_on', {}, { entity_id: entityId });
+        this._safeCallService('climate', 'turn_on', {}, { entity_id: entityId });
       } else {
         const modes = (entity.attributes.hvac_modes as string[]) || [];
         const firstMode = modes.find((m) => m !== 'off');
         if (firstMode) {
-          this.hass.callService('climate', 'set_hvac_mode', { hvac_mode: firstMode }, { entity_id: entityId });
+          this._safeCallService('climate', 'set_hvac_mode', { hvac_mode: firstMode }, { entity_id: entityId });
         }
       }
     } else {
       if (features & CF.TURN_OFF) {
-        this.hass.callService('climate', 'turn_off', {}, { entity_id: entityId });
+        this._safeCallService('climate', 'turn_off', {}, { entity_id: entityId });
       } else {
-        this.hass.callService('climate', 'set_hvac_mode', { hvac_mode: 'off' }, { entity_id: entityId });
+        this._safeCallService('climate', 'set_hvac_mode', { hvac_mode: 'off' }, { entity_id: entityId });
       }
     }
   }
@@ -418,23 +418,23 @@ export class GlassClimateCard extends BaseCard {
   private _setHvacMode(entityId: string, mode: string): void {
     if (!this.hass) return;
     fireHaptic(this, 'selection');
-    this.hass.callService('climate', 'set_hvac_mode', { hvac_mode: mode }, { entity_id: entityId });
+    this._safeCallService('climate', 'set_hvac_mode', { hvac_mode: mode }, { entity_id: entityId });
   }
 
   private _setPreset(entityId: string, preset: string): void {
     if (!this.hass) return;
     fireHaptic(this, 'selection');
-    this.hass.callService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: entityId });
+    this._safeCallService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: entityId });
   }
 
   private _setFanMode(entityId: string, mode: string): void {
     if (!this.hass) return;
-    this.hass.callService('climate', 'set_fan_mode', { fan_mode: mode }, { entity_id: entityId });
+    this._safeCallService('climate', 'set_fan_mode', { fan_mode: mode }, { entity_id: entityId });
   }
 
   private _setSwingMode(entityId: string, mode: string): void {
     if (!this.hass) return;
-    this.hass.callService('climate', 'set_swing_mode', { swing_mode: mode }, { entity_id: entityId });
+    this._safeCallService('climate', 'set_swing_mode', { swing_mode: mode }, { entity_id: entityId });
   }
 
   private _setTemperature(entityId: string, temp: number): void {
@@ -447,7 +447,7 @@ export class GlassClimateCard extends BaseCard {
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
-      this.hass?.callService('climate', 'set_temperature', { temperature: temp }, { entity_id: entityId });
+      this._safeCallService('climate', 'set_temperature', { temperature: temp }, { entity_id: entityId });
       this._pendingTemps.delete(`temp_${entityId}`);
     }, 400));
   }
@@ -459,7 +459,7 @@ export class GlassClimateCard extends BaseCard {
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
-      this.hass?.callService('climate', 'set_temperature', {
+      this._safeCallService('climate', 'set_temperature', {
         target_temp_low: low,
         target_temp_high: high,
       }, { entity_id: entityId });
@@ -475,7 +475,7 @@ export class GlassClimateCard extends BaseCard {
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
-      this.hass?.callService('climate', 'set_humidity', { humidity }, { entity_id: entityId });
+      this._safeCallService('climate', 'set_humidity', { humidity }, { entity_id: entityId });
       this._pendingTemps.delete(`humidity_${entityId}`);
     }, 400));
   }
@@ -483,7 +483,7 @@ export class GlassClimateCard extends BaseCard {
   private _toggleAuxHeat(entityId: string, entity: HassEntity): void {
     if (!this.hass) return;
     const isOn = entity.attributes.aux_heat === 'on';
-    this.hass.callService('climate', 'set_aux_heat', { aux_heat: !isOn }, { entity_id: entityId });
+    this._safeCallService('climate', 'set_aux_heat', { aux_heat: !isOn }, { entity_id: entityId });
   }
 
   // — Range drag —
