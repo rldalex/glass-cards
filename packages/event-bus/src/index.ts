@@ -54,7 +54,10 @@ class EventBus {
   }
 }
 
-export const bus = new EventBus();
+// Singleton on window to ensure the same instance across multiple IIFE bundles
+const GLOBAL_KEY = '__glassEventBus';
+const w = window as unknown as Record<string, unknown>;
+export const bus: EventBus = (w[GLOBAL_KEY] as EventBus) ?? (w[GLOBAL_KEY] = new EventBus());
 export type { EventCallback };
 
 // History API monkey-patch — call once at startup
