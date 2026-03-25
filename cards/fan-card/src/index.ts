@@ -910,15 +910,15 @@ class GlassFanCard extends BaseCard {
     if (!this.hass) return;
     fireHaptic(this, 'light');
     if (fan.isOn) {
-      this.hass.callService('fan', 'turn_off', {}, { entity_id: fan.entityId });
+      this._safeCallService('fan', 'turn_off', {}, { entity_id: fan.entityId });
     } else {
       // Turn on at speed step 1 if fan supports speed
       const sf = fan.supportedFeatures;
       if (sf & FanFeature.SET_SPEED) {
         const pct = stepToPct(1, fan.speedCount);
-        this.hass.callService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
+        this._safeCallService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
       } else {
-        this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+        this._safeCallService('fan', 'turn_on', {}, { entity_id: fan.entityId });
       }
     }
   }
@@ -929,16 +929,16 @@ class GlassFanCard extends BaseCard {
     const anyOn = fans.some((f) => f.isOn);
     if (anyOn) {
       const ids = fans.map((f) => f.entityId);
-      this.hass.callService('fan', 'turn_off', {}, { entity_id: ids });
+      this._safeCallService('fan', 'turn_off', {}, { entity_id: ids });
     } else {
       // Turn on each fan at speed step 1
       for (const fan of fans) {
         const sf = fan.supportedFeatures;
         if (sf & FanFeature.SET_SPEED) {
           const pct = stepToPct(1, fan.speedCount);
-          this.hass.callService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
+          this._safeCallService('fan', 'turn_on', { percentage: pct }, { entity_id: fan.entityId });
         } else {
-          this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+          this._safeCallService('fan', 'turn_on', {}, { entity_id: fan.entityId });
         }
       }
     }
@@ -951,13 +951,13 @@ class GlassFanCard extends BaseCard {
     if (!this.hass) return;
     fireHaptic(this, 'selection');
     if (pct === 0) {
-      this.hass.callService('fan', 'turn_off', {}, { entity_id: fan.entityId });
+      this._safeCallService('fan', 'turn_off', {}, { entity_id: fan.entityId });
       return;
     }
     if (!fan.isOn) {
-      this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+      this._safeCallService('fan', 'turn_on', {}, { entity_id: fan.entityId });
     }
-    this.hass.callService('fan', 'set_percentage', { percentage: pct }, { entity_id: fan.entityId });
+    this._safeCallService('fan', 'set_percentage', { percentage: pct }, { entity_id: fan.entityId });
   }
 
   private _setPresetMode(fan: FanInfo, mode: string, e: Event): void {
@@ -967,27 +967,27 @@ class GlassFanCard extends BaseCard {
     if (fan.presetMode === mode) {
       // Set back to percentage mode
       if (fan.percentage > 0) {
-        this.hass.callService('fan', 'set_percentage', { percentage: fan.percentage }, { entity_id: fan.entityId });
+        this._safeCallService('fan', 'set_percentage', { percentage: fan.percentage }, { entity_id: fan.entityId });
       }
       return;
     }
     if (!fan.isOn) {
-      this.hass.callService('fan', 'turn_on', {}, { entity_id: fan.entityId });
+      this._safeCallService('fan', 'turn_on', {}, { entity_id: fan.entityId });
     }
-    this.hass.callService('fan', 'set_preset_mode', { preset_mode: mode }, { entity_id: fan.entityId });
+    this._safeCallService('fan', 'set_preset_mode', { preset_mode: mode }, { entity_id: fan.entityId });
   }
 
   private _setDirection(fan: FanInfo, dir: string, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
     fireHaptic(this, 'selection');
-    this.hass.callService('fan', 'set_direction', { direction: dir }, { entity_id: fan.entityId });
+    this._safeCallService('fan', 'set_direction', { direction: dir }, { entity_id: fan.entityId });
   }
 
   private _toggleOscillation(fan: FanInfo, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
-    this.hass.callService('fan', 'oscillate', { oscillating: !fan.oscillating }, { entity_id: fan.entityId });
+    this._safeCallService('fan', 'oscillate', { oscillating: !fan.oscillating }, { entity_id: fan.entityId });
   }
 
   private _toggleCeilingLight(fan: FanInfo, e: Event): void {
@@ -995,7 +995,7 @@ class GlassFanCard extends BaseCard {
     if (!this.hass || !fan.lightEntityId) return;
     const lightEntity = this.hass.states[fan.lightEntityId];
     const service = lightEntity?.state === 'on' ? 'turn_off' : 'turn_on';
-    this.hass.callService('light', service, {}, { entity_id: fan.lightEntityId });
+    this._safeCallService('light', service, {}, { entity_id: fan.lightEntityId });
   }
 
   private _hasControls(fan: FanInfo): boolean {
@@ -1043,14 +1043,14 @@ class GlassFanCard extends BaseCard {
       this._throttleTimers.delete(key);
       const val = this._dragValues.get(key) ?? value;
       const brightness = Math.round((val / 100) * 255);
-      this.hass?.callService('light', 'turn_on', { brightness }, { entity_id: lightEntityId });
+      this._safeCallService('light', 'turn_on', { brightness }, { entity_id: lightEntityId });
     }, 100));
   }
 
   private _onLightSliderChange(fan: FanInfo, value: number): void {
     if (!fan.lightEntityId || !this.hass) return;
     const brightness = Math.round((value / 100) * 255);
-    this.hass.callService('light', 'turn_on', { brightness }, { entity_id: fan.lightEntityId });
+    this._safeCallService('light', 'turn_on', { brightness }, { entity_id: fan.lightEntityId });
     const next = new Map(this._dragValues);
     next.delete(`light:${fan.entityId}`);
     this._dragValues = next;
