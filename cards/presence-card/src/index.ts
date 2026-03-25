@@ -309,7 +309,7 @@ export class GlassPresenceCard extends BaseCard {
         service = parts.slice(1).join('.');
       }
       const senderName = this.hass.user?.name || 'Home Assistant';
-      await this.hass.callService(domain, service, {
+      this._safeCallService(domain, service, {
         title: t('presence.notif_title', { name: senderName }),
         message: this._notifText.trim(),
       });
