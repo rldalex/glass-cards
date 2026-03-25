@@ -139,6 +139,20 @@ export const baseStyles = css`
         padding-left: 0.125rem;
       }
 
+      /* ── Live card preview ── */
+      .tab-panel > :is(glass-light-card, glass-climate-card, glass-cover-card,
+        glass-fan-card, glass-media-card, glass-weather-card, glass-presence-card,
+        glass-spotify-card, glass-camera-carousel-card, glass-title-card) {
+        display: block;
+        margin-bottom: 1rem;
+        overflow: visible;
+      }
+
+      /* ── Spacing utilities ── */
+      .mt-sm { margin-top: 0.75rem; }
+      .mt-md { margin-top: 1.25rem; }
+      .mt-lg { margin-top: 1.75rem; }
+
       /* ── Banner ── */
       .banner {
         display: flex;
@@ -962,6 +976,7 @@ export const baseStyles = css`
       .panel-content {
         flex: 1;
         overflow-y: auto;
+        overflow-x: clip;
         min-width: 0;
       }
 
