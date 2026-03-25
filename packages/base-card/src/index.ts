@@ -95,6 +95,7 @@ export interface GestureCallbacks {
 
 export abstract class BaseCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
+  @property({ type: Boolean, attribute: 'config-preview' }) configPreview = false;
   @state() protected _lang = getLanguage();
   protected _config?: LovelaceCardConfig;
   protected _busCleanups: (() => void)[] = [];
@@ -177,6 +178,15 @@ export abstract class BaseCard extends LitElement {
   // — Gesture handling —
 
   protected _bindGesture(callbacks: GestureCallbacks) {
+    if (this.configPreview) {
+      return {
+        pointerdown: () => {},
+        pointerup: () => {},
+        pointermove: () => {},
+        pointercancel: () => {},
+        contextmenu: () => {},
+      };
+    }
     return {
       pointerdown: (e: PointerEvent) => this._onGestureDown(e, callbacks),
       pointerup: (e: PointerEvent) => this._onGestureUp(e, callbacks),
@@ -184,6 +194,17 @@ export abstract class BaseCard extends LitElement {
       pointercancel: () => this._onGestureCancel(),
       contextmenu: (e: Event) => e.preventDefault(),
     };
+  }
+
+  /** Call a HA service, blocked in configPreview mode. */
+  protected _safeCallService(
+    domain: string,
+    service: string,
+    data?: Record<string, unknown>,
+    target?: { entity_id: string | string[] },
+  ): void {
+    if (this.configPreview || !this.hass) return;
+    this.hass.callService(domain, service, data, target);
   }
 
   private _onGestureDown(e: PointerEvent, cb: GestureCallbacks): void {
