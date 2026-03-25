@@ -3,7 +3,9 @@ import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
 import { BackendService, type HomeAssistant } from '@glass-cards/base-card';
+import { bus } from '@glass-cards/event-bus';
 import { configPanelStyles } from './styles';
+import { createSaveScheduler } from './utils/save-scheduler';
 import type { RoomEntry, DragState } from './types';
 
 /**
@@ -30,6 +32,8 @@ export abstract class BaseConfigTab extends LitElement {
 
   protected _initializedForArea: string | null = null;
 
+  private _saveScheduler = createSaveScheduler();
+
   @state() _lang = getLanguage();
 
   static styles = [
@@ -43,6 +47,12 @@ export abstract class BaseConfigTab extends LitElement {
     if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
       this._lang = getLanguage();
     }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._saveScheduler.cancel();
+    this._teardownDropdownListener();
   }
 
   /** Called by parent after loadConfig() with this tab's config slice. */
@@ -59,36 +69,35 @@ export abstract class BaseConfigTab extends LitElement {
     return this.renderTab();
   }
 
-  // — Event helpers (events bubble up to parent) —
-
-  /** Signal that tab state changed — triggers auto-save debounce in parent. */
-  protected _fireDirty(): void {
-    this.dispatchEvent(new CustomEvent('tab-dirty', { bubbles: true, composed: true }));
-  }
+  // — Event helpers —
 
   /** Request parent to show a toast. */
   protected _fireToast(success: boolean): void {
     this.dispatchEvent(new CustomEvent('tab-toast', { bubbles: true, composed: true, detail: { success } }));
   }
 
-  // — Drag helpers —
+  // — Auto-save —
 
-  protected _onDragStart(idx: number, context: string, srcIdx?: number): void {
-    this.dispatchEvent(new CustomEvent('drag-start', { bubbles: true, composed: true, detail: { idx, context, srcIdx } }));
+  protected _scheduleSave(): void {
+    this._saveScheduler.schedule(() => this.save());
   }
 
-  protected _onDragOver(idx: number, e: DragEvent): void {
-    e.preventDefault();
-    this.dispatchEvent(new CustomEvent('drag-over', { bubbles: true, composed: true, detail: { idx } }));
+  /** Override to add pre-save guards (e.g. _saving flag). */
+  protected _canSave(): boolean { return !!this.backend; }
+
+  /** Main save — calls _performSave with toast error handling. */
+  async save(): Promise<void> {
+    if (!this._canSave()) return;
+    try {
+      await this._performSave();
+      this._fireToast(true);
+    } catch {
+      this._fireToast(false);
+    }
   }
 
-  protected _onDragLeave(): void {
-    this.dispatchEvent(new CustomEvent('drag-leave', { bubbles: true, composed: true }));
-  }
-
-  protected _onDragEnd(): void {
-    this.dispatchEvent(new CustomEvent('drag-end', { bubbles: true, composed: true }));
-  }
+  /** Override with card-specific WS calls + bus.emit(). Default no-op. */
+  protected async _performSave(): Promise<void> { /* no-op */ }
 
   // — Auto-save key detection —
 
@@ -100,7 +109,7 @@ export abstract class BaseConfigTab extends LitElement {
     if (keys.size === 0) return;
     for (const key of changedProps.keys()) {
       if (keys.has(key as string)) {
-        this._fireDirty();
+        this._scheduleSave();
         return;
       }
     }
@@ -113,5 +122,108 @@ export abstract class BaseConfigTab extends LitElement {
     if (this._initializedForArea === this.areaId) return false;
     this._initializedForArea = this.areaId;
     return true;
+  }
+
+  // — Drag/drop helpers —
+
+  protected _localDragIdx: number | null = null;
+  protected _localDropIdx: number | null = null;
+
+  protected _onLocalDragStart(idx: number): void { this._localDragIdx = idx; }
+  protected _onLocalDragOver(idx: number, e: DragEvent): void {
+    e.preventDefault();
+    if (this._localDragIdx !== null && this._localDragIdx !== idx) this._localDropIdx = idx;
+  }
+  protected _onLocalDragLeave(): void { this._localDropIdx = null; }
+  protected _onLocalDragEnd(): void {
+    this._localDragIdx = null;
+    this._localDropIdx = null;
+  }
+
+  protected _applyLocalDrop<T>(idx: number, arr: T[]): T[] | null {
+    if (this._localDragIdx === null || this._localDragIdx === idx) {
+      this._localDragIdx = null;
+      this._localDropIdx = null;
+      return null;
+    }
+    const result = [...arr];
+    const [moved] = result.splice(this._localDragIdx, 1);
+    result.splice(idx, 0, moved);
+    this._localDragIdx = null;
+    this._localDropIdx = null;
+    return result;
+  }
+
+  // — Dropdown outside-click helpers —
+
+  private _boundDropdownClose?: (e: MouseEvent) => void;
+
+  protected _setupDropdownListener(): void {
+    this._boundDropdownClose = (e: MouseEvent) => {
+      const path = e.composedPath();
+      const root = this.shadowRoot;
+      if (!root) return;
+      const dropdowns = root.querySelectorAll('.dropdown.open');
+      for (const dd of dropdowns) {
+        if (path.includes(dd)) return;
+      }
+      this._closeAllDropdowns();
+    };
+    document.addEventListener('click', this._boundDropdownClose);
+  }
+
+  protected _teardownDropdownListener(): void {
+    if (this._boundDropdownClose) {
+      document.removeEventListener('click', this._boundDropdownClose);
+      this._boundDropdownClose = undefined;
+    }
+  }
+
+  /** Override in subclass to reset dropdown open states. */
+  protected _closeAllDropdowns(): void { /* no-op */ }
+
+  // — Room entity save helper —
+
+  protected async _saveRoomEntities(
+    areaId: string,
+    cardEntityIds: Set<string>,
+    hiddenIds: string[],
+    orderedIds: string[],
+    layouts?: Record<string, string>,
+  ): Promise<void> {
+    if (!this.backend) return;
+
+    let existingHidden: string[] = [];
+    let existingOrder: string[] = [];
+    let existingLayouts: Record<string, string> = {};
+    try {
+      const existing = await this.backend.send<{
+        hidden_entities: string[];
+        entity_order: string[];
+        entity_layouts: Record<string, string>;
+      } | null>('get_room', { area_id: areaId });
+      if (existing) {
+        existingHidden = existing.hidden_entities ?? [];
+        existingOrder = existing.entity_order ?? [];
+        existingLayouts = existing.entity_layouts ?? {};
+      }
+    } catch { /* ignore */ }
+
+    const nonCardHidden = existingHidden.filter(id => !cardEntityIds.has(id));
+    const nonCardOrder = existingOrder.filter(id => !cardEntityIds.has(id));
+
+    const mergedLayouts: Record<string, string> = {};
+    for (const [id, layout] of Object.entries(existingLayouts)) {
+      if (!cardEntityIds.has(id)) mergedLayouts[id] = layout;
+    }
+    if (layouts) Object.assign(mergedLayouts, layouts);
+
+    await this.backend.send('set_room', {
+      area_id: areaId,
+      hidden_entities: [...nonCardHidden, ...hiddenIds],
+      entity_order: [...nonCardOrder, ...orderedIds],
+      entity_layouts: mergedLayouts,
+    });
+    bus.emit('room-config-changed', { areaId });
   }
 }

@@ -285,21 +285,21 @@ export class ConfigTabCover extends BaseConfigTab {
 
   // — Local drag & drop —
 
-  private _onLocalDragStart(idx: number, context: string): void {
+  private _onCoverDragStart(idx: number, context: string): void {
     this._dragIdx = idx;
     this._dragContext = context;
   }
 
-  private _onLocalDragOver(idx: number, e: DragEvent): void {
+  private _onCoverDragOver(idx: number, e: DragEvent): void {
     e.preventDefault();
     this._dropIdx = idx;
   }
 
-  private _onLocalDragLeave(): void {
+  private _onCoverDragLeave(): void {
     this._dropIdx = null;
   }
 
-  private _onLocalDragEnd(): void {
+  private _onCoverDragEnd(): void {
     this._dragIdx = null;
     this._dropIdx = null;
     this._dragContext = '';
@@ -372,11 +372,11 @@ export class ConfigTabCover extends BaseConfigTab {
                     <div
                       class=${rowClasses}
                       draggable="true"
-                      @dragstart=${() => this._onLocalDragStart(idx, 'covers')}
-                      @dragover=${(ev: DragEvent) => this._onLocalDragOver(idx, ev)}
-                      @dragleave=${() => this._onLocalDragLeave()}
+                      @dragstart=${() => this._onCoverDragStart(idx, 'covers')}
+                      @dragover=${(ev: DragEvent) => this._onCoverDragOver(idx, ev)}
+                      @dragleave=${() => this._onCoverDragLeave()}
                       @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
-                      @dragend=${() => this._onLocalDragEnd()}
+                      @dragend=${() => this._onCoverDragEnd()}
                     >
                       <span class="drag-handle">
                         <ha-icon .icon=${'mdi:drag'}></ha-icon>

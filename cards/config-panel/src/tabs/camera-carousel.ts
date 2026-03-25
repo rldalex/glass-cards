@@ -13,8 +13,8 @@ export class ConfigTabCamera extends BaseConfigTab {
   @state() _cameraEntityOrder: string[] = [];
 
   // Internal drag state for entity reorder
-  @state() private _localDragIdx: number | null = null;
-  @state() private _localDropIdx: number | null = null;
+  @state() protected override _localDragIdx: number | null = null;
+  @state() protected override _localDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder',

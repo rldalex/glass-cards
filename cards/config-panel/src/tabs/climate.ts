@@ -154,20 +154,20 @@ export class ConfigTabClimate extends BaseConfigTab {
 
   // — Local drag & drop —
 
-  private _onLocalDragStart(idx: number): void {
+  protected override _onLocalDragStart(idx: number): void {
     this._localDragIdx = idx;
   }
 
-  private _onLocalDragOver(idx: number, e: DragEvent): void {
+  protected override _onLocalDragOver(idx: number, e: DragEvent): void {
     e.preventDefault();
     this._localDropIdx = idx;
   }
 
-  private _onLocalDragLeave(): void {
+  protected override _onLocalDragLeave(): void {
     this._localDropIdx = null;
   }
 
-  private _onLocalDragEnd(): void {
+  protected override _onLocalDragEnd(): void {
     this._localDragIdx = null;
     this._localDropIdx = null;
   }

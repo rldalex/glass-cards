@@ -532,20 +532,20 @@ export class ConfigTabLight extends BaseConfigTab {
 
   // — Drag & drop for light reorder —
 
-  private _onLocalDragStart(idx: number): void {
+  protected override _onLocalDragStart(idx: number): void {
     this._dragIdx = idx;
   }
 
-  private _onLocalDragOver(idx: number, e: DragEvent): void {
+  protected override _onLocalDragOver(idx: number, e: DragEvent): void {
     e.preventDefault();
     if (this._dragIdx !== null && this._dragIdx !== idx) this._dropIdx = idx;
   }
 
-  private _onLocalDragLeave(): void {
+  protected override _onLocalDragLeave(): void {
     this._dropIdx = null;
   }
 
-  private _onLocalDragEnd(): void {
+  protected override _onLocalDragEnd(): void {
     this._dragIdx = null;
     this._dropIdx = null;
   }

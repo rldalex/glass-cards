@@ -16,8 +16,8 @@ export class ConfigTabSpotify extends BaseConfigTab {
   @state() _spotifyConfigured: boolean | null = null;
 
   // Local drag state for speakers
-  private _localDragIdx: number | null = null;
-  private _localDropIdx: number | null = null;
+  protected override _localDragIdx: number | null = null;
+  protected override _localDropIdx: number | null = null;
   private _localDragContext = '';
 
   protected static override _AUTO_SAVE_KEYS = new Set([
@@ -110,23 +110,23 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   // — Local drag-drop for speakers —
 
-  private _onLocalDragStart(idx: number): void {
+  protected override _onLocalDragStart(idx: number): void {
     this._localDragIdx = idx;
     this._localDragContext = 'speakers';
   }
 
-  private _onLocalDragOver(idx: number, e: DragEvent): void {
+  protected override _onLocalDragOver(idx: number, e: DragEvent): void {
     e.preventDefault();
     this._localDropIdx = idx;
     this.requestUpdate();
   }
 
-  private _onLocalDragLeave(): void {
+  protected override _onLocalDragLeave(): void {
     this._localDropIdx = null;
     this.requestUpdate();
   }
 
-  private _onLocalDragEnd(): void {
+  protected override _onLocalDragEnd(): void {
     this._localDragIdx = null;
     this._localDropIdx = null;
     this._localDragContext = '';
