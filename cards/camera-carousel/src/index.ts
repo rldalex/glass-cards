@@ -523,7 +523,7 @@ class GlassCameraCarouselCard extends BaseCard {
   private _togglePower(cam: CameraInfo) {
     if (!this.hass) return;
     const service = cam.isOn ? 'turn_off' : 'turn_on';
-    this.hass.callService('camera', service, { entity_id: cam.entityId });
+    this._safeCallService('camera', service, { entity_id: cam.entityId });
   }
 
   private _snapshot(cam: CameraInfo) {
@@ -536,31 +536,31 @@ class GlassCameraCarouselCard extends BaseCard {
   private _toggleRecord(cam: CameraInfo) {
     if (!this.hass || !cam.recordSwitchId) return;
     const isOn = this.hass.states[cam.recordSwitchId]?.state === 'on';
-    this.hass.callService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.recordSwitchId });
+    this._safeCallService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.recordSwitchId });
   }
 
   private _toggleMotion(cam: CameraInfo) {
     if (!this.hass) return;
     const service = cam.motionDetectionEnabled ? 'disable_motion_detection' : 'enable_motion_detection';
-    this.hass.callService('camera', service, { entity_id: cam.entityId });
+    this._safeCallService('camera', service, { entity_id: cam.entityId });
   }
 
   private _toggleSiren(cam: CameraInfo) {
     if (!this.hass || !cam.sirenId) return;
     const isOn = this.hass.states[cam.sirenId]?.state === 'on';
-    this.hass.callService('siren', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.sirenId });
+    this._safeCallService('siren', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.sirenId });
   }
 
   private _toggleFloodlight(cam: CameraInfo) {
     if (!this.hass || !cam.floodlightId) return;
     const isOn = this.hass.states[cam.floodlightId]?.state === 'on';
-    this.hass.callService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.floodlightId });
+    this._safeCallService('light', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.floodlightId });
   }
 
   private _toggleAutoTrack(cam: CameraInfo) {
     if (!this.hass || !cam.autoTrackId) return;
     const isOn = this.hass.states[cam.autoTrackId]?.state === 'on';
-    this.hass.callService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.autoTrackId });
+    this._safeCallService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.autoTrackId });
   }
 
   private _startStream(entityId: string) {
