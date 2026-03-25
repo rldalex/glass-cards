@@ -63,10 +63,6 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     return {};
   }
 
-  renderPreview(): TemplateResult | typeof nothing {
-    return nothing;
-  }
-
   // — Collect entities from hass —
 
   private _collectAllEntities(): EntityAreaEntry[] {

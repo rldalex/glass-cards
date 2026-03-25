@@ -1,4 +1,4 @@
-import { css, LitElement, nothing, type PropertyValues, type TemplateResult } from 'lit';
+import { css, LitElement, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
@@ -50,9 +50,6 @@ export abstract class BaseConfigTab extends LitElement {
 
   /** Called by parent before save — returns the payload for the WS command. */
   abstract collectSaveData(): Record<string, unknown>;
-
-  /** Render the preview section (inside .preview-encart). */
-  abstract renderPreview(): TemplateResult | typeof nothing;
 
   /** Render the tab form content. */
   abstract renderTab(): TemplateResult;

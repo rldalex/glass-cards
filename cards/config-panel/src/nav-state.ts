@@ -4,7 +4,7 @@ export interface NavState {
   roomId?: string;
 }
 
-export const DEFAULT_NAV: NavState = { section: 'rooms' };
+export const DEFAULT_NAV: NavState = { section: 'dashboard' };
 
 export function pushNav(state: NavState): void {
   window.history.pushState({ glassNav: state }, '');

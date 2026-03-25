@@ -350,11 +350,18 @@ export class GlassConfigPanel extends LitElement {
         <div class="breadcrumb">
           <button @click=${() => this._navigateTo({ section: this._nav.section })}>${label}</button>
           <span class="sep">›</span>
-          <span class="current">${this._nav.subSection}</span>
+          <span class="current">${this._subSectionLabel(this._nav.subSection)}</span>
         </div>
       `;
     }
     return nothing;
+  }
+
+  private _subSectionLabel(sub: string): string {
+    const keyMap: Record<string, string> = { camera: 'camera_carousel', orphans: 'unassigned' };
+    const key = `config.tab_${keyMap[sub] || sub}` as import('@glass-cards/i18n').TranslationKey;
+    const translated = t(key);
+    return translated !== key ? translated : sub;
   }
 
   // ─── Content router ───
