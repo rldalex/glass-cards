@@ -977,7 +977,7 @@ class GlassSpotifyCard extends BaseCard {
         if (!entity) continue;
         const members = entity.attributes.group_members as string[] | undefined;
         if (members && members.length > 1) {
-          this.hass.callService('media_player', 'unjoin', {}, { entity_id: id });
+          this._safeCallService('media_player', 'unjoin', {}, { entity_id: id });
         }
       }
       // Small delay for unjoins to propagate
@@ -987,7 +987,7 @@ class GlassSpotifyCard extends BaseCard {
 
       // Play on the first (coordinator) speaker
       const coordinator = entityIds[0];
-      await this.hass.callService('media_player', 'play_media', {
+      this._safeCallService('media_player', 'play_media', {
         media_content_id: uri,
         media_content_type: contentType,
       }, { entity_id: coordinator });
@@ -1001,13 +1001,13 @@ class GlassSpotifyCard extends BaseCard {
         if (canGroup) {
           // Small delay for play_media to start
           await new Promise((r) => setTimeout(r, 800));
-          this.hass.callService('media_player', 'join', {
+          this._safeCallService('media_player', 'join', {
             group_members: others,
           }, { entity_id: coordinator });
         } else {
           // Coordinator can't group — play individually on each
           for (const id of others) {
-            this.hass.callService('media_player', 'play_media', {
+            this._safeCallService('media_player', 'play_media', {
               media_content_id: uri,
               media_content_type: contentType,
             }, { entity_id: id });
