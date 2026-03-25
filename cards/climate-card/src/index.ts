@@ -993,6 +993,8 @@ export class GlassClimateCard extends BaseCard {
       width: 100%;
       max-width: 31.25rem;
       margin: 0 auto;
+      user-select: none;
+      -webkit-user-select: none;
       color: var(--t1);
 
       /* Climate tokens */
@@ -1032,7 +1034,7 @@ export class GlassClimateCard extends BaseCard {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
       border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
-      transition: all var(--t-med);
+      transition: background var(--t-med), color var(--t-med);
     }
     .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
     .card-count.none { background: var(--s2); color: var(--t3); }
@@ -1111,7 +1113,7 @@ export class GlassClimateCard extends BaseCard {
       width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); cursor: pointer; padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .cl-icon-btn ha-icon {
@@ -1215,7 +1217,7 @@ export class GlassClimateCard extends BaseCard {
     /* ── Dot ── */
     .cl-dot {
       width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: all var(--t-med);
+      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
     }
     .cl-row[data-action="heating"] .cl-dot,
     .cl-row[data-action="preheating"] .cl-dot {
@@ -1274,7 +1276,7 @@ export class GlassClimateCard extends BaseCard {
       width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); outline: none; padding: 0;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
@@ -1385,7 +1387,7 @@ export class GlassClimateCard extends BaseCard {
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
       padding: 0.4375rem 0.625rem; border-radius: var(--radius-sm); min-width: 0;
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
       border: none; background: transparent; outline: none;
       -webkit-tap-highlight-color: transparent; white-space: nowrap;
     }
@@ -1398,7 +1400,7 @@ export class GlassClimateCard extends BaseCard {
 
     .entity-tab .tab-dot {
       width: 0.3125rem; height: 0.3125rem; border-radius: 50%; flex-shrink: 0;
-      transition: all var(--t-med);
+      transition: background var(--t-med), box-shadow var(--t-med);
     }
     .entity-tab .tab-dot.heating,
     .entity-tab .tab-dot.preheating {
@@ -1455,7 +1457,7 @@ export class GlassClimateCard extends BaseCard {
     .arc-target-dot {
       fill: rgba(var(--rgb-white),0.9);
       filter: drop-shadow(0 0 4px rgba(var(--rgb-white),0.5));
-      transition: all 0.6s var(--ease-out);
+      transition: fill 0.6s var(--ease-out), filter 0.6s var(--ease-out);
     }
     .arc-tick { stroke: var(--t4); stroke-width: 1; opacity: 0.3; }
     .arc-tick-major { stroke: var(--t3); stroke-width: 1.5; opacity: 0.5; }
@@ -1541,7 +1543,7 @@ export class GlassClimateCard extends BaseCard {
       padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
@@ -1581,7 +1583,7 @@ export class GlassClimateCard extends BaseCard {
       border-radius: var(--radius-md); background: var(--s2);
       border: 1px solid var(--b2); cursor: pointer; padding: 0;
       outline: none; font-family: inherit;
-      transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); -webkit-tap-highlight-color: transparent;
     }
     .btn-icon.xs { width: 1.75rem; height: 1.75rem; }
     .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
@@ -1634,7 +1636,7 @@ export class GlassClimateCard extends BaseCard {
     .toggle {
       position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
-      transition: all var(--t-fast); padding: 0; outline: none;
+      transition: background var(--t-fast), border-color var(--t-fast); padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .toggle .toggle-knob {

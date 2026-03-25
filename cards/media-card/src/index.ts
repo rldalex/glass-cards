@@ -1313,6 +1313,8 @@ export class GlassMediaCard extends BaseCard {
         width: 100%;
         max-width: 31.25rem;
         margin: 0 auto;
+        user-select: none;
+        -webkit-user-select: none;
         /* media player tokens */
         --mp-color: #818cf8;
         --mp-bg: rgba(var(--rgb-accent),0.1);
@@ -1616,7 +1618,7 @@ export class GlassMediaCard extends BaseCard {
         width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
         background: transparent; border: 1px solid transparent;
         display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+        cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent;
         color: rgba(var(--rgb-white),0.85);
       }
@@ -1703,7 +1705,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-dot {
         width: 0.375rem; height: 0.375rem; border-radius: 50%;
         background: rgba(var(--rgb-white),0.2); border: none;
-        padding: 0; cursor: pointer; transition: all var(--t-fast);
+        padding: 0; cursor: pointer; transition: background var(--t-fast), transform var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .dash-dot.active {
@@ -1762,7 +1764,7 @@ export class GlassMediaCard extends BaseCard {
         width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
         background: transparent; border: none;
         display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+        cursor: pointer; transition: color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
         -webkit-tap-highlight-color: transparent; flex-shrink: 0;
         color: rgba(var(--rgb-white),0.85);
       }
@@ -1787,7 +1789,7 @@ export class GlassMediaCard extends BaseCard {
         border: 1px solid var(--b2); background: var(--s1);
         font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
         text-transform: uppercase; letter-spacing: 0.8px;
-        color: rgba(var(--rgb-white),0.7); cursor: pointer; transition: all var(--t-fast);
+        color: rgba(var(--rgb-white),0.7); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .chip ha-icon {
@@ -1813,7 +1815,7 @@ export class GlassMediaCard extends BaseCard {
         display: flex; flex-direction: column; gap: 0.25rem;
         padding: 0.375rem; border-radius: var(--radius-md);
         background: var(--s1); border: 1px solid var(--b1);
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast);
       }
       .mr-cell.joined {
         background: rgba(var(--rgb-white),0.04); border-color: rgba(var(--rgb-white),0.15);
@@ -1826,7 +1828,7 @@ export class GlassMediaCard extends BaseCard {
         background: var(--s2); border: 1px solid var(--b1);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         cursor: pointer; padding: 0; outline: none;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
         -webkit-tap-highlight-color: transparent;
         color: rgba(var(--rgb-white),0.6);
       }
@@ -1899,7 +1901,7 @@ export class GlassMediaCard extends BaseCard {
         flex: 1;
         padding: 0.4375rem 0; border-radius: var(--radius-sm);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: rgba(var(--rgb-white),0.6); cursor: pointer; transition: all var(--t-fast);
+        color: rgba(var(--rgb-white),0.6); cursor: pointer; transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
         border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }

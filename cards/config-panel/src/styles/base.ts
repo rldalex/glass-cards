@@ -1129,14 +1129,14 @@ export const baseStyles = css`
         }
         .panel-sidebar .nav-btn ha-icon { --mdc-icon-size: 1rem; }
         .room-grid {
-          grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-          gap: 0.375rem;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
         }
         .room-card {
-          padding: 0.75rem 0.375rem;
+          padding: 0.75rem 0.5rem;
           gap: 0.375rem;
         }
-        .room-card ha-icon { --mdc-icon-size: 1.25rem; }
+        .room-card ha-icon { --mdc-icon-size: 1.375rem; }
         .room-card .room-name { font-size: var(--fz-xs); }
       }
 

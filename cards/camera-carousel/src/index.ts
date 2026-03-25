@@ -813,6 +813,8 @@ class GlassCameraCarouselCard extends BaseCard {
         width: 100%;
         max-width: 31.25rem;
         margin: 0 auto;
+        user-select: none;
+        -webkit-user-select: none;
 
         --cam-color: #60a5fa;
         --cam-bg: rgba(var(--rgb-info),0.1);
@@ -952,7 +954,7 @@ class GlassCameraCarouselCard extends BaseCard {
         backdrop-filter: var(--blur-sm);
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; padding: 0; outline: none;
-        font-family: inherit; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        font-family: inherit; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1);
         -webkit-tap-highlight-color: transparent;
         z-index: 5; opacity: 0.7;
       }
@@ -976,7 +978,7 @@ class GlassCameraCarouselCard extends BaseCard {
       .carousel-dot-btn {
         width: 0.5rem; height: 0.5rem; border-radius: 50%; padding: 0;
         border: none; background: var(--t4); cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4,0,0.2,1); outline: none;
+        transition: width 0.2s cubic-bezier(0.4,0,0.2,1), border-radius 0.2s cubic-bezier(0.4,0,0.2,1), background 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1); outline: none;
         -webkit-tap-highlight-color: transparent;
       }
       .carousel-dot-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 2px; }
@@ -1007,7 +1009,7 @@ class GlassCameraCarouselCard extends BaseCard {
         width: 2rem; height: 2rem; border-radius: var(--radius-md);
         background: var(--s2); border: 1px solid var(--b1);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        transition: background 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1);
       }
       .carousel-cam-icon ha-icon {
         color: var(--t3); display: flex; align-items: center; justify-content: center;
@@ -1028,7 +1030,7 @@ class GlassCameraCarouselCard extends BaseCard {
       .ai-badge {
         display: inline-flex; align-items: center; justify-content: center;
         width: 1rem; height: 1rem; border-radius: var(--radius-sm);
-        font-size: var(--fz-sm); transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        font-size: var(--fz-sm); transition: background 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1);
       }
       .ai-badge.active { background: rgba(var(--rgb-info),0.12); color: var(--cam-color); }
       .ai-badge ha-icon {
@@ -1043,7 +1045,7 @@ class GlassCameraCarouselCard extends BaseCard {
         padding: 0.375rem 0.75rem; border-radius: var(--radius-md);
         border: 1px solid var(--b2); background: var(--s1);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        color: var(--t3); cursor: pointer; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1);
         outline: none; -webkit-tap-highlight-color: transparent;
       }
       .action-btn ha-icon { display: flex; align-items: center; justify-content: center; }

@@ -153,6 +153,8 @@ export class GlassNavbarCard extends BaseCard {
         max-width: 31.25rem;
         margin: 0 auto;
         padding: 0.375rem 0 5rem; /* top + space for fixed navbar */
+        user-select: none;
+        -webkit-user-select: none;
       }
 
       .dashboard-cards {
@@ -169,11 +171,11 @@ export class GlassNavbarCard extends BaseCard {
         transform: translateX(-50%);
         max-width: 31.25rem;
         width: calc(100vw - 2rem);
-        height: 3.625rem;
+        height: 4rem;
         border-radius: var(--radius-xl);
         display: flex;
         align-items: center;
-        padding: 0 0.375rem;
+        padding: 0 0.5rem;
         box-sizing: border-box;
         z-index: 9997;
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -205,8 +207,8 @@ export class GlassNavbarCard extends BaseCard {
         background: transparent;
         border: none;
         border-radius: var(--radius-lg);
-        min-width: 2.75rem;
-        height: 2.75rem;
+        min-width: 3rem;
+        height: 3rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1215,7 +1217,7 @@ export class GlassNavbarCard extends BaseCard {
           ? html`<nav class="navbar glass glass-float${this._bgIsLight ? ' bg-light' : ''}" role="navigation" aria-label="${t('common.rooms')}">
               <div class=${scrollClass}>
                 ${this._items.map((item) => this._renderNavItem(item))}
-                <button
+                ${this.hass?.user?.is_admin ? html`<button
                   class="nav-item nav-settings"
                   @click=${() => { history.pushState(null, '', '/glass-cards'); window.dispatchEvent(new Event('location-changed')); }}
                   aria-label=${t('config.title')}
@@ -1223,7 +1225,7 @@ export class GlassNavbarCard extends BaseCard {
                   <span class="nav-content">
                     <ha-icon .icon=${'mdi:cog'}></ha-icon>
                   </span>
-                </button>
+                </button>` : nothing}
               </div>
             </nav>`
           : nothing}

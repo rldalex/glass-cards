@@ -156,6 +156,8 @@ class GlassWeatherCard extends BaseCard {
       width: 100%;
       max-width: 31.25rem;
       margin: 0 auto;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .weather-card-wrap {
@@ -362,7 +364,7 @@ class GlassWeatherCard extends BaseCard {
       background: transparent; color: var(--t4);
       font-family: inherit; font-size: var(--fz-xs); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.8px;
-      cursor: pointer; transition: all var(--t-fast);
+      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       outline: none;
     }
     .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(var(--rgb-white),0.25); }

@@ -145,6 +145,8 @@ export class GlassLightCard extends BaseCard {
         width: 100%;
         max-width: 31.25rem;
         margin: 0 auto;
+        user-select: none;
+        -webkit-user-select: none;
       }
 
       /* ── Card Header ── */
@@ -178,7 +180,7 @@ export class GlassLightCard extends BaseCard {
         border-radius: var(--radius-full);
         font-size: var(--fz-xs);
         font-weight: 600;
-        transition: all var(--t-med);
+        transition: background var(--t-med), color var(--t-med);
       }
       .card-count.none {
         background: var(--s2);
@@ -202,7 +204,7 @@ export class GlassLightCard extends BaseCard {
         background: var(--s2);
         border: 1px solid var(--b2);
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast);
         padding: 0;
         outline: none;
         font-family: inherit;
@@ -266,6 +268,8 @@ export class GlassLightCard extends BaseCard {
         position: relative;
         transition: background var(--t-fast);
         border-radius: var(--radius-md);
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
       }
       @media (hover: hover) and (pointer: fine) {
         .light-row:hover {
@@ -409,7 +413,7 @@ export class GlassLightCard extends BaseCard {
         border-radius: 50%;
         flex-shrink: 0;
         background: var(--t4);
-        transition: all var(--t-med);
+        transition: background var(--t-med), box-shadow var(--t-med);
       }
       .light-row[data-on='true'] .light-dot {
         background: var(--c-light-glow);
@@ -434,9 +438,11 @@ export class GlassLightCard extends BaseCard {
         grid-template-rows: 0fr;
         transition: grid-template-rows var(--t-layout);
         grid-column: 1 / -1;
+        pointer-events: none;
       }
       .ctrl-fold.open {
         grid-template-rows: 1fr;
+        pointer-events: auto;
       }
       .ctrl-fold-inner {
         overflow: hidden;
@@ -499,7 +505,7 @@ export class GlassLightCard extends BaseCard {
         border-radius: 50%;
         border: 2px solid transparent;
         cursor: pointer;
-        transition: all var(--t-fast);
+        transition: transform var(--t-fast), border-color var(--t-fast);
         padding: 0;
         outline: none;
         background: none;
@@ -552,7 +558,7 @@ export class GlassLightCard extends BaseCard {
         outline: none;
         background: none;
         -webkit-tap-highlight-color: transparent;
-        transition: all var(--t-fast);
+        transition: transform var(--t-fast);
         flex-shrink: 0;
         position: relative;
       }

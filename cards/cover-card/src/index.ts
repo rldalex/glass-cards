@@ -160,6 +160,8 @@ class GlassCoverCard extends BaseCard {
       width: 100%;
       max-width: 31.25rem;
       margin: 0 auto;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .cover-header {
@@ -176,7 +178,7 @@ class GlassCoverCard extends BaseCard {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
       border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
-      transition: all var(--t-med);
+      transition: background var(--t-med), color var(--t-med);
     }
     .cover-count.some { background: rgba(var(--rgb-purple),0.15); color: var(--cv-color, #a78bfa); }
     .cover-count.none { background: var(--s2); color: var(--t3); }
@@ -188,7 +190,7 @@ class GlassCoverCard extends BaseCard {
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
-      transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); -webkit-tap-highlight-color: transparent;
     }
     .header-btn ha-icon {
       --mdc-icon-size: var(--icon-sm);
@@ -256,14 +258,14 @@ class GlassCoverCard extends BaseCard {
       width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: all var(--t-fast);
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       cursor: pointer; padding: 0; outline: none;
       -webkit-tap-highlight-color: transparent;
     }
     .cv-icon-btn ha-icon {
       --mdc-icon-size: var(--icon-md);
       display: flex; align-items: center; justify-content: center;
-      color: var(--t3); transition: all var(--t-fast);
+      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
     }
     @media (hover: hover) and (pointer: fine) {
       .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
@@ -301,7 +303,7 @@ class GlassCoverCard extends BaseCard {
 
     .cv-dot {
       width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: all var(--t-med);
+      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
     }
     .cv-row.open .cv-dot {
       background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
@@ -353,7 +355,7 @@ class GlassCoverCard extends BaseCard {
       width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
     .transport-btn ha-icon {
@@ -395,7 +397,7 @@ class GlassCoverCard extends BaseCard {
       padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {

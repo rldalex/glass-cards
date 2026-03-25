@@ -187,6 +187,8 @@ class GlassFanCard extends BaseCard {
       width: 100%;
       max-width: 31.25rem;
       margin: 0 auto;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* ── Card Header ── */
@@ -203,7 +205,7 @@ class GlassFanCard extends BaseCard {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
       border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
-      transition: all var(--t-med);
+      transition: background var(--t-med), color var(--t-med);
     }
     .card-count.some { background: rgba(var(--rgb-accent),0.15); color: var(--c-accent); }
     .card-count.none { background: var(--s2); color: var(--t3); }
@@ -213,7 +215,7 @@ class GlassFanCard extends BaseCard {
     .toggle-all {
       position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
-      transition: all var(--t-fast); padding: 0; outline: none;
+      transition: background var(--t-fast), border-color var(--t-fast); padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .toggle-all::after {
@@ -265,7 +267,7 @@ class GlassFanCard extends BaseCard {
       width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
+      transition: background var(--t-fast), border-color var(--t-fast); cursor: pointer; padding: 0; outline: none;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .fan-icon-btn ha-icon {
@@ -348,7 +350,7 @@ class GlassFanCard extends BaseCard {
 
     .fan-dot {
       width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: all var(--t-med);
+      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
     }
     .fan-row.on .fan-dot {
       background: var(--c-accent); box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
@@ -400,7 +402,7 @@ class GlassFanCard extends BaseCard {
       background: var(--s1); border: 1px solid var(--b1);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       font-family: inherit; font-size: var(--fz-base); font-weight: 700; color: var(--t3);
-      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0.125rem 0;
+      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0.125rem 0;
       -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) and (pointer: fine) {
@@ -443,7 +445,7 @@ class GlassFanCard extends BaseCard {
       padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
       border: 1px solid var(--b2); background: var(--s1);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
     }
     .chip ha-icon {
@@ -484,7 +486,7 @@ class GlassFanCard extends BaseCard {
       width: 2.25rem; height: 1.75rem; display: flex;
       align-items: center; justify-content: center;
       background: transparent; border: none; color: var(--t3);
-      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
       font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .dir-btn ha-icon {
@@ -518,14 +520,14 @@ class GlassFanCard extends BaseCard {
     .toggle-sm {
       position: relative; width: 2.375rem; height: 1.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b2);
-      cursor: pointer; transition: all var(--t-fast);
+      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast);
       padding: 0; outline: none; font-family: inherit; flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
     .toggle-sm::after {
       content: ''; position: absolute; top: 0.125rem; left: 0.125rem;
       width: 0.875rem; height: 0.875rem; border-radius: 50%;
-      background: var(--t3); transition: all var(--t-fast);
+      background: var(--t3); transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
     }
     .toggle-sm.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
     .toggle-sm.on::after {

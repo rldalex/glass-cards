@@ -616,6 +616,8 @@ export class GlassPresenceCard extends BaseCard {
         width: 100%;
         max-width: 31.25rem;
         margin: 0 auto;
+        user-select: none;
+        -webkit-user-select: none;
       }
 
       /* ── Header ── */
@@ -635,7 +637,7 @@ export class GlassPresenceCard extends BaseCard {
         min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
         border-radius: var(--radius-full);
         font-size: var(--fz-xs); font-weight: 600;
-        transition: all var(--t-med);
+        transition: background var(--t-med), color var(--t-med);
       }
       .card-count.all-home { background: rgba(var(--rgb-success),0.15); color: var(--c-success); }
       .card-count.all-away { background: rgba(var(--rgb-alert),0.15); color: var(--c-alert); }
