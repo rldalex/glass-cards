@@ -500,33 +500,29 @@ export class GlassMediaCard extends BaseCard {
 
   /* ── Actions ── */
 
-  private _callService(entityId: string, service: string, data?: Record<string, unknown>): void {
-    this.hass?.callService('media_player', service, data, { entity_id: entityId });
-  }
-
   private _togglePlayPause(player: MediaPlayerInfo): void {
     fireHaptic(this, 'light');
     if (isPlaying(player.state)) {
       if (hasFeature(player, F_PAUSE)) {
-        this._callService(player.entityId, 'media_pause');
+        this._safeCallService('media_player', 'media_pause', {}, { entity_id: player.entityId });
       } else if (hasFeature(player, F_STOP)) {
-        this._callService(player.entityId, 'media_stop');
+        this._safeCallService('media_player', 'media_stop', {}, { entity_id: player.entityId });
       }
     } else {
       if (hasFeature(player, F_PLAY)) {
-        this._callService(player.entityId, 'media_play');
+        this._safeCallService('media_player', 'media_play', {}, { entity_id: player.entityId });
       }
     }
   }
 
   private _previous(entityId: string): void {
     fireHaptic(this, 'light');
-    this._callService(entityId, 'media_previous_track');
+    this._safeCallService('media_player', 'media_previous_track', {}, { entity_id: entityId });
   }
 
   private _next(entityId: string): void {
     fireHaptic(this, 'light');
-    this._callService(entityId, 'media_next_track');
+    this._safeCallService('media_player', 'media_next_track', {}, { entity_id: entityId });
     // Schedule queue refresh if queue tab is open
     if (this._foldOpen && this._foldTab === 'queue') {
       if (this._queueRefreshTimer) clearTimeout(this._queueRefreshTimer);
@@ -535,7 +531,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private _toggleMute(player: MediaPlayerInfo): void {
-    this._callService(player.entityId, 'volume_mute', { is_volume_muted: !player.isMuted });
+    this._safeCallService('media_player', 'volume_mute', { is_volume_muted: !player.isMuted }, { entity_id: player.entityId });
   }
 
   private _setVolume(entityId: string, volume: number): void {
@@ -543,37 +539,37 @@ export class GlassMediaCard extends BaseCard {
     const last = this._volumeThrottles.get(entityId) || 0;
     if (now - last < 100) return;
     this._volumeThrottles.set(entityId, now);
-    this._callService(entityId, 'volume_set', { volume_level: volume });
+    this._safeCallService('media_player', 'volume_set', { volume_level: volume }, { entity_id: entityId });
   }
 
   private _toggleShuffle(player: MediaPlayerInfo): void {
-    this._callService(player.entityId, 'shuffle_set', { shuffle: !player.shuffle });
+    this._safeCallService('media_player', 'shuffle_set', { shuffle: !player.shuffle }, { entity_id: player.entityId });
   }
 
   private _cycleRepeat(player: MediaPlayerInfo): void {
     const next = player.repeat === 'off' ? 'all' : player.repeat === 'all' ? 'one' : 'off';
-    this._callService(player.entityId, 'repeat_set', { repeat: next });
+    this._safeCallService('media_player', 'repeat_set', { repeat: next }, { entity_id: player.entityId });
   }
 
   private _selectSource(entityId: string, source: string): void {
-    this._callService(entityId, 'select_source', { source });
+    this._safeCallService('media_player', 'select_source', { source }, { entity_id: entityId });
   }
 
   private _selectSoundMode(entityId: string, mode: string): void {
-    this._callService(entityId, 'select_sound_mode', { sound_mode: mode });
+    this._safeCallService('media_player', 'select_sound_mode', { sound_mode: mode }, { entity_id: entityId });
   }
 
   private _seekProgress(entityId: string, duration: number, percent: number): void {
     const position = (percent / 100) * duration;
-    this._callService(entityId, 'media_seek', { seek_position: position });
+    this._safeCallService('media_player', 'media_seek', { seek_position: position }, { entity_id: entityId });
   }
 
   private _joinGroup(coordinatorId: string, memberId: string): void {
-    this.hass?.callService('media_player', 'join', { group_members: [memberId] }, { entity_id: coordinatorId });
+    this._safeCallService('media_player', 'join', { group_members: [memberId] }, { entity_id: coordinatorId });
   }
 
   private _unjoinGroup(memberId: string): void {
-    this._callService(memberId, 'unjoin');
+    this._safeCallService('media_player', 'unjoin', {}, { entity_id: memberId });
   }
 
   private _unjoinUnsub?: () => void;
@@ -1090,6 +1086,7 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private async _removeFromQueue(sonosIndex: number): Promise<void> {
+    if (this.configPreview) return;
     const master = this._getCurrentMaster();
     if (!master || !this.hass) return;
     // Optimistic UI: remove from full queue data immediately
