@@ -409,13 +409,13 @@ class GlassTitleCard extends BaseCard {
 
   private _selectOption(src: TitleSourceEntry, optionId: string) {
     if (!src.entity || !this.hass) return;
-    this.hass.callService('input_select', 'select_option', { option: optionId }, { entity_id: src.entity });
+    this._safeCallService('input_select', 'select_option', { option: optionId }, { entity_id: src.entity });
   }
 
   private _activateScene(sceneEntityId: string) {
     if (!this.hass) return;
     fireHaptic(this, 'light');
-    this.hass.callService('scene', 'turn_on', {}, { entity_id: sceneEntityId });
+    this._safeCallService('scene', 'turn_on', {}, { entity_id: sceneEntityId });
 
     // Temporary highlight
     this._activatingSceneId = sceneEntityId;
@@ -437,7 +437,7 @@ class GlassTitleCard extends BaseCard {
 
   private _toggleBoolean(boolEntityId: string) {
     if (!this.hass) return;
-    this.hass.callService('input_boolean', 'toggle', {}, { entity_id: boolEntityId });
+    this._safeCallService('input_boolean', 'toggle', {}, { entity_id: boolEntityId });
   }
 
   private _toggleFold() {
