@@ -284,8 +284,8 @@ export class GlassClimateCard extends BaseCard {
   private async _loadDashboardHidden(): Promise<void> {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds;
-    if (!areas || areas.length === 0) return;
+    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const backend = this._backend;
@@ -356,8 +356,8 @@ export class GlassClimateCard extends BaseCard {
       if (this._dashboardEntities.length > 0) {
         return this._dashboardEntities.filter((id) => this.hass?.states[id] && isEntityVisibleNow(id, this._schedules));
       }
-      const areas = this.visibleAreaIds;
-      if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
+      const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+      if (areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
       const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
@@ -695,8 +695,20 @@ export class GlassClimateCard extends BaseCard {
     const actionKey = ACTION_LABELS[hvacAction] || 'climate.unknown';
     const modeBadgeText = presetMode && presetMode !== 'none' ? presetMode : hvacMode;
 
+    const gesture = this._bindGesture({
+      onTap: () => { if (!unavailable) this._toggle(entityId, entity, new Event('tap')); },
+      onLongPress: () => { if (!unavailable) this._expanded = isExpanded ? null : entityId; },
+      exclude: '.cl-icon-btn',
+    });
+
     return html`
-      <div class="cl-row ${unavailable ? 'entity-unavailable' : ''}" data-action=${hvacAction}>
+      <div class="cl-row ${unavailable ? 'entity-unavailable' : ''}" data-action=${hvacAction}
+        @pointerdown=${gesture.pointerdown}
+        @pointermove=${gesture.pointermove}
+        @pointerup=${gesture.pointerup}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
+      >
         <button
           class="cl-icon-btn"
           @click=${(e: Event) => this._toggle(entityId, entity, e)}
@@ -705,12 +717,7 @@ export class GlassClimateCard extends BaseCard {
         >
           <ha-icon .icon=${icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>
-        <button
-          class="cl-expand-btn"
-          @click=${() => { if (!unavailable) this._expanded = isExpanded ? null : entityId; }}
-          aria-expanded=${isExpanded ? 'true' : 'false'}
-          aria-label=${t('climate.controls_aria')}
-        >
+        <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'} aria-label=${t('climate.controls_aria')}>
           <div class="cl-info">
             <div class="cl-name">${marqueeText(name, MARQUEE_COMPACT)}</div>
             <div class="cl-sub">
@@ -857,6 +864,9 @@ export class GlassClimateCard extends BaseCard {
       : hvacAction === 'cooling' ? 'cool-sep' : '';
 
     const gesture = this._bindGesture({
+      onTap: () => {
+        this._toggle(entity.entity_id, entity, new Event('tap'));
+      },
       onLongPress: () => {
         this._foldOpen = !this._foldOpen;
         const card = this.renderRoot.querySelector('.climate-card') as HTMLElement | null;
@@ -918,12 +928,15 @@ export class GlassClimateCard extends BaseCard {
           const area = areaId ? this.hass?.areas[areaId] : null;
           const roomIcon = area?.icon || 'mdi:home';
 
+          const roomName = area?.name || friendlyName.split(' ')[0];
+
           return html`
             <button class="entity-tab ${isSelected ? 'active' : ''} ${colorClass}"
               @click=${() => { this._selectedEntity = entity.entity_id; }}
               aria-label=${friendlyName}
               aria-pressed=${isSelected ? 'true' : 'false'}>
               <ha-icon .icon=${roomIcon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              ${isSelected ? html`<span class="tab-label">${roomName}</span>` : nothing}
             </button>
           `;
         })}
@@ -1140,7 +1153,7 @@ export class GlassClimateCard extends BaseCard {
     }
 
     /* ── Expand Button ── */
-    .cl-expand-btn {
+    .cl-expand-area {
       flex: 1; min-width: 0;
       display: flex; align-items: center; gap: 0.625rem;
       background: none; border: none; padding: 0;
@@ -1148,7 +1161,7 @@ export class GlassClimateCard extends BaseCard {
       text-align: left; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
-    .cl-expand-btn:focus-visible {
+    .cl-expand-area:focus-visible {
       outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
@@ -1213,7 +1226,7 @@ export class GlassClimateCard extends BaseCard {
     }
 
     /* Unavailable badge inline (replaces dot) */
-    .cl-expand-btn .unavailable-badge {
+    .cl-expand-area .unavailable-badge {
       position: static;
       flex-shrink: 0;
       --mdc-icon-size: 0.75rem;
@@ -1411,6 +1424,14 @@ export class GlassClimateCard extends BaseCard {
     .entity-tab.active.cool {
       background: var(--cl-cool-bg); color: var(--cl-cool);
       box-shadow: 0 1px 6px rgba(56,189,248,0.15);
+    }
+    .tab-label {
+      font-size: var(--fz-xs, 12px);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 5rem;
     }
 
     /* ── Arc gauge ── */

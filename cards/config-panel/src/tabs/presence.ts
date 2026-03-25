@@ -14,6 +14,8 @@ export class ConfigTabPresence extends BaseConfigTab {
   @state() _presenceDrivingSensors: Record<string, string> = {};
   @state() _presenceDropdownOpen: string | null = null;
   @state() _presenceDropdownSearch = '';
+  @state() _personDragIdx: number | null = null;
+  @state() _personDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
@@ -150,6 +152,33 @@ export class ConfigTabPresence extends BaseConfigTab {
 
   // — Actions —
 
+  private _getOrderedPersons(persons: { entityId: string; name: string }[]): { entityId: string; name: string }[] {
+    if (this._presencePersonEntities.length === 0) return persons;
+    const orderMap = new Map(this._presencePersonEntities.map((id, i) => [id, i]));
+    return [...persons].sort((a, b) => {
+      const ai = orderMap.get(a.entityId) ?? 999;
+      const bi = orderMap.get(b.entityId) ?? 999;
+      if (ai !== bi) return ai - bi;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  private _onPersonDrop(targetIdx: number): void {
+    if (this._personDragIdx === null || this._personDragIdx === targetIdx) {
+      this._personDragIdx = null;
+      this._personDropIdx = null;
+      return;
+    }
+    const persons = this._getAvailablePersonEntities();
+    const ordered = this._getOrderedPersons(persons).map((p) => p.entityId);
+    const [moved] = ordered.splice(this._personDragIdx, 1);
+    ordered.splice(targetIdx, 0, moved);
+    // If in auto mode, switching to manual with new order
+    this._presencePersonEntities = ordered;
+    this._personDragIdx = null;
+    this._personDropIdx = null;
+  }
+
   private _togglePresencePerson(entityId: string): void {
     const persons = this._getAvailablePersonEntities();
     const autoMode = this._presencePersonEntities.length === 0;
@@ -220,12 +249,22 @@ export class ConfigTabPresence extends BaseConfigTab {
           <div class="preview-empty">${t('config.presence_no_persons')}</div>
         ` : html`
           <div class="item-list">
-            ${persons.map((p) => {
+            ${this._getOrderedPersons(persons).map((p, idx) => {
               const selected = this._presencePersonEntities.includes(p.entityId);
               const autoMode = this._presencePersonEntities.length === 0;
+              const isDragging = this._personDragIdx === idx;
+              const isDropTarget = this._personDropIdx === idx && this._personDragIdx !== null && this._personDragIdx !== idx;
               return html`
                 <div class="item-card">
-                  <div class="item-row ${!selected && !autoMode ? 'disabled' : ''}">
+                  <div class="item-row ${!selected && !autoMode ? 'disabled' : ''} ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+                    draggable="true"
+                    @dragstart=${() => { this._personDragIdx = idx; }}
+                    @dragover=${(e: DragEvent) => { e.preventDefault(); this._personDropIdx = idx; }}
+                    @dragleave=${() => { this._personDropIdx = null; }}
+                    @drop=${(e: DragEvent) => { e.preventDefault(); this._onPersonDrop(idx); }}
+                    @dragend=${() => { this._personDragIdx = null; this._personDropIdx = null; }}
+                  >
+                    <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
                     <div class="feature-icon">
                       <ha-icon .icon=${'mdi:account'}></ha-icon>
                     </div>
@@ -273,7 +312,6 @@ export class ConfigTabPresence extends BaseConfigTab {
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${t('config.presence_smartphone')}</label>
                 <div class="dropdown ${this._presenceDropdownOpen === smKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"
@@ -329,7 +367,6 @@ export class ConfigTabPresence extends BaseConfigTab {
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${t('config.presence_notify')}</label>
                 <div class="dropdown ${this._presenceDropdownOpen === notKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"
@@ -385,7 +422,6 @@ export class ConfigTabPresence extends BaseConfigTab {
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${t('config.presence_driving')}</label>
                 <div class="dropdown ${this._presenceDropdownOpen === drvKey ? 'open' : ''}">
                   <button
                     class="dropdown-trigger"

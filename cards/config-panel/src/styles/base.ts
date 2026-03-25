@@ -978,7 +978,10 @@ export const baseStyles = css`
         overflow-y: auto;
         overflow-x: clip;
         min-width: 0;
+        scrollbar-width: none;
+        padding: 0 1rem;
       }
+      .panel-content::-webkit-scrollbar { display: none; }
 
       /* ── Breadcrumb ── */
       .breadcrumb {
@@ -1351,10 +1354,11 @@ export const baseStyles = css`
       .section-fold.open .section-fold-inner {
         opacity: 1;
         visibility: visible;
+        overflow: visible;
         transition: opacity var(--t-fast) 0.1s, visibility 0s;
       }
       .section-content {
-        padding: 0.75rem 0.25rem 0.5rem;
+        padding: 0.75rem 0.5rem 0.5rem;
       }
 
       /* ═══════════════════════════════════════════════
@@ -1483,12 +1487,28 @@ export const baseStyles = css`
       .dash-card.dragging { opacity: 0.25; transform: scale(0.95); }
       .dash-card.drop-target { border-color: var(--c-accent); background: rgba(129, 140, 248, 0.06); }
 
+      .dash-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.375rem 0.25rem 0;
+        margin-top: 0.25rem;
+        border-top: 1px solid var(--b1);
+      }
+      .dash-toggle-label {
+        font-size: 7px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--t4);
+      }
       .dash-toggle {
-        position: absolute; top: 6px; right: 6px;
+        position: relative;
         width: 32px; height: 18px; border-radius: 9px;
         background: var(--s2); border: 1px solid var(--b2);
         cursor: pointer; transition: background 0.2s var(--ease-std), border-color 0.2s var(--ease-std);
-        padding: 0; outline: none; z-index: 2;
+        padding: 0; outline: none; flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
       }
       .dash-toggle::before {

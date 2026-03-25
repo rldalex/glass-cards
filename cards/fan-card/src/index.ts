@@ -748,8 +748,8 @@ class GlassFanCard extends BaseCard {
   private async _loadDashboardHidden(): Promise<void> {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds;
-    if (!areas || areas.length === 0) return;
+    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const hidden = new Set<string>();
@@ -813,8 +813,8 @@ class GlassFanCard extends BaseCard {
     }
     // Dashboard mode: all fan IDs from visible areas
     if (this._isDashboardMode) {
-      const areas = this.visibleAreaIds;
-      if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
+      const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+      if (areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
       const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {

@@ -20,7 +20,9 @@
     "move_up": "Déplacer vers le haut",
     "move_down": "Déplacer vers le bas",
     "none": "Aucun",
-    "rooms": "Pièces"
+    "rooms": "Pièces",
+    "enabled": "Activé",
+    "disabled": "Désactivé"
   },
 
   "light": {
@@ -133,7 +135,7 @@
   },
 
   "climate": {
-    "title": "Climat",
+    "title": "Thermostat",
     "target": "Consigne",
     "current": "Actuelle",
     "range_low": "Min",
@@ -579,7 +581,7 @@
     "dashboard_card_media": "Carte Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
 
-    "tab_climate": "Climat",
+    "tab_climate": "Thermostat",
     "climate_desc": "Configurez les entités climat par pièce",
     "climate_no_entities": "Aucune entité climat dans cette pièce",
     "climate_show_header": "Afficher l'en-tête",
@@ -588,6 +590,7 @@
     "climate_display_mode_popup": "Mode d'affichage popup",
     "climate_display_mode_popup_desc": "Disposition des entités climat dans le popup de la pièce.",
     "climate_display_mode_dashboard": "Mode d'affichage (dashboard)",
+    "climate_display_mode_dashboard_desc": "Disposition des entités climat sur le tableau de bord.",
     "climate_mode_list": "Liste",
     "climate_mode_normal": "Normal",
     "climate_select_room": "Sélectionner une pièce",
@@ -595,7 +598,7 @@
     "climate_room_entities_desc": "Ordre et visibilité des entités climat. Glissez pour réordonner.",
     "climate_dashboard_entities": "Entités climat du tableau de bord",
     "climate_dashboard_entities_desc": "Sélectionnez les thermostats à afficher sur le tableau de bord.",
-    "dashboard_card_climate": "Climat",
+    "dashboard_card_climate": "Thermostat",
     "dashboard_card_climate_desc": "Thermostats et climatiseurs",
 
     "dashboard_card_fan": "Carte Ventilation",
@@ -685,7 +688,7 @@
     "spotify_checking": "Vérification de la connexion Spotify…",
     "spotify_open_settings": "Ouvrir les paramètres",
 
-    "tab_unassigned": "Assignation pièces",
+    "tab_unassigned": "Entités orphelines",
     "unassigned_desc": "Assignez ou réassignez vos entités à une pièce pour qu'elles apparaissent dans les popups correspondants.",
     "unassigned_none": "Toutes les entités sont assignées à une pièce.",
     "unassigned_no_entities": "Aucune entité détectée.",

@@ -181,7 +181,7 @@ export class ConfigTabCover extends BaseConfigTab {
     );
   }
 
-  toggleDashboardEntity(entityId: string): void {
+  private _toggleDashboardEntity(entityId: string): void {
     const set = new Set(this._coverDashboardEntities);
     if (set.has(entityId)) {
       set.delete(entityId);
@@ -195,7 +195,7 @@ export class ConfigTabCover extends BaseConfigTab {
     this._coverDashboardEntities = [...set];
   }
 
-  onDropDashboardCover(idx: number, e: DragEvent): void {
+  private _onDropDashboardCover(idx: number, e: DragEvent): void {
     e.preventDefault();
     if (this._dragIdx === null || this._dragIdx === idx || this._dragContext !== 'dashboard_covers') {
       this._dragIdx = null;
@@ -288,6 +288,73 @@ export class ConfigTabCover extends BaseConfigTab {
     this._dropIdx = null;
   }
 
+  // — Dashboard entity picker —
+
+  private _renderDashboardEntities(): TemplateResult {
+    const all = this._getAllCoverEntities();
+    if (all.length === 0) {
+      return html`
+        <div class="banner">
+          <ha-icon .icon=${'mdi:blinds-open'}></ha-icon>
+          <span>${t('config.cover_no_covers')}</span>
+        </div>
+      `;
+    }
+
+    const enabledSet = new Set(this._coverDashboardEntities);
+    const ordered = this._coverDashboardOrder.filter((id) => all.some((c) => c.entityId === id));
+    const remaining = all.filter((c) => !ordered.includes(c.entityId)).map((c) => c.entityId);
+    const sortedIds = [...ordered, ...remaining];
+
+    return html`
+      <div class="sub-section">
+        <div class="section-label">${t('config.cover_dashboard_entities')} (${enabledSet.size}/${all.length})</div>
+        <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
+        <div class="item-list">
+          ${sortedIds.map((id, idx) => {
+            const entity = all.find((c) => c.entityId === id);
+            if (!entity) return nothing;
+            const enabled = enabledSet.has(id);
+            const isDragging = this._dragIdx === idx && this._dragContext === 'dashboard_covers';
+            const isDropTarget = this._dropIdx === idx && this._dragContext === 'dashboard_covers';
+            const rowClasses = [
+              'item-row',
+              !enabled ? 'disabled' : '',
+              isDragging ? 'dragging' : '',
+              isDropTarget ? 'drop-target' : '',
+            ].filter(Boolean).join(' ');
+            return html`
+              <div class="item-card">
+                <div
+                  class=${rowClasses}
+                  draggable="true"
+                  @dragstart=${() => this._onCoverDragStart(idx, 'dashboard_covers')}
+                  @dragover=${(ev: DragEvent) => this._onCoverDragOver(idx, ev)}
+                  @dragleave=${() => this._onCoverDragLeave()}
+                  @drop=${(ev: DragEvent) => this._onDropDashboardCover(idx, ev)}
+                  @dragend=${() => this._onCoverDragEnd()}
+                >
+                  <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+                  <div class="item-info">
+                    <span class="item-name">${entity.name}</span>
+                    <span class="item-meta">${entity.entityId}</span>
+                  </div>
+                  <button
+                    class="toggle ${enabled ? 'on' : ''}"
+                    @click=${() => this._toggleDashboardEntity(id)}
+                    role="switch"
+                    aria-checked=${enabled ? 'true' : 'false'}
+                    aria-label="${enabled ? t('common.hide') : t('common.show')} ${entity.name}"
+                  ></button>
+                </div>
+              </div>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+
   // — Render —
 
   renderTab(): TemplateResult {
@@ -318,6 +385,7 @@ export class ConfigTabCover extends BaseConfigTab {
           </button>
         </div>
 
+        ${!this._coverRoom ? this._renderDashboardEntities() : nothing}
         ${this._coverRoom ? html`
           ${this._coverRoomEntities.length > 0 ? html`
             <div class="section-label">${t('config.cover_list_title')} (${this._coverRoomEntities.length})</div>

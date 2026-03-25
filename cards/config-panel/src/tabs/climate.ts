@@ -40,16 +40,16 @@ export class ConfigTabClimate extends BaseConfigTab {
   // — Persistence —
 
   loadFromConfig(config: Record<string, unknown>): void {
-    const c = config as {
+    const raw = config as {
       show_header?: boolean;
       display_mode?: string;
       dashboard_display_mode?: string;
       dashboard_entities?: string[];
     };
-    this._climateShowHeader = c.show_header ?? true;
-    this._climateDisplayMode = c.display_mode === 'normal' ? 'normal' : 'list';
-    this._climateDashboardDisplayMode = c.dashboard_display_mode === 'normal' ? 'normal' : 'list';
-    this._climateDashboardEntities = c.dashboard_entities ?? [];
+    this._climateShowHeader = raw.show_header ?? true;
+    this._climateDisplayMode = raw.display_mode === 'normal' ? 'normal' : 'list';
+    this._climateDashboardDisplayMode = raw.dashboard_display_mode === 'normal' ? 'normal' : 'list';
+    this._climateDashboardEntities = raw.dashboard_entities ?? [];
   }
 
   collectSaveData(): Record<string, unknown> {
@@ -189,20 +189,20 @@ export class ConfigTabClimate extends BaseConfigTab {
           <div class="section-desc">${t('config.climate_desc')}</div>
         </div>
 
-        <!-- Display mode popup -->
+        <!-- Display mode -->
         <div class="sub-section">
-          <div class="section-label">${t('config.climate_display_mode_popup')}</div>
-          <div class="section-desc">${t('config.climate_display_mode_popup_desc')}</div>
+          <div class="section-label">${this.areaId ? t('config.climate_display_mode_popup') : t('config.climate_display_mode_dashboard')}</div>
+          <div class="section-desc">${this.areaId ? t('config.climate_display_mode_popup_desc') : t('config.climate_display_mode_dashboard_desc')}</div>
           <div class="chip-group">
-            <button class="chip ${this._climateDisplayMode === 'list' ? 'active' : ''}"
-              @click=${() => { this._climateDisplayMode = 'list'; }}
-              aria-pressed=${this._climateDisplayMode === 'list' ? 'true' : 'false'}>
+            <button class="chip ${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'list' ? 'active' : ''}"
+              @click=${() => { if (this.areaId) this._climateDisplayMode = 'list'; else this._climateDashboardDisplayMode = 'list'; }}
+              aria-pressed=${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'list' ? 'true' : 'false'}>
               <ha-icon .icon=${'mdi:format-list-bulleted'}></ha-icon>
               ${t('config.climate_mode_list')}
             </button>
-            <button class="chip ${this._climateDisplayMode === 'normal' ? 'active' : ''}"
-              @click=${() => { this._climateDisplayMode = 'normal'; }}
-              aria-pressed=${this._climateDisplayMode === 'normal' ? 'true' : 'false'}>
+            <button class="chip ${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'normal' ? 'active' : ''}"
+              @click=${() => { if (this.areaId) this._climateDisplayMode = 'normal'; else this._climateDashboardDisplayMode = 'normal'; }}
+              aria-pressed=${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'normal' ? 'true' : 'false'}>
               <ha-icon .icon=${'mdi:gauge'}></ha-icon>
               ${t('config.climate_mode_normal')}
             </button>

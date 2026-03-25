@@ -1,4 +1,4 @@
-import { LitElement, html, type TemplateResult } from 'lit';
+import { LitElement, html, nothing, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import type { HomeAssistant } from '@glass-cards/base-card';
@@ -53,11 +53,15 @@ export class ConfigRoomList extends LitElement {
       return html`<div class="empty-state">${t('config.no_rooms')}</div>`;
     }
 
+    let visibleIdx = 0;
+
     return html`
       <div class="room-grid">
         ${this.rooms.map((room, i) => {
           const isDragging = this._dragIdx === i;
           const isDropTarget = this._dropIdx === i && this._dragIdx !== null && this._dragIdx !== i;
+          if (room.visible) visibleIdx++;
+          const order = room.visible ? visibleIdx : 0;
 
           return html`
             <div
@@ -70,13 +74,17 @@ export class ConfigRoomList extends LitElement {
               @dragend=${() => this._onDragEnd()}
               @click=${() => this.dispatchEvent(new CustomEvent('room-select', { detail: room.areaId, bubbles: true, composed: true }))}
             >
-              <button
-                class="dash-toggle ${room.visible ? 'on' : ''}"
-                @click=${(e: Event) => this._toggleVisibility(room, e)}
-                aria-label=${room.visible ? t('config.hide_room') : t('config.show_room')}
-              ></button>
+              ${room.visible ? html`<span class="dash-order">${order}</span>` : nothing}
               <ha-icon .icon=${room.icon || 'mdi:home'}></ha-icon>
               <span class="room-name">${room.name}</span>
+              <div class="dash-toggle-row">
+                <span class="dash-toggle-label">${room.visible ? t('common.enabled') : t('common.disabled')}</span>
+                <button
+                  class="dash-toggle ${room.visible ? 'on' : ''}"
+                  @click=${(e: Event) => this._toggleVisibility(room, e)}
+                  aria-label=${room.visible ? t('config.hide_room') : t('config.show_room')}
+                ></button>
+              </div>
               <span class="dash-drag-hint"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
             </div>
           `;

@@ -553,7 +553,6 @@ export class ConfigRoomDetail extends LitElement {
         </div>
       </div>
 
-      <div class="fold-sep visible pw-rd-sep"></div>
     `;
   }
 

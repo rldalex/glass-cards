@@ -460,7 +460,7 @@ class GlassTitleCard extends BaseCard {
 
   protected render() {
     void this._lang;
-    const title = this._titleConfig.title;
+    const title = this._titleConfig.title || (this.configPreview ? t('config.title_title_placeholder') : '');
     if (!title) {
       this.style.display = 'none';
       return nothing;

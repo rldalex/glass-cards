@@ -422,12 +422,19 @@ export const formStyles = css`
       .presence-mapping-card {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.25rem;
         margin-top: 0.5rem;
         padding: 0.75rem;
         background: var(--s2);
         border-radius: var(--radius-md);
         border: 1px solid var(--b1);
+      }
+      .presence-mapping-card .presence-mapping-field .dropdown {
+        margin-bottom: 0;
+      }
+      .presence-mapping-card .presence-mapping-field .dropdown-trigger {
+        padding: 0.375rem 0.625rem;
+        font-size: var(--fz-sm);
       }
       .presence-mapping-header {
         display: flex;
@@ -1200,5 +1207,63 @@ export const formStyles = css`
       .presets-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
+      }
+
+      /* ── Unassigned / Orphan entities ── */
+      .pw-ua-icon-btn {
+        flex-shrink: 0;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      .pw-ua-icon-btn:hover { background: var(--s3); border-color: var(--b3); }
+      .pw-ua-icon-btn ha-icon { --mdc-icon-size: 14px; color: var(--t3); }
+
+      .pw-ua-name {
+        cursor: pointer;
+        background: none; border: none; padding: 0;
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        color: var(--t2);
+        text-align: left;
+        line-height: 1.2;
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      .pw-ua-name:hover { color: var(--t1); }
+      .pw-ua-name:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; border-radius: 4px; }
+
+      .pw-ua-card { overflow: visible; }
+      .pw-ua-area-dropdown {
+        width: auto;
+        margin: 0 0.75rem 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .pw-ua-area-trigger {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: var(--fz-sm);
+        gap: 0.375rem;
+        border-radius: var(--radius-md);
+      }
+      .pw-ua-area-trigger .pw-ua-area-icon {
+        --mdc-icon-size: 14px;
+        opacity: 0.5;
+      }
+      .pw-ua-area-trigger.pw-ua-unassigned {
+        color: var(--c-warning);
+        border-color: rgba(var(--rgb-warning), 0.2);
+      }
+      .pw-ua-area-trigger.pw-ua-unassigned .pw-ua-area-icon {
+        color: var(--c-warning);
+        opacity: 0.7;
       }
 `;

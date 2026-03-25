@@ -365,9 +365,10 @@ export function getDashboardEntityIds(
   hass: HomeAssistant,
   visibleAreaIds: string[] | undefined,
 ): string[] {
-  if (!visibleAreaIds?.length) return [];
+  const areas = visibleAreaIds?.length ? visibleAreaIds : Object.keys(hass.areas ?? {});
+  if (areas.length === 0) return [];
   const ids: string[] = [];
-  for (const aId of visibleAreaIds) {
+  for (const aId of areas) {
     for (const e of getAreaEntities(aId, hass.entities, hass.devices)) {
       if (e.entity_id.startsWith(`${domain}.`)) ids.push(e.entity_id);
     }

@@ -20,7 +20,9 @@
     "move_up": "Move up",
     "move_down": "Move down",
     "none": "None",
-    "rooms": "Rooms"
+    "rooms": "Rooms",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
 
   "light": {
@@ -588,6 +590,7 @@
     "climate_display_mode_popup": "Popup display mode",
     "climate_display_mode_popup_desc": "Layout for climate entities in the room popup.",
     "climate_display_mode_dashboard": "Display mode (dashboard)",
+    "climate_display_mode_dashboard_desc": "Layout for climate entities on the dashboard.",
     "climate_mode_list": "List",
     "climate_mode_normal": "Normal",
     "climate_select_room": "Select a room",
@@ -685,7 +688,7 @@
     "spotify_checking": "Checking Spotify connection…",
     "spotify_open_settings": "Open settings",
 
-    "tab_unassigned": "Room assignment",
+    "tab_unassigned": "Orphan entities",
     "unassigned_desc": "Assign or reassign your entities to a room so they appear in the corresponding popups.",
     "unassigned_none": "All entities are assigned to a room.",
     "unassigned_no_entities": "No entities detected.",

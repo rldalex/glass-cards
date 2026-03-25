@@ -819,8 +819,8 @@ export class GlassLightCard extends BaseCard {
   private async _loadDashboardHidden() {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds;
-    if (!areas || areas.length === 0) return;
+    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const hidden = new Set<string>();
@@ -1030,8 +1030,8 @@ export class GlassLightCard extends BaseCard {
     }
     // Dashboard mode: all light IDs from visible areas (filtering to ON is done in _getLights)
     if (this._isDashboardMode) {
-      const areas = this.visibleAreaIds;
-      if (!areas || areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
+      const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+      if (areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
       const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
@@ -1052,8 +1052,8 @@ export class GlassLightCard extends BaseCard {
     if (this._dashboardTotalCache !== undefined && this._dashboardTotalEntitiesRef === this.hass.entities) {
       return this._dashboardTotalCache;
     }
-    const areas = this.visibleAreaIds;
-    if (!areas || areas.length === 0) return 0;
+    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    if (areas.length === 0) return 0;
     const ids = new Set<string>();
     for (const aId of areas) {
       for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {

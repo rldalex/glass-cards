@@ -27,24 +27,18 @@ const DASH_CARD_META: DashCardMeta[] = [
   { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: 'var(--c-alert)' },
 ];
 
-// WS command map for saving sub-configs
-const CARD_WS_MAP: Record<string, { cmd: string; configKey: string }> = {
-  light: { cmd: 'set_light_config', configKey: 'light_card' },
-  weather: { cmd: 'set_weather', configKey: 'weather' },
-  cover: { cmd: 'set_cover_config', configKey: 'cover_card' },
-  fan: { cmd: 'set_fan_config', configKey: 'fan_card' },
-  spotify: { cmd: 'set_spotify_config', configKey: 'spotify_card' },
-  media: { cmd: 'set_media_config', configKey: 'media_card' },
-  presence: { cmd: 'set_presence_config', configKey: 'presence_card' },
-  climate: { cmd: 'set_climate_config', configKey: 'climate_card' },
-  camera_carousel: { cmd: 'set_camera_carousel_config', configKey: 'camera_carousel' },
-};
-
 // Map card IDs to sub-section IDs used by tabs
 const SUB_MAP: Record<string, string> = {
   title: 'title', light: 'light', weather: 'weather',
   cover: 'cover', climate: 'climate', fan: 'fan', media: 'media',
   spotify: 'spotify', presence: 'presence', camera_carousel: 'camera',
+};
+
+// Map sub-section IDs to backend config keys (used by _sliceFor)
+const CONFIG_KEYS: Record<string, string> = {
+  title: 'title_card', weather: 'weather', light: 'light_card', cover: 'cover_card',
+  climate: 'climate_card', fan: 'fan_card', media: 'media_card',
+  spotify: 'spotify_card', presence: 'presence_card', camera: 'camera_carousel',
 };
 
 export class ConfigDashboardView extends LitElement {
@@ -64,9 +58,6 @@ export class ConfigDashboardView extends LitElement {
   // Drag state
   @state() _dragIdx: number | null = null;
   @state() _dropIdx: number | null = null;
-
-  // Sub-config extras for pass-through save
-  private _cardSubExtras: Record<string, Record<string, unknown>> = {};
 
   private _saveScheduler = createSaveScheduler();
 
@@ -102,13 +93,6 @@ export class ConfigDashboardView extends LitElement {
       this._dynamicBackground = dash.dynamic_background ?? true;
     }
 
-    // Collect sub-config extras for save pass-through
-    this._cardSubExtras = {};
-    const c = config as Record<string, Record<string, unknown> | undefined>;
-    for (const [key, meta] of Object.entries(CARD_WS_MAP)) {
-      const slice = c[meta.configKey];
-      if (slice) this._cardSubExtras[key] = { ...slice };
-    }
   }
 
   // ── Save ──
@@ -127,12 +111,6 @@ export class ConfigDashboardView extends LitElement {
         hide_sidebar: this._hideSidebar,
         dynamic_background: this._dynamicBackground,
       });
-
-      // Pass-through save for sub-configs
-      for (const [, meta] of Object.entries(CARD_WS_MAP)) {
-        const extras = this._cardSubExtras[meta.configKey.replace('_card', '')] ?? this._cardSubExtras[meta.configKey];
-        if (extras) await this.backend.send(meta.cmd, extras);
-      }
 
       bus.emit('dashboard-config-changed', undefined);
       this.dispatchEvent(new CustomEvent('tab-toast', { detail: { success: true }, bubbles: true, composed: true }));
@@ -226,15 +204,18 @@ export class ConfigDashboardView extends LitElement {
               @click=${() => this._navigateToCard(cardId)}
             >
               ${enabled ? html`<span class="dash-order">${currentOrder}</span>` : nothing}
-              <button
-                class="dash-toggle ${enabled ? 'on' : ''}"
-                @click=${(e: Event) => { e.stopPropagation(); this._toggleCard(cardId); }}
-                aria-label="${t('common.show')} ${t(meta.nameKey)}"
-              ></button>
               <div class="room-card-icon" style="--icon-color:${meta.color};">
                 <ha-icon .icon=${meta.icon}></ha-icon>
               </div>
               <span class="room-name">${t(meta.nameKey)}</span>
+              <div class="dash-toggle-row">
+                <span class="dash-toggle-label">${enabled ? t('common.enabled') : t('common.disabled')}</span>
+                <button
+                  class="dash-toggle ${enabled ? 'on' : ''}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._toggleCard(cardId); }}
+                  aria-label="${t('common.show')} ${t(meta.nameKey)}"
+                ></button>
+              </div>
               <span class="dash-drag-hint"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
             </div>
           `;
@@ -278,28 +259,35 @@ export class ConfigDashboardView extends LitElement {
     `;
   }
 
+  /** Extract the config slice for a specific card tab from the full config. */
+  private _sliceFor(key: string): Record<string, unknown> {
+    const configKey = CONFIG_KEYS[key];
+    return ((this.configData as Record<string, unknown>)?.[configKey ?? ''] ?? {}) as Record<string, unknown>;
+  }
+
   private _renderSubSection(id: string): TemplateResult {
+    const slice = this._sliceFor(id);
     switch (id) {
       case 'title':
-        return html`<config-tab-title .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-title>`;
+        return html`<config-tab-title .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-title>`;
       case 'spotify':
-        return html`<config-tab-spotify .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-spotify>`;
+        return html`<config-tab-spotify .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-spotify>`;
       case 'presence':
-        return html`<config-tab-presence .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-presence>`;
+        return html`<config-tab-presence .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-presence>`;
       case 'camera':
-        return html`<config-tab-camera .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-camera>`;
+        return html`<config-tab-camera .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-camera>`;
       case 'weather':
-        return html`<config-tab-weather .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-weather>`;
+        return html`<config-tab-weather .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-weather>`;
       case 'light':
-        return html`<config-tab-light .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-light>`;
+        return html`<config-tab-light .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-light>`;
       case 'cover':
-        return html`<config-tab-cover .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-cover>`;
+        return html`<config-tab-cover .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-cover>`;
       case 'climate':
-        return html`<config-tab-climate .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-climate>`;
+        return html`<config-tab-climate .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-climate>`;
       case 'fan':
-        return html`<config-tab-fan .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-fan>`;
+        return html`<config-tab-fan .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-fan>`;
       case 'media':
-        return html`<config-tab-media .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-media>`;
+        return html`<config-tab-media .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-media>`;
       default:
         return html`<div class="placeholder"><ha-icon .icon=${'mdi:hammer-wrench'}></ha-icon><span>${id}</span></div>`;
     }

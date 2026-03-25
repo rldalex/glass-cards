@@ -399,59 +399,55 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                 const isOpen = this._unassignedDropdownEntity === e.entityId;
                 const isEditing = this._unassignedEditingEntity === e.entityId;
                 return html`
-                  <div class="item-row">
-                    <div class="item-info pw-ua-entity-info">
-                      ${isEditing ? html`
-                        <input
-                          type="text"
-                          class="entity-rename-input"
-                          .value=${e.name}
-                          aria-label="${t('config.unassigned_rename')}"
-                          @blur=${(ev: FocusEvent) => {
-                            const input = ev.target as HTMLInputElement;
-                            if (input.dataset.cancelled) return;
-                            this._renameEntity(e.entityId, input.value);
-                          }}
-                          @keydown=${(ev: KeyboardEvent) => {
-                            if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur();
-                            if (ev.key === 'Escape') {
-                              (ev.target as HTMLInputElement).dataset.cancelled = '1';
-                              this._unassignedEditingEntity = null;
-                            }
-                          }}
-                          @focus=${(ev: FocusEvent) => (ev.target as HTMLInputElement).select()}
-                        />
-                      ` : html`
-                        <button
-                          class="item-name entity-name-btn"
-                          @click=${() => {
-                            this._unassignedEditingEntity = e.entityId;
-                            this.updateComplete.then(() => {
-                              const input = this.shadowRoot?.querySelector('.entity-rename-input') as HTMLInputElement | null;
-                              input?.focus();
-                            });
-                          }}
-                          title="${t('config.unassigned_rename')}"
-                          aria-label="${t('config.unassigned_rename')}: ${e.name}"
-                        >
-                          ${e.name}
-                          <ha-icon .icon=${'mdi:pencil'} class="pw-ua-edit-icon"></ha-icon>
-                        </button>
-                      `}
-                      <span class="item-meta">${e.entityId}</span>
-                    </div>
-                    <button
-                      class="btn-icon xs pw-ua-icon-btn-shrink"
-                      title="${t('config.unassigned_change_icon')}"
-                      aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
-                      @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
-                    >
-                      <ha-icon .icon=${e.icon || domainIcon(e.domain)} class="pw-ua-entity-icon"></ha-icon>
-                    </button>
-                    <div class="dropdown ${isOpen ? 'open' : ''} pw-ua-dropdown-wrap">
+                  <div class="item-card pw-ua-card">
+                    <div class="item-row">
                       <button
-                        class="dropdown-trigger"
-                        style="padding:0.25rem 0.5rem;font-size:var(--fz-base);min-width:0;${!e.areaId ? 'color:var(--c-warning);' : ''}"
+                        class="pw-ua-icon-btn"
+                        title="${t('config.unassigned_change_icon')}"
+                        aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
+                        @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
+                      >
+                        <ha-icon .icon=${e.icon || domainIcon(e.domain)}></ha-icon>
+                      </button>
+                      <div class="item-info">
+                        ${isEditing ? html`
+                          <input
+                            type="text"
+                            class="entity-rename-input"
+                            .value=${e.name}
+                            aria-label="${t('config.unassigned_rename')}"
+                            @blur=${(ev: FocusEvent) => {
+                              const input = ev.target as HTMLInputElement;
+                              if (input.dataset.cancelled) return;
+                              this._renameEntity(e.entityId, input.value);
+                            }}
+                            @keydown=${(ev: KeyboardEvent) => {
+                              if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur();
+                              if (ev.key === 'Escape') {
+                                (ev.target as HTMLInputElement).dataset.cancelled = '1';
+                                this._unassignedEditingEntity = null;
+                              }
+                            }}
+                            @focus=${(ev: FocusEvent) => (ev.target as HTMLInputElement).select()}
+                          />
+                        ` : html`
+                          <button class="item-name pw-ua-name" type="button"
+                            @click=${() => {
+                              this._unassignedEditingEntity = e.entityId;
+                              this.updateComplete.then(() => {
+                                const input = this.shadowRoot?.querySelector('.entity-rename-input') as HTMLInputElement | null;
+                                input?.focus();
+                              });
+                            }}
+                            title="${t('config.unassigned_rename')}"
+                          >${e.name}</button>
+                        `}
+                        <span class="item-meta">${e.entityId}</span>
+                      </div>
+                    </div>
+                    <div class="dropdown ${isOpen ? 'open' : ''} pw-ua-area-dropdown">
+                      <button
+                        class="dropdown-trigger pw-ua-area-trigger ${!e.areaId ? 'pw-ua-unassigned' : ''}"
                         @click=${(ev: Event) => {
                           ev.stopPropagation();
                           this._unassignedAreaSearch = '';
@@ -460,7 +456,8 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                         aria-expanded=${isOpen ? 'true' : 'false'}
                         aria-haspopup="listbox"
                       >
-                        <span class="pw-ua-area-text">${e.areaName ?? t('config.unassigned_select_area')}</span>
+                        <ha-icon .icon=${e.areaId ? 'mdi:home' : 'mdi:alert-circle-outline'} class="pw-ua-area-icon"></ha-icon>
+                        ${e.areaName ?? t('config.unassigned_select_area')}
                         <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
                       </button>
                       <div class="dropdown-menu" role="listbox">
