@@ -2,6 +2,27 @@
 
 All notable changes to Glass Cards are documented here.
 
+## 2026-03-25
+
+### Config Panel
+- refactor: suppression complete du systeme de preview custom (~2600 lignes CSS + render code)
+- feat: live card preview — les vraies cartes s'affichent dans chaque tab du config panel en mode lecture seule
+- refactor: BaseConfigTab centralise auto-save (debounce), template method save/_performSave, drag/drop, dropdown, room entity helpers
+- refactor: suppression du routing save via persistence.ts — chaque tab se sauvegarde directement
+- fix: breadcrumb traduit en francais dans les sous-tabs dashboard
+- fix: onglet par defaut = Dashboard au lieu de Pieces
+- fix: ombres des cartes non clippees (overflow-x: clip)
+- fix: toast de sauvegarde en position fixed (visible en toutes circonstances)
+- fix: suppression du separateur gradient dans le tab Dashboard
+
+### Base Card
+- feat: propriete `configPreview` — desactive gestes et service calls en mode preview
+- feat: helper `_safeCallService` — guard pour bloquer les appels de service en preview
+- refactor: migration des 9 cartes vers `_safeCallService` (80 appels)
+
+### Event Bus
+- fix: singleton global `window.__glassEventBus` — partage du bus entre bundles IIFE (dashboard + panel)
+
 ## v0.0.137 (2026-03-20)
 
 ### Title Card
