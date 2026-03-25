@@ -241,9 +241,7 @@ export class ConfigDashboardView extends LitElement {
         })}
       </div>
 
-      <div class="fold-sep visible pw-db-sep"></div>
-
-      <div class="section-label">${t('config.dashboard_display')}</div>
+      <div class="section-label mt-lg">${t('config.dashboard_display')}</div>
       <div class="section-desc">${t('config.dashboard_display_desc')}</div>
 
       <div class="feature-list">

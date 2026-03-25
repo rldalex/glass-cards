@@ -779,7 +779,7 @@ export const baseStyles = css`
 
       /* ── Toast ── */
       .toast {
-        position: absolute;
+        position: fixed;
         bottom: 2rem;
         left: 50%;
         transform: translateX(-50%) translateY(20px);
