@@ -7,59 +7,8 @@ import { BaseConfigTab } from '../base-tab';
 
 // — Types —
 
-interface PreviewFan {
-  name: string; isOn: boolean; pct: number; step: number; total: number; icon: string; layout: 'full' | 'compact';
-}
-
 interface FanRoomEntity {
   entityId: string; name: string; visible: boolean; layout: 'full' | 'compact';
-}
-
-// — Preview helpers —
-
-function renderFanPreviewRow(f: PreviewFan, compact: boolean, isRight: boolean) {
-  const rowClasses = `pw-fan-row${compact ? ' compact' : ''}${isRight ? ' compact-right' : ''}`;
-  const onOff = f.isOn ? 'on' : 'off';
-  return html`
-    <div class=${rowClasses}>
-      <div class="pw-fan-icon ${onOff}">
-        <ha-icon .icon=${f.icon} style=${f.isOn ? `animation:spin-fan-preview ${f.pct > 50 ? '0.8' : '1.5'}s linear infinite;` : ''}></ha-icon>
-      </div>
-      <div class="pw-fan-info">
-        <div class="pw-fan-name">${f.name}</div>
-        <div class="pw-fan-meta">
-          <span class="pw-fan-status ${onOff}">${f.isOn ? `${f.pct}%` : t('fan.off')}</span>
-          ${f.isOn ? html`
-            <span class="pw-fan-speed">${t('fan.speed_step', { step: f.step, total: f.total })}</span>
-          ` : nothing}
-        </div>
-      </div>
-      <div class="pw-fan-dot ${onOff}"></div>
-    </div>
-  `;
-}
-
-function renderFanPreviewRows(fans: PreviewFan[]) {
-  const results: unknown[] = [];
-  let i = 0;
-  while (i < fans.length) {
-    const fan = fans[i];
-    if (fan.layout === 'compact') {
-      const next = i + 1 < fans.length && fans[i + 1].layout === 'compact' ? fans[i + 1] : null;
-      if (next) {
-        results.push(renderFanPreviewRow(fan, true, false));
-        results.push(renderFanPreviewRow(next, true, true));
-        i += 2;
-      } else {
-        results.push(renderFanPreviewRow(fan, false, false));
-        i++;
-      }
-    } else {
-      results.push(renderFanPreviewRow(fan, false, false));
-      i++;
-    }
-  }
-  return results;
 }
 
 // — Component —
@@ -252,64 +201,13 @@ export class ConfigTabFan extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    const roomEntities = this._fanRoomEntities.filter((e) => e.visible);
-    const useMock = roomEntities.length === 0 && !this._fanRoom;
-
-    const fans = useMock
-      ? [
-          { name: 'Ventilateur Salon', isOn: true, pct: 67, step: 2, total: 3, icon: 'mdi:fan', layout: 'compact' as const },
-          { name: 'Plafonnier Chambre', isOn: true, pct: 50, step: 3, total: 6, icon: 'mdi:ceiling-fan', layout: 'compact' as const },
-          { name: 'Extracteur SdB', isOn: false, pct: 0, step: 0, total: 3, icon: 'mdi:fan', layout: 'compact' as const },
-        ]
-      : roomEntities.map((e) => {
-          const entity = this.hass?.states[e.entityId];
-          const isOn = entity?.state === 'on';
-          const pct = (entity?.attributes?.percentage as number) ?? 0;
-          const pctStep = entity?.attributes?.percentage_step as number | undefined;
-          const rawCount = entity?.attributes?.speed_count as number | undefined;
-          const speedCount = rawCount ?? (pctStep && pctStep > 0 ? Math.round(100 / pctStep) : 3);
-          const step = isOn ? Math.round((pct / 100) * speedCount) : 0;
-          return { name: e.name, isOn, pct, step, total: speedCount, icon: 'mdi:fan', layout: e.layout };
-        });
-
-    const onCount = fans.filter((f) => f.isOn).length;
-    const onOff = onCount > 0 ? 'on' : 'off';
-    return html`
-      <div class="preview-fan">
-        ${this._fanShowHeader ? html`
-          <div class="pw-fan-header">
-            <div class="pw-fan-header-left">
-              <span class="pw-fan-header-title">${t('fan.title')}</span>
-              <span class="pw-fan-header-badge ${onOff}">${onCount}/${fans.length}</span>
-            </div>
-            <div class="pw-fan-toggle-track ${onOff}">
-              <div class="pw-fan-toggle-knob ${onOff}"></div>
-            </div>
-          </div>
-        ` : nothing}
-        <div class="preview-fan-card glass pw-fan-card">
-          <div class="pw-fan-tint" style="opacity:${fans.length > 0 ? (onCount / fans.length * 0.18).toFixed(3) : '0'};"></div>
-          ${fans.length === 0 ? html`
-            <div class="pw-fan-empty">&mdash;</div>
-          ` : nothing}
-          ${renderFanPreviewRows(fans)}
-        </div>
-      </div>
-    `;
-  }
-
   renderTab(): TemplateResult {
     void this._lang;
     if (!this.hass) return html``;
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-fan">
+        <glass-fan-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-fan-card>
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">
           <button

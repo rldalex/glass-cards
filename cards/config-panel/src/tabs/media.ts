@@ -5,14 +5,6 @@ import { bus } from '@glass-cards/event-bus';
 import { getAreaEntities } from '@glass-cards/base-card';
 import { BaseConfigTab } from '../base-tab';
 
-// — Helpers —
-
-function countPlaying(tab: ConfigTabMedia): number {
-  if (!tab.hass || !tab._mediaRoom) return 0;
-  const allIds = [...tab._mediaRoomNativePlayers, ...(tab._mediaExtraEntities[tab._mediaRoom] ?? [])];
-  return allIds.filter((id) => tab.hass?.states[id]?.state === 'playing').length;
-}
-
 // — Component —
 
 export class ConfigTabMedia extends BaseConfigTab {
@@ -143,75 +135,6 @@ export class ConfigTabMedia extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    const roomId = this._mediaRoom;
-    const nativeCount = this._mediaRoomNativePlayers.length;
-    const extraCount = roomId ? (this._mediaExtraEntities[roomId] ?? []).length : 0;
-    const totalCount = nativeCount + extraCount;
-    const playingCount = roomId ? countPlaying(this) : 1;
-
-    return html`
-      <div class="preview-media">
-        <!-- Simulated full-bleed artwork background -->
-        <div class="mp-art-bg"></div>
-        <div class="mp-gradient"></div>
-        <div class="mp-content">
-          <!-- Top bar: glass pill badges -->
-          <div class="mp-top">
-            <div class="mp-pill">
-              <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-              <span>${roomId ? (this.rooms.find((r) => r.areaId === roomId)?.name ?? t('config.media_room')) : t('config.media_select_room')}</span>
-              ${playingCount > 0 ? html`
-                <div class="mp-eq">
-                  <div class="mp-eq-bar"></div>
-                  <div class="mp-eq-bar"></div>
-                  <div class="mp-eq-bar"></div>
-                </div>
-              ` : nothing}
-            </div>
-            ${totalCount > 1 ? html`
-              <div class="mp-pill">
-                <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
-                <span>${totalCount}</span>
-              </div>
-            ` : nothing}
-          </div>
-          <!-- Spacer -->
-          <div class="mp-spacer"></div>
-          <!-- Bottom glass panel -->
-          <div class="mp-glass-panel">
-            ${this._mediaShowHeader ? html`
-              <div class="pw-mp-header-row">
-                <span class="pw-mp-header-label">${t('media.title')}</span>
-                <span class="pw-mp-header-badge">${playingCount}/${totalCount || 1}</span>
-              </div>
-            ` : nothing}
-            <div class="mp-track">
-              <div class="mp-track-title">Blinding Lights</div>
-              <div class="mp-track-artist">The Weeknd</div>
-              <div class="mp-track-meta">
-                <span class="mp-track-time">2:14 / 3:20</span>
-                <span class="mp-track-source">Spotify</span>
-              </div>
-            </div>
-            <!-- Progress -->
-            <div class="mp-progress">
-              <div class="mp-progress-fill"></div>
-            </div>
-            <!-- Transport -->
-            <div class="mp-transport">
-              <div class="mp-btn"><ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon></div>
-              <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-previous'}></ha-icon></div>
-              <div class="mp-btn main"><ha-icon .icon=${'mdi:pause'}></ha-icon></div>
-              <div class="mp-btn skip"><ha-icon .icon=${'mdi:skip-next'}></ha-icon></div>
-              <div class="mp-btn"><ha-icon .icon=${'mdi:repeat'}></ha-icon></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   renderTab(): TemplateResult {
     void this._lang;
     if (!this.hass) return html``;
@@ -237,12 +160,8 @@ export class ConfigTabMedia extends BaseConfigTab {
     });
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-media">
+        <glass-media-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-media-card>
         <!-- Show header toggle -->
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">

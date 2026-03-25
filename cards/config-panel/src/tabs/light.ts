@@ -775,122 +775,14 @@ export class ConfigTabLight extends BaseConfigTab {
     `;
   }
 
-  // — Render: preview —
-
-  renderPreview(): TemplateResult | typeof nothing {
-    if (!this._lightRoom) return html`<div class="preview-empty">${t('config.light_select_room')}</div>`;
-    if (this._lights.length === 0) return html`<div class="preview-empty">${t('config.light_no_lights')}</div>`;
-
-    const visibleLights = this._lights.filter((l) => l.visible);
-    const onCount = visibleLights.filter((l) => l.isOn).length;
-    const total = visibleLights.length;
-    const anyOn = onCount > 0;
-    const countClass = onCount === 0 ? 'none' : onCount === total ? 'all' : 'some';
-
-    if (visibleLights.length === 0) return html`<div class="preview-empty">${t('config.light_no_visible')}</div>`;
-
-    // Build layout: compact lights are paired, full/auto-on get full row
-    type PItem =
-      | { kind: 'full'; light: LightEntry }
-      | { kind: 'compact-pair'; left: LightEntry; right: LightEntry | null };
-    const layout: PItem[] = [];
-    const compactBuf: LightEntry[] = [];
-
-    for (const l of visibleLights) {
-      const effectiveLayout = l.layout === 'full' ? 'full' : 'compact';
-      if (effectiveLayout === 'compact') {
-        compactBuf.push(l);
-        if (compactBuf.length === 2) {
-          layout.push({ kind: 'compact-pair', left: compactBuf[0], right: compactBuf[1] });
-          compactBuf.length = 0;
-        }
-      } else {
-        if (compactBuf.length > 0) {
-          layout.push({ kind: 'compact-pair', left: compactBuf[0], right: null });
-          compactBuf.length = 0;
-        }
-        layout.push({ kind: 'full', light: l });
-      }
-    }
-    if (compactBuf.length > 0) {
-      layout.push({ kind: 'compact-pair', left: compactBuf[0], right: null });
-    }
-
-    // Tint: warm glow if any light is on
-    const tintOpacity = anyOn ? 0.06 : 0;
-
-    const renderRow = (l: LightEntry, compact: boolean, isRight: boolean) => {
-      const classes = [
-        'preview-light-row',
-        compact ? 'compact' : '',
-        isRight ? 'compact-right' : '',
-        !l.visible ? 'hidden-light' : '',
-      ].filter(Boolean).join(' ');
-      const editPeriods = this._scheduleEdits.get(l.entityId);
-      const hasSched = editPeriods
-        ? editPeriods.some((p) => p.start && p.end)
-        : (this._schedulesLoaded[l.entityId]?.periods?.length ?? 0) > 0;
-
-      return html`
-        <div class=${classes} data-on=${l.isOn}>
-          <div class="preview-light-icon ${l.isOn ? 'on' : ''}">
-            <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
-          </div>
-          <div class="preview-light-info">
-            <div class="preview-light-name">${l.name}</div>
-            <div class="preview-light-sub">${l.isOn ? `${l.brightnessPct}%` : t('common.off')}</div>
-          </div>
-          ${hasSched ? html`<ha-icon class="preview-light-sched" .icon=${'mdi:calendar-clock'}></ha-icon>` : nothing}
-          ${l.layout === 'full' ? html`<span class="preview-light-layout-tag">full</span>` : nothing}
-          <span class="preview-light-dot ${l.isOn ? 'on' : ''}"></span>
-        </div>
-      `;
-    };
-
-    return html`
-      <div class="preview-light">
-        ${this._lightShowHeader ? html`
-          <div class="preview-light-header">
-            <div class="preview-light-header-left">
-              <span class="preview-light-title">${t('light.title')}</span>
-              <span class="preview-light-count ${countClass}">${onCount}/${total}</span>
-            </div>
-            <div class="preview-light-toggle ${anyOn ? 'on' : ''}"></div>
-          </div>
-        ` : nothing}
-        <div class="preview-light-body">
-          <div
-            class="preview-light-tint"
-            style="background:radial-gradient(ellipse at 30% 20%, rgba(251,191,36,0.12) 0%, transparent 70%);opacity:${tintOpacity}"
-          ></div>
-          <div class="preview-light-grid">
-            ${layout.map((item) => {
-              if (item.kind === 'full') {
-                return renderRow(item.light, false, false);
-              }
-              return html`
-                ${renderRow(item.left, true, false)}
-                ${item.right ? renderRow(item.right, true, true) : nothing}
-              `;
-            })}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   // — Render: main tab —
 
   renderTab(): TemplateResult {
     void this._lang;
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-light">
+        <glass-light-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-light-card>
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">
           <button

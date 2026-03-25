@@ -127,96 +127,6 @@ export class ConfigTabCamera extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    const camColor = 'rgba(96,165,250,';
-
-    // Mock cameras for preview
-    const mockCams = [
-      { name: 'Entrée', state: 'streaming', icon: 'mdi:cctv', ai: ['person'] },
-      { name: 'Jardin', state: 'recording', icon: 'mdi:cctv', ai: ['vehicle'] },
-      { name: 'Garage', state: 'idle', icon: 'mdi:webcam', ai: [] },
-    ];
-
-    const current = mockCams[0];
-    const isLive = current.state !== 'idle';
-
-    return html`
-      <div class="pw-cam-wrap">
-        <!-- Viewport -->
-        <div class="pw-cam-frame">
-          <div class="pw-cam-bg">
-            <!-- Top overlay -->
-            <div class="pw-cam-overlay-top">
-              <div class="pw-cam-label">
-                <ha-icon .icon=${'mdi:cctv'}></ha-icon>
-                ${current.name}
-                <span class="pw-cam-rec">
-                  <span class="pw-cam-rec-dot"></span> REC
-                </span>
-              </div>
-            </div>
-            <!-- Bottom overlay -->
-            ${current.ai.length > 0 ? html`
-              <div class="pw-cam-overlay-bottom">
-                <div class="pw-cam-ai-list">
-                  ${current.ai.map((ai) => html`
-                    <div class="pw-cam-ai-badge" style="background:${camColor}0.15);border:1px solid ${camColor}0.2);">
-                      <ha-icon .icon=${'mdi:human'}></ha-icon>
-                      ${ai}
-                    </div>
-                  `)}
-                </div>
-              </div>
-            ` : nothing}
-            <!-- Nav arrows -->
-            <div class="pw-cam-arrow pw-cam-arrow--left">
-              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
-            </div>
-            <div class="pw-cam-arrow pw-cam-arrow--right">
-              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dots -->
-        <div class="pw-cam-dots">
-          <div class="pw-cam-dot pw-cam-dot--active" style="box-shadow:0 0 6px ${camColor}0.4);"></div>
-          <div class="pw-cam-dot pw-cam-dot--rec"></div>
-          <div class="pw-cam-dot pw-cam-dot--idle"></div>
-        </div>
-
-        <!-- Info bar -->
-        <div class="pw-cam-info">
-          <div class="pw-cam-icon" style="background:${camColor}0.1);border:1px solid ${camColor}0.15);">
-            <ha-icon .icon=${'mdi:cctv'}></ha-icon>
-          </div>
-          <div class="pw-cam-detail">
-            <div class="pw-cam-name">${current.name}</div>
-            <div class="pw-cam-status-row">
-              <span class="pw-cam-status" style="color:${isLive ? `${camColor}0.6)` : 'var(--t3)'};">${isLive ? 'En direct' : 'Veille'}</span>
-              ${current.ai.length > 0 ? html`
-                <div class="pw-cam-ai-mini">
-                  <div class="pw-cam-ai-dot" style="background:${camColor}0.12);">
-                    <ha-icon .icon=${'mdi:human'}></ha-icon>
-                  </div>
-                </div>
-              ` : nothing}
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="pw-cam-actions">
-          ${['mdi:power', 'mdi:camera', 'mdi:record-circle', 'mdi:motion-sensor'].map((icon, i) => html`
-            <div class="pw-cam-action ${i === 0 ? '' : 'pw-cam-action--default'}" style="${i === 0 ? `border:1px solid ${camColor}0.15);background:${camColor}0.1);color:var(--c-info);` : ''}">
-              <ha-icon .icon=${icon}></ha-icon>
-            </div>
-          `)}
-        </div>
-      </div>
-    `;
-  }
-
   renderTab(): TemplateResult {
     void this._lang;
 
@@ -226,12 +136,8 @@ export class ConfigTabCamera extends BaseConfigTab {
     }
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-camera_carousel">
+        <glass-camera-carousel-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-camera-carousel-card>
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">
           <button

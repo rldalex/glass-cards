@@ -1,4 +1,4 @@
-import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
+import { html, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
@@ -155,68 +155,6 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    if (this._spotifyConfigured === false) {
-      return html`<div class="preview-empty">${t('config.spotify_not_configured')}</div>`;
-    }
-    if (!this._spotifyEntity || !this.hass) {
-      return html`<div class="preview-empty">${t('config.spotify_select_entity')}</div>`;
-    }
-
-    const entity = this.hass.states[this._spotifyEntity];
-    if (!entity) {
-      return html`<div class="preview-empty">${t('config.spotify_select_entity')}</div>`;
-    }
-
-    const tabs = [
-      { id: 'all', label: t('spotify.tab_all'), active: true },
-      { id: 'tracks', label: t('spotify.tab_tracks'), active: false },
-      { id: 'playlists', label: t('spotify.tab_playlists'), active: false },
-      { id: 'podcasts', label: t('spotify.tab_podcasts'), active: false },
-    ];
-
-    const mockItems = [
-      { name: 'Daily Mix 1', meta: t('spotify.type_playlist'), icon: 'mdi:playlist-music' },
-      { name: t('spotify.saved_tracks'), meta: '128 ' + t('spotify.tracks_count', { count: '' }).trim(), icon: 'mdi:heart' },
-      { name: 'Discover Weekly', meta: t('spotify.type_playlist'), icon: 'mdi:playlist-music' },
-    ];
-
-    return html`
-      <div class="preview-spotify-wrap">
-        ${this._spotifyShowHeader ? html`
-          <div class="ps-card-header">
-            <ha-icon .icon=${'mdi:spotify'}></ha-icon>
-            <span class="ps-card-title">${t('spotify.title')}</span>
-          </div>
-        ` : nothing}
-        <div class="preview-spotify">
-          <div class="ps-search">
-            <ha-icon .icon=${'mdi:magnify'}></ha-icon>
-            <span class="ps-search-text">${t('spotify.search_placeholder')}</span>
-          </div>
-          <div class="ps-tabs">
-            ${tabs.map((tab) => html`
-              <span class="ps-tab ${tab.active ? 'active' : ''}">${tab.label}</span>
-            `)}
-          </div>
-          <div class="ps-section-label">${t('spotify.my_playlists')}</div>
-          ${mockItems.map((item) => html`
-            <div class="ps-item-row">
-              <div class="ps-item-art">
-                <ha-icon .icon=${item.icon}></ha-icon>
-              </div>
-              <div class="ps-item-info">
-                <div class="ps-item-name">${item.name}</div>
-                <div class="ps-item-meta">${item.meta}</div>
-              </div>
-              <ha-icon class="ps-item-play" .icon=${'mdi:play-circle'}></ha-icon>
-            </div>
-          `)}
-        </div>
-      </div>
-    `;
-  }
-
   private _renderSetupGuide(): TemplateResult {
     return html`
       <div class="tab-panel" id="panel-spotify">
@@ -261,23 +199,13 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
     if (this._spotifyConfigured === null) {
       return html`
-        <div class="preview-encart">
-          <div class="preview-label">${t('config.preview')}</div>
-          <div class="preview-empty">${t('config.spotify_checking')}</div>
-        </div>
         <div class="tab-panel" id="panel-spotify">
           <div class="preview-empty">${t('config.spotify_checking')}</div>
         </div>
       `;
     }
     if (this._spotifyConfigured === false) {
-      return html`
-        <div class="preview-encart">
-          <div class="preview-label">${t('config.preview')}</div>
-          ${this.renderPreview()}
-        </div>
-        ${this._renderSetupGuide()}
-      `;
+      return this._renderSetupGuide();
     }
 
     const mediaPlayerEntities = this.hass
@@ -286,12 +214,8 @@ export class ConfigTabSpotify extends BaseConfigTab {
     const selectedEntity = mediaPlayerEntities.find((id) => id === this._spotifyEntity);
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-spotify">
+        <glass-spotify-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-spotify-card>
         <div class="feature-list">
           <button class="feature-row" role="switch" aria-checked="${this._spotifyShowHeader ? 'true' : 'false'}"
             @click=${() => { this._spotifyShowHeader = !this._spotifyShowHeader; }}>

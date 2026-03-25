@@ -34,17 +34,6 @@ const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = 
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
 const DEFAULT_PERIOD_ENTITY_ID = '';
 
-function resolvePeriodVisual(
-  optionId: string,
-  periodOptions: { id: string; icon: string; color: string }[],
-): { icon: string; color: string } {
-  const configured = periodOptions.find((o) => o.id === optionId);
-  if (configured && (configured.icon || configured.color)) {
-    return { icon: configured.icon || PERIOD_DEFAULT_VISUAL.icon, color: configured.color || PERIOD_DEFAULT_VISUAL.color };
-  }
-  return DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
-}
-
 // — Component —
 
 export class ConfigTabTitle extends BaseConfigTab {
@@ -573,7 +562,7 @@ export class ConfigTabTitle extends BaseConfigTab {
 
             <!-- Mode list -->
             ${src.modes.length > 0 ? html`
-              <div class="section-label pw-tt-mt-sm">${t('config.title_modes')}</div>
+              <div class="section-label mt-sm">${t('config.title_modes')}</div>
               <div class="title-modes-list">
                 ${src.modes.map((mode, modeIdx) => this._renderModeRow(src, srcIdx, mode, modeIdx))}
               </div>
@@ -832,7 +821,7 @@ export class ConfigTabTitle extends BaseConfigTab {
     const optionsMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
 
     return html`
-      <div class="section-label pw-tt-mt-md">${t('config.title_period_options')}</div>
+      <div class="section-label mt-md">${t('config.title_period_options')}</div>
       <div class="section-desc">${t('config.title_period_options_desc')}</div>
       <div class="title-modes-list">
         ${haOptions.map((optionId) => {
@@ -882,80 +871,6 @@ export class ConfigTabTitle extends BaseConfigTab {
     `;
   }
 
-  // — Render: Preview —
-
-  renderPreview(): TemplateResult | typeof nothing {
-    const title = this._titleText;
-    if (!title) {
-      return html`<div class="preview-empty">${t('config.title_title_placeholder')}</div>`;
-    }
-
-    // Collect all active colors across sources (including multiple per source)
-    const activeColors: string[] = [];
-    for (const src of this._titleSources) {
-      if (src.source_type === 'input_select' && src.entity && this.hass) {
-        const entity = this.hass.states[src.entity];
-        if (entity) {
-          const mode = src.modes.find((m) => m.id === entity.state);
-          if (mode?.color && mode.color !== 'neutral') activeColors.push(mode.color);
-        }
-      } else if (src.source_type === 'booleans' && this.hass) {
-        for (const mode of src.modes) {
-          if (this.hass?.states[mode.id]?.state === 'on') {
-            const c = mode.color || 'success';
-            if (c !== 'neutral') activeColors.push(c);
-          }
-        }
-      }
-    }
-
-    const hasSources = this._titleSources.length > 0 && this._titleSources.some((s) => s.modes.length > 0);
-    const dashHasActive = activeColors.length > 0;
-
-    let dashStyle = 'background:var(--t4);width:1.25rem;';
-    if (dashHasActive) {
-      const dots = activeColors.map((c) => resolveD(c));
-      const w = Math.min(20 + activeColors.length * 4, 36);
-      if (dots.length === 1) {
-        dashStyle = `background:${dots[0]};width:${w}px;box-shadow:0 0 6px ${dots[0]};`;
-      } else {
-        const n = dots.length;
-        const stops = dots.flatMap((d, i) => [`${d} ${Math.round(i / n * 100)}%`, `${d} ${Math.round((i + 1) / n * 100)}%`]).join(', ');
-        const glows = dots.map((d) => `0 0 6px ${d}`).join(', ');
-        dashStyle = `background:linear-gradient(90deg, ${stops});width:${w}px;box-shadow:${glows};`;
-      }
-    }
-
-    // Period indicator preview
-    let periodHtml: TemplateResult | typeof nothing = nothing;
-    if (this.hass) {
-      const periodEntityId = this._titlePeriodEntity || DEFAULT_PERIOD_ENTITY_ID;
-      const periodEntity = this.hass.states[periodEntityId];
-      if (periodEntity) {
-        const currentValue = periodEntity.state;
-        const visual = resolvePeriodVisual(currentValue, this._titlePeriodOptions);
-        periodHtml = html`
-          <div class="preview-period" style="color:${visual.color}">
-            <ha-icon .icon=${visual.icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
-            ${currentValue}
-          </div>
-        `;
-      }
-    }
-
-    return html`
-      <div class="preview-title-card">
-        <div class="preview-title-text">${title}</div>
-        ${periodHtml}
-        ${hasSources ? html`
-          <div class="preview-title-dash">
-            <div class="preview-dash-line" style="${dashStyle}"></div>
-          </div>
-        ` : nothing}
-      </div>
-    `;
-  }
-
   // — Render: Tab —
 
   renderTab(): TemplateResult {
@@ -963,12 +878,8 @@ export class ConfigTabTitle extends BaseConfigTab {
     const sources = this._titleSources;
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-title">
+        <glass-title-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-title-card>
         <div class="section-label">${t('config.title_title')}</div>
         <div class="section-desc">${t('config.title_title_desc')}</div>
         <input
@@ -979,14 +890,14 @@ export class ConfigTabTitle extends BaseConfigTab {
           @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
         />
 
-        <div class="section-label pw-tt-mt-md">${t('config.title_mode_source')}</div>
+        <div class="section-label mt-md">${t('config.title_mode_source')}</div>
         <div class="section-desc">${t('config.title_mode_source_desc')}</div>
 
         <!-- Existing sources -->
         ${sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
 
         <!-- Add source button -->
-        <div class="pw-tt-mt-add">
+        <div class="mt-md">
           <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
             <button
               class="dropdown-trigger"
@@ -1014,7 +925,7 @@ export class ConfigTabTitle extends BaseConfigTab {
         </div>
 
         <!-- Period indicator -->
-        <div class="section-label pw-tt-mt-lg">${t('config.title_period_entity')}</div>
+        <div class="section-label mt-lg">${t('config.title_period_entity')}</div>
         <div class="section-desc">${t('config.title_period_entity_desc')}</div>
         ${this._renderPeriodEntityPicker()}
 

@@ -183,50 +183,6 @@ export class ConfigTabPresence extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    const persons = this._getAvailablePersonEntities();
-    const selected = this._presencePersonEntities.length > 0
-      ? persons.filter((p) => this._presencePersonEntities.includes(p.entityId))
-      : persons;
-
-    if (selected.length === 0) {
-      return html`<div class="preview-empty">${t('config.presence_no_persons')}</div>`;
-    }
-
-    const homeCount = selected.filter((p) => {
-      const entity = this.hass?.states[p.entityId];
-      return entity?.state === 'home';
-    }).length;
-
-    return html`
-      <div class="preview-presence">
-        ${this._presenceShowHeader ? html`
-          <div class="preview-presence-header">
-            <span class="preview-presence-title">${t('presence.title')}</span>
-            <span class="preview-presence-pill ${homeCount === selected.length ? 'all-home' : homeCount === 0 ? 'all-away' : 'mixed'}">
-              ${homeCount}/${selected.length}
-            </span>
-          </div>
-        ` : nothing}
-        <div class="preview-presence-persons">
-          ${selected.slice(0, 4).map((p) => {
-            const entity = this.hass?.states[p.entityId];
-            const isHome = entity?.state === 'home';
-            const picture = entity?.attributes?.entity_picture as string | undefined;
-            return html`
-              <div class="preview-presence-person ${isHome ? 'home' : 'away'}">
-                ${picture
-                  ? html`<div class="preview-presence-avatar" style="background-image:url(${picture})"></div>`
-                  : html`<div class="preview-presence-avatar fallback"><ha-icon .icon=${'mdi:account'}></ha-icon></div>`}
-                <span class="preview-presence-name">${p.name}</span>
-              </div>
-            `;
-          })}
-        </div>
-      </div>
-    `;
-  }
-
   renderTab(): TemplateResult {
     void this._lang;
     const persons = this._getAvailablePersonEntities();
@@ -238,12 +194,8 @@ export class ConfigTabPresence extends BaseConfigTab {
     const notifyServices = this._getAvailableNotifyServices();
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-presence">
+        <glass-presence-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-presence-card>
         <!-- Behaviour -->
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">

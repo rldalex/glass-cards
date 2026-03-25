@@ -11,69 +11,6 @@ interface CoverRoomEntity {
   entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact';
 }
 
-// — Preview helpers —
-
-const PREVIEW_DC_ICONS: Record<string, [string, string]> = {
-  shutter: ['mdi:window-shutter-open', 'mdi:window-shutter'],
-  blind: ['mdi:blinds-open', 'mdi:blinds'],
-  curtain: ['mdi:curtains', 'mdi:curtains'],
-  garage: ['mdi:garage-open', 'mdi:garage'],
-  gate: ['mdi:gate-open', 'mdi:gate'],
-  door: ['mdi:door-open', 'mdi:door-closed'],
-};
-
-function renderCoverPreviewRow(
-  hass: { states: Record<string, { state: string; attributes: Record<string, unknown> }> } | undefined,
-  e: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' },
-  compact: boolean,
-  isRight: boolean,
-) {
-  const icons = PREVIEW_DC_ICONS[e.deviceClass] || PREVIEW_DC_ICONS.shutter;
-  const entity = hass?.states[e.entityId];
-  const isOpen = entity?.state === 'open' || entity?.state === 'opening';
-  const pos = entity?.attributes.current_position as number | undefined;
-
-  const rowClasses = `pw-cv-row ${compact ? 'compact' : 'full'}${isRight ? ' right' : ''}`;
-  return html`
-    <div class=${rowClasses}>
-      <div class="pw-cv-icon ${isOpen ? 'open' : ''}">
-        <ha-icon .icon=${icons[isOpen ? 0 : 1]}></ha-icon>
-      </div>
-      <div class="pw-cv-info">
-        <div class="pw-cv-name">${e.name}</div>
-        <div class="pw-cv-sub">
-          <span class="pw-cv-state ${isOpen ? 'open' : ''}">${isOpen ? t('cover.open') : t('cover.closed')}</span>
-        </div>
-      </div>
-      ${!compact && pos !== undefined ? html`
-        <span class="pw-cv-pos ${isOpen ? 'open' : ''}">${pos}<span class="pw-cv-pos-unit">%</span></span>
-      ` : nothing}
-      <div class="pw-cv-dot ${isOpen ? 'open' : ''}"></div>
-    </div>
-  `;
-}
-
-function renderCoverPreviewRows(
-  hass: { states: Record<string, { state: string; attributes: Record<string, unknown> }> } | undefined,
-  entities: { entityId: string; name: string; visible: boolean; deviceClass: string; layout: 'full' | 'compact' }[],
-) {
-  const results: unknown[] = [];
-  let i = 0;
-  while (i < entities.length) {
-    const e = entities[i];
-    const isCompact = e.layout === 'compact';
-    if (isCompact && i + 1 < entities.length && entities[i + 1].layout === 'compact') {
-      results.push(renderCoverPreviewRow(hass, e, true, false));
-      results.push(renderCoverPreviewRow(hass, entities[i + 1], true, true));
-      i += 2;
-    } else {
-      results.push(renderCoverPreviewRow(hass, e, false, false));
-      i++;
-    }
-  }
-  return results;
-}
-
 // — Component —
 
 export class ConfigTabCover extends BaseConfigTab {
@@ -385,122 +322,13 @@ export class ConfigTabCover extends BaseConfigTab {
 
   // — Render —
 
-  renderPreview(): TemplateResult | typeof nothing {
-    const entities = this._coverRoomEntities.filter((e) => e.visible);
-    const openCount = entities.filter((e) => {
-      const s = this.hass?.states[e.entityId];
-      return s?.state === 'open' || s?.state === 'opening';
-    }).length;
-
-    // Pick the first entity for expanded preview
-    const expanded = entities[0];
-    const expEntity = expanded ? this.hass?.states[expanded.entityId] : undefined;
-    const expOpen = expEntity?.state === 'open' || expEntity?.state === 'opening';
-    const expPos = (expEntity?.attributes.current_position as number | undefined) ?? 0;
-    const expIcons = expanded ? (PREVIEW_DC_ICONS[expanded.deviceClass] || PREVIEW_DC_ICONS.shutter) : PREVIEW_DC_ICONS.shutter;
-    const entityPresets = expanded ? (this._coverEntityPresets[expanded.entityId] ?? [0, 25, 50, 75, 100]) : [0, 25, 50, 75, 100];
-
-    return html`
-      <div class="preview-cover">
-        ${this._coverShowHeader ? html`
-          <div class="pw-cv-header">
-            <div class="pw-cv-header-left">
-              <span class="pw-cv-header-title">${t('cover.title')}</span>
-              <span class="pw-cv-header-count ${openCount > 0 ? 'active' : 'idle'}">${openCount}/${entities.length}</span>
-            </div>
-            <div class="pw-cv-header-actions">
-              <div class="pw-cv-header-btn">
-                <ha-icon .icon=${'mdi:arrow-up'}></ha-icon>
-              </div>
-              <div class="pw-cv-header-btn">
-                <ha-icon .icon=${'mdi:arrow-down'}></ha-icon>
-              </div>
-            </div>
-          </div>
-        ` : nothing}
-        <div class="preview-cover-card glass">
-          <!-- Tint -->
-          <div class="pw-cv-tint" style="opacity:${entities.length > 0 ? (openCount / entities.length * 0.18).toFixed(3) : '0'};"></div>
-          ${entities.length === 0 ? html`
-            <div class="pw-cv-empty">—</div>
-          ` : nothing}
-          ${expanded ? html`
-            <!-- Expanded entity row -->
-            <div class="pw-cv-row">
-              <div class="pw-cv-icon ${expOpen ? 'open' : ''}">
-                <ha-icon .icon=${expIcons[expOpen ? 0 : 1]}></ha-icon>
-              </div>
-              <div class="pw-cv-info">
-                <div class="pw-cv-name">${expanded.name}</div>
-                <div class="pw-cv-state ${expOpen ? 'open' : ''}">${expOpen ? t('cover.open') : t('cover.closed')}</div>
-              </div>
-              <span class="pw-cv-pos ${expOpen ? 'open' : ''}">${expPos}<span class="pw-cv-pos-unit">%</span></span>
-              <div class="pw-cv-dot ${expOpen ? 'open' : ''}"></div>
-            </div>
-            <!-- Fold separator -->
-            <div class="pw-cv-fold-sep"></div>
-            <!-- Controls panel -->
-            <div class="pw-cv-controls">
-              <span class="pw-cv-controls-label">${expanded.name}</span>
-              <!-- Transport -->
-              <div class="pw-cv-transport">
-                <div class="pw-cv-transport-btn ${expPos === 100 ? 'accent' : ''}">
-                  <ha-icon .icon=${'mdi:arrow-up'}></ha-icon>
-                </div>
-                <div class="pw-cv-transport-btn">
-                  <ha-icon .icon=${'mdi:stop'}></ha-icon>
-                </div>
-                <div class="pw-cv-transport-btn ${expPos === 0 ? 'accent' : ''}">
-                  <ha-icon .icon=${'mdi:arrow-down'}></ha-icon>
-                </div>
-              </div>
-              <!-- Slider -->
-              <div class="pw-cv-slider">
-                <ha-icon .icon=${expIcons[1]}></ha-icon>
-                <div class="pw-cv-bar">
-                  <div class="pw-cv-bar-fill" style="width:${expPos}%;"></div>
-                </div>
-                <ha-icon .icon=${expIcons[0]}></ha-icon>
-              </div>
-              <!-- Separator -->
-              <div class="pw-cv-sep"></div>
-              <!-- Presets -->
-              <div class="pw-cv-presets">
-                ${entityPresets.map((p) => {
-                  const isActive = expPos === p;
-                  return html`
-                    <span class="pw-cv-preset ${isActive ? 'active' : ''}">
-                      <ha-icon .icon=${p >= 50 ? expIcons[0] : expIcons[1]}></ha-icon>
-                      ${p === 0 ? t('cover.preset_closed') : p === 100 ? t('cover.preset_open') : `${p}%`}
-                    </span>
-                  `;
-                })}
-              </div>
-            </div>
-          ` : nothing}
-          ${entities.length > 1 ? html`
-            <!-- Remaining entities (compact) -->
-            <div class="pw-cv-remaining-sep"></div>
-            <div class="pw-cv-grid">
-              ${renderCoverPreviewRows(this.hass, entities.slice(1, 5))}
-            </div>
-          ` : nothing}
-        </div>
-      </div>
-    `;
-  }
-
   renderTab(): TemplateResult {
     void this._lang;
     if (!this.hass) return html``;
 
     return html`
-      <div class="preview-encart">
-        <div class="preview-label">${t('config.preview')}</div>
-        ${this.renderPreview()}
-      </div>
-
       <div class="tab-panel" id="panel-cover">
+        <glass-cover-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-cover-card>
         <div class="section-label">${t('config.behavior')}</div>
         <div class="feature-list">
           <button
