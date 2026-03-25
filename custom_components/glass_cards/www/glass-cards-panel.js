@@ -1,4 +1,4 @@
-!function(){"use strict";const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),a=new WeakMap;let r=class{constructor(e,t,a){if(this._$cssResult$=!0,a!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=e,this.t=t}get styleSheet(){let e=this.o;const i=this.t;if(t&&void 0===e){const t=void 0!==i&&1===i.length;t&&(e=a.get(i)),void 0===e&&((this.o=e=new CSSStyleSheet).replaceSync(this.cssText),t&&a.set(i,e))}return e}toString(){return this.cssText}};const o=(e,...t)=>{const a=1===e.length?e[0]:t.reduce((t,i,a)=>t+(e=>{if(!0===e._$cssResult$)return e.cssText;if("number"==typeof e)return e;throw Error("Value passed to 'css' function must be a 'css' function result: "+e+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+e[a+1],e[0]);return new r(a,e,i)},s=t?e=>e:e=>e instanceof CSSStyleSheet?(e=>{let t="";for(const i of e.cssRules)t+=i.cssText;return(e=>new r("string"==typeof e?e:e+"",void 0,i))(t)})(e):e,{is:n,defineProperty:c,getOwnPropertyDescriptor:d,getOwnPropertyNames:l,getOwnPropertySymbols:p,getPrototypeOf:h}=Object,m=globalThis,u=m.trustedTypes,_=u?u.emptyScript:"",g=m.reactiveElementPolyfillSupport,v=(e,t)=>e,f={toAttribute(e,t){switch(t){case Boolean:e=e?_:null;break;case Object:case Array:e=null==e?e:JSON.stringify(e)}return e},fromAttribute(e,t){let i=e;switch(t){case Boolean:i=null!==e;break;case Number:i=null===e?null:Number(e);break;case Object:case Array:try{i=JSON.parse(e)}catch(a){i=null}}return i}},b=(e,t)=>!n(e,t),y={attribute:!0,type:String,converter:f,reflect:!1,useDefault:!1,hasChanged:b};Symbol.metadata??=Symbol("metadata"),m.litPropertyMetadata??=new WeakMap;let w=class extends HTMLElement{static addInitializer(e){this._$Ei(),(this.l??=[]).push(e)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(e,t=y){if(t.state&&(t.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(e)&&((t=Object.create(t)).wrapped=!0),this.elementProperties.set(e,t),!t.noAccessor){const i=Symbol(),a=this.getPropertyDescriptor(e,i,t);void 0!==a&&c(this.prototype,e,a)}}static getPropertyDescriptor(e,t,i){const{get:a,set:r}=d(this.prototype,e)??{get(){return this[t]},set(e){this[t]=e}};return{get:a,set(t){const o=a?.call(this);r?.call(this,t),this.requestUpdate(e,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(e){return this.elementProperties.get(e)??y}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const e=h(this);e.finalize(),void 0!==e.l&&(this.l=[...e.l]),this.elementProperties=new Map(e.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const e=this.properties,t=[...l(e),...p(e)];for(const i of t)this.createProperty(i,e[i])}const e=this[Symbol.metadata];if(null!==e){const t=litPropertyMetadata.get(e);if(void 0!==t)for(const[e,i]of t)this.elementProperties.set(e,i)}this._$Eh=new Map;for(const[t,i]of this.elementProperties){const e=this._$Eu(t,i);void 0!==e&&this._$Eh.set(e,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(e){const t=[];if(Array.isArray(e)){const i=new Set(e.flat(1/0).reverse());for(const e of i)t.unshift(s(e))}else void 0!==e&&t.push(s(e));return t}static _$Eu(e,t){const i=t.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof e?e.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(e=>this.enableUpdating=e),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(e=>e(this))}addController(e){(this._$EO??=new Set).add(e),void 0!==this.renderRoot&&this.isConnected&&e.hostConnected?.()}removeController(e){this._$EO?.delete(e)}_$E_(){const e=new Map,t=this.constructor.elementProperties;for(const i of t.keys())this.hasOwnProperty(i)&&(e.set(i,this[i]),delete this[i]);e.size>0&&(this._$Ep=e)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,a)=>{if(t)i.adoptedStyleSheets=a.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(const t of a){const a=document.createElement("style"),r=e.litNonce;void 0!==r&&a.setAttribute("nonce",r),a.textContent=t.cssText,i.appendChild(a)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(e=>e.hostConnected?.())}enableUpdating(e){}disconnectedCallback(){this._$EO?.forEach(e=>e.hostDisconnected?.())}attributeChangedCallback(e,t,i){this._$AK(e,i)}_$ET(e,t){const i=this.constructor.elementProperties.get(e),a=this.constructor._$Eu(e,i);if(void 0!==a&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:f).toAttribute(t,i.type);this._$Em=e,null==r?this.removeAttribute(a):this.setAttribute(a,r),this._$Em=null}}_$AK(e,t){const i=this.constructor,a=i._$Eh.get(e);if(void 0!==a&&this._$Em!==a){const e=i.getPropertyOptions(a),r="function"==typeof e.converter?{fromAttribute:e.converter}:void 0!==e.converter?.fromAttribute?e.converter:f;this._$Em=a;const o=r.fromAttribute(t,e.type);this[a]=o??this._$Ej?.get(a)??o,this._$Em=null}}requestUpdate(e,t,i,a=!1,r){if(void 0!==e){const o=this.constructor;if(!1===a&&(r=this[e]),i??=o.getPropertyOptions(e),!((i.hasChanged??b)(r,t)||i.useDefault&&i.reflect&&r===this._$Ej?.get(e)&&!this.hasAttribute(o._$Eu(e,i))))return;this.C(e,t,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(e,t,{useDefault:i,reflect:a,wrapped:r},o){i&&!(this._$Ej??=new Map).has(e)&&(this._$Ej.set(e,o??t??this[e]),!0!==r||void 0!==o)||(this._$AL.has(e)||(this.hasUpdated||i||(t=void 0),this._$AL.set(e,t)),!0===a&&this._$Em!==e&&(this._$Eq??=new Set).add(e))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const e=this.scheduleUpdate();return null!=e&&await e,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[e,t]of this._$Ep)this[e]=t;this._$Ep=void 0}const e=this.constructor.elementProperties;if(e.size>0)for(const[t,i]of e){const{wrapped:e}=i,a=this[t];!0!==e||this._$AL.has(t)||void 0===a||this.C(t,void 0,i,a)}}let e=!1;const t=this._$AL;try{e=this.shouldUpdate(t),e?(this.willUpdate(t),this._$EO?.forEach(e=>e.hostUpdate?.()),this.update(t)):this._$EM()}catch(i){throw e=!1,this._$EM(),i}e&&this._$AE(t)}willUpdate(e){}_$AE(e){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(e)),this.updated(e)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(e){return!0}update(e){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(e){}firstUpdated(e){}};w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[v("elementProperties")]=new Map,w[v("finalized")]=new Map,g?.({ReactiveElement:w}),(m.reactiveElementVersions??=[]).push("2.1.2");const x=globalThis,$=e=>e,k=x.trustedTypes,S=k?k.createPolicy("lit-html",{createHTML:e=>e}):void 0,E="$lit$",D=`lit$${Math.random().toFixed(9).slice(2)}$`,C="?"+D,I=`<${C}>`,z=document,A=()=>z.createComment(""),P=e=>null===e||"object"!=typeof e&&"function"!=typeof e,T=Array.isArray,O="[ \t\n\f\r]",R=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,M=/-->/g,L=/>/g,j=RegExp(`>|${O}(?:([^\\s"'>=/]+)(${O}*=${O}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),H=/'/g,N=/"/g,V=/^(?:script|style|textarea|title)$/i,q=e=>(t,...i)=>({_$litType$:e,strings:t,values:i}),F=q(1),U=q(2),W=Symbol.for("lit-noChange"),B=Symbol.for("lit-nothing"),Y=new WeakMap,K=z.createTreeWalker(z,129);function G(e,t){if(!T(e)||!e.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==S?S.createHTML(t):t}class X{constructor({strings:e,_$litType$:t},i){let a;this.parts=[];let r=0,o=0;const s=e.length-1,n=this.parts,[c,d]=((e,t)=>{const i=e.length-1,a=[];let r,o=2===t?"<svg>":3===t?"<math>":"",s=R;for(let n=0;n<i;n++){const t=e[n];let i,c,d=-1,l=0;for(;l<t.length&&(s.lastIndex=l,c=s.exec(t),null!==c);)l=s.lastIndex,s===R?"!--"===c[1]?s=M:void 0!==c[1]?s=L:void 0!==c[2]?(V.test(c[2])&&(r=RegExp("</"+c[2],"g")),s=j):void 0!==c[3]&&(s=j):s===j?">"===c[0]?(s=r??R,d=-1):void 0===c[1]?d=-2:(d=s.lastIndex-c[2].length,i=c[1],s=void 0===c[3]?j:'"'===c[3]?N:H):s===N||s===H?s=j:s===M||s===L?s=R:(s=j,r=void 0);const p=s===j&&e[n+1].startsWith("/>")?" ":"";o+=s===R?t+I:d>=0?(a.push(i),t.slice(0,d)+E+t.slice(d)+D+p):t+D+(-2===d?n:p)}return[G(e,o+(e[i]||"<?>")+(2===t?"</svg>":3===t?"</math>":"")),a]})(e,t);if(this.el=X.createElement(c,i),K.currentNode=this.el.content,2===t||3===t){const e=this.el.content.firstChild;e.replaceWith(...e.childNodes)}for(;null!==(a=K.nextNode())&&n.length<s;){if(1===a.nodeType){if(a.hasAttributes())for(const e of a.getAttributeNames())if(e.endsWith(E)){const t=d[o++],i=a.getAttribute(e).split(D),s=/([.?@])?(.*)/.exec(t);n.push({type:1,index:r,name:s[2],strings:i,ctor:"."===s[1]?te:"?"===s[1]?ie:"@"===s[1]?ae:ee}),a.removeAttribute(e)}else e.startsWith(D)&&(n.push({type:6,index:r}),a.removeAttribute(e));if(V.test(a.tagName)){const e=a.textContent.split(D),t=e.length-1;if(t>0){a.textContent=k?k.emptyScript:"";for(let i=0;i<t;i++)a.append(e[i],A()),K.nextNode(),n.push({type:2,index:++r});a.append(e[t],A())}}}else if(8===a.nodeType)if(a.data===C)n.push({type:2,index:r});else{let e=-1;for(;-1!==(e=a.data.indexOf(D,e+1));)n.push({type:7,index:r}),e+=D.length-1}r++}}static createElement(e,t){const i=z.createElement("template");return i.innerHTML=e,i}}function J(e,t,i=e,a){if(t===W)return t;let r=void 0!==a?i._$Co?.[a]:i._$Cl;const o=P(t)?void 0:t._$litDirective$;return r?.constructor!==o&&(r?._$AO?.(!1),void 0===o?r=void 0:(r=new o(e),r._$AT(e,i,a)),void 0!==a?(i._$Co??=[])[a]=r:i._$Cl=r),void 0!==r&&(t=J(e,r._$AS(e,t.values),r,a)),t}class Z{constructor(e,t){this._$AV=[],this._$AN=void 0,this._$AD=e,this._$AM=t}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(e){const{el:{content:t},parts:i}=this._$AD,a=(e?.creationScope??z).importNode(t,!0);K.currentNode=a;let r=K.nextNode(),o=0,s=0,n=i[0];for(;void 0!==n;){if(o===n.index){let t;2===n.type?t=new Q(r,r.nextSibling,this,e):1===n.type?t=new n.ctor(r,n.name,n.strings,this,e):6===n.type&&(t=new re(r,this,e)),this._$AV.push(t),n=i[++s]}o!==n?.index&&(r=K.nextNode(),o++)}return K.currentNode=z,a}p(e){let t=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(e,i,t),t+=i.strings.length-2):i._$AI(e[t])),t++}}class Q{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(e,t,i,a){this.type=2,this._$AH=B,this._$AN=void 0,this._$AA=e,this._$AB=t,this._$AM=i,this.options=a,this._$Cv=a?.isConnected??!0}get parentNode(){let e=this._$AA.parentNode;const t=this._$AM;return void 0!==t&&11===e?.nodeType&&(e=t.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,t=this){e=J(this,e,t),P(e)?e===B||null==e||""===e?(this._$AH!==B&&this._$AR(),this._$AH=B):e!==this._$AH&&e!==W&&this._(e):void 0!==e._$litType$?this.$(e):void 0!==e.nodeType?this.T(e):(e=>T(e)||"function"==typeof e?.[Symbol.iterator])(e)?this.k(e):this._(e)}O(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}T(e){this._$AH!==e&&(this._$AR(),this._$AH=this.O(e))}_(e){this._$AH!==B&&P(this._$AH)?this._$AA.nextSibling.data=e:this.T(z.createTextNode(e)),this._$AH=e}$(e){const{values:t,_$litType$:i}=e,a="number"==typeof i?this._$AC(e):(void 0===i.el&&(i.el=X.createElement(G(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===a)this._$AH.p(t);else{const e=new Z(a,this),i=e.u(this.options);e.p(t),this.T(i),this._$AH=e}}_$AC(e){let t=Y.get(e.strings);return void 0===t&&Y.set(e.strings,t=new X(e)),t}k(e){T(this._$AH)||(this._$AH=[],this._$AR());const t=this._$AH;let i,a=0;for(const r of e)a===t.length?t.push(i=new Q(this.O(A()),this.O(A()),this,this.options)):i=t[a],i._$AI(r),a++;a<t.length&&(this._$AR(i&&i._$AB.nextSibling,a),t.length=a)}_$AR(e=this._$AA.nextSibling,t){for(this._$AP?.(!1,!0,t);e!==this._$AB;){const t=$(e).nextSibling;$(e).remove(),e=t}}setConnected(e){void 0===this._$AM&&(this._$Cv=e,this._$AP?.(e))}}class ee{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(e,t,i,a,r){this.type=1,this._$AH=B,this._$AN=void 0,this.element=e,this.name=t,this._$AM=a,this.options=r,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=B}_$AI(e,t=this,i,a){const r=this.strings;let o=!1;if(void 0===r)e=J(this,e,t,0),o=!P(e)||e!==this._$AH&&e!==W,o&&(this._$AH=e);else{const a=e;let s,n;for(e=r[0],s=0;s<r.length-1;s++)n=J(this,a[i+s],t,s),n===W&&(n=this._$AH[s]),o||=!P(n)||n!==this._$AH[s],n===B?e=B:e!==B&&(e+=(n??"")+r[s+1]),this._$AH[s]=n}o&&!a&&this.j(e)}j(e){e===B?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,e??"")}}class te extends ee{constructor(){super(...arguments),this.type=3}j(e){this.element[this.name]=e===B?void 0:e}}class ie extends ee{constructor(){super(...arguments),this.type=4}j(e){this.element.toggleAttribute(this.name,!!e&&e!==B)}}class ae extends ee{constructor(e,t,i,a,r){super(e,t,i,a,r),this.type=5}_$AI(e,t=this){if((e=J(this,e,t,0)??B)===W)return;const i=this._$AH,a=e===B&&i!==B||e.capture!==i.capture||e.once!==i.once||e.passive!==i.passive,r=e!==B&&(i===B||a);a&&this.element.removeEventListener(this.name,this,i),r&&this.element.addEventListener(this.name,this,e),this._$AH=e}handleEvent(e){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,e):this._$AH.handleEvent(e)}}class re{constructor(e,t,i){this.element=e,this.type=6,this._$AN=void 0,this._$AM=t,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(e){J(this,e)}}const oe=x.litHtmlPolyfillSupport;oe?.(X,Q),(x.litHtmlVersions??=[]).push("3.3.2");const se=globalThis;class ne extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const e=super.createRenderRoot();return this.renderOptions.renderBefore??=e.firstChild,e}update(e){const t=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(e),this._$Do=((e,t,i)=>{const a=i?.renderBefore??t;let r=a._$litPart$;if(void 0===r){const e=i?.renderBefore??null;a._$litPart$=r=new Q(t.insertBefore(A(),e),e,void 0,i??{})}return r._$AI(e),r})(t,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return W}}ne._$litElement$=!0,ne.finalized=!0,se.litElementHydrateSupport?.({LitElement:ne});const ce=se.litElementPolyfillSupport;ce?.({LitElement:ne}),(se.litElementVersions??=[]).push("4.2.2");const de=[o`
+!function(){"use strict";const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),a=new WeakMap;let r=class{constructor(e,t,a){if(this._$cssResult$=!0,a!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=e,this.t=t}get styleSheet(){let e=this.o;const i=this.t;if(t&&void 0===e){const t=void 0!==i&&1===i.length;t&&(e=a.get(i)),void 0===e&&((this.o=e=new CSSStyleSheet).replaceSync(this.cssText),t&&a.set(i,e))}return e}toString(){return this.cssText}};const s=(e,...t)=>{const a=1===e.length?e[0]:t.reduce((t,i,a)=>t+(e=>{if(!0===e._$cssResult$)return e.cssText;if("number"==typeof e)return e;throw Error("Value passed to 'css' function must be a 'css' function result: "+e+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+e[a+1],e[0]);return new r(a,e,i)},o=t?e=>e:e=>e instanceof CSSStyleSheet?(e=>{let t="";for(const i of e.cssRules)t+=i.cssText;return(e=>new r("string"==typeof e?e:e+"",void 0,i))(t)})(e):e,{is:n,defineProperty:c,getOwnPropertyDescriptor:l,getOwnPropertyNames:d,getOwnPropertySymbols:h,getPrototypeOf:p}=Object,u=globalThis,g=u.trustedTypes,_=g?g.emptyScript:"",m=u.reactiveElementPolyfillSupport,f=(e,t)=>e,v={toAttribute(e,t){switch(t){case Boolean:e=e?_:null;break;case Object:case Array:e=null==e?e:JSON.stringify(e)}return e},fromAttribute(e,t){let i=e;switch(t){case Boolean:i=null!==e;break;case Number:i=null===e?null:Number(e);break;case Object:case Array:try{i=JSON.parse(e)}catch(a){i=null}}return i}},b=(e,t)=>!n(e,t),y={attribute:!0,type:String,converter:v,reflect:!1,useDefault:!1,hasChanged:b};Symbol.metadata??=Symbol("metadata"),u.litPropertyMetadata??=new WeakMap;let w=class extends HTMLElement{static addInitializer(e){this._$Ei(),(this.l??=[]).push(e)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(e,t=y){if(t.state&&(t.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(e)&&((t=Object.create(t)).wrapped=!0),this.elementProperties.set(e,t),!t.noAccessor){const i=Symbol(),a=this.getPropertyDescriptor(e,i,t);void 0!==a&&c(this.prototype,e,a)}}static getPropertyDescriptor(e,t,i){const{get:a,set:r}=l(this.prototype,e)??{get(){return this[t]},set(e){this[t]=e}};return{get:a,set(t){const s=a?.call(this);r?.call(this,t),this.requestUpdate(e,s,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(e){return this.elementProperties.get(e)??y}static _$Ei(){if(this.hasOwnProperty(f("elementProperties")))return;const e=p(this);e.finalize(),void 0!==e.l&&(this.l=[...e.l]),this.elementProperties=new Map(e.elementProperties)}static finalize(){if(this.hasOwnProperty(f("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(f("properties"))){const e=this.properties,t=[...d(e),...h(e)];for(const i of t)this.createProperty(i,e[i])}const e=this[Symbol.metadata];if(null!==e){const t=litPropertyMetadata.get(e);if(void 0!==t)for(const[e,i]of t)this.elementProperties.set(e,i)}this._$Eh=new Map;for(const[t,i]of this.elementProperties){const e=this._$Eu(t,i);void 0!==e&&this._$Eh.set(e,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(e){const t=[];if(Array.isArray(e)){const i=new Set(e.flat(1/0).reverse());for(const e of i)t.unshift(o(e))}else void 0!==e&&t.push(o(e));return t}static _$Eu(e,t){const i=t.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof e?e.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(e=>this.enableUpdating=e),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(e=>e(this))}addController(e){(this._$EO??=new Set).add(e),void 0!==this.renderRoot&&this.isConnected&&e.hostConnected?.()}removeController(e){this._$EO?.delete(e)}_$E_(){const e=new Map,t=this.constructor.elementProperties;for(const i of t.keys())this.hasOwnProperty(i)&&(e.set(i,this[i]),delete this[i]);e.size>0&&(this._$Ep=e)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,a)=>{if(t)i.adoptedStyleSheets=a.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(const t of a){const a=document.createElement("style"),r=e.litNonce;void 0!==r&&a.setAttribute("nonce",r),a.textContent=t.cssText,i.appendChild(a)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(e=>e.hostConnected?.())}enableUpdating(e){}disconnectedCallback(){this._$EO?.forEach(e=>e.hostDisconnected?.())}attributeChangedCallback(e,t,i){this._$AK(e,i)}_$ET(e,t){const i=this.constructor.elementProperties.get(e),a=this.constructor._$Eu(e,i);if(void 0!==a&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:v).toAttribute(t,i.type);this._$Em=e,null==r?this.removeAttribute(a):this.setAttribute(a,r),this._$Em=null}}_$AK(e,t){const i=this.constructor,a=i._$Eh.get(e);if(void 0!==a&&this._$Em!==a){const e=i.getPropertyOptions(a),r="function"==typeof e.converter?{fromAttribute:e.converter}:void 0!==e.converter?.fromAttribute?e.converter:v;this._$Em=a;const s=r.fromAttribute(t,e.type);this[a]=s??this._$Ej?.get(a)??s,this._$Em=null}}requestUpdate(e,t,i,a=!1,r){if(void 0!==e){const s=this.constructor;if(!1===a&&(r=this[e]),i??=s.getPropertyOptions(e),!((i.hasChanged??b)(r,t)||i.useDefault&&i.reflect&&r===this._$Ej?.get(e)&&!this.hasAttribute(s._$Eu(e,i))))return;this.C(e,t,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(e,t,{useDefault:i,reflect:a,wrapped:r},s){i&&!(this._$Ej??=new Map).has(e)&&(this._$Ej.set(e,s??t??this[e]),!0!==r||void 0!==s)||(this._$AL.has(e)||(this.hasUpdated||i||(t=void 0),this._$AL.set(e,t)),!0===a&&this._$Em!==e&&(this._$Eq??=new Set).add(e))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const e=this.scheduleUpdate();return null!=e&&await e,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[e,t]of this._$Ep)this[e]=t;this._$Ep=void 0}const e=this.constructor.elementProperties;if(e.size>0)for(const[t,i]of e){const{wrapped:e}=i,a=this[t];!0!==e||this._$AL.has(t)||void 0===a||this.C(t,void 0,i,a)}}let e=!1;const t=this._$AL;try{e=this.shouldUpdate(t),e?(this.willUpdate(t),this._$EO?.forEach(e=>e.hostUpdate?.()),this.update(t)):this._$EM()}catch(i){throw e=!1,this._$EM(),i}e&&this._$AE(t)}willUpdate(e){}_$AE(e){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(e)),this.updated(e)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(e){return!0}update(e){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(e){}firstUpdated(e){}};w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[f("elementProperties")]=new Map,w[f("finalized")]=new Map,m?.({ReactiveElement:w}),(u.reactiveElementVersions??=[]).push("2.1.2");const x=globalThis,k=e=>e,$=x.trustedTypes,S=$?$.createPolicy("lit-html",{createHTML:e=>e}):void 0,C="$lit$",I=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+I,z=`<${E}>`,D=document,T=()=>D.createComment(""),P=e=>null===e||"object"!=typeof e&&"function"!=typeof e,L=Array.isArray,M="[ \t\n\f\r]",A=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,O=/-->/g,R=/>/g,j=RegExp(`>|${M}(?:([^\\s"'>=/]+)(${M}*=${M}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),H=/'/g,F=/"/g,q=/^(?:script|style|textarea|title)$/i,V=e=>(t,...i)=>({_$litType$:e,strings:t,values:i}),N=V(1),U=V(2),W=Symbol.for("lit-noChange"),B=Symbol.for("lit-nothing"),K=new WeakMap,Y=D.createTreeWalker(D,129);function G(e,t){if(!L(e)||!e.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==S?S.createHTML(t):t}class X{constructor({strings:e,_$litType$:t},i){let a;this.parts=[];let r=0,s=0;const o=e.length-1,n=this.parts,[c,l]=((e,t)=>{const i=e.length-1,a=[];let r,s=2===t?"<svg>":3===t?"<math>":"",o=A;for(let n=0;n<i;n++){const t=e[n];let i,c,l=-1,d=0;for(;d<t.length&&(o.lastIndex=d,c=o.exec(t),null!==c);)d=o.lastIndex,o===A?"!--"===c[1]?o=O:void 0!==c[1]?o=R:void 0!==c[2]?(q.test(c[2])&&(r=RegExp("</"+c[2],"g")),o=j):void 0!==c[3]&&(o=j):o===j?">"===c[0]?(o=r??A,l=-1):void 0===c[1]?l=-2:(l=o.lastIndex-c[2].length,i=c[1],o=void 0===c[3]?j:'"'===c[3]?F:H):o===F||o===H?o=j:o===O||o===R?o=A:(o=j,r=void 0);const h=o===j&&e[n+1].startsWith("/>")?" ":"";s+=o===A?t+z:l>=0?(a.push(i),t.slice(0,l)+C+t.slice(l)+I+h):t+I+(-2===l?n:h)}return[G(e,s+(e[i]||"<?>")+(2===t?"</svg>":3===t?"</math>":"")),a]})(e,t);if(this.el=X.createElement(c,i),Y.currentNode=this.el.content,2===t||3===t){const e=this.el.content.firstChild;e.replaceWith(...e.childNodes)}for(;null!==(a=Y.nextNode())&&n.length<o;){if(1===a.nodeType){if(a.hasAttributes())for(const e of a.getAttributeNames())if(e.endsWith(C)){const t=l[s++],i=a.getAttribute(e).split(I),o=/([.?@])?(.*)/.exec(t);n.push({type:1,index:r,name:o[2],strings:i,ctor:"."===o[1]?te:"?"===o[1]?ie:"@"===o[1]?ae:ee}),a.removeAttribute(e)}else e.startsWith(I)&&(n.push({type:6,index:r}),a.removeAttribute(e));if(q.test(a.tagName)){const e=a.textContent.split(I),t=e.length-1;if(t>0){a.textContent=$?$.emptyScript:"";for(let i=0;i<t;i++)a.append(e[i],T()),Y.nextNode(),n.push({type:2,index:++r});a.append(e[t],T())}}}else if(8===a.nodeType)if(a.data===E)n.push({type:2,index:r});else{let e=-1;for(;-1!==(e=a.data.indexOf(I,e+1));)n.push({type:7,index:r}),e+=I.length-1}r++}}static createElement(e,t){const i=D.createElement("template");return i.innerHTML=e,i}}function Q(e,t,i=e,a){if(t===W)return t;let r=void 0!==a?i._$Co?.[a]:i._$Cl;const s=P(t)?void 0:t._$litDirective$;return r?.constructor!==s&&(r?._$AO?.(!1),void 0===s?r=void 0:(r=new s(e),r._$AT(e,i,a)),void 0!==a?(i._$Co??=[])[a]=r:i._$Cl=r),void 0!==r&&(t=Q(e,r._$AS(e,t.values),r,a)),t}let J=class{constructor(e,t){this._$AV=[],this._$AN=void 0,this._$AD=e,this._$AM=t}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(e){const{el:{content:t},parts:i}=this._$AD,a=(e?.creationScope??D).importNode(t,!0);Y.currentNode=a;let r=Y.nextNode(),s=0,o=0,n=i[0];for(;void 0!==n;){if(s===n.index){let t;2===n.type?t=new Z(r,r.nextSibling,this,e):1===n.type?t=new n.ctor(r,n.name,n.strings,this,e):6===n.type&&(t=new re(r,this,e)),this._$AV.push(t),n=i[++o]}s!==n?.index&&(r=Y.nextNode(),s++)}return Y.currentNode=D,a}p(e){let t=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(e,i,t),t+=i.strings.length-2):i._$AI(e[t])),t++}};class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(e,t,i,a){this.type=2,this._$AH=B,this._$AN=void 0,this._$AA=e,this._$AB=t,this._$AM=i,this.options=a,this._$Cv=a?.isConnected??!0}get parentNode(){let e=this._$AA.parentNode;const t=this._$AM;return void 0!==t&&11===e?.nodeType&&(e=t.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,t=this){e=Q(this,e,t),P(e)?e===B||null==e||""===e?(this._$AH!==B&&this._$AR(),this._$AH=B):e!==this._$AH&&e!==W&&this._(e):void 0!==e._$litType$?this.$(e):void 0!==e.nodeType?this.T(e):(e=>L(e)||"function"==typeof e?.[Symbol.iterator])(e)?this.k(e):this._(e)}O(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}T(e){this._$AH!==e&&(this._$AR(),this._$AH=this.O(e))}_(e){this._$AH!==B&&P(this._$AH)?this._$AA.nextSibling.data=e:this.T(D.createTextNode(e)),this._$AH=e}$(e){const{values:t,_$litType$:i}=e,a="number"==typeof i?this._$AC(e):(void 0===i.el&&(i.el=X.createElement(G(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===a)this._$AH.p(t);else{const e=new J(a,this),i=e.u(this.options);e.p(t),this.T(i),this._$AH=e}}_$AC(e){let t=K.get(e.strings);return void 0===t&&K.set(e.strings,t=new X(e)),t}k(e){L(this._$AH)||(this._$AH=[],this._$AR());const t=this._$AH;let i,a=0;for(const r of e)a===t.length?t.push(i=new Z(this.O(T()),this.O(T()),this,this.options)):i=t[a],i._$AI(r),a++;a<t.length&&(this._$AR(i&&i._$AB.nextSibling,a),t.length=a)}_$AR(e=this._$AA.nextSibling,t){for(this._$AP?.(!1,!0,t);e!==this._$AB;){const t=k(e).nextSibling;k(e).remove(),e=t}}setConnected(e){void 0===this._$AM&&(this._$Cv=e,this._$AP?.(e))}}class ee{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(e,t,i,a,r){this.type=1,this._$AH=B,this._$AN=void 0,this.element=e,this.name=t,this._$AM=a,this.options=r,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=B}_$AI(e,t=this,i,a){const r=this.strings;let s=!1;if(void 0===r)e=Q(this,e,t,0),s=!P(e)||e!==this._$AH&&e!==W,s&&(this._$AH=e);else{const a=e;let o,n;for(e=r[0],o=0;o<r.length-1;o++)n=Q(this,a[i+o],t,o),n===W&&(n=this._$AH[o]),s||=!P(n)||n!==this._$AH[o],n===B?e=B:e!==B&&(e+=(n??"")+r[o+1]),this._$AH[o]=n}s&&!a&&this.j(e)}j(e){e===B?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,e??"")}}class te extends ee{constructor(){super(...arguments),this.type=3}j(e){this.element[this.name]=e===B?void 0:e}}class ie extends ee{constructor(){super(...arguments),this.type=4}j(e){this.element.toggleAttribute(this.name,!!e&&e!==B)}}class ae extends ee{constructor(e,t,i,a,r){super(e,t,i,a,r),this.type=5}_$AI(e,t=this){if((e=Q(this,e,t,0)??B)===W)return;const i=this._$AH,a=e===B&&i!==B||e.capture!==i.capture||e.once!==i.once||e.passive!==i.passive,r=e!==B&&(i===B||a);a&&this.element.removeEventListener(this.name,this,i),r&&this.element.addEventListener(this.name,this,e),this._$AH=e}handleEvent(e){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,e):this._$AH.handleEvent(e)}}class re{constructor(e,t,i){this.element=e,this.type=6,this._$AN=void 0,this._$AM=t,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(e){Q(this,e)}}const se=x.litHtmlPolyfillSupport;se?.(X,Z),(x.litHtmlVersions??=[]).push("3.3.2");const oe=globalThis;class ne extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const e=super.createRenderRoot();return this.renderOptions.renderBefore??=e.firstChild,e}update(e){const t=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(e),this._$Do=((e,t,i)=>{const a=i?.renderBefore??t;let r=a._$litPart$;if(void 0===r){const e=i?.renderBefore??null;a._$litPart$=r=new Z(t.insertBefore(T(),e),e,void 0,i??{})}return r._$AI(e),r})(t,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return W}}ne._$litElement$=!0,ne.finalized=!0,oe.litElementHydrateSupport?.({LitElement:ne});const ce=oe.litElementPolyfillSupport;ce?.({LitElement:ne}),(oe.litElementVersions??=[]).push("4.2.2");const le=[s`
       *, *::before, *::after {
         box-sizing: border-box;
       }
@@ -129,6 +129,20 @@
         line-height: 1.5;
         padding-left: 0.125rem;
       }
+
+      /* ── Live card preview ── */
+      .tab-panel > :is(glass-light-card, glass-climate-card, glass-cover-card,
+        glass-fan-card, glass-media-card, glass-weather-card, glass-presence-card,
+        glass-spotify-card, glass-camera-carousel-card, glass-title-card) {
+        display: block;
+        margin-bottom: 1rem;
+        overflow: visible;
+      }
+
+      /* ── Spacing utilities ── */
+      .mt-sm { margin-top: 0.75rem; }
+      .mt-md { margin-top: 1.25rem; }
+      .mt-lg { margin-top: 1.75rem; }
 
       /* ── Banner ── */
       .banner {
@@ -953,6 +967,7 @@
       .panel-content {
         flex: 1;
         overflow-y: auto;
+        overflow-x: clip;
         min-width: 0;
       }
 
@@ -1497,7 +1512,7 @@
         --mdc-icon-color: var(--t4);
       }
       .dash-card:hover .dash-drag-hint { opacity: 0.6; }
-`,o`
+`,s`
       /* ── Tab panel animation ── */
       .tab-panel {
         animation: panel-in 0.3s var(--ease-out) both;
@@ -1512,2462 +1527,7 @@
           transform: translateY(0);
         }
       }
-`,o`
-      /* ── Preview ── */
-      .preview-encart {
-        margin-bottom: 1rem;
-        padding: 0.75rem;
-        border-radius: var(--radius-lg);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-      }
-      .preview-label {
-        font-size: var(--fz-xxs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t4);
-        margin-bottom: 0.5rem;
-      }
-
-      /* Preview navbar — miniature faithful to real navbar */
-      .preview-navbar {
-        display: flex;
-        align-items: center;
-        gap: 0.125rem;
-        padding: 0 0.375rem;
-        height: 2.875rem;
-        border-radius: var(--radius-lg);
-        background: linear-gradient(
-          135deg,
-          rgba(var(--rgb-white), 0.08) 0%,
-          rgba(var(--rgb-white), 0.03) 50%,
-          rgba(var(--rgb-white), 0.06) 100%
-        );
-        backdrop-filter: blur(50px) saturate(1.5);
-        -webkit-backdrop-filter: blur(50px) saturate(1.5);
-        box-shadow:
-          inset 0 1px 0 0 rgba(var(--rgb-white), 0.1),
-          0 20px 60px rgba(var(--rgb-black), 0.4),
-          0 4px 16px rgba(var(--rgb-black), 0.25);
-        border: 1px solid var(--b2);
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .preview-navbar::-webkit-scrollbar {
-        display: none;
-      }
-      .preview-nav-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        height: 2.125rem;
-        min-width: 2.125rem;
-        padding: 0 0.5rem;
-        border-radius: var(--radius-md);
-        background: transparent;
-        flex-shrink: 0;
-        position: relative;
-        transition:
-          background var(--t-fast),
-          color var(--t-fast),
-          opacity var(--t-fast);
-        color: var(--t3);
-      }
-      .preview-nav-item ha-icon {
-        --mdc-icon-size: 1.125rem;
-        flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-nav-item.hidden-preview {
-        opacity: 0.2;
-      }
-      .preview-nav-item.active-preview {
-        background: rgba(var(--rgb-white), 0.1);
-        color: var(--t1);
-      }
-      .preview-nav-item.active-preview ha-icon {
-        color: var(--t1);
-      }
-      .preview-nav-label {
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        white-space: nowrap;
-        display: grid;
-        grid-template-columns: 0fr;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        transition: grid-template-columns 0.35s var(--ease-out);
-      }
-      .preview-nav-item.active-preview .preview-nav-label {
-        grid-template-columns: 1fr;
-      }
-      .preview-nav-label span {
-        min-width: 0;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        opacity: 0;
-        transition: opacity var(--t-fast);
-      }
-      .preview-nav-item.active-preview .preview-nav-label span {
-        opacity: 1;
-      }
-
-      /* Preview navbar — live indicators */
-      .preview-nav-item.has-light ha-icon {
-        color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6));
-        animation: pulse-light 3s ease-in-out infinite;
-      }
-      @keyframes pulse-light {
-        0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6)); }
-        50% { filter: drop-shadow(0 0 2px rgba(var(--rgb-light-glow), 0.2)); }
-      }
-      .preview-nav-item.has-humidity::after {
-        content: '';
-        position: absolute;
-        bottom: 0.1875rem;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0.75rem;
-        height: 0.125rem;
-        border-radius: 2px;
-        background: var(--c-info);
-        opacity: 0.8;
-        box-shadow: 0 0 6px rgba(var(--rgb-info), 0.4);
-      }
-      .preview-nav-item.has-music ha-icon {
-        animation: pulse-music 0.8s ease-in-out infinite;
-      }
-      .preview-nav-item.has-light.has-music ha-icon {
-        color: var(--c-light-glow);
-        animation: pulse-light 3s ease-in-out infinite, pulse-music 0.8s ease-in-out infinite;
-      }
-      @keyframes pulse-music {
-        0%, 100% { transform: scale(1); }
-        30% { transform: scale(1.2); }
-        50% { transform: scale(0.95); }
-        70% { transform: scale(1.1); }
-      }
-      .preview-temp-badge {
-        position: absolute;
-        top: 0.0625rem;
-        right: 0.1875rem;
-        width: 0.75rem;
-        height: 0.75rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity var(--t-fast);
-      }
-      .preview-temp-badge ha-icon {
-        --mdc-icon-size: 0.5rem;
-      }
-      .preview-nav-item.has-temp-hot .preview-temp-badge {
-        opacity: 1;
-        color: var(--c-temp-hot);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-alert), 0.6));
-        animation: pulse-temp-hot 2s infinite ease-in-out;
-      }
-      .preview-nav-item.has-temp-cold .preview-temp-badge {
-        opacity: 1;
-        color: var(--c-temp-cold);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-info), 0.6));
-        animation: pulse-temp-cold 2s infinite ease-in-out;
-      }
-      @keyframes pulse-temp-hot {
-        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
-        50% { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(var(--rgb-alert), 0.6)); }
-      }
-      @keyframes pulse-temp-cold {
-        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
-        50% { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(var(--rgb-info), 0.6)); }
-      }
-
-      /* Preview popup — faithful miniature of real popup */
-      .preview-popup {
-        border-radius: var(--radius-lg);
-        background: linear-gradient(
-          135deg,
-          rgba(var(--rgb-white), 0.08) 0%,
-          rgba(var(--rgb-white), 0.03) 50%,
-          rgba(var(--rgb-white), 0.06) 100%
-        );
-        backdrop-filter: blur(50px) saturate(1.5);
-        -webkit-backdrop-filter: blur(50px) saturate(1.5);
-        box-shadow:
-          inset 0 1px 0 0 rgba(var(--rgb-white), 0.1),
-          0 20px 60px rgba(var(--rgb-black), 0.4),
-          0 4px 16px rgba(var(--rgb-black), 0.25);
-        border: 1px solid var(--b2);
-        padding: 0.75rem;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .preview-popup-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .preview-popup-header-left {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex-shrink: 0;
-      }
-      .preview-popup-icon-box {
-        width: 1.875rem;
-        height: 1.875rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--t2);
-      }
-      .preview-popup-icon-box ha-icon {
-        --mdc-icon-size: 0.9375rem;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-popup-icon-box.has-light ha-icon {
-        color: var(--c-light-glow);
-        filter: drop-shadow(0 0 5px rgba(var(--rgb-light-glow), 0.6));
-      }
-      .preview-popup-icon-box.has-music ha-icon {
-        animation: pulse-music 0.8s ease-in-out infinite;
-      }
-      .preview-popup-scene-dash {
-        width: 0.625rem;
-        height: 0.125rem;
-        background: var(--t4);
-        border-radius: 4px;
-        margin-top: 0.25rem;
-        opacity: 0;
-        transition: opacity 0.3s var(--ease-std);
-      }
-      .preview-popup-scene-dash.visible {
-        opacity: 1;
-      }
-      .preview-popup-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .preview-popup-name {
-        font-size: var(--fz-base);
-        font-weight: 700;
-        color: var(--t1);
-        line-height: 1.2;
-      }
-      .preview-popup-meta {
-        display: flex;
-        gap: 0.5rem;
-        font-size: var(--fz-xs);
-        font-weight: 500;
-        color: var(--t3);
-        margin-top: 0.125rem;
-      }
-      .preview-popup-close {
-        width: 1.25rem;
-        height: 1.25rem;
-        border-radius: var(--radius-sm);
-        background: transparent;
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        color: var(--t3);
-        pointer-events: none;
-      }
-      .preview-popup-close ha-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex; align-items: center; justify-content: center;
-      }
-
-      /* Preview popup scenes */
-      .preview-popup-scenes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem;
-        padding-bottom: 0.5rem;
-      }
-      .preview-scene-chip {
-        background: rgba(var(--rgb-white), 0.04);
-        border: 1px solid var(--b1);
-        border-radius: var(--radius-md);
-        padding: 0.125rem 0.5rem;
-        font-size: var(--fz-xxs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: var(--t3);
-        transition: opacity var(--t-fast);
-      }
-      .preview-scene-chip.hidden-scene {
-        opacity: 0.2;
-      }
-
-      /* Preview popup cards */
-      .preview-popup-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      .preview-card-slot {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.375rem 0.5rem;
-        border-radius: var(--radius-sm);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        transition: opacity var(--t-fast);
-      }
-      .preview-card-slot ha-icon {
-        --mdc-icon-size: 0.875rem;
-        color: var(--t3);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-card-slot-name {
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        color: var(--t2);
-      }
-      .preview-card-slot-count {
-        margin-left: auto;
-        font-size: var(--fz-xs);
-        font-weight: 600;
-        color: var(--t4);
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-full);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-      }
-      .preview-empty {
-        font-size: var(--fz-sm);
-        font-weight: 500;
-        color: var(--t4);
-        text-align: center;
-        padding: 0.75rem 0;
-      }
-
-      /* Variant picker */
-      .variant-picker {
-        display: flex; gap: 0.375rem; margin-top: 0.375rem;
-      }
-
-      /* Preview media hero card — full-bleed artwork style */
-      .preview-media {
-        position: relative; overflow: hidden;
-        border-radius: var(--radius-xl);
-        min-height: 12.5rem;
-        display: flex; flex-direction: column;
-        border: 1px solid var(--b2);
-        box-shadow: 0 8px 32px rgba(var(--rgb-black),0.25), 0 2px 8px rgba(var(--rgb-black),0.15);
-      }
-      .mp-art-bg {
-        position: absolute; inset: 0; z-index: 0;
-        background: linear-gradient(135deg, #1a1040 0%, #2d1b69 30%, #4a2c8a 60%, #1a1040 100%);
-      }
-      .mp-gradient {
-        position: absolute; inset: 0; z-index: 1; pointer-events: none;
-        background: linear-gradient(to top,
-          rgba(var(--rgb-black),0.85) 0%,
-          rgba(var(--rgb-black),0.4) 40%,
-          rgba(var(--rgb-black),0.15) 70%,
-          transparent 100%
-        );
-      }
-      .mp-content {
-        position: relative; z-index: 2;
-        display: flex; flex-direction: column;
-        padding: 0.5rem 0.75rem; flex: 1;
-      }
-      .mp-top {
-        display: flex; align-items: center; justify-content: space-between;
-      }
-      .mp-pill {
-        display: inline-flex; align-items: center; gap: 0.25rem;
-        padding: 0.125rem 0.5rem 0.125rem 0.25rem;
-        border-radius: var(--radius-full);
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        background: rgba(var(--rgb-black),0.35); border: 1px solid rgba(var(--rgb-white),0.08);
-        font-size: var(--fz-xxs); font-weight: 600; color: rgba(var(--rgb-white),0.9);
-      }
-      .mp-pill ha-icon { --mdc-icon-size: 0.625rem; display: flex; align-items: center; justify-content: center; }
-      .mp-eq {
-        display: flex; align-items: flex-end; gap: 0.125rem;
-        height: 0.625rem; margin-left: 0.25rem;
-      }
-      .mp-eq-bar {
-        width: 0.125rem; border-radius: 1px;
-        background: #fff;
-        filter: drop-shadow(0 0 3px rgba(var(--rgb-white),0.6));
-        animation: mp-eq-1 0.8s ease-in-out infinite alternate;
-      }
-      .mp-eq-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
-      .mp-eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; animation-name: mp-eq-2; }
-      .mp-eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; animation-name: mp-eq-3; }
-      @keyframes mp-eq-1 { 0% { height: 20%; } 100% { height: 100%; } }
-      @keyframes mp-eq-2 { 0% { height: 30%; } 100% { height: 90%; } }
-      @keyframes mp-eq-3 { 0% { height: 15%; } 100% { height: 85%; } }
-      .mp-spacer { flex: 1; }
-      .mp-glass-panel {
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        background: rgba(var(--rgb-black),0.3);
-        border: 1px solid rgba(var(--rgb-white),0.06);
-        border-radius: var(--radius-lg);
-        padding: 0.5rem 0.75rem 0.5rem;
-      }
-      .mp-track {
-        display: flex; flex-direction: column; gap: 0.125rem;
-      }
-      .mp-track-title {
-        font-size: var(--fz-md); font-weight: 700; color: #fff; line-height: 1.15;
-        text-shadow: 0 1px 6px rgba(var(--rgb-black),0.4);
-      }
-      .mp-track-artist {
-        font-size: var(--fz-sm); font-weight: 500; color: rgba(var(--rgb-white),0.7);
-      }
-      .mp-track-meta {
-        display: flex; align-items: center; gap: 0.375rem; margin-top: 0.0625rem;
-      }
-      .mp-track-time { font-size: var(--fz-xxs); color: rgba(var(--rgb-white),0.4); font-variant-numeric: tabular-nums; }
-      .mp-track-source {
-        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.4px; color: rgba(var(--rgb-white),0.4);
-        padding: 0.0625rem 0.25rem; border-radius: 3px; background: rgba(var(--rgb-white),0.06);
-      }
-      .mp-progress {
-        position: relative; width: 100%; height: 0.1875rem;
-        border-radius: 1.5px; background: rgba(var(--rgb-white),0.08); margin-top: 0.375rem;
-      }
-      .mp-progress-fill {
-        position: absolute; top: 0; left: 0; height: 100%; width: 67%;
-        border-radius: inherit;
-        background: rgba(var(--rgb-accent),0.8);
-        box-shadow: 0 0 6px rgba(var(--rgb-accent),0.4);
-      }
-      .mp-transport {
-        display: flex; align-items: center; justify-content: center; gap: 0.375rem;
-        margin-top: 0.5rem;
-      }
-      .mp-btn {
-        width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
-        background: transparent; border: none;
-        display: flex; align-items: center; justify-content: center;
-        color: rgba(var(--rgb-white),0.45); padding: 0;
-      }
-      .mp-btn ha-icon { --mdc-icon-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
-      .mp-btn.skip { width: 1.75rem; height: 1.75rem; }
-      .mp-btn.skip ha-icon { --mdc-icon-size: 1.125rem; }
-      .mp-btn.main {
-        width: 2.125rem; height: 2.125rem; border-radius: var(--radius-md);
-        background: rgba(var(--rgb-accent),0.1); border: 1px solid rgba(var(--rgb-accent),0.15);
-        color: rgba(var(--rgb-accent),0.8);
-      }
-      .mp-btn.main ha-icon { --mdc-icon-size: 1.125rem; }
-
-      /* Preview light card */
-      .preview-light {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .preview-light-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.25rem;
-        padding: 0 0.25rem;
-      }
-      .preview-light-header-left {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .preview-light-title {
-        font-size: var(--fz-xxs);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: var(--t4);
-      }
-      .preview-light-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 0.875rem;
-        height: 0.875rem;
-        padding: 0 0.25rem;
-        border-radius: var(--radius-full);
-        font-size: var(--fz-xxs);
-        font-weight: 700;
-      }
-      .preview-light-count.none {
-        background: var(--s2);
-        color: var(--t3);
-      }
-      .preview-light-count.some {
-        background: rgba(var(--rgb-light-glow), 0.15);
-        color: var(--c-light-glow);
-      }
-      .preview-light-count.all {
-        background: rgba(var(--rgb-light-glow), 0.2);
-        color: var(--c-light-glow);
-      }
-      .preview-light-toggle {
-        width: 1.75rem;
-        height: 0.875rem;
-        border-radius: var(--radius-sm);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        position: relative;
-        pointer-events: none;
-      }
-      .preview-light-toggle::after {
-        content: '';
-        position: absolute;
-        top: 0.125rem;
-        left: 0.125rem;
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--t3);
-        transition: transform var(--t-fast), background var(--t-fast);
-      }
-      .preview-light-toggle.on {
-        background: rgba(var(--rgb-light-glow), 0.2);
-        border-color: rgba(var(--rgb-light-glow), 0.3);
-      }
-      .preview-light-toggle.on::after {
-        transform: translateX(14px);
-        background: var(--c-light-glow);
-        box-shadow: 0 0 6px rgba(var(--rgb-light-glow), 0.4);
-      }
-      .preview-light-body {
-        border-radius: var(--radius-lg);
-        background: linear-gradient(
-          135deg,
-          rgba(var(--rgb-white), 0.06) 0%,
-          rgba(var(--rgb-white), 0.02) 100%
-        );
-        box-shadow:
-          inset 0 1px 0 0 rgba(var(--rgb-white), 0.08),
-          0 8px 24px rgba(var(--rgb-black), 0.3);
-        border: 1px solid var(--b1);
-        padding: 0.5rem;
-        position: relative;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .preview-light-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        position: relative;
-        z-index: 1;
-      }
-      .preview-light-row {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        grid-column: 1 / -1;
-        padding: 0.3125rem 0.25rem;
-        border-radius: var(--radius-xs);
-        transition: opacity var(--t-fast);
-      }
-      .preview-light-row.compact {
-        grid-column: span 1;
-      }
-      .preview-light-row.compact-right {
-        padding-left: 0.5rem;
-        position: relative;
-      }
-      .preview-light-row.compact-right::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 20%;
-        bottom: 20%;
-        width: 0.0625rem;
-        background: linear-gradient(
-          to bottom,
-          transparent,
-          rgba(var(--rgb-white), 0.08) 30%,
-          rgba(var(--rgb-white), 0.08) 70%,
-          transparent
-        );
-      }
-      .preview-light-row.hidden-light {
-        opacity: 0.2;
-      }
-      .preview-light-icon {
-        width: 1.5rem;
-        height: 1.5rem;
-        border-radius: var(--radius-xs);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        color: var(--t3);
-      }
-      .preview-light-icon ha-icon {
-        --mdc-icon-size: 0.75rem;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-light-icon.on {
-        background: rgba(var(--rgb-light-glow), 0.1);
-        border-color: rgba(var(--rgb-light-glow), 0.15);
-        color: var(--c-light-glow);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-light-glow), 0.4));
-      }
-      .preview-light-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .preview-light-name {
-        font-size: var(--fz-xs);
-        font-weight: 600;
-        color: var(--t1);
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        text-overflow: ellipsis;
-      }
-      .preview-light-sub {
-        font-size: var(--fz-xxs);
-        font-weight: 500;
-        color: var(--t3);
-        margin-top: 0.0625rem;
-      }
-      .preview-light-row[data-on='true'] .preview-light-sub {
-        color: rgba(var(--rgb-light-glow), 0.55);
-      }
-      .preview-light-dot {
-        width: 0.25rem;
-        height: 0.25rem;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: var(--t4);
-        transition: background var(--t-fast), box-shadow var(--t-fast);
-      }
-      .preview-light-dot.on {
-        background: var(--c-light-glow);
-        box-shadow: 0 0 6px rgba(var(--rgb-light-glow), 0.5);
-      }
-      .preview-light-tint {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        transition: opacity var(--t-slow);
-      }
-      .preview-light-sched {
-        --mdc-icon-size: 0.625rem;
-        color: var(--c-accent);
-        flex-shrink: 0;
-        opacity: 0.7;
-      }
-      .preview-light-layout-tag {
-        font-size: var(--fz-xxs);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--t4);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        border-radius: 3px;
-        padding: 0.0625rem 0.25rem;
-        flex-shrink: 0;
-      }
-
-      /* ── Preview weather (realistic miniature) ── */
-      .preview-weather-wrap {
-        display: flex; flex-direction: column; gap: 0.25rem;
-      }
-      .pw-card-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 0.25rem;
-      }
-      .pw-card-title {
-        font-size: var(--fz-xxs); font-weight: 700;
-        text-transform: uppercase; letter-spacing: 1.2px;
-        color: var(--t4);
-      }
-      .pw-card-location {
-        font-size: var(--fz-xxs); font-weight: 500; color: var(--t3);
-      }
-
-      /* ── Preview title card ── */
-      .preview-title-card {
-        display: flex; flex-direction: column; align-items: center;
-        gap: 0.25rem; padding: 0.5rem 0.75rem; text-align: center;
-      }
-      .preview-title-text {
-        font-size: var(--fz-lg); font-weight: 700; color: var(--t1);
-        letter-spacing: -0.3px; line-height: 1.2;
-        display: flex; align-items: center; gap: 0.625rem;
-        width: 100%;
-      }
-      .preview-title-text::before, .preview-title-text::after {
-        content: ''; flex: 1; height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b3));
-      }
-      .preview-title-text::after {
-        background: linear-gradient(90deg, var(--b3), transparent);
-      }
-      .yaml-block {
-        background: var(--s1); border: 1px solid var(--b1);
-        border-radius: var(--radius-md); padding: 0.625rem 0.875rem;
-        font-family: 'Courier New', monospace; font-size: var(--fz-sm);
-        line-height: 1.5; color: var(--t3);
-        overflow-x: auto; white-space: pre; margin: 0.5rem 0 0;
-        user-select: all; -webkit-user-select: all;
-      }
-      .preview-period {
-        display: flex; align-items: center; justify-content: center;
-        font-size: var(--fz-xs); font-weight: 500; text-transform: uppercase;
-        letter-spacing: 1.5px; user-select: none;
-      }
-      .preview-title-dash {
-        display: flex; align-items: center; justify-content: center;
-        padding: 0.125rem 0;
-      }
-      .preview-dash-line {
-        width: 1.25rem; height: 0.125rem; border-radius: 1px;
-        background: var(--t4);
-        transition: background var(--t-med), width var(--t-med);
-      }
-
-      .preview-weather {
-        border-radius: var(--radius-lg);
-        background: linear-gradient(
-          135deg,
-          rgba(var(--rgb-white), 0.08) 0%,
-          rgba(var(--rgb-white), 0.03) 50%,
-          rgba(var(--rgb-white), 0.06) 100%
-        );
-        backdrop-filter: blur(50px) saturate(1.5);
-        -webkit-backdrop-filter: blur(50px) saturate(1.5);
-        box-shadow:
-          inset 0 1px 0 0 rgba(var(--rgb-white), 0.1),
-          0 20px 60px rgba(var(--rgb-black), 0.4),
-          0 4px 16px rgba(var(--rgb-black), 0.25);
-        border: 1px solid var(--b2);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        position: relative;
-      }
-      .pw-tint {
-        position: absolute; inset: 0;
-        border-radius: inherit;
-        pointer-events: none; z-index: 0;
-      }
-      .pw-content {
-        position: relative; z-index: 1;
-        padding: 0.5rem;
-        display: flex; flex-direction: column; gap: 0.375rem;
-      }
-      .pw-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-      }
-      .pw-header-left {
-        display: flex; flex-direction: column; gap: 0.125rem;
-      }
-      .pw-time {
-        font-size: var(--fz-xl); font-weight: 300; color: var(--t1); line-height: 1;
-        font-variant-numeric: tabular-nums;
-      }
-      .pw-time .pw-sec {
-        font-size: var(--fz-xxs); font-weight: 400; color: var(--t4);
-      }
-      .pw-date {
-        font-size: var(--fz-xxs); color: var(--t3);
-        text-transform: capitalize;
-      }
-      .pw-date::first-letter { font-weight: 700; }
-      .pw-header-right {
-        display: flex; flex-direction: column; align-items: flex-end; gap: 0.125rem;
-      }
-      .pw-temp {
-        font-size: var(--fz-xl); font-weight: 700; color: var(--t1); line-height: 1;
-      }
-      .pw-temp-unit {
-        font-size: var(--fz-xxs); font-weight: 400; color: var(--t3); vertical-align: super;
-      }
-      .pw-cond {
-        display: flex; align-items: center; gap: 0.125rem;
-        font-size: var(--fz-xxs); font-weight: 500; color: var(--t3);
-      }
-      .pw-cond ha-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t3);
-      }
-      .pw-feels {
-        font-size: var(--fz-xxs); color: var(--t4);
-      }
-      /* ── Sparkline ── */
-      .pw-spark-zone {
-        height: 2.75rem; position: relative; overflow: hidden;
-        border-radius: var(--radius-sm);
-      }
-      .pw-spark-svg {
-        display: block; width: 100%; height: 100%;
-      }
-      .pw-spark-now {
-        position: absolute; top: 0; bottom: 1rem; width: 0.0625rem;
-        background: linear-gradient(180deg, transparent 0%, rgba(var(--rgb-white),0.5) 30%, rgba(var(--rgb-white),0.5) 70%, transparent 100%);
-        transform: translateX(-50%);
-      }
-      .pw-spark-now-dot {
-        position: absolute; left: 50%; transform: translate(-50%, -50%);
-        width: 0.25rem; height: 0.25rem; border-radius: 50%;
-        background: white;
-        box-shadow: 0 0 4px rgba(var(--rgb-white),0.8);
-      }
-      .pw-spark-labels {
-        position: absolute; bottom: 0; left: 0; right: 0; height: 0.75rem;
-      }
-      .pw-spark-lbl {
-        position: absolute; transform: translateX(-50%);
-        font-size: var(--fz-xxs); color: var(--t4);
-        font-variant-numeric: tabular-nums;
-      }
-      /* ── Metrics ── */
-      .pw-metrics {
-        display: grid;
-        gap: 0.125rem;
-        border-radius: var(--radius-sm);
-        background: var(--b1);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .pw-metric {
-        display: flex; align-items: center; justify-content: center; gap: 0.125rem;
-        padding: 0.25rem 0.125rem;
-        background: var(--s1);
-      }
-      .pw-metric ha-icon {
-        --mdc-icon-size: 0.5625rem;
-        width: 0.5625rem; height: 0.5625rem;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t4);
-      }
-      .pw-metric.humidity ha-icon { color: rgba(var(--rgb-info),0.5); }
-      .pw-metric.wind ha-icon { color: rgba(110,231,183,0.5); }
-      .pw-metric.pressure ha-icon { color: rgba(148,163,184,0.5); }
-      .pw-metric.uv ha-icon { color: rgba(var(--rgb-warning),0.5); }
-      .pw-metric.visibility ha-icon { color: rgba(148,163,184,0.4); }
-      .pw-metric.sunrise ha-icon { color: rgba(var(--rgb-warning),0.4); }
-      .pw-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
-      .pw-metric-val { font-size: var(--fz-xxs); font-weight: 600; color: var(--t2); }
-      .pw-metric-unit { font-size: var(--fz-xxs); font-weight: 400; color: var(--t4); }
-      .pw-metric-dir { font-size: var(--fz-xxs); font-weight: 700; color: var(--t3); }
-      /* ── Forecast ── */
-      .pw-forecast-zone {
-        display: flex; flex-direction: column; gap: 0.25rem;
-      }
-      .pw-tabs {
-        display: flex; justify-content: center; gap: 0.25rem;
-      }
-      .pw-tab {
-        font-size: var(--fz-xxs); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
-        color: var(--t4);
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-full);
-        border: 1px solid var(--b1);
-        background: transparent;
-      }
-      .pw-tab.active {
-        color: var(--t1);
-        background: var(--s4);
-        border-color: var(--b3);
-      }
-      .pw-fold-sep {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
-        opacity: 0.3;
-      }
-      .pw-daily-list {
-        display: flex; flex-direction: column; gap: 0.125rem;
-      }
-      .pw-day-row {
-        display: grid;
-        grid-template-columns: 28px 14px 1fr 24px;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.125rem 0.25rem;
-        border-radius: var(--radius-sm);
-      }
-      .pw-day-row.today {
-        background: var(--s2);
-      }
-      .pw-day-label {
-        font-size: var(--fz-xxs); font-weight: 600; color: var(--t3);
-      }
-      .pw-day-row.today .pw-day-label { color: var(--t2); }
-      .pw-day-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t3);
-      }
-      .pw-day-temps {
-        display: flex; align-items: baseline; gap: 0.1875rem;
-      }
-      .pw-day-high {
-        font-size: var(--fz-xxs); font-weight: 700; color: var(--t2);
-      }
-      .pw-day-low {
-        font-size: var(--fz-xxs); font-weight: 400; color: var(--t4);
-      }
-      .pw-day-precip {
-        font-size: var(--fz-xxs); color: rgba(var(--rgb-info),0.5);
-        text-align: right;
-      }
-
-      /* ── Preview Spotify card ── */
-      .preview-spotify-wrap {
-        display: flex; flex-direction: column; gap: 0.25rem;
-      }
-      .ps-card-header {
-        display: flex; align-items: center; gap: 0.25rem;
-        padding: 0 0.25rem;
-      }
-      .ps-card-header ha-icon {
-        --mdc-icon-size: 0.625rem; color: var(--c-spotify);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .ps-card-title {
-        font-size: var(--fz-xxs); font-weight: 700;
-        text-transform: uppercase; letter-spacing: 1.2px;
-        color: var(--t4);
-      }
-      .preview-spotify {
-        border-radius: var(--radius-lg);
-        background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
-        backdrop-filter: blur(50px) saturate(1.5);
-        -webkit-backdrop-filter: blur(50px) saturate(1.5);
-        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 20px 60px rgba(var(--rgb-black),0.4), 0 4px 16px rgba(var(--rgb-black),0.25);
-        border: 1px solid var(--b2);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        padding: 0.5rem;
-        display: flex; flex-direction: column; gap: 0.375rem;
-      }
-      .ps-search {
-        display: flex; align-items: center; gap: 0.25rem;
-        background: var(--s3); border-radius: var(--radius-full);
-        padding: 0.1875rem 0.5rem;
-      }
-      .ps-search ha-icon {
-        --mdc-icon-size: 0.625rem; color: var(--t4);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .ps-search-text {
-        font-size: var(--fz-xxs); color: var(--t4); flex: 1;
-      }
-      .ps-tabs {
-        display: flex; gap: 0.125rem;
-      }
-      .ps-tab {
-        font-size: var(--fz-xxs); font-weight: 600; letter-spacing: 0.3px;
-        color: var(--t4);
-        padding: 0.125rem 0.25rem;
-        border-radius: var(--radius-full);
-        border: 1px solid var(--b1);
-        background: transparent;
-      }
-      .ps-tab.active {
-        color: var(--t1);
-        background: var(--s4);
-        border-color: var(--b3);
-      }
-      .ps-section-label {
-        font-size: var(--fz-xxs); font-weight: 700; color: var(--t3);
-        text-transform: uppercase; letter-spacing: 0.5px;
-        padding: 0.125rem 0 0.0625rem;
-      }
-      .ps-item-row {
-        display: flex; align-items: center; gap: 0.375rem;
-        padding: 0.125rem 0;
-      }
-      .ps-item-art {
-        width: 1.25rem; height: 1.25rem; border-radius: 3px;
-        background: var(--s3); flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .ps-item-art ha-icon {
-        --mdc-icon-size: 0.625rem; color: var(--t4);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .ps-item-info {
-        flex: 1; min-width: 0;
-      }
-      .ps-item-name {
-        font-size: var(--fz-xxs); font-weight: 600; color: var(--t2);
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .ps-item-meta {
-        font-size: var(--fz-xxs); color: var(--t4);
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .ps-item-play {
-        --mdc-icon-size: 0.75rem; color: var(--c-spotify); flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-        opacity: 0.6;
-      }
-
-      /* ── Spotify setup guide ── */
-      .pw-sp-setup-box {
-        padding: 1.25rem; border-radius: var(--radius-lg);
-        background: var(--s2); border: 1px solid var(--b2);
-        text-align: center;
-      }
-      .pw-sp-setup-icon {
-        color: var(--c-spotify); --mdc-icon-size: 3rem;
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1rem;
-      }
-      .pw-sp-setup-title {
-        font-size: 1rem; font-weight: 600; color: var(--t1); margin-bottom: 0.5rem;
-      }
-      .pw-sp-setup-desc {
-        font-size: 0.8125rem; color: var(--t3); margin-bottom: 1.25rem; line-height: 1.5;
-      }
-      .pw-sp-steps {
-        text-align: left; padding: 0 0.5rem;
-      }
-      .pw-sp-step {
-        display: flex; align-items: flex-start; gap: 0.625rem;
-        margin-bottom: 0.75rem; font-size: 0.8125rem; color: var(--t2);
-      }
-      .pw-sp-step-num {
-        flex-shrink: 0; width: 1.375rem; height: 1.375rem;
-        border-radius: 50%; background: var(--s3);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.75rem; font-weight: 600; color: var(--t1);
-      }
-      .pw-sp-step-text {
-        line-height: 1.375rem;
-      }
-      .pw-sp-note {
-        font-size: 0.75rem; color: var(--t3); margin-top: 1rem;
-        padding: 0.625rem; border-radius: var(--radius-md);
-        background: var(--s1); border: 1px solid var(--b1);
-      }
-      .pw-sp-setup-btn {
-        margin-top: 1.25rem;
-      }
-      .pw-sp-setup-btn ha-icon {
-        --mdc-icon-size: 1rem;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .pw-sp-entity-icon {
-        color: var(--c-spotify);
-      }
-      .pw-sp-drag-spacer {
-        width: 1.5rem;
-      }
-
-      /* ── Preview dashboard ── */
-      .preview-dashboard {
-        border-radius: var(--radius-lg);
-        background: rgba(17, 24, 39, 0.6);
-        padding: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        min-height: 5rem;
-      }
-      .preview-dashboard-cards {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-      }
-      .preview-dashboard-navbar {
-        display: flex;
-        gap: 0.375rem;
-        justify-content: center;
-        padding: 0.25rem 0.5rem;
-        border-radius: var(--radius-md);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        margin-top: auto;
-      }
-      .preview-dashboard-navbar ha-icon {
-        --mdc-icon-size: 0.875rem;
-        color: var(--t3);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-dashboard-card {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.5rem;
-        border-radius: var(--radius-md);
-        background: linear-gradient(
-          135deg,
-          rgba(var(--rgb-white), 0.06) 0%,
-          rgba(var(--rgb-white), 0.02) 100%
-        );
-        border: 1px solid var(--b1);
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        color: var(--t2);
-      }
-      .preview-dashboard-card ha-icon {
-        --mdc-icon-size: 1rem;
-        color: var(--t3);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .preview-dashboard-card.weather ha-icon {
-        color: rgba(var(--rgb-light-glow), 0.7);
-      }
-      .preview-dashboard-card.light ha-icon {
-        color: rgba(var(--rgb-light-glow), 0.5);
-      }
-      .preview-dashboard-empty {
-        text-align: center;
-        color: var(--t4);
-        font-size: var(--fz-base);
-        padding: 1rem 0;
-      }
-
-      /* ── Cover preview ── */
-      .preview-cover {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        padding: 0.75rem;
-      }
-      .preview-cover-card {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-
-      /* Cover preview — header */
-      .pw-cv-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 0.25rem 0.25rem;
-      }
-      .pw-cv-header-left {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .pw-cv-header-title {
-        font-size: 0.5rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t4);
-      }
-      .pw-cv-header-count {
-        font-size: 0.5rem;
-        font-weight: 600;
-        padding: 0.0625rem 0.25rem;
-        border-radius: var(--radius-sm);
-      }
-      .pw-cv-header-count.active {
-        background: rgba(var(--rgb-purple), 0.15);
-        color: var(--c-purple);
-      }
-      .pw-cv-header-count.idle {
-        background: var(--s2);
-        color: var(--t3);
-      }
-      .pw-cv-header-actions {
-        display: flex;
-        gap: 0.1875rem;
-      }
-      .pw-cv-header-btn {
-        width: 1.125rem;
-        height: 1.125rem;
-        border-radius: 4px;
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cv-header-btn ha-icon {
-        --mdc-icon-size: 0.625rem;
-        color: var(--t3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      /* Cover preview — tint */
-      .pw-cv-tint {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        background: radial-gradient(ellipse at 50% 50%, var(--c-purple), transparent 70%);
-      }
-
-      /* Cover preview — empty state */
-      .pw-cv-empty {
-        padding: 0.5rem;
-        text-align: center;
-        font-size: 0.625rem;
-        color: var(--t4);
-      }
-
-      /* Cover preview — entity row */
-      .pw-cv-row {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.125rem;
-        position: relative;
-        z-index: 1;
-      }
-      .pw-cv-row.compact {
-        min-width: 0;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .pw-cv-row.full {
-        grid-column: 1 / -1;
-      }
-      .pw-cv-row.right {
-        padding-left: 0.5rem;
-        border-left: 1px solid var(--b2);
-      }
-
-      /* Cover preview — icon box */
-      .pw-cv-icon {
-        width: 1.375rem;
-        height: 1.375rem;
-        border-radius: var(--radius-xs);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        background: var(--s2);
-        border: 1px solid var(--b1);
-      }
-      .pw-cv-icon.open {
-        background: rgba(var(--rgb-purple), 0.1);
-        border-color: rgba(var(--rgb-purple), 0.15);
-      }
-      .pw-cv-icon ha-icon {
-        --mdc-icon-size: 0.8125rem;
-        color: var(--t3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cv-icon.open ha-icon {
-        color: var(--c-purple);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-purple), 0.4));
-      }
-
-      /* Cover preview — info */
-      .pw-cv-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .pw-cv-name {
-        font-size: 0.625rem;
-        font-weight: 600;
-        color: var(--t1);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .pw-cv-sub {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        margin-top: 0.0625rem;
-      }
-      .pw-cv-state {
-        font-size: 0.5rem;
-        color: var(--t4);
-      }
-      .pw-cv-state.open {
-        color: rgba(var(--rgb-purple), 0.6);
-      }
-
-      /* Cover preview — position */
-      .pw-cv-pos {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--t3);
-        font-variant-numeric: tabular-nums;
-      }
-      .pw-cv-pos.open {
-        color: var(--c-purple);
-      }
-      .pw-cv-pos-unit {
-        font-size: 0.5rem;
-        font-weight: 500;
-      }
-
-      /* Cover preview — status dot */
-      .pw-cv-dot {
-        width: 0.375rem;
-        height: 0.375rem;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: var(--t4);
-      }
-      .pw-cv-dot.open {
-        background: var(--c-purple);
-        box-shadow: 0 0 6px rgba(var(--rgb-purple), 0.4);
-      }
-
-      /* Cover preview — fold separator */
-      .pw-cv-fold-sep {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple), 0.3), transparent);
-        margin: 0.125rem 0.25rem;
-        opacity: 0.6;
-      }
-
-      /* Cover preview — controls panel */
-      .pw-cv-controls {
-        padding: 0.375rem 0.125rem 0.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-        position: relative;
-        z-index: 1;
-      }
-      .pw-cv-controls-label {
-        font-size: 0.5rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--t4);
-      }
-
-      /* Cover preview — transport */
-      .pw-cv-transport {
-        display: flex;
-        gap: 0.25rem;
-        justify-content: center;
-      }
-      .pw-cv-transport-btn {
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cv-transport-btn ha-icon {
-        --mdc-icon-size: 0.875rem;
-        color: var(--t3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cv-transport-btn.accent ha-icon {
-        color: var(--c-purple);
-      }
-
-      /* Cover preview — slider */
-      .pw-cv-slider {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-      .pw-cv-slider ha-icon {
-        --mdc-icon-size: 0.6875rem;
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cv-bar {
-        flex: 1;
-        height: 0.25rem;
-        border-radius: 0.125rem;
-        background: var(--s2);
-        position: relative;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-      }
-      .pw-cv-bar-fill {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        border-radius: 0.125rem;
-        background: linear-gradient(90deg, rgba(var(--rgb-purple), 0.4), var(--c-purple));
-      }
-
-      /* Cover preview — separator */
-      .pw-cv-sep {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
-      }
-
-      /* Cover preview — presets */
-      .pw-cv-presets {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.1875rem;
-        justify-content: center;
-      }
-      .pw-cv-preset {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.1875rem;
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--b2);
-        background: var(--s1);
-        font-size: 0.5rem;
-        font-weight: 600;
-        color: var(--t3);
-      }
-      .pw-cv-preset.active {
-        border-color: rgba(var(--rgb-purple), 0.3);
-        background: rgba(var(--rgb-purple), 0.1);
-        color: var(--c-purple);
-      }
-      .pw-cv-preset ha-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      /* Cover preview — remaining grid */
-      .pw-cv-remaining-sep {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
-        margin: 0.125rem 0.25rem;
-      }
-      .pw-cv-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-      }
-
-      /* ── Presence preview ── */
-      .preview-presence {
-        padding: 0.75rem;
-      }
-      .preview-presence-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-      }
-      .preview-presence-title {
-        font-size: var(--fz-base);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t2);
-      }
-      .preview-presence-pill {
-        font-size: var(--fz-sm);
-        font-weight: 700;
-        padding: 0.125rem 0.5rem;
-        border-radius: var(--radius-full);
-        color: white;
-      }
-      .preview-presence-pill.all-home { background: var(--c-success); }
-      .preview-presence-pill.all-away { background: var(--c-alert); }
-      .preview-presence-pill.mixed { background: var(--c-accent); }
-      .preview-presence-persons {
-        display: flex;
-        gap: 0.75rem;
-        justify-content: center;
-      }
-      .preview-presence-person {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.25rem;
-      }
-      .preview-presence-avatar {
-        width: 2rem;
-        height: 2rem;
-        border-radius: 50%;
-        background-size: cover;
-        background-position: center;
-        border: 2px solid var(--c-success);
-      }
-      .preview-presence-person.away .preview-presence-avatar {
-        border-color: var(--c-alert);
-        opacity: 0.6;
-      }
-      .preview-presence-avatar.fallback {
-        background: var(--s3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .preview-presence-avatar.fallback ha-icon {
-        --mdc-icon-size: 1.125rem;
-        color: var(--t3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .preview-presence-name {
-        font-size: var(--fz-xs);
-        color: var(--t3);
-        max-width: 3rem;
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        text-align: center;
-      }
-
-      /* ══════════════════════════════════════
-         Climate preview (from prototype)
-         ══════════════════════════════════════ */
-
-      .preview-climate-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 0.25rem 0.375rem;
-      }
-      .preview-climate-header-left {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .preview-climate-header-title {
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--t1);
-      }
-      .preview-climate-header-count {
-        font-size: 8px;
-        font-weight: 600;
-        padding: 0.125rem 0.25rem;
-        border-radius: var(--radius-sm);
-      }
-      .preview-climate-header-avg {
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--t3);
-      }
-      .preview-climate-card {
-        padding: 0.5rem 0.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        border-radius: var(--radius-lg);
-      }
-      .preview-climate-tint {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        opacity: 0.12;
-      }
-
-      /* ── Climate row ── */
-      .cl-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.125rem;
-        position: relative;
-        z-index: 1;
-      }
-      .cl-icon-btn {
-        width: 24px;
-        height: 24px;
-        border-radius: var(--radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        border: 1px solid var(--b1);
-        background: var(--s2);
-      }
-      .cl-icon-btn ha-icon {
-        --mdc-icon-size: 14px;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t3);
-      }
-
-      /* Heating state (orange) */
-      .cl-row.heating .cl-icon-btn {
-        background: rgba(var(--rgb-heat), 0.1);
-        border-color: rgba(var(--rgb-heat), 0.15);
-      }
-      .cl-row.heating .cl-icon-btn ha-icon {
-        color: var(--c-heat);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-heat), 0.5));
-      }
-      .cl-row.heating .cl-action-text { color: rgba(var(--rgb-heat), 0.6); }
-      .cl-row.heating .cl-mode-badge {
-        background: rgba(var(--rgb-heat), 0.1);
-        color: rgba(var(--rgb-heat), 0.6);
-      }
-      .cl-row.heating .cl-temp-target { color: rgba(var(--rgb-heat), 0.6); }
-      .cl-row.heating .cl-dot {
-        background: var(--c-heat);
-        box-shadow: 0 0 6px rgba(var(--rgb-heat), 0.4);
-      }
-
-      /* Cooling state (cyan) */
-      .cl-row.cooling .cl-icon-btn {
-        background: rgba(var(--rgb-cool), 0.1);
-        border-color: rgba(var(--rgb-cool), 0.15);
-      }
-      .cl-row.cooling .cl-icon-btn ha-icon {
-        color: var(--c-cool);
-        filter: drop-shadow(0 0 4px rgba(var(--rgb-cool), 0.5));
-      }
-      .cl-row.cooling .cl-action-text { color: rgba(var(--rgb-cool), 0.6); }
-      .cl-row.cooling .cl-mode-badge {
-        background: rgba(var(--rgb-cool), 0.1);
-        color: rgba(var(--rgb-cool), 0.6);
-      }
-      .cl-row.cooling .cl-temp-target { color: rgba(var(--rgb-cool), 0.6); }
-      .cl-row.cooling .cl-dot {
-        background: var(--c-cool);
-        box-shadow: 0 0 6px rgba(var(--rgb-cool), 0.4);
-      }
-
-      /* Idle/off state */
-      .cl-row.idle .cl-dot,
-      .cl-row.off .cl-dot { background: var(--t4); }
-
-      .cl-expand {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .cl-info {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.125rem;
-      }
-      .cl-name {
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--t1);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .cl-sub {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-      .cl-action-text {
-        font-size: 8px;
-        font-weight: 500;
-        color: var(--t3);
-      }
-      .cl-mode-badge {
-        font-size: 7px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: 0.125rem 0.25rem;
-        border-radius: var(--radius-xs);
-        background: var(--s3);
-        color: var(--t3);
-      }
-      .cl-temps {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        flex-shrink: 0;
-      }
-      .cl-temp-current {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--t1);
-        font-variant-numeric: tabular-nums;
-        line-height: 1;
-      }
-      .cl-temp-current .unit {
-        font-size: 9px;
-        font-weight: 500;
-        color: var(--t3);
-      }
-      .cl-temp-target {
-        font-size: 8px;
-        font-weight: 500;
-        color: var(--t3);
-        margin-top: 0.125rem;
-      }
-      .cl-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-
-      /* ── Climate expanded controls ── */
-      .cl-empty {
-        padding: 0.75rem;
-        text-align: center;
-        font-size: 0.6875rem;
-        color: var(--t4);
-      }
-      .cl-preview-wrap {
-        padding: 0.375rem 0;
-      }
-      .cl-controls {
-        padding: 0.375rem 0.125rem 0.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-        position: relative;
-        z-index: 1;
-      }
-      .cl-stepper-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.625rem;
-      }
-      .cl-stepper-btn {
-        width: 1.625rem;
-        height: 1.625rem;
-        border-radius: var(--radius-sm);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .cl-stepper-btn.sm {
-        width: 1.5rem;
-        height: 1.5rem;
-      }
-      .cl-stepper-btn ha-icon {
-        --mdc-icon-size: 0.875rem;
-        color: var(--t3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .cl-stepper-btn.sm ha-icon {
-        --mdc-icon-size: 0.75rem;
-      }
-      .cl-stepper-center {
-        text-align: center;
-      }
-      .cl-stepper-label {
-        font-size: 0.4375rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--t4);
-      }
-      .cl-stepper-value {
-        font-size: 1rem;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-      }
-      .cl-stepper-value.sm {
-        font-size: 0.875rem;
-      }
-      .cl-separator {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
-      }
-      .cl-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.1875rem;
-        justify-content: center;
-      }
-      .cl-chips.pb {
-        padding-bottom: 0.25rem;
-      }
-      .cl-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.1875rem;
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.5rem;
-        font-weight: 600;
-      }
-      .cl-chip ha-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .cl-remaining-sep {
-        height: 0.0625rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
-        margin: 0.125rem 0.25rem;
-      }
-
-      /* ── Climate normal mode ── */
-      .cl-normal-content {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      .cl-entity-tabs {
-        display: flex;
-        gap: 0.25rem;
-        justify-content: center;
-        padding: 0.25rem 0;
-      }
-      .cl-entity-tab {
-        font-size: 0.5625rem;
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-sm);
-        color: var(--t3);
-      }
-      .cl-entity-tab.active {
-        background: var(--s3);
-        color: var(--t1);
-        font-weight: 600;
-      }
-      .cl-gauge-wrap {
-        display: flex;
-        justify-content: center;
-      }
-      .cl-gauge-svg {
-        width: 6.25rem;
-        height: 4.25rem;
-      }
-      .cl-fold-sep {
-        margin: 0.125rem 0;
-      }
-
-      /* ── Preview camera carousel ── */
-      .pw-cam-wrap {
-        padding: 0.625rem;
-      }
-      .pw-cam-frame {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        border-radius: var(--radius-md);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        background: #0a0f18;
-        border: 1px solid var(--b1);
-        margin-bottom: 0.5rem;
-      }
-      .pw-cam-bg {
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(circle at 25% 35%, rgba(40, 60, 90, 0.4) 0%, transparent 40%),
-          radial-gradient(circle at 65% 55%, rgba(30, 50, 70, 0.3) 0%, transparent 45%),
-          linear-gradient(135deg, #141e2e 0%, #0d1520 40%, #111a28 100%);
-      }
-      .pw-cam-overlay-top {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.3125rem 0.4375rem;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
-      }
-      .pw-cam-label {
-        font-size: 7px;
-        font-weight: 600;
-        color: rgba(var(--rgb-white), 0.7);
-        display: flex;
-        align-items: center;
-        gap: 0.1875rem;
-      }
-      .pw-cam-label ha-icon {
-        --mdc-icon-size: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-rec {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.125rem;
-        font-size: 6px;
-        font-weight: 700;
-        color: var(--c-alert);
-      }
-      .pw-cam-rec-dot {
-        width: 0.25rem;
-        height: 0.25rem;
-        border-radius: 50%;
-        background: var(--c-alert);
-      }
-      .pw-cam-overlay-bottom {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 0.3125rem 0.4375rem;
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
-      }
-      .pw-cam-ai-list {
-        display: flex;
-        gap: 0.1875rem;
-      }
-      .pw-cam-ai-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.125rem;
-        padding: 0.0625rem 0.25rem;
-        border-radius: 4px;
-        font-size: 6px;
-        font-weight: 600;
-        color: var(--c-info);
-      }
-      .pw-cam-ai-badge ha-icon {
-        --mdc-icon-size: 7px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 1.125rem;
-        height: 1.125rem;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-arrow--left {
-        left: 0.25rem;
-      }
-      .pw-cam-arrow--right {
-        right: 0.25rem;
-      }
-      .pw-cam-arrow ha-icon {
-        --mdc-icon-size: 0.75rem;
-        color: rgba(var(--rgb-white), 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-dots {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        margin-bottom: 0.375rem;
-      }
-      .pw-cam-dot {
-        width: 0.3125rem;
-        height: 0.3125rem;
-        border-radius: 50%;
-      }
-      .pw-cam-dot--active {
-        width: 0.875rem;
-        height: 0.3125rem;
-        border-radius: 0.1875rem;
-        background: var(--c-info);
-      }
-      .pw-cam-dot--rec {
-        background: var(--c-alert);
-        box-shadow: 0 0 4px rgba(248, 113, 113, 0.5);
-      }
-      .pw-cam-dot--idle {
-        background: var(--t4);
-      }
-      .pw-cam-info {
-        display: flex;
-        align-items: center;
-        gap: 0.4375rem;
-        padding: 0 0.125rem;
-        margin-bottom: 0.375rem;
-      }
-      .pw-cam-icon {
-        width: 1.375rem;
-        height: 1.375rem;
-        border-radius: var(--radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .pw-cam-icon ha-icon {
-        --mdc-icon-size: 0.75rem;
-        color: var(--c-info);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-detail {
-        flex: 1;
-        min-width: 0;
-      }
-      .pw-cam-name {
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--t1);
-        overflow: hidden;
-        padding: 0.5rem 0.625rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        position: relative;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .pw-cam-status-row {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        margin-top: 0.0625rem;
-      }
-      .pw-cam-status {
-        font-size: 7px;
-        font-weight: 500;
-      }
-      .pw-cam-ai-mini {
-        display: flex;
-        gap: 0.125rem;
-        align-items: center;
-      }
-      .pw-cam-ai-dot {
-        width: 0.75rem;
-        height: 0.75rem;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-ai-dot ha-icon {
-        --mdc-icon-size: 8px;
-        color: var(--c-info);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-actions {
-        display: flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-      }
-      .pw-cam-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.1875rem;
-        padding: 0.1875rem 0.4375rem;
-        border-radius: var(--radius-xs);
-        font-size: 8px;
-        font-weight: 600;
-      }
-      .pw-cam-action ha-icon {
-        --mdc-icon-size: 0.625rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-cam-action--default {
-        border: 1px solid var(--b2);
-        background: var(--s1);
-        color: var(--t3);
-      }
-
-      /* ── Fan preview ── */
-
-      .pw-fan-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 0.25rem 0.25rem;
-      }
-      .pw-fan-header-left {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .pw-fan-header-title {
-        font-size: 8px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t4);
-      }
-      .pw-fan-header-badge {
-        font-size: 8px;
-        font-weight: 600;
-        padding: 0.0625rem 0.25rem;
-        border-radius: var(--radius-sm);
-      }
-      .pw-fan-header-badge.on {
-        background: rgba(var(--rgb-accent), 0.15);
-        color: var(--c-accent);
-      }
-      .pw-fan-header-badge.off {
-        background: var(--s2);
-        color: var(--t3);
-      }
-      .pw-fan-toggle-track {
-        width: 1.75rem;
-        height: 0.875rem;
-        border-radius: var(--radius-sm);
-        position: relative;
-      }
-      .pw-fan-toggle-track.on {
-        background: rgba(var(--rgb-accent), 0.25);
-      }
-      .pw-fan-toggle-track.off {
-        background: var(--s2);
-      }
-      .pw-fan-toggle-knob {
-        width: 0.625rem;
-        height: 0.625rem;
-        border-radius: 50%;
-        position: absolute;
-        top: 0.125rem;
-        transition: background var(--t-fast);
-      }
-      .pw-fan-toggle-knob.on {
-        right: 0.125rem;
-        background: var(--c-accent);
-      }
-      .pw-fan-toggle-knob.off {
-        left: 0.125rem;
-        background: var(--t4);
-      }
-      .pw-fan-card {
-        padding: 0.5rem 0.625rem;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        position: relative;
-      }
-      .pw-fan-tint {
-        grid-column: 1 / -1;
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        background: radial-gradient(ellipse at 50% 50%, var(--c-accent), transparent 70%);
-      }
-      .pw-fan-empty {
-        grid-column: 1 / -1;
-        padding: 0.5rem;
-        text-align: center;
-        font-size: 10px;
-        color: var(--t4);
-      }
-      .pw-fan-row {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.125rem;
-        position: relative;
-        z-index: 1;
-        grid-column: 1 / -1;
-      }
-      .pw-fan-row.compact {
-        min-width: 0;
-        overflow: hidden;
-        grid-column: span 1;
-      }
-      .pw-fan-row.compact-right {
-        padding-left: 0.5rem;
-        position: relative;
-      }
-      .pw-fan-row.compact-right::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 20%;
-        bottom: 20%;
-        width: 0.0625rem;
-        background: linear-gradient(
-          to bottom,
-          transparent,
-          rgba(var(--rgb-white), 0.08) 30%,
-          rgba(var(--rgb-white), 0.08) 70%,
-          transparent
-        );
-      }
-      .pw-fan-icon {
-        width: 1.375rem;
-        height: 1.375rem;
-        border-radius: var(--radius-xs);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .pw-fan-icon.on {
-        background: rgba(var(--rgb-accent), 0.1);
-        border: 1px solid rgba(var(--rgb-accent), 0.15);
-      }
-      .pw-fan-icon.off {
-        background: var(--s2);
-        border: 1px solid var(--b1);
-      }
-      .pw-fan-icon ha-icon {
-        --mdc-icon-size: 0.8125rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-fan-icon.on ha-icon {
-        color: var(--c-accent);
-        filter: drop-shadow(0 0 0.25rem rgba(var(--rgb-accent), 0.4));
-      }
-      .pw-fan-icon.off ha-icon {
-        color: var(--t3);
-      }
-      .pw-fan-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .pw-fan-name {
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--t1);
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .pw-fan-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        margin-top: 0.0625rem;
-      }
-      .pw-fan-status {
-        font-size: 8px;
-      }
-      .pw-fan-status.on {
-        color: rgba(var(--rgb-accent), 0.6);
-      }
-      .pw-fan-status.off {
-        color: var(--t4);
-      }
-      .pw-fan-speed {
-        font-size: 7px;
-        color: var(--t4);
-      }
-      .pw-fan-dot {
-        width: 0.375rem;
-        height: 0.375rem;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .pw-fan-dot.on {
-        background: var(--c-accent);
-        box-shadow: 0 0 0.375rem rgba(var(--rgb-accent), 0.4);
-      }
-      .pw-fan-dot.off {
-        background: var(--t4);
-      }
-
-      /* ── Unassigned tab (pw-ua-*) ── */
-      .pw-ua-banner-warn { color: var(--c-warning); }
-      .pw-ua-search {
-        width: 100%;
-        margin: 0.5rem 0;
-      }
-      .pw-ua-domain-group {
-        margin-top: 1rem;
-        display: flex;
-        align-items: center;
-      }
-      .pw-ua-domain-icon {
-        --mdc-icon-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 0.375rem;
-      }
-      .pw-ua-domain-count {
-        margin-left: 0.375rem;
-        font-size: var(--fz-base);
-        font-weight: 500;
-        color: var(--t3);
-      }
-      .pw-ua-entity-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .pw-ua-edit-icon {
-        --mdc-icon-size: var(--icon-sm);
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .pw-ua-icon-btn-shrink { flex-shrink: 0; }
-      .pw-ua-entity-icon {
-        --mdc-icon-size: var(--icon-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .pw-ua-dropdown-wrap {
-        flex-shrink: 0;
-        max-width: 10rem;
-      }
-      .pw-ua-area-text {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-
-      /* ── Title tab (pw-tt-*) ── */
-      .pw-tt-spacer { flex: 1; }
-      .pw-tt-mt-sm { margin-top: 0.625rem; }
-      .pw-tt-mt-md { margin-top: 0.75rem; }
-      .pw-tt-mt-lg { margin-top: 1rem; }
-      .pw-tt-mt-add { margin-top: 0.5rem; }
-
-      /* ── Media tab (pw-mp-*) ── */
-      .pw-mp-header-row {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        margin-bottom: 0.25rem;
-      }
-      .pw-mp-header-label {
-        font-size: 0.5rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t4);
-      }
-      .pw-mp-header-badge {
-        font-size: 0.5rem;
-        font-weight: 600;
-        padding: 0.0625rem 0.25rem;
-        border-radius: var(--radius-sm);
-        background: rgba(var(--rgb-info), 0.15);
-        color: var(--c-info);
-      }
-      .pw-mp-item-info { padding-left: 0.5rem; }
-      .pw-mp-empty-msg {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        color: var(--t4);
-        text-align: center;
-      }
-
-      /* ── Room detail view (pw-rd-*) ── */
-      .pw-rd-cards-label { margin-top: 0.5rem; }
-      .pw-rd-sensor-label { padding: 0.25rem 0.875rem 0.125rem; }
-      .pw-rd-threshold-label { padding: 0.5rem 0.875rem 0.125rem; }
-      .pw-rd-flex-fixed { flex: 0 0 auto; }
-      .pw-rd-sep { margin: 0.75rem 0; }
-
-      /* ── Dashboard view (pw-db-*) ── */
-      .pw-db-grid-mt { margin-top: 0.5rem; }
-      .pw-db-sep { margin: 1rem 0; }
-`,o`
+`,s`
       /* ── Dropdown ── */
       .dropdown {
         position: relative;
@@ -5162,7 +2722,7 @@
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
       }
-`],le={attribute:!0,type:String,converter:f,reflect:!1,hasChanged:b},pe=(e=le,t,i)=>{const{kind:a,metadata:r}=i;let o=globalThis.litPropertyMetadata.get(r);if(void 0===o&&globalThis.litPropertyMetadata.set(r,o=new Map),"setter"===a&&((e=Object.create(e)).wrapped=!0),o.set(i.name,e),"accessor"===a){const{name:a}=i;return{set(i){const r=t.get.call(this);t.set.call(this,i),this.requestUpdate(a,r,e,!0,i)},init(t){return void 0!==t&&this.C(a,void 0,e,t),t}}}if("setter"===a){const{name:a}=i;return function(i){const r=this[a];t.call(this,i),this.requestUpdate(a,r,e,!0,i)}}throw Error("Unsupported decorator location: "+a)};function he(e){return(t,i)=>"object"==typeof i?pe(e,t,i):((e,t,i)=>{const a=t.hasOwnProperty(i);return t.constructor.createProperty(i,e),a?Object.getOwnPropertyDescriptor(t,i):void 0})(e,t,i)}function me(e){return he({...e,state:!0,attribute:!1})}const ue=new class{constructor(){this.listeners=new Map}on(e,t){let i=this.listeners.get(e);return i||(i=new Set,this.listeners.set(e,i)),i.add(t),()=>this.off(e,t)}off(e,t){this.listeners.get(e)?.delete(t)}emit(e,t){const i=this.listeners.get(e);if(i)for(const a of[...i])a(t)}};var _e=Object.defineProperty,ge=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&_e(t,i,o),o};class ve extends ne{constructor(){super(...arguments),this.value=0,this.min=0,this.max=100,this.step=1,this.color="var(--rgb-accent)",this.label="",this.disabled=!1,this._dragging=!1,this._dragValue=0,this._ac=null}static{this.styles=[o`
+`],de={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:b},he=(e=de,t,i)=>{const{kind:a,metadata:r}=i;let s=globalThis.litPropertyMetadata.get(r);if(void 0===s&&globalThis.litPropertyMetadata.set(r,s=new Map),"setter"===a&&((e=Object.create(e)).wrapped=!0),s.set(i.name,e),"accessor"===a){const{name:a}=i;return{set(i){const r=t.get.call(this);t.set.call(this,i),this.requestUpdate(a,r,e,!0,i)},init(t){return void 0!==t&&this.C(a,void 0,e,t),t}}}if("setter"===a){const{name:a}=i;return function(i){const r=this[a];t.call(this,i),this.requestUpdate(a,r,e,!0,i)}}throw Error("Unsupported decorator location: "+a)};function pe(e){return(t,i)=>"object"==typeof i?he(e,t,i):((e,t,i)=>{const a=t.hasOwnProperty(i);return t.constructor.createProperty(i,e),a?Object.getOwnPropertyDescriptor(t,i):void 0})(e,t,i)}function ue(e){return pe({...e,state:!0,attribute:!1})}const ge=new class{constructor(){this.listeners=new Map}on(e,t){let i=this.listeners.get(e);return i||(i=new Set,this.listeners.set(e,i)),i.add(t),()=>this.off(e,t)}off(e,t){this.listeners.get(e)?.delete(t)}emit(e,t){const i=this.listeners.get(e);if(i)for(const a of[...i])a(t)}};var _e=Object.defineProperty,me=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&_e(t,i,s),s};class fe extends ne{constructor(){super(...arguments),this.value=0,this.min=0,this.max=100,this.step=1,this.color="var(--rgb-accent)",this.label="",this.disabled=!1,this._dragging=!1,this._dragValue=0,this._ac=null}static{this.styles=[s`
       :host {
         display: block;
         box-sizing: border-box;
@@ -5227,7 +2787,7 @@
         color: var(--t3);
         pointer-events: none;
       }
-    `]}_displayPct(e){const t=this.max-this.min;if(t<=0)return 0;const i=e??(this._dragging?this._dragValue:this.value);return Math.max(0,Math.min(100,(i-this.min)/t*100))}_snap(e){if(this.step<=0)return e;const t=Math.round(e/this.step)*this.step,i=(this.step.toString().split(".")[1]||"").length;return parseFloat(t.toFixed(i))}_pctToValue(e){const t=this.max-this.min,i=this.min+e/100*t;return Math.max(this.min,Math.min(this.max,this._snap(i)))}updated(e){super.updated(e),!this._dragging&&(e.has("value")||e.has("min")||e.has("max")||e.has("color"))&&this._applyVisuals()}firstUpdated(){this._applyVisuals()}_applyVisuals(){const e=this._displayPct(),t=this.renderRoot.querySelector(".fill"),i=this.renderRoot.querySelector(".thumb");t&&(t.style.transform=`scaleX(${e/100})`),i&&(i.style.transform=`translate(calc(${e}cqw - 50%), -50%)`)}_onPointerDown(e){if(this.disabled)return;e.stopPropagation();const t=e.currentTarget;t.setPointerCapture(e.pointerId),this._dragging=!0,this._ac=new AbortController;const{signal:i}=this._ac,a=this.renderRoot.querySelector(".fill"),r=this.renderRoot.querySelector(".thumb"),o=(e,i)=>{const o=t.getBoundingClientRect(),s=Math.max(0,Math.min(100,(e.clientX-o.left)/o.width*100)),n=this._pctToValue(s);this._dragValue=n;const c=this._displayPct(n);a.style.transform=`scaleX(${c/100})`,r.style.transform=`translate(calc(${c}cqw - 50%), -50%)`;const d=i?"glass-slider-change":"glass-slider-input";this.dispatchEvent(new CustomEvent(d,{detail:{value:n},bubbles:!0,composed:!0}))};o(e,!1);const s=()=>{this._ac?.abort(),this._ac=null;try{t.releasePointerCapture(e.pointerId)}catch{}this._dragging=!1};t.addEventListener("pointermove",e=>o(e,!1),{signal:i}),t.addEventListener("pointerup",e=>{o(e,!0),s()},{signal:i}),t.addEventListener("pointercancel",()=>s(),{signal:i}),t.addEventListener("lostpointercapture",()=>s(),{signal:i})}_onKeyDown(e){if(this.disabled)return;const t=this.step>0?this.step:1;let i;switch(e.key){case"ArrowRight":case"ArrowUp":i=Math.min(this.max,this._snap(this.value+t));break;case"ArrowLeft":case"ArrowDown":i=Math.max(this.min,this._snap(this.value-t));break;case"Home":i=this.min;break;case"End":i=this.max;break;default:return}e.preventDefault(),this._dragValue=i,this._applyVisuals(),this.dispatchEvent(new CustomEvent("glass-slider-change",{detail:{value:i},bubbles:!0,composed:!0}))}disconnectedCallback(){super.disconnectedCallback(),this._ac?.abort(),this._ac=null,this._dragging=!1}render(){return F`
+    `]}_displayPct(e){const t=this.max-this.min;if(t<=0)return 0;const i=e??(this._dragging?this._dragValue:this.value);return Math.max(0,Math.min(100,(i-this.min)/t*100))}_snap(e){if(this.step<=0)return e;const t=Math.round(e/this.step)*this.step,i=(this.step.toString().split(".")[1]||"").length;return parseFloat(t.toFixed(i))}_pctToValue(e){const t=this.max-this.min,i=this.min+e/100*t;return Math.max(this.min,Math.min(this.max,this._snap(i)))}updated(e){super.updated(e),!this._dragging&&(e.has("value")||e.has("min")||e.has("max")||e.has("color"))&&this._applyVisuals()}firstUpdated(){this._applyVisuals()}_applyVisuals(){const e=this._displayPct(),t=this.renderRoot.querySelector(".fill"),i=this.renderRoot.querySelector(".thumb");t&&(t.style.transform=`scaleX(${e/100})`),i&&(i.style.transform=`translate(calc(${e}cqw - 50%), -50%)`)}_onPointerDown(e){if(this.disabled)return;e.stopPropagation();const t=e.currentTarget;t.setPointerCapture(e.pointerId),this._dragging=!0,this._ac=new AbortController;const{signal:i}=this._ac,a=this.renderRoot.querySelector(".fill"),r=this.renderRoot.querySelector(".thumb"),s=(e,i)=>{const s=t.getBoundingClientRect(),o=Math.max(0,Math.min(100,(e.clientX-s.left)/s.width*100)),n=this._pctToValue(o);this._dragValue=n;const c=this._displayPct(n);a.style.transform=`scaleX(${c/100})`,r.style.transform=`translate(calc(${c}cqw - 50%), -50%)`;const l=i?"glass-slider-change":"glass-slider-input";this.dispatchEvent(new CustomEvent(l,{detail:{value:n},bubbles:!0,composed:!0}))};s(e,!1);const o=()=>{this._ac?.abort(),this._ac=null;try{t.releasePointerCapture(e.pointerId)}catch{}this._dragging=!1};t.addEventListener("pointermove",e=>s(e,!1),{signal:i}),t.addEventListener("pointerup",e=>{s(e,!0),o()},{signal:i}),t.addEventListener("pointercancel",()=>o(),{signal:i}),t.addEventListener("lostpointercapture",()=>o(),{signal:i})}_onKeyDown(e){if(this.disabled)return;const t=this.step>0?this.step:1;let i;switch(e.key){case"ArrowRight":case"ArrowUp":i=Math.min(this.max,this._snap(this.value+t));break;case"ArrowLeft":case"ArrowDown":i=Math.max(this.min,this._snap(this.value-t));break;case"Home":i=this.min;break;case"End":i=this.max;break;default:return}e.preventDefault(),this._dragValue=i,this._applyVisuals(),this.dispatchEvent(new CustomEvent("glass-slider-change",{detail:{value:i},bubbles:!0,composed:!0}))}disconnectedCallback(){super.disconnectedCallback(),this._ac?.abort(),this._ac=null,this._dragging=!1}render(){return N`
       <div
         class="track"
         role="slider"
@@ -5242,9 +2802,9 @@
       >
         <div class="fill"></div>
         <div class="thumb"></div>
-        ${this.label?F`<span class="label">${this.label}</span>`:""}
+        ${this.label?N`<span class="label">${this.label}</span>`:""}
       </div>
-    `}}ge([he({type:Number})],ve.prototype,"value"),ge([he({type:Number})],ve.prototype,"min"),ge([he({type:Number})],ve.prototype,"max"),ge([he({type:Number})],ve.prototype,"step"),ge([he({type:String})],ve.prototype,"color"),ge([he({type:String})],ve.prototype,"label"),ge([he({type:Boolean,reflect:!0})],ve.prototype,"disabled");try{customElements.define("glass-slider",ve)}catch{}const fe=o`
+    `}}me([pe({type:Number})],fe.prototype,"value"),me([pe({type:Number})],fe.prototype,"min"),me([pe({type:Number})],fe.prototype,"max"),me([pe({type:Number})],fe.prototype,"step"),me([pe({type:String})],fe.prototype,"color"),me([pe({type:String})],fe.prototype,"label"),me([pe({type:Boolean,reflect:!0})],fe.prototype,"disabled");try{customElements.define("glass-slider",fe)}catch{}const ve=s`
   :host {
     --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -5322,13 +2882,13 @@
     --icon-lg: 1.375rem;
     --icon-xl: 1.5rem;
   }
-`,be=o`
+`,be=s`
   :host {
     display: block;
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
-`,ye=o`
+`,ye=s`
   .glass {
     border-radius: var(--radius-xl);
     background: linear-gradient(
@@ -5371,7 +2931,7 @@
     z-index: 0;
     transition: opacity var(--t-slow);
   }
-`;o`
+`,we=s`
   .marquee {
     display: block;
     overflow: hidden;
@@ -5395,13 +2955,13 @@
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-`;const we=o`
+`,xe=18;function ke(e,t=18,i="8s"){return!e||e.length<=t?e||"":N`<span class="marquee" style="--marquee-duration:${i}"><span class="marquee-inner" data-text="${e}">${e}</span></span>`}const $e=s`
   @keyframes bounce {
     0%   { transform: scale(1); }
     40%  { transform: scale(0.94); }
     100% { transform: scale(1); }
   }
-`;o`
+`,Se=s`
   .eq-bars {
     display: flex;
     align-items: flex-end;
@@ -5421,7 +2981,7 @@
     from { transform: scaleY(0.25); }
     to { transform: scaleY(1); }
   }
-`,o`
+`,Ce=s`
   .fold {
     display: grid;
     grid-template-rows: 0fr;
@@ -5439,7 +2999,7 @@
     opacity: 1;
     transition-delay: 0.1s;
   }
-`,o`
+`;function Ie(e,t){const i=t,a=i*(1-Math.abs(e/60%2-1));let r=0,s=0,o=0;e<60?(r=i,s=a):e<120?(r=a,s=i):e<180?(s=i,o=a):e<240?(s=a,o=i):e<300?(r=a,o=i):(r=i,o=a);const n=1-i;return[Math.round(255*(r+n)),Math.round(255*(s+n)),Math.round(255*(o+n))]}function Ee(e){const t=e[0]/255,i=e[1]/255,a=e[2]/255,r=Math.max(t,i,a),s=r-Math.min(t,i,a);let o=0;0!==s&&(o=r===t?((i-a)/s+6)%6*60:r===i?60*((a-t)/s+2):60*((t-i)/s+4));return{h:o,s:0===r?0:s/r}}function ze(e){return"#"+e.map(e=>e.toString(16).padStart(2,"0")).join("")}const De=s`
   .entity-unavailable {
     opacity: 0.4;
     pointer-events: none;
@@ -5456,7 +3016,7 @@
     justify-content: center;
     z-index: 1;
   }
-`;const xe={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité",delete:"Supprimer",collapse:"Réduire",expand:"Développer",move_up:"Déplacer vers le haut",move_down:"Déplacer vers le bas",none:"Aucun",rooms:"Pièces"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",color_picker_aria:"Ouvrir la roue chromatique",color_picker_title:"Choisir une couleur",effect_off:"Éteint",effect_candle:"Bougie",effect_fire:"Feu",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",dashboard_title:"LUMIÈRES ALLUMÉES",dashboard_overflow:"et {count} autres…",dashboard_turn_all_off_aria:"Éteindre toutes les lumières de la maison"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}",sensor_unavailable:"Capteur indisponible"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel",compass_N:"N",compass_NNE:"NNE",compass_NE:"NE",compass_ENE:"ENE",compass_E:"E",compass_ESE:"ESE",compass_SE:"SE",compass_SSE:"SSE",compass_S:"S",compass_SSW:"SSO",compass_SW:"SO",compass_WSW:"OSO",compass_W:"O",compass_WNW:"ONO",compass_NW:"NO",compass_NNW:"NNO"},cover:{title:"VOLETS",open:"Ouvert",closed:"Fermé",opening:"Ouverture…",closing:"Fermeture…",position:"Position",tilt:"Inclinaison",stop_aria:"Arrêter {name}",open_aria:"Ouvrir {name}",close_aria:"Fermer {name}",toggle_aria:"Basculer {name}",expand_aria:"Développer les contrôles de {name}",open_all_aria:"Ouvrir tous les volets",close_all_aria:"Fermer tous les volets",preset_open:"Ouvert",preset_closed:"Fermé",dashboard_title_one:"1 VOLET OUVERT",dashboard_title:"{count} VOLETS OUVERTS",dc_shutter:"Volet",dc_blind:"Store",dc_curtain:"Rideau",dc_garage:"Garage",dc_gate:"Portail",dc_door:"Porte",dc_awning:"Auvent",dc_shade:"Store d'ombrage",dc_window:"Fenêtre",dc_damper:"Clapet"},climate:{title:"Climat",target:"Consigne",current:"Actuelle",range_low:"Min",range_high:"Max",humidity_target:"Humidité cible",aux_heat:"Chauffage auxiliaire",unavailable:"Indisponible",mode_heat:"Chauffage",mode_cool:"Climatisation",mode_heat_cool:"Auto chaud/froid",mode_auto:"Automatique",mode_dry:"Déshumidification",mode_fan_only:"Ventilation",mode_off:"Éteint",preset_eco:"Éco",preset_comfort:"Confort",preset_boost:"Boost",preset_away:"Absent",preset_sleep:"Nuit",preset_activity:"Activité",preset_none:"Aucun",fan_mode:"Ventilation",swing_mode:"Oscillation",open_all_aria:"Allumer tous les climatiseurs",close_all_aria:"Éteindre tous les climatiseurs",toggle_aria:"Basculer",expand_aria:"Détails",temp_up_aria:"Augmenter température",temp_down_aria:"Diminuer température",humidity_up_aria:"Augmenter humidité",humidity_down_aria:"Diminuer humidité",range_low_aria:"Température minimale",range_high_aria:"Température maximale",no_climates:"Aucun climatiseur",turn_on_aria:"Allumer",turn_off_aria:"Éteindre",action_heating:"Chauffe",action_cooling:"Refroidit",action_idle:"En attente",action_off:"Éteint",action_drying:"Déshumidifie",current_label:"Actuel",controls_aria:"Contrôles",unknown:"Inconnu",avg_label:"Moy.",section_mode:"Mode",section_preset:"Preset"},fan:{title:"Ventilation",off:"Éteint",speed:"Vitesse",speed_pct:"{pct}%",speed_step:"Vitesse {step}/{total}",speed_step_short:"{step}/{total}",direction:"Direction",direction_forward:"Été",direction_reverse:"Hiver",oscillation:"Oscillation",ceiling_light:"Éclairage",preset_auto:"Auto",preset_eco:"Éco",preset_night:"Nuit",preset_comfort:"Confort",preset_silent:"Silence",preset_turbo:"Turbo",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre tous les ventilateurs",toggle_all_off_aria:"Allumer tous les ventilateurs",speed_step_aria:"Vitesse {step} ({pct}%)",direction_forward_aria:"Mode été",direction_reverse_aria:"Mode hiver",oscillation_aria:"Oscillation",ceiling_light_aria:"Éclairage plafonnier",no_fans:"Aucun ventilateur dans cette pièce."},title_card:{mode_label:"Mode :",scene_label:"Scène :",scenes_label:"Scènes :",mode_none:"Aucun",scene_none:"Aucune",active_count:"{count} actifs",cycle_aria:"Changer de mode",toggle_scenes_aria:"Afficher les scènes",toggle_modes_aria:"Afficher les modes",activate_scene_aria:"Activer la scène {name}",toggle_bool_aria:"Basculer {name}",group_mode:"Mode",group_scenes:"Scènes",group_toggles:"Toggles"},spotify:{title:"Spotify",search_placeholder:"Rechercher un titre, artiste, podcast…",tab_all:"Tout",tab_tracks:"Titres",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"Mes playlists",recently_played:"Écoutes récentes",saved_tracks:"Titres likés",followed_podcasts:"Podcasts suivis",tracks_count:"{count} titres",episodes_count:"{count} épisodes",type_track:"Titre",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Lire",play_all:"Tout lire",play_on:"Jouer sur…",play_aria:"Jouer {name}",available:"Disponible",paused:"En pause",no_results:"Aucun résultat pour « {query} »",no_content:"Aucun contenu",load_more:"Voir plus",loading:"Chargement…",error_api:"Erreur Spotify",error_rate_limit:"Trop de requêtes, réessayez dans {seconds}s",not_configured:"Intégration Spotify non configurée",no_entity:"Configurez l'entité Spotify dans le panneau de configuration",open_config:"Ouvrir la configuration",back:"Retour",toggle_library:"Afficher la bibliothèque",save_track:"Sauvegarder",remove_track:"Retirer de la bibliothèque",saved:"Sauvegardé",not_saved:"Non sauvegardé",items_count:"{current} / {total}",clear_search:"Effacer la recherche"},media:{title:"MÉDIAS",now_playing:"En lecture",idle:"En attente",off:"Éteint",standby:"Veille",buffering:"Chargement…",no_media:"Aucun média en lecture",no_players:"Aucun lecteur média",volume_aria:"Volume de {name}",play_aria:"Lire {name}",pause_aria:"Pause {name}",stop_aria:"Arrêter {name}",next_aria:"Piste suivante {name}",prev_aria:"Piste précédente {name}",mute_aria:"Couper le son de {name}",unmute_aria:"Rétablir le son de {name}",expand_aria:"Développer les contrôles de {name}",power_on_aria:"Allumer {name}",power_off_aria:"Éteindre {name}",dashboard_title:"EN LECTURE",group_members:"Multiroom",unknown_title:"Titre inconnu",unknown_artist:"Artiste inconnu",shuffle_aria:"Lecture aléatoire",repeat_aria:"Répétition",seek_aria:"Chercher dans la piste",source_label:"Source",sound_mode_label:"Mode audio",speakers_label:"Enceintes",volume_label:"Volume",coordinator:"Coordinateur",add_group_aria:"Ajouter {name} au groupe",remove_group_aria:"Retirer {name} du groupe",no_playback:"Aucune lecture en cours",speakers_count:"{count} enceintes",prev_room_aria:"Pièce précédente",next_room_aria:"Pièce suivante",room_dot_aria:"Pièce {index}",controls_tab:"Contrôles",queue_tab:"File d'attente",queue_empty:"File d'attente vide",now_playing_label:"En cours",radio_badge:"Radio",loading_radio:"Chargement radio…",skip_track:"Passer le morceau",remove_from_queue:"Retirer de la liste de lecture",extra_entities:"Entités supplémentaires",add_entity:"Ajouter une entité"},presence:{title:"PRÉSENCES",title_single:"PRÉSENCE",home:"Maison",away:"Absent",just_now:"À l'instant",min_ago:"il y a {count} min",hours_ago:"il y a {count}h",days_ago:"il y a {count}j",avatar_aria:"Informations pour {name}",notify_to:"Envoyer à",notify_aria:"Envoyer une notification à {name}",notify_placeholder:"Ton message…",notif_title:"Message de {name}",send_aria:"Envoyer la notification",notif_sent:"Notification envoyée",health_label:"Santé",bpm:"bpm",spo2:"SpO2",steps:"pas",driving:"En conduite",distance_m:"m",distance_km:"km"},camera:{title:"CAMÉRAS",idle:"Veille",streaming:"En direct",recording:"Enregistrement",off:"Éteinte",unavailable:"Indisponible",no_cameras:"Aucune caméra",prev_aria:"Caméra précédente",next_aria:"Caméra suivante",dot_aria:"Aller à {name}",power_on:"Allumer",power_off:"Éteindre",snapshot:"Capture",record_start:"Rec",record_stop:"Stop",motion_on_aria:"Désactiver détection mouvement",motion_off_aria:"Activer détection mouvement",siren_aria:"Sirène",floodlight_aria:"Projecteur",auto_track_aria:"Suivi automatique",tap_to_stream:"Appuyer pour diffuser",camera_off:"Caméra éteinte",ai_person:"Personne",ai_vehicle:"Véhicule",ai_pet:"Animal",ai_animal:"Animal",ai_package:"Colis",ai_face:"Visage",ai_baby_crying:"Bébé",ai_bicycle:"Vélo",dashboard_title:"CAMÉRAS",dashboard_title_one:"1 CAMÉRA"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:JSON.parse('{"title":"Configuration","brand":"GLASS CARDS","nav_rooms":"Pièces","nav_dashboard":"Dashboard","nav_advanced":"Avancé","tab_navbar":"Barre de nav","tab_popup":"Popup Pièce","tab_light":"Carte Lumières","preview":"Aperçu","behavior":"Comportement","navbar_settings":"Navbar","navbar_auto_sort":"Tri automatique","navbar_auto_sort_desc":"Les pièces actives remontent en premier","no_rooms":"Aucune pièce configurée","popup_room":"Pièce","popup_room_desc":"Sélectionnez une pièce pour configurer l\'ordre et la visibilité de ses cartes internes.","popup_internal_cards":"Cartes internes","popup_internal_cards_desc":"Ordonnez les cartes affichées dans le popup de cette pièce.","room_sensors":"Capteurs","room_sensors_desc":"Entités de température et d\'humidité utilisées dans le popup et la navbar.","room_temp_entity":"Capteur de température","room_temp_entity_desc":"Entité utilisée pour afficher la température de la pièce.","room_humidity_entity":"Capteur d\'humidité","room_humidity_entity_desc":"Entité utilisée pour afficher l\'humidité de la pièce.","room_auto_detect":"Auto-détection","room_no_sensor":"Aucun capteur","room_thresholds":"Seuils d\'alerte","room_thresholds_desc":"Valeurs au-delà desquelles les indicateurs passent en rouge.","room_temp_high":"Température haute","room_temp_low":"Température basse","room_humidity_threshold":"Seuil d\'humidité","room_indicators":"Indicateurs navbar","room_indicators_desc":"Choisir les indicateurs à afficher pour cette pièce dans la navbar","room_show_lights":"Afficher les lumières","room_show_temperature":"Afficher la température","room_show_humidity":"Afficher l\'humidité","hide_room":"Masquer de la navbar","show_room":"Afficher dans la navbar","popup_scenes":"Scènes","popup_scenes_desc":"Réordonnez et masquez les scènes affichées en haut du popup.","popup_select_room":"Sélectionnez une pièce","light_room":"Pièce","light_room_desc":"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d\'affichage.","light_list_title":"Lumières","light_list_banner":"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.","light_no_lights":"Aucune lumière dans cette pièce.","light_no_visible":"Aucune lumière visible","light_select_room":"Sélectionnez une pièce","light_change_layout_aria":"Changer le layout","light_layout_compact":"COMPACT","light_layout_full":"PLEIN","light_schedule_hint":"Appuyez sur l\'icône calendrier de chaque lumière pour définir des périodes de visibilité.","light_schedule_aria":"Gérer la planification de visibilité de {name}","light_schedule_title":"Planification de visibilité","light_schedule_start":"Début","light_schedule_end":"Fin","light_schedule_recurring":"Annuel","light_schedule_add":"Ajouter une période","light_schedule_delete_aria":"Supprimer la période","light_schedule_no_date":"Choisir une date…","light_schedule_confirm":"Confirmer","light_schedule_prev_month_aria":"Mois précédent","light_schedule_next_month_aria":"Mois suivant","light_show_header":"Afficher l\'en-tête","light_show_header_desc":"Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte","light_dashboard_vs_room":"Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.","domain_light":"Lumières","domain_light_desc":"Contrôle des lumières","domain_media_player":"Média","domain_media_player_desc":"Lecteurs multimédias","domain_climate":"Climat","domain_climate_desc":"Thermostats et climatisation","domain_fan":"Ventilateur","domain_fan_desc":"Ventilation","domain_cover":"Volets","domain_cover_desc":"Stores et volets roulants","domain_camera":"Caméras","domain_camera_desc":"Caméras de surveillance","domain_vacuum":"Aspirateur","domain_vacuum_desc":"Robots aspirateurs","tab_weather":"Carte Météo","weather_entity":"Entité météo","weather_entity_desc":"Sélectionnez l\'entité météo à afficher sur la carte.","weather_metrics":"Métriques visibles","weather_metrics_desc":"Activez ou désactivez les métriques affichées sur la carte.","weather_forecasts":"Onglets prévisions","weather_forecasts_desc":"Activez ou désactivez les onglets de prévisions.","weather_metric_humidity":"Humidité","weather_metric_wind":"Vent","weather_metric_pressure":"Pression","weather_metric_uv":"UV","weather_metric_visibility":"Visibilité","weather_metric_sunrise":"Lever du soleil","weather_metric_sunset":"Coucher du soleil","weather_daily":"Prévisions 7 jours","weather_hourly":"Prévisions horaires","weather_select_entity":"Sélectionnez une entité météo","weather_show_header":"Afficher l\'en-tête","weather_show_header_desc":"Titre et localisation au-dessus de la carte","tab_title":"Carte Titre","title_title":"Texte du titre","title_title_desc":"Texte principal affiché sur la carte.","title_title_placeholder":"Ma Maison","title_mode_source":"Sources","title_mode_source_desc":"Ajoutez une ou plusieurs sources pour les modes du titre.","title_period_indicator":"Indicateur de période","title_period_info":"Créez un input_select nommé « periode_journee » avec les options : Matin, Après-midi, Soir, Nuit. L\'indicateur s\'affichera automatiquement.","title_period_entity":"Entité période","title_period_entity_desc":"Sélectionnez l\'input_select qui contrôle la période du jour","title_period_auto":"Auto (input_select.periode_journee)","title_period_options":"Visuels des périodes","title_period_options_desc":"Personnalisez l\'icône et la couleur de chaque période","title_add_source":"Ajouter une source","title_remove_source":"Retirer la source","title_source_label":"Libellé du groupe","title_source_none":"Aucun","title_source_input_select":"Sélecteur","title_source_scenes":"Scènes","title_source_booleans":"Toggles","title_mode_entity":"Entité mode","title_mode_entity_desc":"Sélectionnez l\'entité input_select pour les modes.","title_add_entity":"Ajouter une entité","title_add_entity_desc":"Ajoutez des entités pour les modes.","title_select_entity":"Sélectionnez une entité","title_remove_entity":"Retirer","title_modes":"Configuration des modes","title_modes_desc":"Personnalisez le libellé, l\'icône et la couleur de chaque mode.","title_mode_label":"Libellé","title_mode_icon":"Icône","title_mode_color":"Couleur","title_color_picker_title":"Choisir une couleur","title_color_picker_aria":"Ouvrir la roue chromatique","title_no_modes":"Sélectionnez d\'abord une entité mode.","title_no_icons_found":"Aucune icône trouvée","title_no_icon":"Aucune","dashboard_card_title":"Carte Titre","dashboard_card_title_desc":"Texte titre avec sélecteur de mode optionnel","tab_dashboard":"Tableau de bord","dashboard_display":"Affichage","dashboard_display_desc":"Personnalisez l\'apparence de l\'interface Home Assistant.","dashboard_hide_header":"Masquer le bandeau","dashboard_hide_header_desc":"Cache la barre supérieure de Home Assistant (menu, titre, recherche).","dashboard_hide_sidebar":"Masquer la barre latérale","dashboard_hide_sidebar_desc":"Cache le menu latéral de Home Assistant (navigation, paramètres, notifications).","dashboard_dynamic_bg":"Fond dynamique","dashboard_dynamic_bg_desc":"Active le fond d\'écran jour/nuit animé de Glass Cards.","dashboard_title":"Cartes du tableau de bord","dashboard_desc":"Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l\'ordre.","dashboard_card_weather":"Carte Météo","dashboard_card_weather_desc":"Affiche la météo actuelle, prévisions et animations","dashboard_card_light":"Carte Lumières","dashboard_card_light_desc":"Affiche les lumières allumées avec contrôle rapide","dashboard_light_auto":"Les lumières allumées s\'affichent automatiquement sur le tableau de bord.","dashboard_card_cover":"Carte Volets","dashboard_card_cover_desc":"Affiche les volets sélectionnés avec contrôle de position","dashboard_card_spotify":"Carte Spotify","dashboard_card_spotify_desc":"Bibliothèque musicale, recherche et lecture Spotify","tab_media":"Carte Média","media_variant":"Variante d\'affichage","media_variant_desc":"Choisissez entre la vue liste (compacte) ou la vue héros (artwork).","media_variant_list":"Liste","media_variant_hero":"Héros","media_show_header":"Afficher l\'en-tête","media_show_header_desc":"Titre et compteur au-dessus de la carte","media_room":"Pièce","media_room_desc":"Sélectionnez une pièce pour configurer sa variante et ses lecteurs supplémentaires.","media_room_variant":"Variante pour cette pièce","media_room_variant_default":"Par défaut","media_extra_entities":"Lecteurs supplémentaires","media_extra_entities_desc":"Ajoutez des lecteurs médias supplémentaires à cette pièce.","media_select_room":"Sélectionnez une pièce","media_native_players":"Lecteurs natifs","media_native_players_desc":"Lecteurs médias assignés à cette zone dans Home Assistant.","media_no_extra":"Aucun lecteur supplémentaire ajouté.","media_add_extra":"Ajouter un lecteur","media_dashboard_variant":"Variante dashboard","media_dashboard_variant_desc":"Variante utilisée pour la carte média sur le tableau de bord.","dashboard_card_media":"Carte Média","dashboard_card_media_desc":"Affiche les lecteurs médias avec contrôles de transport","tab_climate":"Climat","climate_desc":"Configurez les entités climat par pièce","climate_no_entities":"Aucune entité climat dans cette pièce","climate_show_header":"Afficher l\'en-tête","climate_show_header_desc":"Titre et compteur au-dessus de la carte","climate_display_mode":"Mode d\'affichage","climate_display_mode_popup":"Mode d\'affichage popup","climate_display_mode_popup_desc":"Disposition des entités climat dans le popup de la pièce.","climate_display_mode_dashboard":"Mode d\'affichage (dashboard)","climate_mode_list":"Liste","climate_mode_normal":"Normal","climate_select_room":"Sélectionner une pièce","climate_room_entities":"Entités de la pièce","climate_room_entities_desc":"Ordre et visibilité des entités climat. Glissez pour réordonner.","climate_dashboard_entities":"Entités climat du tableau de bord","climate_dashboard_entities_desc":"Sélectionnez les thermostats à afficher sur le tableau de bord.","dashboard_card_climate":"Climat","dashboard_card_climate_desc":"Thermostats et climatiseurs","dashboard_card_fan":"Carte Ventilation","dashboard_card_fan_desc":"Affiche les ventilateurs avec contrôle de vitesse","dashboard_card_presence":"Carte Présence","dashboard_card_presence_desc":"Affiche la présence des membres du foyer","tab_presence":"Carte Présence","presence_show_header":"Afficher l\'en-tête","presence_show_header_desc":"Titre et compteur au-dessus de la carte","presence_persons":"Personnes","presence_persons_desc":"Sélectionnez les entités person.* à afficher. Vide = auto-détection.","presence_smartphone":"Capteur smartphone","presence_smartphone_desc":"Associez un capteur smartphone à chaque personne pour la batterie et les données santé.","presence_notify":"Service de notification","presence_notify_desc":"Service notify.* à utiliser pour envoyer des notifications à cette personne.","presence_driving":"Capteur conduite","presence_driving_desc":"Capteur binary_sensor pour détecter le mode conduite.","presence_no_persons":"Aucune entité person.* détectée.","presence_auto_detect":"Auto-détection","search_entity":"Rechercher...","presence_select_entity":"Sélectionnez une entité","tab_fan":"Carte Ventilation","fan_show_header":"Afficher l\'en-tête","fan_show_header_desc":"Titre, compteur et bouton tout basculer au-dessus de la carte","fan_room":"Pièce","fan_room_desc":"Sélectionnez une pièce pour configurer ses ventilateurs : ordre et visibilité.","fan_list_title":"Ventilateurs","fan_list_banner":"Glissez pour réordonner. Basculez pour masquer.","fan_no_fans":"Aucun ventilateur dans cette pièce.","fan_select_room":"Sélectionnez une pièce","tab_cover":"Carte Volets","cover_show_header":"Afficher l\'en-tête","cover_show_header_desc":"Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte","cover_dashboard_compact":"Affichage compact","cover_dashboard_compact_desc":"Affiche les volets en grille compacte 2 colonnes. Désactivé, chaque volet occupe toute la largeur.","cover_dashboard_entities":"Volets du tableau de bord","cover_dashboard_entities_desc":"Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.","cover_dashboard_no_entities":"Aucun volet sélectionné pour le tableau de bord.","cover_room":"Pièce","cover_room_desc":"Sélectionnez une pièce pour configurer ses volets : ordre et visibilité.","cover_list_title":"Volets","cover_list_banner":"Glissez pour réordonner. Désactivez ceux à masquer.","cover_no_covers":"Aucun volet dans cette pièce.","cover_select_room":"Sélectionnez une pièce","cover_presets":"Positions par défaut","cover_presets_desc":"Positions par défaut pour les volets sans configuration personnalisée.","cover_entity_presets":"Positions","cover_preset_add":"Ajouter","cover_preset_placeholder":"0–100","tab_camera_carousel":"Carte Caméras","camera_show_header":"Afficher l\'en-tête","camera_show_header_desc":"Titre et compteur au-dessus de la carte","camera_auto_cycle":"Cycle automatique","camera_auto_cycle_desc":"Passer automatiquement d\'une caméra à l\'autre","camera_cycle_interval":"Intervalle (secondes)","camera_cycle_interval_desc":"Temps entre chaque changement de caméra","camera_entity_order":"Ordre des caméras","camera_entity_order_desc":"Glissez pour réordonner les caméras.","camera_no_cameras":"Aucune caméra détectée.","dashboard_card_camera_carousel":"Carte Caméras","dashboard_card_camera_carousel_desc":"Carrousel de surveillance avec actions rapides","tab_spotify":"Carte Spotify","spotify_show_header":"Afficher l\'en-tête","spotify_show_header_desc":"Titre et contrôles au-dessus de la carte","spotify_entity":"Entité lecteur Spotify","spotify_entity_desc":"Sélectionnez l\'entité media_player Spotify à utiliser pour la carte.","spotify_sort_order":"Ordre de tri","spotify_sort_order_desc":"Choisissez l\'ordre d\'affichage des playlists et titres sauvegardés.","spotify_sort_recent":"Plus récent en premier","spotify_sort_oldest":"Plus ancien en premier","spotify_select_entity":"Sélectionnez un lecteur Spotify","spotify_max_items":"Éléments par section","spotify_max_items_desc":"Nombre maximum d\'éléments affichés par section (playlists, titres récents, etc.).","spotify_speakers":"Enceintes visibles","spotify_speakers_desc":"Sélectionnez les enceintes affichées dans le popup de lecture. Si aucune n\'est sélectionnée, toutes les enceintes sont affichées.","spotify_not_configured":"Intégration Spotify non configurée","spotify_setup_guide":"Pour utiliser la carte Spotify, vous devez d\'abord configurer l\'intégration Spotify officielle dans Home Assistant.","spotify_setup_step1":"Allez dans Paramètres → Appareils et services","spotify_setup_step2":"Cliquez sur « Ajouter une intégration » et cherchez « Spotify »","spotify_setup_step3":"Connectez-vous avec votre compte Spotify et autorisez l\'accès","spotify_setup_step4":"Une entité media_player.spotify_* apparaîtra automatiquement","spotify_setup_note":"Un compte Spotify Premium est requis pour les contrôles de lecture.","spotify_checking":"Vérification de la connexion Spotify…","spotify_open_settings":"Ouvrir les paramètres","tab_unassigned":"Assignation pièces","unassigned_desc":"Assignez ou réassignez vos entités à une pièce pour qu\'elles apparaissent dans les popups correspondants.","unassigned_none":"Toutes les entités sont assignées à une pièce.","unassigned_no_entities":"Aucune entité détectée.","unassigned_select_area":"Non assignée","unassigned_assigned":"Assignée","unassigned_count":"{count} entité(s) sans pièce","unassigned_no_results":"Aucun résultat.","unassigned_rename":"Renommer l\'entité","unassigned_change_icon":"Changer l\'icône"}')},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity",delete:"Delete",collapse:"Collapse",expand:"Expand",move_up:"Move up",move_down:"Move down",none:"None",rooms:"Rooms"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",color_picker_aria:"Open color wheel",color_picker_title:"Choose a color",effect_off:"Off",effect_candle:"Candle",effect_fire:"Fire",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",dashboard_title:"LIGHTS ON",dashboard_overflow:"and {count} more…",dashboard_turn_all_off_aria:"Turn off all lights in the house"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}",sensor_unavailable:"Sensor unavailable"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional",compass_N:"N",compass_NNE:"NNE",compass_NE:"NE",compass_ENE:"ENE",compass_E:"E",compass_ESE:"ESE",compass_SE:"SE",compass_SSE:"SSE",compass_S:"S",compass_SSW:"SSW",compass_SW:"SW",compass_WSW:"WSW",compass_W:"W",compass_WNW:"WNW",compass_NW:"NW",compass_NNW:"NNW"},cover:{title:"COVERS",open:"Open",closed:"Closed",opening:"Opening…",closing:"Closing…",position:"Position",tilt:"Tilt",stop_aria:"Stop {name}",open_aria:"Open {name}",close_aria:"Close {name}",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",open_all_aria:"Open all covers",close_all_aria:"Close all covers",preset_open:"Open",preset_closed:"Closed",dashboard_title_one:"1 COVER OPEN",dashboard_title:"{count} COVERS OPEN",dc_shutter:"Shutter",dc_blind:"Blind",dc_curtain:"Curtain",dc_garage:"Garage",dc_gate:"Gate",dc_door:"Door",dc_awning:"Awning",dc_shade:"Shade",dc_window:"Window",dc_damper:"Damper"},climate:{title:"Climate",target:"Target",current:"Current",range_low:"Low",range_high:"High",humidity_target:"Target humidity",aux_heat:"Auxiliary heat",unavailable:"Unavailable",mode_heat:"Heat",mode_cool:"Cool",mode_heat_cool:"Heat/Cool",mode_auto:"Auto",mode_dry:"Dry",mode_fan_only:"Fan only",mode_off:"Off",preset_eco:"Eco",preset_comfort:"Comfort",preset_boost:"Boost",preset_away:"Away",preset_sleep:"Sleep",preset_activity:"Activity",preset_none:"None",fan_mode:"Fan mode",swing_mode:"Swing mode",open_all_aria:"Turn on all climate devices",close_all_aria:"Turn off all climate devices",toggle_aria:"Toggle",expand_aria:"Details",temp_up_aria:"Increase temperature",temp_down_aria:"Decrease temperature",humidity_up_aria:"Increase humidity",humidity_down_aria:"Decrease humidity",range_low_aria:"Minimum temperature",range_high_aria:"Maximum temperature",no_climates:"No climate devices",turn_on_aria:"Turn on",turn_off_aria:"Turn off",action_heating:"Heating",action_cooling:"Cooling",action_idle:"Idle",action_off:"Off",action_drying:"Drying",current_label:"Current",controls_aria:"Controls",unknown:"Unknown",avg_label:"Avg.",section_mode:"Mode",section_preset:"Preset"},fan:{title:"Fans",off:"Off",speed:"Speed",speed_pct:"{pct}%",speed_step:"Speed {step}/{total}",speed_step_short:"{step}/{total}",direction:"Direction",direction_forward:"Summer",direction_reverse:"Winter",oscillation:"Oscillation",ceiling_light:"Light",preset_auto:"Auto",preset_eco:"Eco",preset_night:"Night",preset_comfort:"Comfort",preset_silent:"Silent",preset_turbo:"Turbo",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all fans",toggle_all_off_aria:"Turn on all fans",speed_step_aria:"Speed {step} ({pct}%)",direction_forward_aria:"Summer mode",direction_reverse_aria:"Winter mode",oscillation_aria:"Oscillation",ceiling_light_aria:"Ceiling light",no_fans:"No fans in this room."},title_card:{mode_label:"Mode:",scene_label:"Scene:",scenes_label:"Scenes:",mode_none:"None",scene_none:"None",active_count:"{count} active",cycle_aria:"Change mode",toggle_scenes_aria:"Show scenes",toggle_modes_aria:"Show modes",activate_scene_aria:"Activate scene {name}",toggle_bool_aria:"Toggle {name}",group_mode:"Mode",group_scenes:"Scenes",group_toggles:"Toggles"},spotify:{title:"Spotify",search_placeholder:"Search for a track, artist, podcast…",tab_all:"All",tab_tracks:"Tracks",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"My playlists",recently_played:"Recently played",saved_tracks:"Liked songs",followed_podcasts:"Followed podcasts",tracks_count:"{count} tracks",episodes_count:"{count} episodes",type_track:"Track",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Play",play_all:"Play all",play_on:"Play on…",play_aria:"Play {name}",available:"Available",paused:"Paused",no_results:'No results for "{query}"',no_content:"No content",load_more:"Load more",loading:"Loading…",error_api:"Spotify error",error_rate_limit:"Too many requests, try again in {seconds}s",not_configured:"Spotify integration not configured",no_entity:"Configure the Spotify entity in the configuration panel",open_config:"Open configuration",back:"Back",toggle_library:"Show library",save_track:"Save to library",remove_track:"Remove from library",saved:"Saved",not_saved:"Not saved",items_count:"{current} / {total}",clear_search:"Clear search"},media:{title:"MEDIA",now_playing:"Now playing",idle:"Idle",off:"Off",standby:"Standby",buffering:"Buffering…",no_media:"No media playing",no_players:"No media players",volume_aria:"{name} volume",play_aria:"Play {name}",pause_aria:"Pause {name}",stop_aria:"Stop {name}",next_aria:"Next track {name}",prev_aria:"Previous track {name}",mute_aria:"Mute {name}",unmute_aria:"Unmute {name}",expand_aria:"Expand {name} controls",power_on_aria:"Turn on {name}",power_off_aria:"Turn off {name}",dashboard_title:"NOW PLAYING",group_members:"Multiroom",unknown_title:"Unknown title",unknown_artist:"Unknown artist",shuffle_aria:"Shuffle",repeat_aria:"Repeat",seek_aria:"Seek in track",source_label:"Source",sound_mode_label:"Sound mode",speakers_label:"Speakers",volume_label:"Volume",coordinator:"Coordinator",add_group_aria:"Add {name} to group",remove_group_aria:"Remove {name} from group",no_playback:"No playback",speakers_count:"{count} speakers",prev_room_aria:"Previous room",next_room_aria:"Next room",room_dot_aria:"Room {index}",controls_tab:"Controls",queue_tab:"Queue",queue_empty:"Queue is empty",now_playing_label:"Now playing",radio_badge:"Radio",loading_radio:"Loading radio…",skip_track:"Skip track",remove_from_queue:"Remove from queue",extra_entities:"Extra entities",add_entity:"Add entity"},presence:{title:"PRESENCES",title_single:"PRESENCE",home:"Home",away:"Away",just_now:"Just now",min_ago:"{count} min ago",hours_ago:"{count}h ago",days_ago:"{count}d ago",avatar_aria:"Information for {name}",notify_to:"Send to",notify_aria:"Send notification to {name}",notify_placeholder:"Your message…",notif_title:"Message from {name}",send_aria:"Send notification",notif_sent:"Notification sent",health_label:"Health",bpm:"bpm",spo2:"SpO2",steps:"steps",driving:"Driving",distance_m:"m",distance_km:"km"},camera:{title:"CAMERAS",idle:"Idle",streaming:"Streaming",recording:"Recording",off:"Off",unavailable:"Unavailable",no_cameras:"No cameras",prev_aria:"Previous camera",next_aria:"Next camera",dot_aria:"Go to {name}",power_on:"Turn on",power_off:"Turn off",snapshot:"Snapshot",record_start:"Rec",record_stop:"Stop",motion_on_aria:"Disable motion detection",motion_off_aria:"Enable motion detection",siren_aria:"Siren",floodlight_aria:"Floodlight",auto_track_aria:"Auto tracking",tap_to_stream:"Tap to stream",camera_off:"Camera off",ai_person:"Person",ai_vehicle:"Vehicle",ai_pet:"Pet",ai_animal:"Animal",ai_package:"Package",ai_face:"Face",ai_baby_crying:"Baby",ai_bicycle:"Bicycle",dashboard_title:"CAMERAS",dashboard_title_one:"1 CAMERA"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:JSON.parse('{"title":"Configuration","brand":"GLASS CARDS","nav_rooms":"Rooms","nav_dashboard":"Dashboard","nav_advanced":"Advanced","tab_navbar":"Navbar","tab_popup":"Room Popup","tab_light":"Light Card","preview":"Preview","behavior":"Behavior","navbar_settings":"Navbar","navbar_auto_sort":"Auto sort","navbar_auto_sort_desc":"Active rooms move to the top","no_rooms":"No rooms configured","popup_room":"Room","popup_room_desc":"Select a room to configure the order and visibility of its internal cards.","popup_internal_cards":"Internal cards","popup_internal_cards_desc":"Order the cards displayed in this room\'s popup.","room_sensors":"Sensors","room_sensors_desc":"Temperature and humidity entities used in the popup and navbar.","room_temp_entity":"Temperature sensor","room_temp_entity_desc":"Entity used to display the room temperature.","room_humidity_entity":"Humidity sensor","room_humidity_entity_desc":"Entity used to display the room humidity.","room_auto_detect":"Auto-detect","room_no_sensor":"No sensor","room_thresholds":"Alert thresholds","room_thresholds_desc":"Values above which indicators turn red.","room_temp_high":"High temperature","room_temp_low":"Low temperature","room_humidity_threshold":"Humidity threshold","room_indicators":"Navbar indicators","room_indicators_desc":"Choose which indicators to show for this room in the navbar","room_show_lights":"Show lights","room_show_temperature":"Show temperature","room_show_humidity":"Show humidity","hide_room":"Hide from navbar","show_room":"Show in navbar","popup_scenes":"Scenes","popup_scenes_desc":"Reorder and hide scenes shown at the top of the popup.","popup_select_room":"Select a room","light_room":"Room","light_room_desc":"Select a room to configure its lights: order, visibility and display mode.","light_list_title":"Lights","light_list_banner":"Drag to reorder. The layout button toggles between full width and compact.","light_no_lights":"No lights in this room.","light_no_visible":"No visible lights","light_select_room":"Select a room","light_change_layout_aria":"Change layout","light_layout_compact":"COMPACT","light_layout_full":"FULL","light_schedule_hint":"Tap the calendar icon on each light to set visibility periods.","light_schedule_aria":"Manage visibility schedule for {name}","light_schedule_title":"Visibility schedule","light_schedule_start":"Start","light_schedule_end":"End","light_schedule_recurring":"Annually","light_schedule_add":"Add period","light_schedule_delete_aria":"Delete period","light_schedule_no_date":"Select date…","light_schedule_confirm":"Confirm","light_schedule_prev_month_aria":"Previous month","light_schedule_next_month_aria":"Next month","light_show_header":"Show header","light_show_header_desc":"Title, counter and toggle all button above the card","light_dashboard_vs_room":"On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.","domain_light":"Lights","domain_light_desc":"Light control","domain_media_player":"Media","domain_media_player_desc":"Media players","domain_climate":"Climate","domain_climate_desc":"Thermostats and air conditioning","domain_fan":"Fan","domain_fan_desc":"Ventilation","domain_cover":"Covers","domain_cover_desc":"Blinds and shutters","domain_camera":"Cameras","domain_camera_desc":"Security cameras","domain_vacuum":"Vacuum","domain_vacuum_desc":"Robot vacuums","tab_weather":"Weather Card","weather_entity":"Weather entity","weather_entity_desc":"Select the weather entity to display on the card.","weather_metrics":"Visible metrics","weather_metrics_desc":"Enable or disable metrics shown on the card.","weather_forecasts":"Forecast tabs","weather_forecasts_desc":"Enable or disable forecast tabs.","weather_metric_humidity":"Humidity","weather_metric_wind":"Wind","weather_metric_pressure":"Pressure","weather_metric_uv":"UV","weather_metric_visibility":"Visibility","weather_metric_sunrise":"Sunrise","weather_metric_sunset":"Sunset","weather_daily":"7-day forecast","weather_hourly":"Hourly forecast","weather_select_entity":"Select a weather entity","weather_show_header":"Show header","weather_show_header_desc":"Title and location above the card","tab_title":"Title Card","title_title":"Title text","title_title_desc":"Main text displayed on the card.","title_title_placeholder":"My Home","title_mode_source":"Sources","title_mode_source_desc":"Add one or more sources for the title modes.","title_period_indicator":"Period indicator","title_period_info":"Create an input_select named \'periode_journee\' with options: Matin, Après-midi, Soir, Nuit. The indicator will appear automatically.","title_period_entity":"Period entity","title_period_entity_desc":"Select the input_select that controls the time of day period","title_period_auto":"Auto (input_select.periode_journee)","title_period_options":"Period visuals","title_period_options_desc":"Customize the icon and color for each period","title_add_source":"Add a source","title_remove_source":"Remove source","title_source_label":"Group label","title_source_none":"None","title_source_input_select":"Selector","title_source_scenes":"Scenes","title_source_booleans":"Toggles","title_mode_entity":"Mode entity","title_mode_entity_desc":"Select the input_select entity for modes.","title_add_entity":"Add entity","title_add_entity_desc":"Add entities for modes.","title_select_entity":"Select an entity","title_remove_entity":"Remove","title_modes":"Mode configuration","title_modes_desc":"Customize the label, icon and color for each mode option.","title_mode_label":"Label","title_mode_icon":"Icon","title_mode_color":"Color","title_color_picker_title":"Choose a color","title_color_picker_aria":"Open color wheel","title_no_modes":"Select a mode entity first.","title_no_icons_found":"No icons found","title_no_icon":"None","dashboard_card_title":"Title Card","dashboard_card_title_desc":"Title text with optional mode selector","tab_dashboard":"Dashboard","dashboard_display":"Display","dashboard_display_desc":"Customize the Home Assistant interface appearance.","dashboard_hide_header":"Hide toolbar","dashboard_hide_header_desc":"Hides the Home Assistant top bar (menu, title, search).","dashboard_hide_sidebar":"Hide sidebar","dashboard_hide_sidebar_desc":"Hides the Home Assistant side menu (navigation, settings, notifications).","dashboard_dynamic_bg":"Dynamic background","dashboard_dynamic_bg_desc":"Enables the Glass Cards animated day/night background cycle.","dashboard_title":"Dashboard cards","dashboard_desc":"Reorder, enable or disable dashboard cards. Drag to change the order.","dashboard_card_weather":"Weather Card","dashboard_card_weather_desc":"Current weather, forecasts and animations","dashboard_card_light":"Light Card","dashboard_card_light_desc":"Shows active lights with quick controls","dashboard_light_auto":"Active lights are automatically displayed on the dashboard.","dashboard_card_cover":"Cover Card","dashboard_card_cover_desc":"Shows selected covers with position controls","dashboard_card_spotify":"Spotify Card","dashboard_card_spotify_desc":"Music library, search and Spotify playback","tab_media":"Media Card","media_variant":"Display variant","media_variant_desc":"Choose between list view (compact) or hero view (artwork).","media_variant_list":"List","media_variant_hero":"Hero","media_show_header":"Show header","media_show_header_desc":"Title and counter above the card","media_room":"Room","media_room_desc":"Select a room to configure its variant and extra players.","media_room_variant":"Variant for this room","media_room_variant_default":"Default","media_extra_entities":"Extra players","media_extra_entities_desc":"Add extra media players to this room.","media_select_room":"Select a room","media_native_players":"Native players","media_native_players_desc":"Media players assigned to this area in Home Assistant.","media_no_extra":"No extra players added.","media_add_extra":"Add extra player","media_dashboard_variant":"Dashboard variant","media_dashboard_variant_desc":"Variant used for the media card on the dashboard.","dashboard_card_media":"Media Card","dashboard_card_media_desc":"Shows media players with transport controls","tab_climate":"Climate","climate_desc":"Configure climate entities per room","climate_no_entities":"No climate entities in this room","climate_show_header":"Show header","climate_show_header_desc":"Title and counter above the card","climate_display_mode":"Display mode","climate_display_mode_popup":"Popup display mode","climate_display_mode_popup_desc":"Layout for climate entities in the room popup.","climate_display_mode_dashboard":"Display mode (dashboard)","climate_mode_list":"List","climate_mode_normal":"Normal","climate_select_room":"Select a room","climate_room_entities":"Room entities","climate_room_entities_desc":"Order and visibility of climate entities. Drag to reorder.","climate_dashboard_entities":"Dashboard climate entities","climate_dashboard_entities_desc":"Select which climate entities to display on the dashboard.","dashboard_card_climate":"Climate","dashboard_card_climate_desc":"Thermostats and HVAC","dashboard_card_fan":"Fan Card","dashboard_card_fan_desc":"Shows fans with speed controls","dashboard_card_presence":"Presence Card","dashboard_card_presence_desc":"Shows household members presence","tab_presence":"Presence Card","presence_show_header":"Show header","presence_show_header_desc":"Title and counter above the card","presence_persons":"Persons","presence_persons_desc":"Select person.* entities to display. Empty = auto-detect.","presence_smartphone":"Smartphone sensor","presence_smartphone_desc":"Associate a smartphone sensor for battery and health data.","presence_notify":"Notification service","presence_notify_desc":"notify.* service to send notifications to this person.","presence_driving":"Driving sensor","presence_driving_desc":"binary_sensor to detect driving mode.","presence_no_persons":"No person.* entity detected.","presence_auto_detect":"Auto-detect","search_entity":"Search...","presence_select_entity":"Select an entity","tab_fan":"Fan Card","fan_show_header":"Show header","fan_show_header_desc":"Title, counter and toggle all button above the card","fan_room":"Room","fan_room_desc":"Select a room to configure its fans: order and visibility.","fan_list_title":"Fans","fan_list_banner":"Drag to reorder. Toggle to hide.","fan_no_fans":"No fans in this room.","fan_select_room":"Select a room","tab_cover":"Cover Card","cover_show_header":"Show header","cover_show_header_desc":"Title, counter and open/close all buttons above the card","cover_dashboard_compact":"Compact layout","cover_dashboard_compact_desc":"Display covers in a 2-column compact grid. When off, each cover takes the full width.","cover_dashboard_entities":"Dashboard covers","cover_dashboard_entities_desc":"Select which covers to display on the dashboard. All selected covers are shown regardless of their state.","cover_dashboard_no_entities":"No cover entities selected for the dashboard.","cover_room":"Room","cover_room_desc":"Select a room to configure its covers: order and visibility.","cover_list_title":"Covers","cover_list_banner":"Drag to reorder. Toggle to hide.","cover_no_covers":"No covers in this room.","cover_select_room":"Select a room","cover_presets":"Default positions","cover_presets_desc":"Default positions for covers without custom configuration.","cover_entity_presets":"Positions","cover_preset_add":"Add","cover_preset_placeholder":"0–100","tab_camera_carousel":"Camera Card","camera_show_header":"Show header","camera_show_header_desc":"Title and counter above the card","camera_auto_cycle":"Auto cycle","camera_auto_cycle_desc":"Automatically cycle between cameras","camera_cycle_interval":"Interval (seconds)","camera_cycle_interval_desc":"Time between each camera switch","camera_entity_order":"Camera order","camera_entity_order_desc":"Drag to reorder cameras.","camera_no_cameras":"No cameras detected.","dashboard_card_camera_carousel":"Camera Card","dashboard_card_camera_carousel_desc":"Surveillance carousel with quick actions","tab_spotify":"Spotify Card","spotify_show_header":"Show header","spotify_show_header_desc":"Title and controls above the card","spotify_entity":"Spotify player entity","spotify_entity_desc":"Select the Spotify media_player entity to use for the card.","spotify_sort_order":"Sort order","spotify_sort_order_desc":"Choose the display order for playlists and saved tracks.","spotify_sort_recent":"Most recent first","spotify_sort_oldest":"Oldest first","spotify_select_entity":"Select a Spotify player","spotify_max_items":"Items per section","spotify_max_items_desc":"Maximum number of items displayed per section (playlists, recent tracks, etc.).","spotify_speakers":"Visible speakers","spotify_speakers_desc":"Select which speakers appear in the playback popup. If none are selected, all speakers are shown.","spotify_not_configured":"Spotify integration not configured","spotify_setup_guide":"To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.","spotify_setup_step1":"Go to Settings → Devices & services","spotify_setup_step2":"Click \\"Add integration\\" and search for \\"Spotify\\"","spotify_setup_step3":"Sign in with your Spotify account and authorize access","spotify_setup_step4":"A media_player.spotify_* entity will appear automatically","spotify_setup_note":"A Spotify Premium account is required for playback controls.","spotify_checking":"Checking Spotify connection…","spotify_open_settings":"Open settings","tab_unassigned":"Room assignment","unassigned_desc":"Assign or reassign your entities to a room so they appear in the corresponding popups.","unassigned_none":"All entities are assigned to a room.","unassigned_no_entities":"No entities detected.","unassigned_select_area":"Unassigned","unassigned_assigned":"Assigned","unassigned_count":"{count} unassigned entity(ies)","unassigned_no_results":"No results.","unassigned_rename":"Rename entity","unassigned_change_icon":"Change icon"}')}},$e="fr";let ke=$e;function Se(e){const t=e.slice(0,2).toLowerCase(),i=t in xe?t:$e;return i!==ke&&(ke=i,!0)}function Ee(){return ke}function De(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),r=-1===i?"":e.slice(i+1),o=xe[ke]??xe[$e],s=xe[$e],n=o?.[a]?.[r]??s?.[a]?.[r];let c="string"==typeof n?n:e;if(t)for(const[d,l]of Object.entries(t))c=c.replaceAll(`{${d}}`,String(l));return c}var Ce=Object.defineProperty,Ie=Object.getOwnPropertyDescriptor,ze=(e,t,i,a)=>{for(var r,o=a>1?void 0:a?Ie(t,i):t,s=e.length-1;s>=0;s--)(r=e[s])&&(o=(a?r(t,i,o):r(o))||o);return a&&o&&Ce(t,i,o),o};class Ae extends ne{constructor(){super(...arguments),this._lang=Ee()}set hass(e){this._hass=e,e?.language&&Se(e.language)&&(this._lang=Ee())}get hass(){return this._hass}setConfig(e){this._config=e}static{this.styles=[fe,o`
+`;function Te(e){return!e||"unavailable"===e||"unknown"===e}const Pe={fr:{common:{save:"Enregistrer",saving:"Enregistrement…",reset:"Réinitialiser",close:"Fermer",back:"Retour",select:"Sélectionner…",hide:"Masquer",show:"Afficher",on:"Allumé",off:"Éteint",error_save:"Erreur de sauvegarde",config_saved:"Configuration sauvegardée",entities:"entités",no_entity:"Aucune entité",delete:"Supprimer",collapse:"Réduire",expand:"Développer",move_up:"Déplacer vers le haut",move_down:"Déplacer vers le bas",none:"Aucun",rooms:"Pièces"},light:{title:"LUMIÈRES",intensity:"Intensité",temperature:"Température",color:"Couleur",color_temp_label:"Température de couleur",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre toutes les lumières",toggle_all_off_aria:"Allumer toutes les lumières",color_aria:"Couleur {hex}",color_picker_aria:"Ouvrir la roue chromatique",color_picker_title:"Choisir une couleur",effect_off:"Éteint",effect_candle:"Bougie",effect_fire:"Feu",temp_warm:"Chaud",temp_neutral:"Neutre",temp_cold:"Froid",dashboard_title:"LUMIÈRES ALLUMÉES",dashboard_overflow:"et {count} autres…",dashboard_turn_all_off_aria:"Éteindre toutes les lumières de la maison"},popup:{close_aria:"Fermer",toggle_scenes_aria:"Afficher/masquer les scènes",activate_scene_aria:"Activer {name}",sensor_unavailable:"Capteur indisponible"},weather:{title:"MÉTÉO",feels_like:"Ressenti {temp}°",humidity:"Humidité",wind:"Vent",pressure:"Pression",uv:"UV",visibility:"Visibilité",sunrise:"Lever du soleil",sunset:"Coucher du soleil",daily_tab:"7 jours",hourly_tab:"Horaire",today:"Auj.",now:"Actuel",cond_sunny:"Ensoleillé",cond_clear_night:"Nuit claire",cond_partly_cloudy:"Partiellement nuageux",cond_cloudy:"Couvert",cond_foggy:"Brouillard",cond_rainy:"Pluie",cond_pouring:"Pluie forte",cond_snowy:"Neige",cond_snowy_rainy:"Pluie verglaçante",cond_hail:"Grêle",cond_lightning:"Éclairs",cond_stormy:"Orage",cond_windy:"Venteux",cond_windy_variant:"Venteux nuageux",cond_exceptional:"Exceptionnel",compass_N:"N",compass_NNE:"NNE",compass_NE:"NE",compass_ENE:"ENE",compass_E:"E",compass_ESE:"ESE",compass_SE:"SE",compass_SSE:"SSE",compass_S:"S",compass_SSW:"SSO",compass_SW:"SO",compass_WSW:"OSO",compass_W:"O",compass_WNW:"ONO",compass_NW:"NO",compass_NNW:"NNO"},cover:{title:"VOLETS",open:"Ouvert",closed:"Fermé",opening:"Ouverture…",closing:"Fermeture…",position:"Position",tilt:"Inclinaison",stop_aria:"Arrêter {name}",open_aria:"Ouvrir {name}",close_aria:"Fermer {name}",toggle_aria:"Basculer {name}",expand_aria:"Développer les contrôles de {name}",open_all_aria:"Ouvrir tous les volets",close_all_aria:"Fermer tous les volets",preset_open:"Ouvert",preset_closed:"Fermé",dashboard_title_one:"1 VOLET OUVERT",dashboard_title:"{count} VOLETS OUVERTS",dc_shutter:"Volet",dc_blind:"Store",dc_curtain:"Rideau",dc_garage:"Garage",dc_gate:"Portail",dc_door:"Porte",dc_awning:"Auvent",dc_shade:"Store d'ombrage",dc_window:"Fenêtre",dc_damper:"Clapet"},climate:{title:"Climat",target:"Consigne",current:"Actuelle",range_low:"Min",range_high:"Max",humidity_target:"Humidité cible",aux_heat:"Chauffage auxiliaire",unavailable:"Indisponible",mode_heat:"Chauffage",mode_cool:"Climatisation",mode_heat_cool:"Auto chaud/froid",mode_auto:"Automatique",mode_dry:"Déshumidification",mode_fan_only:"Ventilation",mode_off:"Éteint",preset_eco:"Éco",preset_comfort:"Confort",preset_boost:"Boost",preset_away:"Absent",preset_sleep:"Nuit",preset_activity:"Activité",preset_none:"Aucun",fan_mode:"Ventilation",swing_mode:"Oscillation",open_all_aria:"Allumer tous les climatiseurs",close_all_aria:"Éteindre tous les climatiseurs",toggle_aria:"Basculer",expand_aria:"Détails",temp_up_aria:"Augmenter température",temp_down_aria:"Diminuer température",humidity_up_aria:"Augmenter humidité",humidity_down_aria:"Diminuer humidité",range_low_aria:"Température minimale",range_high_aria:"Température maximale",no_climates:"Aucun climatiseur",turn_on_aria:"Allumer",turn_off_aria:"Éteindre",action_heating:"Chauffe",action_cooling:"Refroidit",action_idle:"En attente",action_off:"Éteint",action_drying:"Déshumidifie",current_label:"Actuel",controls_aria:"Contrôles",unknown:"Inconnu",avg_label:"Moy.",section_mode:"Mode",section_preset:"Preset"},fan:{title:"Ventilation",off:"Éteint",speed:"Vitesse",speed_pct:"{pct}%",speed_step:"Vitesse {step}/{total}",speed_step_short:"{step}/{total}",direction:"Direction",direction_forward:"Été",direction_reverse:"Hiver",oscillation:"Oscillation",ceiling_light:"Éclairage",preset_auto:"Auto",preset_eco:"Éco",preset_night:"Nuit",preset_comfort:"Confort",preset_silent:"Silence",preset_turbo:"Turbo",toggle_aria:"Allumer/éteindre {name}",expand_aria:"Développer les contrôles de {name}",toggle_all_on_aria:"Éteindre tous les ventilateurs",toggle_all_off_aria:"Allumer tous les ventilateurs",speed_step_aria:"Vitesse {step} ({pct}%)",direction_forward_aria:"Mode été",direction_reverse_aria:"Mode hiver",oscillation_aria:"Oscillation",ceiling_light_aria:"Éclairage plafonnier",no_fans:"Aucun ventilateur dans cette pièce."},title_card:{mode_label:"Mode :",scene_label:"Scène :",scenes_label:"Scènes :",mode_none:"Aucun",scene_none:"Aucune",active_count:"{count} actifs",cycle_aria:"Changer de mode",toggle_scenes_aria:"Afficher les scènes",toggle_modes_aria:"Afficher les modes",activate_scene_aria:"Activer la scène {name}",toggle_bool_aria:"Basculer {name}",group_mode:"Mode",group_scenes:"Scènes",group_toggles:"Toggles"},spotify:{title:"Spotify",search_placeholder:"Rechercher un titre, artiste, podcast…",tab_all:"Tout",tab_tracks:"Titres",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"Mes playlists",recently_played:"Écoutes récentes",saved_tracks:"Titres likés",followed_podcasts:"Podcasts suivis",tracks_count:"{count} titres",episodes_count:"{count} épisodes",type_track:"Titre",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Lire",play_all:"Tout lire",play_on:"Jouer sur…",play_aria:"Jouer {name}",available:"Disponible",paused:"En pause",no_results:"Aucun résultat pour « {query} »",no_content:"Aucun contenu",load_more:"Voir plus",loading:"Chargement…",error_api:"Erreur Spotify",error_rate_limit:"Trop de requêtes, réessayez dans {seconds}s",not_configured:"Intégration Spotify non configurée",no_entity:"Configurez l'entité Spotify dans le panneau de configuration",open_config:"Ouvrir la configuration",back:"Retour",toggle_library:"Afficher la bibliothèque",save_track:"Sauvegarder",remove_track:"Retirer de la bibliothèque",saved:"Sauvegardé",not_saved:"Non sauvegardé",items_count:"{current} / {total}",clear_search:"Effacer la recherche"},media:{title:"MÉDIAS",now_playing:"En lecture",idle:"En attente",off:"Éteint",standby:"Veille",buffering:"Chargement…",no_media:"Aucun média en lecture",no_players:"Aucun lecteur média",volume_aria:"Volume de {name}",play_aria:"Lire {name}",pause_aria:"Pause {name}",stop_aria:"Arrêter {name}",next_aria:"Piste suivante {name}",prev_aria:"Piste précédente {name}",mute_aria:"Couper le son de {name}",unmute_aria:"Rétablir le son de {name}",expand_aria:"Développer les contrôles de {name}",power_on_aria:"Allumer {name}",power_off_aria:"Éteindre {name}",dashboard_title:"EN LECTURE",group_members:"Multiroom",unknown_title:"Titre inconnu",unknown_artist:"Artiste inconnu",shuffle_aria:"Lecture aléatoire",repeat_aria:"Répétition",seek_aria:"Chercher dans la piste",source_label:"Source",sound_mode_label:"Mode audio",speakers_label:"Enceintes",volume_label:"Volume",coordinator:"Coordinateur",add_group_aria:"Ajouter {name} au groupe",remove_group_aria:"Retirer {name} du groupe",no_playback:"Aucune lecture en cours",speakers_count:"{count} enceintes",prev_room_aria:"Pièce précédente",next_room_aria:"Pièce suivante",room_dot_aria:"Pièce {index}",controls_tab:"Contrôles",queue_tab:"File d'attente",queue_empty:"File d'attente vide",now_playing_label:"En cours",radio_badge:"Radio",loading_radio:"Chargement radio…",skip_track:"Passer le morceau",remove_from_queue:"Retirer de la liste de lecture",extra_entities:"Entités supplémentaires",add_entity:"Ajouter une entité"},presence:{title:"PRÉSENCES",title_single:"PRÉSENCE",home:"Maison",away:"Absent",just_now:"À l'instant",min_ago:"il y a {count} min",hours_ago:"il y a {count}h",days_ago:"il y a {count}j",avatar_aria:"Informations pour {name}",notify_to:"Envoyer à",notify_aria:"Envoyer une notification à {name}",notify_placeholder:"Ton message…",notif_title:"Message de {name}",send_aria:"Envoyer la notification",notif_sent:"Notification envoyée",health_label:"Santé",bpm:"bpm",spo2:"SpO2",steps:"pas",driving:"En conduite",distance_m:"m",distance_km:"km"},camera:{title:"CAMÉRAS",idle:"Veille",streaming:"En direct",recording:"Enregistrement",off:"Éteinte",unavailable:"Indisponible",no_cameras:"Aucune caméra",prev_aria:"Caméra précédente",next_aria:"Caméra suivante",dot_aria:"Aller à {name}",power_on:"Allumer",power_off:"Éteindre",snapshot:"Capture",record_start:"Rec",record_stop:"Stop",motion_on_aria:"Désactiver détection mouvement",motion_off_aria:"Activer détection mouvement",siren_aria:"Sirène",floodlight_aria:"Projecteur",auto_track_aria:"Suivi automatique",tap_to_stream:"Appuyer pour diffuser",camera_off:"Caméra éteinte",ai_person:"Personne",ai_vehicle:"Véhicule",ai_pet:"Animal",ai_animal:"Animal",ai_package:"Colis",ai_face:"Visage",ai_baby_crying:"Bébé",ai_bicycle:"Vélo",dashboard_title:"CAMÉRAS",dashboard_title_one:"1 CAMÉRA"},editor:{redirect_message:"La configuration de Glass Cards se fait depuis le panneau dédié.",open_config:"Ouvrir Glass Cards Config"},config:JSON.parse('{"title":"Configuration","brand":"GLASS CARDS","nav_rooms":"Pièces","nav_dashboard":"Dashboard","nav_advanced":"Avancé","tab_navbar":"Barre de nav","tab_popup":"Popup Pièce","tab_light":"Carte Lumières","preview":"Aperçu","behavior":"Comportement","navbar_settings":"Navbar","navbar_auto_sort":"Tri automatique","navbar_auto_sort_desc":"Les pièces actives remontent en premier","no_rooms":"Aucune pièce configurée","popup_room":"Pièce","popup_room_desc":"Sélectionnez une pièce pour configurer l\'ordre et la visibilité de ses cartes internes.","popup_internal_cards":"Cartes internes","popup_internal_cards_desc":"Ordonnez les cartes affichées dans le popup de cette pièce.","room_sensors":"Capteurs","room_sensors_desc":"Entités de température et d\'humidité utilisées dans le popup et la navbar.","room_temp_entity":"Capteur de température","room_temp_entity_desc":"Entité utilisée pour afficher la température de la pièce.","room_humidity_entity":"Capteur d\'humidité","room_humidity_entity_desc":"Entité utilisée pour afficher l\'humidité de la pièce.","room_auto_detect":"Auto-détection","room_no_sensor":"Aucun capteur","room_thresholds":"Seuils d\'alerte","room_thresholds_desc":"Valeurs au-delà desquelles les indicateurs passent en rouge.","room_temp_high":"Température haute","room_temp_low":"Température basse","room_humidity_threshold":"Seuil d\'humidité","room_indicators":"Indicateurs navbar","room_indicators_desc":"Choisir les indicateurs à afficher pour cette pièce dans la navbar","room_show_lights":"Afficher les lumières","room_show_temperature":"Afficher la température","room_show_humidity":"Afficher l\'humidité","hide_room":"Masquer de la navbar","show_room":"Afficher dans la navbar","popup_scenes":"Scènes","popup_scenes_desc":"Réordonnez et masquez les scènes affichées en haut du popup.","popup_select_room":"Sélectionnez une pièce","light_room":"Pièce","light_room_desc":"Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d\'affichage.","light_list_title":"Lumières","light_list_banner":"Glissez pour réordonner. Le bouton layout bascule entre pleine largeur et compact.","light_no_lights":"Aucune lumière dans cette pièce.","light_no_visible":"Aucune lumière visible","light_select_room":"Sélectionnez une pièce","light_change_layout_aria":"Changer le layout","light_layout_compact":"COMPACT","light_layout_full":"PLEIN","light_schedule_hint":"Appuyez sur l\'icône calendrier de chaque lumière pour définir des périodes de visibilité.","light_schedule_aria":"Gérer la planification de visibilité de {name}","light_schedule_title":"Planification de visibilité","light_schedule_start":"Début","light_schedule_end":"Fin","light_schedule_recurring":"Annuel","light_schedule_add":"Ajouter une période","light_schedule_delete_aria":"Supprimer la période","light_schedule_no_date":"Choisir une date…","light_schedule_confirm":"Confirmer","light_schedule_prev_month_aria":"Mois précédent","light_schedule_next_month_aria":"Mois suivant","light_show_header":"Afficher l\'en-tête","light_show_header_desc":"Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte","light_dashboard_vs_room":"Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.","domain_light":"Lumières","domain_light_desc":"Contrôle des lumières","domain_media_player":"Média","domain_media_player_desc":"Lecteurs multimédias","domain_climate":"Climat","domain_climate_desc":"Thermostats et climatisation","domain_fan":"Ventilateur","domain_fan_desc":"Ventilation","domain_cover":"Volets","domain_cover_desc":"Stores et volets roulants","domain_camera":"Caméras","domain_camera_desc":"Caméras de surveillance","domain_vacuum":"Aspirateur","domain_vacuum_desc":"Robots aspirateurs","tab_weather":"Carte Météo","weather_entity":"Entité météo","weather_entity_desc":"Sélectionnez l\'entité météo à afficher sur la carte.","weather_metrics":"Métriques visibles","weather_metrics_desc":"Activez ou désactivez les métriques affichées sur la carte.","weather_forecasts":"Onglets prévisions","weather_forecasts_desc":"Activez ou désactivez les onglets de prévisions.","weather_metric_humidity":"Humidité","weather_metric_wind":"Vent","weather_metric_pressure":"Pression","weather_metric_uv":"UV","weather_metric_visibility":"Visibilité","weather_metric_sunrise":"Lever du soleil","weather_metric_sunset":"Coucher du soleil","weather_daily":"Prévisions 7 jours","weather_hourly":"Prévisions horaires","weather_select_entity":"Sélectionnez une entité météo","weather_show_header":"Afficher l\'en-tête","weather_show_header_desc":"Titre et localisation au-dessus de la carte","tab_title":"Carte Titre","title_title":"Texte du titre","title_title_desc":"Texte principal affiché sur la carte.","title_title_placeholder":"Ma Maison","title_mode_source":"Sources","title_mode_source_desc":"Ajoutez une ou plusieurs sources pour les modes du titre.","title_period_indicator":"Indicateur de période","title_period_info":"Créez un input_select nommé « periode_journee » avec les options : Matin, Après-midi, Soir, Nuit. L\'indicateur s\'affichera automatiquement.","title_period_entity":"Entité période","title_period_entity_desc":"Sélectionnez l\'input_select qui contrôle la période du jour","title_period_auto":"Auto (input_select.periode_journee)","title_period_options":"Visuels des périodes","title_period_options_desc":"Personnalisez l\'icône et la couleur de chaque période","title_add_source":"Ajouter une source","title_remove_source":"Retirer la source","title_source_label":"Libellé du groupe","title_source_none":"Aucun","title_source_input_select":"Sélecteur","title_source_scenes":"Scènes","title_source_booleans":"Toggles","title_mode_entity":"Entité mode","title_mode_entity_desc":"Sélectionnez l\'entité input_select pour les modes.","title_add_entity":"Ajouter une entité","title_add_entity_desc":"Ajoutez des entités pour les modes.","title_select_entity":"Sélectionnez une entité","title_remove_entity":"Retirer","title_modes":"Configuration des modes","title_modes_desc":"Personnalisez le libellé, l\'icône et la couleur de chaque mode.","title_mode_label":"Libellé","title_mode_icon":"Icône","title_mode_color":"Couleur","title_color_picker_title":"Choisir une couleur","title_color_picker_aria":"Ouvrir la roue chromatique","title_no_modes":"Sélectionnez d\'abord une entité mode.","title_no_icons_found":"Aucune icône trouvée","title_no_icon":"Aucune","dashboard_card_title":"Carte Titre","dashboard_card_title_desc":"Texte titre avec sélecteur de mode optionnel","tab_dashboard":"Tableau de bord","dashboard_display":"Affichage","dashboard_display_desc":"Personnalisez l\'apparence de l\'interface Home Assistant.","dashboard_hide_header":"Masquer le bandeau","dashboard_hide_header_desc":"Cache la barre supérieure de Home Assistant (menu, titre, recherche).","dashboard_hide_sidebar":"Masquer la barre latérale","dashboard_hide_sidebar_desc":"Cache le menu latéral de Home Assistant (navigation, paramètres, notifications).","dashboard_dynamic_bg":"Fond dynamique","dashboard_dynamic_bg_desc":"Active le fond d\'écran jour/nuit animé de Glass Cards.","dashboard_title":"Cartes du tableau de bord","dashboard_desc":"Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l\'ordre.","dashboard_card_weather":"Carte Météo","dashboard_card_weather_desc":"Affiche la météo actuelle, prévisions et animations","dashboard_card_light":"Carte Lumières","dashboard_card_light_desc":"Affiche les lumières allumées avec contrôle rapide","dashboard_light_auto":"Les lumières allumées s\'affichent automatiquement sur le tableau de bord.","dashboard_card_cover":"Carte Volets","dashboard_card_cover_desc":"Affiche les volets sélectionnés avec contrôle de position","dashboard_card_spotify":"Carte Spotify","dashboard_card_spotify_desc":"Bibliothèque musicale, recherche et lecture Spotify","tab_media":"Carte Média","media_variant":"Variante d\'affichage","media_variant_desc":"Choisissez entre la vue liste (compacte) ou la vue héros (artwork).","media_variant_list":"Liste","media_variant_hero":"Héros","media_show_header":"Afficher l\'en-tête","media_show_header_desc":"Titre et compteur au-dessus de la carte","media_room":"Pièce","media_room_desc":"Sélectionnez une pièce pour configurer sa variante et ses lecteurs supplémentaires.","media_room_variant":"Variante pour cette pièce","media_room_variant_default":"Par défaut","media_extra_entities":"Lecteurs supplémentaires","media_extra_entities_desc":"Ajoutez des lecteurs médias supplémentaires à cette pièce.","media_select_room":"Sélectionnez une pièce","media_native_players":"Lecteurs natifs","media_native_players_desc":"Lecteurs médias assignés à cette zone dans Home Assistant.","media_no_extra":"Aucun lecteur supplémentaire ajouté.","media_add_extra":"Ajouter un lecteur","media_dashboard_variant":"Variante dashboard","media_dashboard_variant_desc":"Variante utilisée pour la carte média sur le tableau de bord.","dashboard_card_media":"Carte Média","dashboard_card_media_desc":"Affiche les lecteurs médias avec contrôles de transport","tab_climate":"Climat","climate_desc":"Configurez les entités climat par pièce","climate_no_entities":"Aucune entité climat dans cette pièce","climate_show_header":"Afficher l\'en-tête","climate_show_header_desc":"Titre et compteur au-dessus de la carte","climate_display_mode":"Mode d\'affichage","climate_display_mode_popup":"Mode d\'affichage popup","climate_display_mode_popup_desc":"Disposition des entités climat dans le popup de la pièce.","climate_display_mode_dashboard":"Mode d\'affichage (dashboard)","climate_mode_list":"Liste","climate_mode_normal":"Normal","climate_select_room":"Sélectionner une pièce","climate_room_entities":"Entités de la pièce","climate_room_entities_desc":"Ordre et visibilité des entités climat. Glissez pour réordonner.","climate_dashboard_entities":"Entités climat du tableau de bord","climate_dashboard_entities_desc":"Sélectionnez les thermostats à afficher sur le tableau de bord.","dashboard_card_climate":"Climat","dashboard_card_climate_desc":"Thermostats et climatiseurs","dashboard_card_fan":"Carte Ventilation","dashboard_card_fan_desc":"Affiche les ventilateurs avec contrôle de vitesse","dashboard_card_presence":"Carte Présence","dashboard_card_presence_desc":"Affiche la présence des membres du foyer","tab_presence":"Carte Présence","presence_show_header":"Afficher l\'en-tête","presence_show_header_desc":"Titre et compteur au-dessus de la carte","presence_persons":"Personnes","presence_persons_desc":"Sélectionnez les entités person.* à afficher. Vide = auto-détection.","presence_smartphone":"Capteur smartphone","presence_smartphone_desc":"Associez un capteur smartphone à chaque personne pour la batterie et les données santé.","presence_notify":"Service de notification","presence_notify_desc":"Service notify.* à utiliser pour envoyer des notifications à cette personne.","presence_driving":"Capteur conduite","presence_driving_desc":"Capteur binary_sensor pour détecter le mode conduite.","presence_no_persons":"Aucune entité person.* détectée.","presence_auto_detect":"Auto-détection","search_entity":"Rechercher...","presence_select_entity":"Sélectionnez une entité","tab_fan":"Carte Ventilation","fan_show_header":"Afficher l\'en-tête","fan_show_header_desc":"Titre, compteur et bouton tout basculer au-dessus de la carte","fan_room":"Pièce","fan_room_desc":"Sélectionnez une pièce pour configurer ses ventilateurs : ordre et visibilité.","fan_list_title":"Ventilateurs","fan_list_banner":"Glissez pour réordonner. Basculez pour masquer.","fan_no_fans":"Aucun ventilateur dans cette pièce.","fan_select_room":"Sélectionnez une pièce","tab_cover":"Carte Volets","cover_show_header":"Afficher l\'en-tête","cover_show_header_desc":"Titre, compteur et boutons ouvrir/fermer tout au-dessus de la carte","cover_dashboard_compact":"Affichage compact","cover_dashboard_compact_desc":"Affiche les volets en grille compacte 2 colonnes. Désactivé, chaque volet occupe toute la largeur.","cover_dashboard_entities":"Volets du tableau de bord","cover_dashboard_entities_desc":"Sélectionnez les volets à afficher sur le tableau de bord. Tous les volets sélectionnés sont affichés quel que soit leur état.","cover_dashboard_no_entities":"Aucun volet sélectionné pour le tableau de bord.","cover_room":"Pièce","cover_room_desc":"Sélectionnez une pièce pour configurer ses volets : ordre et visibilité.","cover_list_title":"Volets","cover_list_banner":"Glissez pour réordonner. Désactivez ceux à masquer.","cover_no_covers":"Aucun volet dans cette pièce.","cover_select_room":"Sélectionnez une pièce","cover_presets":"Positions par défaut","cover_presets_desc":"Positions par défaut pour les volets sans configuration personnalisée.","cover_entity_presets":"Positions","cover_preset_add":"Ajouter","cover_preset_placeholder":"0–100","tab_camera_carousel":"Carte Caméras","camera_show_header":"Afficher l\'en-tête","camera_show_header_desc":"Titre et compteur au-dessus de la carte","camera_auto_cycle":"Cycle automatique","camera_auto_cycle_desc":"Passer automatiquement d\'une caméra à l\'autre","camera_cycle_interval":"Intervalle (secondes)","camera_cycle_interval_desc":"Temps entre chaque changement de caméra","camera_entity_order":"Ordre des caméras","camera_entity_order_desc":"Glissez pour réordonner les caméras.","camera_no_cameras":"Aucune caméra détectée.","dashboard_card_camera_carousel":"Carte Caméras","dashboard_card_camera_carousel_desc":"Carrousel de surveillance avec actions rapides","tab_spotify":"Carte Spotify","spotify_show_header":"Afficher l\'en-tête","spotify_show_header_desc":"Titre et contrôles au-dessus de la carte","spotify_entity":"Entité lecteur Spotify","spotify_entity_desc":"Sélectionnez l\'entité media_player Spotify à utiliser pour la carte.","spotify_sort_order":"Ordre de tri","spotify_sort_order_desc":"Choisissez l\'ordre d\'affichage des playlists et titres sauvegardés.","spotify_sort_recent":"Plus récent en premier","spotify_sort_oldest":"Plus ancien en premier","spotify_select_entity":"Sélectionnez un lecteur Spotify","spotify_max_items":"Éléments par section","spotify_max_items_desc":"Nombre maximum d\'éléments affichés par section (playlists, titres récents, etc.).","spotify_speakers":"Enceintes visibles","spotify_speakers_desc":"Sélectionnez les enceintes affichées dans le popup de lecture. Si aucune n\'est sélectionnée, toutes les enceintes sont affichées.","spotify_not_configured":"Intégration Spotify non configurée","spotify_setup_guide":"Pour utiliser la carte Spotify, vous devez d\'abord configurer l\'intégration Spotify officielle dans Home Assistant.","spotify_setup_step1":"Allez dans Paramètres → Appareils et services","spotify_setup_step2":"Cliquez sur « Ajouter une intégration » et cherchez « Spotify »","spotify_setup_step3":"Connectez-vous avec votre compte Spotify et autorisez l\'accès","spotify_setup_step4":"Une entité media_player.spotify_* apparaîtra automatiquement","spotify_setup_note":"Un compte Spotify Premium est requis pour les contrôles de lecture.","spotify_checking":"Vérification de la connexion Spotify…","spotify_open_settings":"Ouvrir les paramètres","tab_unassigned":"Assignation pièces","unassigned_desc":"Assignez ou réassignez vos entités à une pièce pour qu\'elles apparaissent dans les popups correspondants.","unassigned_none":"Toutes les entités sont assignées à une pièce.","unassigned_no_entities":"Aucune entité détectée.","unassigned_select_area":"Non assignée","unassigned_assigned":"Assignée","unassigned_count":"{count} entité(s) sans pièce","unassigned_no_results":"Aucun résultat.","unassigned_rename":"Renommer l\'entité","unassigned_change_icon":"Changer l\'icône"}')},en:{common:{save:"Save",saving:"Saving…",reset:"Reset",close:"Close",back:"Back",select:"Select…",hide:"Hide",show:"Show",on:"On",off:"Off",error_save:"Save error",config_saved:"Configuration saved",entities:"entities",no_entity:"No entity",delete:"Delete",collapse:"Collapse",expand:"Expand",move_up:"Move up",move_down:"Move down",none:"None",rooms:"Rooms"},light:{title:"LIGHTS",intensity:"Intensity",temperature:"Temperature",color:"Color",color_temp_label:"Color temperature",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all lights",toggle_all_off_aria:"Turn on all lights",color_aria:"Color {hex}",color_picker_aria:"Open color wheel",color_picker_title:"Choose a color",effect_off:"Off",effect_candle:"Candle",effect_fire:"Fire",temp_warm:"Warm",temp_neutral:"Neutral",temp_cold:"Cold",dashboard_title:"LIGHTS ON",dashboard_overflow:"and {count} more…",dashboard_turn_all_off_aria:"Turn off all lights in the house"},popup:{close_aria:"Close",toggle_scenes_aria:"Toggle scenes",activate_scene_aria:"Activate {name}",sensor_unavailable:"Sensor unavailable"},weather:{title:"WEATHER",feels_like:"Feels like {temp}°",humidity:"Humidity",wind:"Wind",pressure:"Pressure",uv:"UV",visibility:"Visibility",sunrise:"Sunrise",sunset:"Sunset",daily_tab:"7 days",hourly_tab:"Hourly",today:"Today",now:"Now",cond_sunny:"Sunny",cond_clear_night:"Clear night",cond_partly_cloudy:"Partly cloudy",cond_cloudy:"Cloudy",cond_foggy:"Foggy",cond_rainy:"Rain",cond_pouring:"Heavy rain",cond_snowy:"Snow",cond_snowy_rainy:"Sleet",cond_hail:"Hail",cond_lightning:"Lightning",cond_stormy:"Stormy",cond_windy:"Windy",cond_windy_variant:"Windy cloudy",cond_exceptional:"Exceptional",compass_N:"N",compass_NNE:"NNE",compass_NE:"NE",compass_ENE:"ENE",compass_E:"E",compass_ESE:"ESE",compass_SE:"SE",compass_SSE:"SSE",compass_S:"S",compass_SSW:"SSW",compass_SW:"SW",compass_WSW:"WSW",compass_W:"W",compass_WNW:"WNW",compass_NW:"NW",compass_NNW:"NNW"},cover:{title:"COVERS",open:"Open",closed:"Closed",opening:"Opening…",closing:"Closing…",position:"Position",tilt:"Tilt",stop_aria:"Stop {name}",open_aria:"Open {name}",close_aria:"Close {name}",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",open_all_aria:"Open all covers",close_all_aria:"Close all covers",preset_open:"Open",preset_closed:"Closed",dashboard_title_one:"1 COVER OPEN",dashboard_title:"{count} COVERS OPEN",dc_shutter:"Shutter",dc_blind:"Blind",dc_curtain:"Curtain",dc_garage:"Garage",dc_gate:"Gate",dc_door:"Door",dc_awning:"Awning",dc_shade:"Shade",dc_window:"Window",dc_damper:"Damper"},climate:{title:"Climate",target:"Target",current:"Current",range_low:"Low",range_high:"High",humidity_target:"Target humidity",aux_heat:"Auxiliary heat",unavailable:"Unavailable",mode_heat:"Heat",mode_cool:"Cool",mode_heat_cool:"Heat/Cool",mode_auto:"Auto",mode_dry:"Dry",mode_fan_only:"Fan only",mode_off:"Off",preset_eco:"Eco",preset_comfort:"Comfort",preset_boost:"Boost",preset_away:"Away",preset_sleep:"Sleep",preset_activity:"Activity",preset_none:"None",fan_mode:"Fan mode",swing_mode:"Swing mode",open_all_aria:"Turn on all climate devices",close_all_aria:"Turn off all climate devices",toggle_aria:"Toggle",expand_aria:"Details",temp_up_aria:"Increase temperature",temp_down_aria:"Decrease temperature",humidity_up_aria:"Increase humidity",humidity_down_aria:"Decrease humidity",range_low_aria:"Minimum temperature",range_high_aria:"Maximum temperature",no_climates:"No climate devices",turn_on_aria:"Turn on",turn_off_aria:"Turn off",action_heating:"Heating",action_cooling:"Cooling",action_idle:"Idle",action_off:"Off",action_drying:"Drying",current_label:"Current",controls_aria:"Controls",unknown:"Unknown",avg_label:"Avg.",section_mode:"Mode",section_preset:"Preset"},fan:{title:"Fans",off:"Off",speed:"Speed",speed_pct:"{pct}%",speed_step:"Speed {step}/{total}",speed_step_short:"{step}/{total}",direction:"Direction",direction_forward:"Summer",direction_reverse:"Winter",oscillation:"Oscillation",ceiling_light:"Light",preset_auto:"Auto",preset_eco:"Eco",preset_night:"Night",preset_comfort:"Comfort",preset_silent:"Silent",preset_turbo:"Turbo",toggle_aria:"Toggle {name}",expand_aria:"Expand {name} controls",toggle_all_on_aria:"Turn off all fans",toggle_all_off_aria:"Turn on all fans",speed_step_aria:"Speed {step} ({pct}%)",direction_forward_aria:"Summer mode",direction_reverse_aria:"Winter mode",oscillation_aria:"Oscillation",ceiling_light_aria:"Ceiling light",no_fans:"No fans in this room."},title_card:{mode_label:"Mode:",scene_label:"Scene:",scenes_label:"Scenes:",mode_none:"None",scene_none:"None",active_count:"{count} active",cycle_aria:"Change mode",toggle_scenes_aria:"Show scenes",toggle_modes_aria:"Show modes",activate_scene_aria:"Activate scene {name}",toggle_bool_aria:"Toggle {name}",group_mode:"Mode",group_scenes:"Scenes",group_toggles:"Toggles"},spotify:{title:"Spotify",search_placeholder:"Search for a track, artist, podcast…",tab_all:"All",tab_tracks:"Tracks",tab_playlists:"Playlists",tab_podcasts:"Podcasts",my_playlists:"My playlists",recently_played:"Recently played",saved_tracks:"Liked songs",followed_podcasts:"Followed podcasts",tracks_count:"{count} tracks",episodes_count:"{count} episodes",type_track:"Track",type_playlist:"Playlist",type_album:"Album",type_podcast:"Podcast",play:"Play",play_all:"Play all",play_on:"Play on…",play_aria:"Play {name}",available:"Available",paused:"Paused",no_results:'No results for "{query}"',no_content:"No content",load_more:"Load more",loading:"Loading…",error_api:"Spotify error",error_rate_limit:"Too many requests, try again in {seconds}s",not_configured:"Spotify integration not configured",no_entity:"Configure the Spotify entity in the configuration panel",open_config:"Open configuration",back:"Back",toggle_library:"Show library",save_track:"Save to library",remove_track:"Remove from library",saved:"Saved",not_saved:"Not saved",items_count:"{current} / {total}",clear_search:"Clear search"},media:{title:"MEDIA",now_playing:"Now playing",idle:"Idle",off:"Off",standby:"Standby",buffering:"Buffering…",no_media:"No media playing",no_players:"No media players",volume_aria:"{name} volume",play_aria:"Play {name}",pause_aria:"Pause {name}",stop_aria:"Stop {name}",next_aria:"Next track {name}",prev_aria:"Previous track {name}",mute_aria:"Mute {name}",unmute_aria:"Unmute {name}",expand_aria:"Expand {name} controls",power_on_aria:"Turn on {name}",power_off_aria:"Turn off {name}",dashboard_title:"NOW PLAYING",group_members:"Multiroom",unknown_title:"Unknown title",unknown_artist:"Unknown artist",shuffle_aria:"Shuffle",repeat_aria:"Repeat",seek_aria:"Seek in track",source_label:"Source",sound_mode_label:"Sound mode",speakers_label:"Speakers",volume_label:"Volume",coordinator:"Coordinator",add_group_aria:"Add {name} to group",remove_group_aria:"Remove {name} from group",no_playback:"No playback",speakers_count:"{count} speakers",prev_room_aria:"Previous room",next_room_aria:"Next room",room_dot_aria:"Room {index}",controls_tab:"Controls",queue_tab:"Queue",queue_empty:"Queue is empty",now_playing_label:"Now playing",radio_badge:"Radio",loading_radio:"Loading radio…",skip_track:"Skip track",remove_from_queue:"Remove from queue",extra_entities:"Extra entities",add_entity:"Add entity"},presence:{title:"PRESENCES",title_single:"PRESENCE",home:"Home",away:"Away",just_now:"Just now",min_ago:"{count} min ago",hours_ago:"{count}h ago",days_ago:"{count}d ago",avatar_aria:"Information for {name}",notify_to:"Send to",notify_aria:"Send notification to {name}",notify_placeholder:"Your message…",notif_title:"Message from {name}",send_aria:"Send notification",notif_sent:"Notification sent",health_label:"Health",bpm:"bpm",spo2:"SpO2",steps:"steps",driving:"Driving",distance_m:"m",distance_km:"km"},camera:{title:"CAMERAS",idle:"Idle",streaming:"Streaming",recording:"Recording",off:"Off",unavailable:"Unavailable",no_cameras:"No cameras",prev_aria:"Previous camera",next_aria:"Next camera",dot_aria:"Go to {name}",power_on:"Turn on",power_off:"Turn off",snapshot:"Snapshot",record_start:"Rec",record_stop:"Stop",motion_on_aria:"Disable motion detection",motion_off_aria:"Enable motion detection",siren_aria:"Siren",floodlight_aria:"Floodlight",auto_track_aria:"Auto tracking",tap_to_stream:"Tap to stream",camera_off:"Camera off",ai_person:"Person",ai_vehicle:"Vehicle",ai_pet:"Pet",ai_animal:"Animal",ai_package:"Package",ai_face:"Face",ai_baby_crying:"Baby",ai_bicycle:"Bicycle",dashboard_title:"CAMERAS",dashboard_title_one:"1 CAMERA"},editor:{redirect_message:"Glass Cards configuration is managed from the dedicated panel.",open_config:"Open Glass Cards Config"},config:JSON.parse('{"title":"Configuration","brand":"GLASS CARDS","nav_rooms":"Rooms","nav_dashboard":"Dashboard","nav_advanced":"Advanced","tab_navbar":"Navbar","tab_popup":"Room Popup","tab_light":"Light Card","preview":"Preview","behavior":"Behavior","navbar_settings":"Navbar","navbar_auto_sort":"Auto sort","navbar_auto_sort_desc":"Active rooms move to the top","no_rooms":"No rooms configured","popup_room":"Room","popup_room_desc":"Select a room to configure the order and visibility of its internal cards.","popup_internal_cards":"Internal cards","popup_internal_cards_desc":"Order the cards displayed in this room\'s popup.","room_sensors":"Sensors","room_sensors_desc":"Temperature and humidity entities used in the popup and navbar.","room_temp_entity":"Temperature sensor","room_temp_entity_desc":"Entity used to display the room temperature.","room_humidity_entity":"Humidity sensor","room_humidity_entity_desc":"Entity used to display the room humidity.","room_auto_detect":"Auto-detect","room_no_sensor":"No sensor","room_thresholds":"Alert thresholds","room_thresholds_desc":"Values above which indicators turn red.","room_temp_high":"High temperature","room_temp_low":"Low temperature","room_humidity_threshold":"Humidity threshold","room_indicators":"Navbar indicators","room_indicators_desc":"Choose which indicators to show for this room in the navbar","room_show_lights":"Show lights","room_show_temperature":"Show temperature","room_show_humidity":"Show humidity","hide_room":"Hide from navbar","show_room":"Show in navbar","popup_scenes":"Scenes","popup_scenes_desc":"Reorder and hide scenes shown at the top of the popup.","popup_select_room":"Select a room","light_room":"Room","light_room_desc":"Select a room to configure its lights: order, visibility and display mode.","light_list_title":"Lights","light_list_banner":"Drag to reorder. The layout button toggles between full width and compact.","light_no_lights":"No lights in this room.","light_no_visible":"No visible lights","light_select_room":"Select a room","light_change_layout_aria":"Change layout","light_layout_compact":"COMPACT","light_layout_full":"FULL","light_schedule_hint":"Tap the calendar icon on each light to set visibility periods.","light_schedule_aria":"Manage visibility schedule for {name}","light_schedule_title":"Visibility schedule","light_schedule_start":"Start","light_schedule_end":"End","light_schedule_recurring":"Annually","light_schedule_add":"Add period","light_schedule_delete_aria":"Delete period","light_schedule_no_date":"Select date…","light_schedule_confirm":"Confirm","light_schedule_prev_month_aria":"Previous month","light_schedule_next_month_aria":"Next month","light_show_header":"Show header","light_show_header_desc":"Title, counter and toggle all button above the card","light_dashboard_vs_room":"On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.","domain_light":"Lights","domain_light_desc":"Light control","domain_media_player":"Media","domain_media_player_desc":"Media players","domain_climate":"Climate","domain_climate_desc":"Thermostats and air conditioning","domain_fan":"Fan","domain_fan_desc":"Ventilation","domain_cover":"Covers","domain_cover_desc":"Blinds and shutters","domain_camera":"Cameras","domain_camera_desc":"Security cameras","domain_vacuum":"Vacuum","domain_vacuum_desc":"Robot vacuums","tab_weather":"Weather Card","weather_entity":"Weather entity","weather_entity_desc":"Select the weather entity to display on the card.","weather_metrics":"Visible metrics","weather_metrics_desc":"Enable or disable metrics shown on the card.","weather_forecasts":"Forecast tabs","weather_forecasts_desc":"Enable or disable forecast tabs.","weather_metric_humidity":"Humidity","weather_metric_wind":"Wind","weather_metric_pressure":"Pressure","weather_metric_uv":"UV","weather_metric_visibility":"Visibility","weather_metric_sunrise":"Sunrise","weather_metric_sunset":"Sunset","weather_daily":"7-day forecast","weather_hourly":"Hourly forecast","weather_select_entity":"Select a weather entity","weather_show_header":"Show header","weather_show_header_desc":"Title and location above the card","tab_title":"Title Card","title_title":"Title text","title_title_desc":"Main text displayed on the card.","title_title_placeholder":"My Home","title_mode_source":"Sources","title_mode_source_desc":"Add one or more sources for the title modes.","title_period_indicator":"Period indicator","title_period_info":"Create an input_select named \'periode_journee\' with options: Matin, Après-midi, Soir, Nuit. The indicator will appear automatically.","title_period_entity":"Period entity","title_period_entity_desc":"Select the input_select that controls the time of day period","title_period_auto":"Auto (input_select.periode_journee)","title_period_options":"Period visuals","title_period_options_desc":"Customize the icon and color for each period","title_add_source":"Add a source","title_remove_source":"Remove source","title_source_label":"Group label","title_source_none":"None","title_source_input_select":"Selector","title_source_scenes":"Scenes","title_source_booleans":"Toggles","title_mode_entity":"Mode entity","title_mode_entity_desc":"Select the input_select entity for modes.","title_add_entity":"Add entity","title_add_entity_desc":"Add entities for modes.","title_select_entity":"Select an entity","title_remove_entity":"Remove","title_modes":"Mode configuration","title_modes_desc":"Customize the label, icon and color for each mode option.","title_mode_label":"Label","title_mode_icon":"Icon","title_mode_color":"Color","title_color_picker_title":"Choose a color","title_color_picker_aria":"Open color wheel","title_no_modes":"Select a mode entity first.","title_no_icons_found":"No icons found","title_no_icon":"None","dashboard_card_title":"Title Card","dashboard_card_title_desc":"Title text with optional mode selector","tab_dashboard":"Dashboard","dashboard_display":"Display","dashboard_display_desc":"Customize the Home Assistant interface appearance.","dashboard_hide_header":"Hide toolbar","dashboard_hide_header_desc":"Hides the Home Assistant top bar (menu, title, search).","dashboard_hide_sidebar":"Hide sidebar","dashboard_hide_sidebar_desc":"Hides the Home Assistant side menu (navigation, settings, notifications).","dashboard_dynamic_bg":"Dynamic background","dashboard_dynamic_bg_desc":"Enables the Glass Cards animated day/night background cycle.","dashboard_title":"Dashboard cards","dashboard_desc":"Reorder, enable or disable dashboard cards. Drag to change the order.","dashboard_card_weather":"Weather Card","dashboard_card_weather_desc":"Current weather, forecasts and animations","dashboard_card_light":"Light Card","dashboard_card_light_desc":"Shows active lights with quick controls","dashboard_light_auto":"Active lights are automatically displayed on the dashboard.","dashboard_card_cover":"Cover Card","dashboard_card_cover_desc":"Shows selected covers with position controls","dashboard_card_spotify":"Spotify Card","dashboard_card_spotify_desc":"Music library, search and Spotify playback","tab_media":"Media Card","media_variant":"Display variant","media_variant_desc":"Choose between list view (compact) or hero view (artwork).","media_variant_list":"List","media_variant_hero":"Hero","media_show_header":"Show header","media_show_header_desc":"Title and counter above the card","media_room":"Room","media_room_desc":"Select a room to configure its variant and extra players.","media_room_variant":"Variant for this room","media_room_variant_default":"Default","media_extra_entities":"Extra players","media_extra_entities_desc":"Add extra media players to this room.","media_select_room":"Select a room","media_native_players":"Native players","media_native_players_desc":"Media players assigned to this area in Home Assistant.","media_no_extra":"No extra players added.","media_add_extra":"Add extra player","media_dashboard_variant":"Dashboard variant","media_dashboard_variant_desc":"Variant used for the media card on the dashboard.","dashboard_card_media":"Media Card","dashboard_card_media_desc":"Shows media players with transport controls","tab_climate":"Climate","climate_desc":"Configure climate entities per room","climate_no_entities":"No climate entities in this room","climate_show_header":"Show header","climate_show_header_desc":"Title and counter above the card","climate_display_mode":"Display mode","climate_display_mode_popup":"Popup display mode","climate_display_mode_popup_desc":"Layout for climate entities in the room popup.","climate_display_mode_dashboard":"Display mode (dashboard)","climate_mode_list":"List","climate_mode_normal":"Normal","climate_select_room":"Select a room","climate_room_entities":"Room entities","climate_room_entities_desc":"Order and visibility of climate entities. Drag to reorder.","climate_dashboard_entities":"Dashboard climate entities","climate_dashboard_entities_desc":"Select which climate entities to display on the dashboard.","dashboard_card_climate":"Climate","dashboard_card_climate_desc":"Thermostats and HVAC","dashboard_card_fan":"Fan Card","dashboard_card_fan_desc":"Shows fans with speed controls","dashboard_card_presence":"Presence Card","dashboard_card_presence_desc":"Shows household members presence","tab_presence":"Presence Card","presence_show_header":"Show header","presence_show_header_desc":"Title and counter above the card","presence_persons":"Persons","presence_persons_desc":"Select person.* entities to display. Empty = auto-detect.","presence_smartphone":"Smartphone sensor","presence_smartphone_desc":"Associate a smartphone sensor for battery and health data.","presence_notify":"Notification service","presence_notify_desc":"notify.* service to send notifications to this person.","presence_driving":"Driving sensor","presence_driving_desc":"binary_sensor to detect driving mode.","presence_no_persons":"No person.* entity detected.","presence_auto_detect":"Auto-detect","search_entity":"Search...","presence_select_entity":"Select an entity","tab_fan":"Fan Card","fan_show_header":"Show header","fan_show_header_desc":"Title, counter and toggle all button above the card","fan_room":"Room","fan_room_desc":"Select a room to configure its fans: order and visibility.","fan_list_title":"Fans","fan_list_banner":"Drag to reorder. Toggle to hide.","fan_no_fans":"No fans in this room.","fan_select_room":"Select a room","tab_cover":"Cover Card","cover_show_header":"Show header","cover_show_header_desc":"Title, counter and open/close all buttons above the card","cover_dashboard_compact":"Compact layout","cover_dashboard_compact_desc":"Display covers in a 2-column compact grid. When off, each cover takes the full width.","cover_dashboard_entities":"Dashboard covers","cover_dashboard_entities_desc":"Select which covers to display on the dashboard. All selected covers are shown regardless of their state.","cover_dashboard_no_entities":"No cover entities selected for the dashboard.","cover_room":"Room","cover_room_desc":"Select a room to configure its covers: order and visibility.","cover_list_title":"Covers","cover_list_banner":"Drag to reorder. Toggle to hide.","cover_no_covers":"No covers in this room.","cover_select_room":"Select a room","cover_presets":"Default positions","cover_presets_desc":"Default positions for covers without custom configuration.","cover_entity_presets":"Positions","cover_preset_add":"Add","cover_preset_placeholder":"0–100","tab_camera_carousel":"Camera Card","camera_show_header":"Show header","camera_show_header_desc":"Title and counter above the card","camera_auto_cycle":"Auto cycle","camera_auto_cycle_desc":"Automatically cycle between cameras","camera_cycle_interval":"Interval (seconds)","camera_cycle_interval_desc":"Time between each camera switch","camera_entity_order":"Camera order","camera_entity_order_desc":"Drag to reorder cameras.","camera_no_cameras":"No cameras detected.","dashboard_card_camera_carousel":"Camera Card","dashboard_card_camera_carousel_desc":"Surveillance carousel with quick actions","tab_spotify":"Spotify Card","spotify_show_header":"Show header","spotify_show_header_desc":"Title and controls above the card","spotify_entity":"Spotify player entity","spotify_entity_desc":"Select the Spotify media_player entity to use for the card.","spotify_sort_order":"Sort order","spotify_sort_order_desc":"Choose the display order for playlists and saved tracks.","spotify_sort_recent":"Most recent first","spotify_sort_oldest":"Oldest first","spotify_select_entity":"Select a Spotify player","spotify_max_items":"Items per section","spotify_max_items_desc":"Maximum number of items displayed per section (playlists, recent tracks, etc.).","spotify_speakers":"Visible speakers","spotify_speakers_desc":"Select which speakers appear in the playback popup. If none are selected, all speakers are shown.","spotify_not_configured":"Spotify integration not configured","spotify_setup_guide":"To use the Spotify card, you must first set up the official Spotify integration in Home Assistant.","spotify_setup_step1":"Go to Settings → Devices & services","spotify_setup_step2":"Click \\"Add integration\\" and search for \\"Spotify\\"","spotify_setup_step3":"Sign in with your Spotify account and authorize access","spotify_setup_step4":"A media_player.spotify_* entity will appear automatically","spotify_setup_note":"A Spotify Premium account is required for playback controls.","spotify_checking":"Checking Spotify connection…","spotify_open_settings":"Open settings","tab_unassigned":"Room assignment","unassigned_desc":"Assign or reassign your entities to a room so they appear in the corresponding popups.","unassigned_none":"All entities are assigned to a room.","unassigned_no_entities":"No entities detected.","unassigned_select_area":"Unassigned","unassigned_assigned":"Assigned","unassigned_count":"{count} unassigned entity(ies)","unassigned_no_results":"No results.","unassigned_rename":"Rename entity","unassigned_change_icon":"Change icon"}')}},Le="fr";let Me=Le;function Ae(e){const t=e.slice(0,2).toLowerCase(),i=t in Pe?t:Le;return i!==Me&&(Me=i,!0)}function Oe(){return Me}function Re(e,t){const i=e.indexOf("."),a=-1===i?e:e.slice(0,i),r=-1===i?"":e.slice(i+1),s=Pe[Me]??Pe[Le],o=Pe[Le],n=s?.[a]?.[r]??o?.[a]?.[r];let c="string"==typeof n?n:e;if(t)for(const[l,d]of Object.entries(t))c=c.replaceAll(`{${l}}`,String(d));return c}var je=Object.defineProperty,He=Object.getOwnPropertyDescriptor,Fe=(e,t,i,a)=>{for(var r,s=a>1?void 0:a?He(t,i):t,o=e.length-1;o>=0;o--)(r=e[o])&&(s=(a?r(t,i,s):r(s))||s);return a&&s&&je(t,i,s),s};class qe extends ne{constructor(){super(...arguments),this._lang=Oe()}set hass(e){this._hass=e,e?.language&&Ae(e.language)&&(this._lang=Oe())}get hass(){return this._hass}setConfig(e){this._config=e}static{this.styles=[ve,s`
       .redirect {
         padding: 24px 16px;
         text-align: center;
@@ -5481,124 +3041,20 @@
         vertical-align: middle;
         margin-right: 4px;
       }
-    `]}render(){return this._lang,F`
+    `]}render(){return this._lang,N`
       <div class="redirect">
         <p>
           <ha-icon icon="mdi:cog"></ha-icon>
-          ${De("editor.redirect_message")}
+          ${Re("editor.redirect_message")}
         </p>
         <p>
-          <a href="/glass-cards">${De("editor.open_config")}</a>
+          <a href="/glass-cards">${Re("editor.open_config")}</a>
         </p>
       </div>
-    `}}ze([he({attribute:!1})],Ae.prototype,"hass",1),ze([me()],Ae.prototype,"_lang",2);try{customElements.define("glass-card-editor",Ae)}catch{}var Pe=Object.defineProperty,Te=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Pe(t,i,o),o};class Oe extends ne{constructor(){super(...arguments),this._lang=Ee(),this._busCleanups=[],this._marqueeCleanup=null,this._gestureTimer=0,this._gestureFired=!1,this._gestureStart=null,this._boundDocClick=this._handleDocumentClick.bind(this)}setConfig(e){this._config=e}static getStubConfig(){return{}}shouldUpdate(e){if(!e.has("hass"))return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&Se(this.hass.language)&&(this._lang=Ee())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}connectedCallback(){super.connectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.addEventListener("click",this._boundDocClick,!0),this._marqueeCleanup=function(e){if(!e)return()=>{};const t=e=>{const t=e.querySelector(".marquee-inner");if(!t)return;e.classList.remove("scrolling");const i=t.dataset.text??t.textContent?.split("   ")[0]??"";t.dataset.text=i,t.textContent=i,requestAnimationFrame(()=>{requestAnimationFrame(()=>{e.scrollWidth>e.clientWidth+1&&(t.textContent=`${i}   ${i}   `,e.classList.add("scrolling"))})})},i=new ResizeObserver(e=>{for(const i of e)t(i.target)}),a=new MutationObserver(()=>{o()}),r=new Set,o=()=>{e.querySelectorAll(".marquee").forEach(e=>{r.has(e)||(r.add(e),i.observe(e),t(e))});for(const e of r)e.isConnected||(i.unobserve(e),r.delete(e))};return a.observe(e,{childList:!0,subtree:!0}),o(),()=>{i.disconnect(),a.disconnect(),r.clear()}}(this.shadowRoot)}_listen(e,t){this._busCleanups.push(ue.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.removeEventListener("click",this._boundDocClick,!0),this._marqueeCleanup?.(),this._marqueeCleanup=null,clearTimeout(this._gestureTimer)}_handleDocumentClick(e){e.composedPath().includes(this)||this._collapseExpanded()}_collapseExpanded(){}_bindGesture(e){return{pointerdown:t=>this._onGestureDown(t,e),pointerup:t=>this._onGestureUp(t,e),pointermove:e=>this._onGestureMove(e),pointercancel:()=>this._onGestureCancel(),contextmenu:e=>e.preventDefault()}}_onGestureDown(e,t){t.exclude&&e.target.closest(t.exclude)||(this._gestureStart={x:e.clientX,y:e.clientY,t:Date.now()},this._gestureFired=!1,clearTimeout(this._gestureTimer),t.onLongPress&&(this._gestureTimer=window.setTimeout(()=>{this._gestureFired=!0,function(e,t="light"){e.dispatchEvent(new CustomEvent("haptic",{bubbles:!0,composed:!0,detail:t}))}(this,"medium"),t.onLongPress()},500)))}_onGestureUp(e,t){if(clearTimeout(this._gestureTimer),this._gestureFired||!this._gestureStart)return void(this._gestureStart=null);const i=e.clientX-this._gestureStart.x,a=Date.now()-this._gestureStart.t;this._gestureStart=null,t.onSwipe&&Math.abs(i)>50&&a<500?t.onSwipe(i<0?"left":"right"):t.onTap?.()}_onGestureMove(e){if(this._gestureFired||!this._gestureStart)return;const t=Math.abs(e.clientX-this._gestureStart.x),i=Math.abs(e.clientY-this._gestureStart.y);(t>15||i>15)&&(clearTimeout(this._gestureTimer),this._gestureStart=null)}_onGestureCancel(){clearTimeout(this._gestureTimer),this._gestureStart=null}_scrollToTop(){setTimeout(()=>{this.scrollIntoView({block:"start",behavior:"smooth"})},300)}}function Re(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}function Me(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&Re(t,i)===e)}Te([he({attribute:!1})],Oe.prototype,"hass"),Te([me()],Oe.prototype,"_lang");class Le{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}const je={section:"rooms"};var He=Object.defineProperty,Ne=Object.getOwnPropertyDescriptor,Ve=(e,t,i,a)=>{for(var r,o=a>1?void 0:a?Ne(t,i):t,s=e.length-1;s>=0;s--)(r=e[s])&&(o=(a?r(t,i,o):r(o))||o);return a&&o&&He(t,i,o),o};class qe extends ne{constructor(){super(...arguments),this.rooms=[],this.emptyRooms=[],this.dragState={dragIdx:null,dropIdx:null,dragContext:"rooms",dragModeSrcIdx:null},this._configData={},this._initializedForArea=null,this._lang=Ee()}set configData(e){const t=this._configData;this._configData=e,e&&e!==t&&this.loadFromConfig(e)}get configData(){return this._configData}static{this.styles=[fe,be,ye,we,...de,o`:host { padding: 0.5rem 0; min-height: auto; }`]}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&Se(this.hass.language)&&(this._lang=Ee())}render(){return this._lang,this.renderTab()}_fireDirty(){this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}_fireToast(e){this.dispatchEvent(new CustomEvent("tab-toast",{bubbles:!0,composed:!0,detail:{success:e}}))}_onDragStart(e,t,i){this.dispatchEvent(new CustomEvent("drag-start",{bubbles:!0,composed:!0,detail:{idx:e,context:t,srcIdx:i}}))}_onDragOver(e,t){t.preventDefault(),this.dispatchEvent(new CustomEvent("drag-over",{bubbles:!0,composed:!0,detail:{idx:e}}))}_onDragLeave(){this.dispatchEvent(new CustomEvent("drag-leave",{bubbles:!0,composed:!0}))}_onDragEnd(){this.dispatchEvent(new CustomEvent("drag-end",{bubbles:!0,composed:!0}))}static{this._AUTO_SAVE_KEYS=new Set}_checkAutoSave(e){const t=this.constructor._AUTO_SAVE_KEYS;if(0!==t.size)for(const i of e.keys())if(t.has(i))return void this._fireDirty()}_initRoomIfNeeded(){return!!this.areaId&&(this._initializedForArea!==this.areaId&&(this._initializedForArea=this.areaId,!0))}}Ve([he({attribute:!1})],qe.prototype,"hass",2),Ve([he({attribute:!1})],qe.prototype,"backend",2),Ve([he({attribute:!1})],qe.prototype,"rooms",2),Ve([he({attribute:!1})],qe.prototype,"emptyRooms",2),Ve([he({attribute:!1})],qe.prototype,"dragState",2),Ve([he()],qe.prototype,"areaId",2),Ve([he({attribute:!1})],qe.prototype,"configData",1),Ve([me()],qe.prototype,"_lang",2);var Fe=Object.defineProperty,Ue=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Fe(t,i,o),o};const We={shutter:["mdi:window-shutter-open","mdi:window-shutter"],blind:["mdi:blinds-open","mdi:blinds"],curtain:["mdi:curtains","mdi:curtains"],garage:["mdi:garage-open","mdi:garage"],gate:["mdi:gate-open","mdi:gate"],door:["mdi:door-open","mdi:door-closed"]};function Be(e,t,i,a){const r=We[t.deviceClass]||We.shutter,o=e?.states[t.entityId],s="open"===o?.state||"opening"===o?.state,n=o?.attributes.current_position;return F`
-    <div class=${`pw-cv-row ${i?"compact":"full"}${a?" right":""}`}>
-      <div class="pw-cv-icon ${s?"open":""}">
-        <ha-icon .icon=${r[s?0:1]}></ha-icon>
-      </div>
-      <div class="pw-cv-info">
-        <div class="pw-cv-name">${t.name}</div>
-        <div class="pw-cv-sub">
-          <span class="pw-cv-state ${s?"open":""}">${De(s?"cover.open":"cover.closed")}</span>
-        </div>
-      </div>
-      ${i||void 0===n?B:F`
-        <span class="pw-cv-pos ${s?"open":""}">${n}<span class="pw-cv-pos-unit">%</span></span>
-      `}
-      <div class="pw-cv-dot ${s?"open":""}"></div>
-    </div>
-  `}class Ye extends qe{constructor(){super(...arguments),this._coverShowHeader=!0,this._coverDashboardCompact=!0,this._coverDashboardEntities=[],this._coverDashboardOrder=[],this._coverEntityPresets={},this._coverRoom="",this._coverRoomEntities=[],this._coverEntityPresetInput={},this._coverPresetsExpandedEntity=null,this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_coverShowHeader","_coverDashboardCompact","_coverDashboardEntities","_coverDashboardOrder","_coverEntityPresets","_coverRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._coverRoom=this.areaId,this._loadRoomCovers()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._coverShowHeader=t.show_header??!0,this._coverDashboardCompact=t.dashboard_compact??!0,this._coverDashboardEntities=t.dashboard_entities??[],this._coverEntityPresets=t.entity_presets??{},this._initDashboardOrder()}collectSaveData(){const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));return{show_header:this._coverShowHeader,dashboard_compact:this._coverDashboardCompact,dashboard_entities:e,entity_presets:this._coverEntityPresets}}async save(){if(this.backend)try{if(await this.backend.send("set_cover_config",this.collectSaveData()),this._coverRoom&&this._coverRoomEntities.length>0){let e=[],t=[],i={};try{const a=await this.backend.send("get_room",{area_id:this._coverRoom});a&&(e=a.hidden_entities??[],t=a.entity_order??[],i=a.entity_layouts??{})}catch{}const a=new Set(this._coverRoomEntities.map(e=>e.entityId)),r=e.filter(e=>!a.has(e)),o=this._coverRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),s=[...t.filter(e=>!a.has(e)),...this._coverRoomEntities.map(e=>e.entityId)],n={...i};for(const c of this._coverRoomEntities)n[c.entityId]=c.layout;await this.backend.send("set_room",{area_id:this._coverRoom,hidden_entities:[...r,...o],entity_order:s,entity_layouts:n})}this._fireToast(!0),ue.emit("cover-config-changed",void 0),this._coverRoom&&ue.emit("room-config-changed",{areaId:this._coverRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.cover_card&&this.loadFromConfig(e.cover_card)}catch{}this._coverEntityPresetInput={},await this._loadRoomCovers()}}async _loadRoomCovers(){if(!this.backend||!this._coverRoom||!this.hass)return;const e=this._coverRoom,t=Me(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._coverRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],o=i?.entity_layouts??{},s=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._coverRoomEntities=s.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,r=t?.attributes?.device_class||"shutter";return{entityId:e,name:i,visible:!a.has(e),deviceClass:r,layout:o[e]||"compact"}})}_initDashboardOrder(){const e=new Set(this._getAllCoverEntities().map(e=>e.entityId)),t=this._coverDashboardEntities.filter(t=>e.has(t)),i=[...e].filter(e=>!this._coverDashboardEntities.includes(e));this._coverDashboardOrder=[...t,...i]}getAllCoverEntities(){return this._getAllCoverEntities()}_getAllCoverEntities(){if(!this.hass)return[];const e=[];for(const[t,i]of Object.entries(this.hass.states)){if(!t.startsWith("cover."))continue;const a=i.attributes?.friendly_name||t.split(".")[1]||t;e.push({entityId:t,name:a})}return e.sort((e,t)=>e.name.localeCompare(t.name))}_toggleEntityVisibility(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}toggleDashboardEntity(e){const t=new Set(this._coverDashboardEntities);t.has(e)?(t.delete(e),this._coverDashboardOrder=this._coverDashboardOrder.filter(t=>t!==e)):(t.add(e),this._coverDashboardOrder.includes(e)||(this._coverDashboardOrder=[...this._coverDashboardOrder,e])),this._coverDashboardEntities=[...t]}onDropDashboardCover(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverDashboardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverDashboardOrder=i,this._dragIdx=null,this._dropIdx=null}_addEntityPreset(e){const t=this._coverEntityPresetInput[e]??"",i=parseInt(t,10);if(isNaN(i)||i<0||i>100)return;const a=this._coverEntityPresets[e]??[0,25,50,75,100];a.includes(i)?this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""}:(this._coverEntityPresets={...this._coverEntityPresets,[e]:[...a,i].sort((e,t)=>e-t)},this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""})}_removeEntityPreset(e,t){const i=this._coverEntityPresets[e];if(!i)return;const a=i.filter(e=>e!==t);if(0===a.length){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}else this._coverEntityPresets={...this._coverEntityPresets,[e]:a}}_resetEntityPresets(e){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}_togglePresetsExpand(e){this._coverPresetsExpandedEntity=this._coverPresetsExpandedEntity===e?null:e}_onLocalDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onLocalDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverRoomEntities=i,this._dragIdx=null,this._dropIdx=null}renderPreview(){const e=this._coverRoomEntities.filter(e=>e.visible),t=e.filter(e=>{const t=this.hass?.states[e.entityId];return"open"===t?.state||"opening"===t?.state}).length,i=e[0],a=i?this.hass?.states[i.entityId]:void 0,r="open"===a?.state||"opening"===a?.state,o=a?.attributes.current_position??0,s=i&&We[i.deviceClass]||We.shutter,n=i?this._coverEntityPresets[i.entityId]??[0,25,50,75,100]:[0,25,50,75,100];return F`
-      <div class="preview-cover">
-        ${this._coverShowHeader?F`
-          <div class="pw-cv-header">
-            <div class="pw-cv-header-left">
-              <span class="pw-cv-header-title">${De("cover.title")}</span>
-              <span class="pw-cv-header-count ${t>0?"active":"idle"}">${t}/${e.length}</span>
-            </div>
-            <div class="pw-cv-header-actions">
-              <div class="pw-cv-header-btn">
-                <ha-icon .icon=${"mdi:arrow-up"}></ha-icon>
-              </div>
-              <div class="pw-cv-header-btn">
-                <ha-icon .icon=${"mdi:arrow-down"}></ha-icon>
-              </div>
-            </div>
-          </div>
-        `:B}
-        <div class="preview-cover-card glass">
-          <!-- Tint -->
-          <div class="pw-cv-tint" style="opacity:${e.length>0?(t/e.length*.18).toFixed(3):"0"};"></div>
-          ${0===e.length?F`
-            <div class="pw-cv-empty">—</div>
-          `:B}
-          ${i?F`
-            <!-- Expanded entity row -->
-            <div class="pw-cv-row">
-              <div class="pw-cv-icon ${r?"open":""}">
-                <ha-icon .icon=${s[r?0:1]}></ha-icon>
-              </div>
-              <div class="pw-cv-info">
-                <div class="pw-cv-name">${i.name}</div>
-                <div class="pw-cv-state ${r?"open":""}">${De(r?"cover.open":"cover.closed")}</div>
-              </div>
-              <span class="pw-cv-pos ${r?"open":""}">${o}<span class="pw-cv-pos-unit">%</span></span>
-              <div class="pw-cv-dot ${r?"open":""}"></div>
-            </div>
-            <!-- Fold separator -->
-            <div class="pw-cv-fold-sep"></div>
-            <!-- Controls panel -->
-            <div class="pw-cv-controls">
-              <span class="pw-cv-controls-label">${i.name}</span>
-              <!-- Transport -->
-              <div class="pw-cv-transport">
-                <div class="pw-cv-transport-btn ${100===o?"accent":""}">
-                  <ha-icon .icon=${"mdi:arrow-up"}></ha-icon>
-                </div>
-                <div class="pw-cv-transport-btn">
-                  <ha-icon .icon=${"mdi:stop"}></ha-icon>
-                </div>
-                <div class="pw-cv-transport-btn ${0===o?"accent":""}">
-                  <ha-icon .icon=${"mdi:arrow-down"}></ha-icon>
-                </div>
-              </div>
-              <!-- Slider -->
-              <div class="pw-cv-slider">
-                <ha-icon .icon=${s[1]}></ha-icon>
-                <div class="pw-cv-bar">
-                  <div class="pw-cv-bar-fill" style="width:${o}%;"></div>
-                </div>
-                <ha-icon .icon=${s[0]}></ha-icon>
-              </div>
-              <!-- Separator -->
-              <div class="pw-cv-sep"></div>
-              <!-- Presets -->
-              <div class="pw-cv-presets">
-                ${n.map(e=>F`
-                    <span class="pw-cv-preset ${o===e?"active":""}">
-                      <ha-icon .icon=${e>=50?s[0]:s[1]}></ha-icon>
-                      ${0===e?De("cover.preset_closed"):100===e?De("cover.preset_open"):`${e}%`}
-                    </span>
-                  `)}
-              </div>
-            </div>
-          `:B}
-          ${e.length>1?F`
-            <!-- Remaining entities (compact) -->
-            <div class="pw-cv-remaining-sep"></div>
-            <div class="pw-cv-grid">
-              ${function(e,t){const i=[];let a=0;for(;a<t.length;){const r=t[a];"compact"===r.layout&&a+1<t.length&&"compact"===t[a+1].layout?(i.push(Be(e,r,!0,!1)),i.push(Be(e,t[a+1],!0,!0)),a+=2):(i.push(Be(e,r,!1,!1)),a++)}return i}(this.hass,e.slice(1,5))}
-            </div>
-          `:B}
-        </div>
-      </div>
-    `}renderTab(){return this._lang,this.hass?F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}Fe([pe({attribute:!1})],qe.prototype,"hass",1),Fe([ue()],qe.prototype,"_lang",2);try{customElements.define("glass-card-editor",qe)}catch{}function Ve(e){try{const t=class extends qe{};customElements.define(e,t)}catch{}}var Ne=Object.defineProperty,Ue=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ne(t,i,s),s};class We extends ne{constructor(){super(...arguments),this.configPreview=!1,this._lang=Oe(),this._busCleanups=[],this._marqueeCleanup=null,this._gestureTimer=0,this._gestureFired=!1,this._gestureStart=null,this._boundDocClick=this._handleDocumentClick.bind(this)}setConfig(e){this._config=e}static getStubConfig(){return{}}shouldUpdate(e){if(!e.has("hass"))return!0;const t=e.get("hass");if(!t)return!0;if(t.language!==this.hass?.language)return!0;const i=this.getTrackedEntityIds();return 0===i.length||i.some(e=>t.states[e]!==this.hass?.states[e])}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&Ae(this.hass.language)&&(this._lang=Oe())}getTrackedEntityIds(){const e=this._config?.entity;return e?[e]:[]}connectedCallback(){super.connectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.addEventListener("click",this._boundDocClick,!0),this._marqueeCleanup=function(e){if(!e)return()=>{};const t=e=>{const t=e.querySelector(".marquee-inner");if(!t)return;e.classList.remove("scrolling");const i=t.dataset.text??t.textContent?.split("   ")[0]??"";t.dataset.text=i,t.textContent=i,requestAnimationFrame(()=>{requestAnimationFrame(()=>{e.scrollWidth>e.clientWidth+1&&(t.textContent=`${i}   ${i}   `,e.classList.add("scrolling"))})})},i=new ResizeObserver(e=>{for(const i of e)t(i.target)}),a=new MutationObserver(()=>{s()}),r=new Set,s=()=>{e.querySelectorAll(".marquee").forEach(e=>{r.has(e)||(r.add(e),i.observe(e),t(e))});for(const e of r)e.isConnected||(i.unobserve(e),r.delete(e))};return a.observe(e,{childList:!0,subtree:!0}),s(),()=>{i.disconnect(),a.disconnect(),r.clear()}}(this.shadowRoot)}_listen(e,t){this._busCleanups.push(ge.on(e,t))}disconnectedCallback(){super.disconnectedCallback(),this._busCleanups.forEach(e=>e()),this._busCleanups=[],document.removeEventListener("click",this._boundDocClick,!0),this._marqueeCleanup?.(),this._marqueeCleanup=null,clearTimeout(this._gestureTimer)}_handleDocumentClick(e){e.composedPath().includes(this)||this._collapseExpanded()}_collapseExpanded(){}_bindGesture(e){return this.configPreview?{pointerdown:()=>{},pointerup:()=>{},pointermove:()=>{},pointercancel:()=>{},contextmenu:()=>{}}:{pointerdown:t=>this._onGestureDown(t,e),pointerup:t=>this._onGestureUp(t,e),pointermove:e=>this._onGestureMove(e),pointercancel:()=>this._onGestureCancel(),contextmenu:e=>e.preventDefault()}}_safeCallService(e,t,i,a){!this.configPreview&&this.hass&&this.hass.callService(e,t,i,a)}_onGestureDown(e,t){t.exclude&&e.target.closest(t.exclude)||(this._gestureStart={x:e.clientX,y:e.clientY,t:Date.now()},this._gestureFired=!1,clearTimeout(this._gestureTimer),t.onLongPress&&(this._gestureTimer=window.setTimeout(()=>{this._gestureFired=!0,Be(this,"medium"),t.onLongPress()},500)))}_onGestureUp(e,t){if(clearTimeout(this._gestureTimer),this._gestureFired||!this._gestureStart)return void(this._gestureStart=null);const i=e.clientX-this._gestureStart.x,a=Date.now()-this._gestureStart.t;this._gestureStart=null,t.onSwipe&&Math.abs(i)>50&&a<500?t.onSwipe(i<0?"left":"right"):t.onTap?.()}_onGestureMove(e){if(this._gestureFired||!this._gestureStart)return;const t=Math.abs(e.clientX-this._gestureStart.x),i=Math.abs(e.clientY-this._gestureStart.y);(t>15||i>15)&&(clearTimeout(this._gestureTimer),this._gestureStart=null)}_onGestureCancel(){clearTimeout(this._gestureTimer),this._gestureStart=null}_scrollToTop(){setTimeout(()=>{this.scrollIntoView({block:"start",behavior:"smooth"})},300)}}function Be(e,t="light"){e.dispatchEvent(new CustomEvent("haptic",{bubbles:!0,composed:!0,detail:t}))}function Ke(e,t){if(e.area_id)return e.area_id;if(e.device_id&&t){const i=t[e.device_id];if(i?.area_id)return i.area_id}return null}function Ye(e,t,i){return Object.values(t).filter(t=>!t.disabled_by&&!t.hidden_by&&Ke(t,i)===e)}function Ge(e,t){if(!t)return!0;const i=t[e];if(!i||0===i.periods.length)return!0;const a=new Date;return i.periods.some(e=>{const t=new Date(e.start),i=new Date(e.end);if(i.setSeconds(59,999),e.recurring){const e=new Date(a.getFullYear(),t.getMonth(),t.getDate(),t.getHours(),t.getMinutes()),r=new Date(a.getFullYear(),i.getMonth(),i.getDate(),i.getHours(),i.getMinutes(),59,999);if(e<=r)return a>=e&&a<=r;const s=new Date(a.getFullYear()+1,i.getMonth(),i.getDate(),i.getHours(),i.getMinutes(),59,999),o=new Date(a.getFullYear()-1,t.getMonth(),t.getDate(),t.getHours(),t.getMinutes());return a>=e&&a<=s||a>=o&&a<=r}return a>=t&&a<=i})}function Xe(e,t,i){if(!i?.length)return[];const a=[];for(const r of i)for(const i of Ye(r,t.entities,t.devices))i.entity_id.startsWith(`${e}.`)&&a.push(i.entity_id);return a}Ue([pe({attribute:!1})],We.prototype,"hass"),Ue([pe({type:Boolean,attribute:"config-preview"})],We.prototype,"configPreview"),Ue([ue()],We.prototype,"_lang");class Qe{constructor(e){this.connection=e.connection}send(e,t={}){return this.connection.sendMessagePromise({type:`glass_cards/${e}`,...t})}subscribe(e,t,i={}){return this.connection.subscribeMessage(t,{type:`glass_cards/${e}`,...i})}}const Je={section:"dashboard"};var Ze=Object.defineProperty,et=Object.getOwnPropertyDescriptor,tt=(e,t,i,a)=>{for(var r,s=a>1?void 0:a?et(t,i):t,o=e.length-1;o>=0;o--)(r=e[o])&&(s=(a?r(t,i,s):r(s))||s);return a&&s&&Ze(t,i,s),s};class it extends ne{constructor(){super(...arguments),this.rooms=[],this.emptyRooms=[],this.dragState={dragIdx:null,dropIdx:null,dragContext:"rooms",dragModeSrcIdx:null},this._configData={},this._initializedForArea=null,this._lang=Oe()}set configData(e){const t=this._configData;this._configData=e,e&&e!==t&&this.loadFromConfig(e)}get configData(){return this._configData}static{this.styles=[ve,be,ye,$e,...le,s`:host { padding: 0.5rem 0; min-height: auto; }`]}updated(e){super.updated(e),e.has("hass")&&this.hass?.language&&Ae(this.hass.language)&&(this._lang=Oe())}render(){return this._lang,this.renderTab()}_fireDirty(){this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}_fireToast(e){this.dispatchEvent(new CustomEvent("tab-toast",{bubbles:!0,composed:!0,detail:{success:e}}))}_onDragStart(e,t,i){this.dispatchEvent(new CustomEvent("drag-start",{bubbles:!0,composed:!0,detail:{idx:e,context:t,srcIdx:i}}))}_onDragOver(e,t){t.preventDefault(),this.dispatchEvent(new CustomEvent("drag-over",{bubbles:!0,composed:!0,detail:{idx:e}}))}_onDragLeave(){this.dispatchEvent(new CustomEvent("drag-leave",{bubbles:!0,composed:!0}))}_onDragEnd(){this.dispatchEvent(new CustomEvent("drag-end",{bubbles:!0,composed:!0}))}static{this._AUTO_SAVE_KEYS=new Set}_checkAutoSave(e){const t=this.constructor._AUTO_SAVE_KEYS;if(0!==t.size)for(const i of e.keys())if(t.has(i))return void this._fireDirty()}_initRoomIfNeeded(){return!!this.areaId&&(this._initializedForArea!==this.areaId&&(this._initializedForArea=this.areaId,!0))}}tt([pe({attribute:!1})],it.prototype,"hass",2),tt([pe({attribute:!1})],it.prototype,"backend",2),tt([pe({attribute:!1})],it.prototype,"rooms",2),tt([pe({attribute:!1})],it.prototype,"emptyRooms",2),tt([pe({attribute:!1})],it.prototype,"dragState",2),tt([pe()],it.prototype,"areaId",2),tt([pe({attribute:!1})],it.prototype,"configData",1),tt([ue()],it.prototype,"_lang",2);var at=Object.defineProperty,rt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&at(t,i,s),s};class st extends it{constructor(){super(...arguments),this._coverShowHeader=!0,this._coverDashboardCompact=!0,this._coverDashboardEntities=[],this._coverDashboardOrder=[],this._coverEntityPresets={},this._coverRoom="",this._coverRoomEntities=[],this._coverEntityPresetInput={},this._coverPresetsExpandedEntity=null,this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_coverShowHeader","_coverDashboardCompact","_coverDashboardEntities","_coverDashboardOrder","_coverEntityPresets","_coverRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._coverRoom=this.areaId,this._loadRoomCovers()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._coverShowHeader=t.show_header??!0,this._coverDashboardCompact=t.dashboard_compact??!0,this._coverDashboardEntities=t.dashboard_entities??[],this._coverEntityPresets=t.entity_presets??{},this._initDashboardOrder()}collectSaveData(){const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));return{show_header:this._coverShowHeader,dashboard_compact:this._coverDashboardCompact,dashboard_entities:e,entity_presets:this._coverEntityPresets}}async save(){if(this.backend)try{if(await this.backend.send("set_cover_config",this.collectSaveData()),this._coverRoom&&this._coverRoomEntities.length>0){let e=[],t=[],i={};try{const a=await this.backend.send("get_room",{area_id:this._coverRoom});a&&(e=a.hidden_entities??[],t=a.entity_order??[],i=a.entity_layouts??{})}catch{}const a=new Set(this._coverRoomEntities.map(e=>e.entityId)),r=e.filter(e=>!a.has(e)),s=this._coverRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),o=[...t.filter(e=>!a.has(e)),...this._coverRoomEntities.map(e=>e.entityId)],n={...i};for(const c of this._coverRoomEntities)n[c.entityId]=c.layout;await this.backend.send("set_room",{area_id:this._coverRoom,hidden_entities:[...r,...s],entity_order:o,entity_layouts:n})}this._fireToast(!0),ge.emit("cover-config-changed",void 0),this._coverRoom&&ge.emit("room-config-changed",{areaId:this._coverRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.cover_card&&this.loadFromConfig(e.cover_card)}catch{}this._coverEntityPresetInput={},await this._loadRoomCovers()}}async _loadRoomCovers(){if(!this.backend||!this._coverRoom||!this.hass)return;const e=this._coverRoom,t=Ye(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._coverRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],s=i?.entity_layouts??{},o=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._coverRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,r=t?.attributes?.device_class||"shutter";return{entityId:e,name:i,visible:!a.has(e),deviceClass:r,layout:s[e]||"compact"}})}_initDashboardOrder(){const e=new Set(this._getAllCoverEntities().map(e=>e.entityId)),t=this._coverDashboardEntities.filter(t=>e.has(t)),i=[...e].filter(e=>!this._coverDashboardEntities.includes(e));this._coverDashboardOrder=[...t,...i]}getAllCoverEntities(){return this._getAllCoverEntities()}_getAllCoverEntities(){if(!this.hass)return[];const e=[];for(const[t,i]of Object.entries(this.hass.states)){if(!t.startsWith("cover."))continue;const a=i.attributes?.friendly_name||t.split(".")[1]||t;e.push({entityId:t,name:a})}return e.sort((e,t)=>e.name.localeCompare(t.name))}_toggleEntityVisibility(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}toggleDashboardEntity(e){const t=new Set(this._coverDashboardEntities);t.has(e)?(t.delete(e),this._coverDashboardOrder=this._coverDashboardOrder.filter(t=>t!==e)):(t.add(e),this._coverDashboardOrder.includes(e)||(this._coverDashboardOrder=[...this._coverDashboardOrder,e])),this._coverDashboardEntities=[...t]}onDropDashboardCover(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverDashboardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverDashboardOrder=i,this._dragIdx=null,this._dropIdx=null}_addEntityPreset(e){const t=this._coverEntityPresetInput[e]??"",i=parseInt(t,10);if(isNaN(i)||i<0||i>100)return;const a=this._coverEntityPresets[e]??[0,25,50,75,100];a.includes(i)?this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""}:(this._coverEntityPresets={...this._coverEntityPresets,[e]:[...a,i].sort((e,t)=>e-t)},this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""})}_removeEntityPreset(e,t){const i=this._coverEntityPresets[e];if(!i)return;const a=i.filter(e=>e!==t);if(0===a.length){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}else this._coverEntityPresets={...this._coverEntityPresets,[e]:a}}_resetEntityPresets(e){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}_togglePresetsExpand(e){this._coverPresetsExpandedEntity=this._coverPresetsExpandedEntity===e?null:e}_onLocalDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onLocalDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverRoomEntities=i,this._dragIdx=null,this._dropIdx=null}renderTab(){return this._lang,this.hass?N`
       <div class="tab-panel" id="panel-cover">
-        <div class="section-label">${De("config.behavior")}</div>
+        <glass-cover-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-cover-card>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -5610,8 +3066,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.cover_show_header")}</div>
-              <div class="feature-desc">${De("config.cover_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.cover_show_header")}</div>
+              <div class="feature-desc">${Re("config.cover_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._coverShowHeader?"on":""}"
@@ -5619,15 +3075,15 @@
           </button>
         </div>
 
-        ${this._coverRoom?F`
-          ${this._coverRoomEntities.length>0?F`
-            <div class="section-label">${De("config.cover_list_title")} (${this._coverRoomEntities.length})</div>
-            <div class="section-desc">${De("config.cover_list_banner")}</div>
+        ${this._coverRoom?N`
+          ${this._coverRoomEntities.length>0?N`
+            <div class="section-label">${Re("config.cover_list_title")} (${this._coverRoomEntities.length})</div>
+            <div class="section-desc">${Re("config.cover_list_banner")}</div>
             <div class="item-list">
-              ${this._coverRoomEntities.map((e,t)=>{const i=this._dragIdx===t&&"covers"===this._dragContext,a=this._dropIdx===t&&"covers"===this._dragContext,r=this._coverPresetsExpandedEntity===e.entityId,o=!!this._coverEntityPresets[e.entityId],s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),n=["item-card",r?"expanded":""].filter(Boolean).join(" ");return F`
+              ${this._coverRoomEntities.map((e,t)=>{const i=this._dragIdx===t&&"covers"===this._dragContext,a=this._dropIdx===t&&"covers"===this._dragContext,r=this._coverPresetsExpandedEntity===e.entityId,s=!!this._coverEntityPresets[e.entityId],o=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),n=["item-card",r?"expanded":""].filter(Boolean).join(" ");return N`
                   <div class=${n}>
                     <div
-                      class=${s}
+                      class=${o}
                       draggable="true"
                       @dragstart=${()=>this._onLocalDragStart(t,"covers")}
                       @dragover=${e=>this._onLocalDragOver(t,e)}
@@ -5643,45 +3099,45 @@
                         <span class="item-meta">${e.entityId}</span>
                       </div>
                       <button
-                        class="presets-btn ${o?"active":""}"
+                        class="presets-btn ${s?"active":""}"
                         @click=${()=>this._togglePresetsExpand(e.entityId)}
-                        aria-label="${De("config.cover_entity_presets")}"
+                        aria-label="${Re("config.cover_entity_presets")}"
                         aria-expanded=${r?"true":"false"}
-                        title="${De("config.cover_entity_presets")}"
+                        title="${Re("config.cover_entity_presets")}"
                       >
                         <ha-icon .icon=${"mdi:tune-vertical"}></ha-icon>
                       </button>
                       <button
                         class="layout-btn"
                         @click=${()=>this._cycleLayout(e.entityId)}
-                        aria-label="${De("config.light_change_layout_aria")}"
-                        title="${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+                        aria-label="${Re("config.light_change_layout_aria")}"
+                        title="${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
                       >
-                        ${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+                        ${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
                       </button>
                       <button
                         class="toggle ${e.visible?"on":""}"
                         @click=${()=>this._toggleEntityVisibility(e.entityId)}
                         role="switch"
                         aria-checked=${e.visible?"true":"false"}
-                        aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.name}"
+                        aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.name}"
                       ></button>
                     </div>
                     <div class="item-fold-sep ${r?"visible":""}"></div>
                     <div class="entity-presets-fold ${r?"open":""}">
                       <div class="entity-presets-fold-inner">
                         <div class="entity-presets-content">
-                          <div class="entity-presets-label">${De(o?"config.cover_entity_presets":"config.cover_presets")}</div>
+                          <div class="entity-presets-label">${Re(s?"config.cover_entity_presets":"config.cover_presets")}</div>
                           <div class="preset-chips">
-                            ${(this._coverEntityPresets[e.entityId]??[0,25,50,75,100]).map(t=>F`
-                                <span class="preset-chip small ${o?"custom":""}">
+                            ${(this._coverEntityPresets[e.entityId]??[0,25,50,75,100]).map(t=>N`
+                                <span class="preset-chip small ${s?"custom":""}">
                                   <ha-icon .icon=${t>=50?"mdi:window-shutter-open":"mdi:window-shutter"}></ha-icon>
-                                  ${0===t?De("cover.preset_closed"):100===t?De("cover.preset_open"):`${t}%`}
-                                  ${o?F`
+                                  ${0===t?Re("cover.preset_closed"):100===t?Re("cover.preset_open"):`${t}%`}
+                                  ${s?N`
                                     <button
                                       class="preset-chip-remove"
                                       @click=${()=>this._removeEntityPreset(e.entityId,t)}
-                                      aria-label="${De("common.delete")} ${t}%"
+                                      aria-label="${Re("common.delete")} ${t}%"
                                     >
                                       <ha-icon .icon=${"mdi:close"}></ha-icon>
                                     </button>
@@ -5705,16 +3161,16 @@
                               class="preset-add-btn small"
                               style="opacity:${this._coverEntityPresetInput[e.entityId]?"1":"0.4"};pointer-events:${this._coverEntityPresetInput[e.entityId]?"auto":"none"};"
                               @click=${()=>this._addEntityPreset(e.entityId)}
-                              aria-label="${De("config.cover_preset_add")}"
+                              aria-label="${Re("config.cover_preset_add")}"
                             >
                               <ha-icon .icon=${"mdi:plus"}></ha-icon>
-                              ${De("config.cover_preset_add")}
+                              ${Re("config.cover_preset_add")}
                             </button>
-                            ${o?F`
+                            ${s?N`
                               <button
                                 class="preset-reset-btn"
                                 @click=${()=>this._resetEntityPresets(e.entityId)}
-                                aria-label="${De("common.reset")}"
+                                aria-label="${Re("common.reset")}"
                               >
                                 <ha-icon .icon=${"mdi:restore"}></ha-icon>
                               </button>
@@ -5726,29 +3182,29 @@
                   </div>
                 `})}
             </div>
-          `:F`
+          `:N`
             <div class="banner">
               <ha-icon .icon=${"mdi:blinds-open"}></ha-icon>
-              <span>${De("config.cover_no_covers")}</span>
+              <span>${Re("config.cover_no_covers")}</span>
             </div>
           `}
         `:B}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `:F``}}Ue([me()],Ye.prototype,"_coverShowHeader"),Ue([me()],Ye.prototype,"_coverDashboardCompact"),Ue([me()],Ye.prototype,"_coverDashboardEntities"),Ue([me()],Ye.prototype,"_coverDashboardOrder"),Ue([me()],Ye.prototype,"_coverEntityPresets"),Ue([me()],Ye.prototype,"_coverRoom"),Ue([me()],Ye.prototype,"_coverRoomEntities"),Ue([me()],Ye.prototype,"_coverEntityPresetInput"),Ue([me()],Ye.prototype,"_coverPresetsExpandedEntity"),Ue([me()],Ye.prototype,"_dragIdx"),Ue([me()],Ye.prototype,"_dropIdx"),Ue([me()],Ye.prototype,"_dragContext");try{customElements.define("config-tab-cover",Ye)}catch{}var Ke=Object.defineProperty,Ge=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Ke(t,i,o),o};class Xe extends qe{constructor(){super(...arguments),this._lights=[],this._lightRoom="",this._lightShowHeader=!0,this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=(new Date).getFullYear(),this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=(new Date).getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._suppressAutoSave=!1,this._mounted=!1}static{this._AUTO_SAVE_KEYS=new Set(["_lightShowHeader","_lights"])}connectedCallback(){super.connectedCallback(),this._mounted=!0}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._lightRoom=this.areaId,this._loadRoomLights()),this._suppressAutoSave?this._suppressAutoSave=!1:this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._lightShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._lightShowHeader}}async save(){if(this.backend)try{if(await this.backend.send("set_light_config",{show_header:this._lightShowHeader}),!this._lightRoom)return this._fireToast(!0),void ue.emit("light-config-changed",void 0);let e=[];try{const t=await this.backend.send("get_room",{area_id:this._lightRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._lights.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._lights.filter(e=>!e.visible).map(e=>e.entityId),r={};for(const o of this._lights)"full"===o.layout&&(r[o.entityId]=o.layout);if(await this.backend.send("set_room",{area_id:this._lightRoom,entity_order:this._lights.map(e=>e.entityId),hidden_entities:[...i,...a],entity_layouts:r}),!this._mounted)return;this._fireToast(!0),ue.emit("light-config-changed",void 0),ue.emit("room-config-changed",{areaId:this._lightRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.light_card&&this.loadFromConfig(e.light_card)}catch{}this._lightRoom&&await this._loadRoomLights()}}initRoom(){!this._lightRoom&&this.rooms.length>0&&(this._lightRoom=this.rooms[0].areaId,this._loadRoomLights())}async _loadRoomLights(){if(this._suppressAutoSave=!0,!this.hass||!this._lightRoom)return void(this._lights=[]);const e=this._lightRoom,t=Me(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let i=new Set,a=[],r={};try{if(!this.backend)throw new Error("No backend");const t=await this.backend.send("get_room",{area_id:e});if(this._lightRoom!==e)return;t&&(i=new Set(t.hidden_entities??[]),a=t.entity_order??[],r=t.entity_layouts??{})}catch{}const o=this.hass,s=new Map;a.forEach((e,t)=>s.set(e,t));const n=t.map(e=>{const t=o.states[e.entity_id],a="on"===t?.state,s=t?.attributes.brightness,n=a&&void 0!==s?Math.round(s/255*100):0;return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:a,brightnessPct:n,layout:r[e.entity_id]||"compact",visible:!i.has(e.entity_id)}});n.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=s.get(e.entityId),a=s.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=n;try{if(this.backend){const t=await this.backend.send("get_schedules");if(this._lightRoom!==e)return;this._schedulesLoaded=t??{},this._scheduleEdits=new Map;for(const e of n){const t=this._schedulesLoaded[e.entityId];this._scheduleEdits.set(e.entityId,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate()}_updateSchedulePeriod(e,t,i,a){const r=this._scheduleEdits.get(e)??[];r[t]&&(r[t]={...r[t],[i]:a},this._scheduleEdits.set(e,[...r]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this.backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{if(await this.backend.send("set_schedule",{entity_id:e,periods:t}),!this._mounted)return;this._fireToast(!0),ue.emit("schedule-changed",{entityId:e})}catch{if(!this._mounted)return;this._fireToast(!1)}}_formatDateTimeShort(e){if(!e)return"";const[t,i]=e.split("T");if(!t)return e;const[a,r,o]=t.split("-");return`${o}/${r}/${a} ${i??"00:00"}`}_formatPeriodDisplay(e){if(!e.start&&!e.end)return"";const t=this._formatDateTimeShort(e.start),i=this._formatDateTimeShort(e.end);return t&&i?`${t}  →  ${i}`:t?`${t}  → …`:`…  →  ${i}`}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T");if(!t)return null;const a=t.split("-").map(Number);if(a.length<3||a.some(isNaN))return null;const[r,o,s]=a,[n,c]=(i??"00:00").split(":");return{year:r,month:o-1,day:s,hour:n??"00",minute:c??"00"}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,r=i?this._parseDateTimeValue(i.end):null,o=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=o.getMonth(),this._pickerStartYear=o.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=o.getFullYear(),this._pickerMonth=o.getMonth()),r?(this._pickerEndDay=r.day,this._pickerEndMonth=r.month,this._pickerEndYear=r.year,this._pickerEndHour=r.hour,this._pickerEndMinute=r.minute):(this._pickerEndDay=null,this._pickerEndMonth=o.getMonth(),this._pickerEndYear=o.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?r?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerEndDay=null,void(this._pickerPhase="start")}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),r=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),o=String(r).padStart(2,"0");t.target.value=o,"startHour"===e?this._pickerStartHour=o:"startMinute"===e?this._pickerStartMinute=o:"endHour"===e?this._pickerEndHour=o:this._pickerEndMinute=o,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),r=String(this._pickerEndMonth+1).padStart(2,"0"),o=String(this._pickerEndDay).padStart(2,"0"),s=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${r}-${o}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",s),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),r=new Date(e,t,0).getDate(),o=new Date,s=o.getFullYear()===e&&o.getMonth()===t,n=o.getDate(),c=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,d=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,l=[],p=(e,t,i,a)=>{const r=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&s&&e===n,rangeStart:null!==c&&r===c,rangeEnd:null!==d&&r===d,inRange:null!==c&&null!==d&&r>c&&r<d}},h=0===t?11:t-1,m=0===t?e-1:e;for(let v=i-1;v>=0;v--)l.push(p(r-v,!0,m,h));for(let v=1;v<=a;v++)l.push(p(v,!1,e,t));const u=11===t?0:t+1,_=11===t?e+1:e,g=42-l.length;for(let v=1;v<=g;v++)l.push(p(v,!0,_,u));return l}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_onLocalDragStart(e){this._dragIdx=e}_onLocalDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDropLight(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return void this._onLocalDragEnd();const i=[...this._lights],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._lights=i,this._onLocalDragEnd()}_renderScheduleContent(e){const t=this._scheduleEdits.get(e)??[];return F`
+    `:N``}}rt([ue()],st.prototype,"_coverShowHeader"),rt([ue()],st.prototype,"_coverDashboardCompact"),rt([ue()],st.prototype,"_coverDashboardEntities"),rt([ue()],st.prototype,"_coverDashboardOrder"),rt([ue()],st.prototype,"_coverEntityPresets"),rt([ue()],st.prototype,"_coverRoom"),rt([ue()],st.prototype,"_coverRoomEntities"),rt([ue()],st.prototype,"_coverEntityPresetInput"),rt([ue()],st.prototype,"_coverPresetsExpandedEntity"),rt([ue()],st.prototype,"_dragIdx"),rt([ue()],st.prototype,"_dropIdx"),rt([ue()],st.prototype,"_dragContext");try{customElements.define("config-tab-cover",st)}catch{}var ot=Object.defineProperty,nt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ot(t,i,s),s};class ct extends it{constructor(){super(...arguments),this._lights=[],this._lightRoom="",this._lightShowHeader=!0,this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=(new Date).getFullYear(),this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=(new Date).getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._suppressAutoSave=!1,this._mounted=!1}static{this._AUTO_SAVE_KEYS=new Set(["_lightShowHeader","_lights"])}connectedCallback(){super.connectedCallback(),this._mounted=!0}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._lightRoom=this.areaId,this._loadRoomLights()),this._suppressAutoSave?this._suppressAutoSave=!1:this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._lightShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._lightShowHeader}}async save(){if(this.backend)try{if(await this.backend.send("set_light_config",{show_header:this._lightShowHeader}),!this._lightRoom)return this._fireToast(!0),void ge.emit("light-config-changed",void 0);let e=[];try{const t=await this.backend.send("get_room",{area_id:this._lightRoom});t&&(e=t.hidden_entities??[])}catch{}const t=new Set(this._lights.map(e=>e.entityId)),i=e.filter(e=>!t.has(e)),a=this._lights.filter(e=>!e.visible).map(e=>e.entityId),r={};for(const s of this._lights)"full"===s.layout&&(r[s.entityId]=s.layout);if(await this.backend.send("set_room",{area_id:this._lightRoom,entity_order:this._lights.map(e=>e.entityId),hidden_entities:[...i,...a],entity_layouts:r}),!this._mounted)return;this._fireToast(!0),ge.emit("light-config-changed",void 0),ge.emit("room-config-changed",{areaId:this._lightRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.light_card&&this.loadFromConfig(e.light_card)}catch{}this._lightRoom&&await this._loadRoomLights()}}initRoom(){!this._lightRoom&&this.rooms.length>0&&(this._lightRoom=this.rooms[0].areaId,this._loadRoomLights())}async _loadRoomLights(){if(this._suppressAutoSave=!0,!this.hass||!this._lightRoom)return void(this._lights=[]);const e=this._lightRoom,t=Ye(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let i=new Set,a=[],r={};try{if(!this.backend)throw new Error("No backend");const t=await this.backend.send("get_room",{area_id:e});if(this._lightRoom!==e)return;t&&(i=new Set(t.hidden_entities??[]),a=t.entity_order??[],r=t.entity_layouts??{})}catch{}const s=this.hass,o=new Map;a.forEach((e,t)=>o.set(e,t));const n=t.map(e=>{const t=s.states[e.entity_id],a="on"===t?.state,o=t?.attributes.brightness,n=a&&void 0!==o?Math.round(o/255*100):0;return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:a,brightnessPct:n,layout:r[e.entity_id]||"compact",visible:!i.has(e.entity_id)}});n.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=o.get(e.entityId),a=o.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=n;try{if(this.backend){const t=await this.backend.send("get_schedules");if(this._lightRoom!==e)return;this._schedulesLoaded=t??{},this._scheduleEdits=new Map;for(const e of n){const t=this._schedulesLoaded[e.entityId];this._scheduleEdits.set(e.entityId,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate()}_updateSchedulePeriod(e,t,i,a){const r=this._scheduleEdits.get(e)??[];r[t]&&(r[t]={...r[t],[i]:a},this._scheduleEdits.set(e,[...r]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this.backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{if(await this.backend.send("set_schedule",{entity_id:e,periods:t}),!this._mounted)return;this._fireToast(!0),ge.emit("schedule-changed",{entityId:e})}catch{if(!this._mounted)return;this._fireToast(!1)}}_formatDateTimeShort(e){if(!e)return"";const[t,i]=e.split("T");if(!t)return e;const[a,r,s]=t.split("-");return`${s}/${r}/${a} ${i??"00:00"}`}_formatPeriodDisplay(e){if(!e.start&&!e.end)return"";const t=this._formatDateTimeShort(e.start),i=this._formatDateTimeShort(e.end);return t&&i?`${t}  →  ${i}`:t?`${t}  → …`:`…  →  ${i}`}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T");if(!t)return null;const a=t.split("-").map(Number);if(a.length<3||a.some(isNaN))return null;const[r,s,o]=a,[n,c]=(i??"00:00").split(":");return{year:r,month:s-1,day:o,hour:n??"00",minute:c??"00"}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,r=i?this._parseDateTimeValue(i.end):null,s=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=s.getMonth(),this._pickerStartYear=s.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=s.getFullYear(),this._pickerMonth=s.getMonth()),r?(this._pickerEndDay=r.day,this._pickerEndMonth=r.month,this._pickerEndYear=r.year,this._pickerEndHour=r.hour,this._pickerEndMinute=r.minute):(this._pickerEndDay=null,this._pickerEndMonth=s.getMonth(),this._pickerEndYear=s.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?r?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerEndDay=null,void(this._pickerPhase="start")}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),r=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),s=String(r).padStart(2,"0");t.target.value=s,"startHour"===e?this._pickerStartHour=s:"startMinute"===e?this._pickerStartMinute=s:"endHour"===e?this._pickerEndHour=s:this._pickerEndMinute=s,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),r=String(this._pickerEndMonth+1).padStart(2,"0"),s=String(this._pickerEndDay).padStart(2,"0"),o=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${r}-${s}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",o),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),r=new Date(e,t,0).getDate(),s=new Date,o=s.getFullYear()===e&&s.getMonth()===t,n=s.getDate(),c=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,l=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,d=[],h=(e,t,i,a)=>{const r=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&o&&e===n,rangeStart:null!==c&&r===c,rangeEnd:null!==l&&r===l,inRange:null!==c&&null!==l&&r>c&&r<l}},p=0===t?11:t-1,u=0===t?e-1:e;for(let f=i-1;f>=0;f--)d.push(h(r-f,!0,u,p));for(let f=1;f<=a;f++)d.push(h(f,!1,e,t));const g=11===t?0:t+1,_=11===t?e+1:e,m=42-d.length;for(let f=1;f<=m;f++)d.push(h(f,!0,_,g));return d}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_onLocalDragStart(e){this._dragIdx=e}_onLocalDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDropLight(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return void this._onLocalDragEnd();const i=[...this._lights],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._lights=i,this._onLocalDragEnd()}_renderScheduleContent(e){const t=this._scheduleEdits.get(e)??[];return N`
       <div class="schedule-body">
-        <div class="schedule-header">${De("config.light_schedule_title")}</div>
-        ${t.map((t,i)=>F`
+        <div class="schedule-header">${Re("config.light_schedule_title")}</div>
+        ${t.map((t,i)=>N`
           <div class="schedule-period">
             <div class="schedule-row">
               <button
                 class="datetime-display ${t.start||t.end?"":"empty"}"
                 @click=${()=>this._openRangePicker(e,i)}
               >
-                ${t.start||t.end?this._formatPeriodDisplay(t):De("config.light_schedule_no_date")}
+                ${t.start||t.end?this._formatPeriodDisplay(t):Re("config.light_schedule_no_date")}
               </button>
             </div>
             <div class="schedule-row schedule-row-actions">
@@ -5759,12 +3215,12 @@
                 <span class="check-box">
                   <ha-icon .icon=${"mdi:check"}></ha-icon>
                 </span>
-                <span class="check-label">${De("config.light_schedule_recurring")}</span>
+                <span class="check-label">${Re("config.light_schedule_recurring")}</span>
               </button>
               <button
                 class="btn-icon xs schedule-delete"
                 @click=${()=>this._removeSchedulePeriod(e,i)}
-                aria-label="${De("config.light_schedule_delete_aria")}"
+                aria-label="${Re("config.light_schedule_delete_aria")}"
               >
                 <ha-icon .icon=${"mdi:delete-outline"}></ha-icon>
               </button>
@@ -5773,13 +3229,13 @@
         `)}
         <button class="btn btn-sm schedule-add" @click=${()=>this._addSchedulePeriod(e)}>
           <ha-icon .icon=${"mdi:plus"}></ha-icon>
-          ${De("config.light_schedule_add")}
+          ${Re("config.light_schedule_add")}
         </button>
         <button class="btn btn-sm btn-accent schedule-save" @click=${()=>this._saveSchedule(e)}>
-          ${De("common.save")}
+          ${Re("common.save")}
         </button>
       </div>
-    `}_renderLightRow(e,t){const i=this._dragIdx===t,a=this._dropIdx===t,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),o=this._scheduleEdits.get(e.entityId),s=o?o.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0,n=this._scheduleExpandedEntity===e.entityId,c=["item-card",n?"expanded":""].filter(Boolean).join(" ");return F`
+    `}_renderLightRow(e,t){const i=this._dragIdx===t,a=this._dropIdx===t,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),s=this._scheduleEdits.get(e.entityId),o=s?s.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0,n=this._scheduleExpandedEntity===e.entityId,c=["item-card",n?"expanded":""].filter(Boolean).join(" ");return N`
       <div class=${c}>
         <div
           class=${r}
@@ -5801,28 +3257,28 @@
             <span class="light-dot ${e.isOn?"on":""}"></span>
           </div>
           <button
-            class="schedule-btn ${s?"active":""}"
+            class="schedule-btn ${o?"active":""}"
             @click=${()=>this._toggleScheduleExpand(e.entityId)}
-            aria-label="${De("config.light_schedule_aria",{name:e.name})}"
+            aria-label="${Re("config.light_schedule_aria",{name:e.name})}"
             aria-expanded=${n?"true":"false"}
-            title="${De("config.light_schedule_title")}"
+            title="${Re("config.light_schedule_title")}"
           >
             <ha-icon .icon=${"mdi:calendar-clock"}></ha-icon>
           </button>
           <button
             class="layout-btn"
             @click=${()=>this._cycleLightLayout(e.entityId)}
-            aria-label="${De("config.light_change_layout_aria")}"
-            title="${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+            aria-label="${Re("config.light_change_layout_aria")}"
+            title="${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
           >
-            ${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+            ${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
           </button>
           <button
             class="toggle ${e.visible?"on":""}"
             @click=${()=>this._toggleLightVisible(e.entityId)}
             role="switch"
             aria-checked=${e.visible?"true":"false"}
-            aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.name}"
+            aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.name}"
           ></button>
         </div>
         <div class="fold-sep ${n?"visible":""}"></div>
@@ -5832,40 +3288,40 @@
           </div>
         </div>
       </div>
-    `}_renderDateTimePicker(){if(!this._pickerOpen)return B;const e=this._getMonthDays(),t=this._getDayLabels(),i=null!==this._pickerStartDay&&null!==this._pickerEndDay;return F`
+    `}_renderDateTimePicker(){if(!this._pickerOpen)return B;const e=this._getMonthDays(),t=this._getDayLabels(),i=null!==this._pickerStartDay&&null!==this._pickerEndDay;return N`
       <div class="picker-overlay"
         @click=${e=>{e.target===e.currentTarget&&this._closePicker()}}
         @keydown=${e=>{"Escape"===e.key&&this._closePicker()}}
       >
-        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${De("config.light_schedule_title")}">
+        <div class="picker-popup" role="dialog" aria-modal="true" aria-label="${Re("config.light_schedule_title")}">
           <div class="picker-phase">
             <button
               class="picker-phase-btn ${"start"===this._pickerPhase?"active":""}"
               @click=${()=>{this._pickerPhase="start"}}
-            >${De("config.light_schedule_start")}</button>
+            >${Re("config.light_schedule_start")}</button>
             <button
               class="picker-phase-btn ${"end"===this._pickerPhase?"active":""}"
               @click=${()=>{this._pickerPhase="end"}}
-            >${De("config.light_schedule_end")}</button>
+            >${Re("config.light_schedule_end")}</button>
           </div>
           <div class="picker-header">
-            <button class="picker-nav" @click=${()=>this._pickerPrevMonth()} aria-label="${De("config.light_schedule_prev_month_aria")}">
+            <button class="picker-nav" @click=${()=>this._pickerPrevMonth()} aria-label="${Re("config.light_schedule_prev_month_aria")}">
               <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
             </button>
             <span class="picker-month">${this._getMonthLabel()}</span>
-            <button class="picker-nav" @click=${()=>this._pickerNextMonth()} aria-label="${De("config.light_schedule_next_month_aria")}">
+            <button class="picker-nav" @click=${()=>this._pickerNextMonth()} aria-label="${Re("config.light_schedule_next_month_aria")}">
               <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
             </button>
           </div>
           <div class="picker-grid">
-            ${t.map(e=>F`<span class="picker-day-label">${e}</span>`)}
-            ${e.map(e=>{const t=["picker-day",e.today?"today":"",e.rangeStart?"range-start":"",e.rangeEnd?"range-end":"",e.inRange?"in-range":"",e.otherMonth?"other-month":""].filter(Boolean).join(" ");return F`
+            ${t.map(e=>N`<span class="picker-day-label">${e}</span>`)}
+            ${e.map(e=>{const t=["picker-day",e.today?"today":"",e.rangeStart?"range-start":"",e.rangeEnd?"range-end":"",e.inRange?"in-range":"",e.otherMonth?"other-month":""].filter(Boolean).join(" ");return N`
                 <button class=${t} @click=${()=>this._pickerSelectDay(e.day,e.otherMonth)}>${e.day}</button>
               `})}
           </div>
           <div class="picker-time-row">
             <div class="picker-time-group">
-              <span class="picker-time-label">${De("config.light_schedule_start")}</span>
+              <span class="picker-time-label">${Re("config.light_schedule_start")}</span>
               <div class="time-input">
                 <input type="text" class="time-digit" maxlength="2"
                   .value=${this._pickerStartHour}
@@ -5879,7 +3335,7 @@
               </div>
             </div>
             <div class="picker-time-group">
-              <span class="picker-time-label">${De("config.light_schedule_end")}</span>
+              <span class="picker-time-label">${Re("config.light_schedule_end")}</span>
               <div class="time-input">
                 <input type="text" class="time-digit" maxlength="2"
                   .value=${this._pickerEndHour}
@@ -5898,55 +3354,14 @@
             @click=${()=>this._pickerConfirm()}
             ?disabled=${!i}
           >
-            ${De("config.light_schedule_confirm")}
+            ${Re("config.light_schedule_confirm")}
           </button>
         </div>
       </div>
-    `}renderPreview(){if(!this._lightRoom)return F`<div class="preview-empty">${De("config.light_select_room")}</div>`;if(0===this._lights.length)return F`<div class="preview-empty">${De("config.light_no_lights")}</div>`;const e=this._lights.filter(e=>e.visible),t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,r=0===t?"none":t===i?"all":"some";if(0===e.length)return F`<div class="preview-empty">${De("config.light_no_visible")}</div>`;const o=[],s=[];for(const d of e){"compact"===("full"===d.layout?"full":"compact")?(s.push(d),2===s.length&&(o.push({kind:"compact-pair",left:s[0],right:s[1]}),s.length=0)):(s.length>0&&(o.push({kind:"compact-pair",left:s[0],right:null}),s.length=0),o.push({kind:"full",light:d}))}s.length>0&&o.push({kind:"compact-pair",left:s[0],right:null});const n=a?.06:0,c=(e,t,i)=>{const a=["preview-light-row",t?"compact":"",i?"compact-right":"",e.visible?"":"hidden-light"].filter(Boolean).join(" "),r=this._scheduleEdits.get(e.entityId),o=r?r.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0;return F`
-        <div class=${a} data-on=${e.isOn}>
-          <div class="preview-light-icon ${e.isOn?"on":""}">
-            <ha-icon .icon=${"mdi:lightbulb"}></ha-icon>
-          </div>
-          <div class="preview-light-info">
-            <div class="preview-light-name">${e.name}</div>
-            <div class="preview-light-sub">${e.isOn?`${e.brightnessPct}%`:De("common.off")}</div>
-          </div>
-          ${o?F`<ha-icon class="preview-light-sched" .icon=${"mdi:calendar-clock"}></ha-icon>`:B}
-          ${"full"===e.layout?F`<span class="preview-light-layout-tag">full</span>`:B}
-          <span class="preview-light-dot ${e.isOn?"on":""}"></span>
-        </div>
-      `};return F`
-      <div class="preview-light">
-        ${this._lightShowHeader?F`
-          <div class="preview-light-header">
-            <div class="preview-light-header-left">
-              <span class="preview-light-title">${De("light.title")}</span>
-              <span class="preview-light-count ${r}">${t}/${i}</span>
-            </div>
-            <div class="preview-light-toggle ${a?"on":""}"></div>
-          </div>
-        `:B}
-        <div class="preview-light-body">
-          <div
-            class="preview-light-tint"
-            style="background:radial-gradient(ellipse at 30% 20%, rgba(251,191,36,0.12) 0%, transparent 70%);opacity:${n}"
-          ></div>
-          <div class="preview-light-grid">
-            ${o.map(e=>"full"===e.kind?c(e.light,!1,!1):F`
-                ${c(e.left,!0,!1)}
-                ${e.right?c(e.right,!0,!0):B}
-              `)}
-          </div>
-        </div>
-      </div>
-    `}renderTab(){return this._lang,F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}renderTab(){return this._lang,N`
       <div class="tab-panel" id="panel-light">
-        <div class="section-label">${De("config.behavior")}</div>
+        <glass-light-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-light-card>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -5958,8 +3373,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.light_show_header")}</div>
-              <div class="feature-desc">${De("config.light_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.light_show_header")}</div>
+              <div class="feature-desc">${Re("config.light_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._lightShowHeader?"on":""}"
@@ -5967,107 +3382,44 @@
           </button>
         </div>
 
-        ${this._lights.length>0?F`
-              <div class="section-label">${De("config.light_list_title")} (${this._lights.length})</div>
+        ${this._lights.length>0?N`
+              <div class="section-label">${Re("config.light_list_title")} (${this._lights.length})</div>
               <div class="section-desc">
-                ${De("config.light_list_banner")}
+                ${Re("config.light_list_banner")}
               </div>
               <div class="item-list">
                 ${this._lights.map((e,t)=>this._renderLightRow(e,t))}
               </div>
-            `:this._lightRoom?F`<div class="banner">
+            `:this._lightRoom?N`<div class="banner">
                 <ha-icon .icon=${"mdi:lightbulb-off-outline"}></ha-icon>
-                <span>${De("config.light_no_lights")}</span>
+                <span>${Re("config.light_no_lights")}</span>
               </div>`:B}
 
-        ${this._lights.length>0?F`
+        ${this._lights.length>0?N`
           <div class="section-desc schedule-hint">
             <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
-            ${De("config.light_schedule_hint")}
+            ${Re("config.light_schedule_hint")}
           </div>
         `:B}
 
         <div class="section-desc dashboard-vs-room">
           <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
-          ${De("config.light_dashboard_vs_room")}
+          ${Re("config.light_dashboard_vs_room")}
         </div>
 
-        ${this._lightRoom?F`
+        ${this._lightRoom?N`
           <div class="save-bar">
-            <button class="btn btn-ghost" @click=${()=>this._loadRoomLights()}>${De("common.reset")}</button>
+            <button class="btn btn-ghost" @click=${()=>this._loadRoomLights()}>${Re("common.reset")}</button>
           </div>
         `:B}
       </div>
 
       ${this._renderDateTimePicker()}
-    `}}Ge([me()],Xe.prototype,"_lights"),Ge([me()],Xe.prototype,"_lightRoom"),Ge([me()],Xe.prototype,"_lightShowHeader"),Ge([me()],Xe.prototype,"_scheduleExpandedEntity"),Ge([me()],Xe.prototype,"_pickerOpen"),Ge([me()],Xe.prototype,"_pickerYear"),Ge([me()],Xe.prototype,"_pickerMonth"),Ge([me()],Xe.prototype,"_pickerStartDay"),Ge([me()],Xe.prototype,"_pickerStartMonth"),Ge([me()],Xe.prototype,"_pickerStartYear"),Ge([me()],Xe.prototype,"_pickerEndDay"),Ge([me()],Xe.prototype,"_pickerEndMonth"),Ge([me()],Xe.prototype,"_pickerEndYear"),Ge([me()],Xe.prototype,"_pickerStartHour"),Ge([me()],Xe.prototype,"_pickerStartMinute"),Ge([me()],Xe.prototype,"_pickerEndHour"),Ge([me()],Xe.prototype,"_pickerEndMinute"),Ge([me()],Xe.prototype,"_pickerPhase"),Ge([me()],Xe.prototype,"_dragIdx"),Ge([me()],Xe.prototype,"_dropIdx");try{customElements.define("config-tab-light",Xe)}catch{}var Je=Object.defineProperty,Ze=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Je(t,i,o),o};class Qe extends qe{constructor(){super(...arguments),this._mediaShowHeader=!0,this._mediaExtraEntities={},this._mediaRoom="",this._mediaRoomNativePlayers=[],this._mediaAddDropdownOpen=!1,this._mediaEntitySearch="",this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this)}static{this._AUTO_SAVE_KEYS=new Set(["_mediaShowHeader","_mediaExtraEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._mediaRoom=this.areaId,this._loadRoomMediaPlayers()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._mediaShowHeader=t.show_header??!0,this._mediaExtraEntities=t.extra_entities??{}}collectSaveData(){return{show_header:this._mediaShowHeader,extra_entities:this._mediaExtraEntities}}async save(){if(this.backend)try{await this.backend.send("set_media_config",this.collectSaveData()),this._fireToast(!0),ue.emit("media-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.media_card&&this.loadFromConfig(e.media_card)}catch{}}_addMediaExtraEntity(e){const t=this._mediaRoom;if(!t)return;const i=this._mediaExtraEntities[t]??[];i.includes(e)||(this._mediaExtraEntities={...this._mediaExtraEntities,[t]:[...i,e]})}_removeMediaExtraEntity(e){const t=this._mediaRoom;if(!t)return;const i=this._mediaExtraEntities[t]??[];this._mediaExtraEntities={...this._mediaExtraEntities,[t]:i.filter(t=>t!==e)}}_loadRoomMediaPlayers(){if(!this.hass||!this._mediaRoom)return void(this._mediaRoomNativePlayers=[]);const e=Me(this._mediaRoom,this.hass.entities,this.hass.devices);this._mediaRoomNativePlayers=e.filter(e=>e.entity_id.startsWith("media_player.")).map(e=>e.entity_id)}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundCloseDropdowns)}_closeDropdownsOnOutsideClick(e){if(!this._mediaAddDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._mediaAddDropdownOpen=!1}initRoom(){!this._mediaRoom&&this.rooms.length>0&&(this._mediaRoom=this.rooms[0].areaId,this._loadRoomMediaPlayers())}renderPreview(){const e=this._mediaRoom,t=this._mediaRoomNativePlayers.length+(e?(this._mediaExtraEntities[e]??[]).length:0),i=e?(a=this).hass&&a._mediaRoom?[...a._mediaRoomNativePlayers,...a._mediaExtraEntities[a._mediaRoom]??[]].filter(e=>"playing"===a.hass?.states[e]?.state).length:0:1;var a;return F`
-      <div class="preview-media">
-        <!-- Simulated full-bleed artwork background -->
-        <div class="mp-art-bg"></div>
-        <div class="mp-gradient"></div>
-        <div class="mp-content">
-          <!-- Top bar: glass pill badges -->
-          <div class="mp-top">
-            <div class="mp-pill">
-              <ha-icon .icon=${"mdi:speaker"}></ha-icon>
-              <span>${e?this.rooms.find(t=>t.areaId===e)?.name??De("config.media_room"):De("config.media_select_room")}</span>
-              ${i>0?F`
-                <div class="mp-eq">
-                  <div class="mp-eq-bar"></div>
-                  <div class="mp-eq-bar"></div>
-                  <div class="mp-eq-bar"></div>
-                </div>
-              `:B}
-            </div>
-            ${t>1?F`
-              <div class="mp-pill">
-                <ha-icon .icon=${"mdi:speaker-multiple"}></ha-icon>
-                <span>${t}</span>
-              </div>
-            `:B}
-          </div>
-          <!-- Spacer -->
-          <div class="mp-spacer"></div>
-          <!-- Bottom glass panel -->
-          <div class="mp-glass-panel">
-            ${this._mediaShowHeader?F`
-              <div class="pw-mp-header-row">
-                <span class="pw-mp-header-label">${De("media.title")}</span>
-                <span class="pw-mp-header-badge">${i}/${t||1}</span>
-              </div>
-            `:B}
-            <div class="mp-track">
-              <div class="mp-track-title">Blinding Lights</div>
-              <div class="mp-track-artist">The Weeknd</div>
-              <div class="mp-track-meta">
-                <span class="mp-track-time">2:14 / 3:20</span>
-                <span class="mp-track-source">Spotify</span>
-              </div>
-            </div>
-            <!-- Progress -->
-            <div class="mp-progress">
-              <div class="mp-progress-fill"></div>
-            </div>
-            <!-- Transport -->
-            <div class="mp-transport">
-              <div class="mp-btn"><ha-icon .icon=${"mdi:shuffle-variant"}></ha-icon></div>
-              <div class="mp-btn skip"><ha-icon .icon=${"mdi:skip-previous"}></ha-icon></div>
-              <div class="mp-btn main"><ha-icon .icon=${"mdi:pause"}></ha-icon></div>
-              <div class="mp-btn skip"><ha-icon .icon=${"mdi:skip-next"}></ha-icon></div>
-              <div class="mp-btn"><ha-icon .icon=${"mdi:repeat"}></ha-icon></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `}renderTab(){if(this._lang,!this.hass)return F``;const e=this._mediaRoom,t=e?this._mediaExtraEntities[e]??[]:[],i=Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")).sort(),a=new Set([...this._mediaRoomNativePlayers,...t]),r=this._mediaEntitySearch?.toLowerCase()??"",o=i.filter(e=>{if(a.has(e))return!1;if(!r)return!0;const t=(this.hass?.states[e]?.attributes?.friendly_name??"").toLowerCase();return e.toLowerCase().includes(r)||t.includes(r)});return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}nt([ue()],ct.prototype,"_lights"),nt([ue()],ct.prototype,"_lightRoom"),nt([ue()],ct.prototype,"_lightShowHeader"),nt([ue()],ct.prototype,"_scheduleExpandedEntity"),nt([ue()],ct.prototype,"_pickerOpen"),nt([ue()],ct.prototype,"_pickerYear"),nt([ue()],ct.prototype,"_pickerMonth"),nt([ue()],ct.prototype,"_pickerStartDay"),nt([ue()],ct.prototype,"_pickerStartMonth"),nt([ue()],ct.prototype,"_pickerStartYear"),nt([ue()],ct.prototype,"_pickerEndDay"),nt([ue()],ct.prototype,"_pickerEndMonth"),nt([ue()],ct.prototype,"_pickerEndYear"),nt([ue()],ct.prototype,"_pickerStartHour"),nt([ue()],ct.prototype,"_pickerStartMinute"),nt([ue()],ct.prototype,"_pickerEndHour"),nt([ue()],ct.prototype,"_pickerEndMinute"),nt([ue()],ct.prototype,"_pickerPhase"),nt([ue()],ct.prototype,"_dragIdx"),nt([ue()],ct.prototype,"_dropIdx");try{customElements.define("config-tab-light",ct)}catch{}var lt=Object.defineProperty,dt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&lt(t,i,s),s};class ht extends it{constructor(){super(...arguments),this._mediaShowHeader=!0,this._mediaExtraEntities={},this._mediaRoom="",this._mediaRoomNativePlayers=[],this._mediaAddDropdownOpen=!1,this._mediaEntitySearch="",this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this)}static{this._AUTO_SAVE_KEYS=new Set(["_mediaShowHeader","_mediaExtraEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._mediaRoom=this.areaId,this._loadRoomMediaPlayers()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._mediaShowHeader=t.show_header??!0,this._mediaExtraEntities=t.extra_entities??{}}collectSaveData(){return{show_header:this._mediaShowHeader,extra_entities:this._mediaExtraEntities}}async save(){if(this.backend)try{await this.backend.send("set_media_config",this.collectSaveData()),this._fireToast(!0),ge.emit("media-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.media_card&&this.loadFromConfig(e.media_card)}catch{}}_addMediaExtraEntity(e){const t=this._mediaRoom;if(!t)return;const i=this._mediaExtraEntities[t]??[];i.includes(e)||(this._mediaExtraEntities={...this._mediaExtraEntities,[t]:[...i,e]})}_removeMediaExtraEntity(e){const t=this._mediaRoom;if(!t)return;const i=this._mediaExtraEntities[t]??[];this._mediaExtraEntities={...this._mediaExtraEntities,[t]:i.filter(t=>t!==e)}}_loadRoomMediaPlayers(){if(!this.hass||!this._mediaRoom)return void(this._mediaRoomNativePlayers=[]);const e=Ye(this._mediaRoom,this.hass.entities,this.hass.devices);this._mediaRoomNativePlayers=e.filter(e=>e.entity_id.startsWith("media_player.")).map(e=>e.entity_id)}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundCloseDropdowns)}_closeDropdownsOnOutsideClick(e){if(!this._mediaAddDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._mediaAddDropdownOpen=!1}initRoom(){!this._mediaRoom&&this.rooms.length>0&&(this._mediaRoom=this.rooms[0].areaId,this._loadRoomMediaPlayers())}renderTab(){if(this._lang,!this.hass)return N``;const e=this._mediaRoom,t=e?this._mediaExtraEntities[e]??[]:[],i=Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")).sort(),a=new Set([...this._mediaRoomNativePlayers,...t]),r=this._mediaEntitySearch?.toLowerCase()??"",s=i.filter(e=>{if(a.has(e))return!1;if(!r)return!0;const t=(this.hass?.states[e]?.attributes?.friendly_name??"").toLowerCase();return e.toLowerCase().includes(r)||t.includes(r)});return N`
       <div class="tab-panel" id="panel-media">
+        <glass-media-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-media-card>
         <!-- Show header toggle -->
-        <div class="section-label">${De("config.behavior")}</div>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -6079,8 +3431,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.media_show_header")}</div>
-              <div class="feature-desc">${De("config.media_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.media_show_header")}</div>
+              <div class="feature-desc">${Re("config.media_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._mediaShowHeader?"on":""}"
@@ -6089,16 +3441,16 @@
         </div>
 
         <!-- Per-room extra entities -->
-        <div class="section-label">${De("config.media_room")}</div>
-        <div class="section-desc">${De("config.media_room_desc")}</div>
+        <div class="section-label">${Re("config.media_room")}</div>
+        <div class="section-desc">${Re("config.media_room_desc")}</div>
 
-        ${e?F`
+        ${e?N`
           <!-- Native players (read-only) -->
-          <div class="section-label">${De("config.media_native_players")} (${this._mediaRoomNativePlayers.length})</div>
-          <div class="section-desc">${De("config.media_native_players_desc")}</div>
-          ${this._mediaRoomNativePlayers.length>0?F`
+          <div class="section-label">${Re("config.media_native_players")} (${this._mediaRoomNativePlayers.length})</div>
+          <div class="section-desc">${Re("config.media_native_players_desc")}</div>
+          ${this._mediaRoomNativePlayers.length>0?N`
             <div class="item-list">
-              ${this._mediaRoomNativePlayers.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,a="playing"===t?.state;return F`
+              ${this._mediaRoomNativePlayers.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,a="playing"===t?.state;return N`
                   <div class="item-card">
                     <div class="item-row">
                       <div class="item-info pw-mp-item-info">
@@ -6110,19 +3462,19 @@
                   </div>
                 `})}
             </div>
-          `:F`
+          `:N`
             <div class="banner">
               <ha-icon .icon=${"mdi:speaker-off"}></ha-icon>
-              <span>${De("media.no_players")}</span>
+              <span>${Re("media.no_players")}</span>
             </div>
           `}
 
           <!-- Extra entities -->
-          <div class="section-label">${De("config.media_extra_entities")} (${t.length})</div>
-          <div class="section-desc">${De("config.media_extra_entities_desc")}</div>
-          ${t.length>0?F`
+          <div class="section-label">${Re("config.media_extra_entities")} (${t.length})</div>
+          <div class="section-desc">${Re("config.media_extra_entities_desc")}</div>
+          ${t.length>0?N`
             <div class="item-list">
-              ${t.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return F`
+              ${t.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return N`
                   <div class="item-card">
                     <div class="item-row">
                       <div class="item-info pw-mp-item-info">
@@ -6132,7 +3484,7 @@
                       <button
                         class="btn-icon xs"
                         @click=${()=>this._removeMediaExtraEntity(e)}
-                        aria-label="${De("common.hide")} ${i}"
+                        aria-label="${Re("common.hide")} ${i}"
                       >
                         <ha-icon .icon=${"mdi:close"}></ha-icon>
                       </button>
@@ -6140,10 +3492,10 @@
                   </div>
                 `})}
             </div>
-          `:F`
+          `:N`
             <div class="banner">
               <ha-icon .icon=${"mdi:speaker-multiple"}></ha-icon>
-              <span>${De("config.media_no_extra")}</span>
+              <span>${Re("config.media_no_extra")}</span>
             </div>
           `}
 
@@ -6156,19 +3508,19 @@
               aria-haspopup="listbox"
             >
               <ha-icon .icon=${"mdi:plus"}></ha-icon>
-              <span>${De("config.media_add_extra")}</span>
+              <span>${Re("config.media_add_extra")}</span>
               <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
             </button>
             <div class="dropdown-menu" role="listbox">
               <input
                 type="text"
                 class="dropdown-search"
-                placeholder="${De("config.search_entity")}"
+                placeholder="${Re("config.search_entity")}"
                 .value=${this._mediaEntitySearch??""}
                 @input=${e=>{this._mediaEntitySearch=e.target.value}}
                 @click=${e=>e.stopPropagation()}
               />
-              ${o.slice(0,20).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return F`
+              ${s.slice(0,20).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return N`
                   <button
                     class="dropdown-item"
                     role="option"
@@ -6178,7 +3530,7 @@
                     ${i}
                   </button>
                 `})}
-              ${0===o.length?F`
+              ${0===s.length?N`
                 <div class="pw-mp-empty-msg">—</div>
               `:B}
             </div>
@@ -6186,54 +3538,13 @@
         `:B}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}Ze([me()],Qe.prototype,"_mediaShowHeader"),Ze([me()],Qe.prototype,"_mediaExtraEntities"),Ze([me()],Qe.prototype,"_mediaRoom"),Ze([me()],Qe.prototype,"_mediaRoomNativePlayers"),Ze([me()],Qe.prototype,"_mediaAddDropdownOpen"),Ze([me()],Qe.prototype,"_mediaEntitySearch");try{customElements.define("config-tab-media",Qe)}catch{}var et=Object.defineProperty,tt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&et(t,i,o),o};function it(e,t,i){const a=`pw-fan-row${t?" compact":""}${i?" compact-right":""}`,r=e.isOn?"on":"off";return F`
-    <div class=${a}>
-      <div class="pw-fan-icon ${r}">
-        <ha-icon .icon=${e.icon} style=${e.isOn?`animation:spin-fan-preview ${e.pct>50?"0.8":"1.5"}s linear infinite;`:""}></ha-icon>
-      </div>
-      <div class="pw-fan-info">
-        <div class="pw-fan-name">${e.name}</div>
-        <div class="pw-fan-meta">
-          <span class="pw-fan-status ${r}">${e.isOn?`${e.pct}%`:De("fan.off")}</span>
-          ${e.isOn?F`
-            <span class="pw-fan-speed">${De("fan.speed_step",{step:e.step,total:e.total})}</span>
-          `:B}
-        </div>
-      </div>
-      <div class="pw-fan-dot ${r}"></div>
-    </div>
-  `}class at extends qe{constructor(){super(...arguments),this._fanShowHeader=!0,this._fanRoom="",this._fanRoomEntities=[],this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_fanShowHeader","_fanRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._fanRoom=this.areaId,this._loadRoomFans()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._fanShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._fanShowHeader}}async save(){if(this.backend)try{if(await this.backend.send("set_fan_config",this.collectSaveData()),this._fanRoom&&this._fanRoomEntities.length>0){let e=[],t=[],i={};try{const a=await this.backend.send("get_room",{area_id:this._fanRoom});a&&(e=a.hidden_entities??[],t=a.entity_order??[],i=a.entity_layouts??{})}catch{}const a=new Set(this._fanRoomEntities.map(e=>e.entityId)),r=e.filter(e=>!a.has(e)),o=this._fanRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),s=[...t.filter(e=>!a.has(e)),...this._fanRoomEntities.map(e=>e.entityId)],n={...i};for(const c of this._fanRoomEntities)n[c.entityId]=c.layout;await this.backend.send("set_room",{area_id:this._fanRoom,hidden_entities:[...r,...o],entity_order:s,entity_layouts:n})}this._fireToast(!0),ue.emit("fan-config-changed",void 0),this._fanRoom&&ue.emit("room-config-changed",{areaId:this._fanRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.fan_card&&this.loadFromConfig(e.fan_card)}catch{}await this._loadRoomFans()}}async _loadRoomFans(){if(!this.backend||!this._fanRoom||!this.hass)return;const e=this._fanRoom,t=Me(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("fan.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._fanRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],o=i?.entity_layouts??{},s=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._fanRoomEntities=s.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:i,visible:!a.has(e),layout:o[e]||"compact"}})}_toggleEntityVisibility(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_onLocalDragStart(e){this._dragIdx=e,this._dragContext="fans"}_onLocalDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"fans"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._fanRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._fanRoomEntities=i,this._dragIdx=null,this._dropIdx=null}renderPreview(){const e=this._fanRoomEntities.filter(e=>e.visible),t=0===e.length&&!this._fanRoom?[{name:"Ventilateur Salon",isOn:!0,pct:67,step:2,total:3,icon:"mdi:fan",layout:"compact"},{name:"Plafonnier Chambre",isOn:!0,pct:50,step:3,total:6,icon:"mdi:ceiling-fan",layout:"compact"},{name:"Extracteur SdB",isOn:!1,pct:0,step:0,total:3,icon:"mdi:fan",layout:"compact"}]:e.map(e=>{const t=this.hass?.states[e.entityId],i="on"===t?.state,a=t?.attributes?.percentage??0,r=t?.attributes?.percentage_step,o=t?.attributes?.speed_count,s=o??(r&&r>0?Math.round(100/r):3),n=i?Math.round(a/100*s):0;return{name:e.name,isOn:i,pct:a,step:n,total:s,icon:"mdi:fan",layout:e.layout}}),i=t.filter(e=>e.isOn).length,a=i>0?"on":"off";return F`
-      <div class="preview-fan">
-        ${this._fanShowHeader?F`
-          <div class="pw-fan-header">
-            <div class="pw-fan-header-left">
-              <span class="pw-fan-header-title">${De("fan.title")}</span>
-              <span class="pw-fan-header-badge ${a}">${i}/${t.length}</span>
-            </div>
-            <div class="pw-fan-toggle-track ${a}">
-              <div class="pw-fan-toggle-knob ${a}"></div>
-            </div>
-          </div>
-        `:B}
-        <div class="preview-fan-card glass pw-fan-card">
-          <div class="pw-fan-tint" style="opacity:${t.length>0?(i/t.length*.18).toFixed(3):"0"};"></div>
-          ${0===t.length?F`
-            <div class="pw-fan-empty">&mdash;</div>
-          `:B}
-          ${function(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if("compact"===a.layout){const r=i+1<e.length&&"compact"===e[i+1].layout?e[i+1]:null;r?(t.push(it(a,!0,!1)),t.push(it(r,!0,!0)),i+=2):(t.push(it(a,!1,!1)),i++)}else t.push(it(a,!1,!1)),i++}return t}(t)}
-        </div>
-      </div>
-    `}renderTab(){return this._lang,this.hass?F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}dt([ue()],ht.prototype,"_mediaShowHeader"),dt([ue()],ht.prototype,"_mediaExtraEntities"),dt([ue()],ht.prototype,"_mediaRoom"),dt([ue()],ht.prototype,"_mediaRoomNativePlayers"),dt([ue()],ht.prototype,"_mediaAddDropdownOpen"),dt([ue()],ht.prototype,"_mediaEntitySearch");try{customElements.define("config-tab-media",ht)}catch{}var pt=Object.defineProperty,ut=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&pt(t,i,s),s};class gt extends it{constructor(){super(...arguments),this._fanShowHeader=!0,this._fanRoom="",this._fanRoomEntities=[],this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_fanShowHeader","_fanRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._fanRoom=this.areaId,this._loadRoomFans()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._fanShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._fanShowHeader}}async save(){if(this.backend)try{if(await this.backend.send("set_fan_config",this.collectSaveData()),this._fanRoom&&this._fanRoomEntities.length>0){let e=[],t=[],i={};try{const a=await this.backend.send("get_room",{area_id:this._fanRoom});a&&(e=a.hidden_entities??[],t=a.entity_order??[],i=a.entity_layouts??{})}catch{}const a=new Set(this._fanRoomEntities.map(e=>e.entityId)),r=e.filter(e=>!a.has(e)),s=this._fanRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),o=[...t.filter(e=>!a.has(e)),...this._fanRoomEntities.map(e=>e.entityId)],n={...i};for(const c of this._fanRoomEntities)n[c.entityId]=c.layout;await this.backend.send("set_room",{area_id:this._fanRoom,hidden_entities:[...r,...s],entity_order:o,entity_layouts:n})}this._fireToast(!0),ge.emit("fan-config-changed",void 0),this._fanRoom&&ge.emit("room-config-changed",{areaId:this._fanRoom})}catch{this._fireToast(!1)}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.fan_card&&this.loadFromConfig(e.fan_card)}catch{}await this._loadRoomFans()}}async _loadRoomFans(){if(!this.backend||!this._fanRoom||!this.hass)return;const e=this._fanRoom,t=Ye(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("fan.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._fanRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],s=i?.entity_layouts??{},o=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._fanRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:i,visible:!a.has(e),layout:s[e]||"compact"}})}_toggleEntityVisibility(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_onLocalDragStart(e){this._dragIdx=e,this._dragContext="fans"}_onLocalDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"fans"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._fanRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._fanRoomEntities=i,this._dragIdx=null,this._dropIdx=null}renderTab(){return this._lang,this.hass?N`
       <div class="tab-panel" id="panel-fan">
-        <div class="section-label">${De("config.behavior")}</div>
+        <glass-fan-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-fan-card>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -6245,8 +3556,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.fan_show_header")}</div>
-              <div class="feature-desc">${De("config.fan_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.fan_show_header")}</div>
+              <div class="feature-desc">${Re("config.fan_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._fanShowHeader?"on":""}"
@@ -6255,15 +3566,15 @@
         </div>
 
         <!-- Per-room fan config -->
-        <div class="section-label">${De("config.fan_room")}</div>
-        <div class="section-desc">${De("config.fan_room_desc")}</div>
+        <div class="section-label">${Re("config.fan_room")}</div>
+        <div class="section-desc">${Re("config.fan_room_desc")}</div>
 
-        ${this._fanRoom?F`
-          ${this._fanRoomEntities.length>0?F`
-            <div class="section-label">${De("config.fan_list_title")} (${this._fanRoomEntities.length})</div>
-            <div class="section-desc">${De("config.fan_list_banner")}</div>
+        ${this._fanRoom?N`
+          ${this._fanRoomEntities.length>0?N`
+            <div class="section-label">${Re("config.fan_list_title")} (${this._fanRoomEntities.length})</div>
+            <div class="section-desc">${Re("config.fan_list_banner")}</div>
             <div class="item-list">
-              ${this._fanRoomEntities.map((e,t)=>{const i=this._dragIdx===t&&"fans"===this._dragContext,a=this._dropIdx===t&&"fans"===this._dragContext,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return F`
+              ${this._fanRoomEntities.map((e,t)=>{const i=this._dragIdx===t&&"fans"===this._dragContext,a=this._dropIdx===t&&"fans"===this._dragContext,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return N`
                   <div class="item-card">
                     <div
                       class=${r}
@@ -6284,62 +3595,39 @@
                       <button
                         class="layout-btn"
                         @click=${()=>this._cycleLayout(e.entityId)}
-                        aria-label="${De("config.light_change_layout_aria")}"
-                        title="${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
+                        aria-label="${Re("config.light_change_layout_aria")}"
+                        title="${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}"
                       >
-                        ${De("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
+                        ${Re("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
                       </button>
                       <button
                         class="toggle ${e.visible?"on":""}"
                         @click=${()=>this._toggleEntityVisibility(e.entityId)}
                         role="switch"
                         aria-checked=${e.visible?"true":"false"}
-                        aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.name}"
+                        aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.name}"
                       ></button>
                     </div>
                   </div>
                 `})}
             </div>
-          `:F`
+          `:N`
             <div class="banner">
               <ha-icon .icon=${"mdi:fan-off"}></ha-icon>
-              <span>${De("config.fan_no_fans")}</span>
+              <span>${Re("config.fan_no_fans")}</span>
             </div>
           `}
         `:B}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `:F``}}tt([me()],at.prototype,"_fanShowHeader"),tt([me()],at.prototype,"_fanRoom"),tt([me()],at.prototype,"_fanRoomEntities"),tt([me()],at.prototype,"_dragIdx"),tt([me()],at.prototype,"_dropIdx"),tt([me()],at.prototype,"_dragContext");try{customElements.define("config-tab-fan",at)}catch{}var rt=Object.defineProperty,ot=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&rt(t,i,o),o};class st extends qe{constructor(){super(...arguments),this._presenceShowHeader=!0,this._presencePersonEntities=[],this._presenceSmartphoneSensors={},this._presenceNotifyServices={},this._presenceDrivingSensors={},this._presenceDropdownOpen=null,this._presenceDropdownSearch="",this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this)}static{this._AUTO_SAVE_KEYS=new Set(["_presenceShowHeader","_presencePersonEntities","_presenceSmartphoneSensors","_presenceNotifyServices","_presenceDrivingSensors"])}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundCloseDropdowns)}updated(e){super.updated(e),this._checkAutoSave(e)}_closeDropdownsOnOutsideClick(e){if(!this._presenceDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._presenceDropdownOpen=null}loadFromConfig(e){const t=e;this._presenceShowHeader=t.show_header??!0,this._presencePersonEntities=t.person_entities??[],this._presenceSmartphoneSensors=t.smartphone_sensors??{},this._presenceNotifyServices=t.notify_services??{},this._presenceDrivingSensors=t.driving_sensors??{}}collectSaveData(){return{show_header:this._presenceShowHeader,person_entities:this._presencePersonEntities,smartphone_sensors:this._presenceSmartphoneSensors,notify_services:this._presenceNotifyServices,driving_sensors:this._presenceDrivingSensors}}async save(){if(this.backend)try{await this.backend.send("set_presence_config",this.collectSaveData()),this._fireToast(!0),ue.emit("presence-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.presence_card&&this.loadFromConfig(e.presence_card)}catch{}}_getAvailablePersonEntities(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("person.")).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableSmartphoneSensors(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("sensor.")&&(e.includes("phone")||e.includes("mobile")||e.includes("smartphone")||e.includes("tablet")||e.includes("iphone")||e.includes("galaxy")||e.includes("pixel")||e.includes("oneplus"))).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableDrivingSensors(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("binary_sensor.")).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableNotifyServices(){if(!this.hass)return[];const e=this.hass.services;return Object.keys(e?.notify??{}).map(e=>`notify.${e}`).sort()}_togglePresencePerson(e){const t=this._getAvailablePersonEntities();if(0===this._presencePersonEntities.length)this._presencePersonEntities=t.map(e=>e.entityId).filter(t=>t!==e);else{const t=new Set(this._presencePersonEntities);if(t.has(e)){if(t.size<=1)return void(this._presencePersonEntities=[]);t.delete(e)}else t.add(e);this._presencePersonEntities=[...t]}}renderPreview(){const e=this._getAvailablePersonEntities(),t=this._presencePersonEntities.length>0?e.filter(e=>this._presencePersonEntities.includes(e.entityId)):e;if(0===t.length)return F`<div class="preview-empty">${De("config.presence_no_persons")}</div>`;const i=t.filter(e=>{const t=this.hass?.states[e.entityId];return"home"===t?.state}).length;return F`
-      <div class="preview-presence">
-        ${this._presenceShowHeader?F`
-          <div class="preview-presence-header">
-            <span class="preview-presence-title">${De("presence.title")}</span>
-            <span class="preview-presence-pill ${i===t.length?"all-home":0===i?"all-away":"mixed"}">
-              ${i}/${t.length}
-            </span>
-          </div>
-        `:B}
-        <div class="preview-presence-persons">
-          ${t.slice(0,4).map(e=>{const t=this.hass?.states[e.entityId],i="home"===t?.state,a=t?.attributes?.entity_picture;return F`
-              <div class="preview-presence-person ${i?"home":"away"}">
-                ${a?F`<div class="preview-presence-avatar" style="background-image:url(${a})"></div>`:F`<div class="preview-presence-avatar fallback"><ha-icon .icon=${"mdi:account"}></ha-icon></div>`}
-                <span class="preview-presence-name">${e.name}</span>
-              </div>
-            `})}
-        </div>
-      </div>
-    `}renderTab(){this._lang;const e=this._getAvailablePersonEntities(),t=this._presencePersonEntities.length>0?this._presencePersonEntities:e.map(e=>e.entityId),i=this._getAvailableSmartphoneSensors(),a=this._getAvailableDrivingSensors(),r=this._getAvailableNotifyServices();return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `:N``}}ut([ue()],gt.prototype,"_fanShowHeader"),ut([ue()],gt.prototype,"_fanRoom"),ut([ue()],gt.prototype,"_fanRoomEntities"),ut([ue()],gt.prototype,"_dragIdx"),ut([ue()],gt.prototype,"_dropIdx"),ut([ue()],gt.prototype,"_dragContext");try{customElements.define("config-tab-fan",gt)}catch{}var _t=Object.defineProperty,mt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&_t(t,i,s),s};class ft extends it{constructor(){super(...arguments),this._presenceShowHeader=!0,this._presencePersonEntities=[],this._presenceSmartphoneSensors={},this._presenceNotifyServices={},this._presenceDrivingSensors={},this._presenceDropdownOpen=null,this._presenceDropdownSearch="",this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this)}static{this._AUTO_SAVE_KEYS=new Set(["_presenceShowHeader","_presencePersonEntities","_presenceSmartphoneSensors","_presenceNotifyServices","_presenceDrivingSensors"])}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundCloseDropdowns)}updated(e){super.updated(e),this._checkAutoSave(e)}_closeDropdownsOnOutsideClick(e){if(!this._presenceDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._presenceDropdownOpen=null}loadFromConfig(e){const t=e;this._presenceShowHeader=t.show_header??!0,this._presencePersonEntities=t.person_entities??[],this._presenceSmartphoneSensors=t.smartphone_sensors??{},this._presenceNotifyServices=t.notify_services??{},this._presenceDrivingSensors=t.driving_sensors??{}}collectSaveData(){return{show_header:this._presenceShowHeader,person_entities:this._presencePersonEntities,smartphone_sensors:this._presenceSmartphoneSensors,notify_services:this._presenceNotifyServices,driving_sensors:this._presenceDrivingSensors}}async save(){if(this.backend)try{await this.backend.send("set_presence_config",this.collectSaveData()),this._fireToast(!0),ge.emit("presence-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.presence_card&&this.loadFromConfig(e.presence_card)}catch{}}_getAvailablePersonEntities(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("person.")).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableSmartphoneSensors(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("sensor.")&&(e.includes("phone")||e.includes("mobile")||e.includes("smartphone")||e.includes("tablet")||e.includes("iphone")||e.includes("galaxy")||e.includes("pixel")||e.includes("oneplus"))).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableDrivingSensors(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("binary_sensor.")).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableNotifyServices(){if(!this.hass)return[];const e=this.hass.services;return Object.keys(e?.notify??{}).map(e=>`notify.${e}`).sort()}_togglePresencePerson(e){const t=this._getAvailablePersonEntities();if(0===this._presencePersonEntities.length)this._presencePersonEntities=t.map(e=>e.entityId).filter(t=>t!==e);else{const t=new Set(this._presencePersonEntities);if(t.has(e)){if(t.size<=1)return void(this._presencePersonEntities=[]);t.delete(e)}else t.add(e);this._presencePersonEntities=[...t]}}renderTab(){this._lang;const e=this._getAvailablePersonEntities(),t=this._presencePersonEntities.length>0?this._presencePersonEntities:e.map(e=>e.entityId),i=this._getAvailableSmartphoneSensors(),a=this._getAvailableDrivingSensors(),r=this._getAvailableNotifyServices();return N`
       <div class="tab-panel" id="panel-presence">
+        <glass-presence-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-presence-card>
         <!-- Behaviour -->
-        <div class="section-label">${De("config.behavior")}</div>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -6351,8 +3639,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.presence_show_header")}</div>
-              <div class="feature-desc">${De("config.presence_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.presence_show_header")}</div>
+              <div class="feature-desc">${Re("config.presence_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._presenceShowHeader?"on":""}"
@@ -6361,14 +3649,14 @@
         </div>
 
         <!-- Person entities -->
-        <div class="section-label">${De("config.presence_persons")}</div>
-        <div class="section-desc">${De("config.presence_persons_desc")}</div>
+        <div class="section-label">${Re("config.presence_persons")}</div>
+        <div class="section-desc">${Re("config.presence_persons_desc")}</div>
 
-        ${0===e.length?F`
-          <div class="preview-empty">${De("config.presence_no_persons")}</div>
-        `:F`
+        ${0===e.length?N`
+          <div class="preview-empty">${Re("config.presence_no_persons")}</div>
+        `:N`
           <div class="item-list">
-            ${e.map(e=>{const t=this._presencePersonEntities.includes(e.entityId),i=0===this._presencePersonEntities.length;return F`
+            ${e.map(e=>{const t=this._presencePersonEntities.includes(e.entityId),i=0===this._presencePersonEntities.length;return N`
                 <div class="item-card">
                   <div class="item-row ${t||i?"":"disabled"}">
                     <div class="feature-icon">
@@ -6392,54 +3680,54 @@
         `}
 
         <!-- Per-person sensor mapping -->
-        <div class="section-label">${De("config.presence_smartphone")}</div>
-        <div class="section-desc">${De("config.presence_smartphone_desc")}</div>
+        <div class="section-label">${Re("config.presence_smartphone")}</div>
+        <div class="section-desc">${Re("config.presence_smartphone_desc")}</div>
 
-        ${t.map(t=>{const o=e.find(e=>e.entityId===t);if(!o)return B;const s=this._presenceSmartphoneSensors[t]||"",n=this._presenceNotifyServices[t]||"",c=this._presenceDrivingSensors[t]||"",d=i.find(e=>e.entityId===s)?.name,l=a.find(e=>e.entityId===c)?.name,p=`${t}:smartphone`,h=`${t}:notify`,m=`${t}:driving`;return F`
+        ${t.map(t=>{const s=e.find(e=>e.entityId===t);if(!s)return B;const o=this._presenceSmartphoneSensors[t]||"",n=this._presenceNotifyServices[t]||"",c=this._presenceDrivingSensors[t]||"",l=i.find(e=>e.entityId===o)?.name,d=a.find(e=>e.entityId===c)?.name,h=`${t}:smartphone`,p=`${t}:notify`,u=`${t}:driving`;return N`
             <div class="presence-mapping-card">
               <div class="presence-mapping-header">
                 <div class="feature-icon">
                   <ha-icon .icon=${"mdi:account"}></ha-icon>
                 </div>
-                <span class="item-name">${o.name}</span>
+                <span class="item-name">${s.name}</span>
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${De("config.presence_smartphone")}</label>
-                <div class="dropdown ${this._presenceDropdownOpen===p?"open":""}">
+                <label class="section-label">${Re("config.presence_smartphone")}</label>
+                <div class="dropdown ${this._presenceDropdownOpen===h?"open":""}">
                   <button
                     class="dropdown-trigger"
-                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===p?null:p}}
-                    aria-expanded=${this._presenceDropdownOpen===p?"true":"false"}
+                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===h?null:h}}
+                    aria-expanded=${this._presenceDropdownOpen===h?"true":"false"}
                     aria-haspopup="listbox"
                   >
                     <ha-icon .icon=${"mdi:cellphone"}></ha-icon>
-                    <span>${d||s||De("config.presence_auto_detect")}</span>
+                    <span>${l||o||Re("config.presence_auto_detect")}</span>
                     <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
                     <input
                       class="dropdown-search"
                       type="text"
-                      placeholder=${De("config.search_entity")}
-                      .value=${this._presenceDropdownOpen===p?this._presenceDropdownSearch:""}
+                      placeholder=${Re("config.search_entity")}
+                      .value=${this._presenceDropdownOpen===h?this._presenceDropdownSearch:""}
                       @input=${e=>{this._presenceDropdownSearch=e.target.value}}
                       @click=${e=>e.stopPropagation()}
                     />
                     <button
-                      class="dropdown-item ${s?"":"active"}"
+                      class="dropdown-item ${o?"":"active"}"
                       role="option"
-                      aria-selected=${s?"false":"true"}
+                      aria-selected=${o?"false":"true"}
                       @click=${()=>{const e={...this._presenceSmartphoneSensors};delete e[t],this._presenceSmartphoneSensors=e,this._presenceDropdownOpen=null}}
                     >
                       <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
-                      ${De("config.presence_auto_detect")}
+                      ${Re("config.presence_auto_detect")}
                     </button>
-                    ${i.filter(e=>!this._presenceDropdownSearch||e.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())||e.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>F`
+                    ${i.filter(e=>!this._presenceDropdownSearch||e.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())||e.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>N`
                       <button
-                        class="dropdown-item ${s===e.entityId?"active":""}"
+                        class="dropdown-item ${o===e.entityId?"active":""}"
                         role="option"
-                        aria-selected=${s===e.entityId?"true":"false"}
+                        aria-selected=${o===e.entityId?"true":"false"}
                         @click=${()=>{this._presenceSmartphoneSensors={...this._presenceSmartphoneSensors,[t]:e.entityId},this._presenceDropdownOpen=null}}
                       >
                         <ha-icon .icon=${"mdi:cellphone"}></ha-icon>
@@ -6451,24 +3739,24 @@
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${De("config.presence_notify")}</label>
-                <div class="dropdown ${this._presenceDropdownOpen===h?"open":""}">
+                <label class="section-label">${Re("config.presence_notify")}</label>
+                <div class="dropdown ${this._presenceDropdownOpen===p?"open":""}">
                   <button
                     class="dropdown-trigger"
-                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===h?null:h}}
-                    aria-expanded=${this._presenceDropdownOpen===h?"true":"false"}
+                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===p?null:p}}
+                    aria-expanded=${this._presenceDropdownOpen===p?"true":"false"}
                     aria-haspopup="listbox"
                   >
                     <ha-icon .icon=${"mdi:bell"}></ha-icon>
-                    <span>${n||De("config.presence_auto_detect")}</span>
+                    <span>${n||Re("config.presence_auto_detect")}</span>
                     <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
                     <input
                       class="dropdown-search"
                       type="text"
-                      placeholder=${De("config.search_entity")}
-                      .value=${this._presenceDropdownOpen===h?this._presenceDropdownSearch:""}
+                      placeholder=${Re("config.search_entity")}
+                      .value=${this._presenceDropdownOpen===p?this._presenceDropdownSearch:""}
                       @input=${e=>{this._presenceDropdownSearch=e.target.value}}
                       @click=${e=>e.stopPropagation()}
                     />
@@ -6479,9 +3767,9 @@
                       @click=${()=>{const e={...this._presenceNotifyServices};delete e[t],this._presenceNotifyServices=e,this._presenceDropdownOpen=null}}
                     >
                       <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
-                      ${De("config.presence_auto_detect")}
+                      ${Re("config.presence_auto_detect")}
                     </button>
-                    ${r.filter(e=>!this._presenceDropdownSearch||e.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>F`
+                    ${r.filter(e=>!this._presenceDropdownSearch||e.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>N`
                       <button
                         class="dropdown-item ${n===e?"active":""}"
                         role="option"
@@ -6497,24 +3785,24 @@
               </div>
 
               <div class="presence-mapping-field">
-                <label class="section-label">${De("config.presence_driving")}</label>
-                <div class="dropdown ${this._presenceDropdownOpen===m?"open":""}">
+                <label class="section-label">${Re("config.presence_driving")}</label>
+                <div class="dropdown ${this._presenceDropdownOpen===u?"open":""}">
                   <button
                     class="dropdown-trigger"
-                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===m?null:m}}
-                    aria-expanded=${this._presenceDropdownOpen===m?"true":"false"}
+                    @click=${()=>{this._presenceDropdownSearch="",this._presenceDropdownOpen=this._presenceDropdownOpen===u?null:u}}
+                    aria-expanded=${this._presenceDropdownOpen===u?"true":"false"}
                     aria-haspopup="listbox"
                   >
                     <ha-icon .icon=${"mdi:car"}></ha-icon>
-                    <span>${l||c||De("config.presence_auto_detect")}</span>
+                    <span>${d||c||Re("config.presence_auto_detect")}</span>
                     <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
                   </button>
                   <div class="dropdown-menu" role="listbox">
                     <input
                       class="dropdown-search"
                       type="text"
-                      placeholder=${De("config.search_entity")}
-                      .value=${this._presenceDropdownOpen===m?this._presenceDropdownSearch:""}
+                      placeholder=${Re("config.search_entity")}
+                      .value=${this._presenceDropdownOpen===u?this._presenceDropdownSearch:""}
                       @input=${e=>{this._presenceDropdownSearch=e.target.value}}
                       @click=${e=>e.stopPropagation()}
                     />
@@ -6525,9 +3813,9 @@
                       @click=${()=>{const e={...this._presenceDrivingSensors};delete e[t],this._presenceDrivingSensors=e,this._presenceDropdownOpen=null}}
                     >
                       <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
-                      ${De("config.presence_auto_detect")}
+                      ${Re("config.presence_auto_detect")}
                     </button>
-                    ${a.filter(e=>!this._presenceDropdownSearch||e.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())||e.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>F`
+                    ${a.filter(e=>!this._presenceDropdownSearch||e.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())||e.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase())).map(e=>N`
                       <button
                         class="dropdown-item ${c===e.entityId?"active":""}"
                         role="option"
@@ -6545,66 +3833,33 @@
           `})}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}ot([me()],st.prototype,"_presenceShowHeader"),ot([me()],st.prototype,"_presencePersonEntities"),ot([me()],st.prototype,"_presenceSmartphoneSensors"),ot([me()],st.prototype,"_presenceNotifyServices"),ot([me()],st.prototype,"_presenceDrivingSensors"),ot([me()],st.prototype,"_presenceDropdownOpen"),ot([me()],st.prototype,"_presenceDropdownSearch");try{customElements.define("config-tab-presence",st)}catch{}var nt=Object.defineProperty,ct=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&nt(t,i,o),o};class dt extends qe{constructor(){super(...arguments),this._spotifyShowHeader=!0,this._spotifyEntity="",this._spotifySortOrder="recent_first",this._spotifyDropdownOpen=!1,this._spotifyMaxItems=6,this._spotifyVisibleSpeakers=[],this._spotifyConfigured=null,this._localDragIdx=null,this._localDropIdx=null,this._localDragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_spotifyShowHeader","_spotifyEntity","_spotifySortOrder","_spotifyMaxItems","_spotifyVisibleSpeakers"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._spotifyShowHeader=t.show_header??!0,this._spotifyEntity=t.entity_id??"",this._spotifySortOrder="oldest_first"===t.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=t.max_items_per_section??6,this._spotifyVisibleSpeakers=t.visible_speakers??[],this._checkSpotifyStatus()}collectSaveData(){return{show_header:this._spotifyShowHeader,...this._spotifyEntity?{entity_id:this._spotifyEntity}:{},sort_order:this._spotifySortOrder,max_items_per_section:this._spotifyMaxItems,visible_speakers:this._spotifyVisibleSpeakers}}async save(){if(this.backend)try{await this.backend.send("set_spotify_config",this.collectSaveData()),this._fireToast(!0),ue.emit("spotify-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.spotify_card&&this.loadFromConfig(e.spotify_card)}catch{}}async _checkSpotifyStatus(){if(this.backend)try{const e=await this.backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}_selectEntity(e){this._spotifyEntity=e,this._spotifyDropdownOpen=!1}_toggleSpeaker(e){this._spotifyVisibleSpeakers.includes(e)?this._spotifyVisibleSpeakers=this._spotifyVisibleSpeakers.filter(t=>t!==e):this._spotifyVisibleSpeakers=[...this._spotifyVisibleSpeakers,e]}_onLocalDragStart(e){this._localDragIdx=e,this._localDragContext="speakers"}_onLocalDragOver(e,t){t.preventDefault(),this._localDropIdx=e,this.requestUpdate()}_onLocalDragLeave(){this._localDropIdx=null,this.requestUpdate()}_onLocalDragEnd(){this._localDragIdx=null,this._localDropIdx=null,this._localDragContext="",this.requestUpdate()}_onDropSpeaker(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e||"speakers"!==this._localDragContext)return this._localDragIdx=null,void(this._localDropIdx=null);const i=[...this._spotifyVisibleSpeakers];if(this._localDragIdx>=i.length||e>=i.length)return this._localDragIdx=null,void(this._localDropIdx=null);const[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._spotifyVisibleSpeakers=i,this._localDragIdx=null,this._localDropIdx=null}renderPreview(){if(!1===this._spotifyConfigured)return F`<div class="preview-empty">${De("config.spotify_not_configured")}</div>`;if(!this._spotifyEntity||!this.hass)return F`<div class="preview-empty">${De("config.spotify_select_entity")}</div>`;if(!this.hass.states[this._spotifyEntity])return F`<div class="preview-empty">${De("config.spotify_select_entity")}</div>`;const e=[{id:"all",label:De("spotify.tab_all"),active:!0},{id:"tracks",label:De("spotify.tab_tracks"),active:!1},{id:"playlists",label:De("spotify.tab_playlists"),active:!1},{id:"podcasts",label:De("spotify.tab_podcasts"),active:!1}],t=[{name:"Daily Mix 1",meta:De("spotify.type_playlist"),icon:"mdi:playlist-music"},{name:De("spotify.saved_tracks"),meta:"128 "+De("spotify.tracks_count",{count:""}).trim(),icon:"mdi:heart"},{name:"Discover Weekly",meta:De("spotify.type_playlist"),icon:"mdi:playlist-music"}];return F`
-      <div class="preview-spotify-wrap">
-        ${this._spotifyShowHeader?F`
-          <div class="ps-card-header">
-            <ha-icon .icon=${"mdi:spotify"}></ha-icon>
-            <span class="ps-card-title">${De("spotify.title")}</span>
-          </div>
-        `:B}
-        <div class="preview-spotify">
-          <div class="ps-search">
-            <ha-icon .icon=${"mdi:magnify"}></ha-icon>
-            <span class="ps-search-text">${De("spotify.search_placeholder")}</span>
-          </div>
-          <div class="ps-tabs">
-            ${e.map(e=>F`
-              <span class="ps-tab ${e.active?"active":""}">${e.label}</span>
-            `)}
-          </div>
-          <div class="ps-section-label">${De("spotify.my_playlists")}</div>
-          ${t.map(e=>F`
-            <div class="ps-item-row">
-              <div class="ps-item-art">
-                <ha-icon .icon=${e.icon}></ha-icon>
-              </div>
-              <div class="ps-item-info">
-                <div class="ps-item-name">${e.name}</div>
-                <div class="ps-item-meta">${e.meta}</div>
-              </div>
-              <ha-icon class="ps-item-play" .icon=${"mdi:play-circle"}></ha-icon>
-            </div>
-          `)}
-        </div>
-      </div>
-    `}_renderSetupGuide(){return F`
+    `}}mt([ue()],ft.prototype,"_presenceShowHeader"),mt([ue()],ft.prototype,"_presencePersonEntities"),mt([ue()],ft.prototype,"_presenceSmartphoneSensors"),mt([ue()],ft.prototype,"_presenceNotifyServices"),mt([ue()],ft.prototype,"_presenceDrivingSensors"),mt([ue()],ft.prototype,"_presenceDropdownOpen"),mt([ue()],ft.prototype,"_presenceDropdownSearch");try{customElements.define("config-tab-presence",ft)}catch{}var vt=Object.defineProperty,bt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&vt(t,i,s),s};class yt extends it{constructor(){super(...arguments),this._spotifyShowHeader=!0,this._spotifyEntity="",this._spotifySortOrder="recent_first",this._spotifyDropdownOpen=!1,this._spotifyMaxItems=6,this._spotifyVisibleSpeakers=[],this._spotifyConfigured=null,this._localDragIdx=null,this._localDropIdx=null,this._localDragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_spotifyShowHeader","_spotifyEntity","_spotifySortOrder","_spotifyMaxItems","_spotifyVisibleSpeakers"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._spotifyShowHeader=t.show_header??!0,this._spotifyEntity=t.entity_id??"",this._spotifySortOrder="oldest_first"===t.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=t.max_items_per_section??6,this._spotifyVisibleSpeakers=t.visible_speakers??[],this._checkSpotifyStatus()}collectSaveData(){return{show_header:this._spotifyShowHeader,...this._spotifyEntity?{entity_id:this._spotifyEntity}:{},sort_order:this._spotifySortOrder,max_items_per_section:this._spotifyMaxItems,visible_speakers:this._spotifyVisibleSpeakers}}async save(){if(this.backend)try{await this.backend.send("set_spotify_config",this.collectSaveData()),this._fireToast(!0),ge.emit("spotify-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.spotify_card&&this.loadFromConfig(e.spotify_card)}catch{}}async _checkSpotifyStatus(){if(this.backend)try{const e=await this.backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}_selectEntity(e){this._spotifyEntity=e,this._spotifyDropdownOpen=!1}_toggleSpeaker(e){this._spotifyVisibleSpeakers.includes(e)?this._spotifyVisibleSpeakers=this._spotifyVisibleSpeakers.filter(t=>t!==e):this._spotifyVisibleSpeakers=[...this._spotifyVisibleSpeakers,e]}_onLocalDragStart(e){this._localDragIdx=e,this._localDragContext="speakers"}_onLocalDragOver(e,t){t.preventDefault(),this._localDropIdx=e,this.requestUpdate()}_onLocalDragLeave(){this._localDropIdx=null,this.requestUpdate()}_onLocalDragEnd(){this._localDragIdx=null,this._localDropIdx=null,this._localDragContext="",this.requestUpdate()}_onDropSpeaker(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e||"speakers"!==this._localDragContext)return this._localDragIdx=null,void(this._localDropIdx=null);const i=[...this._spotifyVisibleSpeakers];if(this._localDragIdx>=i.length||e>=i.length)return this._localDragIdx=null,void(this._localDropIdx=null);const[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._spotifyVisibleSpeakers=i,this._localDragIdx=null,this._localDropIdx=null}_renderSetupGuide(){return N`
       <div class="tab-panel" id="panel-spotify">
         <div class="pw-sp-setup-box">
           <ha-icon .icon=${"mdi:spotify"} class="pw-sp-setup-icon"></ha-icon>
           <div class="pw-sp-setup-title">
-            ${De("config.spotify_not_configured")}
+            ${Re("config.spotify_not_configured")}
           </div>
           <div class="pw-sp-setup-desc">
-            ${De("config.spotify_setup_guide")}
+            ${Re("config.spotify_setup_guide")}
           </div>
 
           <div class="pw-sp-steps">
-            ${[1,2,3,4].map(e=>F`
+            ${[1,2,3,4].map(e=>N`
               <div class="pw-sp-step">
                 <span class="pw-sp-step-num">${e}</span>
                 <span class="pw-sp-step-text">
-                  ${De(`config.spotify_setup_step${e}`)}
+                  ${Re(`config.spotify_setup_step${e}`)}
                 </span>
               </div>
             `)}
           </div>
 
           <div class="pw-sp-note">
-            ${De("config.spotify_setup_note")}
+            ${Re("config.spotify_setup_note")}
           </div>
 
           <button
@@ -6612,31 +3867,17 @@
             @click=${()=>{window.open("/config/integrations/dashboard","_blank")}}
           >
             <ha-icon .icon=${"mdi:cog"}></ha-icon>
-            ${De("config.spotify_open_settings")}
+            ${Re("config.spotify_open_settings")}
           </button>
         </div>
       </div>
-    `}renderTab(){if(this._lang,null===this._spotifyConfigured)return F`
-        <div class="preview-encart">
-          <div class="preview-label">${De("config.preview")}</div>
-          <div class="preview-empty">${De("config.spotify_checking")}</div>
-        </div>
+    `}renderTab(){if(this._lang,null===this._spotifyConfigured)return N`
         <div class="tab-panel" id="panel-spotify">
-          <div class="preview-empty">${De("config.spotify_checking")}</div>
+          <div class="preview-empty">${Re("config.spotify_checking")}</div>
         </div>
-      `;if(!1===this._spotifyConfigured)return F`
-        <div class="preview-encart">
-          <div class="preview-label">${De("config.preview")}</div>
-          ${this.renderPreview()}
-        </div>
-        ${this._renderSetupGuide()}
-      `;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")).sort():[],t=e.find(e=>e===this._spotifyEntity);return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+      `;if(!1===this._spotifyConfigured)return this._renderSetupGuide();const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")).sort():[],t=e.find(e=>e===this._spotifyEntity);return N`
       <div class="tab-panel" id="panel-spotify">
+        <glass-spotify-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-spotify-card>
         <div class="feature-list">
           <button class="feature-row" role="switch" aria-checked="${this._spotifyShowHeader?"true":"false"}"
             @click=${()=>{this._spotifyShowHeader=!this._spotifyShowHeader}}>
@@ -6644,15 +3885,15 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.spotify_show_header")}</div>
-              <div class="feature-desc">${De("config.spotify_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.spotify_show_header")}</div>
+              <div class="feature-desc">${Re("config.spotify_show_header_desc")}</div>
             </div>
             <span class="toggle ${this._spotifyShowHeader?"on":""}"></span>
           </button>
         </div>
 
-        <div class="section-label">${De("config.spotify_entity")}</div>
-        <div class="section-desc">${De("config.spotify_entity_desc")}</div>
+        <div class="section-label">${Re("config.spotify_entity")}</div>
+        <div class="section-desc">${Re("config.spotify_entity_desc")}</div>
         <div class="dropdown ${this._spotifyDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -6661,11 +3902,11 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${"mdi:spotify"} class="pw-sp-entity-icon"></ha-icon>
-            <span>${t||De("common.select")}</span>
+            <span>${t||Re("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
-            ${e.map(e=>F`
+            ${e.map(e=>N`
                 <button
                   class="dropdown-item ${e===this._spotifyEntity?"active":""}"
                   role="option"
@@ -6679,21 +3920,21 @@
           </div>
         </div>
 
-        <div class="section-label">${De("config.spotify_sort_order")}</div>
-        <div class="section-desc">${De("config.spotify_sort_order_desc")}</div>
+        <div class="section-label">${Re("config.spotify_sort_order")}</div>
+        <div class="section-desc">${Re("config.spotify_sort_order_desc")}</div>
         <div class="segmented">
           <button class="seg-btn ${"recent_first"===this._spotifySortOrder?"active":""}"
             @click=${()=>{this._spotifySortOrder="recent_first"}}>
-            ${De("config.spotify_sort_recent")}
+            ${Re("config.spotify_sort_recent")}
           </button>
           <button class="seg-btn ${"oldest_first"===this._spotifySortOrder?"active":""}"
             @click=${()=>{this._spotifySortOrder="oldest_first"}}>
-            ${De("config.spotify_sort_oldest")}
+            ${Re("config.spotify_sort_oldest")}
           </button>
         </div>
 
-        <div class="section-label">${De("config.spotify_max_items")}</div>
-        <div class="section-desc">${De("config.spotify_max_items_desc")}</div>
+        <div class="section-label">${Re("config.spotify_max_items")}</div>
+        <div class="section-desc">${Re("config.spotify_max_items_desc")}</div>
         <div class="range-row">
           <input
             type="range"
@@ -6706,19 +3947,19 @@
           <span class="range-value">${this._spotifyMaxItems}</span>
         </div>
 
-        <div class="section-label">${De("config.spotify_speakers")}</div>
-        <div class="section-desc">${De("config.spotify_speakers_desc")}</div>
+        <div class="section-label">${Re("config.spotify_speakers")}</div>
+        <div class="section-desc">${Re("config.spotify_speakers_desc")}</div>
         ${this._renderSpeakerList()}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}_renderSpeakerList(){const e=this.hass?Object.entries(this.hass.states).filter(([e])=>e.startsWith("media_player.")).map(([e,t])=>({entityId:e,name:t.attributes.friendly_name??e,visible:this._spotifyVisibleSpeakers.includes(e)})):[],t=[...this._spotifyVisibleSpeakers.map(t=>e.find(e=>e.entityId===t)).filter(e=>!!e),...e.filter(e=>!e.visible).sort((e,t)=>e.name.localeCompare(t.name))];return F`
+    `}_renderSpeakerList(){const e=this.hass?Object.entries(this.hass.states).filter(([e])=>e.startsWith("media_player.")).map(([e,t])=>({entityId:e,name:t.attributes.friendly_name??e,visible:this._spotifyVisibleSpeakers.includes(e)})):[],t=[...this._spotifyVisibleSpeakers.map(t=>e.find(e=>e.entityId===t)).filter(e=>!!e),...e.filter(e=>!e.visible).sort((e,t)=>e.name.localeCompare(t.name))];return N`
       <div class="item-list">
-        ${t.map(e=>{const t=e.visible,i=t?this._spotifyVisibleSpeakers.indexOf(e.entityId):-1,a=this._localDragIdx===i&&-1!==i&&"speakers"===this._localDragContext,r=this._localDropIdx===i&&-1!==i&&"speakers"===this._localDragContext,o=["item-row",t?"":"disabled",a?"dragging":"",r?"drop-target":""].filter(Boolean).join(" ");return F`
+        ${t.map(e=>{const t=e.visible,i=t?this._spotifyVisibleSpeakers.indexOf(e.entityId):-1,a=this._localDragIdx===i&&-1!==i&&"speakers"===this._localDragContext,r=this._localDropIdx===i&&-1!==i&&"speakers"===this._localDragContext,s=["item-row",t?"":"disabled",a?"dragging":"",r?"drop-target":""].filter(Boolean).join(" ");return N`
             <div
-              class=${o}
+              class=${s}
               draggable=${t?"true":"false"}
               @dragstart=${()=>{t&&-1!==i&&this._onLocalDragStart(i)}}
               @dragover=${e=>{t&&-1!==i&&this._onLocalDragOver(i,e)}}
@@ -6726,11 +3967,11 @@
               @drop=${e=>{t&&-1!==i&&this._onDropSpeaker(i,e)}}
               @dragend=${()=>this._onLocalDragEnd()}
             >
-              ${t?F`
+              ${t?N`
                 <span class="drag-handle">
                   <ha-icon .icon=${"mdi:drag"}></ha-icon>
                 </span>
-              `:F`<span class="pw-sp-drag-spacer"></span>`}
+              `:N`<span class="pw-sp-drag-spacer"></span>`}
               <div class="item-info">
                 <span class="item-name">${e.name}</span>
                 <span class="item-meta">${e.entityId}</span>
@@ -6740,14 +3981,14 @@
                 @click=${()=>this._toggleSpeaker(e.entityId)}
                 role="switch"
                 aria-checked=${t?"true":"false"}
-                aria-label="${De(t?"common.hide":"common.show")} ${e.name}"
+                aria-label="${Re(t?"common.hide":"common.show")} ${e.name}"
               ></button>
             </div>
           `})}
       </div>
-    `}}ct([me()],dt.prototype,"_spotifyShowHeader"),ct([me()],dt.prototype,"_spotifyEntity"),ct([me()],dt.prototype,"_spotifySortOrder"),ct([me()],dt.prototype,"_spotifyDropdownOpen"),ct([me()],dt.prototype,"_spotifyMaxItems"),ct([me()],dt.prototype,"_spotifyVisibleSpeakers"),ct([me()],dt.prototype,"_spotifyConfigured");try{customElements.define("config-tab-spotify",dt)}catch{}var lt=Object.defineProperty,pt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&lt(t,i,o),o};const ht=[{key:"input_select",i18nKey:"config.title_source_input_select",icon:"mdi:form-select"},{key:"scenes",i18nKey:"config.title_source_scenes",icon:"mdi:palette"},{key:"booleans",i18nKey:"config.title_source_booleans",icon:"mdi:toggle-switch"}],mt=["neutral","success","warning","info","accent","alert"],ut={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t4)"},_t=e=>ut[e]??(e.startsWith("#")?e:"var(--t4)"),gt={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},vt={icon:"mdi:clock-outline",color:"var(--t3)"};class ft extends qe{constructor(){super(...arguments),this._titleText="",this._titleSources=[],this._titlePeriodEntity="",this._titlePeriodOptions=[],this._titleEditingSourceIdx=null,this._titleAddSourceDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1,this._titlePeriodDropdownOpen=!1,this._periodIconPopupIdx=null,this._iconPopupModeIdx=null,this._iconSearch="",this._titleAddEntitySearch="",this._titlePeriodSearch="",this._iconList=[],this._iconLoading=!1,this._portalEl=null,this._dragIdx=null,this._dropIdx=null,this._dragContext="",this._dragModeSrcIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_titleText","_titleSources","_titlePeriodEntity","_titlePeriodOptions"])}get _titleModes(){return this._titleSources.flatMap(e=>e.modes)}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._titleText=t.title??"",this._titlePeriodEntity=t.period_entity??"",this._titlePeriodOptions=(t.period_options??[]).map(e=>({id:e.id||"",label:e.label||"",icon:e.icon||"",color:e.color||""})),this._titleSources=(t.sources??[]).map(e=>({source_type:e.source_type||"",entity:e.entity||"",label:e.label||"",modes:(e.modes||[]).map(e=>({id:e.id||"",label:e.label||"",icon:e.icon||"",color:e.color||"neutral"}))}))}collectSaveData(){return{title:this._titleText,period_entity:this._titlePeriodEntity,period_options:this._titlePeriodOptions,sources:this._titleSources.map(e=>({source_type:e.source_type,entity:e.entity||"",label:e.label||"",modes:e.modes}))}}async save(){if(this.backend)try{await this.backend.send("set_title_config",this.collectSaveData()),this._fireToast(!0),ue.emit("title-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend){this._iconPopupModeIdx=null,this._periodIconPopupIdx=null,this._removeIconPortal(),this._titleEditingSourceIdx=null,this._titleAddSourceDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1;try{const e=await this.backend.send("get_config");e?.title_card&&this.loadFromConfig(e.title_card)}catch{}}}_localDragStart(e,t,i){this._dragIdx=e,this._dragContext=t,"title_modes"===t&&(this._dragModeSrcIdx=i??null)}_localDragOver(e,t,i){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&("title_modes"===this._dragContext&&void 0!==i&&i!==this._dragModeSrcIdx||(this._dropIdx=e))}_localDragLeave(){this._dropIdx=null}_localDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("title_sources"===i){const t=[...this._titleSources],[i]=t.splice(this._dragIdx,1);if(t.splice(e,0,i),this._titleSources=t,this._titleEditingSourceIdx===this._dragIdx)this._titleEditingSourceIdx=e;else if(null!==this._titleEditingSourceIdx){const t=this._titleEditingSourceIdx,i=this._dragIdx;i<t&&e>=t?this._titleEditingSourceIdx=t-1:i>t&&e<=t&&(this._titleEditingSourceIdx=t+1)}}else if("title_modes"===i&&null!==this._dragModeSrcIdx){const t=[...this._titleSources],i=t[this._dragModeSrcIdx];if(i){const a=[...i.modes],[r]=a.splice(this._dragIdx,1);a.splice(e,0,r),t[this._dragModeSrcIdx]={...i,modes:a},this._titleSources=t}this._dragModeSrcIdx=null}this._dragIdx=null,this._dropIdx=null}_localDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragModeSrcIdx=null}_addTitleSource(e){this._titleAddSourceDropdownOpen=!1,this._titleSources=[...this._titleSources,{source_type:e,entity:"",label:"",modes:[]}],this._titleEditingSourceIdx=this._titleSources.length-1}_removeTitleSource(e){const t=[...this._titleSources];t.splice(e,1),this._titleSources=t,this._titleEditingSourceIdx===e?this._titleEditingSourceIdx=null:null!==this._titleEditingSourceIdx&&this._titleEditingSourceIdx>e&&this._titleEditingSourceIdx--}_setTitleSourceEntity(e,t){this._titleAddEntityDropdownOpen=!1;const i=[...this._titleSources];if(i[e]){if(i[e]={...i[e],entity:t},t.startsWith("input_select.")&&this.hass){const a=this.hass.states[t];if(a){const t=a.attributes.options??[],r=new Map(i[e].modes.map(e=>[e.id,e]));i[e]={...i[e],modes:t.map(e=>r.get(e)??{id:e,label:e,icon:"",color:"neutral"})}}}else t||(i[e]={...i[e],modes:[]});this._titleSources=i}}_setTitleSourceLabel(e,t){const i=[...this._titleSources];i[e]&&(i[e]={...i[e],label:t},this._titleSources=i)}_addTitleModeEntity(e,t){this._titleAddEntityDropdownOpen=!1;const i=[...this._titleSources];if(!i[e])return;if(i[e].modes.some(e=>e.id===t))return;const a=this.hass?.states[t],r=a?.attributes.friendly_name||t.split(".")[1]||t,o=t.startsWith("scene.")?"mdi:palette":"mdi:toggle-switch",s=t.startsWith("scene.")?"accent":"success";i[e]={...i[e],modes:[...i[e].modes,{id:t,label:r,icon:o,color:s}]},this._titleSources=i}_removeTitleModeEntity(e,t){const i=[...this._titleSources];i[e]&&(i[e]={...i[e],modes:i[e].modes.filter(e=>e.id!==t)},this._titleSources=i)}_updateTitleMode(e,t,i){let a=e;const r=[...this._titleSources];for(let o=0;o<r.length;o++){if(a<r[o].modes.length){const e=[...r[o].modes];return e[a]={...e[a],[t]:i},r[o]={...r[o],modes:e},void(this._titleSources=r)}a-=r[o].modes.length}}_setTitlePeriodEntity(e){if(this._titlePeriodDropdownOpen=!1,this._titlePeriodEntity=e,e&&this.hass){const t=this.hass.states[e];if(t){const e=t.attributes.options??[],i=new Map(this._titlePeriodOptions.map(e=>[e.id,e]));this._titlePeriodOptions=e.map(e=>i.get(e)??{id:e,label:e,icon:"",color:""})}}else e||(this._titlePeriodOptions=[])}_updateTitlePeriodOption(e,t,i){const a=[...this._titlePeriodOptions];a[e]&&(a[e]={...a[e],[t]:i},this._titlePeriodOptions=a)}async _openIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),e<this._titleModes.length&&(this._iconSearch="",this._iconPopupModeIdx=e,this._showIconPortal()))}async _openPeriodIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),e<this._titlePeriodOptions.length&&(this._iconSearch="",this._periodIconPopupIdx=e,this._showIconPortal()))}async _loadIconList(){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot?.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim(),t=this._iconList;return e?t.filter(t=>t.toLowerCase().includes(e)).slice(0,120):t.slice(0,120)}_showIconPortal(){const e=null!==this._iconPopupModeIdx,t=null!==this._periodIconPopupIdx;if(!e&&!t)return void this._removeIconPortal();const i=this._getFilteredIcons(),a=this._iconPopupModeIdx,r=this._periodIconPopupIdx,o=e&&null!==a?this._titleModes[a]?.icon??"":null!==r?this._titlePeriodOptions[r]?.icon??"":"";this._portalEl||(this._portalEl=document.createElement("div"),document.body.appendChild(this._portalEl));const s=()=>{this._iconPopupModeIdx=null,this._periodIconPopupIdx=null,this._removeIconPortal()},n=i=>{e&&null!=this._iconPopupModeIdx?this._updateTitleMode(this._iconPopupModeIdx,"icon",i):t&&null!=this._periodIconPopupIdx&&this._updateTitlePeriodOption(this._periodIconPopupIdx,"icon",i),this._removeIconPortal()},c=e=>{this._iconSearch=e,this._showIconPortal()};this._portalEl.replaceChildren(),Object.assign(this._portalEl.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem"}),this._portalEl.addEventListener("click",e=>{e.target===this._portalEl&&s()},{once:!0});const d=document.createElement("div");Object.assign(d.style,{width:"100%",maxWidth:"25rem",maxHeight:"70vh",display:"flex",flexDirection:"column",borderRadius:"22px",background:"linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)",boxShadow:"inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"});const l=document.createElement("div");Object.assign(l.style,{padding:"0.875rem 1rem 0.625rem",display:"flex",flexDirection:"column",gap:"0.625rem",borderBottom:"1px solid rgba(255,255,255,0.06)"});const p=document.createElement("span");Object.assign(p.style,{fontSize:"11px",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.45)"}),p.textContent=De("config.title_mode_icon");const h=document.createElement("input");Object.assign(h.style,{width:"100%",padding:"0.5rem 0.75rem",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.88)",fontSize:"13px",outline:"none",boxSizing:"border-box"}),h.placeholder="mdi:...",h.value=this._iconSearch,h.addEventListener("input",()=>c(h.value)),l.appendChild(p),l.appendChild(h),d.appendChild(l);const m=document.createElement("div");Object.assign(m.style,{overflow:"auto",flex:"1",padding:"0.5rem"});const u=document.createElement("div");Object.assign(u.style,{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:"4px"});const _=this._createIconBtn("mdi:cancel",""===o,.4);_.addEventListener("click",()=>n("")),u.appendChild(_);for(const g of i){const e=this._createIconBtn(g,g===o,1);e.addEventListener("click",()=>n(g)),u.appendChild(e)}if(0===i.length&&this._iconSearch){const e=document.createElement("div");Object.assign(e.style,{gridColumn:"1/-1",textAlign:"center",padding:"2rem",color:"rgba(255,255,255,0.35)",fontSize:"13px"}),e.textContent=De("config.title_no_icons_found"),u.appendChild(e)}m.appendChild(u),d.appendChild(m),this._portalEl.appendChild(d),h.focus()}_createIconBtn(e,t,i){const a=document.createElement("button");Object.assign(a.style,{width:"100%",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"10px",border:t?"2px solid rgba(129,140,248,0.6)":"1px solid rgba(255,255,255,0.06)",background:t?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.04)",cursor:"pointer",color:"rgba(255,255,255,0.88)",padding:"0"});const r=document.createElement("ha-icon");return r.icon=e,r.style.cssText=`--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${i};`,a.appendChild(r),a}_removeIconPortal(){this._portalEl&&(this._portalEl.remove(),this._portalEl=null)}disconnectedCallback(){super.disconnectedCallback(),this._removeIconPortal()}_renderSourceEditor(e,t){const i=this._titleEditingSourceIdx===t,a=ht.find(t=>t.key===e.source_type),r=e.label||(a?De(a.i18nKey):"")||e.source_type,o=this._dragIdx===t&&"title_sources"===this._dragContext,s=this._dropIdx===t&&"title_sources"===this._dragContext;return F`
+    `}}bt([ue()],yt.prototype,"_spotifyShowHeader"),bt([ue()],yt.prototype,"_spotifyEntity"),bt([ue()],yt.prototype,"_spotifySortOrder"),bt([ue()],yt.prototype,"_spotifyDropdownOpen"),bt([ue()],yt.prototype,"_spotifyMaxItems"),bt([ue()],yt.prototype,"_spotifyVisibleSpeakers"),bt([ue()],yt.prototype,"_spotifyConfigured");try{customElements.define("config-tab-spotify",yt)}catch{}var wt=Object.defineProperty,xt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&wt(t,i,s),s};const kt=[{key:"input_select",i18nKey:"config.title_source_input_select",icon:"mdi:form-select"},{key:"scenes",i18nKey:"config.title_source_scenes",icon:"mdi:palette"},{key:"booleans",i18nKey:"config.title_source_booleans",icon:"mdi:toggle-switch"}],$t=["neutral","success","warning","info","accent","alert"],St={success:"var(--c-success)",warning:"var(--c-warning)",info:"var(--c-info)",accent:"var(--c-accent)",alert:"var(--c-alert)",neutral:"var(--t4)"},Ct={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},It={icon:"mdi:clock-outline"};class Et extends it{constructor(){super(...arguments),this._titleText="",this._titleSources=[],this._titlePeriodEntity="",this._titlePeriodOptions=[],this._titleEditingSourceIdx=null,this._titleAddSourceDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1,this._titlePeriodDropdownOpen=!1,this._periodIconPopupIdx=null,this._iconPopupModeIdx=null,this._iconSearch="",this._titleAddEntitySearch="",this._titlePeriodSearch="",this._iconList=[],this._iconLoading=!1,this._portalEl=null,this._dragIdx=null,this._dropIdx=null,this._dragContext="",this._dragModeSrcIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_titleText","_titleSources","_titlePeriodEntity","_titlePeriodOptions"])}get _titleModes(){return this._titleSources.flatMap(e=>e.modes)}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._titleText=t.title??"",this._titlePeriodEntity=t.period_entity??"",this._titlePeriodOptions=(t.period_options??[]).map(e=>({id:e.id||"",label:e.label||"",icon:e.icon||"",color:e.color||""})),this._titleSources=(t.sources??[]).map(e=>({source_type:e.source_type||"",entity:e.entity||"",label:e.label||"",modes:(e.modes||[]).map(e=>({id:e.id||"",label:e.label||"",icon:e.icon||"",color:e.color||"neutral"}))}))}collectSaveData(){return{title:this._titleText,period_entity:this._titlePeriodEntity,period_options:this._titlePeriodOptions,sources:this._titleSources.map(e=>({source_type:e.source_type,entity:e.entity||"",label:e.label||"",modes:e.modes}))}}async save(){if(this.backend)try{await this.backend.send("set_title_config",this.collectSaveData()),this._fireToast(!0),ge.emit("title-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend){this._iconPopupModeIdx=null,this._periodIconPopupIdx=null,this._removeIconPortal(),this._titleEditingSourceIdx=null,this._titleAddSourceDropdownOpen=!1,this._titleAddEntityDropdownOpen=!1;try{const e=await this.backend.send("get_config");e?.title_card&&this.loadFromConfig(e.title_card)}catch{}}}_localDragStart(e,t,i){this._dragIdx=e,this._dragContext=t,"title_modes"===t&&(this._dragModeSrcIdx=i??null)}_localDragOver(e,t,i){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&("title_modes"===this._dragContext&&void 0!==i&&i!==this._dragModeSrcIdx||(this._dropIdx=e))}_localDragLeave(){this._dropIdx=null}_localDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);const i=this._dragContext;if("title_sources"===i){const t=[...this._titleSources],[i]=t.splice(this._dragIdx,1);if(t.splice(e,0,i),this._titleSources=t,this._titleEditingSourceIdx===this._dragIdx)this._titleEditingSourceIdx=e;else if(null!==this._titleEditingSourceIdx){const t=this._titleEditingSourceIdx,i=this._dragIdx;i<t&&e>=t?this._titleEditingSourceIdx=t-1:i>t&&e<=t&&(this._titleEditingSourceIdx=t+1)}}else if("title_modes"===i&&null!==this._dragModeSrcIdx){const t=[...this._titleSources],i=t[this._dragModeSrcIdx];if(i){const a=[...i.modes],[r]=a.splice(this._dragIdx,1);a.splice(e,0,r),t[this._dragModeSrcIdx]={...i,modes:a},this._titleSources=t}this._dragModeSrcIdx=null}this._dragIdx=null,this._dropIdx=null}_localDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragModeSrcIdx=null}_addTitleSource(e){this._titleAddSourceDropdownOpen=!1,this._titleSources=[...this._titleSources,{source_type:e,entity:"",label:"",modes:[]}],this._titleEditingSourceIdx=this._titleSources.length-1}_removeTitleSource(e){const t=[...this._titleSources];t.splice(e,1),this._titleSources=t,this._titleEditingSourceIdx===e?this._titleEditingSourceIdx=null:null!==this._titleEditingSourceIdx&&this._titleEditingSourceIdx>e&&this._titleEditingSourceIdx--}_setTitleSourceEntity(e,t){this._titleAddEntityDropdownOpen=!1;const i=[...this._titleSources];if(i[e]){if(i[e]={...i[e],entity:t},t.startsWith("input_select.")&&this.hass){const a=this.hass.states[t];if(a){const t=a.attributes.options??[],r=new Map(i[e].modes.map(e=>[e.id,e]));i[e]={...i[e],modes:t.map(e=>r.get(e)??{id:e,label:e,icon:"",color:"neutral"})}}}else t||(i[e]={...i[e],modes:[]});this._titleSources=i}}_setTitleSourceLabel(e,t){const i=[...this._titleSources];i[e]&&(i[e]={...i[e],label:t},this._titleSources=i)}_addTitleModeEntity(e,t){this._titleAddEntityDropdownOpen=!1;const i=[...this._titleSources];if(!i[e])return;if(i[e].modes.some(e=>e.id===t))return;const a=this.hass?.states[t],r=a?.attributes.friendly_name||t.split(".")[1]||t,s=t.startsWith("scene.")?"mdi:palette":"mdi:toggle-switch",o=t.startsWith("scene.")?"accent":"success";i[e]={...i[e],modes:[...i[e].modes,{id:t,label:r,icon:s,color:o}]},this._titleSources=i}_removeTitleModeEntity(e,t){const i=[...this._titleSources];i[e]&&(i[e]={...i[e],modes:i[e].modes.filter(e=>e.id!==t)},this._titleSources=i)}_updateTitleMode(e,t,i){let a=e;const r=[...this._titleSources];for(let s=0;s<r.length;s++){if(a<r[s].modes.length){const e=[...r[s].modes];return e[a]={...e[a],[t]:i},r[s]={...r[s],modes:e},void(this._titleSources=r)}a-=r[s].modes.length}}_setTitlePeriodEntity(e){if(this._titlePeriodDropdownOpen=!1,this._titlePeriodEntity=e,e&&this.hass){const t=this.hass.states[e];if(t){const e=t.attributes.options??[],i=new Map(this._titlePeriodOptions.map(e=>[e.id,e]));this._titlePeriodOptions=e.map(e=>i.get(e)??{id:e,label:e,icon:"",color:""})}}else e||(this._titlePeriodOptions=[])}_updateTitlePeriodOption(e,t,i){const a=[...this._titlePeriodOptions];a[e]&&(a[e]={...a[e],[t]:i},this._titlePeriodOptions=a)}async _openIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),e<this._titleModes.length&&(this._iconSearch="",this._iconPopupModeIdx=e,this._showIconPortal()))}async _openPeriodIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),e<this._titlePeriodOptions.length&&(this._iconSearch="",this._periodIconPopupIdx=e,this._showIconPortal()))}async _loadIconList(){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot?.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim(),t=this._iconList;return e?t.filter(t=>t.toLowerCase().includes(e)).slice(0,120):t.slice(0,120)}_showIconPortal(){const e=null!==this._iconPopupModeIdx,t=null!==this._periodIconPopupIdx;if(!e&&!t)return void this._removeIconPortal();const i=this._getFilteredIcons(),a=this._iconPopupModeIdx,r=this._periodIconPopupIdx,s=e&&null!==a?this._titleModes[a]?.icon??"":null!==r?this._titlePeriodOptions[r]?.icon??"":"";this._portalEl||(this._portalEl=document.createElement("div"),document.body.appendChild(this._portalEl));const o=()=>{this._iconPopupModeIdx=null,this._periodIconPopupIdx=null,this._removeIconPortal()},n=i=>{e&&null!=this._iconPopupModeIdx?this._updateTitleMode(this._iconPopupModeIdx,"icon",i):t&&null!=this._periodIconPopupIdx&&this._updateTitlePeriodOption(this._periodIconPopupIdx,"icon",i),this._removeIconPortal()},c=e=>{this._iconSearch=e,this._showIconPortal()};this._portalEl.replaceChildren(),Object.assign(this._portalEl.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem"}),this._portalEl.addEventListener("click",e=>{e.target===this._portalEl&&o()},{once:!0});const l=document.createElement("div");Object.assign(l.style,{width:"100%",maxWidth:"25rem",maxHeight:"70vh",display:"flex",flexDirection:"column",borderRadius:"22px",background:"linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)",boxShadow:"inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"});const d=document.createElement("div");Object.assign(d.style,{padding:"0.875rem 1rem 0.625rem",display:"flex",flexDirection:"column",gap:"0.625rem",borderBottom:"1px solid rgba(255,255,255,0.06)"});const h=document.createElement("span");Object.assign(h.style,{fontSize:"11px",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.45)"}),h.textContent=Re("config.title_mode_icon");const p=document.createElement("input");Object.assign(p.style,{width:"100%",padding:"0.5rem 0.75rem",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.88)",fontSize:"13px",outline:"none",boxSizing:"border-box"}),p.placeholder="mdi:...",p.value=this._iconSearch,p.addEventListener("input",()=>c(p.value)),d.appendChild(h),d.appendChild(p),l.appendChild(d);const u=document.createElement("div");Object.assign(u.style,{overflow:"auto",flex:"1",padding:"0.5rem"});const g=document.createElement("div");Object.assign(g.style,{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:"4px"});const _=this._createIconBtn("mdi:cancel",""===s,.4);_.addEventListener("click",()=>n("")),g.appendChild(_);for(const m of i){const e=this._createIconBtn(m,m===s,1);e.addEventListener("click",()=>n(m)),g.appendChild(e)}if(0===i.length&&this._iconSearch){const e=document.createElement("div");Object.assign(e.style,{gridColumn:"1/-1",textAlign:"center",padding:"2rem",color:"rgba(255,255,255,0.35)",fontSize:"13px"}),e.textContent=Re("config.title_no_icons_found"),g.appendChild(e)}u.appendChild(g),l.appendChild(u),this._portalEl.appendChild(l),p.focus()}_createIconBtn(e,t,i){const a=document.createElement("button");Object.assign(a.style,{width:"100%",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"10px",border:t?"2px solid rgba(129,140,248,0.6)":"1px solid rgba(255,255,255,0.06)",background:t?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.04)",cursor:"pointer",color:"rgba(255,255,255,0.88)",padding:"0"});const r=document.createElement("ha-icon");return r.icon=e,r.style.cssText=`--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${i};`,a.appendChild(r),a}_removeIconPortal(){this._portalEl&&(this._portalEl.remove(),this._portalEl=null)}disconnectedCallback(){super.disconnectedCallback(),this._removeIconPortal()}_renderSourceEditor(e,t){const i=this._titleEditingSourceIdx===t,a=kt.find(t=>t.key===e.source_type),r=e.label||(a?Re(a.i18nKey):"")||e.source_type,s=this._dragIdx===t&&"title_sources"===this._dragContext,o=this._dropIdx===t&&"title_sources"===this._dragContext;return N`
       <div
-        class="title-source-block ${o?"dragging":""} ${s?"drop-target":""}"
+        class="title-source-block ${s?"dragging":""} ${o?"drop-target":""}"
         draggable="true"
         @dragstart=${()=>this._localDragStart(t,"title_sources")}
         @dragover=${e=>this._localDragOver(t,e)}
@@ -6766,29 +4007,29 @@
           <button
             class="btn-icon xs"
             @click=${()=>{this._titleEditingSourceIdx=i?null:t,this._titleAddEntityDropdownOpen=!1}}
-            aria-label=${De(i?"common.collapse":"common.expand")}
+            aria-label=${Re(i?"common.collapse":"common.expand")}
           >
             <ha-icon .icon=${i?"mdi:pencil":"mdi:pencil-outline"}></ha-icon>
           </button>
           <button
             class="btn-icon xs"
             @click=${()=>this._removeTitleSource(t)}
-            aria-label=${De("config.title_remove_source")}
+            aria-label=${Re("config.title_remove_source")}
           >
             <ha-icon .icon=${"mdi:close"}></ha-icon>
           </button>
         </div>
 
-        ${i?F`
+        ${i?N`
           <div class="title-source-body">
             <!-- Label -->
             <div class="title-source-field">
-              <span class="title-source-field-label">${De("config.title_source_label")}</span>
+              <span class="title-source-field-label">${Re("config.title_source_label")}</span>
               <input
                 class="input"
                 type="text"
                 .value=${e.label}
-                placeholder=${a?De(a.i18nKey):""}
+                placeholder=${a?Re(a.i18nKey):""}
                 @input=${e=>this._setTitleSourceLabel(t,e.target.value)}
               />
             </div>
@@ -6796,8 +4037,8 @@
             ${"input_select"===e.source_type?this._renderInputSelectEntityPicker(e,t):B}
 
             <!-- Mode list -->
-            ${e.modes.length>0?F`
-              <div class="section-label pw-tt-mt-sm">${De("config.title_modes")}</div>
+            ${e.modes.length>0?N`
+              <div class="section-label mt-sm">${Re("config.title_modes")}</div>
               <div class="title-modes-list">
                 ${e.modes.map((i,a)=>this._renderModeRow(e,t,i,a))}
               </div>
@@ -6807,9 +4048,9 @@
           </div>
         `:B}
       </div>
-    `}_renderInputSelectEntityPicker(e,t){const i=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("input_select.")).sort():[];return F`
+    `}_renderInputSelectEntityPicker(e,t){const i=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("input_select.")).sort():[];return N`
       <div class="title-source-field">
-        <span class="title-source-field-label">${De("config.title_mode_entity")}</span>
+        <span class="title-source-field-label">${Re("config.title_mode_entity")}</span>
         <div class="dropdown ${this._titleEditingSourceIdx===t&&this._titleAddEntityDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -6818,14 +4059,14 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${e.entity?"mdi:form-select":"mdi:help-circle-outline"}></ha-icon>
-            <span>${e.entity||De("config.title_select_entity")}</span>
+            <span>${e.entity||Re("config.title_select_entity")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
             <input
               class="dropdown-search"
               type="text"
-              placeholder=${De("config.search_entity")}
+              placeholder=${Re("config.search_entity")}
               .value=${this._titleAddEntitySearch}
               @input=${e=>{this._titleAddEntitySearch=e.target.value,this.requestUpdate()}}
               @click=${e=>e.stopPropagation()}
@@ -6837,9 +4078,9 @@
               @click=${()=>this._setTitleSourceEntity(t,"")}
             >
               <ha-icon .icon=${"mdi:close"}></ha-icon>
-              ${De("title_card.mode_none")}
+              ${Re("title_card.mode_none")}
             </button>
-            ${i.filter(e=>!this._titleAddEntitySearch||e.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase())).map(i=>F`
+            ${i.filter(e=>!this._titleAddEntitySearch||e.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase())).map(i=>N`
                 <button
                   class="dropdown-item ${i===e.entity?"active":""}"
                   role="option"
@@ -6853,9 +4094,9 @@
           </div>
         </div>
       </div>
-    `}_renderEntityAdder(e,t){const i="scenes"===e.source_type?"scene.":"input_boolean.",a="scenes"===e.source_type?"mdi:palette":"mdi:toggle-switch",r=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith(i)).sort():[],o=new Set(e.modes.map(e=>e.id)),s=r.filter(e=>!o.has(e));return F`
+    `}_renderEntityAdder(e,t){const i="scenes"===e.source_type?"scene.":"input_boolean.",a="scenes"===e.source_type?"mdi:palette":"mdi:toggle-switch",r=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith(i)).sort():[],s=new Set(e.modes.map(e=>e.id)),o=r.filter(e=>!s.has(e));return N`
       <div class="title-source-field">
-        <span class="title-source-field-label">${De("config.title_add_entity")}</span>
+        <span class="title-source-field-label">${Re("config.title_add_entity")}</span>
         <div class="dropdown ${this._titleEditingSourceIdx===t&&this._titleAddEntityDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -6864,19 +4105,19 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${"mdi:plus"}></ha-icon>
-            <span>${De("config.title_add_entity")}</span>
+            <span>${Re("config.title_add_entity")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
             <input
               class="dropdown-search"
               type="text"
-              placeholder=${De("config.search_entity")}
+              placeholder=${Re("config.search_entity")}
               .value=${this._titleAddEntitySearch}
               @input=${e=>{this._titleAddEntitySearch=e.target.value,this.requestUpdate()}}
               @click=${e=>e.stopPropagation()}
             />
-            ${s.filter(e=>!this._titleAddEntitySearch||e.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase())).map(e=>F`
+            ${o.filter(e=>!this._titleAddEntitySearch||e.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase())).map(e=>N`
                 <button
                   class="dropdown-item"
                   role="option"
@@ -6889,9 +4130,9 @@
           </div>
         </div>
       </div>
-    `}_renderModeRow(e,t,i,a){let r=0;for(let n=0;n<t;n++)r+=this._titleSources[n].modes.length;r+=a;const o=this._dragIdx===a&&"title_modes"===this._dragContext&&this._dragModeSrcIdx===t,s=this._dropIdx===a&&"title_modes"===this._dragContext&&this._dragModeSrcIdx===t;return F`
+    `}_renderModeRow(e,t,i,a){let r=0;for(let n=0;n<t;n++)r+=this._titleSources[n].modes.length;r+=a;const s=this._dragIdx===a&&"title_modes"===this._dragContext&&this._dragModeSrcIdx===t,o=this._dropIdx===a&&"title_modes"===this._dragContext&&this._dragModeSrcIdx===t;return N`
       <div
-        class="title-mode-row ${o?"dragging":""} ${s?"drop-target":""}"
+        class="title-mode-row ${s?"dragging":""} ${o?"drop-target":""}"
         draggable="true"
         @dragstart=${()=>this._localDragStart(a,"title_modes",t)}
         @dragover=${e=>this._localDragOver(a,e,t)}
@@ -6904,11 +4145,11 @@
             <ha-icon .icon=${"mdi:drag"}></ha-icon>
           </span>
           <span class="title-mode-id">${i.id}</span>
-          ${"scenes"===e.source_type||"booleans"===e.source_type?F`
+          ${"scenes"===e.source_type||"booleans"===e.source_type?N`
             <button
               class="btn-icon xs"
               @click=${()=>this._removeTitleModeEntity(t,i.id)}
-              aria-label=${De("config.title_remove_entity")}
+              aria-label=${Re("config.title_remove_entity")}
             >
               <ha-icon .icon=${"mdi:close"}></ha-icon>
             </button>
@@ -6918,32 +4159,32 @@
           <input
             class="input"
             type="text"
-            placeholder=${De("config.title_mode_label")}
+            placeholder=${Re("config.title_mode_label")}
             .value=${i.label}
             @input=${e=>this._updateTitleMode(r,"label",e.target.value)}
           />
           <button
             class="title-icon-btn ${i.icon?"has-icon":""}"
             @click=${()=>this._openIconPopup(r)}
-            aria-label="${De("config.title_mode_icon")}"
+            aria-label="${Re("config.title_mode_icon")}"
           >
             <ha-icon .icon=${i.icon||"mdi:emoticon-outline"}></ha-icon>
           </button>
         </div>
         <div class="title-color-row">
-          <span class="title-color-label">${De("config.title_mode_color")}</span>
+          <span class="title-color-label">${Re("config.title_mode_color")}</span>
           <div class="title-color-chips">
-            ${mt.map(e=>F`
+            ${$t.map(e=>N`
               <button
                 class="title-color-chip ${e} ${i.color===e?"active":""}"
                 @click=${()=>this._updateTitleMode(r,"color",e)}
-                aria-label="${De("config.title_mode_color")}: ${e}"
+                aria-label="${Re("config.title_mode_color")}: ${e}"
               ></button>
             `)}
           </div>
         </div>
       </div>
-    `}_renderPeriodEntityPicker(){const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("input_select.")).sort():[],t=this._titlePeriodEntity;return F`
+    `}_renderPeriodEntityPicker(){const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("input_select.")).sort():[],t=this._titlePeriodEntity;return N`
       <div class="dropdown ${this._titlePeriodDropdownOpen?"open":""}">
         <button
           class="dropdown-trigger"
@@ -6952,14 +4193,14 @@
           aria-haspopup="listbox"
         >
           <ha-icon .icon=${t?"mdi:form-select":"mdi:clock-outline"}></ha-icon>
-          <span>${t||De("config.title_period_auto")}</span>
+          <span>${t||Re("config.title_period_auto")}</span>
           <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
         </button>
         <div class="dropdown-menu" role="listbox">
           <input
             class="dropdown-search"
             type="text"
-            placeholder=${De("config.search_entity")}
+            placeholder=${Re("config.search_entity")}
             .value=${this._titlePeriodSearch}
             @input=${e=>{this._titlePeriodSearch=e.target.value,this.requestUpdate()}}
             @click=${e=>e.stopPropagation()}
@@ -6971,9 +4212,9 @@
             @click=${()=>this._setTitlePeriodEntity("")}
           >
             <ha-icon .icon=${"mdi:clock-outline"}></ha-icon>
-            ${De("config.title_period_auto")}
+            ${Re("config.title_period_auto")}
           </button>
-          ${e.filter(e=>!this._titlePeriodSearch||e.toLowerCase().includes(this._titlePeriodSearch.toLowerCase())).map(e=>F`
+          ${e.filter(e=>!this._titlePeriodSearch||e.toLowerCase().includes(this._titlePeriodSearch.toLowerCase())).map(e=>N`
               <button
                 class="dropdown-item ${e===t?"active":""}"
                 role="option"
@@ -6986,80 +4227,61 @@
             `)}
         </div>
       </div>
-    `}_renderPeriodOptionsEditor(){const e=this._titlePeriodEntity||"",t=this.hass?.states[e],i=t?.attributes?.options??[];if(0===i.length)return B;const a=new Map(this._titlePeriodOptions.map(e=>[e.id,e]));return F`
-      <div class="section-label pw-tt-mt-md">${De("config.title_period_options")}</div>
-      <div class="section-desc">${De("config.title_period_options_desc")}</div>
+    `}_renderPeriodOptionsEditor(){const e=this._titlePeriodEntity||"",t=this.hass?.states[e],i=t?.attributes?.options??[];if(0===i.length)return B;const a=new Map(this._titlePeriodOptions.map(e=>[e.id,e]));return N`
+      <div class="section-label mt-md">${Re("config.title_period_options")}</div>
+      <div class="section-desc">${Re("config.title_period_options_desc")}</div>
       <div class="title-modes-list">
-        ${i.map(e=>{const t=a.get(e),i=this._titlePeriodOptions.findIndex(t=>t.id===e),r=t?.icon||"",o=t?.color||"",s=gt[e]||vt;return-1===i?(this._titlePeriodOptions=[...this._titlePeriodOptions,{id:e,label:e,icon:"",color:""}],B):F`
+        ${i.map(e=>{const t=a.get(e),i=this._titlePeriodOptions.findIndex(t=>t.id===e),r=t?.icon||"",s=t?.color||"",o=Ct[e]||It;return-1===i?(this._titlePeriodOptions=[...this._titlePeriodOptions,{id:e,label:e,icon:"",color:""}],B):N`
             <div class="title-mode-row">
               <div class="title-mode-header">
-                <ha-icon .icon=${r||s.icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;color:${_t(o||gt[e]?.color||"neutral")}"></ha-icon>
+                <ha-icon .icon=${r||o.icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;color:${n=s||Ct[e]?.color||"neutral",St[n]??(n.startsWith("#")?n:"var(--t4)")}"></ha-icon>
                 <span class="title-mode-id">${e}</span>
               </div>
               <div class="title-mode-fields-row">
                 <button
                   class="title-icon-btn ${r?"has-icon":""}"
                   @click=${()=>this._openPeriodIconPopup(i)}
-                  aria-label="${De("config.title_mode_icon")}"
+                  aria-label="${Re("config.title_mode_icon")}"
                 >
                   <ha-icon .icon=${r||"mdi:emoticon-outline"}></ha-icon>
                 </button>
               </div>
               <div class="title-color-row">
-                <span class="title-color-label">${De("config.title_mode_color")}</span>
+                <span class="title-color-label">${Re("config.title_mode_color")}</span>
                 <div class="title-color-chips">
-                  ${mt.map(e=>F`
+                  ${$t.map(e=>N`
                     <button
-                      class="title-color-chip ${e} ${o===e?"active":""}"
+                      class="title-color-chip ${e} ${s===e?"active":""}"
                       @click=${()=>this._updateTitlePeriodOption(i,"color",e)}
-                      aria-label="${De("config.title_mode_color")}: ${e}"
+                      aria-label="${Re("config.title_mode_color")}: ${e}"
                     ></button>
                   `)}
                 </div>
               </div>
             </div>
-          `})}
+          `;var n})}
       </div>
-    `}renderPreview(){const e=this._titleText;if(!e)return F`<div class="preview-empty">${De("config.title_title_placeholder")}</div>`;const t=[];for(const o of this._titleSources)if("input_select"===o.source_type&&o.entity&&this.hass){const e=this.hass.states[o.entity];if(e){const i=o.modes.find(t=>t.id===e.state);i?.color&&"neutral"!==i.color&&t.push(i.color)}}else if("booleans"===o.source_type&&this.hass)for(const e of o.modes)if("on"===this.hass?.states[e.id]?.state){const i=e.color||"success";"neutral"!==i&&t.push(i)}const i=this._titleSources.length>0&&this._titleSources.some(e=>e.modes.length>0);let a="background:var(--t4);width:1.25rem;";if(t.length>0){const e=t.map(e=>_t(e)),i=Math.min(20+4*t.length,36);if(1===e.length)a=`background:${e[0]};width:${i}px;box-shadow:0 0 6px ${e[0]};`;else{const t=e.length;a=`background:linear-gradient(90deg, ${e.flatMap((e,i)=>[`${e} ${Math.round(i/t*100)}%`,`${e} ${Math.round((i+1)/t*100)}%`]).join(", ")});width:${i}px;box-shadow:${e.map(e=>`0 0 6px ${e}`).join(", ")};`}}let r=B;if(this.hass){const e=this._titlePeriodEntity||"",t=this.hass.states[e];if(t){const e=t.state,i=function(e,t){const i=t.find(t=>t.id===e);return i&&(i.icon||i.color)?{icon:i.icon||vt.icon,color:i.color||vt.color}:gt[e]||vt}(e,this._titlePeriodOptions);r=F`
-          <div class="preview-period" style="color:${i.color}">
-            <ha-icon .icon=${i.icon} style="--mdc-icon-size:10px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
-            ${e}
-          </div>
-        `}}return F`
-      <div class="preview-title-card">
-        <div class="preview-title-text">${e}</div>
-        ${r}
-        ${i?F`
-          <div class="preview-title-dash">
-            <div class="preview-dash-line" style="${a}"></div>
-          </div>
-        `:B}
-      </div>
-    `}renderTab(){this._lang;const e=this._titleSources;return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}renderTab(){this._lang;const e=this._titleSources;return N`
       <div class="tab-panel" id="panel-title">
-        <div class="section-label">${De("config.title_title")}</div>
-        <div class="section-desc">${De("config.title_title_desc")}</div>
+        <glass-title-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-title-card>
+        <div class="section-label">${Re("config.title_title")}</div>
+        <div class="section-desc">${Re("config.title_title_desc")}</div>
         <input
           class="input"
           type="text"
           .value=${this._titleText}
-          placeholder=${De("config.title_title_placeholder")}
+          placeholder=${Re("config.title_title_placeholder")}
           @input=${e=>{this._titleText=e.target.value}}
         />
 
-        <div class="section-label pw-tt-mt-md">${De("config.title_mode_source")}</div>
-        <div class="section-desc">${De("config.title_mode_source_desc")}</div>
+        <div class="section-label mt-md">${Re("config.title_mode_source")}</div>
+        <div class="section-desc">${Re("config.title_mode_source_desc")}</div>
 
         <!-- Existing sources -->
         ${e.map((e,t)=>this._renderSourceEditor(e,t))}
 
         <!-- Add source button -->
-        <div class="pw-tt-mt-add">
+        <div class="mt-md">
           <div class="dropdown ${this._titleAddSourceDropdownOpen?"open":""}">
             <button
               class="dropdown-trigger"
@@ -7068,18 +4290,18 @@
               aria-haspopup="listbox"
             >
               <ha-icon .icon=${"mdi:plus"}></ha-icon>
-              <span>${De("config.title_add_source")}</span>
+              <span>${Re("config.title_add_source")}</span>
               <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
             </button>
             <div class="dropdown-menu" role="listbox">
-              ${ht.map(e=>F`
+              ${kt.map(e=>N`
                 <button
                   class="dropdown-item"
                   role="option"
                   @click=${()=>this._addTitleSource(e.key)}
                 >
                   <ha-icon .icon=${e.icon}></ha-icon>
-                  ${De(e.i18nKey)}
+                  ${Re(e.i18nKey)}
                 </button>
               `)}
             </div>
@@ -7087,103 +4309,20 @@
         </div>
 
         <!-- Period indicator -->
-        <div class="section-label pw-tt-mt-lg">${De("config.title_period_entity")}</div>
-        <div class="section-desc">${De("config.title_period_entity_desc")}</div>
+        <div class="section-label mt-lg">${Re("config.title_period_entity")}</div>
+        <div class="section-desc">${Re("config.title_period_entity_desc")}</div>
         ${this._renderPeriodEntityPicker()}
 
         ${this._renderPeriodOptionsEditor()}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}pt([me()],ft.prototype,"_titleText"),pt([me()],ft.prototype,"_titleSources"),pt([me()],ft.prototype,"_titlePeriodEntity"),pt([me()],ft.prototype,"_titlePeriodOptions"),pt([me()],ft.prototype,"_titleEditingSourceIdx"),pt([me()],ft.prototype,"_titleAddSourceDropdownOpen"),pt([me()],ft.prototype,"_titleAddEntityDropdownOpen"),pt([me()],ft.prototype,"_titlePeriodDropdownOpen"),pt([me()],ft.prototype,"_periodIconPopupIdx"),pt([me()],ft.prototype,"_iconPopupModeIdx"),pt([me()],ft.prototype,"_iconSearch"),pt([me()],ft.prototype,"_dragIdx"),pt([me()],ft.prototype,"_dropIdx"),pt([me()],ft.prototype,"_dragContext"),pt([me()],ft.prototype,"_dragModeSrcIdx");try{customElements.define("config-tab-title",ft)}catch{}var bt=Object.defineProperty,yt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&bt(t,i,o),o};const wt=["compass_N","compass_NNE","compass_NE","compass_ENE","compass_E","compass_ESE","compass_SE","compass_SSE","compass_S","compass_SSW","compass_SW","compass_WSW","compass_W","compass_WNW","compass_NW","compass_NNW"];const xt=[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise"},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset"}];class $t extends qe{constructor(){super(...arguments),this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1}static{this._AUTO_SAVE_KEYS=new Set(["_weatherEntity","_weatherHiddenMetrics","_weatherShowDaily","_weatherShowHourly","_weatherShowHeader"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._weatherEntity=t.entity_id??"",this._weatherHiddenMetrics=t.hidden_metrics??[],this._weatherShowDaily=t.show_daily??!0,this._weatherShowHourly=t.show_hourly??!0,this._weatherShowHeader=t.show_header??!0}collectSaveData(){return{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}}async save(){if(this.backend)try{await this.backend.send("set_weather",this.collectSaveData()),this._fireToast(!0),ue.emit("weather-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.weather&&this.loadFromConfig(e.weather)}catch{}}_selectEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}_toggleMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}renderPreview(){if(!this._weatherEntity||!this.hass)return F`<div class="preview-empty">${De("config.weather_select_entity")}</div>`;const e=this.hass.states[this._weatherEntity];if(!e)return F`<div class="preview-empty">${De("config.weather_select_entity")}</div>`;const t=e.attributes,i=t.temperature??"--",a=t.temperature_unit??"°C",r=new Set(this._weatherHiddenMetrics),o=e.state||"sunny",s={sunny:"mdi:weather-sunny","clear-night":"mdi:weather-night",partlycloudy:"mdi:weather-partly-cloudy",cloudy:"mdi:weather-cloudy",fog:"mdi:weather-fog",rainy:"mdi:weather-rainy",pouring:"mdi:weather-pouring",snowy:"mdi:weather-snowy",windy:"mdi:weather-windy",lightning:"mdi:weather-lightning"}[o]||"mdi:weather-cloudy",n=De({sunny:"weather.cond_sunny","clear-night":"weather.cond_clear_night",partlycloudy:"weather.cond_partly_cloudy",cloudy:"weather.cond_cloudy",fog:"weather.cond_foggy",rainy:"weather.cond_rainy",pouring:"weather.cond_pouring",snowy:"weather.cond_snowy",windy:"weather.cond_windy",lightning:"weather.cond_lightning"}[o]||"weather.cond_cloudy"),c={sunny:"#fbbf24","clear-night":"#6366f1",partlycloudy:"#94a3b8",cloudy:"#64748b",fog:"#94a3b8",rainy:"#3b82f6",pouring:"#2563eb",snowy:"#e2e8f0",windy:"#6ee7b3",lightning:"#a78bfa"}[o]||"#64748b",d={sunny:"rgba(251,191,36,0.8)","clear-night":"rgba(129,140,248,0.7)",partlycloudy:"rgba(148,163,184,0.6)",cloudy:"rgba(100,116,139,0.6)",fog:"rgba(148,163,184,0.5)",rainy:"rgba(96,165,250,0.7)",pouring:"rgba(59,130,246,0.8)",snowy:"rgba(226,232,240,0.7)",windy:"rgba(110,231,179,0.6)",lightning:"rgba(167,139,250,0.8)"}[o]||"rgba(148,163,184,0.6)",l=new Date,p=l.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),h=String(l.getSeconds()).padStart(2,"0"),m=l.toLocaleDateString(this.hass.language||Ee(),{weekday:"long",day:"numeric",month:"long"}),u=t.apparent_temperature??null,_="number"==typeof i?i:12,g=[0,.5,1.2,.8,-.3,-1,-.5,.2,.7,1.5],v=44,f=Math.min(...g),b=Math.max(...g)-f||1,y=g.map((e,t)=>({x:t/(g.length-1)*348,y:6+32*(1-(e-f)/b)}));let w=`M${y[0].x},${y[0].y}`;for(let j=0;j<y.length-1;j++){const e=y[Math.max(0,j-1)],t=y[j],i=y[j+1],a=y[Math.min(y.length-1,j+2)];w+=` C${t.x+(i.x-e.x)/6},${t.y+(i.y-e.y)/6} ${i.x-(a.x-t.x)/6},${i.y-(a.y-t.y)/6} ${i.x},${i.y}`}const x=w+" L348,44 L0,44 Z",$=.3*(g.length-1),k=Math.floor($),S=Math.min(g.length-1,k+1),E=$-k,D=6+32*(1-(g[k]+(g[S]-g[k])*E-f)/b),C=l.getHours(),I=g.map((e,t)=>`${String((C+t)%24).padStart(2,"0")}h`),z=[];if(r.has("humidity")||null==t.humidity||z.push({key:"humidity",icon:"mdi:water-percent",val:`${t.humidity}`,unit:"%"}),!r.has("wind")&&null!=t.wind_speed){const e="number"==typeof t.wind_bearing?(A=t.wind_bearing,De(`weather.${wt[Math.round((A%360+360)%360/22.5)%16]}`)):void 0;z.push({key:"wind",icon:"mdi:weather-windy",val:`${Math.round(t.wind_speed)}`,unit:"km/h",dir:e})}var A;if(r.has("pressure")||null==t.pressure||z.push({key:"pressure",icon:"mdi:gauge",val:`${Math.round(t.pressure)}`,unit:"hPa"}),r.has("uv")||null==t.uv_index||z.push({key:"uv",icon:"mdi:sun-wireless",val:`${Math.round(t.uv_index)}`,unit:"UV"}),r.has("visibility")||null==t.visibility||z.push({key:"visibility",icon:"mdi:eye-outline",val:`${t.visibility}`,unit:"km"}),!r.has("sunrise")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_rising;z.push({key:"sunrise",icon:"mdi:weather-sunset-up",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}if(!r.has("sunset")){const e=this.hass.states["sun.sun"],t=e?.attributes.next_setting;z.push({key:"sunset",icon:"mdi:weather-sunset-down",val:t?new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"--"})}const P=this.hass.language||Ee(),T=Array.from({length:7},(e,t)=>{const i=new Date(2024,0,t+1);return new Intl.DateTimeFormat(P,{weekday:"short"}).format(i)}),O=[_+2,_+1,_,_-1,_+1,_+3,_],R=[_-4,_-3,_-5,_-6,_-4,_-2,_-5],M=[0,10,30,60,20,0,15],L=(l.getDay()+6)%7;return F`
-      <div class="preview-weather-wrap">
-        ${this._weatherShowHeader?F`
-          <div class="pw-card-header">
-            <span class="pw-card-title">${De("weather.title")}</span>
-            <span class="pw-card-location">${e.attributes.friendly_name??""}</span>
-          </div>
-        `:B}
-      <div class="preview-weather">
-        <div class="pw-tint" style="background: radial-gradient(80% 20% at 75% 15%, ${c}22 0%, transparent 70%);"></div>
-        <div class="pw-content">
-          <div class="pw-header">
-            <div class="pw-header-left">
-              <span class="pw-time">${p}<span class="pw-sec">:${h}</span></span>
-              <span class="pw-date">${m}</span>
-            </div>
-            <div class="pw-header-right">
-              <span class="pw-temp">${i}<span class="pw-temp-unit">${a}</span></span>
-              <span class="pw-cond"><ha-icon .icon=${s}></ha-icon>${n}</span>
-              ${null!=u?F`<span class="pw-feels">${De("weather.feels_like",{temp:String(Math.round(u))})}</span>`:B}
-            </div>
-          </div>
-
-          <div class="pw-spark-zone">
-            <svg class="pw-spark-svg" viewBox="0 0 ${348} ${v}" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="pw-spark-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="${d}" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="${d}" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="${x}" fill="url(#pw-spark-fill)"/>
-              <path d="${w}" fill="none" stroke="${d}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="pw-spark-now" style="left: ${30}%;">
-              <div class="pw-spark-now-dot" style="top: ${D/v*100}%;"></div>
-            </div>
-            <div class="pw-spark-labels">
-              ${I.map((e,t)=>t%2==0||t===I.length-1?F`<span class="pw-spark-lbl" style="left: ${t/(I.length-1)*100}%;">${e}</span>`:B)}
-            </div>
-          </div>
-
-          ${z.length>0?F`
-            <div class="pw-metrics" style="grid-template-columns: repeat(${3}, 1fr);">
-              ${z.map(e=>F`
-                <div class="pw-metric ${e.key}">
-                  <ha-icon .icon=${e.icon}></ha-icon>
-                  <span class="pw-metric-val">${e.val}</span>
-                  ${e.unit?F`<span class="pw-metric-unit">${e.unit}</span>`:B}
-                  ${e.dir?F`<span class="pw-metric-dir">${e.dir}</span>`:B}
-                </div>
-              `)}
-            </div>
-          `:B}
-
-          ${this._weatherShowDaily||this._weatherShowHourly?F`
-            <div class="pw-forecast-zone">
-              <div class="pw-tabs">
-                ${this._weatherShowDaily?F`<span class="pw-tab active">${De("weather.daily_tab")}</span>`:B}
-                ${this._weatherShowHourly?F`<span class="pw-tab">${De("weather.hourly_tab")}</span>`:B}
-              </div>
-              <div class="pw-fold-sep"></div>
-              ${this._weatherShowDaily?F`
-                <div class="pw-daily-list">
-                  ${["mdi:weather-sunny","mdi:weather-partly-cloudy","mdi:weather-cloudy","mdi:weather-rainy","mdi:weather-partly-cloudy","mdi:weather-sunny","mdi:weather-cloudy"].slice(0,5).map((e,t)=>{const i=(L+t)%7,a=0===t?De("weather.today"):T[i],r=Math.round(O[t]),o=Math.round(R[t]),s=M[t];return F`
-                      <div class="pw-day-row ${0===t?"today":""}">
-                        <span class="pw-day-label">${a}</span>
-                        <ha-icon class="pw-day-icon" .icon=${e}></ha-icon>
-                        <span class="pw-day-temps"><span class="pw-day-high">${r}°</span><span class="pw-day-low">${o}°</span></span>
-                        ${s>0?F`<span class="pw-day-precip">${s}%</span>`:F`<span class="pw-day-precip"></span>`}
-                      </div>
-                    `})}
-                </div>
-              `:B}
-            </div>
-          `:B}
-        </div>
-      </div>
-      </div>
-    `}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics);return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}xt([ue()],Et.prototype,"_titleText"),xt([ue()],Et.prototype,"_titleSources"),xt([ue()],Et.prototype,"_titlePeriodEntity"),xt([ue()],Et.prototype,"_titlePeriodOptions"),xt([ue()],Et.prototype,"_titleEditingSourceIdx"),xt([ue()],Et.prototype,"_titleAddSourceDropdownOpen"),xt([ue()],Et.prototype,"_titleAddEntityDropdownOpen"),xt([ue()],Et.prototype,"_titlePeriodDropdownOpen"),xt([ue()],Et.prototype,"_periodIconPopupIdx"),xt([ue()],Et.prototype,"_iconPopupModeIdx"),xt([ue()],Et.prototype,"_iconSearch"),xt([ue()],Et.prototype,"_dragIdx"),xt([ue()],Et.prototype,"_dropIdx"),xt([ue()],Et.prototype,"_dragContext"),xt([ue()],Et.prototype,"_dragModeSrcIdx");try{customElements.define("config-tab-title",Et)}catch{}var zt=Object.defineProperty,Dt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&zt(t,i,s),s};const Tt=[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise"},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset"}];class Pt extends it{constructor(){super(...arguments),this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1}static{this._AUTO_SAVE_KEYS=new Set(["_weatherEntity","_weatherHiddenMetrics","_weatherShowDaily","_weatherShowHourly","_weatherShowHeader"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._weatherEntity=t.entity_id??"",this._weatherHiddenMetrics=t.hidden_metrics??[],this._weatherShowDaily=t.show_daily??!0,this._weatherShowHourly=t.show_hourly??!0,this._weatherShowHeader=t.show_header??!0}collectSaveData(){return{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}}async save(){if(this.backend)try{await this.backend.send("set_weather",this.collectSaveData()),this._fireToast(!0),ge.emit("weather-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.weather&&this.loadFromConfig(e.weather)}catch{}}_selectEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}_toggleMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics);return N`
       <div class="tab-panel" id="panel-weather">
-        <div class="section-label">${De("config.behavior")}</div>
+        <glass-weather-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-weather-card>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -7195,8 +4334,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.weather_show_header")}</div>
-              <div class="feature-desc">${De("config.weather_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.weather_show_header")}</div>
+              <div class="feature-desc">${Re("config.weather_show_header_desc")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowHeader?"on":""}"
@@ -7204,8 +4343,8 @@
           </button>
         </div>
 
-        <div class="section-label">${De("config.weather_entity")}</div>
-        <div class="section-desc">${De("config.weather_entity_desc")}</div>
+        <div class="section-label">${Re("config.weather_entity")}</div>
+        <div class="section-desc">${Re("config.weather_entity_desc")}</div>
         <div class="dropdown ${this._weatherDropdownOpen?"open":""}">
           <button
             class="dropdown-trigger"
@@ -7214,11 +4353,11 @@
             aria-haspopup="listbox"
           >
             <ha-icon .icon=${"mdi:weather-partly-cloudy"}></ha-icon>
-            <span>${t||De("common.select")}</span>
+            <span>${t||Re("common.select")}</span>
             <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <div class="dropdown-menu" role="listbox">
-            ${e.map(e=>F`
+            ${e.map(e=>N`
                 <button
                   class="dropdown-item ${e===this._weatherEntity?"active":""}"
                   role="option"
@@ -7232,22 +4371,22 @@
           </div>
         </div>
 
-        <div class="section-label">${De("config.weather_metrics")}</div>
-        <div class="section-desc">${De("config.weather_metrics_desc")}</div>
+        <div class="section-label">${Re("config.weather_metrics")}</div>
+        <div class="section-desc">${Re("config.weather_metrics_desc")}</div>
         <div class="feature-list">
-          ${xt.map(e=>{const t=!i.has(e.key);return F`
+          ${Tt.map(e=>{const t=!i.has(e.key);return N`
               <button
                 class="feature-row"
                 role="switch"
                 aria-checked=${t?"true":"false"}
-                aria-label="${De(t?"common.hide":"common.show")} ${De(e.nameKey)}"
+                aria-label="${Re(t?"common.hide":"common.show")} ${Re(e.nameKey)}"
                 @click=${()=>this._toggleMetric(e.key)}
               >
                 <div class="feature-icon">
                   <ha-icon .icon=${e.icon}></ha-icon>
                 </div>
                 <div class="feature-text">
-                  <div class="feature-name">${De(e.nameKey)}</div>
+                  <div class="feature-name">${Re(e.nameKey)}</div>
                 </div>
                 <span
                   class="toggle ${t?"on":""}"
@@ -7256,21 +4395,21 @@
             `})}
         </div>
 
-        <div class="section-label">${De("config.weather_forecasts")}</div>
-        <div class="section-desc">${De("config.weather_forecasts_desc")}</div>
+        <div class="section-label">${Re("config.weather_forecasts")}</div>
+        <div class="section-desc">${Re("config.weather_forecasts_desc")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
             role="switch"
             aria-checked=${this._weatherShowDaily?"true":"false"}
-            aria-label="${this._weatherShowDaily?De("common.hide"):De("common.show")} ${De("config.weather_daily")}"
+            aria-label="${this._weatherShowDaily?Re("common.hide"):Re("common.show")} ${Re("config.weather_daily")}"
             @click=${()=>{this._weatherShowDaily=!this._weatherShowDaily}}
           >
             <div class="feature-icon">
               <ha-icon .icon=${"mdi:calendar-week"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.weather_daily")}</div>
+              <div class="feature-name">${Re("config.weather_daily")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowDaily?"on":""}"
@@ -7280,14 +4419,14 @@
             class="feature-row"
             role="switch"
             aria-checked=${this._weatherShowHourly?"true":"false"}
-            aria-label="${this._weatherShowHourly?De("common.hide"):De("common.show")} ${De("config.weather_hourly")}"
+            aria-label="${this._weatherShowHourly?Re("common.hide"):Re("common.show")} ${Re("config.weather_hourly")}"
             @click=${()=>{this._weatherShowHourly=!this._weatherShowHourly}}
           >
             <div class="feature-icon">
               <ha-icon .icon=${"mdi:clock-outline"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.weather_hourly")}</div>
+              <div class="feature-name">${Re("config.weather_hourly")}</div>
             </div>
             <span
               class="toggle ${this._weatherShowHourly?"on":""}"
@@ -7296,91 +4435,13 @@
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}yt([me()],$t.prototype,"_weatherEntity"),yt([me()],$t.prototype,"_weatherHiddenMetrics"),yt([me()],$t.prototype,"_weatherShowDaily"),yt([me()],$t.prototype,"_weatherShowHourly"),yt([me()],$t.prototype,"_weatherShowHeader"),yt([me()],$t.prototype,"_weatherDropdownOpen");try{customElements.define("config-tab-weather",$t)}catch{}var kt=Object.defineProperty,St=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&kt(t,i,o),o};class Et extends qe{constructor(){super(...arguments),this._cameraShowHeader=!0,this._cameraAutoCycle=!1,this._cameraCycleInterval=10,this._cameraEntityOrder=[],this._localDragIdx=null,this._localDropIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_cameraShowHeader","_cameraAutoCycle","_cameraCycleInterval","_cameraEntityOrder"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._cameraShowHeader=t.show_header??!0,this._cameraEntityOrder=t.entity_order??[],this._cameraAutoCycle=t.auto_cycle??!1,this._cameraCycleInterval=t.cycle_interval??10}collectSaveData(){return{show_header:this._cameraShowHeader,entity_order:this._cameraEntityOrder,auto_cycle:this._cameraAutoCycle,cycle_interval:this._cameraCycleInterval}}async save(){if(this.backend)try{await this.backend.send("set_camera_carousel_config",this.collectSaveData()),this._fireToast(!0),ue.emit("camera-carousel-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.camera_carousel&&this.loadFromConfig(e.camera_carousel)}catch{}}_initCameraEntityOrder(){if(!this.hass)return;const e=Object.keys(this.hass.states).filter(e=>e.startsWith("camera.")).sort(),t=new Set(e),i=this._cameraEntityOrder.filter(e=>t.has(e)),a=new Set(i);for(const r of e)a.has(r)||i.push(r);this._cameraEntityOrder=i}_localDragStart(e){this._localDragIdx=e}_localDragOver(e,t){t.preventDefault(),this._localDropIdx=e}_localDragLeave(){this._localDropIdx=null}_localDragEnd(){this._localDragIdx=null,this._localDropIdx=null}_onDropCameraEntity(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e)return void this._localDragEnd();const i=[...this._cameraEntityOrder],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._cameraEntityOrder=i,this._localDragEnd()}renderPreview(){const e="rgba(96,165,250,",t={name:"Entrée",state:"streaming",icon:"mdi:cctv",ai:["person"]};return F`
-      <div class="pw-cam-wrap">
-        <!-- Viewport -->
-        <div class="pw-cam-frame">
-          <div class="pw-cam-bg">
-            <!-- Top overlay -->
-            <div class="pw-cam-overlay-top">
-              <div class="pw-cam-label">
-                <ha-icon .icon=${"mdi:cctv"}></ha-icon>
-                ${t.name}
-                <span class="pw-cam-rec">
-                  <span class="pw-cam-rec-dot"></span> REC
-                </span>
-              </div>
-            </div>
-            <!-- Bottom overlay -->
-            ${t.ai.length>0?F`
-              <div class="pw-cam-overlay-bottom">
-                <div class="pw-cam-ai-list">
-                  ${t.ai.map(t=>F`
-                    <div class="pw-cam-ai-badge" style="background:${e}0.15);border:1px solid ${e}0.2);">
-                      <ha-icon .icon=${"mdi:human"}></ha-icon>
-                      ${t}
-                    </div>
-                  `)}
-                </div>
-              </div>
-            `:B}
-            <!-- Nav arrows -->
-            <div class="pw-cam-arrow pw-cam-arrow--left">
-              <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
-            </div>
-            <div class="pw-cam-arrow pw-cam-arrow--right">
-              <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dots -->
-        <div class="pw-cam-dots">
-          <div class="pw-cam-dot pw-cam-dot--active" style="box-shadow:0 0 6px ${e}0.4);"></div>
-          <div class="pw-cam-dot pw-cam-dot--rec"></div>
-          <div class="pw-cam-dot pw-cam-dot--idle"></div>
-        </div>
-
-        <!-- Info bar -->
-        <div class="pw-cam-info">
-          <div class="pw-cam-icon" style="background:${e}0.1);border:1px solid ${e}0.15);">
-            <ha-icon .icon=${"mdi:cctv"}></ha-icon>
-          </div>
-          <div class="pw-cam-detail">
-            <div class="pw-cam-name">${t.name}</div>
-            <div class="pw-cam-status-row">
-              <span class="pw-cam-status" style="color:${`${e}0.6)`};">${"En direct"}</span>
-              ${t.ai.length>0?F`
-                <div class="pw-cam-ai-mini">
-                  <div class="pw-cam-ai-dot" style="background:${e}0.12);">
-                    <ha-icon .icon=${"mdi:human"}></ha-icon>
-                  </div>
-                </div>
-              `:B}
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="pw-cam-actions">
-          ${["mdi:power","mdi:camera","mdi:record-circle","mdi:motion-sensor"].map((t,i)=>F`
-            <div class="pw-cam-action ${0===i?"":"pw-cam-action--default"}" style="${0===i?`border:1px solid ${e}0.15);background:${e}0.1);color:var(--c-info);`:""}">
-              <ha-icon .icon=${t}></ha-icon>
-            </div>
-          `)}
-        </div>
-      </div>
-    `}renderTab(){return this._lang,this.hass&&0===this._cameraEntityOrder.length&&this._initCameraEntityOrder(),F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}Dt([ue()],Pt.prototype,"_weatherEntity"),Dt([ue()],Pt.prototype,"_weatherHiddenMetrics"),Dt([ue()],Pt.prototype,"_weatherShowDaily"),Dt([ue()],Pt.prototype,"_weatherShowHourly"),Dt([ue()],Pt.prototype,"_weatherShowHeader"),Dt([ue()],Pt.prototype,"_weatherDropdownOpen");try{customElements.define("config-tab-weather",Pt)}catch{}var Lt=Object.defineProperty,Mt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Lt(t,i,s),s};class At extends it{constructor(){super(...arguments),this._cameraShowHeader=!0,this._cameraAutoCycle=!1,this._cameraCycleInterval=10,this._cameraEntityOrder=[],this._localDragIdx=null,this._localDropIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_cameraShowHeader","_cameraAutoCycle","_cameraCycleInterval","_cameraEntityOrder"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._cameraShowHeader=t.show_header??!0,this._cameraEntityOrder=t.entity_order??[],this._cameraAutoCycle=t.auto_cycle??!1,this._cameraCycleInterval=t.cycle_interval??10}collectSaveData(){return{show_header:this._cameraShowHeader,entity_order:this._cameraEntityOrder,auto_cycle:this._cameraAutoCycle,cycle_interval:this._cameraCycleInterval}}async save(){if(this.backend)try{await this.backend.send("set_camera_carousel_config",this.collectSaveData()),this._fireToast(!0),ge.emit("camera-carousel-config-changed",void 0)}catch{this._fireToast(!1)}}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.camera_carousel&&this.loadFromConfig(e.camera_carousel)}catch{}}_initCameraEntityOrder(){if(!this.hass)return;const e=Object.keys(this.hass.states).filter(e=>e.startsWith("camera.")).sort(),t=new Set(e),i=this._cameraEntityOrder.filter(e=>t.has(e)),a=new Set(i);for(const r of e)a.has(r)||i.push(r);this._cameraEntityOrder=i}_localDragStart(e){this._localDragIdx=e}_localDragOver(e,t){t.preventDefault(),this._localDropIdx=e}_localDragLeave(){this._localDropIdx=null}_localDragEnd(){this._localDragIdx=null,this._localDropIdx=null}_onDropCameraEntity(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e)return void this._localDragEnd();const i=[...this._cameraEntityOrder],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._cameraEntityOrder=i,this._localDragEnd()}renderTab(){return this._lang,this.hass&&0===this._cameraEntityOrder.length&&this._initCameraEntityOrder(),N`
       <div class="tab-panel" id="panel-camera_carousel">
-        <div class="section-label">${De("config.behavior")}</div>
+        <glass-camera-carousel-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-camera-carousel-card>
+        <div class="section-label">${Re("config.behavior")}</div>
         <div class="feature-list">
           <button
             class="feature-row"
@@ -7392,8 +4453,8 @@
               <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.camera_show_header")}</div>
-              <div class="feature-desc">${De("config.camera_show_header_desc")}</div>
+              <div class="feature-name">${Re("config.camera_show_header")}</div>
+              <div class="feature-desc">${Re("config.camera_show_header_desc")}</div>
             </div>
             <span class="toggle ${this._cameraShowHeader?"on":""}"></span>
           </button>
@@ -7407,22 +4468,22 @@
               <ha-icon .icon=${"mdi:autorenew"}></ha-icon>
             </div>
             <div class="feature-text">
-              <div class="feature-name">${De("config.camera_auto_cycle")}</div>
-              <div class="feature-desc">${De("config.camera_auto_cycle_desc")}</div>
+              <div class="feature-name">${Re("config.camera_auto_cycle")}</div>
+              <div class="feature-desc">${Re("config.camera_auto_cycle_desc")}</div>
             </div>
             <span class="toggle ${this._cameraAutoCycle?"on":""}"></span>
           </button>
         </div>
 
-        ${this._cameraAutoCycle?F`
+        ${this._cameraAutoCycle?N`
           <div class="feature-list">
             <div class="feature-row" style="pointer-events:none;">
               <div class="feature-icon">
                 <ha-icon .icon=${"mdi:timer-outline"}></ha-icon>
               </div>
               <div class="feature-text">
-                <div class="feature-name">${De("config.camera_cycle_interval")}</div>
-                <div class="feature-desc">${De("config.camera_cycle_interval_desc")}</div>
+                <div class="feature-name">${Re("config.camera_cycle_interval")}</div>
+                <div class="feature-desc">${Re("config.camera_cycle_interval_desc")}</div>
               </div>
               <input class="input" type="number" min="3" max="60" style="width:60px;pointer-events:auto;text-align:center;"
                 .value=${String(this._cameraCycleInterval)}
@@ -7433,14 +4494,14 @@
         `:B}
 
         <!-- Camera entity order -->
-        ${this._cameraEntityOrder.length>0?F`
-          <div class="section-label">${De("config.camera_entity_order")} (${this._cameraEntityOrder.length})</div>
-          <div class="section-desc">${De("config.camera_entity_order_desc")}</div>
+        ${this._cameraEntityOrder.length>0?N`
+          <div class="section-label">${Re("config.camera_entity_order")} (${this._cameraEntityOrder.length})</div>
+          <div class="section-desc">${Re("config.camera_entity_order_desc")}</div>
           <div class="item-list">
-            ${this._cameraEntityOrder.map((e,t)=>{const i=this._localDragIdx===t,a=this._localDropIdx===t,r=this.hass?.states[e],o=r?.attributes?.friendly_name||e.split(".")[1],s=["item-row",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return F`
+            ${this._cameraEntityOrder.map((e,t)=>{const i=this._localDragIdx===t,a=this._localDropIdx===t,r=this.hass?.states[e],s=r?.attributes?.friendly_name||e.split(".")[1],o=["item-row",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return N`
                 <div class="item-card">
                   <div
-                    class=${s}
+                    class=${o}
                     draggable="true"
                     @dragstart=${()=>this._localDragStart(t)}
                     @dragover=${e=>this._localDragOver(t,e)}
@@ -7452,7 +4513,7 @@
                       <ha-icon .icon=${"mdi:drag"}></ha-icon>
                     </span>
                     <div class="item-info">
-                      <span class="item-name">${o}</span>
+                      <span class="item-name">${s}</span>
                       <span class="item-meta">${e}</span>
                     </div>
                   </div>
@@ -7463,190 +4524,41 @@
 
         <!-- Save / Reset -->
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}St([me()],Et.prototype,"_cameraShowHeader"),St([me()],Et.prototype,"_cameraAutoCycle"),St([me()],Et.prototype,"_cameraCycleInterval"),St([me()],Et.prototype,"_cameraEntityOrder"),St([me()],Et.prototype,"_localDragIdx"),St([me()],Et.prototype,"_localDropIdx");try{customElements.define("config-tab-camera",Et)}catch{}var Dt=Object.defineProperty,Ct=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Dt(t,i,o),o};class It extends qe{constructor(){super(...arguments),this._climateShowHeader=!0,this._climateDisplayMode="list",this._climateDashboardDisplayMode="list",this._climateDashboardEntities=[],this._climateRoom="",this._climateRoomEntities=[],this._saving=!1,this._localDragIdx=null,this._localDropIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_climateShowHeader","_climateDisplayMode","_climateDashboardDisplayMode","_climateDashboardEntities","_climateRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._climateRoom=this.areaId,this._loadRoomClimates()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._climateShowHeader=t.show_header??!0,this._climateDisplayMode="normal"===t.display_mode?"normal":"list",this._climateDashboardDisplayMode="normal"===t.dashboard_display_mode?"normal":"list",this._climateDashboardEntities=t.dashboard_entities??[]}collectSaveData(){return{show_header:this._climateShowHeader,display_mode:this._climateDisplayMode,dashboard_display_mode:this._climateDashboardDisplayMode,dashboard_entities:this._climateDashboardEntities}}async save(){if(this.backend&&!this._saving){this._saving=!0;try{const e=this._climateRoomEntities.map(e=>e.entityId),t=this._climateRoomEntities.filter(e=>!e.visible).map(e=>e.entityId);if(await this.backend.send("set_climate_config",this.collectSaveData()),this._climateRoom&&this._climateRoomEntities.length>0){let i=[],a=[];try{const e=await this.backend.send("get_room",{area_id:this._climateRoom});e&&(i=e.hidden_entities??[],a=e.entity_order??[])}catch{}const r=new Set(this._climateRoomEntities.map(e=>e.entityId)),o=i.filter(e=>!r.has(e)),s=a.filter(e=>!r.has(e));await this.backend.send("set_room",{area_id:this._climateRoom,hidden_entities:[...o,...t],entity_order:[...s,...e]}),ue.emit("room-config-changed",{areaId:this._climateRoom})}this._fireToast(!0),ue.emit("climate-config-changed",void 0)}catch{this._fireToast(!1)}finally{this._saving=!1}}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.climate_card&&this.loadFromConfig(e.climate_card)}catch{}this._climateRoom&&await this._loadRoomClimates()}}async _loadRoomClimates(){if(!this.hass||!this._climateRoom||!this.backend)return;const e=this._climateRoom,t=Me(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("climate.")).map(e=>e.entity_id);let i=[],a=[];try{const t=await this.backend.send("get_room",{area_id:e});i=t?.hidden_entities||[],a=t?.entity_order||[]}catch{}if(this._climateRoom!==e)return;const r=new Map(a.map((e,t)=>[e,t])),o=[...t].sort((e,t)=>{const i=r.get(e)??999,a=r.get(t)??999;return i!==a?i-a:e.localeCompare(t)});this._climateRoomEntities=o.map(e=>{const t=this.hass?.states[e],a=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:a,visible:!i.includes(e)}})}_onLocalDragStart(e){this._localDragIdx=e}_onLocalDragOver(e,t){t.preventDefault(),this._localDropIdx=e}_onLocalDragLeave(){this._localDropIdx=null}_onLocalDragEnd(){this._localDragIdx=null,this._localDropIdx=null}_onLocalDrop(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e)return this._localDragIdx=null,void(this._localDropIdx=null);const i=[...this._climateRoomEntities],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._climateRoomEntities=i,this._localDragIdx=null,this._localDropIdx=null}_toggleEntityVisibility(e){this._climateRoomEntities=this._climateRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_getClimateAction(e){const t=this.hass?.states[e];if(!t)return"off";const i=t.attributes.hvac_action;return i||("off"===t.state?"off":"idle")}_getClimateIcon(e){switch(e){case"heating":return"mdi:fire";case"cooling":return"mdi:snowflake";default:return"mdi:thermostat"}}_previewEntityData(e){const t=this.hass?.states[e.entityId],i=this._getClimateAction(e.entityId),a=t?.attributes.current_temperature,r=t?.attributes.temperature,o=t?.attributes.preset_mode;return{state:t,action:i,currentTemp:a,targetTemp:r,mode:o,hvacMode:t?.state??"off",actionText:De("heating"===i?"climate.action_heating":"cooling"===i?"climate.action_cooling":"idle"===i?"climate.action_idle":"climate.action_off")}}_previewCommon(e){const t=e.filter(e=>{const t=this.hass?.states[e.entityId];return t&&"off"!==t.state}).length,i=[];for(const n of e){const e=this.hass?.states[n.entityId]?.attributes.current_temperature;null!=e&&i.push(e)}const a=i.length>0?(i.reduce((e,t)=>e+t,0)/i.length).toFixed(1):null,r=e.map(e=>this._getClimateAction(e.entityId)),o=r.includes("heating"),s=r.includes("cooling");return{activeCount:t,avgTemp:a,tintColor:o?"var(--c-heat)":s?"var(--c-cool)":null,countBg:o?"rgba(var(--rgb-heat),0.15)":s?"rgba(var(--rgb-cool),0.15)":"var(--s3)",countColor:o?"var(--c-heat)":s?"var(--c-cool)":"var(--t2)"}}renderPreview(){const e=this._climateRoomEntities.filter(e=>e.visible);if(0===e.length)return F`<div class="cl-empty">${De("config.climate_no_entities")}</div>`;const{activeCount:t,avgTemp:i,tintColor:a,countBg:r,countColor:o}=this._previewCommon(e);return F`
-      <div class="cl-preview-wrap">
-        <!-- Header (reactive to toggle) -->
-        ${this._climateShowHeader?F`
-          <div class="preview-climate-header">
-            <div class="preview-climate-header-left">
-              <span class="preview-climate-header-title">${De("climate.title")}</span>
-              <span class="preview-climate-header-count" style="background:${r};color:${o};">${t}/${e.length}</span>
-            </div>
-            ${i?F`<span class="preview-climate-header-avg">${i}°C</span>`:B}
-          </div>
-        `:B}
-
-        ${"normal"===this._climateDisplayMode?this._renderNormalPreview(e,a):this._renderListPreview(e,a)}
-      </div>
-    `}_renderListPreview(e,t){const i=e[0],a=this._previewEntityData(i);return F`
-      <div class="preview-climate-card glass">
-        ${t?F`<div class="preview-climate-tint" style="background:radial-gradient(ellipse at 30% 30%,${t},transparent 70%);"></div>`:B}
-        <!-- First entity row -->
-        <div class="cl-row ${a.action}">
-          <div class="cl-icon-btn">
-            <ha-icon .icon=${this._getClimateIcon(a.action)}></ha-icon>
-          </div>
-          <div class="cl-expand">
-            <div class="cl-info">
-              <div class="cl-name">${i.name}</div>
-              <div class="cl-sub">
-                <span class="cl-action-text">${a.actionText}</span>
-                ${a.mode?F`<span class="cl-mode-badge">${a.mode}</span>`:B}
-              </div>
-            </div>
-            <div class="cl-temps">
-              <div class="cl-temp-current">${void 0!==a.currentTemp?a.currentTemp.toFixed(1):"--"}<span class="unit">°</span></div>
-              ${void 0!==a.targetTemp&&"off"!==a.action?F`<div class="cl-temp-target">→ ${a.targetTemp}°</div>`:B}
-            </div>
-            <div class="cl-dot"></div>
-          </div>
-        </div>
-        <!-- Fold separator -->
-        <div class="cl-separator" style="background:linear-gradient(90deg,transparent,${"heating"===a.action?"rgba(var(--rgb-heat),0.3)":"cooling"===a.action?"rgba(var(--rgb-cool),0.3)":"var(--b2)"},transparent);margin:0.0625rem 0.25rem;opacity:0.6;"></div>
-        <!-- Expanded controls -->
-        <div class="cl-controls">
-          <!-- Temperature stepper -->
-          <div class="cl-stepper-row">
-            <div class="cl-stepper-btn">
-              <ha-icon .icon=${"mdi:minus"}></ha-icon>
-            </div>
-            <div class="cl-stepper-center">
-              <div class="cl-stepper-label">${De("climate.target")}</div>
-              <div class="cl-stepper-value" style="color:${"heating"===a.action?"var(--c-heat)":"cooling"===a.action?"var(--c-cool)":"var(--t1)"};">${void 0!==a.targetTemp?`${a.targetTemp.toFixed(1)}°`:"--°"}</div>
-            </div>
-            <div class="cl-stepper-btn">
-              <ha-icon .icon=${"mdi:plus"}></ha-icon>
-            </div>
-          </div>
-          <!-- Separator -->
-          <div class="cl-separator"></div>
-          <!-- Mode chips -->
-          <div class="cl-chips">
-            ${["heat","cool","auto","off"].map(e=>F`
-              <span class="cl-chip" style="border:1px solid ${a.hvacMode===e?"heat"===e?"rgba(var(--rgb-heat),0.3)":"cool"===e?"rgba(var(--rgb-cool),0.3)":"var(--b3)":"var(--b2)"};background:${a.hvacMode===e?"heat"===e?"rgba(var(--rgb-heat),0.1)":"cool"===e?"rgba(var(--rgb-cool),0.1)":"var(--s3)":"var(--s1)"};color:${a.hvacMode===e?"heat"===e?"var(--c-heat)":"cool"===e?"var(--c-cool)":"var(--t1)":"var(--t3)"};">
-                <ha-icon .icon=${"heat"===e?"mdi:fire":"cool"===e?"mdi:snowflake":"auto"===e?"mdi:thermostat-auto":"mdi:power"}></ha-icon>
-                ${De("heat"===e?"climate.mode_heat":"cool"===e?"climate.mode_cool":"auto"===e?"climate.mode_auto":"climate.mode_off")}
-              </span>
-            `)}
-          </div>
-        </div>
-        <!-- Remaining entities -->
-        ${e.length>1?F`
-          <div class="cl-remaining-sep"></div>
-          ${e.slice(1,4).map(e=>{const t=this._previewEntityData(e);return F`
-              <div class="cl-row ${t.action}">
-                <div class="cl-icon-btn">
-                  <ha-icon .icon=${this._getClimateIcon(t.action)}></ha-icon>
-                </div>
-                <div class="cl-expand">
-                  <div class="cl-info">
-                    <div class="cl-name">${e.name}</div>
-                    <div class="cl-sub">
-                      <span class="cl-action-text">${t.actionText}</span>
-                      ${t.mode?F`<span class="cl-mode-badge">${t.mode}</span>`:B}
-                    </div>
-                  </div>
-                  <div class="cl-temps">
-                    <div class="cl-temp-current">${void 0!==t.currentTemp?t.currentTemp.toFixed(1):"--"}<span class="unit">°</span></div>
-                    ${void 0!==t.targetTemp&&"off"!==t.action?F`<div class="cl-temp-target">→ ${t.targetTemp}°</div>`:B}
-                  </div>
-                  <div class="cl-dot"></div>
-                </div>
-              </div>
-            `})}
-        `:B}
-      </div>
-    `}_renderNormalPreview(e,t){const i=e[0],a=this._previewEntityData(i),r=e=>(e-90)*Math.PI/180,o=e=>({x:60+40*Math.cos(r(e)),y:62+40*Math.sin(r(e))}),s=o(-120),n=o(120),c=`M ${s.x} ${s.y} A 40 40 0 1 1 ${n.x} ${n.y}`,d=40*Math.PI*(240/180),l=a.currentTemp??20,p=Math.max(0,Math.min(1,(l-15)/20))*d,h=a.targetTemp??l,m=o(240*Math.max(0,Math.min(1,(h-15)/20))-120),u="heating"===a.action?"var(--c-heat)":"cooling"===a.action?"var(--c-cool)":"var(--c-warning)",_="heating"===a.action?"🔥":"cooling"===a.action?"❄️":"";return F`
-      <div class="preview-climate-card glass">
-        ${t?F`<div class="preview-climate-tint" style="background:radial-gradient(ellipse at 50% 30%,${t},transparent 70%);"></div>`:B}
-        <div class="cl-normal-content">
-          <!-- Entity tabs -->
-          ${e.length>1?F`
-            <div class="cl-entity-tabs">
-              ${e.slice(0,4).map((e,t)=>F`
-                <span class="cl-entity-tab ${0===t?"active":""}">${e.name.length>8?e.name.slice(0,8)+"…":e.name}</span>
-              `)}
-            </div>
-          `:B}
-          <!-- Arc gauge -->
-          <div class="cl-gauge-wrap">
-            <svg viewBox="0 0 120 80" fill="none" class="cl-gauge-svg">
-              ${U`
-                <path d=${c} stroke="var(--s3)" stroke-width="4" fill="none" stroke-linecap="round" />
-                <path d=${c} stroke=${u} stroke-width="4" fill="none" stroke-linecap="round"
-                  stroke-dasharray=${d} stroke-dashoffset=${d-p} />
-                <circle cx=${m.x} cy=${m.y} r="3" fill="var(--t1)" />
-                <text x=${60} y=${58} text-anchor="middle" fill="var(--t1)" font-size="14" font-weight="700">${l.toFixed(1)}°</text>
-                <text x=${60} y=${70} text-anchor="middle" fill="var(--t3)" font-size="7">
-                  ${_} ${a.actionText}
-                </text>
-              `}
-            </svg>
-          </div>
-          <!-- Temperature stepper -->
-          <div class="cl-stepper-row">
-            <div class="cl-stepper-btn sm">
-              <ha-icon .icon=${"mdi:minus"}></ha-icon>
-            </div>
-            <div class="cl-stepper-center">
-              <div class="cl-stepper-label">${De("climate.target")}</div>
-              <div class="cl-stepper-value sm" style="color:${"heating"===a.action?"var(--c-heat)":"cooling"===a.action?"var(--c-cool)":"var(--t1)"};">${void 0!==a.targetTemp?`${a.targetTemp.toFixed(1)}°°C`:"--°°C"}</div>
-            </div>
-            <div class="cl-stepper-btn sm">
-              <ha-icon .icon=${"mdi:plus"}></ha-icon>
-            </div>
-          </div>
-          <!-- Separator + mode chips (fold open) -->
-          <div class="cl-separator cl-fold-sep" style="background:linear-gradient(90deg,transparent,${"heating"===a.action?"rgba(var(--rgb-heat),0.3)":"cooling"===a.action?"rgba(var(--rgb-cool),0.3)":"var(--b2)"},transparent);"></div>
-          <div class="cl-chips pb">
-            ${["heat","cool","auto","off"].map(e=>F`
-              <span class="cl-chip" style="border:1px solid ${a.hvacMode===e?"heat"===e?"rgba(var(--rgb-heat),0.3)":"cool"===e?"rgba(var(--rgb-cool),0.3)":"var(--b3)":"var(--b2)"};background:${a.hvacMode===e?"heat"===e?"rgba(var(--rgb-heat),0.1)":"cool"===e?"rgba(var(--rgb-cool),0.1)":"var(--s3)":"var(--s1)"};color:${a.hvacMode===e?"heat"===e?"var(--c-heat)":"cool"===e?"var(--c-cool)":"var(--t1)":"var(--t3)"};">
-                <ha-icon .icon=${"heat"===e?"mdi:fire":"cool"===e?"mdi:snowflake":"auto"===e?"mdi:thermostat-auto":"mdi:power"}></ha-icon>
-                ${De("heat"===e?"climate.mode_heat":"cool"===e?"climate.mode_cool":"auto"===e?"climate.mode_auto":"climate.mode_off")}
-              </span>
-            `)}
-          </div>
-        </div>
-      </div>
-    `}renderTab(){if(this._lang,!this.hass)return F`${B}`;const e=this._climateRoomEntities;return F`
-      <div class="preview-encart">
-        <div class="preview-label">${De("config.preview")}</div>
-        ${this.renderPreview()}
-      </div>
-
+    `}}Mt([ue()],At.prototype,"_cameraShowHeader"),Mt([ue()],At.prototype,"_cameraAutoCycle"),Mt([ue()],At.prototype,"_cameraCycleInterval"),Mt([ue()],At.prototype,"_cameraEntityOrder"),Mt([ue()],At.prototype,"_localDragIdx"),Mt([ue()],At.prototype,"_localDropIdx");try{customElements.define("config-tab-camera",At)}catch{}var Ot=Object.defineProperty,Rt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ot(t,i,s),s};class jt extends it{constructor(){super(...arguments),this._climateShowHeader=!0,this._climateDisplayMode="list",this._climateDashboardDisplayMode="list",this._climateDashboardEntities=[],this._climateRoom="",this._climateRoomEntities=[],this._saving=!1,this._localDragIdx=null,this._localDropIdx=null}static{this._AUTO_SAVE_KEYS=new Set(["_climateShowHeader","_climateDisplayMode","_climateDashboardDisplayMode","_climateDashboardEntities","_climateRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._climateRoom=this.areaId,this._loadRoomClimates()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._climateShowHeader=t.show_header??!0,this._climateDisplayMode="normal"===t.display_mode?"normal":"list",this._climateDashboardDisplayMode="normal"===t.dashboard_display_mode?"normal":"list",this._climateDashboardEntities=t.dashboard_entities??[]}collectSaveData(){return{show_header:this._climateShowHeader,display_mode:this._climateDisplayMode,dashboard_display_mode:this._climateDashboardDisplayMode,dashboard_entities:this._climateDashboardEntities}}async save(){if(this.backend&&!this._saving){this._saving=!0;try{const e=this._climateRoomEntities.map(e=>e.entityId),t=this._climateRoomEntities.filter(e=>!e.visible).map(e=>e.entityId);if(await this.backend.send("set_climate_config",this.collectSaveData()),this._climateRoom&&this._climateRoomEntities.length>0){let i=[],a=[];try{const e=await this.backend.send("get_room",{area_id:this._climateRoom});e&&(i=e.hidden_entities??[],a=e.entity_order??[])}catch{}const r=new Set(this._climateRoomEntities.map(e=>e.entityId)),s=i.filter(e=>!r.has(e)),o=a.filter(e=>!r.has(e));await this.backend.send("set_room",{area_id:this._climateRoom,hidden_entities:[...s,...t],entity_order:[...o,...e]}),ge.emit("room-config-changed",{areaId:this._climateRoom})}this._fireToast(!0),ge.emit("climate-config-changed",void 0)}catch{this._fireToast(!1)}finally{this._saving=!1}}}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.climate_card&&this.loadFromConfig(e.climate_card)}catch{}this._climateRoom&&await this._loadRoomClimates()}}async _loadRoomClimates(){if(!this.hass||!this._climateRoom||!this.backend)return;const e=this._climateRoom,t=Ye(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("climate.")).map(e=>e.entity_id);let i=[],a=[];try{const t=await this.backend.send("get_room",{area_id:e});i=t?.hidden_entities||[],a=t?.entity_order||[]}catch{}if(this._climateRoom!==e)return;const r=new Map(a.map((e,t)=>[e,t])),s=[...t].sort((e,t)=>{const i=r.get(e)??999,a=r.get(t)??999;return i!==a?i-a:e.localeCompare(t)});this._climateRoomEntities=s.map(e=>{const t=this.hass?.states[e],a=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:a,visible:!i.includes(e)}})}_onLocalDragStart(e){this._localDragIdx=e}_onLocalDragOver(e,t){t.preventDefault(),this._localDropIdx=e}_onLocalDragLeave(){this._localDropIdx=null}_onLocalDragEnd(){this._localDragIdx=null,this._localDropIdx=null}_onLocalDrop(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e)return this._localDragIdx=null,void(this._localDropIdx=null);const i=[...this._climateRoomEntities],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._climateRoomEntities=i,this._localDragIdx=null,this._localDropIdx=null}_toggleEntityVisibility(e){this._climateRoomEntities=this._climateRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}renderTab(){if(this._lang,!this.hass)return N`${B}`;const e=this._climateRoomEntities;return N`
       <div class="tab-panel" id="panel-climate">
+        <glass-climate-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-climate-card>
         <!-- Description -->
         <div class="sub-section">
-          <div class="section-label">${De("config.tab_climate")}</div>
-          <div class="section-desc">${De("config.climate_desc")}</div>
+          <div class="section-label">${Re("config.tab_climate")}</div>
+          <div class="section-desc">${Re("config.climate_desc")}</div>
         </div>
 
         <!-- Display mode popup -->
         <div class="sub-section">
-          <div class="section-label">${De("config.climate_display_mode_popup")}</div>
-          <div class="section-desc">${De("config.climate_display_mode_popup_desc")}</div>
+          <div class="section-label">${Re("config.climate_display_mode_popup")}</div>
+          <div class="section-desc">${Re("config.climate_display_mode_popup_desc")}</div>
           <div class="chip-group">
             <button class="chip ${"list"===this._climateDisplayMode?"active":""}"
               @click=${()=>{this._climateDisplayMode="list"}}
               aria-pressed=${"list"===this._climateDisplayMode?"true":"false"}>
               <ha-icon .icon=${"mdi:format-list-bulleted"}></ha-icon>
-              ${De("config.climate_mode_list")}
+              ${Re("config.climate_mode_list")}
             </button>
             <button class="chip ${"normal"===this._climateDisplayMode?"active":""}"
               @click=${()=>{this._climateDisplayMode="normal"}}
               aria-pressed=${"normal"===this._climateDisplayMode?"true":"false"}>
               <ha-icon .icon=${"mdi:gauge"}></ha-icon>
-              ${De("config.climate_mode_normal")}
+              ${Re("config.climate_mode_normal")}
             </button>
           </div>
         </div>
 
         <!-- Behaviour -->
         <div class="sub-section">
-          <div class="section-label">${De("config.behavior")}</div>
+          <div class="section-label">${Re("config.behavior")}</div>
           <div class="feature-list">
             <button
               class="feature-row"
@@ -7658,8 +4570,8 @@
                 <ha-icon .icon=${"mdi:page-layout-header"}></ha-icon>
               </div>
               <div class="feature-text">
-                <div class="feature-name">${De("config.climate_show_header")}</div>
-                <div class="feature-desc">${De("config.climate_show_header_desc")}</div>
+                <div class="feature-name">${Re("config.climate_show_header")}</div>
+                <div class="feature-desc">${Re("config.climate_show_header_desc")}</div>
               </div>
               <span class="toggle ${this._climateShowHeader?"on":""}"></span>
             </button>
@@ -7668,16 +4580,16 @@
 
         <!-- Room entities -->
         <div class="sub-section">
-          ${0===e.length?F`
+          ${0===e.length?N`
             <div class="banner">
               <ha-icon .icon=${"mdi:thermostat"}></ha-icon>
-              <span>${De("config.climate_no_entities")}</span>
+              <span>${Re("config.climate_no_entities")}</span>
             </div>
-          `:F`
-            <div class="section-label">${De("config.climate_room_entities")} (${e.length})</div>
-            <div class="section-desc">${De("config.climate_room_entities_desc")}</div>
+          `:N`
+            <div class="section-label">${Re("config.climate_room_entities")} (${e.length})</div>
+            <div class="section-desc">${Re("config.climate_room_entities_desc")}</div>
             <div class="item-list">
-              ${e.map((e,t)=>{const i=this._localDragIdx===t,a=this._localDropIdx===t,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return F`
+              ${e.map((e,t)=>{const i=this._localDragIdx===t,a=this._localDropIdx===t,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return N`
                   <div class="item-card">
                     <div
                       class=${r}
@@ -7700,7 +4612,7 @@
                         @click=${()=>this._toggleEntityVisibility(e.entityId)}
                         role="switch"
                         aria-checked=${e.visible?"true":"false"}
-                        aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.name}"
+                        aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.name}"
                       ></button>
                     </div>
                   </div>
@@ -7710,70 +4622,70 @@
         </div>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this.reload()}>${Re("common.reset")}</button>
         </div>
       </div>
-    `}}Ct([me()],It.prototype,"_climateShowHeader"),Ct([me()],It.prototype,"_climateDisplayMode"),Ct([me()],It.prototype,"_climateDashboardDisplayMode"),Ct([me()],It.prototype,"_climateDashboardEntities"),Ct([me()],It.prototype,"_climateRoom"),Ct([me()],It.prototype,"_climateRoomEntities"),Ct([me()],It.prototype,"_localDragIdx"),Ct([me()],It.prototype,"_localDropIdx");try{customElements.define("config-tab-climate",It)}catch{}const zt=["light","media_player","climate","fan","cover","camera","vacuum"],At=new Set(["light","media_player","climate","cover","fan","camera"]),Pt={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",camera:"mdi:cctv",vacuum:"mdi:robot-vacuum"},Tt={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},camera:{name:"config.domain_camera",desc:"config.domain_camera_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};var Ot=Object.defineProperty,Rt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Ot(t,i,o),o};const Mt=["light","cover","climate","fan","media_player","camera"];function Lt(e){return Pt[e]??"mdi:help-circle"}class jt extends qe{constructor(){super(...arguments),this._unassignedEntities=[],this._unassignedDropdownEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch="",this._unassignedEditingEntity=null,this._iconPopupEntity=null,this._iconSearch="",this._iconList=[],this._iconLoading=!1,this._portalEl=null}updated(e){super.updated(e),e.has("hass")&&this.hass&&0===this._unassignedEntities.length&&this._loadEntities()}loadFromConfig(e){}collectSaveData(){return{}}renderPreview(){return B}_collectAllEntities(){if(!this.hass)return[];const e=this.hass.entities,t=this.hass.devices,i=this.hass.areas,a=[];for(const r of Object.values(e)){if(r.disabled_by||r.hidden_by)continue;const e=r.entity_id.split(".")[0];if(!Mt.includes(e))continue;const o=Re(r,t),s=this.hass.states[r.entity_id],n=s?.attributes?.friendly_name??r.entity_id,c=o?i[o]?.name??null:null;a.push({entityId:r.entity_id,name:n,domain:e,areaId:o,areaName:c,icon:r.icon??null})}return a.sort((e,t)=>{const i=e.areaId?1:0,a=t.areaId?1:0;if(i!==a)return i-a;const r=Mt.indexOf(e.domain)-Mt.indexOf(t.domain);return 0!==r?r:e.name.localeCompare(t.name)}),a}_loadEntities(){this._unassignedEntities=this._collectAllEntities(),this._unassignedDropdownEntity=null,this._unassignedEditingEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch=""}async _assignEntityArea(e,t){if(this.hass)try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,area_id:t}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===e?{...i,areaId:t,areaName:this.hass?.areas[t]?.name??null}:i),this._unassignedDropdownEntity=null,this._unassignedAreaSearch="",this.dispatchEvent(new CustomEvent("entities-assigned",{bubbles:!0,composed:!0}))}catch{this._fireToast(!1)}}async _renameEntity(e,t){if(!this.hass)return;const i=t.trim();if(!i)return void(this._unassignedEditingEntity=null);const a=this._unassignedEntities.find(t=>t.entityId===e);if(a&&a.name===i)this._unassignedEditingEntity=null;else{try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,name:i}),this._unassignedEntities=this._unassignedEntities.map(t=>t.entityId===e?{...t,name:i}:t)}catch{this._fireToast(!1)}this._unassignedEditingEntity=null}}async _openIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),this._iconSearch="",this._iconPopupEntity=e)}async _loadIconList(){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot?.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim();return e?this._iconList.filter(t=>t.toLowerCase().includes(e)).slice(0,120):this._iconList.slice(0,120)}async _selectIcon(e){const t=this._iconPopupEntity;if(this._iconPopupEntity=null,!t||!this.hass)return;const i=this._unassignedEntities.find(e=>e.entityId===t);if(!i||i.icon!==(e||null))try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,icon:e||null}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===t?{...i,icon:e||null}:i)}catch{this._fireToast(!1)}}_showIconPortal(){if(!this._iconPopupEntity)return void this._removeIconPortal();const e=this._unassignedEntities.find(e=>e.entityId===this._iconPopupEntity),t=e?.icon??"",i=this._getFilteredIcons();this._portalEl||(this._portalEl=document.createElement("div"),document.body.appendChild(this._portalEl));const a=()=>{this._iconPopupEntity=null,this._removeIconPortal()},r=e=>{this._selectIcon(e),this._removeIconPortal()},o=e=>{this._iconSearch=e,this._showIconPortal()};this._portalEl.replaceChildren(),Object.assign(this._portalEl.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem"}),this._portalEl.addEventListener("click",e=>{e.target===this._portalEl&&a()},{once:!0});const s=document.createElement("div");Object.assign(s.style,{width:"100%",maxWidth:"25rem",maxHeight:"70vh",display:"flex",flexDirection:"column",borderRadius:"22px",background:"linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)",boxShadow:"inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"});const n=document.createElement("div");Object.assign(n.style,{padding:"0.875rem 1rem 0.625rem",display:"flex",flexDirection:"column",gap:"0.625rem",borderBottom:"1px solid rgba(255,255,255,0.06)"});const c=document.createElement("span");Object.assign(c.style,{fontSize:"11px",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.45)"}),c.textContent=De("config.unassigned_change_icon");const d=document.createElement("input");Object.assign(d.style,{width:"100%",padding:"0.5rem 0.75rem",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.88)",fontSize:"13px",outline:"none",boxSizing:"border-box"}),d.placeholder="mdi:...",d.value=this._iconSearch,d.addEventListener("input",()=>o(d.value)),n.appendChild(c),n.appendChild(d),s.appendChild(n);const l=document.createElement("div");Object.assign(l.style,{overflow:"auto",flex:"1",padding:"0.5rem"});const p=document.createElement("div");Object.assign(p.style,{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:"4px"});const h=this._createIconBtn("mdi:cancel",""===t,.4);h.addEventListener("click",()=>r("")),p.appendChild(h);for(const m of i){const e=this._createIconBtn(m,m===t,1);e.addEventListener("click",()=>r(m)),p.appendChild(e)}if(0===i.length&&this._iconSearch){const e=document.createElement("div");Object.assign(e.style,{gridColumn:"1/-1",textAlign:"center",padding:"2rem",color:"rgba(255,255,255,0.35)",fontSize:"13px"}),e.textContent=De("config.title_no_icons_found"),p.appendChild(e)}l.appendChild(p),s.appendChild(l),this._portalEl.appendChild(s),d.focus()}_createIconBtn(e,t,i){const a=document.createElement("button");Object.assign(a.style,{width:"100%",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"10px",border:t?"2px solid rgba(129,140,248,0.6)":"1px solid rgba(255,255,255,0.06)",background:t?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.04)",cursor:"pointer",color:"rgba(255,255,255,0.88)",padding:"0"});const r=document.createElement("ha-icon");return r.icon=e,r.style.cssText=`--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${i};`,a.appendChild(r),a}_removeIconPortal(){this._portalEl&&(this._portalEl.remove(),this._portalEl=null)}disconnectedCallback(){super.disconnectedCallback(),this._removeIconPortal()}closeDropdowns(){this._unassignedDropdownEntity=null}renderTab(){if(this._lang,!this.hass)return F`${B}`;const e=this._unassignedEntities,t=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name)),i=this._unassignedEntitySearch.toLowerCase(),a=this._unassignedAreaSearch.toLowerCase(),r=i?e.filter(e=>e.name.toLowerCase().includes(i)||e.entityId.toLowerCase().includes(i)):e,o=new Map;for(const c of r){const e=o.get(c.domain)??[];e.push(c),o.set(c.domain,e)}const s=e.filter(e=>!e.areaId).length,n=a?t.filter(e=>e.name.toLowerCase().includes(a)):t;return F`
+    `}}Rt([ue()],jt.prototype,"_climateShowHeader"),Rt([ue()],jt.prototype,"_climateDisplayMode"),Rt([ue()],jt.prototype,"_climateDashboardDisplayMode"),Rt([ue()],jt.prototype,"_climateDashboardEntities"),Rt([ue()],jt.prototype,"_climateRoom"),Rt([ue()],jt.prototype,"_climateRoomEntities"),Rt([ue()],jt.prototype,"_localDragIdx"),Rt([ue()],jt.prototype,"_localDropIdx");try{customElements.define("config-tab-climate",jt)}catch{}const Ht=["light","media_player","climate","fan","cover","camera","vacuum"],Ft=new Set(["light","media_player","climate","cover","fan","camera"]),qt={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",camera:"mdi:cctv",vacuum:"mdi:robot-vacuum"},Vt={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},camera:{name:"config.domain_camera",desc:"config.domain_camera_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};var Nt=Object.defineProperty,Ut=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Nt(t,i,s),s};const Wt=["light","cover","climate","fan","media_player","camera"];function Bt(e){return qt[e]??"mdi:help-circle"}class Kt extends it{constructor(){super(...arguments),this._unassignedEntities=[],this._unassignedDropdownEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch="",this._unassignedEditingEntity=null,this._iconPopupEntity=null,this._iconSearch="",this._iconList=[],this._iconLoading=!1,this._portalEl=null}updated(e){super.updated(e),e.has("hass")&&this.hass&&0===this._unassignedEntities.length&&this._loadEntities()}loadFromConfig(e){}collectSaveData(){return{}}_collectAllEntities(){if(!this.hass)return[];const e=this.hass.entities,t=this.hass.devices,i=this.hass.areas,a=[];for(const r of Object.values(e)){if(r.disabled_by||r.hidden_by)continue;const e=r.entity_id.split(".")[0];if(!Wt.includes(e))continue;const s=Ke(r,t),o=this.hass.states[r.entity_id],n=o?.attributes?.friendly_name??r.entity_id,c=s?i[s]?.name??null:null;a.push({entityId:r.entity_id,name:n,domain:e,areaId:s,areaName:c,icon:r.icon??null})}return a.sort((e,t)=>{const i=e.areaId?1:0,a=t.areaId?1:0;if(i!==a)return i-a;const r=Wt.indexOf(e.domain)-Wt.indexOf(t.domain);return 0!==r?r:e.name.localeCompare(t.name)}),a}_loadEntities(){this._unassignedEntities=this._collectAllEntities(),this._unassignedDropdownEntity=null,this._unassignedEditingEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch=""}async _assignEntityArea(e,t){if(this.hass)try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,area_id:t}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===e?{...i,areaId:t,areaName:this.hass?.areas[t]?.name??null}:i),this._unassignedDropdownEntity=null,this._unassignedAreaSearch="",this.dispatchEvent(new CustomEvent("entities-assigned",{bubbles:!0,composed:!0}))}catch{this._fireToast(!1)}}async _renameEntity(e,t){if(!this.hass)return;const i=t.trim();if(!i)return void(this._unassignedEditingEntity=null);const a=this._unassignedEntities.find(t=>t.entityId===e);if(a&&a.name===i)this._unassignedEditingEntity=null;else{try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,name:i}),this._unassignedEntities=this._unassignedEntities.map(t=>t.entityId===e?{...t,name:i}:t)}catch{this._fireToast(!1)}this._unassignedEditingEntity=null}}async _openIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),this._iconSearch="",this._iconPopupEntity=e)}async _loadIconList(){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot?.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim();return e?this._iconList.filter(t=>t.toLowerCase().includes(e)).slice(0,120):this._iconList.slice(0,120)}async _selectIcon(e){const t=this._iconPopupEntity;if(this._iconPopupEntity=null,!t||!this.hass)return;const i=this._unassignedEntities.find(e=>e.entityId===t);if(!i||i.icon!==(e||null))try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,icon:e||null}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===t?{...i,icon:e||null}:i)}catch{this._fireToast(!1)}}_showIconPortal(){if(!this._iconPopupEntity)return void this._removeIconPortal();const e=this._unassignedEntities.find(e=>e.entityId===this._iconPopupEntity),t=e?.icon??"",i=this._getFilteredIcons();this._portalEl||(this._portalEl=document.createElement("div"),document.body.appendChild(this._portalEl));const a=()=>{this._iconPopupEntity=null,this._removeIconPortal()},r=e=>{this._selectIcon(e),this._removeIconPortal()},s=e=>{this._iconSearch=e,this._showIconPortal()};this._portalEl.replaceChildren(),Object.assign(this._portalEl.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem"}),this._portalEl.addEventListener("click",e=>{e.target===this._portalEl&&a()},{once:!0});const o=document.createElement("div");Object.assign(o.style,{width:"100%",maxWidth:"25rem",maxHeight:"70vh",display:"flex",flexDirection:"column",borderRadius:"22px",background:"linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)",boxShadow:"inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"});const n=document.createElement("div");Object.assign(n.style,{padding:"0.875rem 1rem 0.625rem",display:"flex",flexDirection:"column",gap:"0.625rem",borderBottom:"1px solid rgba(255,255,255,0.06)"});const c=document.createElement("span");Object.assign(c.style,{fontSize:"11px",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.45)"}),c.textContent=Re("config.unassigned_change_icon");const l=document.createElement("input");Object.assign(l.style,{width:"100%",padding:"0.5rem 0.75rem",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.88)",fontSize:"13px",outline:"none",boxSizing:"border-box"}),l.placeholder="mdi:...",l.value=this._iconSearch,l.addEventListener("input",()=>s(l.value)),n.appendChild(c),n.appendChild(l),o.appendChild(n);const d=document.createElement("div");Object.assign(d.style,{overflow:"auto",flex:"1",padding:"0.5rem"});const h=document.createElement("div");Object.assign(h.style,{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:"4px"});const p=this._createIconBtn("mdi:cancel",""===t,.4);p.addEventListener("click",()=>r("")),h.appendChild(p);for(const u of i){const e=this._createIconBtn(u,u===t,1);e.addEventListener("click",()=>r(u)),h.appendChild(e)}if(0===i.length&&this._iconSearch){const e=document.createElement("div");Object.assign(e.style,{gridColumn:"1/-1",textAlign:"center",padding:"2rem",color:"rgba(255,255,255,0.35)",fontSize:"13px"}),e.textContent=Re("config.title_no_icons_found"),h.appendChild(e)}d.appendChild(h),o.appendChild(d),this._portalEl.appendChild(o),l.focus()}_createIconBtn(e,t,i){const a=document.createElement("button");Object.assign(a.style,{width:"100%",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"10px",border:t?"2px solid rgba(129,140,248,0.6)":"1px solid rgba(255,255,255,0.06)",background:t?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.04)",cursor:"pointer",color:"rgba(255,255,255,0.88)",padding:"0"});const r=document.createElement("ha-icon");return r.icon=e,r.style.cssText=`--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${i};`,a.appendChild(r),a}_removeIconPortal(){this._portalEl&&(this._portalEl.remove(),this._portalEl=null)}disconnectedCallback(){super.disconnectedCallback(),this._removeIconPortal()}closeDropdowns(){this._unassignedDropdownEntity=null}renderTab(){if(this._lang,!this.hass)return N`${B}`;const e=this._unassignedEntities,t=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name)),i=this._unassignedEntitySearch.toLowerCase(),a=this._unassignedAreaSearch.toLowerCase(),r=i?e.filter(e=>e.name.toLowerCase().includes(i)||e.entityId.toLowerCase().includes(i)):e,s=new Map;for(const c of r){const e=s.get(c.domain)??[];e.push(c),s.set(c.domain,e)}const o=e.filter(e=>!e.areaId).length,n=a?t.filter(e=>e.name.toLowerCase().includes(a)):t;return N`
       <div class="tab-panel" id="panel-unassigned">
-        <div class="section-label">${De("config.tab_unassigned")}</div>
-        <div class="section-desc">${De("config.unassigned_desc")}</div>
+        <div class="section-label">${Re("config.tab_unassigned")}</div>
+        <div class="section-desc">${Re("config.unassigned_desc")}</div>
 
-        ${s>0?F`
+        ${o>0?N`
           <div class="banner pw-ua-banner-warn">
             <ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon>
-            <span>${De("config.unassigned_count",{count:String(s)})}</span>
+            <span>${Re("config.unassigned_count",{count:String(o)})}</span>
           </div>
         `:B}
 
-        ${0===e.length?F`
+        ${0===e.length?N`
           <div class="banner">
             <ha-icon .icon=${"mdi:help-circle-outline"}></ha-icon>
-            <span>${De("config.unassigned_no_entities")}</span>
+            <span>${Re("config.unassigned_no_entities")}</span>
           </div>
-        `:F`
+        `:N`
           <!-- Entity search -->
           <input
             type="text"
             class="dropdown-search pw-ua-search"
-            placeholder="${De("config.search_entity")}"
-            aria-label="${De("config.search_entity")}"
+            placeholder="${Re("config.search_entity")}"
+            aria-label="${Re("config.search_entity")}"
             .value=${this._unassignedEntitySearch}
             @input=${e=>{this._unassignedEntitySearch=e.target.value}}
           />
 
-          ${0===r.length?F`
+          ${0===r.length?N`
             <div class="banner">
               <ha-icon .icon=${"mdi:magnify"}></ha-icon>
-              <span>${De("config.unassigned_no_results")}</span>
+              <span>${Re("config.unassigned_no_results")}</span>
             </div>
           `:B}
 
-          ${[...o.entries()].map(([e,t])=>F`
+          ${[...s.entries()].map(([e,t])=>N`
             <div class="section-label pw-ua-domain-group">
-              <ha-icon .icon=${Lt(e)} class="pw-ua-domain-icon"></ha-icon>
-              ${function(e){const t=Tt[e];return t?De(t.name):e}(e)}
+              <ha-icon .icon=${Bt(e)} class="pw-ua-domain-icon"></ha-icon>
+              ${function(e){const t=Vt[e];return t?Re(t.name):e}(e)}
               <span class="pw-ua-domain-count">(${t.length})</span>
             </div>
             <div class="item-list">
-              ${t.map(e=>{const t=this._unassignedDropdownEntity===e.entityId,i=this._unassignedEditingEntity===e.entityId;return F`
+              ${t.map(e=>{const t=this._unassignedDropdownEntity===e.entityId,i=this._unassignedEditingEntity===e.entityId;return N`
                   <div class="item-row">
                     <div class="item-info pw-ua-entity-info">
-                      ${i?F`
+                      ${i?N`
                         <input
                           type="text"
                           class="entity-rename-input"
                           .value=${e.name}
-                          aria-label="${De("config.unassigned_rename")}"
+                          aria-label="${Re("config.unassigned_rename")}"
                           @blur=${t=>{const i=t.target;i.dataset.cancelled||this._renameEntity(e.entityId,i.value)}}
                           @keydown=${e=>{"Enter"===e.key&&e.target.blur(),"Escape"===e.key&&(e.target.dataset.cancelled="1",this._unassignedEditingEntity=null)}}
                           @focus=${e=>e.target.select()}
                         />
-                      `:F`
+                      `:N`
                         <button
                           class="item-name entity-name-btn"
                           @click=${()=>{this._unassignedEditingEntity=e.entityId,this.updateComplete.then(()=>{const e=this.shadowRoot?.querySelector(".entity-rename-input");e?.focus()})}}
-                          title="${De("config.unassigned_rename")}"
-                          aria-label="${De("config.unassigned_rename")}: ${e.name}"
+                          title="${Re("config.unassigned_rename")}"
+                          aria-label="${Re("config.unassigned_rename")}: ${e.name}"
                         >
                           ${e.name}
                           <ha-icon .icon=${"mdi:pencil"} class="pw-ua-edit-icon"></ha-icon>
@@ -7783,11 +4695,11 @@
                     </div>
                     <button
                       class="btn-icon xs pw-ua-icon-btn-shrink"
-                      title="${De("config.unassigned_change_icon")}"
-                      aria-label="${De("config.unassigned_change_icon")}: ${e.name}"
+                      title="${Re("config.unassigned_change_icon")}"
+                      aria-label="${Re("config.unassigned_change_icon")}: ${e.name}"
                       @click=${async()=>{await this._openIconPopup(e.entityId),this._showIconPortal()}}
                     >
-                      <ha-icon .icon=${e.icon||Lt(e.domain)} class="pw-ua-entity-icon"></ha-icon>
+                      <ha-icon .icon=${e.icon||Bt(e.domain)} class="pw-ua-entity-icon"></ha-icon>
                     </button>
                     <div class="dropdown ${t?"open":""} pw-ua-dropdown-wrap">
                       <button
@@ -7797,20 +4709,20 @@
                         aria-expanded=${t?"true":"false"}
                         aria-haspopup="listbox"
                       >
-                        <span class="pw-ua-area-text">${e.areaName??De("config.unassigned_select_area")}</span>
+                        <span class="pw-ua-area-text">${e.areaName??Re("config.unassigned_select_area")}</span>
                         <ha-icon class="arrow" .icon=${"mdi:chevron-down"}></ha-icon>
                       </button>
                       <div class="dropdown-menu" role="listbox">
                         <input
                           type="text"
                           class="dropdown-search"
-                          placeholder="${De("config.search_entity")}"
-                          aria-label="${De("config.search_entity")}"
+                          placeholder="${Re("config.search_entity")}"
+                          aria-label="${Re("config.search_entity")}"
                           .value=${this._unassignedAreaSearch}
                           @input=${e=>{this._unassignedAreaSearch=e.target.value}}
                           @click=${e=>e.stopPropagation()}
                         />
-                        ${n.map(t=>F`
+                        ${n.map(t=>N`
                           <button
                             class="dropdown-item ${t.area_id===e.areaId?"active":""}"
                             role="option"
@@ -7830,13 +4742,13 @@
         `}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadEntities()}>${De("common.reset")}</button>
+          <button class="btn btn-ghost" @click=${()=>this._loadEntities()}>${Re("common.reset")}</button>
         </div>
       </div>
 
-    `}}Rt([me()],jt.prototype,"_unassignedEntities"),Rt([me()],jt.prototype,"_unassignedDropdownEntity"),Rt([me()],jt.prototype,"_unassignedEntitySearch"),Rt([me()],jt.prototype,"_unassignedAreaSearch"),Rt([me()],jt.prototype,"_unassignedEditingEntity"),Rt([me()],jt.prototype,"_iconPopupEntity"),Rt([me()],jt.prototype,"_iconSearch");try{customElements.define("config-tab-unassigned",jt)}catch{}var Ht=Object.defineProperty,Nt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Ht(t,i,o),o};class Vt extends ne{constructor(){super(...arguments),this.rooms=[],this._dragIdx=null,this._dropIdx=null}createRenderRoot(){return this}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this.rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this.dispatchEvent(new CustomEvent("rooms-reordered",{detail:{rooms:t},bubbles:!0,composed:!0}))}this._dragIdx=null,this._dropIdx=null}_toggleVisibility(e,t){t.stopPropagation(),t.preventDefault(),this.dispatchEvent(new CustomEvent("room-visibility-toggle",{detail:{areaId:e.areaId,visible:!e.visible},bubbles:!0,composed:!0}))}render(){return this.rooms.length?F`
+    `}}Ut([ue()],Kt.prototype,"_unassignedEntities"),Ut([ue()],Kt.prototype,"_unassignedDropdownEntity"),Ut([ue()],Kt.prototype,"_unassignedEntitySearch"),Ut([ue()],Kt.prototype,"_unassignedAreaSearch"),Ut([ue()],Kt.prototype,"_unassignedEditingEntity"),Ut([ue()],Kt.prototype,"_iconPopupEntity"),Ut([ue()],Kt.prototype,"_iconSearch");try{customElements.define("config-tab-unassigned",Kt)}catch{}var Yt=Object.defineProperty,Gt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Yt(t,i,s),s};class Xt extends ne{constructor(){super(...arguments),this.rooms=[],this._dragIdx=null,this._dropIdx=null}createRenderRoot(){return this}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this.rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this.dispatchEvent(new CustomEvent("rooms-reordered",{detail:{rooms:t},bubbles:!0,composed:!0}))}this._dragIdx=null,this._dropIdx=null}_toggleVisibility(e,t){t.stopPropagation(),t.preventDefault(),this.dispatchEvent(new CustomEvent("room-visibility-toggle",{detail:{areaId:e.areaId,visible:!e.visible},bubbles:!0,composed:!0}))}render(){return this.rooms.length?N`
       <div class="room-grid">
-        ${this.rooms.map((e,t)=>{const i=this._dragIdx===t,a=this._dropIdx===t&&null!==this._dragIdx&&this._dragIdx!==t;return F`
+        ${this.rooms.map((e,t)=>{const i=this._dragIdx===t,a=this._dropIdx===t&&null!==this._dragIdx&&this._dragIdx!==t;return N`
             <div
               class="room-card dash-card ${e.visible?"":"off"} ${i?"dragging":""} ${a?"drop-target":""}"
               draggable="true"
@@ -7850,7 +4762,7 @@
               <button
                 class="dash-toggle ${e.visible?"on":""}"
                 @click=${t=>this._toggleVisibility(e,t)}
-                aria-label=${e.visible?De("config.hide_room"):De("config.show_room")}
+                aria-label=${e.visible?Re("config.hide_room"):Re("config.show_room")}
               ></button>
               <ha-icon .icon=${e.icon||"mdi:home"}></ha-icon>
               <span class="room-name">${e.name}</span>
@@ -7858,14 +4770,14 @@
             </div>
           `})}
       </div>
-    `:F`<div class="empty-state">${De("config.no_rooms")}</div>`}}Nt([he({attribute:!1})],Vt.prototype,"hass"),Nt([he({attribute:!1})],Vt.prototype,"rooms"),Nt([me()],Vt.prototype,"_dragIdx"),Nt([me()],Vt.prototype,"_dropIdx"),customElements.define("config-room-list",Vt);var qt=Object.defineProperty,Ft=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&qt(t,i,o),o};const Ut=[{id:"light",label:"Lumières",icon:"mdi:lightbulb-group",domains:["light"],color:"251,191,36"},{id:"cover",label:"Volets",icon:"mdi:window-shutter",domains:["cover"],color:"167,139,250"},{id:"climate",label:"Climat",icon:"mdi:thermostat",domains:["climate"],color:"96,165,250"},{id:"media",label:"Media",icon:"mdi:speaker",domains:["media_player"],color:"129,140,248"},{id:"fan",label:"Ventilateurs",icon:"mdi:fan",domains:["fan"],color:"45,212,191"}];class Wt extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._openSections=new Set,this._sections=[],this._scenes=[],this._tempEntity="",this._humidityEntity="",this._tempHigh=null,this._tempLow=null,this._humidityThreshold=null,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._availableTempEntities=[],this._availableHumidityEntities=[],this._tempDropdownOpen=!1,this._humidityDropdownOpen=!1,this._dragIdx=null,this._dropIdx=null,this._dragContext=null,this._loaded=!1,this._autoOpenDone=!1}createRenderRoot(){return this}updated(e){super.updated(e),(e.has("areaId")||e.has("hass"))&&(this._loaded=!1,this._autoOpenDone=!1),!this._loaded&&this.hass&&this.areaId&&(this._loaded=!0,this._loadRoomConfig()),!this._autoOpenDone&&this._sections.length>0&&(this._autoOpenDone=!0)}disconnectedCallback(){super.disconnectedCallback(),this._saveTimer&&(clearTimeout(this._saveTimer),this._saveTimer=void 0)}async _loadRoomConfig(){if(!this.hass||!this.areaId)return;const e=Me(this.areaId,this.hass.entities,this.hass.devices);let t=null,i=new Set,a=[];try{if(!this.backend)throw new Error("No backend");const e=await this.backend.send("get_room",{area_id:this.areaId});e&&(t=e.card_order.length>0?e.card_order:null,i=new Set(e.hidden_scenes??[]),a=e.scene_order??[],this._tempEntity=e.temperature_entity??"",this._humidityEntity=e.humidity_entity??"",this._tempHigh=e.temp_high??null,this._tempLow=e.temp_low??null,this._humidityThreshold=e.humidity_threshold??null,this._showLights=e.show_lights??!0,this._showTemperature=e.show_temperature??!0,this._showHumidity=e.show_humidity??!0)}catch{}const r=this.hass;this._availableTempEntities=[],this._availableHumidityEntities=[];for(const p of e)if(p.entity_id.startsWith("sensor.")){const e=r.states[p.entity_id],t=e?.attributes?.device_class,i=e?.attributes?.friendly_name||p.entity_id.split(".")[1];"temperature"===t&&this._availableTempEntities.push({id:p.entity_id,name:i}),"humidity"===t&&this._availableHumidityEntities.push({id:p.entity_id,name:i})}const o=new Map;for(const p of e){const e=p.entity_id.split(".")[0];o.set(e,(o.get(e)||0)+1)}const s=t?[...t]:[...zt],n=new Set(s);for(const p of o.keys())!n.has(p)&&Pt[p]&&s.push(p);this._sections=s.map(e=>{const i=Ut.find(t=>t.domains.includes(e)||t.id===e);if(!i)return null;const a=i.domains.reduce((e,t)=>e+(o.get(t)||0),0);return 0!==a&&At.has(e)?{...i,visible:!t||t.includes(e),count:a}:null}).filter(e=>null!==e);const c=e.filter(e=>e.entity_id.startsWith("scene.")),d=new Map;a.forEach((e,t)=>d.set(e,t));const l=c.map(e=>{const t=r.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!i.has(e.entity_id)}});l.sort((e,t)=>{const i=d.get(e.entityId),a=d.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=l}_scheduleSave(){this._saveTimer&&clearTimeout(this._saveTimer),this._saveTimer=setTimeout(()=>{this._saveTimer=void 0,this._save()},800),this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}async _save(){if(this.backend&&this.areaId)try{await this.backend.send("set_room",{area_id:this.areaId,card_order:this._sections.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId),temperature_entity:this._tempEntity||null,humidity_entity:this._humidityEntity||null,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold,show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity}),ue.emit("room-config-changed",{areaId:this.areaId}),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_toggleSectionVisible(e){this._sections=this._sections.map(t=>t.id===e?{...t,visible:!t.visible}:t),this._sections.find(t=>t.id===e)?.visible||this._openSections.delete(e),this._scheduleSave()}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),this._scheduleSave()}_toggleSection(e){this._openSections.has(e)?this._openSections.delete(e):this._openSections.add(e),this.requestUpdate()}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=null}_onDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);if("sections"===this._dragContext){const t=[...this._sections],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._sections=t,this._scheduleSave()}else if("scenes"===this._dragContext){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t,this._scheduleSave()}this._dragIdx=null,this._dropIdx=null}render(){return this._sections.length?F`
+    `:N`<div class="empty-state">${Re("config.no_rooms")}</div>`}}Gt([pe({attribute:!1})],Xt.prototype,"hass"),Gt([pe({attribute:!1})],Xt.prototype,"rooms"),Gt([ue()],Xt.prototype,"_dragIdx"),Gt([ue()],Xt.prototype,"_dropIdx"),customElements.define("config-room-list",Xt);var Qt=Object.defineProperty,Jt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Qt(t,i,s),s};const Zt=[{id:"light",label:"Lumières",icon:"mdi:lightbulb-group",domains:["light"],color:"251,191,36"},{id:"cover",label:"Volets",icon:"mdi:window-shutter",domains:["cover"],color:"167,139,250"},{id:"climate",label:"Climat",icon:"mdi:thermostat",domains:["climate"],color:"96,165,250"},{id:"media",label:"Media",icon:"mdi:speaker",domains:["media_player"],color:"129,140,248"},{id:"fan",label:"Ventilateurs",icon:"mdi:fan",domains:["fan"],color:"45,212,191"}];class ei extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._openSections=new Set,this._sections=[],this._scenes=[],this._tempEntity="",this._humidityEntity="",this._tempHigh=null,this._tempLow=null,this._humidityThreshold=null,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._availableTempEntities=[],this._availableHumidityEntities=[],this._tempDropdownOpen=!1,this._humidityDropdownOpen=!1,this._dragIdx=null,this._dropIdx=null,this._dragContext=null,this._loaded=!1,this._autoOpenDone=!1}createRenderRoot(){return this}updated(e){super.updated(e),(e.has("areaId")||e.has("hass"))&&(this._loaded=!1,this._autoOpenDone=!1),!this._loaded&&this.hass&&this.areaId&&(this._loaded=!0,this._loadRoomConfig()),!this._autoOpenDone&&this._sections.length>0&&(this._autoOpenDone=!0)}disconnectedCallback(){super.disconnectedCallback(),this._saveTimer&&(clearTimeout(this._saveTimer),this._saveTimer=void 0)}async _loadRoomConfig(){if(!this.hass||!this.areaId)return;const e=Ye(this.areaId,this.hass.entities,this.hass.devices);let t=null,i=new Set,a=[];try{if(!this.backend)throw new Error("No backend");const e=await this.backend.send("get_room",{area_id:this.areaId});e&&(t=e.card_order.length>0?e.card_order:null,i=new Set(e.hidden_scenes??[]),a=e.scene_order??[],this._tempEntity=e.temperature_entity??"",this._humidityEntity=e.humidity_entity??"",this._tempHigh=e.temp_high??null,this._tempLow=e.temp_low??null,this._humidityThreshold=e.humidity_threshold??null,this._showLights=e.show_lights??!0,this._showTemperature=e.show_temperature??!0,this._showHumidity=e.show_humidity??!0)}catch{}const r=this.hass;this._availableTempEntities=[],this._availableHumidityEntities=[];for(const h of e)if(h.entity_id.startsWith("sensor.")){const e=r.states[h.entity_id],t=e?.attributes?.device_class,i=e?.attributes?.friendly_name||h.entity_id.split(".")[1];"temperature"===t&&this._availableTempEntities.push({id:h.entity_id,name:i}),"humidity"===t&&this._availableHumidityEntities.push({id:h.entity_id,name:i})}const s=new Map;for(const h of e){const e=h.entity_id.split(".")[0];s.set(e,(s.get(e)||0)+1)}const o=t?[...t]:[...Ht],n=new Set(o);for(const h of s.keys())!n.has(h)&&qt[h]&&o.push(h);this._sections=o.map(e=>{const i=Zt.find(t=>t.domains.includes(e)||t.id===e);if(!i)return null;const a=i.domains.reduce((e,t)=>e+(s.get(t)||0),0);return 0!==a&&Ft.has(e)?{...i,visible:!t||t.includes(e),count:a}:null}).filter(e=>null!==e);const c=e.filter(e=>e.entity_id.startsWith("scene.")),l=new Map;a.forEach((e,t)=>l.set(e,t));const d=c.map(e=>{const t=r.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!i.has(e.entity_id)}});d.sort((e,t)=>{const i=l.get(e.entityId),a=l.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=d}_scheduleSave(){this._saveTimer&&clearTimeout(this._saveTimer),this._saveTimer=setTimeout(()=>{this._saveTimer=void 0,this._save()},800),this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}async _save(){if(this.backend&&this.areaId)try{await this.backend.send("set_room",{area_id:this.areaId,card_order:this._sections.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId),temperature_entity:this._tempEntity||null,humidity_entity:this._humidityEntity||null,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold,show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity}),ge.emit("room-config-changed",{areaId:this.areaId}),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_toggleSectionVisible(e){this._sections=this._sections.map(t=>t.id===e?{...t,visible:!t.visible}:t),this._sections.find(t=>t.id===e)?.visible||this._openSections.delete(e),this._scheduleSave()}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),this._scheduleSave()}_toggleSection(e){this._openSections.has(e)?this._openSections.delete(e):this._openSections.add(e),this.requestUpdate()}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=null}_onDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);if("sections"===this._dragContext){const t=[...this._sections],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._sections=t,this._scheduleSave()}else if("scenes"===this._dragContext){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t,this._scheduleSave()}this._dragIdx=null,this._dropIdx=null}render(){return this._sections.length?N`
       ${this._renderIndicators()}
       ${this._renderSensors()}
 
-      ${this._scenes.length>0?F`
-        <div class="section-label">${De("config.popup_scenes")}</div>
+      ${this._scenes.length>0?N`
+        <div class="section-label">${Re("config.popup_scenes")}</div>
         <div class="scene-chips">
-          ${this._scenes.map((e,t)=>F`
+          ${this._scenes.map((e,t)=>N`
             <button
               class="scene-chip ${e.visible?"on":""} ${this._dragIdx===t&&"scenes"===this._dragContext?"dragging":""} ${this._dropIdx===t&&"scenes"===this._dragContext?"drop-target":""}"
               draggable="true"
@@ -7875,7 +4787,7 @@
               @dragleave=${()=>{this._dropIdx=null}}
               @drop=${e=>{e.preventDefault(),e.stopPropagation(),this._onDrop(t,e)}}
               @dragend=${()=>this._onDragEnd()}
-              aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.name}"
+              aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.name}"
             >
               <ha-icon class="chip-drag" .icon=${"mdi:drag"}></ha-icon>
               <ha-icon .icon=${"mdi:palette"}></ha-icon>
@@ -7885,9 +4797,9 @@
         </div>
       `:B}
 
-      <div class="section-label pw-rd-cards-label">${De("config.popup_internal_cards")}</div>
+      <div class="section-label pw-rd-cards-label">${Re("config.popup_internal_cards")}</div>
       <div class="room-sections">
-        ${this._sections.map((e,t)=>{const i=this._openSections.has(e.id)&&e.visible,a=this._dragIdx===t&&"sections"===this._dragContext,r=this._dropIdx===t&&"sections"===this._dragContext;return F`
+        ${this._sections.map((e,t)=>{const i=this._openSections.has(e.id)&&e.visible,a=this._dragIdx===t&&"sections"===this._dragContext,r=this._dropIdx===t&&"sections"===this._dragContext;return N`
             <div
               class="${a?"dragging":""} ${r?"drop-target":""}"
               draggable="true"
@@ -7911,14 +4823,14 @@
                   @click=${t=>{t.stopPropagation(),this._toggleSectionVisible(e.id)}}
                   role="switch"
                   aria-checked=${e.visible?"true":"false"}
-                  aria-label="${e.visible?De("common.hide"):De("common.show")} ${e.label}"
+                  aria-label="${e.visible?Re("common.hide"):Re("common.show")} ${e.label}"
                 ></button>
-                ${e.visible?F`
+                ${e.visible?N`
                   <ha-icon class="section-chevron ${i?"open":""}" .icon=${"mdi:chevron-down"}
                     @click=${()=>this._toggleSection(e.id)}></ha-icon>
                 `:B}
               </div>
-              ${e.visible?F`
+              ${e.visible?N`
                 <div class="fold-sep ${i?"visible":""}" style="--fold-color:rgb(${e.color})"></div>
                 <div class="section-fold ${i?"open":""}">
                   <div class="section-fold-inner" aria-hidden=${i?"false":"true"}>
@@ -7931,37 +4843,37 @@
             </div>
           `})}
       </div>
-    `:F`<div class="empty-state">Aucune entité dans cette pièce</div>`}_selectTempEntity(e){this._tempEntity=e,this._tempDropdownOpen=!1,this._scheduleSave()}_selectHumidityEntity(e){this._humidityEntity=e,this._humidityDropdownOpen=!1,this._scheduleSave()}_renderIndicators(){return F`
-      <div class="section-label">${De("config.room_indicators")}</div>
-      <div class="section-desc">${De("config.room_indicators_desc")}</div>
+    `:N`<div class="empty-state">Aucune entité dans cette pièce</div>`}_selectTempEntity(e){this._tempEntity=e,this._tempDropdownOpen=!1,this._scheduleSave()}_selectHumidityEntity(e){this._humidityEntity=e,this._humidityDropdownOpen=!1,this._scheduleSave()}_renderIndicators(){return N`
+      <div class="section-label">${Re("config.room_indicators")}</div>
+      <div class="section-desc">${Re("config.room_indicators_desc")}</div>
       <div class="feature-list">
         <button class="feature-row" @click=${()=>{this._showLights=!this._showLights,this._scheduleSave()}}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:lightbulb"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.room_show_lights")}</div>
+            <div class="feature-name">${Re("config.room_show_lights")}</div>
           </div>
-          <span class="toggle ${this._showLights?"on":""}" role="switch" aria-checked=${this._showLights?"true":"false"} aria-label=${De("config.room_show_lights")}></span>
+          <span class="toggle ${this._showLights?"on":""}" role="switch" aria-checked=${this._showLights?"true":"false"} aria-label=${Re("config.room_show_lights")}></span>
         </button>
         <button class="feature-row" @click=${()=>{this._showTemperature=!this._showTemperature,this._scheduleSave()}}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:thermometer"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.room_show_temperature")}</div>
+            <div class="feature-name">${Re("config.room_show_temperature")}</div>
           </div>
-          <span class="toggle ${this._showTemperature?"on":""}" role="switch" aria-checked=${this._showTemperature?"true":"false"} aria-label=${De("config.room_show_temperature")}></span>
+          <span class="toggle ${this._showTemperature?"on":""}" role="switch" aria-checked=${this._showTemperature?"true":"false"} aria-label=${Re("config.room_show_temperature")}></span>
         </button>
         <button class="feature-row" @click=${()=>{this._showHumidity=!this._showHumidity,this._scheduleSave()}}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:water-percent"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.room_show_humidity")}</div>
+            <div class="feature-name">${Re("config.room_show_humidity")}</div>
           </div>
-          <span class="toggle ${this._showHumidity?"on":""}" role="switch" aria-checked=${this._showHumidity?"true":"false"} aria-label=${De("config.room_show_humidity")}></span>
+          <span class="toggle ${this._showHumidity?"on":""}" role="switch" aria-checked=${this._showHumidity?"true":"false"} aria-label=${Re("config.room_show_humidity")}></span>
         </button>
       </div>
-    `}_renderSensors(){const e="__none__"===this._tempEntity?De("config.room_no_sensor"):this._tempEntity?this._availableTempEntities.find(e=>e.id===this._tempEntity)?.name??this._tempEntity:De("config.room_auto_detect"),t="__none__"===this._humidityEntity?De("config.room_no_sensor"):this._humidityEntity?this._availableHumidityEntities.find(e=>e.id===this._humidityEntity)?.name??this._humidityEntity:De("config.room_auto_detect");return F`
-      <div class="section-label">${De("config.room_sensors")}</div>
-      <div class="section-desc">${De("config.room_sensors_desc")}</div>
+    `}_renderSensors(){const e="__none__"===this._tempEntity?Re("config.room_no_sensor"):this._tempEntity?this._availableTempEntities.find(e=>e.id===this._tempEntity)?.name??this._tempEntity:Re("config.room_auto_detect"),t="__none__"===this._humidityEntity?Re("config.room_no_sensor"):this._humidityEntity?this._availableHumidityEntities.find(e=>e.id===this._humidityEntity)?.name??this._humidityEntity:Re("config.room_auto_detect");return N`
+      <div class="section-label">${Re("config.room_sensors")}</div>
+      <div class="section-desc">${Re("config.room_sensors_desc")}</div>
 
-      <div class="feature-name pw-rd-sensor-label">${De("config.room_temp_entity")}</div>
+      <div class="feature-name pw-rd-sensor-label">${Re("config.room_temp_entity")}</div>
       <div class="dropdown ${this._tempDropdownOpen?"open":""}">
         <button
           class="dropdown-trigger"
@@ -7981,9 +4893,9 @@
             @click=${()=>this._selectTempEntity("")}
           >
             <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
-            ${De("config.room_auto_detect")}
+            ${Re("config.room_auto_detect")}
           </button>
-          ${this._availableTempEntities.map(e=>F`
+          ${this._availableTempEntities.map(e=>N`
             <button
               class="dropdown-item ${this._tempEntity===e.id?"active":""}"
               role="option"
@@ -8001,12 +4913,12 @@
             @click=${()=>this._selectTempEntity("__none__")}
           >
             <ha-icon .icon=${"mdi:close-circle-outline"}></ha-icon>
-            ${De("config.room_no_sensor")}
+            ${Re("config.room_no_sensor")}
           </button>
         </div>
       </div>
 
-      <div class="feature-name pw-rd-sensor-label">${De("config.room_humidity_entity")}</div>
+      <div class="feature-name pw-rd-sensor-label">${Re("config.room_humidity_entity")}</div>
       <div class="dropdown ${this._humidityDropdownOpen?"open":""}">
         <button
           class="dropdown-trigger"
@@ -8026,9 +4938,9 @@
             @click=${()=>this._selectHumidityEntity("")}
           >
             <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
-            ${De("config.room_auto_detect")}
+            ${Re("config.room_auto_detect")}
           </button>
-          ${this._availableHumidityEntities.map(e=>F`
+          ${this._availableHumidityEntities.map(e=>N`
             <button
               class="dropdown-item ${this._humidityEntity===e.id?"active":""}"
               role="option"
@@ -8046,17 +4958,17 @@
             @click=${()=>this._selectHumidityEntity("__none__")}
           >
             <ha-icon .icon=${"mdi:close-circle-outline"}></ha-icon>
-            ${De("config.room_no_sensor")}
+            ${Re("config.room_no_sensor")}
           </button>
         </div>
       </div>
 
-      <div class="feature-name pw-rd-threshold-label">${De("config.room_thresholds")}</div>
+      <div class="feature-name pw-rd-threshold-label">${Re("config.room_thresholds")}</div>
       <div class="feature-list">
         <div class="range-row">
           <div class="feature-icon"><ha-icon .icon=${"mdi:thermometer-high"}></ha-icon></div>
           <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${De("config.room_temp_high")}</div>
+            <div class="feature-name">${Re("config.room_temp_high")}</div>
           </div>
           <input type="range" class="range-input" min="20" max="35" step="0.5"
             .value=${String(this._tempHigh??24)}
@@ -8068,7 +4980,7 @@
         <div class="range-row">
           <div class="feature-icon"><ha-icon .icon=${"mdi:thermometer-low"}></ha-icon></div>
           <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${De("config.room_temp_low")}</div>
+            <div class="feature-name">${Re("config.room_temp_low")}</div>
           </div>
           <input type="range" class="range-input" min="10" max="25" step="0.5"
             .value=${String(this._tempLow??17)}
@@ -8080,7 +4992,7 @@
         <div class="range-row">
           <div class="feature-icon"><ha-icon .icon=${"mdi:water-percent"}></ha-icon></div>
           <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${De("config.room_humidity_threshold")}</div>
+            <div class="feature-name">${Re("config.room_humidity_threshold")}</div>
           </div>
           <input type="range" class="range-input" min="40" max="90" step="1"
             .value=${String(this._humidityThreshold??65)}
@@ -8091,14 +5003,14 @@
       </div>
 
       <div class="fold-sep visible pw-rd-sep"></div>
-    `}_renderSection(e){switch(e.id){case"light":return F`<config-tab-light .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-light>`;case"cover":return F`<config-tab-cover .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-cover>`;case"climate":return F`<config-tab-climate .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-climate>`;case"media":return F`<config-tab-media .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-media>`;case"fan":return F`<config-tab-fan .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-fan>`;default:return F``}}}Ft([he({attribute:!1})],Wt.prototype,"hass"),Ft([he()],Wt.prototype,"areaId"),Ft([he({attribute:!1})],Wt.prototype,"configData"),Ft([he({attribute:!1})],Wt.prototype,"backend"),Ft([he({attribute:!1})],Wt.prototype,"rooms"),Ft([me()],Wt.prototype,"_openSections"),Ft([me()],Wt.prototype,"_sections"),Ft([me()],Wt.prototype,"_scenes"),Ft([me()],Wt.prototype,"_tempEntity"),Ft([me()],Wt.prototype,"_humidityEntity"),Ft([me()],Wt.prototype,"_tempHigh"),Ft([me()],Wt.prototype,"_tempLow"),Ft([me()],Wt.prototype,"_humidityThreshold"),Ft([me()],Wt.prototype,"_showLights"),Ft([me()],Wt.prototype,"_showTemperature"),Ft([me()],Wt.prototype,"_showHumidity"),Ft([me()],Wt.prototype,"_tempDropdownOpen"),Ft([me()],Wt.prototype,"_humidityDropdownOpen"),Ft([me()],Wt.prototype,"_dragIdx"),Ft([me()],Wt.prototype,"_dropIdx"),Ft([me()],Wt.prototype,"_dragContext"),customElements.define("config-room-detail",Wt);var Bt=Object.defineProperty,Yt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Bt(t,i,o),o};const Kt=[{id:"title",icon:"mdi:format-title",nameKey:"config.dashboard_card_title",color:"var(--c-accent)"},{id:"light",icon:"mdi:lightbulb-group",nameKey:"config.dashboard_card_light",color:"var(--c-light-glow)"},{id:"weather",icon:"mdi:weather-partly-cloudy",nameKey:"config.dashboard_card_weather",color:"var(--c-info)"},{id:"cover",icon:"mdi:blinds",nameKey:"config.dashboard_card_cover",color:"var(--c-purple)"},{id:"climate",icon:"mdi:thermostat",nameKey:"config.dashboard_card_climate",color:"var(--c-purple)"},{id:"fan",icon:"mdi:fan",nameKey:"config.dashboard_card_fan",color:"var(--c-accent)"},{id:"media",icon:"mdi:speaker",nameKey:"config.dashboard_card_media",color:"var(--c-accent)"},{id:"spotify",icon:"mdi:spotify",nameKey:"config.dashboard_card_spotify",color:"var(--c-spotify)"},{id:"presence",icon:"mdi:account-group",nameKey:"config.dashboard_card_presence",color:"var(--c-accent)"},{id:"camera_carousel",icon:"mdi:cctv",nameKey:"config.dashboard_card_camera_carousel",color:"var(--c-alert)"}],Gt={light:{cmd:"set_light_config",configKey:"light_card"},weather:{cmd:"set_weather",configKey:"weather"},cover:{cmd:"set_cover_config",configKey:"cover_card"},fan:{cmd:"set_fan_config",configKey:"fan_card"},spotify:{cmd:"set_spotify_config",configKey:"spotify_card"},media:{cmd:"set_media_config",configKey:"media_card"},presence:{cmd:"set_presence_config",configKey:"presence_card"},climate:{cmd:"set_climate_config",configKey:"climate_card"},camera_carousel:{cmd:"set_camera_carousel_config",configKey:"camera_carousel"}},Xt={title:"title",light:"light",weather:"weather",cover:"cover",climate:"climate",fan:"fan",media:"media",spotify:"spotify",presence:"presence",camera_carousel:"camera"};class Jt extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._enabledCards=["weather"],this._cardOrder=[],this._hideHeader=!1,this._hideSidebar=!1,this._dynamicBackground=!0,this._dragIdx=null,this._dropIdx=null,this._cardSubExtras={}}createRenderRoot(){return this}updated(e){e.has("configData")&&this.configData&&this._loadFromConfig(this.configData)}disconnectedCallback(){super.disconnectedCallback(),this._saveTimer&&(clearTimeout(this._saveTimer),this._saveTimer=void 0)}_loadFromConfig(e){const t=e.dashboard;t&&(this._enabledCards=t.enabled_cards??["weather"],this._cardOrder=t.card_order??Kt.map(e=>e.id),this._hideHeader=t.hide_header??!1,this._hideSidebar=t.hide_sidebar??!1,this._dynamicBackground=t.dynamic_background??!0),this._cardSubExtras={};const i=e;for(const[a,r]of Object.entries(Gt)){const e=i[r.configKey];e&&(this._cardSubExtras[a]={...e})}}_scheduleSave(){this._saveTimer&&clearTimeout(this._saveTimer),this._saveTimer=setTimeout(()=>{this._saveTimer=void 0,this._save()},800),this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}async _save(){if(this.backend)try{await this.backend.send("set_dashboard",{enabled_cards:this._enabledCards,card_order:this._cardOrder,hide_header:this._hideHeader,hide_sidebar:this._hideSidebar,dynamic_background:this._dynamicBackground});for(const[,e]of Object.entries(Gt)){const t=this._cardSubExtras[e.configKey.replace("_card","")]??this._cardSubExtras[e.configKey];t&&await this.backend.send(e.cmd,t)}ue.emit("dashboard-config-changed",void 0),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_toggleCard(e){const t=new Set(this._enabledCards);t.has(e)?t.delete(e):t.add(e),this._enabledCards=[...t],this._scheduleSave()}_toggleHideHeader(){this._hideHeader=!this._hideHeader,this._scheduleSave()}_toggleHideSidebar(){this._hideSidebar=!this._hideSidebar,this._scheduleSave()}_toggleDynamicBg(){this._dynamicBackground=!this._dynamicBackground,this._scheduleSave()}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this._cardOrder],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cardOrder=t,this._scheduleSave()}this._dragIdx=null,this._dropIdx=null}_navigateToCard(e){const t=Xt[e]??e;this.dispatchEvent(new CustomEvent("sub-select",{detail:t,bubbles:!0,composed:!0}))}render(){return this.subSection?this._renderSubSection(this.subSection):this._renderDashboard()}_renderDashboard(){const e=new Set(this._enabledCards),t=new Set(Kt.map(e=>e.id)),i=this._cardOrder.filter(e=>t.has(e));for(const r of Kt)i.includes(r.id)||i.push(r.id);let a=0;return F`
-      <div class="section-label">${De("config.dashboard_title")}</div>
-      <div class="section-desc">${De("config.dashboard_desc")}</div>
+    `}_renderSection(e){switch(e.id){case"light":return N`<config-tab-light .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-light>`;case"cover":return N`<config-tab-cover .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-cover>`;case"climate":return N`<config-tab-climate .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-climate>`;case"media":return N`<config-tab-media .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-media>`;case"fan":return N`<config-tab-fan .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-fan>`;default:return N``}}}Jt([pe({attribute:!1})],ei.prototype,"hass"),Jt([pe()],ei.prototype,"areaId"),Jt([pe({attribute:!1})],ei.prototype,"configData"),Jt([pe({attribute:!1})],ei.prototype,"backend"),Jt([pe({attribute:!1})],ei.prototype,"rooms"),Jt([ue()],ei.prototype,"_openSections"),Jt([ue()],ei.prototype,"_sections"),Jt([ue()],ei.prototype,"_scenes"),Jt([ue()],ei.prototype,"_tempEntity"),Jt([ue()],ei.prototype,"_humidityEntity"),Jt([ue()],ei.prototype,"_tempHigh"),Jt([ue()],ei.prototype,"_tempLow"),Jt([ue()],ei.prototype,"_humidityThreshold"),Jt([ue()],ei.prototype,"_showLights"),Jt([ue()],ei.prototype,"_showTemperature"),Jt([ue()],ei.prototype,"_showHumidity"),Jt([ue()],ei.prototype,"_tempDropdownOpen"),Jt([ue()],ei.prototype,"_humidityDropdownOpen"),Jt([ue()],ei.prototype,"_dragIdx"),Jt([ue()],ei.prototype,"_dropIdx"),Jt([ue()],ei.prototype,"_dragContext"),customElements.define("config-room-detail",ei);var ti=Object.defineProperty,ii=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ti(t,i,s),s};const ai=[{id:"title",icon:"mdi:format-title",nameKey:"config.dashboard_card_title",color:"var(--c-accent)"},{id:"light",icon:"mdi:lightbulb-group",nameKey:"config.dashboard_card_light",color:"var(--c-light-glow)"},{id:"weather",icon:"mdi:weather-partly-cloudy",nameKey:"config.dashboard_card_weather",color:"var(--c-info)"},{id:"cover",icon:"mdi:blinds",nameKey:"config.dashboard_card_cover",color:"var(--c-purple)"},{id:"climate",icon:"mdi:thermostat",nameKey:"config.dashboard_card_climate",color:"var(--c-purple)"},{id:"fan",icon:"mdi:fan",nameKey:"config.dashboard_card_fan",color:"var(--c-accent)"},{id:"media",icon:"mdi:speaker",nameKey:"config.dashboard_card_media",color:"var(--c-accent)"},{id:"spotify",icon:"mdi:spotify",nameKey:"config.dashboard_card_spotify",color:"var(--c-spotify)"},{id:"presence",icon:"mdi:account-group",nameKey:"config.dashboard_card_presence",color:"var(--c-accent)"},{id:"camera_carousel",icon:"mdi:cctv",nameKey:"config.dashboard_card_camera_carousel",color:"var(--c-alert)"}],ri={light:{cmd:"set_light_config",configKey:"light_card"},weather:{cmd:"set_weather",configKey:"weather"},cover:{cmd:"set_cover_config",configKey:"cover_card"},fan:{cmd:"set_fan_config",configKey:"fan_card"},spotify:{cmd:"set_spotify_config",configKey:"spotify_card"},media:{cmd:"set_media_config",configKey:"media_card"},presence:{cmd:"set_presence_config",configKey:"presence_card"},climate:{cmd:"set_climate_config",configKey:"climate_card"},camera_carousel:{cmd:"set_camera_carousel_config",configKey:"camera_carousel"}},si={title:"title",light:"light",weather:"weather",cover:"cover",climate:"climate",fan:"fan",media:"media",spotify:"spotify",presence:"presence",camera_carousel:"camera"};class oi extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._enabledCards=["weather"],this._cardOrder=[],this._hideHeader=!1,this._hideSidebar=!1,this._dynamicBackground=!0,this._dragIdx=null,this._dropIdx=null,this._cardSubExtras={}}createRenderRoot(){return this}updated(e){e.has("configData")&&this.configData&&this._loadFromConfig(this.configData)}disconnectedCallback(){super.disconnectedCallback(),this._saveTimer&&(clearTimeout(this._saveTimer),this._saveTimer=void 0)}_loadFromConfig(e){const t=e.dashboard;t&&(this._enabledCards=t.enabled_cards??["weather"],this._cardOrder=t.card_order??ai.map(e=>e.id),this._hideHeader=t.hide_header??!1,this._hideSidebar=t.hide_sidebar??!1,this._dynamicBackground=t.dynamic_background??!0),this._cardSubExtras={};const i=e;for(const[a,r]of Object.entries(ri)){const e=i[r.configKey];e&&(this._cardSubExtras[a]={...e})}}_scheduleSave(){this._saveTimer&&clearTimeout(this._saveTimer),this._saveTimer=setTimeout(()=>{this._saveTimer=void 0,this._save()},800),this.dispatchEvent(new CustomEvent("tab-dirty",{bubbles:!0,composed:!0}))}async _save(){if(this.backend)try{await this.backend.send("set_dashboard",{enabled_cards:this._enabledCards,card_order:this._cardOrder,hide_header:this._hideHeader,hide_sidebar:this._hideSidebar,dynamic_background:this._dynamicBackground});for(const[,e]of Object.entries(ri)){const t=this._cardSubExtras[e.configKey.replace("_card","")]??this._cardSubExtras[e.configKey];t&&await this.backend.send(e.cmd,t)}ge.emit("dashboard-config-changed",void 0),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_toggleCard(e){const t=new Set(this._enabledCards);t.has(e)?t.delete(e):t.add(e),this._enabledCards=[...t],this._scheduleSave()}_toggleHideHeader(){this._hideHeader=!this._hideHeader,this._scheduleSave()}_toggleHideSidebar(){this._hideSidebar=!this._hideSidebar,this._scheduleSave()}_toggleDynamicBg(){this._dynamicBackground=!this._dynamicBackground,this._scheduleSave()}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this._cardOrder],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._cardOrder=t,this._scheduleSave()}this._dragIdx=null,this._dropIdx=null}_navigateToCard(e){const t=si[e]??e;this.dispatchEvent(new CustomEvent("sub-select",{detail:t,bubbles:!0,composed:!0}))}render(){return this.subSection?this._renderSubSection(this.subSection):this._renderDashboard()}_renderDashboard(){const e=new Set(this._enabledCards),t=new Set(ai.map(e=>e.id)),i=this._cardOrder.filter(e=>t.has(e));for(const r of ai)i.includes(r.id)||i.push(r.id);let a=0;return N`
+      <div class="section-label">${Re("config.dashboard_title")}</div>
+      <div class="section-desc">${Re("config.dashboard_desc")}</div>
 
       <div class="room-grid pw-db-grid-mt">
-        ${i.map((t,i)=>{const r=Kt.find(e=>e.id===t);if(!r)return B;const o=e.has(t);o&&a++;const s=o?a:0,n=this._dragIdx===i,c=this._dropIdx===i&&null!==this._dragIdx&&this._dragIdx!==i;return F`
+        ${i.map((t,i)=>{const r=ai.find(e=>e.id===t);if(!r)return B;const s=e.has(t);s&&a++;const o=s?a:0,n=this._dragIdx===i,c=this._dropIdx===i&&null!==this._dragIdx&&this._dragIdx!==i;return N`
             <div
-              class="room-card dash-card ${o?"":"off"} ${n?"dragging":""} ${c?"drop-target":""}"
+              class="room-card dash-card ${s?"":"off"} ${n?"dragging":""} ${c?"drop-target":""}"
               draggable="true"
               @dragstart=${()=>this._onDragStart(i)}
               @dragover=${e=>this._onDragOver(i,e)}
@@ -8107,16 +5019,16 @@
               @dragend=${()=>this._onDragEnd()}
               @click=${()=>this._navigateToCard(t)}
             >
-              ${o?F`<span class="dash-order">${s}</span>`:B}
+              ${s?N`<span class="dash-order">${o}</span>`:B}
               <button
-                class="dash-toggle ${o?"on":""}"
+                class="dash-toggle ${s?"on":""}"
                 @click=${e=>{e.stopPropagation(),this._toggleCard(t)}}
-                aria-label="${De("common.show")} ${De(r.nameKey)}"
+                aria-label="${Re("common.show")} ${Re(r.nameKey)}"
               ></button>
               <div class="room-card-icon" style="--icon-color:${r.color};">
                 <ha-icon .icon=${r.icon}></ha-icon>
               </div>
-              <span class="room-name">${De(r.nameKey)}</span>
+              <span class="room-name">${Re(r.nameKey)}</span>
               <span class="dash-drag-hint"><ha-icon .icon=${"mdi:drag"}></ha-icon></span>
             </div>
           `})}
@@ -8124,16 +5036,16 @@
 
       <div class="fold-sep visible pw-db-sep"></div>
 
-      <div class="section-label">${De("config.dashboard_display")}</div>
-      <div class="section-desc">${De("config.dashboard_display_desc")}</div>
+      <div class="section-label">${Re("config.dashboard_display")}</div>
+      <div class="section-desc">${Re("config.dashboard_display_desc")}</div>
 
       <div class="feature-list">
         <button class="feature-row" role="switch" aria-checked=${this._hideHeader?"true":"false"}
           @click=${()=>this._toggleHideHeader()}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:page-layout-header"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.dashboard_hide_header")}</div>
-            <div class="feature-desc">${De("config.dashboard_hide_header_desc")}</div>
+            <div class="feature-name">${Re("config.dashboard_hide_header")}</div>
+            <div class="feature-desc">${Re("config.dashboard_hide_header_desc")}</div>
           </div>
           <span class="toggle ${this._hideHeader?"on":""}"></span>
         </button>
@@ -8142,8 +5054,8 @@
           @click=${()=>this._toggleHideSidebar()}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:page-layout-sidebar-left"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.dashboard_hide_sidebar")}</div>
-            <div class="feature-desc">${De("config.dashboard_hide_sidebar_desc")}</div>
+            <div class="feature-name">${Re("config.dashboard_hide_sidebar")}</div>
+            <div class="feature-desc">${Re("config.dashboard_hide_sidebar_desc")}</div>
           </div>
           <span class="toggle ${this._hideSidebar?"on":""}"></span>
         </button>
@@ -8152,15 +5064,15 @@
           @click=${()=>this._toggleDynamicBg()}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:weather-night"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.dashboard_dynamic_bg")}</div>
-            <div class="feature-desc">${De("config.dashboard_dynamic_bg_desc")}</div>
+            <div class="feature-name">${Re("config.dashboard_dynamic_bg")}</div>
+            <div class="feature-desc">${Re("config.dashboard_dynamic_bg_desc")}</div>
           </div>
           <span class="toggle ${this._dynamicBackground?"on":""}"></span>
         </button>
       </div>
-    `}_renderSubSection(e){switch(e){case"title":return F`<config-tab-title .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-title>`;case"spotify":return F`<config-tab-spotify .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-spotify>`;case"presence":return F`<config-tab-presence .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-presence>`;case"camera":return F`<config-tab-camera .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-camera>`;case"weather":return F`<config-tab-weather .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-weather>`;case"light":return F`<config-tab-light .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-light>`;case"cover":return F`<config-tab-cover .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-cover>`;case"climate":return F`<config-tab-climate .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-climate>`;case"fan":return F`<config-tab-fan .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-fan>`;case"media":return F`<config-tab-media .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-media>`;default:return F`<div class="placeholder"><ha-icon .icon=${"mdi:hammer-wrench"}></ha-icon><span>${e}</span></div>`}}}Yt([he({attribute:!1})],Jt.prototype,"hass"),Yt([he({attribute:!1})],Jt.prototype,"backend"),Yt([he({attribute:!1})],Jt.prototype,"configData"),Yt([he({attribute:!1})],Jt.prototype,"rooms"),Yt([he()],Jt.prototype,"subSection"),Yt([me()],Jt.prototype,"_enabledCards"),Yt([me()],Jt.prototype,"_cardOrder"),Yt([me()],Jt.prototype,"_hideHeader"),Yt([me()],Jt.prototype,"_hideSidebar"),Yt([me()],Jt.prototype,"_dynamicBackground"),Yt([me()],Jt.prototype,"_dragIdx"),Yt([me()],Jt.prototype,"_dropIdx");try{customElements.define("config-dashboard-view",Jt)}catch{}var Zt=Object.defineProperty,Qt=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&Zt(t,i,o),o};const ei=[{id:"navbar",label:"Navbar",icon:"mdi:dock-bottom"},{id:"orphans",label:"Entités orphelines",icon:"mdi:puzzle-outline"},{id:"reconfig",label:"Reconfigurer",icon:"mdi:refresh"}];class ti extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._autoSort=!0}createRenderRoot(){return this}updated(e){if(super.updated(e),e.has("configData")&&this.configData){const e=this.configData;this._autoSort=!1!==e.auto_sort}}render(){return this.subSection?"reconfig"===this.subSection?(this.dispatchEvent(new CustomEvent("reconfig-wizard",{bubbles:!0,composed:!0})),F`<div class="empty-state">Relancement du wizard...</div>`):this._renderSubSection(this.subSection):F`
+    `}_renderSubSection(e){switch(e){case"title":return N`<config-tab-title .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-title>`;case"spotify":return N`<config-tab-spotify .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-spotify>`;case"presence":return N`<config-tab-presence .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-presence>`;case"camera":return N`<config-tab-camera .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-camera>`;case"weather":return N`<config-tab-weather .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-weather>`;case"light":return N`<config-tab-light .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-light>`;case"cover":return N`<config-tab-cover .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-cover>`;case"climate":return N`<config-tab-climate .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-climate>`;case"fan":return N`<config-tab-fan .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-fan>`;case"media":return N`<config-tab-media .hass=${this.hass} .configData=${this.configData} .backend=${this.backend}></config-tab-media>`;default:return N`<div class="placeholder"><ha-icon .icon=${"mdi:hammer-wrench"}></ha-icon><span>${e}</span></div>`}}}ii([pe({attribute:!1})],oi.prototype,"hass"),ii([pe({attribute:!1})],oi.prototype,"backend"),ii([pe({attribute:!1})],oi.prototype,"configData"),ii([pe({attribute:!1})],oi.prototype,"rooms"),ii([pe()],oi.prototype,"subSection"),ii([ue()],oi.prototype,"_enabledCards"),ii([ue()],oi.prototype,"_cardOrder"),ii([ue()],oi.prototype,"_hideHeader"),ii([ue()],oi.prototype,"_hideSidebar"),ii([ue()],oi.prototype,"_dynamicBackground"),ii([ue()],oi.prototype,"_dragIdx"),ii([ue()],oi.prototype,"_dropIdx");try{customElements.define("config-dashboard-view",oi)}catch{}var ni=Object.defineProperty,ci=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ni(t,i,s),s};const li=[{id:"navbar",label:"Navbar",icon:"mdi:dock-bottom"},{id:"orphans",label:"Entités orphelines",icon:"mdi:puzzle-outline"},{id:"reconfig",label:"Reconfigurer",icon:"mdi:refresh"}];class di extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._autoSort=!0}createRenderRoot(){return this}updated(e){if(super.updated(e),e.has("configData")&&this.configData){const e=this.configData;this._autoSort=!1!==e.auto_sort}}render(){return this.subSection?"reconfig"===this.subSection?(this.dispatchEvent(new CustomEvent("reconfig-wizard",{bubbles:!0,composed:!0})),N`<div class="empty-state">Relancement du wizard...</div>`):this._renderSubSection(this.subSection):N`
       <div class="room-grid">
-        ${ei.map(e=>F`
+        ${li.map(e=>N`
             <button
               class="room-card"
               @click=${()=>this.dispatchEvent(new CustomEvent("sub-select",{detail:e.id,bubbles:!0,composed:!0}))}
@@ -8171,23 +5083,23 @@
             </button>
           `)}
       </div>
-    `}_renderSubSection(e){switch(e){case"navbar":return this._renderNavbarSettings();case"orphans":return F`<config-tab-unassigned
+    `}_renderSubSection(e){switch(e){case"navbar":return this._renderNavbarSettings();case"orphans":return N`<config-tab-unassigned
           .hass=${this.hass}
           .configData=${this.configData}
           .backend=${this.backend}
-        ></config-tab-unassigned>`;default:return F`<div>Section inconnue</div>`}}_renderNavbarSettings(){return F`
-      <div class="section-label">${De("config.navbar_settings")}</div>
+        ></config-tab-unassigned>`;default:return N`<div>Section inconnue</div>`}}_renderNavbarSettings(){return N`
+      <div class="section-label">${Re("config.navbar_settings")}</div>
       <div class="feature-list">
         <button class="feature-row" @click=${this._toggleAutoSort}>
           <div class="feature-icon"><ha-icon .icon=${"mdi:sort-bool-ascending"}></ha-icon></div>
           <div class="feature-text">
-            <div class="feature-name">${De("config.navbar_auto_sort")}</div>
-            <div class="feature-desc">${De("config.navbar_auto_sort_desc")}</div>
+            <div class="feature-name">${Re("config.navbar_auto_sort")}</div>
+            <div class="feature-desc">${Re("config.navbar_auto_sort_desc")}</div>
           </div>
-          <span class="toggle ${this._autoSort?"on":""}" role="switch" aria-checked=${this._autoSort?"true":"false"} aria-label=${De("config.navbar_auto_sort")}></span>
+          <span class="toggle ${this._autoSort?"on":""}" role="switch" aria-checked=${this._autoSort?"true":"false"} aria-label=${Re("config.navbar_auto_sort")}></span>
         </button>
       </div>
-    `}async _toggleAutoSort(){if(this._autoSort=!this._autoSort,this.backend)try{await this.backend.send("set_navbar",{auto_sort:this._autoSort})}catch{}}}Qt([he({attribute:!1})],ti.prototype,"hass"),Qt([he({attribute:!1})],ti.prototype,"backend"),Qt([he({attribute:!1})],ti.prototype,"configData"),Qt([he({attribute:!1})],ti.prototype,"rooms"),Qt([he()],ti.prototype,"subSection"),Qt([me()],ti.prototype,"_autoSort");try{customElements.define("config-advanced-view",ti)}catch{}class ii extends ne{createRenderRoot(){return this}render(){return F`
+    `}async _toggleAutoSort(){if(this._autoSort=!this._autoSort,this.backend)try{await this.backend.send("set_navbar",{auto_sort:this._autoSort})}catch{}}}ci([pe({attribute:!1})],di.prototype,"hass"),ci([pe({attribute:!1})],di.prototype,"backend"),ci([pe({attribute:!1})],di.prototype,"configData"),ci([pe({attribute:!1})],di.prototype,"rooms"),ci([pe()],di.prototype,"subSection"),ci([ue()],di.prototype,"_autoSort");try{customElements.define("config-advanced-view",di)}catch{}class hi extends ne{createRenderRoot(){return this}render(){return N`
       <div class="wizard-step-icon">
         <ha-icon .icon=${"mdi:auto-fix"}></ha-icon>
       </div>
@@ -8200,24 +5112,24 @@
         <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
         <span>Vous pouvez passer chaque étape et revenir plus tard via Avancé.</span>
       </div>
-    `}}try{customElements.define("wizard-step-welcome",ii)}catch{}var ai=Object.defineProperty;class ri extends ne{createRenderRoot(){return this}_getRooms(){return this.hass?.areas?Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name)):[]}render(){const e=this._getRooms();return F`
+    `}}try{customElements.define("wizard-step-welcome",hi)}catch{}var pi=Object.defineProperty;class ui extends ne{createRenderRoot(){return this}_getRooms(){return this.hass?.areas?Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name)):[]}render(){const e=this._getRooms();return N`
       <div class="wizard-step-icon">
         <ha-icon .icon=${"mdi:home-group"}></ha-icon>
       </div>
       <div class="section-label">Vos pièces (${e.length})</div>
       <div class="wizard-room-list">
-        ${e.map(e=>F`
+        ${e.map(e=>N`
           <div class="wizard-room-chip">
             <ha-icon .icon=${e.icon??"mdi:home"}></ha-icon>
             <span>${e.name}</span>
           </div>
         `)}
-        ${0===e.length?F`<div class="section-desc">Aucune pièce détectée dans Home Assistant.</div>`:""}
+        ${0===e.length?N`<div class="section-desc">Aucune pièce détectée dans Home Assistant.</div>`:""}
       </div>
       <div class="section-desc">
         Ces pièces ont été détectées depuis Home Assistant. Vous pourrez les personnaliser plus tard.
       </div>
-    `}}((e,t,i)=>{for(var a,r=void 0,o=e.length-1;o>=0;o--)(a=e[o])&&(r=a(t,i,r)||r);r&&ai(t,i,r)})([he({attribute:!1})],ri.prototype,"hass");try{customElements.define("wizard-step-rooms",ri)}catch{}var oi=Object.defineProperty;class si extends ne{createRenderRoot(){return this}_countOrphans(){return this.hass?.entities?Object.values(this.hass.entities).filter(e=>!e.disabled_by&&!e.hidden_by&&null===Re(e,this.hass.devices)).length:0}render(){const e=this._countOrphans();return 0===e?F`
+    `}}((e,t,i)=>{for(var a,r=void 0,s=e.length-1;s>=0;s--)(a=e[s])&&(r=a(t,i,r)||r);r&&pi(t,i,r)})([pe({attribute:!1})],ui.prototype,"hass");try{customElements.define("wizard-step-rooms",ui)}catch{}var gi=Object.defineProperty;class _i extends ne{createRenderRoot(){return this}_countOrphans(){return this.hass?.entities?Object.values(this.hass.entities).filter(e=>!e.disabled_by&&!e.hidden_by&&null===Ke(e,this.hass.devices)).length:0}render(){const e=this._countOrphans();return 0===e?N`
         <div class="wizard-step-icon success">
           <ha-icon .icon=${"mdi:check-circle"}></ha-icon>
         </div>
@@ -8226,7 +5138,7 @@
           <ha-icon .icon=${"mdi:check-circle"}></ha-icon>
           <span>Toutes vos entités sont bien assignées à une pièce.</span>
         </div>
-      `:F`
+      `:N`
       <div class="wizard-step-icon">
         <ha-icon .icon=${"mdi:puzzle-outline"}></ha-icon>
       </div>
@@ -8236,7 +5148,7 @@
         entité${e>1?"s":""} non assignée${e>1?"s":""} à une pièce.
         Vous pourrez les assigner dans Avancé › Entités orphelines.
       </div>
-    `}}((e,t,i)=>{for(var a,r=void 0,o=e.length-1;o>=0;o--)(a=e[o])&&(r=a(t,i,r)||r);r&&oi(t,i,r)})([he({attribute:!1})],si.prototype,"hass");try{customElements.define("wizard-step-orphans",si)}catch{}class ni extends ne{createRenderRoot(){return this}render(){return F`
+    `}}((e,t,i)=>{for(var a,r=void 0,s=e.length-1;s>=0;s--)(a=e[s])&&(r=a(t,i,r)||r);r&&gi(t,i,r)})([pe({attribute:!1})],_i.prototype,"hass");try{customElements.define("wizard-step-orphans",_i)}catch{}class mi extends ne{createRenderRoot(){return this}render(){return N`
       <div class="wizard-step-icon">
         <ha-icon .icon=${"mdi:palette"}></ha-icon>
       </div>
@@ -8249,7 +5161,7 @@
         <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
         <span>Vous pourrez choisir vos couleurs dans une prochaine version.</span>
       </div>
-    `}}try{customElements.define("wizard-step-appearance",ni)}catch{}class ci extends ne{createRenderRoot(){return this}render(){return F`
+    `}}try{customElements.define("wizard-step-appearance",mi)}catch{}class fi extends ne{createRenderRoot(){return this}render(){return N`
       <div class="wizard-step-icon success">
         <ha-icon .icon=${"mdi:rocket-launch"}></ha-icon>
       </div>
@@ -8258,10 +5170,10 @@
         Votre tableau de bord Glass Cards est configuré.
         Explorez vos pièces et personnalisez chaque carte.
       </div>
-    `}}try{customElements.define("wizard-step-done",ci)}catch{}var di=Object.defineProperty,li=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&di(t,i,o),o};const pi=["welcome","rooms","orphans","appearance","done"];class hi extends ne{constructor(){super(...arguments),this._step=0}createRenderRoot(){return this}_next(){this._step<pi.length-1&&this._step++}_prev(){this._step>0&&this._step--}_skip(){this._next()}_finish(){this.backend&&this.backend.send("set_wizard_completed",{completed:!0}),this.dispatchEvent(new CustomEvent("wizard-done",{bubbles:!0,composed:!0}))}render(){const e=pi[this._step],t=this._step===pi.length-1,i=0===this._step;return F`
+    `}}try{customElements.define("wizard-step-done",fi)}catch{}var vi=Object.defineProperty,bi=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&vi(t,i,s),s};const yi=["welcome","rooms","orphans","appearance","done"];class wi extends ne{constructor(){super(...arguments),this._step=0}createRenderRoot(){return this}_next(){this._step<yi.length-1&&this._step++}_prev(){this._step>0&&this._step--}_skip(){this._next()}_finish(){this.backend&&this.backend.send("set_wizard_completed",{completed:!0}),this.dispatchEvent(new CustomEvent("wizard-done",{bubbles:!0,composed:!0}))}render(){const e=yi[this._step],t=this._step===yi.length-1,i=0===this._step;return N`
       <div class="wizard">
         <div class="wizard-progress">
-          ${pi.map((e,t)=>F`
+          ${yi.map((e,t)=>N`
               <div
                 class="wizard-dot ${t===this._step?"active":""} ${t<this._step?"done":""}"
               ></div>
@@ -8272,7 +5184,7 @@
         <div class="wizard-content">${this._renderStep(e)}</div>
 
         <div class="wizard-actions">
-          ${i?F`<span></span>`:F`<button
+          ${i?N`<span></span>`:N`<button
                 class="btn"
                 @click=${()=>this._prev()}
                 aria-label="Retour"
@@ -8280,20 +5192,20 @@
                 Retour
               </button>`}
           <div class="wizard-actions-right">
-            ${t?"":F`<button
+            ${t?"":N`<button
                   class="btn btn-ghost"
                   @click=${()=>this._skip()}
                   aria-label="Passer cette étape"
                 >
                   Passer
                 </button>`}
-            ${t?F`<button
+            ${t?N`<button
                   class="btn btn-accent"
                   @click=${()=>this._finish()}
                   aria-label="Commencer"
                 >
                   Commencer
-                </button>`:F`<button
+                </button>`:N`<button
                   class="btn btn-accent"
                   @click=${()=>this._next()}
                   aria-label="Étape suivante"
@@ -8304,9 +5216,9 @@
         </div>
         </div>
       </div>
-    `}_renderStep(e){switch(e){case"welcome":return F`<wizard-step-welcome></wizard-step-welcome>`;case"rooms":return F`<wizard-step-rooms .hass=${this.hass}></wizard-step-rooms>`;case"orphans":return F`<wizard-step-orphans .hass=${this.hass}></wizard-step-orphans>`;case"appearance":return F`<wizard-step-appearance></wizard-step-appearance>`;case"done":return F`<wizard-step-done></wizard-step-done>`;default:return F``}}}li([he({attribute:!1})],hi.prototype,"hass"),li([he({attribute:!1})],hi.prototype,"backend"),li([me()],hi.prototype,"_step");try{customElements.define("config-wizard",hi)}catch{}async function mi(e){if(e.hass&&!e._loading){e._loading=!0;try{await async function(e){if(!e.hass)return;const t=Object.values(e.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let i={room_order:[],hidden_rooms:[],auto_sort:!0},a={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},r={enabled_cards:["weather"],card_order:["title","weather","climate","light","media","fan","cover","camera_carousel","spotify","presence"],hide_header:!1,hide_sidebar:!1},o={show_header:!0},s={title:"",sources:[],period_entity:"",period_options:[]},n={show_header:!0,dashboard_entities:[],dashboard_compact:!0,presets:[0,25,50,75,100],entity_presets:{}},c={show_header:!0,entity_id:"",sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},d={show_header:!0},l={extra_entities:{},show_header:!0},p={show_header:!0,person_entities:[],smartphone_sensors:{},notify_services:{},driving_sensors:{}},h={show_header:!0,display_mode:"list",dashboard_display_mode:"list",dashboard_entities:[]},m={show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10};const u={};try{if(!e._backend)throw new Error("No backend");const t=await e._backend.send("get_config");i=t.navbar,Object.assign(u,t.rooms),t.weather&&(a=t.weather),t.light_card&&(o=t.light_card),t.title_card&&(s=t.title_card),t.cover_card&&(n=t.cover_card),t.fan_card&&(d=t.fan_card),t.spotify_card&&(c=t.spotify_card),t.media_card&&(l=t.media_card),t.presence_card&&(p=t.presence_card),t.climate_card&&(h=t.climate_card),t.camera_carousel&&(m=t.camera_carousel),t.dashboard&&(r=t.dashboard),void 0!==t.wizard_completed&&(e._wizardCompleted=t.wizard_completed)}catch{}e._navbarConfig=i,e._weatherConfig=a,e._lightConfig=o,e._titleConfig=s,e._coverConfig=n,e._fanConfig=d,e._spotifyConfig=c,e._mediaConfig=l,e._presenceConfig=p,e._climateConfig=h,e._cameraConfig=m,e._dashboardConfig={dashboard:r,title_card:s,light_card:o,weather:a,cover_card:n,fan_card:d,spotify_card:c,media_card:l,presence_card:p,climate_card:h,camera_carousel:m};const _=new Set(i.hidden_rooms),g=new Map;i.room_order.forEach((e,t)=>g.set(e,t));const v=e.hass;if(!v)return;const f=[],b=[];for(const y of t){const e=Me(y.area_id,v.entities,v.devices),t=u[y.area_id]?.icon,i=t||y.icon||"mdi:home";if(0===e.length){b.push({areaId:y.area_id,name:y.name,icon:i});continue}let a=0,r=null,o=null,s=null,n=null,c=!1;for(const d of e){const e=v.states[d.entity_id];if(!e)continue;const t=d.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||r||(r=`${e.state}°`,o=parseFloat(e.state)),"humidity"!==t||s||(s=`${e.state}%`,n=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(c=!0)}f.push({areaId:y.area_id,name:y.name,icon:i,entityCount:e.length,visible:!_.has(y.area_id),lightsOn:a,temperature:r,tempValue:o,humidity:s,humidityValue:n,mediaPlaying:c})}f.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=g.get(e.areaId),a=g.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),e._rooms=f,e._emptyRooms=b,!e._selectedRoom&&f.length>0&&(e._selectedRoom=f[0].areaId)}(e),e._loaded=!0}catch{e._loaded=!1}finally{e._loading=!1}}}var ui=Object.defineProperty,_i=(e,t,i,a)=>{for(var r,o=void 0,s=e.length-1;s>=0;s--)(r=e[s])&&(o=r(t,i,o)||o);return o&&ui(t,i,o),o};class gi extends ne{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=Ee(),this._nav=je,this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._toast=!1,this._saving=!1,this._navbarConfig={},this._popupConfig={},this._weatherConfig={},this._titleConfig={},this._lightConfig={},this._coverConfig={},this._fanConfig={},this._climateConfig={},this._presenceConfig={},this._mediaConfig={},this._spotifyConfig={},this._cameraConfig={},this._dashboardConfig={},this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._dragModeSrcIdx=null,this._loaded=!1,this._loading=!1,this._configReady=!1,this._wizardCompleted=!0,this._suppressAutoSave=!1,this._toastError=!1,this._onTabDirty=()=>{this._scheduleAutoSave()},this._onRoomsChanged=e=>{const t=e.detail;this._rooms=t.rooms},this._onRoomsReordered=e=>{const t=e.detail;this._rooms=t.rooms,this._saveNavbarOrder()},this._onRoomVisibilityToggle=e=>{const{areaId:t,visible:i}=e.detail;this._rooms=this._rooms.map(e=>e.areaId===t?{...e,visible:i}:e),this._saveNavbarOrder()},this._onTabToast=e=>{this._toastError=!e.detail.success,this._toast=!0,void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastTimeout=setTimeout(()=>{this._toast=!1},2500)}}get _tab(){const e=this._nav.subSection;if(e){return{dashboard:"dashboard",title:"title",spotify:"spotify",presence:"presence",camera:"camera_carousel",weather:"weather",popup:"popup",orphans:"unassigned",light:"light",cover:"cover",climate:"climate",media:"media",fan:"fan"}[e]??"dashboard"}return"dashboard"}get _activeTabEl(){const e=`config-tab-${this._tab.replace("_","-")}`;return this.shadowRoot?.querySelector(e)??this.shadowRoot?.querySelector(`config-tab-${this._tab}`)??null}static{this.styles=[fe,be,ye,we,...de]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,this.addEventListener("tab-dirty",this._onTabDirty),this.addEventListener("tab-toast",this._onTabToast),this.addEventListener("rooms-changed",this._onRoomsChanged),this.addEventListener("rooms-reordered",this._onRoomsReordered),this.addEventListener("room-visibility-toggle",this._onRoomVisibilityToggle),this._popstateHandler=e=>{const t=(i=e,i.state?.glassNav??null);var i;t&&(this._nav=t)},window.addEventListener("popstate",this._popstateHandler)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,this.removeEventListener("tab-dirty",this._onTabDirty),this.removeEventListener("tab-toast",this._onTabToast),this.removeEventListener("rooms-changed",this._onRoomsChanged),this.removeEventListener("rooms-reordered",this._onRoomsReordered),this.removeEventListener("room-visibility-toggle",this._onRoomVisibilityToggle),this._popstateHandler&&(window.removeEventListener("popstate",this._popstateHandler),this._popstateHandler=void 0),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),void 0!==this._autoSaveTimer&&(clearTimeout(this._autoSaveTimer),this._autoSaveTimer=void 0),this._backend=void 0}updated(e){if(super.updated(e),e.has("hass")&&(this.hass?.language&&Se(this.hass.language)&&(this._lang=Ee()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1,this._configReady=!1),!this.hass||this._loaded||this._loading||(this._backend=new Le(this.hass),this._loadConfig())),this._loaded&&!this._loading&&!this._saving)return this._configReady?void(this._suppressAutoSave&&(this._suppressAutoSave=!1)):(this._configReady=!0,void(this._wizardCompleted||(this._nav={section:"wizard"})))}_beginSuppressAutoSave(){this._suppressAutoSave=!0}async _saveNavbarOrder(){if(this._backend)try{await this._backend.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId)}),this._showToast()}catch{this._showToast(!0)}}_scheduleAutoSave(){void 0!==this._autoSaveTimer&&clearTimeout(this._autoSaveTimer),this._autoSaveTimer=setTimeout(()=>{this._autoSaveTimer=void 0,this._saving||this._save()},800)}_navigateTo(e){var t,i,a;(t=this._nav,i=e,t.section!==i.section||t.subSection!==i.subSection||t.roomId!==i.roomId)&&(a=this._nav,window.history.pushState({glassNav:a},""),this._nav=e)}_goBack(){window.location.href="/"}async _loadConfig(){return mi(this)}async _loadRoomLights(){const e=this.shadowRoot?.querySelector("config-tab-light");e&&e.reload()}async _loadCoverConfig(){const e=this.shadowRoot?.querySelector("config-tab-cover");e&&e.reload()}async _loadFanConfig(){const e=this.shadowRoot?.querySelector("config-tab-fan");e&&e.reload()}async _loadClimateConfig(){const e=this.shadowRoot?.querySelector("config-tab-climate");e&&e.reload()}async _loadMediaConfig(){const e=this.shadowRoot?.querySelector("config-tab-media");e&&e.reload()}async _loadDashboardConfig(){}async _loadPresenceConfig(){const e=this.shadowRoot?.querySelector("config-tab-presence");e&&e.reload()}async _loadCameraCarouselConfig(){const e=this.shadowRoot?.querySelector("config-tab-camera");e&&e.reload()}async _loadWeatherConfig(){return async function(e){const t=e._activeTabEl;t&&t.reload()}(this)}async _loadSpotifyConfig(){const e=this.shadowRoot?.querySelector("config-tab-spotify");e&&e.reload()}async _loadTitleConfig(){const e=this.shadowRoot?.querySelector("config-tab-title");e&&e.reload()}_save(){!function(e){if("popup"===e._tab);else if("light"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-light");t&&t.save()}else if("weather"===e._tab){const t=e._activeTabEl;t&&t.save()}else if("title"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-title");t&&t.save()}(e);else if("cover"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-cover");t&&t.save()}else if("climate"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-climate");t&&await t.save()}(e);else if("fan"===e._tab)!async function(e){const t=e._activeTabEl;t&&t.save()}(e);else if("spotify"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-spotify");t&&t.save()}else if("media"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-media");t&&t.save()}(e);else if("presence"===e._tab){const t=e._activeTabEl;t&&t.save()}else"camera_carousel"===e._tab?async function(e){const t=e._activeTabEl;t&&t.save()}(e):"unassigned"===e._tab||async function(){}()}(this)}async _reset(){return async function(e){e._loading||(e._loaded=!1,await mi(e))}(this)}async _saveClimate(){const e=this.shadowRoot?.querySelector("config-tab-climate");e&&e.save()}async _saveDashboard(){}async _checkSpotifyStatus(){}_onDragStart(e,t,i){!function(e,t,i,a){e._dragIdx=t,e._dragContext=i,void 0!==a&&(e._dragModeSrcIdx=a)}(this,e,t,i)}_onDragOver(e,t,i){!function(e,t,i,a){i.preventDefault(),null!==e._dragIdx&&e._dragIdx!==t&&("title_modes"===e._dragContext&&void 0!==a&&a!==e._dragModeSrcIdx||(e._dropIdx=t))}(this,e,t,i)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){!function(e,t,i){if(i.preventDefault(),null===e._dragIdx||e._dragIdx===t)return e._dragIdx=null,void(e._dropIdx=null);e._dragIdx=null,e._dropIdx=null}(this,e,t)}_onDragEnd(){var e;(e=this)._dragIdx=null,e._dropIdx=null,e._dragModeSrcIdx=null}_showToast(e=!1){void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastError=e,this._toast=!0,this._toastTimeout=setTimeout(()=>{this._toast=!1,this._toastTimeout=void 0},2e3)}_renderSidebar(){const e=[{id:"dashboard",icon:"mdi:view-dashboard",label:De("config.nav_dashboard")},{id:"rooms",icon:"mdi:home-group",label:De("config.nav_rooms")},{id:"advanced",icon:"mdi:tune-variant",label:De("config.nav_advanced")}];return F`
+    `}_renderStep(e){switch(e){case"welcome":return N`<wizard-step-welcome></wizard-step-welcome>`;case"rooms":return N`<wizard-step-rooms .hass=${this.hass}></wizard-step-rooms>`;case"orphans":return N`<wizard-step-orphans .hass=${this.hass}></wizard-step-orphans>`;case"appearance":return N`<wizard-step-appearance></wizard-step-appearance>`;case"done":return N`<wizard-step-done></wizard-step-done>`;default:return N``}}}bi([pe({attribute:!1})],wi.prototype,"hass"),bi([pe({attribute:!1})],wi.prototype,"backend"),bi([ue()],wi.prototype,"_step");try{customElements.define("config-wizard",wi)}catch{}async function xi(e){if(e.hass&&!e._loading){e._loading=!0;try{await async function(e){if(!e.hass)return;const t=Object.values(e.hass.areas).sort((e,t)=>e.name.localeCompare(t.name));let i={room_order:[],hidden_rooms:[],auto_sort:!0},a={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},r={enabled_cards:["weather"],card_order:["title","weather","climate","light","media","fan","cover","camera_carousel","spotify","presence"],hide_header:!1,hide_sidebar:!1},s={show_header:!0},o={title:"",sources:[],period_entity:"",period_options:[]},n={show_header:!0,dashboard_entities:[],dashboard_compact:!0,presets:[0,25,50,75,100],entity_presets:{}},c={show_header:!0,entity_id:"",sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},l={show_header:!0},d={extra_entities:{},show_header:!0},h={show_header:!0,person_entities:[],smartphone_sensors:{},notify_services:{},driving_sensors:{}},p={show_header:!0,display_mode:"list",dashboard_display_mode:"list",dashboard_entities:[]},u={show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10};const g={};try{if(!e._backend)throw new Error("No backend");const t=await e._backend.send("get_config");i=t.navbar,Object.assign(g,t.rooms),t.weather&&(a=t.weather),t.light_card&&(s=t.light_card),t.title_card&&(o=t.title_card),t.cover_card&&(n=t.cover_card),t.fan_card&&(l=t.fan_card),t.spotify_card&&(c=t.spotify_card),t.media_card&&(d=t.media_card),t.presence_card&&(h=t.presence_card),t.climate_card&&(p=t.climate_card),t.camera_carousel&&(u=t.camera_carousel),t.dashboard&&(r=t.dashboard),void 0!==t.wizard_completed&&(e._wizardCompleted=t.wizard_completed)}catch{}e._navbarConfig=i,e._weatherConfig=a,e._lightConfig=s,e._titleConfig=o,e._coverConfig=n,e._fanConfig=l,e._spotifyConfig=c,e._mediaConfig=d,e._presenceConfig=h,e._climateConfig=p,e._cameraConfig=u,e._dashboardConfig={dashboard:r,title_card:o,light_card:s,weather:a,cover_card:n,fan_card:l,spotify_card:c,media_card:d,presence_card:h,climate_card:p,camera_carousel:u};const _=new Set(i.hidden_rooms),m=new Map;i.room_order.forEach((e,t)=>m.set(e,t));const f=e.hass;if(!f)return;const v=[],b=[];for(const y of t){const e=Ye(y.area_id,f.entities,f.devices),t=g[y.area_id]?.icon,i=t||y.icon||"mdi:home";if(0===e.length){b.push({areaId:y.area_id,name:y.name,icon:i});continue}let a=0,r=null,s=null,o=null,n=null,c=!1;for(const l of e){const e=f.states[l.entity_id];if(!e)continue;const t=l.entity_id.split(".")[0];if("light"===t&&"on"===e.state&&a++,"sensor"===t){const t=e.attributes.device_class;"temperature"!==t||r||(r=`${e.state}°`,s=parseFloat(e.state)),"humidity"!==t||o||(o=`${e.state}%`,n=parseFloat(e.state))}"media_player"===t&&"playing"===e.state&&(c=!0)}v.push({areaId:y.area_id,name:y.name,icon:i,entityCount:e.length,visible:!_.has(y.area_id),lightsOn:a,temperature:r,tempValue:s,humidity:o,humidityValue:n,mediaPlaying:c})}v.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=m.get(e.areaId),a=m.get(t.areaId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),e._rooms=v,e._emptyRooms=b,!e._selectedRoom&&v.length>0&&(e._selectedRoom=v[0].areaId)}(e),e._loaded=!0}catch{e._loaded=!1}finally{e._loading=!1}}}var ki=Object.defineProperty,$i=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ki(t,i,s),s};class Si extends ne{constructor(){super(...arguments),this.narrow=!1,this._mounted=!1,this._lang=Oe(),this._nav=Je,this._rooms=[],this._emptyRooms=[],this._selectedRoom="",this._toast=!1,this._saving=!1,this._navbarConfig={},this._popupConfig={},this._weatherConfig={},this._titleConfig={},this._lightConfig={},this._coverConfig={},this._fanConfig={},this._climateConfig={},this._presenceConfig={},this._mediaConfig={},this._spotifyConfig={},this._cameraConfig={},this._dashboardConfig={},this._dragIdx=null,this._dropIdx=null,this._dragContext="rooms",this._dragModeSrcIdx=null,this._loaded=!1,this._loading=!1,this._configReady=!1,this._wizardCompleted=!0,this._suppressAutoSave=!1,this._toastError=!1,this._onTabDirty=()=>{this._scheduleAutoSave()},this._onRoomsChanged=e=>{const t=e.detail;this._rooms=t.rooms},this._onRoomsReordered=e=>{const t=e.detail;this._rooms=t.rooms,this._saveNavbarOrder()},this._onRoomVisibilityToggle=e=>{const{areaId:t,visible:i}=e.detail;this._rooms=this._rooms.map(e=>e.areaId===t?{...e,visible:i}:e),this._saveNavbarOrder()},this._onTabToast=e=>{this._toastError=!e.detail.success,this._toast=!0,void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastTimeout=setTimeout(()=>{this._toast=!1},2500)}}get _tab(){const e=this._nav.subSection;if(e){return{dashboard:"dashboard",title:"title",spotify:"spotify",presence:"presence",camera:"camera_carousel",weather:"weather",popup:"popup",orphans:"unassigned",light:"light",cover:"cover",climate:"climate",media:"media",fan:"fan"}[e]??"dashboard"}return"dashboard"}get _activeTabEl(){const e=`config-tab-${this._tab.replace("_","-")}`;return this.shadowRoot?.querySelector(e)??this.shadowRoot?.querySelector(`config-tab-${this._tab}`)??null}static{this.styles=[ve,be,ye,$e,...le]}shouldUpdate(e){if(!e.has("hass"))return!0;if(e.size>1)return!0;const t=e.get("hass");return!(!t||t.language===this.hass?.language)||!this._loaded}connectedCallback(){super.connectedCallback(),this._mounted=!0,this.addEventListener("tab-dirty",this._onTabDirty),this.addEventListener("tab-toast",this._onTabToast),this.addEventListener("rooms-changed",this._onRoomsChanged),this.addEventListener("rooms-reordered",this._onRoomsReordered),this.addEventListener("room-visibility-toggle",this._onRoomVisibilityToggle),this._popstateHandler=e=>{const t=(i=e,i.state?.glassNav??null);var i;t&&(this._nav=t)},window.addEventListener("popstate",this._popstateHandler)}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1,this.removeEventListener("tab-dirty",this._onTabDirty),this.removeEventListener("tab-toast",this._onTabToast),this.removeEventListener("rooms-changed",this._onRoomsChanged),this.removeEventListener("rooms-reordered",this._onRoomsReordered),this.removeEventListener("room-visibility-toggle",this._onRoomVisibilityToggle),this._popstateHandler&&(window.removeEventListener("popstate",this._popstateHandler),this._popstateHandler=void 0),void 0!==this._toastTimeout&&(clearTimeout(this._toastTimeout),this._toastTimeout=void 0),void 0!==this._autoSaveTimer&&(clearTimeout(this._autoSaveTimer),this._autoSaveTimer=void 0),this._backend=void 0}updated(e){if(super.updated(e),e.has("hass")&&(this.hass?.language&&Ae(this.hass.language)&&(this._lang=Oe()),this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._loaded=!1,this._loading=!1,this._configReady=!1),!this.hass||this._loaded||this._loading||(this._backend=new Qe(this.hass),this._loadConfig())),this._loaded&&!this._loading&&!this._saving)return this._configReady?void(this._suppressAutoSave&&(this._suppressAutoSave=!1)):(this._configReady=!0,void(this._wizardCompleted||(this._nav={section:"wizard"})))}_beginSuppressAutoSave(){this._suppressAutoSave=!0}async _saveNavbarOrder(){if(this._backend)try{await this._backend.send("set_navbar",{room_order:this._rooms.filter(e=>e.visible).map(e=>e.areaId),hidden_rooms:this._rooms.filter(e=>!e.visible).map(e=>e.areaId)}),this._showToast()}catch{this._showToast(!0)}}_scheduleAutoSave(){void 0!==this._autoSaveTimer&&clearTimeout(this._autoSaveTimer),this._autoSaveTimer=setTimeout(()=>{this._autoSaveTimer=void 0,this._saving||this._save()},800)}_navigateTo(e){var t,i,a;(t=this._nav,i=e,t.section!==i.section||t.subSection!==i.subSection||t.roomId!==i.roomId)&&(a=this._nav,window.history.pushState({glassNav:a},""),this._nav=e)}_goBack(){window.location.href="/"}async _loadConfig(){return xi(this)}async _loadRoomLights(){const e=this.shadowRoot?.querySelector("config-tab-light");e&&e.reload()}async _loadCoverConfig(){const e=this.shadowRoot?.querySelector("config-tab-cover");e&&e.reload()}async _loadFanConfig(){const e=this.shadowRoot?.querySelector("config-tab-fan");e&&e.reload()}async _loadClimateConfig(){const e=this.shadowRoot?.querySelector("config-tab-climate");e&&e.reload()}async _loadMediaConfig(){const e=this.shadowRoot?.querySelector("config-tab-media");e&&e.reload()}async _loadDashboardConfig(){}async _loadPresenceConfig(){const e=this.shadowRoot?.querySelector("config-tab-presence");e&&e.reload()}async _loadCameraCarouselConfig(){const e=this.shadowRoot?.querySelector("config-tab-camera");e&&e.reload()}async _loadWeatherConfig(){return async function(e){const t=e._activeTabEl;t&&t.reload()}(this)}async _loadSpotifyConfig(){const e=this.shadowRoot?.querySelector("config-tab-spotify");e&&e.reload()}async _loadTitleConfig(){const e=this.shadowRoot?.querySelector("config-tab-title");e&&e.reload()}_save(){!function(e){if("popup"===e._tab);else if("light"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-light");t&&t.save()}else if("weather"===e._tab){const t=e._activeTabEl;t&&t.save()}else if("title"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-title");t&&t.save()}(e);else if("cover"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-cover");t&&t.save()}else if("climate"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-climate");t&&await t.save()}(e);else if("fan"===e._tab)!async function(e){const t=e._activeTabEl;t&&t.save()}(e);else if("spotify"===e._tab){const t=e.shadowRoot?.querySelector("config-tab-spotify");t&&t.save()}else if("media"===e._tab)!async function(e){const t=e.shadowRoot?.querySelector("config-tab-media");t&&t.save()}(e);else if("presence"===e._tab){const t=e._activeTabEl;t&&t.save()}else"camera_carousel"===e._tab?async function(e){const t=e._activeTabEl;t&&t.save()}(e):"unassigned"===e._tab||async function(){}()}(this)}async _reset(){return async function(e){e._loading||(e._loaded=!1,await xi(e))}(this)}async _saveClimate(){const e=this.shadowRoot?.querySelector("config-tab-climate");e&&e.save()}async _saveDashboard(){}async _checkSpotifyStatus(){}_onDragStart(e,t,i){!function(e,t,i,a){e._dragIdx=t,e._dragContext=i,void 0!==a&&(e._dragModeSrcIdx=a)}(this,e,t,i)}_onDragOver(e,t,i){!function(e,t,i,a){i.preventDefault(),null!==e._dragIdx&&e._dragIdx!==t&&("title_modes"===e._dragContext&&void 0!==a&&a!==e._dragModeSrcIdx||(e._dropIdx=t))}(this,e,t,i)}_onDragLeave(){this._dropIdx=null}_onDropGeneric(e,t){!function(e,t,i){if(i.preventDefault(),null===e._dragIdx||e._dragIdx===t)return e._dragIdx=null,void(e._dropIdx=null);e._dragIdx=null,e._dropIdx=null}(this,e,t)}_onDragEnd(){var e;(e=this)._dragIdx=null,e._dropIdx=null,e._dragModeSrcIdx=null}_showToast(e=!1){void 0!==this._toastTimeout&&clearTimeout(this._toastTimeout),this._toastError=e,this._toast=!0,this._toastTimeout=setTimeout(()=>{this._toast=!1,this._toastTimeout=void 0},2e3)}_renderSidebar(){const e=[{id:"dashboard",icon:"mdi:view-dashboard",label:Re("config.nav_dashboard")},{id:"rooms",icon:"mdi:home-group",label:Re("config.nav_rooms")},{id:"advanced",icon:"mdi:tune-variant",label:Re("config.nav_advanced")}];return N`
       <nav class="panel-sidebar">
-        ${e.map(e=>F`
+        ${e.map(e=>N`
           <button class="nav-btn ${this._nav.section===e.id?"active":""}"
             @click=${()=>this._navigateTo({section:e.id})}
             aria-label=${e.label}>
@@ -8315,40 +5227,40 @@
           </button>
         `)}
       </nav>
-    `}_renderBreadcrumb(){if("rooms"===this._nav.section&&this._nav.roomId){const e=this.hass?.areas?.[this._nav.roomId];return F`
+    `}_renderBreadcrumb(){if("rooms"===this._nav.section&&this._nav.roomId){const e=this.hass?.areas?.[this._nav.roomId];return N`
         <div class="breadcrumb">
-          <button @click=${()=>this._navigateTo({section:"rooms"})}>${De("config.nav_rooms")}</button>
+          <button @click=${()=>this._navigateTo({section:"rooms"})}>${Re("config.nav_rooms")}</button>
           <span class="sep">›</span>
           <span class="current">${e?.name||this._nav.roomId}</span>
         </div>
-      `}if(this._nav.subSection){const e="dashboard"===this._nav.section?De("config.nav_dashboard"):De("config.nav_advanced");return F`
+      `}if(this._nav.subSection){const e="dashboard"===this._nav.section?Re("config.nav_dashboard"):Re("config.nav_advanced");return N`
         <div class="breadcrumb">
           <button @click=${()=>this._navigateTo({section:this._nav.section})}>${e}</button>
           <span class="sep">›</span>
-          <span class="current">${this._nav.subSection}</span>
+          <span class="current">${this._subSectionLabel(this._nav.subSection)}</span>
         </div>
-      `}return B}_renderContent(){switch(this._nav.section){case"wizard":return F`<config-wizard
+      `}return B}_subSectionLabel(e){const t=`config.tab_${{camera:"camera_carousel",orphans:"unassigned"}[e]||e}`,i=Re(t);return i!==t?i:e}_renderContent(){switch(this._nav.section){case"wizard":return N`<config-wizard
           .hass=${this.hass}
           .backend=${this._backend}
           @wizard-done=${()=>{this._wizardCompleted=!0,this._navigateTo({section:"rooms"})}}
-        ></config-wizard>`;case"rooms":return this._nav.roomId?F`<config-room-detail
+        ></config-wizard>`;case"rooms":return this._nav.roomId?N`<config-room-detail
             .hass=${this.hass}
             .areaId=${this._nav.roomId}
             .configData=${this._navbarConfig}
             .backend=${this._backend}
             .rooms=${this._rooms}
-          ></config-room-detail>`:F`<config-room-list
+          ></config-room-detail>`:N`<config-room-list
           .hass=${this.hass}
           .rooms=${this._rooms}
           @room-select=${e=>this._navigateTo({section:"rooms",roomId:e.detail})}
-        ></config-room-list>`;case"dashboard":return F`<config-dashboard-view
+        ></config-room-list>`;case"dashboard":return N`<config-dashboard-view
           .hass=${this.hass}
           .backend=${this._backend}
           .configData=${this._dashboardConfig}
           .rooms=${this._rooms}
           .subSection=${this._nav.subSection}
           @sub-select=${e=>this._navigateTo({section:"dashboard",subSection:e.detail})}
-        ></config-dashboard-view>`;case"advanced":return F`<config-advanced-view
+        ></config-dashboard-view>`;case"advanced":return N`<config-advanced-view
           .hass=${this.hass}
           .backend=${this._backend}
           .configData=${this._navbarConfig}
@@ -8356,13 +5268,13 @@
           .subSection=${this._nav.subSection}
           @sub-select=${e=>this._navigateTo({section:"advanced",subSection:e.detail})}
           @reconfig-wizard=${()=>this._navigateTo({section:"wizard"})}
-        ></config-advanced-view>`;default:return B}}render(){return this._lang,this.hass?F`
+        ></config-advanced-view>`;default:return B}}render(){return this._lang,this.hass?N`
       <div class="ambient-bg"></div>
       <div class="page-wrap">
         <div class="page-header">
-          <button class="page-back" @click=${()=>this._goBack()} aria-label="${De("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
-          <span class="page-title">${De("config.title")}</span>
-          <span class="page-subtitle">${De("config.brand")}</span>
+          <button class="page-back" @click=${()=>this._goBack()} aria-label="${Re("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
+          <span class="page-title">${Re("config.title")}</span>
+          <span class="page-subtitle">${Re("config.brand")}</span>
         </div>
 
         <div class="glass config-panel">
@@ -8377,6 +5289,6076 @@
       </div>
 
       <div class="toast ${this._toast?"show":""} ${this._toastError?"error":""}">
-        ${this._toastError?De("common.error_save"):De("common.config_saved")}
+        ${this._toastError?Re("common.error_save"):Re("common.config_saved")}
       </div>
-    `:B}}_i([he({attribute:!1})],gi.prototype,"hass"),_i([he({type:Boolean})],gi.prototype,"narrow"),_i([me()],gi.prototype,"_lang"),_i([me()],gi.prototype,"_nav"),_i([me()],gi.prototype,"_rooms"),_i([me()],gi.prototype,"_emptyRooms"),_i([me()],gi.prototype,"_selectedRoom"),_i([me()],gi.prototype,"_toast"),_i([me()],gi.prototype,"_saving"),_i([me()],gi.prototype,"_dragIdx"),_i([me()],gi.prototype,"_dropIdx"),_i([me()],gi.prototype,"_dragContext"),_i([me()],gi.prototype,"_dragModeSrcIdx"),_i([me()],gi.prototype,"_toastError");try{customElements.define("glass-config-panel",gi)}catch{}}();
+    `:B}}$i([pe({attribute:!1})],Si.prototype,"hass"),$i([pe({type:Boolean})],Si.prototype,"narrow"),$i([ue()],Si.prototype,"_lang"),$i([ue()],Si.prototype,"_nav"),$i([ue()],Si.prototype,"_rooms"),$i([ue()],Si.prototype,"_emptyRooms"),$i([ue()],Si.prototype,"_selectedRoom"),$i([ue()],Si.prototype,"_toast"),$i([ue()],Si.prototype,"_saving"),$i([ue()],Si.prototype,"_dragIdx"),$i([ue()],Si.prototype,"_dropIdx"),$i([ue()],Si.prototype,"_dragContext"),$i([ue()],Si.prototype,"_dragModeSrcIdx"),$i([ue()],Si.prototype,"_toastError");try{customElements.define("glass-config-panel",Si)}catch{}Ve("glass-light-card-editor");var Ci=Object.defineProperty,Ii=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ci(t,i,s),s};const Ei=[[3e3,"light.temp_warm","#ffd4a3"],[4e3,"light.temp_warm","#ffedb3"],[4800,"light.temp_neutral","#fff5e6"],[9999,"light.temp_cold","#e0ecf5"]];function zi(e){for(const[t,i,a]of Ei)if(e<t)return{label:Re(i),color:a};return{label:Re("light.temp_cold"),color:"#e0ecf5"}}function Di(e,t){return`rgba(${e[0]},${e[1]},${e[2]},${t})`}const Ti=[[251,191,36],[248,113,113],[244,114,182],[167,139,250],[129,140,248],[96,165,250],[74,222,128],[240,240,240]];const Pi=["off","candle","fire"];class Li extends We{constructor(){super(...arguments),this._expandedEntity=null,this._dragValues=new Map,this._colorPickerEntity=null,this._colorPickerRgb=null,this._colorPickerPos=null,this._colorPickerHs=null,this._showHeader=!0,this._lightConfigLoaded=!1,this._throttleTimers=new Map,this._roomConfig=null,this._roomConfigLoaded=!1,this._lightsFingerprint="",this._schedules=null,this._schedulesLoaded=!1,this._dashboardHiddenEntities=new Set,this._dashboardHiddenLoaded=!1,this._wheelCanvas=null}static getConfigElement(){return document.createElement("glass-light-card-editor")}get _isDashboardMode(){return!(this.areaId||this._config?.area)&&!this._config?.entity}static{this.styles=[ve,be,ye,Ce,we,$e,De,s`
+      :host {
+        width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
+      }
+
+      /* ── Card Header ── */
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.375rem;
+        padding: 0 0.375rem;
+        min-height: 1.375rem;
+      }
+      .card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .card-title {
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--t4);
+      }
+      .card-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0.875rem;
+        height: 0.875rem;
+        padding: 0 0.25rem;
+        border-radius: var(--radius-full);
+        font-size: var(--fz-xs);
+        font-weight: 600;
+        transition: all var(--t-med);
+      }
+      .card-count.none {
+        background: var(--s2);
+        color: var(--t3);
+      }
+      .card-count.some {
+        background: rgba(var(--rgb-light-glow), 0.15);
+        color: var(--c-light-glow);
+      }
+      .card-count.all {
+        background: rgba(var(--rgb-light-glow), 0.2);
+        color: var(--c-light-glow);
+      }
+
+      /* ── Toggle All ── */
+      .toggle-all {
+        position: relative;
+        width: 2.5rem;
+        height: 1.375rem;
+        border-radius: var(--radius-md);
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        cursor: pointer;
+        transition: all var(--t-fast);
+        padding: 0;
+        outline: none;
+        font-family: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .toggle-all::after {
+        content: '';
+        position: absolute;
+        top: 0.1875rem;
+        left: 0.1875rem;
+        width: 0.875rem;
+        height: 0.875rem;
+        border-radius: 50%;
+        background: var(--t3);
+        transition:
+          transform var(--t-fast),
+          background var(--t-fast),
+          box-shadow var(--t-fast);
+      }
+      .toggle-all.on {
+        background: rgba(var(--rgb-light-glow), 0.2);
+        border-color: rgba(var(--rgb-light-glow), 0.3);
+      }
+      .toggle-all.on::after {
+        transform: translateX(1.125rem);
+        background: var(--c-light-glow);
+        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.4);
+      }
+
+      /* ── Card Body ── */
+      .card {
+        position: relative;
+        padding: 0.125rem 0.875rem;
+      }
+      .card-inner {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── Tint (dynamic) ── */
+      .tint {
+        transition:
+          opacity var(--t-slow),
+          background var(--t-slow);
+      }
+
+      /* ── Lights Grid ── */
+      .lights-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+      }
+
+      /* ── Light Row ── */
+      .light-row {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        grid-column: 1 / -1;
+        padding: 0.5rem 0.25rem;
+        position: relative;
+        transition: background var(--t-fast);
+        border-radius: var(--radius-md);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .light-row:hover {
+          background: var(--s1);
+        }
+      }
+      @media (pointer: coarse) {
+        .light-row:active { animation: bounce 0.3s ease; }
+      }
+      .light-row.compact {
+        grid-column: span 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .light-row.compact-right {
+        padding-left: 0.625rem;
+      }
+      .light-row.compact-right::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 0.0625rem;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(var(--rgb-white), 0.08) 30%,
+          rgba(var(--rgb-white), 0.08) 70%,
+          transparent
+        );
+      }
+
+      /* ── Icon Button ── */
+      .light-icon-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: var(--radius-md);
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        font-family: inherit;
+        color: var(--t3);
+        transition:
+          color var(--t-fast),
+          background var(--t-fast),
+          border-color var(--t-fast),
+          filter var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .light-icon-btn ha-icon {
+        --mdc-icon-size: var(--icon-md);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .light-icon-btn.on {
+        background: rgba(var(--rgb-light-glow), 0.1);
+        border-color: rgba(var(--rgb-light-glow), 0.15);
+        color: var(--c-light-glow);
+        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.4));
+      }
+      .light-icon-btn.on.rgb {
+        background: var(--light-rgb-bg);
+        border-color: var(--light-rgb-border);
+        color: var(--light-rgb);
+        filter: drop-shadow(0 0 6px var(--light-rgb-glow));
+      }
+      .entity-unavailable .light-icon-btn {
+        border-color: var(--c-alert);
+      }
+
+      /* ── Expand Button ── */
+      .light-expand-btn {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        background: transparent;
+        border: none;
+        padding: 0;
+        font-family: inherit;
+        outline: none;
+        text-align: left;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      /* ── Light Info ── */
+      .light-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .light-name {
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .light-sub {
+        display: flex;
+        align-items: center;
+        gap: 0.3125rem;
+        margin-top: 0.125rem;
+      }
+      .light-brightness-text {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+        transition: color var(--t-med);
+      }
+      .light-row[data-on='true'] .light-brightness-text {
+        color: rgba(var(--rgb-light-glow), 0.55);
+      }
+      .light-row[data-on='true'][data-rgb] .light-brightness-text {
+        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.55));
+      }
+      .light-temp-dot {
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 50%;
+        transition: background var(--t-med);
+      }
+      .light-temp-text {
+        font-size: var(--fz-sm);
+        font-weight: 400;
+        color: var(--t4);
+      }
+
+      /* ── Status Dot ── */
+      .light-dot {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--t4);
+        transition: all var(--t-med);
+      }
+      .light-row[data-on='true'] .light-dot {
+        background: var(--c-light-glow);
+        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.5);
+      }
+      .light-row[data-on='true'][data-rgb] .light-dot {
+        background: var(--light-rgb);
+        box-shadow: 0 0 8px var(--light-rgb-glow);
+      }
+
+      /* Unavailable badge inline (replaces dot) */
+      .light-expand-btn .unavailable-badge {
+        position: static;
+        flex-shrink: 0;
+        --mdc-icon-size: 0.75rem;
+        color: var(--c-warning);
+      }
+
+      /* ── Control Fold ── */
+      .ctrl-fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+        grid-column: 1 / -1;
+      }
+      .ctrl-fold.open {
+        grid-template-rows: 1fr;
+      }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity var(--t-fast);
+      }
+      .ctrl-fold.open .ctrl-fold-inner {
+        opacity: 1;
+        transition-delay: 0.1s;
+      }
+      .fold-sep {
+        height: 0.0625rem;
+        margin: 0 0.75rem;
+        overflow: hidden;
+        background: linear-gradient(90deg, transparent, var(--fold-color, rgba(var(--rgb-light-glow),0.25)), transparent);
+        opacity: 0;
+        transition: opacity var(--t-layout);
+        grid-column: 1 / -1;
+      }
+      .fold-sep.visible { opacity: 1; }
+      .ctrl-panel {
+        padding: 0.375rem 0 0.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      .ctrl-label {
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: rgba(var(--rgb-light-glow), 0.6);
+      }
+      .ctrl-panel[data-rgb] .ctrl-label {
+        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.6));
+      }
+
+      /* ── Slider ── */
+      .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
+      .slider-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 1.75rem; height: 1.75rem; flex-shrink: 0;
+      }
+      .slider-icon ha-icon {
+        --mdc-icon-size: 1.125rem;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t3);
+      }
+      glass-slider { flex: 1; }
+
+      /* ── Color Controls ── */
+      .color-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.125rem 0;
+      }
+      .cdot {
+        width: 1.625rem;
+        height: 1.625rem;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all var(--t-fast);
+        padding: 0;
+        outline: none;
+        background: none;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cdot::before {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        background: var(--cdot-color);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .cdot:hover { transform: scale(1.15); }
+        .cdot:active { transform: scale(1.1); }
+      }
+      @media (pointer: coarse) {
+        .cdot:active { animation: bounce 0.3s ease; }
+      }
+      .cdot.active { border-color: rgba(var(--rgb-white), 0.6); }
+      .effect-chip {
+        width: auto; height: auto;
+        border-radius: var(--radius-md);
+        padding: 4px 8px;
+        font-size: var(--fz-xs); font-weight: 600;
+        letter-spacing: 0.5px; text-transform: uppercase;
+        color: var(--t3); border: 1px solid var(--b2); background: var(--s1);
+        transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+      }
+      .effect-chip.active {
+        color: var(--t1);
+        border-color: rgba(var(--rgb-white), 0.35);
+        background: var(--s2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .effect-chip:hover { transform: none; background: var(--s2); }
+        .effect-chip:active { transform: none; }
+      }
+      @media (pointer: coarse) {
+        .effect-chip:active { animation: none; transform: scale(0.96); }
+      }
+      .color-picker-btn {
+        width: 1.625rem;
+        height: 1.625rem;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        background: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: all var(--t-fast);
+        flex-shrink: 0;
+        position: relative;
+      }
+      .color-picker-btn::before {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        background: conic-gradient(
+          hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
+          hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
+        );
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .color-picker-btn:hover { transform: scale(1.15); }
+      }
+      @media (pointer: coarse) {
+        .color-picker-btn:active { animation: bounce 0.3s ease; }
+      }
+
+      /* ── Color Picker Popup ── */
+      .color-picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--rgb-black), 0.4);
+        backdrop-filter: var(--blur-sm);
+        -webkit-backdrop-filter: var(--blur-sm);
+        animation: cpFadeIn 0.2s ease;
+      }
+      @keyframes cpFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .color-picker-dialog {
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
+        backdrop-filter: blur(40px) saturate(1.4);
+        -webkit-backdrop-filter: blur(40px) saturate(1.4);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-xl);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.15);
+        max-width: 18.75rem;
+        width: 90vw;
+      }
+      .color-picker-dialog .cp-title {
+        font-size: var(--fz-base);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t3);
+      }
+      .cp-wheel-wrap {
+        position: relative;
+        width: 13.75rem;
+        height: 13.75rem;
+      }
+      .cp-wheel-wrap canvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        cursor: crosshair;
+      }
+      .cp-cursor {
+        position: absolute;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 6px rgba(var(--rgb-black),0.6), 0 0 0 1px rgba(var(--rgb-black),0.2);
+        pointer-events: none;
+        transform: translate(-50%, calc(-50% - 28px));
+        transition: left 0.05s, top 0.05s;
+      }
+      .cp-cursor::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0.125rem;
+        height: 0.625rem;
+        background: rgba(var(--rgb-white),0.5);
+        border-radius: 1px;
+      }
+      .cp-preview {
+        width: 100%;
+        height: 2.25rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+      }
+      .cp-hex {
+        font-size: var(--fz-base); font-weight: 600; color: var(--t2);
+        font-family: monospace; letter-spacing: 0.5px;
+      }
+      .cp-close {
+        font-family: inherit;
+        font-size: var(--fz-base);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--t2);
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-md);
+        padding: 0.5rem 1.5rem;
+        cursor: pointer;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Focus-visible ring */
+      .toggle-all:focus-visible,
+      .light-icon-btn:focus-visible,
+      .light-expand-btn:focus-visible,
+      .cdot:focus-visible,
+      .color-picker-btn:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+
+      /* ── Dashboard Mode ── */
+      .dashboard-row {
+        display: contents;
+        animation: dashRowIn 0.4s var(--ease-std) both;
+      }
+      .dashboard-row:nth-child(1) { animation-delay: 0ms; }
+      .dashboard-row:nth-child(2) { animation-delay: 50ms; }
+      .dashboard-row:nth-child(3) { animation-delay: 100ms; }
+      @keyframes dashRowIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .dashboard-overflow {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+        text-align: center;
+        padding: 0.375rem 0 0.125rem;
+        letter-spacing: 0.3px;
+        grid-column: 1 / -1;
+      }
+    `]}setConfig(e){super.setConfig(e)}getCardSize(){if(this._isDashboardMode){const e=this._getLights().length;return 0===e?1:Math.min(e,6)+1}return 3}_collapseExpanded(){null!==this._expandedEntity&&(this._expandedEntity=null),null!==this._colorPickerEntity&&(this._colorPickerEntity=null,this._colorPickerPos=null)}connectedCallback(){super.connectedCallback(),this._listen("room-config-changed",e=>{const t=this.areaId||this._config?.area;t&&e.areaId===t&&(this._roomConfigLoaded=!1,this._cachedLightIds=void 0,this._lightsFingerprint="",this._loadRoomConfig()),this._isDashboardMode&&(this._dashboardHiddenLoaded=!1,this._dashboardTotalCache=void 0,this._cachedLightIds=void 0,this._lightsFingerprint="",this._loadDashboardHidden())}),this._listen("schedule-changed",()=>{this._schedulesLoaded=!1,this._cachedLightIds=void 0,this._lightsFingerprint="",this._loadSchedules()}),this._listen("light-config-changed",()=>{this._lightConfigLoaded=!1,this._loadLightConfig()})}disconnectedCallback(){super.disconnectedCallback(),this._cancelWheelDrag?.(),this._cancelWheelDrag=void 0,this._wheelCanvas=null,this._throttleTimers.forEach(e=>clearTimeout(e)),this._throttleTimers.clear(),this._backend=void 0,this._schedulesLoaded=!1,this._lightConfigLoaded=!1,this._roomConfigLoaded=!1,this._dashboardHiddenLoaded=!1}async _loadRoomConfig(){const e=this.areaId||this._config?.area;if(e&&this.hass&&!this._roomConfigLoaded){this._roomConfigLoaded=!0,this._lastLoadedAreaId=e;try{this._backend||(this._backend=new Qe(this.hass));const t=await this._backend.send("get_room",{area_id:e});if((this.areaId||this._config?.area)!==e)return;this._roomConfig=t,this._cachedLightIds=void 0,this._lightsFingerprint="",this.requestUpdate()}catch{}}}async _loadSchedules(){if(this.hass&&!this._schedulesLoaded){this._schedulesLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_schedules");this._schedules=e,this._cachedLightIds=void 0,this._lightsFingerprint="",this.requestUpdate()}catch{this._schedulesLoaded=!1}}}async _loadLightConfig(){if(this.hass&&!this._lightConfigLoaded){this._lightConfigLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_config");e?.light_card&&(this._showHeader=e.light_card.show_header??!0)}catch{}}}async _loadDashboardHidden(){if(!this.hass||this._dashboardHiddenLoaded||!this._isDashboardMode)return;this._dashboardHiddenLoaded=!0;const e=this.visibleAreaIds;if(e&&0!==e.length)try{this._backend||(this._backend=new Qe(this.hass));const t=new Set;for(const i of e){const e=await this._backend.send("get_room",{area_id:i});if(e?.hidden_entities)for(const i of e.hidden_entities)t.add(i)}this._dashboardHiddenEntities=t,this._cachedLightIds=void 0,this._lightsFingerprint="",this._dashboardTotalCache=void 0,this.requestUpdate()}catch{}}_resetForNewArea(){this._roomConfig=null,this._roomConfigLoaded=!1,this._expandedEntity=null,this._dragValues=new Map,this._cachedLightIds=void 0,this._lightsFingerprint="",this._throttleTimers.forEach(e=>clearTimeout(e)),this._throttleTimers.clear()}getTrackedEntityIds(){return this._isDashboardMode&&this.hass?Xe("light",this.hass,this.visibleAreaIds):this._getLights().map(e=>e.entity_id)}updated(e){super.updated(e),e.has("hass")&&this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._roomConfigLoaded=!1,this._schedulesLoaded=!1,this._lightConfigLoaded=!1,this._dashboardHiddenLoaded=!1),this.hass&&!this._schedulesLoaded&&this._loadSchedules(),this.hass&&!this._lightConfigLoaded&&this._loadLightConfig();const t=this.areaId||this._config?.area;if(t&&this.hass&&(this._lastLoadedAreaId!==t&&this._resetForNewArea(),this._roomConfigLoaded||this._loadRoomConfig()),this.hass&&this._isDashboardMode&&!this._dashboardHiddenLoaded&&this._loadDashboardHidden(),e.has("hass")&&this.hass){const t=e.get("hass");t&&t.entities!==this.hass.entities&&(this._cachedLightIds=void 0,this._lightsFingerprint="")}e.has("visibleAreaIds")&&(this._cachedLightIds=void 0,this._lightsFingerprint="",this._dashboardHiddenLoaded=!1);const i=this._getLightInfos();if(i.some(e=>e.isOn)?this.setAttribute("lights-on",""):this.removeAttribute("lights-on"),e.has("hass")&&this._dragValues.size>0){let e=!1;const t=new Map(this._dragValues);for(const a of i){const i=`bri:${a.entityId}`,r=t.get(i);void 0!==r&&Math.abs(a.brightnessPct-r)<=2&&(t.delete(i),e=!0);const s=`temp:${a.entityId}`,o=t.get(s);void 0!==o&&null!==a.colorTempKelvin&&Math.abs(a.colorTempKelvin-o)<=50&&(t.delete(s),e=!0)}e&&(this._dragValues=t)}if(this._colorPickerEntity){const e=this.renderRoot.querySelector(".cp-wheel-wrap canvas");e&&e.dataset.drawnFor!==this._colorPickerEntity&&(!function(e){const t=e.getBoundingClientRect(),i=Math.round(t.width)||220,a=window.devicePixelRatio||1;e.width=i*a,e.height=i*a;const r=e.getContext("2d");if(!r)return;r.scale(a,a);const s=i/2,o=i/2,n=i/2;for(let c=0;c<360;c++){const e=(c-1)*Math.PI/180,t=(c+1)*Math.PI/180,i=r.createRadialGradient(s,o,0,s,o,n),[a,l,d]=Ie(c,1);i.addColorStop(0,"#ffffff"),i.addColorStop(1,`rgb(${a},${l},${d})`),r.beginPath(),r.moveTo(s,o),r.arc(s,o,n,e,t),r.closePath(),r.fillStyle=i,r.fill()}}(e),e.dataset.drawnFor=this._colorPickerEntity)}}_getLights(){if(!this.hass)return[];const e=this._getLightIds(),t=e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.state}:${t.last_updated}`:`${e}:-`}).join("|");if(t===this._lightsFingerprint&&this._cachedLightsResult)return this._cachedLightsResult;let i;return this._lightsFingerprint=t,i=this._isDashboardMode?e.map(e=>this.hass?.states[e]).filter(e=>!!e&&"on"===e.state&&Ge(e.entity_id,this._schedules)).sort((e,t)=>{const i=e.attributes.friendly_name||e.entity_id,a=t.attributes.friendly_name||t.entity_id;return i.localeCompare(a)}):e.map(e=>this.hass?.states[e]).filter(e=>void 0!==e),this._cachedLightsResult=i,i}_getLightIds(){return this._cachedLightIds||(this._cachedLightIds=this._computeLightIds()),this._cachedLightIds}_computeLightIds(){if(!this.hass)return[];const e=this.areaId||this._config?.area;if(e){const t=this._config?.hidden_entities??[],i=this._roomConfig?.hidden_entities??[],a=new Set([...t,...i]),r=Ye(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light.")&&!a.has(e.entity_id)&&Ge(e.entity_id,this._schedules)).map(e=>e.entity_id),s=this._config?.entity_order??[],o=s.length>0?s:this._roomConfig?.entity_order??[];if(o.length>0){const e=new Map;o.forEach((t,i)=>e.set(t,i)),r.sort((t,i)=>{const a=e.get(t),r=e.get(i);return void 0!==a&&void 0!==r?a-r:void 0!==a?-1:void 0!==r?1:0})}return r}if(this._config?.entity)return Ge(this._config.entity,this._schedules)&&this.hass.states[this._config.entity]?[this._config.entity]:[];if(this._isDashboardMode){const e=this.visibleAreaIds;if(!e||0===e.length||!this.hass.entities||!this.hass.devices)return[];const t=[];for(const i of e)for(const e of Ye(i,this.hass.entities,this.hass.devices))e.entity_id.startsWith("light.")&&!this._dashboardHiddenEntities.has(e.entity_id)&&t.push(e.entity_id);return t}return[]}_getDashboardLightTotal(){if(!this.hass||!this.hass.entities||!this.hass.devices)return 0;if(void 0!==this._dashboardTotalCache&&this._dashboardTotalEntitiesRef===this.hass.entities)return this._dashboardTotalCache;const e=this.visibleAreaIds;if(!e||0===e.length)return 0;const t=new Set;for(const i of e)for(const e of Ye(i,this.hass.entities,this.hass.devices))e.entity_id.startsWith("light.")&&!this._dashboardHiddenEntities.has(e.entity_id)&&t.add(e.entity_id);return this._dashboardTotalEntitiesRef=this.hass.entities,this._dashboardTotalCache=t.size,t.size}_getLightInfos(){return this._getLights().map(e=>this._buildLightInfo(e))}_buildLightInfo(e){const t="on"===e.state,i=function(e){const t=e.attributes.supported_color_modes;return t&&0!==t.length?t.some(e=>["hs","rgb","rgbw","rgbww","xy"].includes(e))?"rgb":t.includes("color_temp")?"color_temp":t.includes("brightness")?"dimmable":"simple":void 0!==e.attributes.brightness?"dimmable":"simple"}(e),a=e.attributes.brightness,r=t&&void 0!==a?Math.round(a/255*100):0;let s=null;const o=e.attributes.min_color_temp_kelvin||2e3,n=e.attributes.max_color_temp_kelvin||6500;t&&"color_temp"===i&&(s=e.attributes.color_temp_kelvin||null);let c=null;t&&"rgb"===i&&(c=e.attributes.rgb_color||null);const l=this.hass?.entities[e.entity_id]?.icon,d=e.attributes.icon,h=l||d||"mdi:lightbulb";return{entity:e,entityId:e.entity_id,name:e.attributes.friendly_name||e.entity_id,icon:h,isOn:t,type:i,brightnessPct:r,colorTempKelvin:s,minKelvin:o,maxKelvin:n,rgbColor:c}}_toggleLight(e){Be(this,"light"),this._safeCallService("light","toggle",{},{entity_id:e})}_toggleAll(){Be(this,"medium");const e=this._getLights(),t=e.some(e=>"on"===e.state),i=t?"turn_off":"turn_on",a=e.map(e=>e.entity_id);this._safeCallService("light",i,{},{entity_id:a}),t&&(this._expandedEntity=null)}_turnAllOff(){const e=this._getLights().map(e=>e.entity_id);this._safeCallService("light","turn_off",{},{entity_id:e}),this._expandedEntity=null}_hasControls(e){if("simple"!==e.type)return!0;const t=e.entity.attributes.effect_list;if(t&&t.length>0){const e=t.map(e=>e.toLowerCase());if(Pi.filter(t=>"off"===t||e.includes(t)).length>1)return!0}return!1}_expandFold(e,t,i){i||(i=this._getLightInfos().find(t=>t.entityId===e)),i&&!this._hasControls(i)||(t?this._expandedEntity===e?this._expandedEntity=null:this._expandedEntity=e:this._toggleLight(e))}_onSliderInput(e,t,i){const a=new Map(this._dragValues);a.set(e,t),this._dragValues=a;const r=this._throttleTimers.get(e);void 0!==r&&clearTimeout(r),this._throttleTimers.set(e,setTimeout(()=>{this._throttleTimers.delete(e),i(this._dragValues.get(e)??t)},100))}_onSliderChange(e,t,i){Be(this,"selection");const a=new Map(this._dragValues);a.set(e,t),this._dragValues=a,i(t);const r=this._throttleTimers.get(e);void 0!==r&&clearTimeout(r),this._throttleTimers.delete(e)}_setBrightness(e,t){this._safeCallService("light","turn_on",{brightness_pct:t},{entity_id:e})}_setColorTemp(e,t){this._safeCallService("light","turn_on",{color_temp_kelvin:t},{entity_id:e})}_setHsColor(e,t,i){this._safeCallService("light","turn_on",{hs_color:[t,100*i]},{entity_id:e})}_setEffect(e,t){this._safeCallService("light","turn_on",{effect:t},{entity_id:e})}_openColorPicker(e,t){this._colorPickerEntity=e,this._colorPickerRgb=t??[255,255,255],this._colorPickerPos=t?function(e){const{h:t,s:i}=Ee(e),a=Math.min(i,1),r=t*Math.PI/180;return{x:Math.cos(r)*a*50+50,y:Math.sin(r)*a*50+50}}(t):null,this._colorPickerHs=t?Ee(t):null}_closeColorPicker(){this._cancelWheelDrag?.(),this._cancelWheelDrag=void 0,this._wheelCanvas=null,this._colorPickerEntity=null,this._colorPickerRgb=null,this._colorPickerPos=null,this._colorPickerHs=null}_onWheelInteraction(e){const t=this._wheelCanvas;if(!t)return;const i=function(e,t,i){const a=e.getBoundingClientRect(),r=t-a.left-a.width/2,s=i-a.top-a.height/2,o=a.width/2,n=Math.sqrt(r*r+s*s),c=Math.min(n,o),l=(180*Math.atan2(s,r)/Math.PI%360+360)%360,d=c/o,h=Ie(l,d),p=n>0?c/n:1;return{rgb:h,hex:ze(h),hs:{h:l,s:d},pos:{x:r*p/o*50+50,y:s*p/o*50+50}}}(t,"touches"in e?e.touches[0].clientX:e.clientX,"touches"in e?e.touches[0].clientY:e.clientY);if(this._colorPickerPos=i.pos,this._colorPickerRgb=i.rgb,this._colorPickerHs=i.hs,this._colorPickerEntity){const e=`cp:${this._colorPickerEntity}`,t=this._throttleTimers.get(e);void 0!==t&&clearTimeout(t),this._throttleTimers.set(e,setTimeout(()=>{this._throttleTimers.delete(e),this._colorPickerEntity&&this._colorPickerHs&&this._setHsColor(this._colorPickerEntity,this._colorPickerHs.h,this._colorPickerHs.s)},150))}}_getEntityLayout(e){const t=this._config?.entity_layouts??{},i=this._roomConfig?.entity_layouts??{};return"full"===(t[e]||i[e])?"full":"compact"}_isCompact(e){return"compact"===this._getEntityLayout(e.entityId)}_buildLayout(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if(this._isCompact(a)){const r=i+1<e.length&&this._isCompact(e[i+1])?e[i+1]:null;r?(t.push({kind:"compact-pair",left:a,right:r}),i+=2):(t.push({kind:"full",light:a}),i++)}else t.push({kind:"full",light:a}),i++}return t}_computeTint(e){const t=e.filter(e=>e.isOn);if(0===t.length)return null;const i=t.length/e.length;let a="#fbbf24";const r=t.find(e=>"rgb"===e.type&&e.rgbColor);return r?.rgbColor&&(a=ze(r.rgbColor)),{background:`radial-gradient(ellipse at 30% 30%, ${a}, transparent 70%)`,opacity:(.18*i).toFixed(3)}}_renderSubText(e){if(!e.isOn)return N`<span class="light-brightness-text">${Re("common.off")}</span>`;if("simple"===e.type)return N`<span class="light-brightness-text">${Re("common.on")}</span>`;const t=[N`<span class="light-brightness-text">${e.brightnessPct}%</span>`];if("color_temp"===e.type&&e.colorTempKelvin){const i=zi(e.colorTempKelvin);t.push(N`<span class="light-temp-dot" style="background:${i.color}"></span>`),t.push(N`<span class="light-temp-text">${i.label}</span>`)}if("rgb"===e.type&&e.rgbColor){const i=ze(e.rgbColor);t.push(N`<span class="light-temp-dot" style="background:${i}"></span>`),t.push(N`<span class="light-temp-text">${Re("light.color")}</span>`)}return t}_renderLightRow(e,t,i){const a=Te(e.entity.state),r=["light-row",t?"compact":"",i?"compact-right":"",a?"entity-unavailable":""].filter(Boolean).join(" "),s=e.isOn&&"rgb"===e.type&&e.rgbColor?`--light-rgb:${ze(e.rgbColor)};--light-rgb-bg:${Di(e.rgbColor,.1)};--light-rgb-border:${Di(e.rgbColor,.15)};--light-rgb-glow:${Di(e.rgbColor,.4)};--light-rgb-sub:${Di(e.rgbColor,.55)}`:"",o=["light-icon-btn",e.isOn?"on":"",e.isOn&&e.rgbColor?"rgb":""].filter(Boolean).join(" "),n=this._bindGesture({onTap:()=>this._toggleLight(e.entityId),onLongPress:()=>this._expandFold(e.entityId,e.isOn,e),exclude:".light-icon-btn"});return N`
+      <div
+        class=${r}
+        data-on=${e.isOn}
+        style=${s}
+        ?data-rgb=${e.isOn&&"rgb"===e.type&&!!e.rgbColor}
+        @pointerdown=${n.pointerdown}
+        @pointerup=${n.pointerup}
+        @pointermove=${n.pointermove}
+        @pointercancel=${n.pointercancel}
+        @contextmenu=${n.contextmenu}
+      >
+        <button
+          class=${o}
+          style=${s}
+          @click=${()=>this._toggleLight(e.entityId)}
+          aria-label="${Re("light.toggle_aria",{name:e.name})}"
+        >
+          <ha-icon .icon=${e.icon}></ha-icon>
+        </button>
+        <button
+          class="light-expand-btn"
+          aria-label="${e.isOn?Re("light.expand_aria",{name:e.name}):e.name}"
+          aria-expanded=${e.isOn?this._expandedEntity===e.entityId?"true":"false":B}
+        >
+          <div class="light-info">
+            <div class="light-name">${ke(e.name,t?12:xe)}</div>
+            <div class="light-sub">${this._renderSubText(e)}</div>
+          </div>
+          ${a?N`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:N`<span class="light-dot"></span>`}
+        </button>
+      </div>
+    `}_getSliderColor(e){if("rgb"===e.type&&e.rgbColor){const[t,i,a]=e.rgbColor;return`${t},${i},${a}`}if("color_temp"===e.type&&e.colorTempKelvin){const t=zi(e.colorTempKelvin).color;return`${parseInt(t.slice(1,3),16)},${parseInt(t.slice(3,5),16)},${parseInt(t.slice(5,7),16)}`}return"var(--rgb-light-glow)"}_getFoldColor(e){if(e.rgbColor)return`rgba(${e.rgbColor[0]},${e.rgbColor[1]},${e.rgbColor[2]},0.3)`;if("color_temp"===e.type&&e.colorTempKelvin){const{color:t}=zi(e.colorTempKelvin);return`rgba(${parseInt(t.slice(1,3),16)},${parseInt(t.slice(3,5),16)},${parseInt(t.slice(5,7),16)},0.3)`}return"rgba(var(--rgb-light-glow),0.25)"}_renderControlFold(e,t=!1){const i=this._expandedEntity===e.entityId&&e.isOn,a="rgb"===e.type,r=this._getSliderColor(e),s=this._getFoldColor(e);return N`
+      <div class="fold-sep ${i?"visible":""}" style="--fold-color:${s}"></div>
+      <div class="ctrl-fold ${i?"open":""}">
+        <div class="ctrl-fold-inner">
+          <div class="ctrl-panel" ?data-rgb=${a}>
+            <span class="ctrl-label">${e.name}</span>
+
+            ${"simple"!==e.type?this._renderBrightnessSlider(e,r):B}
+            ${"color_temp"===e.type?this._renderTempSlider(e):B}
+            ${"rgb"===e.type?this._renderColorRow(e):B}
+            ${this._renderEffectChips(e)}
+          </div>
+        </div>
+      </div>
+      ${t?B:N`<div class="fold-sep ${i?"visible":""}" style="--fold-color:${s}"></div>`}
+    `}_renderColorRow(e){return N`
+      <div class="color-row">
+        ${Ti.map(t=>{const i=!!e.rgbColor&&function(e,t){const i=Ee(e),a=Ee(t),r=Math.abs(i.h-a.h);return(r<5||r>355)&&Math.abs(i.s-a.s)<.08}(e.rgbColor,t);return N`
+            <button
+              class="cdot ${i?"active":""}"
+              style="--cdot-color:${ze(t)}"
+              @click=${()=>{const i=Ee(t);this._setHsColor(e.entityId,i.h,i.s)}}
+              aria-label="${Re("light.color_aria",{hex:ze(t)})}"
+            ></button>
+          `})}
+        <button
+          class="color-picker-btn"
+          @click=${()=>this._openColorPicker(e.entityId,e.rgbColor)}
+          aria-label="${Re("light.color_picker_aria")}"
+        ></button>
+      </div>
+    `}_renderEffectChips(e){const t=e.entity.attributes.effect_list;if(!t||0===t.length)return B;const i=Pi.filter(e=>"off"===e||t.includes(e));if(i.length<=1)return B;const a=e.entity.attributes.effect?.toLowerCase();return N`
+      <div class="color-row" style="flex-wrap:wrap">
+        ${i.map(t=>N`
+            <button
+              class="cdot effect-chip ${a===t||!a&&"off"===t?"active":""}"
+              @click=${()=>this._setEffect(e.entityId,t)}
+              aria-label="${Re(`light.effect_${t}`)}"
+            >${Re(`light.effect_${t}`)}</button>
+          `)}
+      </div>
+    `}_renderColorPicker(){if(!this._colorPickerEntity||!this._colorPickerRgb)return B;const e=ze(this._colorPickerRgb);return N`
+      <div class="color-picker-overlay" role="presentation" @click=${e=>{e.target.classList.contains("color-picker-overlay")&&this._closeColorPicker()}}>
+        <div class="color-picker-dialog">
+          <span class="cp-title">${Re("light.color_picker_title")}</span>
+          <div class="cp-wheel-wrap">
+            <canvas
+              @mousedown=${e=>{this._wheelCanvas=e.currentTarget,this._onWheelInteraction(e);const t=e=>this._onWheelInteraction(e),i=()=>{a(),this._colorPickerEntity&&this._colorPickerHs&&this._setHsColor(this._colorPickerEntity,this._colorPickerHs.h,this._colorPickerHs.s)},a=()=>{window.removeEventListener("mousemove",t),window.removeEventListener("mouseup",i),this._cancelWheelDrag=void 0};window.addEventListener("mousemove",t),window.addEventListener("mouseup",i),this._cancelWheelDrag=a}}
+              @touchstart=${e=>{e.preventDefault(),this._wheelCanvas=e.currentTarget,this._onWheelInteraction(e);const t=e=>{e.preventDefault(),this._onWheelInteraction(e)},i=()=>{a(),this._colorPickerEntity&&this._colorPickerHs&&this._setHsColor(this._colorPickerEntity,this._colorPickerHs.h,this._colorPickerHs.s)},a=()=>{window.removeEventListener("touchmove",t),window.removeEventListener("touchend",i),window.removeEventListener("touchcancel",i),this._cancelWheelDrag=void 0};window.addEventListener("touchmove",t,{passive:!1}),window.addEventListener("touchend",i),window.addEventListener("touchcancel",i),this._cancelWheelDrag=a}}
+            ></canvas>
+            <div class="cp-cursor" style="left:${this._colorPickerPos?.x??50}%;top:${this._colorPickerPos?.y??50}%;background:${e}"></div>
+          </div>
+          <div class="cp-preview" style="background:${e}"></div>
+          <span class="cp-hex">${e}</span>
+          <button class="cp-close" @click=${()=>this._closeColorPicker()}>
+            ${Re("common.close")}
+          </button>
+        </div>
+      </div>
+    `}_renderBrightnessSlider(e,t){const i=`bri:${e.entityId}`,a=this._dragValues.get(i)??e.brightnessPct;return N`
+      <div class="slider-wrap">
+        <div class="slider-icon"><ha-icon .icon=${"mdi:brightness-6"}></ha-icon></div>
+        <glass-slider
+          .value=${a}
+          .min=${1}
+          .max=${100}
+          color="${t}"
+          .label=${`${a}%`}
+          @glass-slider-input=${t=>this._onSliderInput(i,t.detail.value,t=>this._setBrightness(e.entityId,t))}
+          @glass-slider-change=${t=>this._onSliderChange(i,t.detail.value,t=>this._setBrightness(e.entityId,t))}
+        ></glass-slider>
+      </div>
+    `}_renderTempSlider(e){const t=`temp:${e.entityId}`,i=e.colorTempKelvin||e.minKelvin,a=this._dragValues.get(t)??i,r=zi(a).color,s=`${parseInt(r.slice(1,3),16)},${parseInt(r.slice(3,5),16)},${parseInt(r.slice(5,7),16)}`;return N`
+      <div class="slider-wrap">
+        <div class="slider-icon"><ha-icon .icon=${"mdi:thermometer"}></ha-icon></div>
+        <glass-slider
+          .value=${a}
+          .min=${e.minKelvin}
+          .max=${e.maxKelvin}
+          color="${s}"
+          .label=${`${a}K`}
+          @glass-slider-input=${i=>this._onSliderInput(t,i.detail.value,t=>this._setColorTemp(e.entityId,t))}
+          @glass-slider-change=${i=>this._onSliderChange(t,i.detail.value,t=>this._setColorTemp(e.entityId,t))}
+        ></glass-slider>
+      </div>
+    `}_renderGrid(e){const t=this._buildLayout(e),i=[];for(let a=0;a<t.length;a++){const e=t[a],r=a===t.length-1;"full"===e.kind?(i.push(this._renderLightRow(e.light,!1,!1)),i.push(this._renderControlFold(e.light,r))):(i.push(this._renderLightRow(e.left,!0,!1)),e.right&&i.push(this._renderLightRow(e.right,!0,!0)),i.push(this._renderControlFold(e.left,r)),e.right&&i.push(this._renderControlFold(e.right,r)))}return i}_renderDashboardGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i],r=i+1<e.length?e[i+1]:null;if(r){const s=i+2>=e.length;t.push(N`
+          ${this._renderLightRow(a,!0,!1)}
+          ${this._renderLightRow(r,!0,!0)}
+          ${this._renderControlFold(a,s)}
+          ${this._renderControlFold(r,s)}
+        `),i+=2}else t.push(N`
+          ${this._renderLightRow(a,!1,!1)}
+          ${this._renderControlFold(a,!0)}
+        `),i++}return t}_renderDashboard(){const e=this._getLightInfos();if(0===e.length)return B;const t=e.slice(0,6),i=e.length-6,a=this._computeTint(e),r=e.length,s=Math.max(this._getDashboardLightTotal(),r),o=r===s?"all":"some";return N`
+      ${this._showHeader?N`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${Re("light.dashboard_title")}</span>
+            <span class="card-count ${o}">${r}/${s}</span>
+          </div>
+          <button
+            class="toggle-all on"
+            role="switch"
+            aria-checked="true"
+            @click=${()=>this._turnAllOff()}
+            aria-label="${Re("light.dashboard_turn_all_off_aria")}"
+          ></button>
+        </div>
+      `:B}
+
+      <div class="card glass">
+        <div
+          class="tint"
+          style=${a?`background:${a.background};opacity:${a.opacity}`:"opacity:0"}
+        ></div>
+        <div class="card-inner">
+          <div class="lights-grid">
+            ${this._renderDashboardGrid(t)}
+          </div>
+          ${i>0?N`<div class="dashboard-overflow">
+                ${Re("light.dashboard_overflow",{count:String(i)})}
+              </div>`:B}
+        </div>
+      </div>
+      ${this._renderColorPicker()}
+    `}render(){if(this._lang,this._isDashboardMode){const e=this._renderDashboard();return this.style.display=e===B?"none":"",e}const e=this._getLightInfos();if(0===e.length)return this.style.display="none",B;this.style.display="";const t=e.filter(e=>e.isOn).length,i=e.length,a=t>0,r=0===t?"none":t===i?"all":"some",s=this._computeTint(e);return N`
+      ${this._showHeader?N`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${Re("light.title")}</span>
+            <span class="card-count ${r}">${t}/${i}</span>
+          </div>
+          <button
+            class="toggle-all ${a?"on":""}"
+            @click=${()=>this._toggleAll()}
+            role="switch"
+            aria-checked=${a?"true":"false"}
+            aria-label="${Re(a?"light.toggle_all_on_aria":"light.toggle_all_off_aria")}"
+          ></button>
+        </div>
+      `:B}
+
+      <div class="card glass">
+        <div
+          class="tint"
+          style=${s?`background:${s.background};opacity:${s.opacity}`:"opacity:0"}
+        ></div>
+        <div class="card-inner">
+          <div class="lights-grid">${this._renderGrid(e)}</div>
+        </div>
+      </div>
+      ${this._renderColorPicker()}
+    `}}Ii([pe({attribute:!1})],Li.prototype,"areaId"),Ii([pe({attribute:!1})],Li.prototype,"visibleAreaIds"),Ii([ue()],Li.prototype,"_expandedEntity"),Ii([ue()],Li.prototype,"_dragValues"),Ii([ue()],Li.prototype,"_colorPickerEntity"),Ii([ue()],Li.prototype,"_colorPickerRgb"),Ii([ue()],Li.prototype,"_colorPickerPos"),Ii([ue()],Li.prototype,"_showHeader");try{customElements.define("glass-light-card",Li)}catch{}const Mi=1,Ai=2,Oi=4,Ri=8,ji=16,Hi=32,Fi=64,qi=128,Vi=256,Ni={heat:"mdi:fire",cool:"mdi:snowflake",heat_cool:"mdi:sun-snowflake-variant",auto:"mdi:thermostat-auto",dry:"mdi:water-percent",fan_only:"mdi:fan",off:"mdi:power"},Ui={heat:"var(--cl-heat)",cool:"var(--cl-cool)",heat_cool:"var(--cl-auto)",auto:"var(--cl-auto)",dry:"var(--cl-dry)",fan_only:"var(--cl-fan)",off:"var(--t4)"},Wi={heating:"climate.action_heating",cooling:"climate.action_cooling",idle:"climate.action_idle",off:"climate.action_off",drying:"climate.action_drying",preheating:"climate.action_heating"},Bi={eco:"mdi:leaf",comfort:"mdi:sofa",boost:"mdi:rocket-launch",away:"mdi:home-export-outline",sleep:"mdi:bed",activity:"mdi:motion-sensor",none:"mdi:cancel"},Ki={heat:"climate.mode_heat",cool:"climate.mode_cool",heat_cool:"climate.mode_heat_cool",auto:"climate.mode_auto",dry:"climate.mode_dry",fan_only:"climate.mode_fan_only",off:"climate.mode_off"},Yi={eco:"climate.preset_eco",comfort:"climate.preset_comfort",boost:"climate.preset_boost",away:"climate.preset_away",sleep:"climate.preset_sleep",activity:"climate.preset_activity",none:"climate.preset_none"};const Gi=120,Xi=125,Qi=90,Ji=-120,Zi={heating:"mdi:fire",cooling:"mdi:snowflake",idle:"mdi:timer-sand",off:"mdi:power-standby",drying:"mdi:water-percent",preheating:"mdi:fire"};function ea(e,t,i,a){const r=function(e){return(e-90)*Math.PI/180}(a);return{x:e+i*Math.cos(r),y:t+i*Math.sin(r)}}function ta(e,t){const i=ea(Gi,Xi,Qi,e),a=ea(Gi,Xi,Qi,t);return`M ${i.x} ${i.y} A 90 90 0 1 1 ${a.x} ${a.y}`}function ia(e){const t=e.attributes,i="unavailable"===e.state||"unknown"===e.state,a="off"===e.state||i,r=i?"off":t.hvac_action||("off"===e.state?"off":"idle"),s=e.state,o=t.current_temperature,n=t.temperature??o??0,c=t.min_temp||7,l=t.max_temp||35,d=t.current_humidity,h=t.preset_mode,p=Math.PI*Qi*(240/180),u=(null!=o?Math.max(0,Math.min(1,(o-c)/(l-c))):0)*p,g=function(e,t){return"heating"===e||"preheating"===e?"heat":"cooling"===e?"cool":"auto"===t||"heat_cool"===t?"auto-arc":"off"}(r,s),_=function(e){return"heating"===e||"preheating"===e?"heat":"cooling"===e?"cool":"idle"===e?"idle":"off"}(r),m=function(e,t,i){const a=Math.max(0,Math.min(1,(e-t)/(i-t)));return Ji+240*a}(n,c,l),f=ea(Gi,Xi,Qi,m),v=[];for(let x=0;x<=12;x++){const e=Ji+x/12*240,t=x%3==0;v.push({inner:ea(Gi,Xi,86,e),outer:ea(Gi,Xi,Qi+(t?6:3),e),isMajor:t,labelPos:ea(Gi,Xi,104,e),labelTemp:c+x/12*(l-c)})}const b=Wi[r]||"climate.unknown",y=Zi[r]||"mdi:help",w=null!=d||h&&"none"!==h;return N`
+    <div class="gauge-section">
+      <div class="arc-gauge">
+        <svg viewBox="0 0 240 165" fill="none">
+          ${v.map(e=>U`
+            <line x1=${e.inner.x} y1=${e.inner.y} x2=${e.outer.x} y2=${e.outer.y}
+              class=${e.isMajor?"arc-tick-major":"arc-tick"} />
+            ${e.isMajor?U`
+              <text x=${e.labelPos.x} y=${e.labelPos.y} class="arc-tick-label">
+                ${Math.round(e.labelTemp)}°
+              </text>
+            `:B}
+          `)}
+          <path d=${ta(Ji,120)} class="arc-bg" />
+          ${a?B:U`
+            <path d=${ta(Ji,120)}
+              class="arc-progress ${g}"
+              stroke-dasharray=${p}
+              stroke-dashoffset=${p-u} />
+            <circle cx=${f.x} cy=${f.y} r="5" class="arc-target-dot" />
+          `}
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-current-temp ${a?"off":""}">${null!=o?N`${o.toFixed(1)}<span class="unit">°</span>`:"--"}</div>
+          <div class="gauge-action-label ${_}">
+            <ha-icon .icon=${y} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <span>${Re(b)}</span>
+          </div>
+          ${w?N`
+            <div class="gauge-sub-info">
+              ${null!=d?N`
+                <ha-icon .icon=${"mdi:water-percent"} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                <span>${d}%</span>
+              `:B}
+              ${h&&"none"!==h?N`
+                ${null!=d?N`<span style="opacity:0.4">·</span>`:B}
+                <ha-icon .icon=${Bi[h]||"mdi:cog"} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+                <span>${Yi[h]?Re(Yi[h]):h}</span>
+              `:B}
+            </div>
+          `:B}
+        </div>
+      </div>
+    </div>
+  `}class aa{constructor(){this._canvas=null,this._particles=[],this._animFrame=null,this._currentAction="",this._width=0,this._height=0}attach(e){this._canvas=e}update(e,t,i){if(e===this._currentAction&&this._animFrame&&t===this._width&&i===this._height)return;if(this._currentAction=e,this._width=t,this._height=i,this.stop(),"off"===e||"idle"===e||!e){if(this._particles=[],this._canvas){const e=this._canvas.getContext("2d");e&&e.clearRect(0,0,this._canvas.width,this._canvas.height)}return}const a="heating"===e||"preheating"===e,r=2*t,s=2*i;if(this._particles=Array.from({length:30},()=>({x:Math.random()*r,y:Math.random()*s,size:1+2.5*Math.random(),speedX:.3*(Math.random()-.5),speedY:a?-(.3+.8*Math.random()):.3+.8*Math.random(),opacity:.1+.3*Math.random(),life:Math.random()})),!this._canvas)return;this._canvas.width=r,this._canvas.height=s,this._canvas.style.width=t+"px",this._canvas.style.height=i+"px";const o=this._canvas.getContext("2d");if(!o)return;const n=a?[249,115,22]:[56,189,248],c=()=>{o.clearRect(0,0,r,s);for(const e of this._particles){e.x+=e.speedX,e.y+=e.speedY,e.life+=.003;let t=e.opacity;e.life<.1&&(t*=e.life/.1),e.life>.8&&(t*=Math.max(0,(1-e.life)/.2)),(a&&e.y<-10||!a&&e.y>s+10||e.life>1)&&(e.y=a?s+10:-10,e.x=Math.random()*r,e.life=0),o.beginPath(),o.arc(e.x,e.y,e.size,0,2*Math.PI),o.fillStyle=`rgba(${n[0]},${n[1]},${n[2]},${t})`,o.fill(),o.beginPath(),o.arc(e.x,e.y,3*e.size,0,2*Math.PI),o.fillStyle=`rgba(${n[0]},${n[1]},${n[2]},${.15*t})`,o.fill()}this._animFrame=requestAnimationFrame(c)};c()}stop(){this._animFrame&&(cancelAnimationFrame(this._animFrame),this._animFrame=null)}destroy(){this.stop(),this._canvas=null,this._particles=[],this._currentAction=""}}Ve("glass-climate-card-editor");var ra=Object.defineProperty,sa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ra(t,i,s),s};const oa={heating:0,cooling:1,idle:2,off:3};class na extends We{constructor(){super(...arguments),this._showHeader=!0,this._displayMode="list",this._configReady=!1,this._expanded=null,this._selectedEntity=null,this._foldOpen=!1,this._climateConfigLoaded=!1,this._roomConfig=null,this._roomConfigLoaded=!1,this._roomConfigLoading=!1,this._cachedClimatesFingerprint="",this._dashboardEntities=[],this._dashboardHiddenEntities=new Set,this._dashboardHiddenLoaded=!1,this._throttleTimers=new Map,this._pendingTemps=new Map,this._schedules=null,this._schedulesLoaded=!1,this._rangeState={dragging:null,lowTemp:0,highTemp:0},this._rangeDragEntity=null,this._rangeDragCleanup=null}static getConfigElement(){return document.createElement("glass-climate-card-editor")}getCardSize(){return 3}get _isDashboardMode(){return!this.areaId}connectedCallback(){super.connectedCallback(),this._listen("climate-config-changed",()=>{this._climateConfigLoaded=!1,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this._loadConfig()}),this._listen("room-config-changed",e=>{const t=this.areaId;t&&e.areaId===t&&(this._roomConfigLoaded=!1,this._roomConfig=null,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this._loadRoomConfig()),this._isDashboardMode&&(this._dashboardHiddenLoaded=!1,this._loadDashboardHidden())}),this._listen("dashboard-config-changed",()=>{this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this.requestUpdate()}),this._listen("schedule-changed",()=>{this._schedulesLoaded=!1,this._loadSchedules()})}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._climateConfigLoaded=!1,this._schedulesLoaded=!1,this._roomConfigLoaded=!1,this._dashboardHiddenLoaded=!1;for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear(),this._pendingTemps.clear(),this._rangeDragCleanup&&(this._rangeDragCleanup(),this._rangeDragCleanup=null),this._thermalCanvas&&(this._thermalCanvas.destroy(),this._thermalCanvas=void 0)}_collapseExpanded(){null!==this._expanded&&(this._expanded=null),this._foldOpen&&(this._foldOpen=!1)}updated(e){if(super.updated(e),e.has("hass")&&this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._climateConfigLoaded=!1,this._roomConfigLoaded=!1,this._schedulesLoaded=!1,this._dashboardHiddenLoaded=!1),this.hass&&!this._schedulesLoaded&&this._loadSchedules(),this.hass&&!this._climateConfigLoaded&&this._loadConfig(),this.areaId&&this.hass&&(this._lastLoadedAreaId!==this.areaId&&this._resetForNewArea(),this._roomConfigLoaded||this._loadRoomConfig()),this.hass&&this._isDashboardMode&&!this._dashboardHiddenLoaded&&this._loadDashboardHidden(),e.has("hass")&&this.hass){const t=e.get("hass");t&&t.entities!==this.hass.entities&&(this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="")}e.has("visibleAreaIds")&&(this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this._dashboardHiddenLoaded=!1),"normal"===this._displayMode?this._updateThermalCanvas():this._thermalCanvas&&(this._thermalCanvas.destroy(),this._thermalCanvas=void 0)}getTrackedEntityIds(){return this._isDashboardMode&&this.hass?Xe("climate",this.hass,this.visibleAreaIds):this._getClimateIds()}async _loadConfig(){if(this.hass&&!this._climateConfigLoaded){this._climateConfigLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_config");e?.climate_card&&(this._showHeader=e.climate_card.show_header??!0,this._displayMode=this.areaId?e.climate_card.display_mode??"list":e.climate_card.dashboard_display_mode??"list",this._dashboardEntities=e.climate_card.dashboard_entities??[],this._cachedClimateIds=void 0,this._cachedClimatesFingerprint=""),this._configReady=!0}catch{this._configReady=!0}}}async _loadRoomConfig(){if(this.hass&&this.areaId&&!this._roomConfigLoaded&&!this._roomConfigLoading){this._roomConfigLoading=!0,this._lastLoadedAreaId=this.areaId;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_room",{area_id:this.areaId});this.areaId===this._lastLoadedAreaId&&(this._roomConfig=e,this._roomConfigLoaded=!0,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this.requestUpdate())}catch{}finally{this._roomConfigLoading=!1}}}async _loadSchedules(){if(this.hass&&!this._schedulesLoaded){this._schedulesLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_schedules");this._schedules=e,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this.requestUpdate()}catch{this._schedulesLoaded=!1}}}async _loadDashboardHidden(){if(!this.hass||this._dashboardHiddenLoaded||!this._isDashboardMode)return;this._dashboardHiddenLoaded=!0;const e=this.visibleAreaIds;if(e&&0!==e.length)try{this._backend||(this._backend=new Qe(this.hass));const t=this._backend,i=new Set,a=await Promise.all(e.map(e=>t.send("get_room",{area_id:e})));for(const e of a)if(e?.hidden_entities)for(const t of e.hidden_entities)i.add(t);this._dashboardHiddenEntities=i,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="",this.requestUpdate()}catch{}}_resetForNewArea(){this._roomConfig=null,this._roomConfigLoaded=!1,this._roomConfigLoading=!1,this._expanded=null,this._selectedEntity=null,this._foldOpen=!1,this._cachedClimateIds=void 0,this._cachedClimatesFingerprint="";for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear(),this._pendingTemps.clear()}_getClimateIds(){return this._cachedClimateIds||(this._cachedClimateIds=this._computeClimateIds()),this._cachedClimateIds}_computeClimateIds(){if(!this.hass)return[];if(this.areaId){const e=new Set(this._roomConfig?.hidden_entities??[]),t=Ye(this.areaId,this.hass.entities,this.hass.devices).filter(t=>t.entity_id.startsWith("climate.")&&!e.has(t.entity_id)&&Ge(t.entity_id,this._schedules)).map(e=>e.entity_id),i=this._roomConfig?.entity_order??[];if(i.length>0){const e=new Map;i.forEach((t,i)=>e.set(t,i)),t.sort((t,i)=>{const a=e.get(t),r=e.get(i);return void 0!==a&&void 0!==r?a-r:void 0!==a?-1:void 0!==r?1:0})}return t}if(this._isDashboardMode){if(this._dashboardEntities.length>0)return this._dashboardEntities.filter(e=>this.hass?.states[e]&&Ge(e,this._schedules));const e=this.visibleAreaIds;if(!e||0===e.length||!this.hass.entities||!this.hass.devices)return[];const t=[];for(const i of e)for(const e of Ye(i,this.hass.entities,this.hass.devices))e.entity_id.startsWith("climate.")&&!this._dashboardHiddenEntities.has(e.entity_id)&&t.push(e.entity_id);return t}return[]}_getClimates(){if(!this.hass)return[];const e=this._getClimateIds(),t=e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.state}:${t.last_updated}`:`${e}:-`}).join("|");if(t===this._cachedClimatesFingerprint&&this._cachedClimatesResult)return this._cachedClimatesResult;this._cachedClimatesFingerprint=t;const i=e.map(e=>this.hass?.states[e]).filter(e=>null!=e);return this._cachedClimatesResult=i,this._cachedClimatesResult}_toggle(e,t,i){if(i.stopPropagation(),!this.hass)return;const a=t.attributes.supported_features||0;if("off"===t.state)if(a&qi)this._safeCallService("climate","turn_on",{},{entity_id:e});else{const i=(t.attributes.hvac_modes||[]).find(e=>"off"!==e);i&&this._safeCallService("climate","set_hvac_mode",{hvac_mode:i},{entity_id:e})}else a&Vi?this._safeCallService("climate","turn_off",{},{entity_id:e}):this._safeCallService("climate","set_hvac_mode",{hvac_mode:"off"},{entity_id:e})}_setHvacMode(e,t){this.hass&&(Be(this,"selection"),this._safeCallService("climate","set_hvac_mode",{hvac_mode:t},{entity_id:e}))}_setPreset(e,t){this.hass&&(Be(this,"selection"),this._safeCallService("climate","set_preset_mode",{preset_mode:t},{entity_id:e}))}_setFanMode(e,t){this.hass&&this._safeCallService("climate","set_fan_mode",{fan_mode:t},{entity_id:e})}_setSwingMode(e,t){this.hass&&this._safeCallService("climate","set_swing_mode",{swing_mode:t},{entity_id:e})}_setTemperature(e,t){if(!this.hass)return;Be(this,"light"),this._pendingTemps.set(`temp_${e}`,t),this.requestUpdate();const i=`temp_throttle_${e}`,a=this._throttleTimers.get(i);a&&clearTimeout(a),this._throttleTimers.set(i,setTimeout(()=>{this._throttleTimers.delete(i),this._safeCallService("climate","set_temperature",{temperature:t},{entity_id:e}),this._pendingTemps.delete(`temp_${e}`)},400))}_setTemperatureRange(e,t,i){if(!this.hass)return;const a=`range_throttle_${e}`,r=this._throttleTimers.get(a);r&&clearTimeout(r),this._throttleTimers.set(a,setTimeout(()=>{this._throttleTimers.delete(a),this._safeCallService("climate","set_temperature",{target_temp_low:t,target_temp_high:i},{entity_id:e})},400))}_setHumidity(e,t){if(!this.hass)return;this._pendingTemps.set(`humidity_${e}`,t),this.requestUpdate();const i=`humidity_throttle_${e}`,a=this._throttleTimers.get(i);a&&clearTimeout(a),this._throttleTimers.set(i,setTimeout(()=>{this._throttleTimers.delete(i),this._safeCallService("climate","set_humidity",{humidity:t},{entity_id:e}),this._pendingTemps.delete(`humidity_${e}`)},400))}_toggleAuxHeat(e,t){if(!this.hass)return;const i="on"===t.attributes.aux_heat;this._safeCallService("climate","set_aux_heat",{aux_heat:!i},{entity_id:e})}_onRangeDragStart(e,t,i){t.preventDefault(),this._rangeDragCleanup&&(this._rangeDragCleanup(),this._rangeDragCleanup=null);const a=this.hass?.states[i];if(!a)return;const r=a.attributes.min_temp||7,s=a.attributes.max_temp||35,o=a.attributes.target_temp_step||.5,n=a.attributes.target_temp_low??r,c=a.attributes.target_temp_high??s;this._rangeDragEntity=i,this._rangeState={dragging:e,lowTemp:n,highTemp:c};const l=t.target.closest(".range-track");if(!l)return;const d=t=>{const i=l.getBoundingClientRect(),a=Math.max(0,Math.min(1,(t.clientX-i.left)/i.width)),n=r+a*(s-r),c=Math.round(n/o)*o;if("low"===e){const e=Math.max(r,Math.min(c,this._rangeState.highTemp-o));this._rangeState={...this._rangeState,lowTemp:e}}else{const e=Math.max(this._rangeState.lowTemp+o,Math.min(c,s));this._rangeState={...this._rangeState,highTemp:e}}this.requestUpdate()},h=()=>{this._setTemperatureRange(i,this._rangeState.lowTemp,this._rangeState.highTemp),this._rangeState={dragging:null,lowTemp:0,highTemp:0},this._rangeDragEntity=null,this.requestUpdate(),p()},p=()=>{document.removeEventListener("pointermove",d),document.removeEventListener("pointerup",h),this._rangeDragCleanup===p&&(this._rangeDragCleanup=null)};document.addEventListener("pointermove",d),document.addEventListener("pointerup",h),this._rangeDragCleanup=p}_updateThermalCanvas(){const e=this.shadowRoot?.querySelector("#thermal-canvas"),t=this.shadowRoot?.querySelector("#thermal-canvas-wrap");if(!e||!t)return;this._thermalCanvas||(this._thermalCanvas=new aa),this._thermalCanvas.attach(e);const i=this._selectedEntity||this._getClimateIds()[0],a=i?this.hass?.states[i]:void 0,r=a&&a.attributes.hvac_action||"off";this._thermalCanvas.update(r,t.offsetWidth,t.offsetHeight)}_tempUnit(){const e=this.hass,t=e?.config,i=t?.unit_system,a=i?.temperature;return"°F"===a||"F"===a?"°F":"°C"}_avgTemp(){const e=this._getClimates(),t=[];for(const i of e){const e=i.attributes.current_temperature;null!=e&&t.push(e)}return 0===t.length?null:(t.reduce((e,t)=>e+t,0)/t.length).toFixed(1)}_getHvacAction(e){return e.attributes.hvac_action||("off"===e.state?"off":"idle")}_getIcon(e,t){if(Te(t.state))return"mdi:thermostat-off";const i=this.hass?.entities[e]?.icon,a=t.attributes.icon;return i||a||Ni[t.state]||"mdi:thermostat"}render(){if(this._lang,!this._configReady)return B;const e=this._getClimates();if(this._isDashboardMode){if(0===e.length)return this.style.display="none",B;this.style.display=""}return this._isDashboardMode||0!==e.length?"normal"===this._displayMode?this._renderNormalMode(e):this._renderListMode(e):N`
+        ${this._showHeader?this._renderHeader(e):B}
+        <div class="glass climate-card">
+          <div class="card-inner">
+            <div class="empty-state">${Re("climate.no_climates")}</div>
+          </div>
+        </div>
+      `}_renderHeader(e){const t=e.filter(e=>{const t=e.attributes.hvac_action||"";return"heating"===t||"cooling"===t||"preheating"===t}).length,i=e.length,a=0===t?"none":t===i?"all":"some",r=this._avgTemp(),s=this._tempUnit();return N`
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-title">${Re("climate.title")}</span>
+          <span class="card-count ${a}">${t}/${i}</span>
+        </div>
+        <span class="card-header-right">${null!=r?`${Re("climate.avg_label")} ${r}${s}`:""}</span>
+      </div>
+    `}_renderListMode(e){let t="";if(this._expanded&&this.hass?.states[this._expanded]){const e=this._getHvacAction(this.hass.states[this._expanded]);"heating"===e||"preheating"===e?t="heat":"cooling"===e&&(t="cool")}else{const i=e.some(e=>{const t=this._getHvacAction(e);return"heating"===t||"preheating"===t}),a=e.some(e=>"cooling"===this._getHvacAction(e));i?t="heat":a&&(t="cool")}return N`
+      ${this._showHeader?this._renderHeader(e):B}
+      <div class="glass climate-card list-mode">
+        <div class="tint ${t}"></div>
+        <div class="card-inner">
+          ${e.map(e=>N`
+            ${this._renderListRow(e.entity_id,e)}
+            ${this._renderListFold(e.entity_id,e)}
+          `)}
+        </div>
+      </div>
+    `}_renderListRow(e,t){const i=t.attributes,a=i.friendly_name||e.split(".")[1]||e,r=Te(t.state),s="off"===t.state,o=this._getHvacAction(t),n=i.current_temperature,c=this._pendingTemps.get(`temp_${e}`)??i.temperature,l=this._expanded===e,d=t.state,h=i.preset_mode,p=this._getIcon(e,t),u=Wi[o]||"climate.unknown",g=h&&"none"!==h?h:d;return N`
+      <div class="cl-row ${r?"entity-unavailable":""}" data-action=${o}>
+        <button
+          class="cl-icon-btn"
+          @click=${i=>this._toggle(e,t,i)}
+          aria-label=${Re(s?"climate.turn_on_aria":"climate.turn_off_aria")}
+          ?disabled=${r}
+        >
+          <ha-icon .icon=${p} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <button
+          class="cl-expand-btn"
+          @click=${()=>{r||(this._expanded=l?null:e)}}
+          aria-expanded=${l?"true":"false"}
+          aria-label=${Re("climate.controls_aria")}
+        >
+          <div class="cl-info">
+            <div class="cl-name">${ke(a,12)}</div>
+            <div class="cl-sub">
+              <span class="cl-action-text">${Re(u)}</span>
+              ${s?B:N`<span class="cl-mode-badge">${g}</span>`}
+            </div>
+          </div>
+          <div class="cl-temps">
+            <div class="cl-temp-current">${r?"--":null!=n?N`${n.toFixed(1)}<span class="unit">°</span>`:"--"}</div>
+            ${s||null==c?B:N`<div class="cl-temp-target">→ ${c.toFixed(1)}°</div>`}
+          </div>
+          ${r?N`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:N`<div class="cl-dot"></div>`}
+        </button>
+      </div>
+    `}_renderListFold(e,t){const i=this._expanded===e;if(Te(t.state))return B;const a="cooling"===this._getHvacAction(t)?"cool":"";return N`
+      <div class="fold-sep ${i?"visible":""} ${a}"></div>
+      <div class="ctrl-fold ${i?"open":""}">
+        <div class="ctrl-fold-inner">
+          <div class="ctrl-panel">
+            ${this._renderListTempControl(e,t)}
+            <div class="ctrl-sep"></div>
+            ${this._renderFoldControls(e,t)}
+          </div>
+        </div>
+      </div>
+      <div class="fold-sep ${i?"visible":""} ${a}"></div>
+    `}_renderListTempControl(e,t){if("off"===t.state||"fan_only"===t.state)return B;const i=t.attributes.supported_features||0;if("heat_cool"===t.state&&i&Ai){return function(e,t,i,a,r){if("heat_cool"!==e.state)return B;if(!((e.attributes.supported_features||0)&Ai))return B;const s=e.attributes.min_temp||7,o=e.attributes.max_temp||35,n=e.attributes.target_temp_step||.5,c="low"===i.dragging?i.lowTemp:e.attributes.target_temp_low??s,l="high"===i.dragging?i.highTemp:e.attributes.target_temp_high??o,d=o-s,h=d>0?(c-s)/d*100:0,p=d>0?(l-s)/d*100:100;return N`
+    <div class="range-slider-row">
+      <div class="range-labels">
+        <span class="range-label heat">${c.toFixed(1)}${t}</span>
+        <span class="range-label cool">${l.toFixed(1)}${t}</span>
+      </div>
+      <div class="range-track">
+        <div
+          class="range-fill"
+          style="left:${h}%;right:${100-p}%;"
+        ></div>
+        <button
+          class="range-thumb low"
+          role="slider"
+          aria-label=${Re("climate.range_low_aria")}
+          aria-valuemin=${s}
+          aria-valuemax=${l-n}
+          aria-valuenow=${c}
+          style="left:${h}%;"
+          @pointerdown=${e=>r("low",e)}
+          @keydown=${e=>{"ArrowRight"===e.key||"ArrowUp"===e.key?(e.preventDefault(),a(Math.min(c+n,l-n),l)):"ArrowLeft"!==e.key&&"ArrowDown"!==e.key||(e.preventDefault(),a(Math.max(c-n,s),l))}}
+        ></button>
+        <button
+          class="range-thumb high"
+          role="slider"
+          aria-label=${Re("climate.range_high_aria")}
+          aria-valuemin=${c+n}
+          aria-valuemax=${o}
+          aria-valuenow=${l}
+          style="left:${p}%;"
+          @pointerdown=${e=>r("high",e)}
+          @keydown=${e=>{"ArrowRight"===e.key||"ArrowUp"===e.key?(e.preventDefault(),a(c,Math.min(l+n,o))):"ArrowLeft"!==e.key&&"ArrowDown"!==e.key||(e.preventDefault(),a(c,Math.max(l-n,c+n)))}}
+        ></button>
+      </div>
+    </div>
+  `}(t,this._tempUnit(),this._rangeDragEntity===e?this._rangeState:{dragging:null,lowTemp:0,highTemp:0},(t,i)=>this._setTemperatureRange(e,t,i),(t,i)=>this._onRangeDragStart(t,i,e))}if(!(i&Mi))return B;const a=this._pendingTemps.get(`temp_${e}`)??t.attributes.temperature,r=t.attributes.target_temp_step||.5,s=t.attributes.min_temp||7,o=t.attributes.max_temp||35,n=t.attributes.current_temperature,c=this._getHvacAction(t),l="heating"===c||"preheating"===c?"heat":"cooling"===c?"cool":"off",d=this._tempUnit();return null==a?B:N`
+      <div class="temp-control">
+        <button class="temp-stepper-btn"
+          @click=${()=>this._setTemperature(e,Math.max(s,a-r))}
+          aria-label=${Re("climate.temp_down_aria")}
+          ?disabled=${a<=s}>
+          <ha-icon .icon=${"mdi:minus"} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <div class="temp-display">
+          <div class="temp-display-label">${Re("climate.target")}</div>
+          <div class="temp-display-value ${l}">${a.toFixed(1)}<span class="unit">${d}</span></div>
+          ${null!=n?N`
+            <div class="temp-display-current">
+              <ha-icon .icon=${"mdi:thermometer"} style="--mdc-icon-size:13px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              <span>${Re("climate.current_label")} ${n.toFixed(1)}${d}</span>
+            </div>
+          `:B}
+        </div>
+        <button class="temp-stepper-btn"
+          @click=${()=>this._setTemperature(e,Math.min(o,a+r))}
+          aria-label=${Re("climate.temp_up_aria")}
+          ?disabled=${a>=o}>
+          <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+      </div>
+    `}_renderFoldControls(e,t){const i=this._getHvacAction(t),a="heating"===i||"preheating"===i?"heat":"cooling"===i?"cool":"neutral",r=function(e,t){const i=e.attributes.hvac_modes||[],a=e.state;return N`
+    <div class="chip-row">
+      ${i.map(e=>{const i=e===a,r=Ui[e]||"var(--t4)",s=Ni[e]||"mdi:thermostat",o=Ki[e]?Re(Ki[e]):e;return N`
+          <button
+            class="chip ${i?"active":""}"
+            style="${i?`--chip-color:${r};`:""}"
+            @click=${()=>t(e)}
+            aria-label=${o}
+            aria-pressed=${i?"true":"false"}
+          >
+            <ha-icon .icon=${s} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <span>${o}</span>
+          </button>
+        `})}
+    </div>
+  `}(t,t=>this._setHvacMode(e,t)),s=function(e,t){if("off"===e.state)return B;if(!((e.attributes.supported_features||0)&ji))return B;const i=e.attributes.preset_modes||[],a=e.attributes.preset_mode;return N`
+    <div class="chip-row">
+      ${i.map(e=>{const i=e===a,r=Bi[e]||"mdi:tune",s=Yi[e]?Re(Yi[e]):e;return N`
+          <button
+            class="chip ${i?"active":""}"
+            @click=${()=>t(e)}
+            aria-label=${s}
+            aria-pressed=${i?"true":"false"}
+          >
+            <ha-icon .icon=${r} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <span>${s}</span>
+          </button>
+        `})}
+    </div>
+  `}(t,t=>this._setPreset(e,t)),o=function(e,t){if("off"===e.state)return B;if(!((e.attributes.supported_features||0)&Ri))return B;const i=e.attributes.fan_modes||[],a=e.attributes.fan_mode;return N`
+    <div class="chip-row">
+      ${i.map(e=>N`
+        <button
+          class="chip ${e===a?"active":""}"
+          @click=${()=>t(e)}
+          aria-label="${Re("climate.fan_mode")}: ${e}"
+          aria-pressed=${e===a?"true":"false"}
+        >
+          <ha-icon .icon=${"mdi:fan"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          <span>${e}</span>
+        </button>
+      `)}
+    </div>
+  `}(t,t=>this._setFanMode(e,t)),n=function(e,t){if("off"===e.state)return B;if(!((e.attributes.supported_features||0)&Hi))return B;const i=e.attributes.swing_modes||[],a=e.attributes.swing_mode;return N`
+    <div class="chip-row">
+      ${i.map(e=>N`
+        <button
+          class="chip ${e===a?"active":""}"
+          @click=${()=>t(e)}
+          aria-label="${Re("climate.swing_mode")}: ${e}"
+          aria-pressed=${e===a?"true":"false"}
+        >
+          <ha-icon .icon=${"mdi:arrow-oscillating"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+          <span>${e}</span>
+        </button>
+      `)}
+    </div>
+  `}(t,t=>this._setSwingMode(e,t));return N`
+      <div class="ctrl-label ${a}">${Re("climate.section_mode")}</div>
+      ${r}
+      ${s!==B?N`
+        <div class="ctrl-sep"></div>
+        <div class="ctrl-label ${a}">${Re("climate.section_preset")}</div>
+        ${s}
+      `:B}
+      ${o!==B?N`<div class="ctrl-sep"></div>${o}`:B}
+      ${n!==B?N`<div class="ctrl-sep"></div>${n}`:B}
+      ${function(e,t,i){if(!((e.attributes.supported_features||0)&Oi))return B;if("off"===e.state)return B;const a=i??e.attributes.humidity,r=e.attributes.min_humidity||30,s=e.attributes.max_humidity||99;return null==a?B:N`
+    <div class="stepper-row">
+      <span class="stepper-label">
+        <ha-icon .icon=${"mdi:water-percent"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
+        ${Re("climate.humidity_target")}
+      </span>
+      <div class="stepper">
+        <button
+          class="btn-icon xs"
+          @click=${()=>t(Math.max(r,a-1))}
+          aria-label=${Re("climate.humidity_down_aria")}
+          ?disabled=${a<=r}
+        >
+          <ha-icon .icon=${"mdi:minus"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <span class="stepper-value">${a}%</span>
+        <button
+          class="btn-icon xs"
+          @click=${()=>t(Math.min(s,a+1))}
+          aria-label=${Re("climate.humidity_up_aria")}
+          ?disabled=${a>=s}
+        >
+          <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+      </div>
+    </div>
+  `}(t,t=>this._setHumidity(e,t),this._pendingTemps.get(`humidity_${e}`))}
+      ${function(e,t){if(!((e.attributes.supported_features||0)&Fi))return B;const i="on"===e.attributes.aux_heat;return N`
+    <div class="aux-row">
+      <ha-icon .icon=${"mdi:radiator"} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;margin-right:6px;"></ha-icon>
+      <span class="aux-label">${Re("climate.aux_heat")}</span>
+      <button
+        class="toggle ${i?"on":""}"
+        role="switch"
+        aria-checked=${i?"true":"false"}
+        aria-label=${Re("climate.aux_heat")}
+        @click=${t}
+      >
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+  `}(t,()=>this._toggleAuxHeat(e,t))}
+    `}_renderNormalMode(e){const t=[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(oa[i]??3)-(oa[a]??3)}),i=this._selectedEntity||t[0]?.entity_id,a=t.find(e=>e.entity_id===i)||t[0];if(!a)return N``;const r=this._getHvacAction(a),s="heating"===r||"preheating"===r?"heat":"cooling"===r?"cool":"auto"===a.state||"heat_cool"===a.state?"auto-tint":"",o="heating"===r||"preheating"===r?"heat-sep":"cooling"===r?"cool-sep":"",n=this._bindGesture({onLongPress:()=>{this._foldOpen=!this._foldOpen;const e=this.renderRoot.querySelector(".climate-card");e&&(e.classList.add("lp-pulse"),e.addEventListener("animationend",()=>e.classList.remove("lp-pulse"),{once:!0}))},exclude:"button, .entity-tab, .temp-stepper-btn, .chip"});return N`
+      ${this._showHeader?this._renderHeader(e):B}
+      <div class="climate-wrap ${this._foldOpen?"fold-open":""}">
+        <div class="glass climate-card normal-mode"
+          @pointerdown=${n.pointerdown}
+          @pointermove=${n.pointermove}
+          @pointerup=${n.pointerup}
+          @pointercancel=${n.pointercancel}
+          @contextmenu=${n.contextmenu}>
+          <div class="tint ${s}"></div>
+          <div class="thermal-canvas" id="thermal-canvas-wrap">
+            <canvas id="thermal-canvas"></canvas>
+          </div>
+          <div class="card-inner">
+            ${this._renderEntityTabs(t)}
+            ${ia(a)}
+            ${this._renderNormalTempStepper(a)}
+          </div>
+        </div>
+        <div class="ctrl-fold ${this._foldOpen?"open":""}">
+          <div class="ctrl-fold-inner normal-fold-inner">
+            <div class="ctrl-fold-sep-top ${o}"></div>
+            <div class="ctrl-panel">
+              ${this._renderFoldControls(a.entity_id,a)}
+            </div>
+          </div>
+        </div>
+      </div>
+    `}_renderEntityTabs(e){if(e.length<=1)return B;const t=this._selectedEntity||e[0]?.entity_id;return N`
+      <div class="entity-tabs">
+        ${e.map(e=>{const i=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),r=e.entity_id===t,s="heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"",o=this.hass?.entities[e.entity_id],n=o?Ke(o,this.hass?.devices):null,c=n?this.hass?.areas[n]:null;return N`
+            <button class="entity-tab ${r?"active":""} ${s}"
+              @click=${()=>{this._selectedEntity=e.entity_id}}
+              aria-label=${i}
+              aria-pressed=${r?"true":"false"}>
+              <ha-icon .icon=${c?.icon||"mdi:home"} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            </button>
+          `})}
+      </div>
+    `}_renderNormalTempStepper(e){if("off"===e.state||"fan_only"===e.state)return B;const t=e.attributes.supported_features||0;if(!(t&Mi))return B;if("heat_cool"===e.state&&t&Ai)return B;const i=e.entity_id,a=this._pendingTemps.get(`temp_${i}`)??e.attributes.temperature,r=e.attributes.target_temp_step||.5,s=e.attributes.min_temp||7,o=e.attributes.max_temp||35,n=this._getHvacAction(e),c="heating"===n||"preheating"===n?"heat":"cooling"===n?"cool":"auto"===e.state||"heat_cool"===e.state?"auto-val":"off";return null==a?B:N`
+      <div class="temp-control-panel">
+        <button class="temp-stepper-btn normal-stepper"
+          @click=${()=>this._setTemperature(i,Math.max(s,a-r))}
+          aria-label=${Re("climate.temp_down_aria")}
+          ?disabled=${a<=s}>
+          <ha-icon .icon=${"mdi:minus"} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+        <div class="target-display">
+          <div class="target-label">${Re("climate.target")}</div>
+          <div class="target-value ${c}">${a.toFixed(1)}<span class="unit">${this._tempUnit()}</span></div>
+        </div>
+        <button class="temp-stepper-btn normal-stepper"
+          @click=${()=>this._setTemperature(i,Math.min(o,a+r))}
+          aria-label=${Re("climate.temp_up_aria")}
+          ?disabled=${a>=o}>
+          <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+        </button>
+      </div>
+    `}static{this.styles=[ve,be,ye,Ce,we,$e,De,s`
+    :host {
+      width: 100%;
+      max-width: 31.25rem;
+      margin: 0 auto;
+      color: var(--t1);
+
+      /* Climate tokens */
+      --cl-heat: #f97316;
+      --cl-heat-bg: rgba(249,115,22,0.1);
+      --cl-heat-border: rgba(249,115,22,0.15);
+      --cl-heat-glow: rgba(249,115,22,0.4);
+      --cl-heat-sub: rgba(249,115,22,0.6);
+
+      --cl-cool: #38bdf8;
+      --cl-cool-bg: rgba(56,189,248,0.1);
+      --cl-cool-border: rgba(56,189,248,0.15);
+      --cl-cool-glow: rgba(56,189,248,0.4);
+      --cl-cool-sub: rgba(56,189,248,0.6);
+
+      --cl-auto: #a78bfa;
+      --cl-auto-bg: rgba(var(--rgb-purple),0.1);
+      --cl-auto-border: rgba(var(--rgb-purple),0.15);
+      --cl-auto-glow: rgba(var(--rgb-purple),0.4);
+
+      --cl-dry: #eab308;
+      --cl-fan: #06b6d4;
+      --cl-off: var(--t4);
+    }
+
+    /* ── Card Header ── */
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
+    }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .card-title {
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t4);
+    }
+    .card-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
+      transition: all var(--t-med);
+    }
+    .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
+    .card-count.none { background: var(--s2); color: var(--t3); }
+    .card-count.all  { background: rgba(249,115,22,0.2); color: var(--cl-heat); }
+    .card-header-right { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
+
+    /* ── Card Body ── */
+    .climate-card { position: relative; overflow: hidden; }
+    .climate-card.list-mode { padding: 0.125rem 0.875rem; }
+    .climate-card.normal-mode {
+      padding: 0.875rem;
+      touch-action: pan-y; user-select: none; -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent; cursor: default;
+      transition: border-color var(--t-fast), border-radius var(--t-layout);
+    }
+    .card-inner { position: relative; z-index: 1; }
+    .normal-mode .card-inner { display: flex; flex-direction: column; gap: 0; }
+
+    /* ── Tint ── */
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0;
+      transition: opacity var(--t-slow), background var(--t-slow);
+      opacity: 0;
+    }
+    .tint.heat {
+      opacity: 0.18;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-heat), transparent 70%);
+    }
+    .tint.cool {
+      opacity: 0.18;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-cool), transparent 70%);
+    }
+    .tint.auto-tint {
+      opacity: 0.12;
+      background: radial-gradient(ellipse at 30% 30%, var(--cl-auto), transparent 70%);
+    }
+    /* Normal mode centers the tint */
+    .normal-mode .tint.heat {
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+      opacity: 0.15;
+    }
+    .normal-mode .tint.cool {
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+      opacity: 0.15;
+    }
+    .normal-mode .tint.auto-tint {
+      background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
+    }
+
+    .empty-state {
+      padding: 1rem; text-align: center;
+      font-size: var(--fz-base); color: var(--t3);
+    }
+
+    /* ════════════════════════════════════════════
+       LIST MODE STYLES
+       ════════════════════════════════════════════ */
+
+    /* ── Row ── */
+    .cl-row {
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem 0.25rem; position: relative; flex-shrink: 0;
+      transition: background var(--t-fast); border-radius: var(--radius-md);
+    }
+    .entity-unavailable .cl-icon-btn { border-color: var(--c-alert); }
+    @media (hover: hover) and (pointer: fine) {
+      .cl-row:hover { background: var(--s1); }
+    }
+    @media (pointer: coarse) {
+      .cl-row:active { animation: bounce 0.3s ease; }
+    }
+
+    /* ── Icon Button ── */
+    .cl-icon-btn {
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .cl-icon-btn ha-icon {
+      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
+    }
+    .cl-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .cl-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+      .cl-icon-btn:hover ha-icon { color: var(--t2); }
+    }
+    @media (hover: hover) { .cl-icon-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .cl-icon-btn:active { animation: bounce 0.3s ease; } }
+
+    /* Icon states */
+    .cl-row[data-action="heating"] .cl-icon-btn,
+    .cl-row[data-action="preheating"] .cl-icon-btn {
+      background: var(--cl-heat-bg); border-color: var(--cl-heat-border);
+    }
+    .cl-row[data-action="heating"] .cl-icon-btn ha-icon,
+    .cl-row[data-action="preheating"] .cl-icon-btn ha-icon {
+      color: var(--cl-heat); animation: pulse-heat 2s ease-in-out infinite; will-change: filter;
+    }
+    .cl-row[data-action="cooling"] .cl-icon-btn {
+      background: var(--cl-cool-bg); border-color: var(--cl-cool-border);
+    }
+    .cl-row[data-action="cooling"] .cl-icon-btn ha-icon {
+      color: var(--cl-cool); animation: pulse-cool 2s ease-in-out infinite; will-change: filter;
+    }
+    .cl-row[data-action="idle"] .cl-icon-btn { background: var(--s2); border-color: var(--b2); }
+    .cl-row[data-action="idle"] .cl-icon-btn ha-icon { color: var(--t2); }
+
+    @keyframes pulse-heat {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(249,115,22,0.2)); }
+    }
+    @keyframes pulse-cool {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(56,189,248,0.2)); }
+    }
+
+    /* ── Expand Button ── */
+    .cl-expand-btn {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 0.625rem;
+      background: none; border: none; padding: 0;
+      font-family: inherit; cursor: pointer; outline: none;
+      text-align: left; color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cl-expand-btn:focus-visible {
+      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Info ── */
+    .cl-info { flex: 1; min-width: 0; }
+    .cl-name {
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
+      white-space: nowrap; overflow: hidden;
+    }
+    .cl-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
+    .cl-action-text {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+      transition: color var(--t-med);
+    }
+    .cl-row[data-action="heating"] .cl-action-text,
+    .cl-row[data-action="preheating"] .cl-action-text { color: var(--cl-heat-sub); }
+    .cl-row[data-action="cooling"] .cl-action-text { color: var(--cl-cool-sub); }
+
+    .cl-mode-badge {
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 0.0625rem 0.3125rem; border-radius: var(--radius-full);
+      background: var(--s2); color: var(--t4); flex-shrink: 0;
+    }
+    .cl-row[data-action="heating"] .cl-mode-badge,
+    .cl-row[data-action="preheating"] .cl-mode-badge {
+      background: var(--cl-heat-bg); color: var(--cl-heat-sub);
+    }
+    .cl-row[data-action="cooling"] .cl-mode-badge {
+      background: var(--cl-cool-bg); color: var(--cl-cool-sub);
+    }
+
+    /* ── Temps ── */
+    .cl-temps {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0;
+      flex-shrink: 0;
+    }
+    .cl-temp-current {
+      font-size: var(--fz-xl); font-weight: 700; color: var(--t1);
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .cl-temp-current .unit { font-size: var(--fz-base); font-weight: 500; color: var(--t3); }
+    .cl-temp-target {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
+      font-variant-numeric: tabular-nums; margin-top: 0.0625rem;
+    }
+    .cl-row[data-action="heating"] .cl-temp-target,
+    .cl-row[data-action="preheating"] .cl-temp-target { color: var(--cl-heat-sub); }
+    .cl-row[data-action="cooling"] .cl-temp-target { color: var(--cl-cool-sub); }
+
+    /* ── Dot ── */
+    .cl-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--t4); transition: all var(--t-med);
+    }
+    .cl-row[data-action="heating"] .cl-dot,
+    .cl-row[data-action="preheating"] .cl-dot {
+      background: var(--cl-heat); box-shadow: 0 0 8px var(--cl-heat-glow);
+    }
+    .cl-row[data-action="cooling"] .cl-dot {
+      background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .cl-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
+    }
+
+    /* ── Fold separator ── */
+    .fold-sep {
+      height: 0; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+      opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
+    }
+    .fold-sep.cool {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+    }
+    .fold-sep.visible { height: 0.0625rem; opacity: 1; }
+
+    /* ── Controls fold (list mode) ── */
+    .ctrl-fold {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .ctrl-fold.open { grid-template-rows: 1fr; }
+    .ctrl-fold-inner {
+      overflow: hidden; opacity: 0;
+      transition: opacity 0.25s var(--ease-std);
+    }
+    .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+    .ctrl-panel {
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
+    .ctrl-label { font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .ctrl-label.heat { color: var(--cl-heat-sub); }
+    .ctrl-label.cool { color: var(--cl-cool-sub); }
+    .ctrl-label.neutral { color: var(--t3); }
+
+    /* ── Large temperature stepper (list mode fold) ── */
+    .temp-control {
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+      padding: 0.5rem 0;
+    }
+    .temp-stepper-btn {
+      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
+      background: var(--s2); border: 1px solid var(--b2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
+    @media (hover: hover) and (pointer: fine) {
+      .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
+      .temp-stepper-btn:hover ha-icon { color: var(--t1); }
+    }
+    @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
+    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+    .temp-display {
+      display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+      min-width: 6.25rem;
+    }
+    .temp-display-label {
+      font-size: var(--fz-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--t4);
+    }
+    .temp-display-value {
+      font-size: 2.5rem; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums; transition: color var(--t-fast);
+    }
+    .temp-display-value.heat { color: var(--cl-heat); }
+    .temp-display-value.cool { color: var(--cl-cool); }
+    .temp-display-value.off { color: var(--t3); }
+    .temp-display-value .unit { font-size: var(--fz-xl); font-weight: 500; }
+    .temp-display-current {
+      font-size: var(--fz-base); font-weight: 500; color: var(--t3);
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .temp-display-current ha-icon { display: flex; align-items: center; justify-content: center; }
+
+    /* ════════════════════════════════════════════
+       NORMAL MODE STYLES
+       ════════════════════════════════════════════ */
+
+    /* ── Thermal canvas ── */
+    .thermal-canvas {
+      position: absolute; inset: 0; border-radius: inherit;
+      overflow: hidden; pointer-events: none; z-index: 0;
+    }
+    .thermal-canvas canvas { width: 100%; height: 100%; }
+
+    /* ── Connected fold wrapper ── */
+    .climate-wrap { display: flex; flex-direction: column; }
+    .climate-wrap.fold-open .climate-card {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-color: transparent;
+    }
+
+    /* Touch hint at card bottom when fold closed */
+    .normal-mode::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 0.125rem; border-radius: 1px;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+      opacity: 0; transition: opacity var(--t-med); z-index: 2;
+    }
+    .climate-wrap:not(.fold-open) .normal-mode::after { opacity: 1; }
+
+    /* Normal fold inner (external, connected) */
+    .normal-fold-inner {
+      background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
+      backdrop-filter: var(--blur-lg);
+      -webkit-backdrop-filter: var(--blur-lg);
+      border: 1px solid var(--b2);
+      border-top: none;
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      box-shadow: 0 8px 32px rgba(var(--rgb-black),0.3), 0 2px 8px rgba(var(--rgb-black),0.2), inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+    }
+    .normal-fold-inner .ctrl-panel {
+      padding: 0.75rem 0.875rem 0.875rem; gap: 0.625rem;
+    }
+
+    /* Long-press visual feedback */
+    .climate-card.lp-pulse {
+      animation: lp-scale 0.2s var(--ease-out);
+    }
+    @keyframes lp-scale {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.985); }
+      100% { transform: scale(1); }
+    }
+
+    .ctrl-fold-sep-top {
+      height: 0.0625rem; margin: 0 0.75rem;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+      transition: background var(--t-med);
+    }
+    .ctrl-fold-sep-top.heat-sep {
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+    }
+    .ctrl-fold-sep-top.cool-sep {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+    }
+
+    /* ── Entity tabs ── */
+    .entity-tabs {
+      display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+      border-radius: var(--radius-lg); background: var(--s1);
+      border: 1px solid var(--b1); padding: 0.1875rem;
+    }
+    .entity-tabs::-webkit-scrollbar { display: none; }
+
+    .entity-tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
+      padding: 0.4375rem 0.625rem; border-radius: var(--radius-sm); min-width: 0;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; outline: none;
+      -webkit-tap-highlight-color: transparent; white-space: nowrap;
+    }
+    .entity-tab:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+    @media (hover: hover) { .entity-tab:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .entity-tab:active { animation: bounce 0.3s ease; } }
+    @media (hover: hover) and (pointer: fine) {
+      .entity-tab:not(.active):hover { background: var(--s2); color: var(--t2); }
+    }
+
+    .entity-tab .tab-dot {
+      width: 0.3125rem; height: 0.3125rem; border-radius: 50%; flex-shrink: 0;
+      transition: all var(--t-med);
+    }
+    .entity-tab .tab-dot.heating,
+    .entity-tab .tab-dot.preheating {
+      background: var(--cl-heat); box-shadow: 0 0 6px var(--cl-heat-glow);
+    }
+    .entity-tab .tab-dot.cooling {
+      background: var(--cl-cool); box-shadow: 0 0 6px var(--cl-cool-glow);
+    }
+    .entity-tab .tab-dot.idle { background: var(--t3); }
+    .entity-tab .tab-dot.off { background: var(--t4); }
+
+    .entity-tab.heat { color: var(--cl-heat-sub); }
+    .entity-tab.cool { color: var(--cl-cool-sub); }
+
+    .entity-tab.active {
+      background: var(--s4); color: var(--t1);
+      box-shadow: 0 1px 4px rgba(var(--rgb-black),0.2);
+    }
+    .entity-tab.active.heat {
+      background: var(--cl-heat-bg); color: var(--cl-heat);
+      box-shadow: 0 1px 6px rgba(249,115,22,0.15);
+    }
+    .entity-tab.active.cool {
+      background: var(--cl-cool-bg); color: var(--cl-cool);
+      box-shadow: 0 1px 6px rgba(56,189,248,0.15);
+    }
+
+    /* ── Arc gauge ── */
+    .gauge-section {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0; gap: 0;
+    }
+    .arc-gauge { position: relative; width: 15rem; height: 10rem; }
+    .arc-gauge svg { width: 100%; height: 100%; }
+
+    .arc-bg { fill: none; stroke: var(--s2); stroke-width: 8; stroke-linecap: round; }
+    .arc-progress {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      transition: stroke-dashoffset 0.6s var(--ease-out), stroke var(--t-med);
+    }
+    .arc-progress.heat { stroke: var(--cl-heat); filter: drop-shadow(0 0 8px var(--cl-heat-glow)); }
+    .arc-progress.cool { stroke: var(--cl-cool); filter: drop-shadow(0 0 8px var(--cl-cool-glow)); }
+    .arc-progress.auto-arc { stroke: var(--cl-auto); filter: drop-shadow(0 0 8px var(--cl-auto-glow)); }
+    .arc-progress.off { stroke: var(--t4); filter: none; }
+
+    .arc-target-dot {
+      fill: rgba(var(--rgb-white),0.9);
+      filter: drop-shadow(0 0 4px rgba(var(--rgb-white),0.5));
+      transition: all 0.6s var(--ease-out);
+    }
+    .arc-tick { stroke: var(--t4); stroke-width: 1; opacity: 0.3; }
+    .arc-tick-major { stroke: var(--t3); stroke-width: 1.5; opacity: 0.5; }
+    .arc-tick-label {
+      font-size: var(--fz-xxs); font-weight: 500; fill: var(--t4);
+      text-anchor: middle; dominant-baseline: middle;
+    }
+
+    /* Center display */
+    .gauge-center {
+      position: absolute; bottom: 0.875rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+      width: 10rem;
+    }
+    .gauge-current-temp {
+      font-size: 3rem; font-weight: 300; line-height: 1;
+      font-variant-numeric: tabular-nums; letter-spacing: -2px;
+      color: var(--t1); transition: color var(--t-med);
+    }
+    .gauge-current-temp .unit {
+      font-size: var(--fz-xl); font-weight: 400; color: var(--t3);
+      vertical-align: super; margin-left: -0.125rem;
+    }
+    .gauge-current-temp.off { color: var(--t3); }
+
+    .gauge-action-label {
+      font-size: var(--fz-sm); font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--t3); transition: color var(--t-med);
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .gauge-action-label ha-icon { display: flex; align-items: center; justify-content: center; }
+    .gauge-action-label.heat { color: var(--cl-heat-sub); }
+    .gauge-action-label.cool { color: var(--cl-cool-sub); }
+    .gauge-action-label.idle { color: var(--t3); }
+    .gauge-action-label.off { color: var(--t4); }
+
+    .gauge-sub-info {
+      display: flex; align-items: center; gap: 0.375rem;
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+    }
+    .gauge-sub-info ha-icon { opacity: 0.5; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Normal mode temp stepper (glass sub-panel) ── */
+    .temp-control-panel {
+      display: flex; align-items: center; justify-content: center; gap: 0.875rem;
+      padding: 0.625rem 1rem;
+      border-radius: var(--radius-lg);
+      /* backdrop-filter removed — parent .glass already applies blur(40px) */
+      background: rgba(var(--rgb-black),0.25);
+      border: 1px solid rgba(var(--rgb-white),0.08);
+      box-shadow: 0 4px 16px rgba(var(--rgb-black),0.15), inset 0 1px 0 rgba(var(--rgb-white),0.04);
+    }
+    .normal-stepper {
+      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
+    }
+    .target-display {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      min-width: 6.25rem;
+    }
+    .target-label {
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t4);
+    }
+    .target-value {
+      font-size: var(--fz-display); font-weight: 600; line-height: 1.1;
+      font-variant-numeric: tabular-nums; letter-spacing: -1px;
+      transition: color var(--t-med);
+    }
+    .target-value .unit { font-size: var(--fz-lg); font-weight: 400; color: var(--t3); }
+    .target-value.heat { color: var(--cl-heat); }
+    .target-value.cool { color: var(--cl-cool); }
+    .target-value.auto-val { color: var(--cl-auto); }
+    .target-value.off { color: var(--t4); }
+
+    /* ════════════════════════════════════════════
+       SHARED CONTROL STYLES (used in both modes)
+       ════════════════════════════════════════════ */
+
+    /* ── Chip row (HVAC modes, presets, fan, swing) ── */
+    .chip-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    .chip ha-icon {
+      --mdc-icon-size: var(--icon-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) { .chip:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
+    .chip.active {
+      border-color: var(--chip-color, rgba(249,115,22,0.15));
+      background: color-mix(in srgb, var(--chip-color, var(--cl-heat)) 10%, transparent);
+      color: var(--chip-color, var(--cl-heat));
+    }
+
+    /* ── Stepper row (inline small stepper, used by climate-controls.ts) ── */
+    .stepper-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.125rem 0;
+    }
+    .stepper-label {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2);
+      display: flex; align-items: center;
+    }
+    .stepper { display: flex; align-items: center; gap: 0.5rem; }
+    .stepper-value {
+      font-size: var(--fz-lg); font-weight: 700; color: var(--t1);
+      min-width: 3.25rem; text-align: center;
+    }
+
+    /* ── btn-icon ── */
+    .btn-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-md); background: var(--s2);
+      border: 1px solid var(--b2); cursor: pointer; padding: 0;
+      outline: none; font-family: inherit;
+      transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
+    }
+    .btn-icon.xs { width: 1.75rem; height: 1.75rem; }
+    .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .btn-icon:hover { background: var(--s3); border-color: var(--b3); }
+    }
+    @media (hover: hover) { .btn-icon:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .btn-icon:active { animation: bounce 0.3s ease; } }
+    .btn-icon:disabled { opacity: 0.3; pointer-events: none; }
+
+    /* ── Range slider ── */
+    .range-slider-row { display: flex; flex-direction: column; gap: 0.375rem; padding: 0.25rem 0; }
+    .range-labels { display: flex; justify-content: space-between; }
+    .range-label { font-size: var(--fz-base); font-weight: 700; }
+    .range-label.heat { color: var(--cl-heat); }
+    .range-label.cool { color: var(--cl-cool); }
+    .range-track {
+      position: relative; height: 1.75rem;
+      background: var(--s1); border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      touch-action: none; user-select: none; -webkit-user-select: none;
+    }
+    .range-fill {
+      position: absolute; top: 0; height: 100%;
+      border-radius: inherit; pointer-events: none;
+      background: linear-gradient(90deg, var(--cl-heat), var(--cl-cool));
+      opacity: 0.2;
+    }
+    .range-thumb {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 1rem; height: 1rem; border-radius: 50%;
+      border: 2px solid; cursor: grab; outline: none;
+      transition: box-shadow var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .range-thumb:active { cursor: grabbing; }
+    .range-thumb:focus-visible { box-shadow: 0 0 0 3px rgba(var(--rgb-white),0.25); }
+    .range-thumb.low {
+      background: var(--cl-heat); border-color: var(--cl-heat);
+      box-shadow: 0 0 8px rgba(249,115,22,0.4);
+    }
+    .range-thumb.high {
+      background: var(--cl-cool); border-color: var(--cl-cool);
+      box-shadow: 0 0 8px rgba(56,189,248,0.4);
+    }
+
+    /* ── Aux heat toggle ── */
+    .aux-row { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0; }
+    .aux-label { font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1; }
+    .toggle {
+      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .toggle .toggle-knob {
+      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
+      background: var(--t3);
+      transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+    }
+    .toggle.on { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); }
+    .toggle.on .toggle-knob {
+      transform: translateX(18px); background: var(--cl-heat);
+      box-shadow: 0 0 8px rgba(249,115,22,0.4);
+    }
+    .toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+  `]}}sa([pe({attribute:!1})],na.prototype,"areaId"),sa([pe({attribute:!1})],na.prototype,"visibleAreaIds"),sa([ue()],na.prototype,"_showHeader"),sa([ue()],na.prototype,"_displayMode"),sa([ue()],na.prototype,"_configReady"),sa([ue()],na.prototype,"_expanded"),sa([ue()],na.prototype,"_selectedEntity"),sa([ue()],na.prototype,"_foldOpen");try{customElements.define("glass-climate-card",na)}catch{}Ve("glass-cover-card-editor");var ca=Object.defineProperty,la=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ca(t,i,s),s};const da=1,ha=2,pa=4,ua=8,ga=128,_a={shutter:["mdi:window-shutter-open","mdi:window-shutter"],blind:["mdi:blinds-open","mdi:blinds"],curtain:["mdi:curtains","mdi:curtains-closed"],garage:["mdi:garage-open","mdi:garage"],gate:["mdi:gate-open","mdi:gate"],door:["mdi:door-open","mdi:door-closed"],awning:["mdi:awning-outline","mdi:awning-outline"],shade:["mdi:roller-shade-open","mdi:roller-shade"],window:["mdi:window-open","mdi:window-closed"],damper:["mdi:valve-open","mdi:valve"]},ma={vertical:{open:"mdi:arrow-up",close:"mdi:arrow-down",stop:"mdi:stop"},garage:{open:"mdi:garage-open",close:"mdi:garage",stop:"mdi:stop"},gate:{open:"mdi:gate-open",close:"mdi:gate",stop:"mdi:stop"},door:{open:"mdi:door-open",close:"mdi:door-closed",stop:null},damper:{open:"mdi:valve-open",close:"mdi:valve",stop:null},window:{open:"mdi:window-open",close:"mdi:window-closed",stop:null}};function fa(e,t){return(_a[e]||_a.shutter)[t?0:1]}class va extends We{constructor(){super(...arguments),this._expanded=null,this._coverConfig={show_header:!0,dashboard_entities:[],dashboard_compact:!0,entity_presets:{}},this._roomConfig=null,this._configLoaded=!1,this._configLoading=!1,this._roomLoading=!1,this._throttleTimers=new Map,this._lastDirection=new Map,this._coversCache=null,this._coversCacheKey=""}static getConfigElement(){return document.createElement("glass-cover-card-editor")}getCardSize(){return 3}static{this.styles=[ve,be,ye,Ce,we,$e,De,s`
+    :host {
+      width: 100%;
+      max-width: 31.25rem;
+      margin: 0 auto;
+    }
+
+    .cover-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.375rem;
+      margin-bottom: 0.375rem; min-height: 1.375rem;
+    }
+    .cover-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .cover-title {
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t4);
+    }
+    .cover-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
+      transition: all var(--t-med);
+    }
+    .cover-count.some { background: rgba(var(--rgb-purple),0.15); color: var(--cv-color, #a78bfa); }
+    .cover-count.none { background: var(--s2); color: var(--t3); }
+    .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
+
+    .cover-header-actions { display: flex; gap: 0.25rem; }
+    .header-btn {
+      width: 1.375rem; height: 1.375rem; border-radius: var(--radius-sm);
+      background: var(--s2); border: 1px solid var(--b2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
+    }
+    .header-btn ha-icon {
+      --mdc-icon-size: var(--icon-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3); transition: color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .header-btn:hover { background: var(--s3); border-color: var(--b3); }
+      .header-btn:hover ha-icon { color: var(--t1); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .header-btn:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .header-btn:active { animation: bounce 0.3s ease; }
+    }
+    .header-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    .cover-card { position: relative; padding: 0.125rem 0.875rem; }
+    .card-inner {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    }
+
+    /* Tint */
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0;
+      transition: opacity var(--t-slow), background var(--t-slow);
+    }
+
+    /* ── Row ── */
+    .cv-row {
+      display: flex; align-items: center; gap: 0.625rem;
+      grid-column: 1 / -1;
+      padding: 0.5rem 0.25rem; position: relative;
+      border-radius: var(--radius-md);
+      transition: background var(--t-fast);
+    }
+    .cv-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
+    .cv-row.compact-right { padding-left: 0.625rem; }
+    .cv-row.compact-right::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
+      background: linear-gradient(180deg, transparent, var(--b2), transparent);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .cv-row:hover { background: var(--s1); }
+    }
+    @media (pointer: coarse) {
+      .cv-row:active { animation: bounce 0.3s ease; }
+    }
+    .cv-row:focus-within { background: var(--s1); }
+
+    .cv-expand-btn {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 0.625rem;
+      background: none; border: none; padding: 0;
+      font-family: inherit; cursor: pointer; outline: none;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+    .cv-icon-btn {
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
+      cursor: pointer; padding: 0; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cv-icon-btn ha-icon {
+      --mdc-icon-size: var(--icon-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3); transition: all var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+      .cv-icon-btn:hover ha-icon { color: var(--t2); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .cv-icon-btn:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .cv-icon-btn:active { animation: bounce 0.3s ease; }
+    }
+    .cv-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .cv-row.open .cv-icon-btn { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
+    .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(var(--rgb-purple),0.4)); }
+    .entity-unavailable .cv-icon-btn { border-color: var(--c-alert); }
+
+    .cv-info { flex: 1; min-width: 0; }
+    .cv-name {
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
+      overflow: hidden; white-space: nowrap;
+    }
+    .cv-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
+    .cv-state-text {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+      transition: color var(--t-med);
+    }
+    .cv-row.open .cv-state-text { color: rgba(var(--rgb-purple),0.6); }
+    .cv-position {
+      font-size: var(--fz-lg); font-weight: 700; color: var(--t3);
+      font-variant-numeric: tabular-nums; flex-shrink: 0;
+      transition: color var(--t-med);
+    }
+    .cv-position .unit { font-size: var(--fz-sm); font-weight: 500; }
+    .cv-row.open .cv-position { color: var(--cv-color, #a78bfa); }
+
+    .cv-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--t4); transition: all var(--t-med);
+    }
+    .cv-row.open .cv-dot {
+      background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .cv-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
+    }
+
+    /* ── Fold ── */
+    .fold-sep {
+      grid-column: 1 / -1;
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple),0.25), transparent);
+      opacity: 0; transition: opacity var(--t-layout);
+    }
+    .fold-sep.visible { opacity: 1; }
+
+    .ctrl-fold {
+      grid-column: 1 / -1;
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .ctrl-fold.open { grid-template-rows: 1fr; }
+    .ctrl-fold-inner {
+      overflow: hidden; opacity: 0;
+      transition: opacity var(--t-fast);
+    }
+    .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+    .ctrl-panel {
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.625rem;
+    }
+    .ctrl-label {
+      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
+      color: rgba(var(--rgb-purple),0.6); text-transform: uppercase;
+    }
+
+    /* Transport */
+    .transport-row {
+      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+    }
+    .transport-btn {
+      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
+      background: var(--s2); border: 1px solid var(--b2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .transport-btn ha-icon {
+      --mdc-icon-size: var(--icon-lg);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t2); transition: color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
+      .transport-btn:hover ha-icon { color: var(--t1); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .transport-btn:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .transport-btn:active { animation: bounce 0.3s ease; }
+    }
+    .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .transport-btn.accent { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
+    .transport-btn.accent ha-icon { color: var(--cv-color, #a78bfa); }
+
+    /* Slider */
+    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .slider-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
+    }
+    .slider-icon ha-icon {
+      --mdc-icon-size: var(--icon-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
+    }
+    glass-slider { flex: 1; }
+
+    /* Presets */
+    .preset-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    .chip ha-icon {
+      --mdc-icon-size: var(--icon-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .chip:active { animation: bounce 0.3s ease; }
+    }
+    .chip.active { border-color: rgba(var(--rgb-purple),0.15); background: rgba(var(--rgb-purple),0.1); color: var(--cv-color, #a78bfa); }
+
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
+  `]}connectedCallback(){super.connectedCallback(),this._listen("cover-config-changed",()=>{this._coversCacheKey="",this._loadConfig()}),this._listen("room-config-changed",e=>{this.areaId&&e.areaId===this.areaId&&(this._roomConfig=null,this._coversCacheKey="",this._loadRoomConfig(this.areaId))})}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._roomLoading=!1;for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear()}_collapseExpanded(){null!==this._expanded&&(this._expanded=null)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._roomConfig=null,this._roomLoading=!1),this._configLoaded||this._configLoading||(this._backend=new Qe(this.hass),this._loadConfig())),e.has("areaId")&&this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._roomConfig=null,this._expanded=null,this.areaId&&this._loadRoomConfig(this.areaId))}getTrackedEntityIds(){return this._getCovers().map(e=>e.entityId)}async _loadConfig(){if(this._backend&&!this._configLoading){this._configLoading=!0;try{const e=await this._backend.send("get_config");e?.cover_card&&(this._coverConfig=e.cover_card),this._configLoaded=!0,this._configLoading=!1,this.areaId&&this._loadRoomConfig(this.areaId),this.requestUpdate()}catch{this._configLoading=!1}}}async _loadRoomConfig(e){if(this._backend&&!this._roomLoading){this._roomLoading=!0;try{const t=await this._backend.send("get_room",{area_id:e});this.areaId===e&&(this._roomConfig=t?{...t,entity_layouts:t.entity_layouts??{}}:null,this.requestUpdate())}catch{}finally{this._roomLoading=!1}}}_getCovers(){if(!this.hass)return[];let e;if(this.areaId){if(e=Ye(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id),this._roomConfig){const t=new Set(this._roomConfig.hidden_entities);e=e.filter(e=>!t.has(e));const i=this._roomConfig.entity_order;e.sort((e,t)=>{const a=i.indexOf(e),r=i.indexOf(t);return-1!==a&&-1!==r?a-r:-1!==a?-1:-1!==r?1:0})}}else e=this._coverConfig.dashboard_entities;const t=e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.state}:${t.attributes.current_position}:${t.attributes.current_tilt_position}`:e}).join("|");return t===this._coversCacheKey&&this._coversCache||(this._coversCache=e.map(e=>{const t=this.hass?.states[e];return t?function(e,t){const i=t.attributes,a=i.device_class||"shutter",r=i.supported_features||0,s=i.current_position,o=i.current_tilt_position,n="open"===t.state||"opening"===t.state;return{entity:t,entityId:e,name:i.friendly_name||e.split(".")[1]||e,isOpen:n,position:s??null,tiltPosition:o??null,deviceClass:a,features:r}}(e,t):null}).filter(e=>null!==e),this._coversCacheKey=t),this._coversCache}_toggleCover(e,t){if(t?.stopPropagation(),!this.hass)return;const i=e.entity.state;if("opening"===i||"closing"===i)this._lastDirection.set(e.entityId,i),this._safeCallService("cover","stop_cover",{},{entity_id:e.entityId});else if("closed"===i)this._lastDirection.delete(e.entityId),this._safeCallService("cover","open_cover",{},{entity_id:e.entityId});else{const t=this._lastDirection.get(e.entityId);this._lastDirection.delete(e.entityId),"opening"===t?this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}):"closing"===t?this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}):this._safeCallService("cover","close_cover",{},{entity_id:e.entityId})}}_openCover(e,t){t.stopPropagation(),this.hass&&(Be(this,"light"),this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}))}_closeCover(e,t){t.stopPropagation(),this.hass&&(Be(this,"light"),this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}))}_stopCover(e,t){t.stopPropagation(),this.hass&&(Be(this,"light"),this._safeCallService("cover","stop_cover",{},{entity_id:e.entityId}))}_setPosition(e,t){if(!this.hass)return;const i=this._throttleTimers.get(e.entityId);i&&clearTimeout(i),this._throttleTimers.set(e.entityId,window.setTimeout(()=>{this._throttleTimers.delete(e.entityId),this._safeCallService("cover","set_cover_position",{position:t},{entity_id:e.entityId})},50))}_setTiltPosition(e,t){if(!this.hass)return;const i=`${e.entityId}_tilt`,a=this._throttleTimers.get(i);a&&clearTimeout(a),this._throttleTimers.set(i,window.setTimeout(()=>{this._throttleTimers.delete(i),this._safeCallService("cover","set_cover_tilt_position",{tilt_position:t},{entity_id:e.entityId})},50))}_openAll(){if(!this.hass)return;const e=this._getCovers();for(const t of e)t.features&da&&this._safeCallService("cover","open_cover",{},{entity_id:t.entityId})}_closeAll(){if(!this.hass)return;const e=this._getCovers();for(const t of e)t.features&ha&&this._safeCallService("cover","close_cover",{},{entity_id:t.entityId})}_setPreset(e,t,i){i.stopPropagation(),this.hass&&(Be(this,"selection"),e.features&pa?this._safeCallService("cover","set_cover_position",{position:t},{entity_id:e.entityId}):t>0?this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}):this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}))}_toggleExpand(e){this._expanded=this._expanded===e?null:e}render(){this._lang;const e=this._getCovers();if(0===e.length&&!this.areaId)return this.style.display="none",B;this.style.display="";const t=this._coverConfig.show_header,i=e.filter(e=>e.isOpen).length,a=e.length;return N`
+      ${t?N`
+        <div class="cover-header">
+          <div class="cover-header-left">
+            <span class="cover-title">${Re("cover.title")}</span>
+            <span class="cover-count ${0===i?"none":i===a?"all":"some"}">${i}/${a}</span>
+          </div>
+          <div class="cover-header-actions">
+            <button class="header-btn" @click=${()=>this._openAll()} aria-label=${Re("cover.open_all_aria")}>
+              <ha-icon .icon=${"mdi:arrow-up"}></ha-icon>
+            </button>
+            <button class="header-btn" @click=${()=>this._closeAll()} aria-label=${Re("cover.close_all_aria")}>
+              <ha-icon .icon=${"mdi:arrow-down"}></ha-icon>
+            </button>
+          </div>
+        </div>
+      `:B}
+      <div class="glass cover-card">
+        <div class="tint" style="background:radial-gradient(ellipse at 50% 50%, var(--cv-color, #a78bfa), transparent 70%);opacity:${a>0?(i/a*.18).toFixed(3):"0"};"></div>
+        <div class="card-inner">
+          ${0===e.length?N`
+            <div style="padding:16px;text-align:center;font-size:var(--fz-base);color:var(--t4);grid-column:1/-1;">${Re("config.cover_no_covers")}</div>
+          `:B}
+          ${this.areaId?this._renderGrid(e):this._renderDashboardGrid(e)}
+        </div>
+      </div>
+    `}_getEntityLayout(e){return"full"===(this._roomConfig?.entity_layouts??{})[e]?"full":"compact"}_isCompact(e){return"compact"===this._getEntityLayout(e.entityId)}_renderGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if(this._isCompact(a)){const r=i+1<e.length&&this._isCompact(e[i+1])?e[i+1]:null;if(r){const s=i+2>=e.length;t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,s)),t.push(this._renderControlFold(r,s)),i+=2}else{const r=i+1>=e.length;t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,r)),i++}}else{const r=i+1>=e.length;t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,r)),i++}}return t}_renderDashboardGrid(e){if(!(!1!==this._coverConfig.dashboard_compact))return e.map((t,i)=>{const a=i+1>=e.length;return[this._renderCoverRow(t,!1,!1),this._renderControlFold(t,a)]}).flat();const t=[];let i=0;for(;i<e.length;){const a=e[i],r=i+1<e.length?e[i+1]:null;if(r){const s=i+2>=e.length;t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,s)),t.push(this._renderControlFold(r,s)),i+=2}else t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,!0)),i++}return t}_renderCoverRow(e,t=!1,i=!1){const a=this._expanded===e.entityId,r=Te(e.entity.state),s=["cv-row",e.isOpen?"open":"",t?"compact":"",i?"compact-right":"",r?"entity-unavailable":""].filter(Boolean).join(" "),o=this._bindGesture({onTap:()=>this._toggleCover(e),onLongPress:()=>this._toggleExpand(e.entityId),exclude:".cv-icon-btn"});return N`
+      <div
+        class=${s}
+        @pointerdown=${o.pointerdown}
+        @pointerup=${o.pointerup}
+        @pointermove=${o.pointermove}
+        @pointercancel=${o.pointercancel}
+        @contextmenu=${o.contextmenu}
+      >
+        <button
+          class="cv-icon-btn"
+          @click=${t=>this._toggleCover(e,t)}
+          aria-label=${Re("cover.toggle_aria",{name:e.name})}
+        >
+          <ha-icon .icon=${fa(e.deviceClass,e.isOpen)}></ha-icon>
+        </button>
+        <button
+          class="cv-expand-btn"
+          aria-expanded=${a?"true":"false"}
+          aria-label=${Re("cover.expand_aria",{name:e.name})}
+        >
+          <div class="cv-info">
+            <div class="cv-name">${ke(e.name,t?12:xe)}</div>
+            <div class="cv-sub">
+              <span class="cv-state-text">${function(e){switch(e){case"open":return Re("cover.open");case"closed":return Re("cover.closed");case"opening":return Re("cover.opening");case"closing":return Re("cover.closing");default:return e}}(e.entity.state)}</span>
+            </div>
+          </div>
+          ${null!==e.position?N`
+            <div class="cv-position">${e.position}<span class="unit">%</span></div>
+          `:B}
+          ${r?N`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:N`<div class="cv-dot"></div>`}
+        </button>
+      </div>
+    `}_renderControlFold(e,t=!1){const i=this._expanded===e.entityId;return N`
+      <div class="fold-sep ${i?"visible":""}"></div>
+      <div class="ctrl-fold ${i?"open":""}">
+        <div class="ctrl-fold-inner">
+          ${i?this._renderControls(e):B}
+        </div>
+      </div>
+      ${t?B:N`<div class="fold-sep ${i?"visible":""}"></div>`}
+    `}_renderControls(e){const t=e.features,i=(a=e.deviceClass,["shutter","blind","shade","curtain","awning"].includes(a)?ma.vertical:ma[a]||ma.vertical);var a;const r=!!(t&pa),s=!!(t&ga),o=[];if(r){const t=this._coverConfig.entity_presets[e.entityId],i=t&&t.length>0?t:[0,25,50,75,100];for(const a of i){const t=a>=50,i=0===a?Re("cover.preset_closed"):100===a?Re("cover.preset_open"):`${a}%`;o.push({label:i,icon:fa(e.deviceClass,t),position:a})}}else o.push({label:Re("cover.preset_closed"),icon:fa(e.deviceClass,!1),position:0},{label:Re("cover.preset_open"),icon:fa(e.deviceClass,!0),position:100});return N`
+      <div class="ctrl-panel">
+        <span class="ctrl-label">${e.name}</span>
+
+        <!-- Transport -->
+        <div class="transport-row">
+          ${t&da?N`
+            <button class="transport-btn ${100===e.position||null===e.position&&e.isOpen?"accent":""}"
+              @click=${t=>this._openCover(e,t)}
+              aria-label=${Re("cover.open_aria",{name:e.name})}>
+              <ha-icon .icon=${i.open}></ha-icon>
+            </button>
+          `:B}
+          ${t&ua?N`
+            <button class="transport-btn"
+              @click=${t=>this._stopCover(e,t)}
+              aria-label=${Re("cover.stop_aria",{name:e.name})}>
+              <ha-icon .icon=${i.stop||"mdi:stop"}></ha-icon>
+            </button>
+          `:B}
+          ${t&ha?N`
+            <button class="transport-btn ${0===e.position||null===e.position&&!e.isOpen?"accent":""}"
+              @click=${t=>this._closeCover(e,t)}
+              aria-label=${Re("cover.close_aria",{name:e.name})}>
+              <ha-icon .icon=${i.close}></ha-icon>
+            </button>
+          `:B}
+        </div>
+
+        <!-- Position slider -->
+        ${r?N`
+          <div class="slider-wrap">
+            <div class="slider-icon"><ha-icon .icon=${fa(e.deviceClass,!1)}></ha-icon></div>
+            <glass-slider
+              .value=${e.position??0}
+              color="var(--rgb-purple)"
+              .label=${`${e.position??0}%`}
+              @glass-slider-input=${t=>this._setPosition(e,t.detail.value)}
+              @glass-slider-change=${t=>this._setPosition(e,t.detail.value)}
+            ></glass-slider>
+            <div class="slider-icon"><ha-icon .icon=${fa(e.deviceClass,!0)}></ha-icon></div>
+          </div>
+        `:B}
+
+        <!-- Tilt slider -->
+        ${s?N`
+          <span class="ctrl-label">${Re("cover.tilt")}</span>
+          <div class="slider-wrap">
+            <div class="slider-icon"><ha-icon .icon=${"mdi:blinds"}></ha-icon></div>
+            <glass-slider
+              .value=${e.tiltPosition??0}
+              color="var(--rgb-purple)"
+              .label=${`${e.tiltPosition??0}%`}
+              @glass-slider-input=${t=>this._setTiltPosition(e,t.detail.value)}
+              @glass-slider-change=${t=>this._setTiltPosition(e,t.detail.value)}
+            ></glass-slider>
+            <div class="slider-icon"><ha-icon .icon=${"mdi:blinds-open"}></ha-icon></div>
+          </div>
+        `:B}
+
+        <!-- Presets -->
+        <div class="ctrl-sep"></div>
+        <div class="preset-row">
+          ${o.map(t=>N`
+            <button
+              class="chip ${e.position===t.position?"active":""}"
+              @click=${i=>this._setPreset(e,t.position,i)}
+              aria-label=${t.label}
+            >
+              <ha-icon .icon=${t.icon}></ha-icon>
+              <span>${t.label}</span>
+            </button>
+          `)}
+        </div>
+      </div>
+    `}}la([pe()],va.prototype,"areaId"),la([ue()],va.prototype,"_expanded");try{customElements.define("glass-cover-card",va)}catch{}Ve("glass-fan-card-editor");var ba=Object.defineProperty,ya=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ba(t,i,s),s};const wa=1,xa=2,ka=4,$a=8,Sa={auto:"mdi:autorenew",eco:"mdi:leaf",night:"mdi:weather-night",nuit:"mdi:weather-night",comfort:"mdi:sofa",confort:"mdi:sofa",silent:"mdi:volume-off",silence:"mdi:volume-off",turbo:"mdi:lightning-bolt"};function Ca(e,t){return e<=0?0:Math.max(1,Math.min(t,Math.round(e/(100/t))))}function Ia(e,t){return e<=0?0:e/t*100}function Ea(e,t){return Ia(Ca(e,t),t)}const za={auto:"fan.preset_auto",eco:"fan.preset_eco",night:"fan.preset_night",nuit:"fan.preset_night",comfort:"fan.preset_comfort",confort:"fan.preset_comfort",silent:"fan.preset_silent",silence:"fan.preset_silent",turbo:"fan.preset_turbo"};function Da(e){const t=za[e.toLowerCase()];return t?Re(t):e.charAt(0).toUpperCase()+e.slice(1)}class Ta extends We{constructor(){super(...arguments),this._expandedEntity=null,this._dragValues=new Map,this._showHeader=!0,this._fanConfigLoaded=!1,this._roomConfig=null,this._roomConfigLoaded=!1,this._roomConfigLoading=!1,this._fansFingerprint="",this._dashboardHiddenEntities=new Set,this._dashboardHiddenLoaded=!1,this._throttleTimers=new Map,this._schedules=null,this._schedulesLoaded=!1}static getConfigElement(){return document.createElement("glass-fan-card-editor")}getCardSize(){return 3}get _isDashboardMode(){return!this.areaId}static{this.styles=[ve,be,ye,Ce,we,$e,De,s`
+    :host {
+      width: 100%;
+      max-width: 31.25rem;
+      margin: 0 auto;
+    }
+
+    /* ── Card Header ── */
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
+    }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .card-title {
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t4);
+    }
+    .card-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
+      transition: all var(--t-med);
+    }
+    .card-count.some { background: rgba(var(--rgb-accent),0.15); color: var(--c-accent); }
+    .card-count.none { background: var(--s2); color: var(--t3); }
+    .card-count.all  { background: rgba(var(--rgb-accent),0.2); color: var(--c-accent); }
+
+    /* ── Toggle All ── */
+    .toggle-all {
+      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-all::after {
+      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
+      background: var(--t3);
+      transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+    }
+    .toggle-all.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
+    .toggle-all.on::after {
+      transform: translateX(18px); background: var(--c-accent);
+      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
+    }
+    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    /* ── Card Body ── */
+    .fan-card { position: relative; padding: 0.125rem 0.875rem; }
+    .card-inner {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    }
+
+    .tint {
+      transition: opacity var(--t-slow), background var(--t-slow);
+    }
+
+    /* ── Fan Row ── */
+    .fan-row {
+      display: flex; align-items: center; gap: 0.625rem;
+      grid-column: 1 / -1;
+      padding: 0.5rem 0.25rem; position: relative;
+      transition: background var(--t-fast); border-radius: var(--radius-md);
+    }
+    .fan-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
+    .fan-row.compact-right { padding-left: 0.625rem; }
+    .fan-row.compact-right::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
+      background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.08) 30%, rgba(var(--rgb-white),0.08) 70%, transparent);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .fan-row:hover { background: var(--s1); }
+    }
+    @media (pointer: coarse) {
+      .fan-row:active { animation: bounce 0.3s ease; }
+    }
+
+    /* ── Icon Button ── */
+    .fan-icon-btn {
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .fan-icon-btn ha-icon {
+      --mdc-icon-size: var(--icon-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
+    }
+    .fan-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .fan-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+      .fan-icon-btn:hover ha-icon { color: var(--t2); }
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .fan-icon-btn:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .fan-icon-btn:active { animation: bounce 0.3s ease; }
+    }
+    .fan-row.on .fan-icon-btn {
+      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
+    }
+    .fan-row.on .fan-icon-btn ha-icon {
+      color: var(--c-accent); filter: drop-shadow(0 0 6px rgba(var(--rgb-accent),0.4));
+    }
+    .entity-unavailable .fan-icon-btn { border-color: var(--c-alert); }
+
+    /* ── Spinning animation ── */
+    @keyframes spin-fan {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin-fan-reverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    .fan-row.on .fan-icon-btn ha-icon.spinning {
+      animation: spin-fan var(--spin-duration, 2s) linear infinite;
+      will-change: transform;
+    }
+    .fan-row.on .fan-icon-btn ha-icon.spinning.reverse {
+      animation: spin-fan-reverse var(--spin-duration, 2s) linear infinite;
+      will-change: transform;
+    }
+
+    /* ── Expand Button ── */
+    .fan-expand-btn {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 0.625rem;
+      background: none; border: none; padding: 0;
+      font-family: inherit; cursor: pointer; outline: none;
+      text-align: left; color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fan-expand-btn:focus-visible {
+      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Fan Info ── */
+    .fan-info { flex: 1; min-width: 0; }
+    .fan-name {
+      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
+      white-space: nowrap; overflow: hidden;
+    }
+    .fan-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
+    .fan-speed-text {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+      transition: color var(--t-med);
+    }
+    .fan-row.on .fan-speed-text { color: rgba(var(--rgb-accent),0.55); }
+
+    .fan-direction {
+      font-size: var(--fz-sm); font-weight: 400; color: var(--t4);
+      display: flex; align-items: center; gap: 0.1875rem;
+    }
+    .fan-direction ha-icon {
+      --mdc-icon-size: 0.6875rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .fan-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--t4); transition: all var(--t-med);
+    }
+    .fan-row.on .fan-dot {
+      background: var(--c-accent); box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
+    }
+
+    /* Unavailable badge inline (replaces dot) */
+    .fan-expand-btn .unavailable-badge {
+      position: static;
+      flex-shrink: 0;
+      --mdc-icon-size: 0.75rem;
+      color: var(--c-warning);
+    }
+
+    /* ── Fold separator ── */
+    .fold-sep {
+      grid-column: 1 / -1;
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
+      opacity: 0; transition: opacity var(--t-layout);
+    }
+    .fold-sep.visible { opacity: 1; }
+
+    /* ── Controls fold ── */
+    .ctrl-fold {
+      grid-column: 1 / -1;
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .ctrl-fold.open { grid-template-rows: 1fr; }
+    .ctrl-fold-inner {
+      overflow: hidden;
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+    .ctrl-panel {
+      padding: 0.375rem 0 0.25rem;
+      display: flex; flex-direction: column; gap: 0.625rem;
+    }
+    .ctrl-label {
+      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
+      color: rgba(var(--rgb-accent),0.6); text-transform: uppercase;
+    }
+
+    /* ── Speed steps ── */
+    .speed-steps { display: flex; gap: 0.25rem; }
+    .speed-step {
+      flex: 1; height: 2.25rem; border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 700; color: var(--t3);
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0.125rem 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .speed-step:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
+    }
+    .speed-step:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .speed-step:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .speed-step:active { animation: bounce 0.3s ease; }
+    }
+    .speed-step.active {
+      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
+      color: var(--c-accent);
+    }
+    .speed-step-pct {
+      font-size: var(--fz-xxs); font-weight: 600; color: var(--t4);
+      letter-spacing: 0.3px; margin-top: 0.0625rem;
+    }
+    .speed-step.active .speed-step-pct { color: rgba(var(--rgb-accent),0.55); }
+
+    /* ── Slider ── */
+    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .slider-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
+    }
+    .slider-icon ha-icon {
+      --mdc-icon-size: var(--icon-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
+    }
+    glass-slider { flex: 1; }
+
+    /* ── Mode chips ── */
+    .mode-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    .chip ha-icon {
+      --mdc-icon-size: var(--icon-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .chip:active { animation: bounce 0.3s ease; }
+    }
+    .chip.active {
+      border-color: rgba(var(--rgb-accent),0.15); background: rgba(var(--rgb-accent),0.1);
+      color: rgba(var(--rgb-accent),0.8);
+    }
+
+    /* ── Direction toggle ── */
+    .direction-row { display: flex; align-items: center; gap: 0.625rem; }
+    .direction-label {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
+    }
+    .direction-label ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.6;
+    }
+    .direction-btns {
+      display: flex; gap: 0; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1); overflow: hidden;
+    }
+    .dir-btn {
+      width: 2.25rem; height: 1.75rem; display: flex;
+      align-items: center; justify-content: center;
+      background: transparent; border: none; color: var(--t3);
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
+    }
+    .dir-btn ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .dir-btn:hover { background: var(--s3); color: var(--t2); }
+    }
+    .dir-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .dir-btn:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .dir-btn:active { animation: bounce 0.3s ease; }
+    }
+    .dir-btn.active { background: rgba(var(--rgb-accent),0.1); color: var(--c-accent); }
+    .dir-btn + .dir-btn { border-left: 1px solid var(--b1); }
+
+    /* ── Oscillation toggle ── */
+    .osc-row { display: flex; align-items: center; gap: 0.625rem; }
+    .osc-label {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
+    }
+    .osc-label ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.6;
+    }
+    .toggle-sm {
+      position: relative; width: 2.375rem; height: 1.25rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b2);
+      cursor: pointer; transition: all var(--t-fast);
+      padding: 0; outline: none; font-family: inherit; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-sm::after {
+      content: ''; position: absolute; top: 0.125rem; left: 0.125rem;
+      width: 0.875rem; height: 0.875rem; border-radius: 50%;
+      background: var(--t3); transition: all var(--t-fast);
+    }
+    .toggle-sm.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
+    .toggle-sm.on::after {
+      transform: translateX(18px); background: var(--c-accent);
+      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
+    }
+    .toggle-sm:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    /* ── Ceiling light row ── */
+    .ceiling-light-row {
+      display: flex; align-items: center; gap: 0.625rem; padding: 0.375rem 0;
+    }
+    .ceiling-light-label {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
+      display: flex; align-items: center; gap: 0.375rem;
+    }
+    .ceiling-light-label ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.6;
+    }
+
+    /* ── Separator ── */
+    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 1rem; text-align: center; font-size: var(--fz-base); color: var(--t4);
+    }
+  `]}connectedCallback(){super.connectedCallback(),this._listen("fan-config-changed",()=>{this._fanConfigLoaded=!1,this._cachedFanIds=void 0,this._fansFingerprint="",this._loadFanConfig()}),this._listen("room-config-changed",e=>{const t=this.areaId;t&&e.areaId===t&&(this._roomConfigLoaded=!1,this._roomConfig=null,this._cachedFanIds=void 0,this._fansFingerprint="",this._loadRoomConfig()),this._isDashboardMode&&(this._dashboardHiddenLoaded=!1,this._loadDashboardHidden())}),this._listen("dashboard-config-changed",()=>{this._cachedFanIds=void 0,this._fansFingerprint="",this.requestUpdate()}),this._listen("schedule-changed",()=>{this._schedulesLoaded=!1,this._loadSchedules()})}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._fanConfigLoaded=!1,this._schedulesLoaded=!1,this._roomConfigLoaded=!1,this._dashboardHiddenLoaded=!1;for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear()}_collapseExpanded(){null!==this._expandedEntity&&(this._expandedEntity=null)}updated(e){if(super.updated(e),e.has("hass")&&this.hass&&this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._fanConfigLoaded=!1,this._roomConfigLoaded=!1,this._schedulesLoaded=!1,this._dashboardHiddenLoaded=!1),this.hass&&!this._schedulesLoaded&&this._loadSchedules(),this.hass&&!this._fanConfigLoaded&&this._loadFanConfig(),this.areaId&&this.hass&&(this._lastLoadedAreaId!==this.areaId&&this._resetForNewArea(),this._roomConfigLoaded||this._loadRoomConfig()),this.hass&&this._isDashboardMode&&!this._dashboardHiddenLoaded&&this._loadDashboardHidden(),e.has("hass")&&this.hass){const t=e.get("hass");t&&t.entities!==this.hass.entities&&(this._cachedFanIds=void 0,this._fansFingerprint="")}if(e.has("visibleAreaIds")&&(this._cachedFanIds=void 0,this._fansFingerprint="",this._dashboardHiddenLoaded=!1),e.has("hass")&&this._dragValues.size>0){const e=this._getFanInfos();let t=!1;const i=new Map(this._dragValues);for(const a of e){const e=`speed:${a.entityId}`,r=i.get(e);void 0!==r&&Math.abs(a.percentage-r)<=2&&(i.delete(e),t=!0);const s=`light:${a.entityId}`,o=i.get(s);if(void 0!==o&&a.lightEntityId){const e=this.hass?.states[a.lightEntityId];if(e){const a=e.attributes.brightness??0,r=Math.round(a/255*100);Math.abs(r-o)<=2&&(i.delete(s),t=!0)}}}t&&(this._dragValues=i)}}getTrackedEntityIds(){return this._isDashboardMode&&this.hass?Xe("fan",this.hass,this.visibleAreaIds):this._getFanInfos().map(e=>e.entityId)}async _loadFanConfig(){if(this.hass&&!this._fanConfigLoaded){this._fanConfigLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_config");e?.fan_card&&(this._showHeader=e.fan_card.show_header??!0)}catch{}}}async _loadRoomConfig(){if(this.hass&&this.areaId&&!this._roomConfigLoaded&&!this._roomConfigLoading){this._roomConfigLoading=!0,this._lastLoadedAreaId=this.areaId;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_room",{area_id:this.areaId});this.areaId===this._lastLoadedAreaId&&(this._roomConfig=e,this._roomConfigLoaded=!0,this._cachedFanIds=void 0,this._fansFingerprint="",this.requestUpdate())}catch{}finally{this._roomConfigLoading=!1}}}async _loadSchedules(){if(this.hass&&!this._schedulesLoaded){this._schedulesLoaded=!0;try{this._backend||(this._backend=new Qe(this.hass));const e=await this._backend.send("get_schedules");this._schedules=e,this._cachedFanIds=void 0,this._fansFingerprint="",this.requestUpdate()}catch{this._schedulesLoaded=!1}}}async _loadDashboardHidden(){if(!this.hass||this._dashboardHiddenLoaded||!this._isDashboardMode)return;this._dashboardHiddenLoaded=!0;const e=this.visibleAreaIds;if(e&&0!==e.length)try{this._backend||(this._backend=new Qe(this.hass));const t=new Set;for(const i of e){const e=await this._backend.send("get_room",{area_id:i});if(e?.hidden_entities)for(const i of e.hidden_entities)t.add(i)}this._dashboardHiddenEntities=t,this._cachedFanIds=void 0,this._fansFingerprint="",this.requestUpdate()}catch{}}_resetForNewArea(){this._roomConfig=null,this._roomConfigLoaded=!1,this._roomConfigLoading=!1,this._expandedEntity=null,this._dragValues=new Map,this._cachedFanIds=void 0,this._fansFingerprint="";for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear()}_getFanIds(){return this._cachedFanIds||(this._cachedFanIds=this._computeFanIds()),this._cachedFanIds}_computeFanIds(){if(!this.hass)return[];if(this.areaId){const e=new Set(this._roomConfig?.hidden_entities??[]),t=Ye(this.areaId,this.hass.entities,this.hass.devices).filter(t=>t.entity_id.startsWith("fan.")&&!e.has(t.entity_id)&&Ge(t.entity_id,this._schedules)).map(e=>e.entity_id),i=this._roomConfig?.entity_order??[];if(i.length>0){const e=new Map;i.forEach((t,i)=>e.set(t,i)),t.sort((t,i)=>{const a=e.get(t),r=e.get(i);return void 0!==a&&void 0!==r?a-r:void 0!==a?-1:void 0!==r?1:0})}return t}if(this._isDashboardMode){const e=this.visibleAreaIds;if(!e||0===e.length||!this.hass.entities||!this.hass.devices)return[];const t=[];for(const i of e)for(const e of Ye(i,this.hass.entities,this.hass.devices))e.entity_id.startsWith("fan.")&&!this._dashboardHiddenEntities.has(e.entity_id)&&t.push(e.entity_id);return t}return[]}_getFanInfos(){if(!this.hass)return[];const e=this._getFanIds(),t=e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.state}:${t.last_updated}`:`${e}:-`}).join("|");if(t===this._fansFingerprint&&this._cachedFansResult)return this._cachedFansResult;this._fansFingerprint=t;const i=e.map(e=>{const t=this.hass?.states[e];return t?this._buildFanInfo(e,t):null}).filter(e=>null!==e);return this._isDashboardMode?this._cachedFansResult=i.filter(e=>e.isOn):this._cachedFansResult=i,this._cachedFansResult}_buildFanInfo(e,t){const i=t.attributes,a="on"===t.state,r=i.percentage??0,s=i.percentage_step,o=i.speed_count??(s&&s>0?Math.round(100/s):3),n=i.direction||null,c=i.oscillating||!1,l=i.preset_mode||null,d=i.preset_modes||[],h=i.supported_features||0,p=function(e,t){if("ceiling"===t.attributes.device_class)return!0;const i=e.toLowerCase();return i.includes("ceiling")||i.includes("plafond")||i.includes("plafonnier")}(e,t),u=this.hass?.entities[e]?.icon,g=i.icon,_=u||g||(p?"mdi:ceiling-fan":"mdi:fan"),m=p&&this.hass?function(e,t){const i=e.replace("fan.",""),a=[`light.${i}`,`light.${i}_light`];for(const r of a)if(t.states[r])return r;if(t.entities){const i=t.entities[e];if(i?.device_id)for(const[e,a]of Object.entries(t.entities))if(e.startsWith("light.")&&a.device_id===i.device_id&&t.states[e])return e}return null}(e,this.hass):null,f=!(!!(h&$a)&&d.length>0||!!(h&ka)||!!(h&xa)||m);return{entity:t,entityId:e,name:i.friendly_name||e.split(".")[1]||e,icon:_,isCeiling:p,isOn:a,percentage:a?r:0,speedCount:o,direction:n,oscillating:c,presetMode:a?l:null,presetModes:d,supportedFeatures:h,lightEntityId:m,isSimple:f}}_toggleFan(e,t){if(t?.stopPropagation(),this.hass)if(Be(this,"light"),e.isOn)this._safeCallService("fan","turn_off",{},{entity_id:e.entityId});else{if(e.supportedFeatures&wa){const t=Ia(1,e.speedCount);this._safeCallService("fan","turn_on",{percentage:t},{entity_id:e.entityId})}else this._safeCallService("fan","turn_on",{},{entity_id:e.entityId})}}_toggleAll(){if(!this.hass)return;const e=this._getFanInfos(),t=e.some(e=>e.isOn);if(t){const t=e.map(e=>e.entityId);this._safeCallService("fan","turn_off",{},{entity_id:t})}else for(const i of e){if(i.supportedFeatures&wa){const e=Ia(1,i.speedCount);this._safeCallService("fan","turn_on",{percentage:e},{entity_id:i.entityId})}else this._safeCallService("fan","turn_on",{},{entity_id:i.entityId})}t&&(this._expandedEntity=null)}_setSpeed(e,t){this.hass&&(Be(this,"selection"),0!==t?(e.isOn||this._safeCallService("fan","turn_on",{},{entity_id:e.entityId}),this._safeCallService("fan","set_percentage",{percentage:t},{entity_id:e.entityId})):this._safeCallService("fan","turn_off",{},{entity_id:e.entityId}))}_setPresetMode(e,t,i){i.stopPropagation(),this.hass&&(e.presetMode!==t?(e.isOn||this._safeCallService("fan","turn_on",{},{entity_id:e.entityId}),this._safeCallService("fan","set_preset_mode",{preset_mode:t},{entity_id:e.entityId})):e.percentage>0&&this._safeCallService("fan","set_percentage",{percentage:e.percentage},{entity_id:e.entityId}))}_setDirection(e,t,i){i.stopPropagation(),this.hass&&(Be(this,"selection"),this._safeCallService("fan","set_direction",{direction:t},{entity_id:e.entityId}))}_toggleOscillation(e,t){t.stopPropagation(),this.hass&&this._safeCallService("fan","oscillate",{oscillating:!e.oscillating},{entity_id:e.entityId})}_toggleCeilingLight(e,t){if(t.stopPropagation(),!this.hass||!e.lightEntityId)return;const i=this.hass.states[e.lightEntityId],a="on"===i?.state?"turn_off":"turn_on";this._safeCallService("light",a,{},{entity_id:e.lightEntityId})}_hasControls(e){const t=e.supportedFeatures;return!!(t&wa||t&$a||t&ka||t&xa||e.lightEntityId)}_toggleExpand(e){this._expandedEntity===e.entityId?this._expandedEntity=null:this._expandedEntity=e.entityId}_onSpeedSliderInput(e,t){const i=Ea(t,e.speedCount),a=new Map(this._dragValues);a.set(`speed:${e.entityId}`,i),this._dragValues=a}_onSpeedSliderChange(e,t){const i=Ea(t,e.speedCount);this._setSpeed(e,i);const a=new Map(this._dragValues);a.delete(`speed:${e.entityId}`),this._dragValues=a}_onLightSliderInput(e,t){if(!e.lightEntityId||!this.hass)return;const i=new Map(this._dragValues);i.set(`light:${e.entityId}`,t),this._dragValues=i;const a=`light:${e.entityId}`,r=this._throttleTimers.get(a);r&&clearTimeout(r);const s=e.lightEntityId;this._throttleTimers.set(a,setTimeout(()=>{this._throttleTimers.delete(a);const e=this._dragValues.get(a)??t,i=Math.round(e/100*255);this._safeCallService("light","turn_on",{brightness:i},{entity_id:s})},100))}_onLightSliderChange(e,t){if(!e.lightEntityId||!this.hass)return;const i=Math.round(t/100*255);this._safeCallService("light","turn_on",{brightness:i},{entity_id:e.lightEntityId});const a=new Map(this._dragValues);a.delete(`light:${e.entityId}`),this._dragValues=a}render(){this._lang;const e=this._getFanInfos();if(this._isDashboardMode){if(0===e.length)return this.style.display="none",B;this.style.display=""}if(!this._isDashboardMode&&0===e.length)return N`
+        ${this._showHeader?this._renderHeader(0,0):B}
+        <div class="glass fan-card">
+          <div class="card-inner">
+            <div class="empty-state">${Re("fan.no_fans")}</div>
+          </div>
+        </div>
+      `;const t=e.filter(e=>e.isOn).length,i=e.length;return N`
+      ${this._showHeader?this._renderHeader(t,i):B}
+      <div class="glass fan-card">
+        <div class="tint" style="background:radial-gradient(ellipse at 30% 30%, var(--c-accent), transparent 70%);opacity:${i>0?(t/i*.18).toFixed(3):"0"};"></div>
+        <div class="card-inner">
+          ${this._isDashboardMode?this._renderDashboardGrid(e):this._renderGrid(e)}
+        </div>
+      </div>
+    `}_renderHeader(e,t){const i=e>0,a=0===e?"none":e===t?"all":"some";return N`
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-title">${Re("fan.title")}</span>
+          <span class="card-count ${a}">${e}/${t}</span>
+        </div>
+        <button
+          class="toggle-all ${i?"on":""}"
+          @click=${()=>this._toggleAll()}
+          aria-label=${Re(i?"fan.toggle_all_on_aria":"fan.toggle_all_off_aria")}
+          role="switch"
+          aria-checked=${i?"true":"false"}
+        ></button>
+      </div>
+    `}_getEntityLayout(e){return"full"===(this._roomConfig?.entity_layouts??{})[e]?"full":"compact"}_isCompact(e){return"compact"===this._getEntityLayout(e.entityId)}_renderGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if(this._isCompact(a)){const r=i+1<e.length&&this._isCompact(e[i+1])?e[i+1]:null;if(r){const s=i+2>=e.length;t.push(this._renderFanRow(a,!0,!1)),t.push(this._renderFanRow(r,!0,!0)),t.push(this._renderControlFold(a,s)),t.push(this._renderControlFold(r,s)),i+=2}else{const r=i+1>=e.length;t.push(this._renderFanRow(a,!1,!1)),t.push(this._renderControlFold(a,r)),i++}}else{const r=i+1>=e.length;t.push(this._renderFanRow(a,!1,!1)),t.push(this._renderControlFold(a,r)),i++}}return t}_renderDashboardGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i],r=i+1<e.length?e[i+1]:null;if(r){const s=i+2>=e.length;t.push(this._renderFanRow(a,!0,!1)),t.push(this._renderFanRow(r,!0,!0)),t.push(this._renderControlFold(a,s)),t.push(this._renderControlFold(r,s)),i+=2}else t.push(this._renderFanRow(a,!1,!1)),t.push(this._renderControlFold(a,!0)),i++}return t}_renderFanRow(e,t=!1,i=!1){const a=this._dragValues.get(`speed:${e.entityId}`),r=a??e.percentage,s=this._expandedEntity===e.entityId,o=this._hasControls(e);let n;if(o)if(e.isOn||void 0!==a){const t=Ca(r,e.speedCount);n=e.isSimple?Re("fan.speed_step_short",{step:String(t),total:String(e.speedCount)}):`${r}% · ${Re("fan.speed_step",{step:String(t),total:String(e.speedCount)})}`}else n=Re("fan.off");else n=e.isOn?Re("common.on"):Re("fan.off");const c=Te(e.entity.state),l=["fan-row",e.isOn?"on":"",t?"compact":"",i?"compact-right":"",c?"entity-unavailable":""].filter(Boolean).join(" "),d=this._bindGesture({onTap:()=>this._toggleFan(e),onLongPress:()=>this._toggleExpand(e),exclude:".fan-icon-btn"});return N`
+      <div
+        class=${l}
+        @pointerdown=${d.pointerdown}
+        @pointerup=${d.pointerup}
+        @pointermove=${d.pointermove}
+        @pointercancel=${d.pointercancel}
+        @contextmenu=${d.contextmenu}
+      >
+        <button
+          class="fan-icon-btn"
+          @click=${t=>this._toggleFan(e,t)}
+          aria-label=${Re("fan.toggle_aria",{name:e.name})}
+        >
+          <ha-icon
+            .icon=${e.icon}
+            class="${e.isOn?"spinning":""} ${e.isOn&&"reverse"===e.direction?"reverse":""}"
+            style="${e.isOn?"--spin-duration:"+(h=e.percentage,h<=0?"3s":h<=20?"4s":h<=40?"2.5s":h<=60?"1.6s":h<=80?"1.1s":"0.7s"):""}"
+          ></ha-icon>
+        </button>
+        <button
+          class="fan-expand-btn"
+          aria-expanded=${o&&s?"true":"false"}
+          aria-label=${Re(o?"fan.expand_aria":"fan.toggle_aria",{name:e.name})}
+        >
+          <div class="fan-info">
+            <div class="fan-name">${ke(e.name,t?12:xe)}</div>
+            <div class="fan-sub">
+              <span class="fan-speed-text">${n}</span>
+              ${e.isOn&&null!==e.direction?N`
+                <span class="fan-direction">
+                  <ha-icon .icon=${"forward"===e.direction?"mdi:rotate-right":"mdi:rotate-left"}></ha-icon>
+                  ${"forward"===e.direction?Re("fan.direction_forward"):Re("fan.direction_reverse")}
+                </span>
+              `:B}
+            </div>
+          </div>
+          ${c?N`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:N`<div class="fan-dot"></div>`}
+        </button>
+      </div>
+    `;var h}_renderControlFold(e,t=!1){const i=this._expandedEntity===e.entityId;return N`
+      <div class="fold-sep ${i?"visible":""}"></div>
+      <div class="ctrl-fold ${i?"open":""}">
+        <div class="ctrl-fold-inner">
+          ${i?this._renderControls(e):B}
+        </div>
+      </div>
+      ${t?B:N`<div class="fold-sep ${i?"visible":""}"></div>`}
+    `}_renderControls(e){const t=e.supportedFeatures,i=!!(t&wa),a=!!(t&$a)&&e.presetModes.length>0,r=!!(t&ka),s=!!(t&xa),o=this._dragValues.get(`speed:${e.entityId}`),n=o??e.percentage,c=e.isOn||void 0!==o?Ca(n,e.speedCount):0;return N`
+      <div class="ctrl-panel">
+        ${e.isSimple?B:N`<span class="ctrl-label">${e.name}</span>`}
+
+        ${i?N`
+          <!-- Speed steps -->
+          <div class="speed-steps">
+            ${Array.from({length:e.speedCount},(t,i)=>{const a=i+1,r=Ia(a,e.speedCount),s=function(e,t){return Math.round(Ia(e,t))}(a,e.speedCount);return N`
+                <button
+                  class="speed-step ${c===a?"active":""}"
+                  @click=${t=>{t.stopPropagation(),this._setSpeed(e,r)}}
+                  aria-label=${Re("fan.speed_step_aria",{step:String(a),pct:String(s)})}
+                >
+                  <span>${a}</span>
+                  <span class="speed-step-pct">${s}%</span>
+                </button>
+              `})}
+          </div>
+
+          ${e.isSimple?B:N`
+            <!-- Speed slider (complex fans only) -->
+            <div class="slider-wrap">
+              <div class="slider-icon"><ha-icon .icon=${"mdi:speedometer"}></ha-icon></div>
+              <glass-slider
+                .value=${n}
+                .step=${Math.round(100/e.speedCount)}
+                color="var(--rgb-accent)"
+                .label=${`${n}%`}
+                @glass-slider-input=${t=>this._onSpeedSliderInput(e,t.detail.value)}
+                @glass-slider-change=${t=>this._onSpeedSliderChange(e,t.detail.value)}
+              ></glass-slider>
+            </div>
+          `}
+        `:B}
+
+        ${a?N`
+          <!-- Preset modes -->
+          <div class="mode-row">
+            ${e.presetModes.map(t=>N`
+              <button
+                class="chip ${e.presetMode===t?"active":""}"
+                @click=${i=>this._setPresetMode(e,t,i)}
+                aria-label=${Da(t)}
+              >
+                <ha-icon .icon=${Sa[t.toLowerCase()]||"mdi:cog"}></ha-icon>
+                <span>${Da(t)}</span>
+              </button>
+            `)}
+          </div>
+        `:B}
+
+        ${r?N`
+          <div class="ctrl-sep"></div>
+          <!-- Direction -->
+          <div class="direction-row">
+            <div class="direction-label">
+              <ha-icon .icon=${"mdi:rotate-3d-variant"}></ha-icon>
+              ${Re("fan.direction")}
+            </div>
+            <div class="direction-btns">
+              <button
+                class="dir-btn ${"forward"===e.direction?"active":""}"
+                @click=${t=>this._setDirection(e,"forward",t)}
+                aria-label=${Re("fan.direction_forward_aria")}
+              >
+                <ha-icon .icon=${"mdi:rotate-right"}></ha-icon>
+              </button>
+              <button
+                class="dir-btn ${"reverse"===e.direction?"active":""}"
+                @click=${t=>this._setDirection(e,"reverse",t)}
+                aria-label=${Re("fan.direction_reverse_aria")}
+              >
+                <ha-icon .icon=${"mdi:rotate-left"}></ha-icon>
+              </button>
+            </div>
+          </div>
+        `:B}
+
+        ${s?N`
+          <!-- Oscillation -->
+          <div class="osc-row">
+            <div class="osc-label">
+              <ha-icon .icon=${"mdi:arrow-left-right"}></ha-icon>
+              ${Re("fan.oscillation")}
+            </div>
+            <button
+              class="toggle-sm ${e.oscillating?"on":""}"
+              @click=${t=>this._toggleOscillation(e,t)}
+              role="switch"
+              aria-checked=${e.oscillating?"true":"false"}
+              aria-label=${Re("fan.oscillation_aria")}
+            ></button>
+          </div>
+        `:B}
+
+        ${e.lightEntityId?this._renderCeilingLight(e):B}
+      </div>
+    `}_renderCeilingLight(e){if(!e.lightEntityId||!this.hass)return B;const t=this.hass.states[e.lightEntityId];if(!t)return B;const i="on"===t.state,a=t.attributes.brightness??0,r=this._dragValues.get(`light:${e.entityId}`)??(i?Math.round(a/255*100):0);return N`
+      <div class="ctrl-sep"></div>
+      <!-- Ceiling light -->
+      <div class="ceiling-light-row">
+        <div class="ceiling-light-label">
+          <ha-icon .icon=${"mdi:lightbulb-outline"}></ha-icon>
+          ${Re("fan.ceiling_light")}
+        </div>
+        <button
+          class="toggle-sm ${i?"on":""}"
+          @click=${t=>this._toggleCeilingLight(e,t)}
+          role="switch"
+          aria-checked=${i?"true":"false"}
+          aria-label=${Re("fan.ceiling_light_aria")}
+        ></button>
+      </div>
+      ${i?N`
+        <div class="slider-wrap">
+          <div class="slider-icon"><ha-icon .icon=${"mdi:brightness-6"}></ha-icon></div>
+          <glass-slider
+            .value=${r}
+            color="var(--rgb-light-glow)"
+            .label=${`${r}%`}
+            @glass-slider-input=${t=>this._onLightSliderInput(e,t.detail.value)}
+            @glass-slider-change=${t=>this._onLightSliderChange(e,t.detail.value)}
+          ></glass-slider>
+        </div>
+      `:B}
+    `}}ya([pe({attribute:!1})],Ta.prototype,"areaId"),ya([pe({attribute:!1})],Ta.prototype,"visibleAreaIds"),ya([ue()],Ta.prototype,"_expandedEntity"),ya([ue()],Ta.prototype,"_dragValues"),ya([ue()],Ta.prototype,"_showHeader");try{customElements.define("glass-fan-card",Ta)}catch{}Ve("glass-media-card-editor");var Pa=Object.defineProperty,La=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Pa(t,i,s),s};const Ma=524288;function Aa(e){const t=e.attributes;let i=0;return t.media_position_updated_at&&(i=new Date(t.media_position_updated_at).getTime()/1e3),{entityId:e.entity_id,name:t.friendly_name||e.entity_id,state:e.state,title:t.media_title||"",artist:t.media_artist||"",albumArt:t.entity_picture||"",appName:t.app_name||"",volume:"number"==typeof t.volume_level?t.volume_level:0,isMuted:!!t.is_volume_muted,features:t.supported_features||0,groupMembers:Array.isArray(t.group_members)?t.group_members:[],shuffle:!!t.shuffle,repeat:t.repeat||"off",source:t.source||"",sourceList:Array.isArray(t.source_list)?t.source_list:[],soundMode:t.sound_mode||"",soundModeList:Array.isArray(t.sound_mode_list)?t.sound_mode_list:[],duration:"number"==typeof t.media_duration?t.media_duration:0,elapsed:"number"==typeof t.media_position?t.media_position:0,positionUpdatedAt:i,lastUpdated:e.last_updated?new Date(e.last_updated).getTime():0,icon:t.icon||"mdi:speaker"}}function Oa(e){return"playing"===e||"buffering"===e}function Ra(e){return"playing"===e||"paused"===e||"buffering"===e}function ja(e){return`${Math.floor(e/60)}:${Math.floor(e%60).toString().padStart(2,"0")}`}function Ha(e,t){return 0!==(e.features&t)}const Fa={Spotify:"mdi:spotify",AirPlay:"mdi:apple",Bluetooth:"mdi:bluetooth","Line-In":"mdi:audio-input-stereo-minijack",TV:"mdi:television",HDMI:"mdi:hdmi-port"};class qa extends We{constructor(){super(...arguments),this._foldOpen=!1,this._mediaConfig={extra_entities:{},show_header:!0},this._configLoaded=!1,this._roomIndex=0,this._roomEntityId="",this._prevPlayingSet="",this._swipeClass="",this._foldTab="controls",this._queueData=[],this._radioTracks=[],this._loadVersion=0,this._queueVersion=0,this._lastArtworkUrl="",this._configLoadingInProgress=!1,this._playersCache=null,this._playersCacheKey="",this._volumeThrottles=new Map,this._progressTimer=0,this._swipeAnimating=!1,this._swipeAnimTimer=0,this._queueRefreshTimer=0,this._prevMediaTitle="",this._lastMaster=null,this._lastMasterStaleTimer=0}static getConfigElement(){return document.createElement("glass-media-card-editor")}getCardSize(){return 4}setConfig(e){this._config=e}shouldUpdate(e){return!!super.shouldUpdate(e)&&(!this._swipeAnimating||1!==e.size||!e.has("hass"))}connectedCallback(){super.connectedCallback(),this._listen("media-config-changed",()=>{this._playersCache=null,this._loadConfig()}),this._listen("room-config-changed",()=>{this._playersCache=null}),this._listen("radio-queue-started",()=>{this._radioTracks=[]}),this._listen("radio-queue-track-added",e=>{this._radioTracks=[...this._radioTracks,e.track]}),this._listen("radio-queue-complete",()=>{this._foldOpen&&this._loadQueue()}),this._listen("radio-queue-error",e=>{console.warn("Radio queue error:",e.message)})}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._volumeThrottles.clear(),this._progressTimer&&(clearInterval(this._progressTimer),this._progressTimer=0),this._swipeAnimTimer&&(clearTimeout(this._swipeAnimTimer),this._swipeAnimTimer=0),this._queueRefreshTimer&&(clearTimeout(this._queueRefreshTimer),this._queueRefreshTimer=0),this._lastMasterStaleTimer&&(clearTimeout(this._lastMasterStaleTimer),this._lastMasterStaleTimer=0),this._lastMaster=null,++this._queueVersion,this._swipeAnimating=!1,this._swipeClass="",this._prevPlayingSet="",++this._loadVersion,this._configLoadingInProgress=!1,this._lastArtworkUrl="",this._samplingCanvas=void 0,this._samplingCtx=void 0,delete this.dataset.bgLight,this.style.removeProperty("--c-accent-dynamic"),this._unjoinUnsub?.(),this._unjoinUnsub=void 0}updated(e){if(super.updated(e),e.has("areaId")&&(this._foldOpen=!1,this._foldTab="controls",this._queueData=[],this._prevMediaTitle="",this._playersCache=null,this._playersCacheKey="",this._roomIndex=0),e.has("hass")&&this.hass){this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1),this._backend||(this._backend=new Qe(this.hass),this._loadConfig());const t=e.get("hass");t&&t.entities!==this.hass.entities&&(this._playersCache=null,this._playersCacheKey="")}if(e.has("hass")&&this.isDashboard&&this.hass){const e=Object.entries(this.hass.states).filter(([e,t])=>e.startsWith("media_player.")&&"playing"===t.state).map(([e])=>e).sort().join(",");if(e!==this._prevPlayingSet){const t=new Set(this._prevPlayingSet.split(",").filter(Boolean)),i=e.split(",").filter(Boolean).filter(e=>!t.has(e));if(this._prevPlayingSet=e,i.length>0){const e=this._getActiveRooms(),t=e.findIndex(e=>i.includes(e.entityId)||i.some(t=>e.groupMembers.includes(t)));t>=0&&t!==this._roomIndex&&(this._roomIndex=t,this._roomEntityId=e[t].entityId)}}}if(e.has("_roomIndex")&&this._foldOpen&&"queue"===this._foldTab&&(this._queueData=[],this._prevMediaTitle="",this._loadQueue()),e.has("hass")&&this.hass&&this._foldOpen&&"queue"===this._foldTab){const e=this._getCurrentMaster(),t=e?this.hass.states[e.entityId]?.attributes?.media_title??"":"";t!==this._prevMediaTitle&&(this._prevMediaTitle=t,this._queueRefreshTimer&&clearTimeout(this._queueRefreshTimer),this._queueRefreshTimer=window.setTimeout(()=>this._loadQueue(),1e3))}(e.has("hass")||e.has("_roomIndex"))&&this._syncProgressTimer(),this._updateBgLightAttribute()}_updateBgLightAttribute(){const e=this.shadowRoot?.querySelector("img.dash-art-bg");if(!e)return this._lastArtworkUrl="",delete this.dataset.bgLight,void this.style.removeProperty("--c-accent-dynamic");if(!e.complete||0===e.naturalWidth)return void e.addEventListener("load",()=>this._updateBgLightAttribute(),{once:!0});if(e.src===this._lastArtworkUrl)return;this._lastArtworkUrl=e.src;const t=16;this._samplingCanvas||(this._samplingCanvas=document.createElement("canvas"),this._samplingCanvas.width=t,this._samplingCanvas.height=t,this._samplingCtx=this._samplingCanvas.getContext("2d",{willReadFrequently:!0}));const i=this._samplingCtx;if(i)try{i.clearRect(0,0,t,t),i.drawImage(e,0,0,t,t);const a=i.getImageData(0,0,t,t).data;let r=0;const s=256;for(let e=0;e<a.length;e+=4)r+=.299*a[e]+.587*a[e+1]+.114*a[e+2];r/s/255>.55?this.dataset.bgLight="true":delete this.dataset.bgLight;let o=0,n=0,c=0,l=0;for(let e=0;e<a.length;e+=4){const t=a[e],i=a[e+1],r=a[e+2],s=Math.max(t,i,r)/255,d=Math.min(t,i,r)/255,h=s===d?0:(s+d)/2>.5?(s-d)/(2-s-d):(s-d)/(s+d);h<.15||(o+=t*h,n+=i*h,c+=r*h,l+=h)}if(l>0){const e=`rgb(${Math.round(o/l)}, ${Math.round(n/l)}, ${Math.round(c/l)})`;this.style.setProperty("--c-accent-dynamic",e)}else this.style.removeProperty("--c-accent-dynamic")}catch{delete this.dataset.bgLight,this.style.removeProperty("--c-accent-dynamic")}}_syncProgressTimer(){const e=this.hass?this._getPlayers():[],t=this._findMaster(e),i=null!=t&&Oa(t.state)&&t.duration>0;i&&!this._progressTimer?this._progressTimer=window.setInterval(()=>this.requestUpdate(),1e3):!i&&this._progressTimer&&(clearInterval(this._progressTimer),this._progressTimer=0)}getTrackedEntityIds(){return this.isDashboard&&this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("media_player.")):this._getPlayers().map(e=>e.entityId)}get isDashboard(){return!this.areaId}async _loadConfig(){if(!this._backend||this._configLoadingInProgress)return;this._configLoadingInProgress=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.media_card&&(this._mediaConfig={extra_entities:t.media_card.extra_entities??{},show_header:t.media_card.show_header??!0}),this._configLoaded=!0,this.requestUpdate()}catch{}finally{e===this._loadVersion&&(this._configLoadingInProgress=!1)}}_getPlayers(){if(!this.hass)return[];if(this.isDashboard)return Object.values(this.hass.states).filter(e=>e.entity_id.startsWith("media_player.")&&Ra(e.state)).map(Aa).sort((e,t)=>{const i=e=>"playing"===e?0:"buffering"===e?1:2,a=i(e.state)-i(t.state);return 0!==a?a:t.lastUpdated-e.lastUpdated});const e=this.areaId??"",t=this._mediaConfig.extra_entities[e]||[],i=`${e}:${JSON.stringify(t)}`;if(this._playersCache&&this._playersCacheKey===i)return this._playersCache.map(e=>{const t=this.hass?.states[e.entityId];return t?Aa(t):e});const a=(this.hass.entities?Ye(e,this.hass.entities,this.hass.devices):[]).filter(e=>e.entity_id.startsWith("media_player.")).map(e=>e.entity_id),r=[...new Set([...a,...t])].map(e=>this.hass?.states[e]).filter(e=>!!e).map(Aa);return this._playersCache=r,this._playersCacheKey=i,r}_findMaster(e){return e.find(e=>Oa(e.state))||e.find(e=>Ra(e.state))||null}_getCurrentMaster(){if(this.isDashboard){const e=this._getActiveRooms();if(!e.length)return this._lastMaster??null;return e[Math.min(this._roomIndex,e.length-1)]}return this._findMaster(this._getPlayers())}_getActiveRooms(){if(!this.hass)return[];const e=Object.values(this.hass.states).filter(e=>e.entity_id.startsWith("media_player.")&&Ra(e.state)).map(Aa);e.sort((e,t)=>{const i=(e.groupMembers.length>0&&e.groupMembers[0]===e.entityId?0:1)-(t.groupMembers.length>0&&t.groupMembers[0]===t.entityId?0:1);return 0!==i?i:t.lastUpdated-e.lastUpdated});const t=new Set,i=[];for(const a of e)if(!t.has(a.entityId)){for(const e of a.groupMembers)t.add(e);t.add(a.entityId),i.push(a)}return i}_togglePlayPause(e){Be(this,"light"),Oa(e.state)?Ha(e,1)?this._safeCallService("media_player","media_pause",{},{entity_id:e.entityId}):Ha(e,4096)&&this._safeCallService("media_player","media_stop",{},{entity_id:e.entityId}):Ha(e,16384)&&this._safeCallService("media_player","media_play",{},{entity_id:e.entityId})}_previous(e){Be(this,"light"),this._safeCallService("media_player","media_previous_track",{},{entity_id:e})}_next(e){Be(this,"light"),this._safeCallService("media_player","media_next_track",{},{entity_id:e}),this._foldOpen&&"queue"===this._foldTab&&(this._queueRefreshTimer&&clearTimeout(this._queueRefreshTimer),this._queueRefreshTimer=window.setTimeout(()=>this._loadQueue(),1e3))}_toggleMute(e){this._safeCallService("media_player","volume_mute",{is_volume_muted:!e.isMuted},{entity_id:e.entityId})}_setVolume(e,t){const i=Date.now();i-(this._volumeThrottles.get(e)||0)<100||(this._volumeThrottles.set(e,i),this._safeCallService("media_player","volume_set",{volume_level:t},{entity_id:e}))}_toggleShuffle(e){this._safeCallService("media_player","shuffle_set",{shuffle:!e.shuffle},{entity_id:e.entityId})}_cycleRepeat(e){const t="off"===e.repeat?"all":"all"===e.repeat?"one":"off";this._safeCallService("media_player","repeat_set",{repeat:t},{entity_id:e.entityId})}_selectSource(e,t){this._safeCallService("media_player","select_source",{source:t},{entity_id:e})}_selectSoundMode(e,t){this._safeCallService("media_player","select_sound_mode",{sound_mode:t},{entity_id:e})}_seekProgress(e,t,i){const a=i/100*t;this._safeCallService("media_player","media_seek",{seek_position:a},{entity_id:e})}_joinGroup(e,t){this._safeCallService("media_player","join",{group_members:[t]},{entity_id:e})}_unjoinGroup(e){this._safeCallService("media_player","unjoin",{},{entity_id:e})}async _waitForUnjoin(e,t=3e3){this._unjoinUnsub?.(),this._unjoinUnsub=void 0;const i=++this._loadVersion;return new Promise(a=>{let r=!1;const s=()=>{r||(r=!0,this._unjoinUnsub?.(),this._unjoinUnsub=void 0,clearTimeout(o))};if(!this.hass)return void a(!1);this.hass.connection.subscribeEvents(t=>{if(i===this._loadVersion){if(t.data.entity_id===e){const e=t.data.new_state?.attributes?.group_members;(!e||e.length<=1)&&(s(),a(!0))}}else s()},"state_changed").then(e=>{r?e():this._unjoinUnsub=e});const o=setTimeout(()=>{s(),a(!1)},t)})}async _smartJoin(e,t){if(!this.hass)return;const i=this.hass.states[t];if(!i)return;const a=i.attributes.group_members;a&&a.length>1&&(this._unjoinGroup(t),await this._waitForUnjoin(t),!this.isConnected||!this.hass)||this._joinGroup(e,t)}_swipeToRoom(e,t){this._swipeAnimating||(this._swipeAnimating=!0,this._foldOpen=!1,this._swipeClass="left"===e?"swipe-exit-left":"swipe-exit-right",this._swipeAnimTimer=window.setTimeout(()=>{this._roomIndex=t,this._roomEntityId="",this._swipeClass="left"===e?"swipe-enter-right":"swipe-enter-left",this._swipeAnimTimer=window.setTimeout(()=>{this._swipeClass="",this._swipeAnimating=!1},280)},220))}_onProgressPointerDown(e,t,i){e.stopPropagation();const a=e.currentTarget;a.setPointerCapture(e.pointerId);const r=a.querySelector(".dash-progress-fill"),s=a.querySelector(".dash-progress-thumb"),o=e=>{const t=a.getBoundingClientRect(),i=Math.max(0,Math.min(100,(e.clientX-t.left)/t.width*100));r.style.width=i+"%",r.style.transition="none",s.style.left=i+"%",s.style.opacity="1"};o(e);const n=e=>o(e),c=()=>{a.removeEventListener("pointermove",n),a.removeEventListener("pointerup",l),a.removeEventListener("pointercancel",c),a.removeEventListener("lostpointercapture",c),r.style.transition="",s.style.opacity=""},l=e=>{c();const r=a.getBoundingClientRect(),s=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100));this._seekProgress(t,i,s)};a.addEventListener("pointermove",n),a.addEventListener("pointerup",l),a.addEventListener("pointercancel",c),a.addEventListener("lostpointercapture",c)}_onMrVolPointerDown(e,t){e.stopPropagation();const i=e.currentTarget;i.setPointerCapture(e.pointerId);const a=i.querySelector(".mr-vol-fill"),r=i.querySelector(".mr-vol-val"),s=e=>{const s=i.getBoundingClientRect(),o=Math.max(0,Math.min(100,(e.clientX-s.left)/s.width*100));a.style.width=o+"%",r&&(r.textContent=Math.round(o)+"%"),this._setVolume(t,o/100)};s(e);const o=e=>s(e),n=()=>{Be(this,"selection"),i.removeEventListener("pointermove",o),i.removeEventListener("pointerup",n),i.removeEventListener("pointercancel",n),i.removeEventListener("lostpointercapture",n)};i.addEventListener("pointermove",o),i.addEventListener("pointerup",n),i.addEventListener("pointercancel",n),i.addEventListener("lostpointercapture",n)}_getElapsed(e){if(!Oa(e.state)||0===e.positionUpdatedAt)return e.elapsed;const t=Date.now()/1e3-e.positionUpdatedAt;return Math.min(e.elapsed+t,e.duration)}_getProgress(e){return e.duration<=0?0:Math.min(100,this._getElapsed(e)/e.duration*100)}_renderHero(e,t=1){const i=Oa(e.state),a=this._getProgress(e),r=this._getElapsed(e),s=this._getGroupablePlayers(),o=this._findGroupCoordinator(e,s),n=(o?.groupMembers||[]).length,c=this._bindGesture({onLongPress:()=>{this._foldOpen=!this._foldOpen,this._foldOpen&&this._loadQueue(),this._foldOpen&&setTimeout(()=>{const e=this.renderRoot?.querySelector(".ctrl-fold");e?.scrollIntoView({behavior:"smooth",block:"nearest"})},350)},onSwipe:e=>{this.isDashboard&&t>1&&("left"===e?this._swipeToRoom("left",(this._roomIndex+1)%t):this._swipeToRoom("right",(this._roomIndex-1+t)%t))},exclude:"button"});return N`
+      <div class="dash-wrap ${this._foldOpen?"fold-open":""}">
+        <div class="dash-hero ${this._swipeClass}"
+          @pointerdown=${c.pointerdown}
+          @pointerup=${c.pointerup}
+          @pointermove=${c.pointermove}
+          @pointercancel=${c.pointercancel}
+          @contextmenu=${c.contextmenu}
+        >
+          <!-- Full-bleed artwork background -->
+          ${e.albumArt?N`
+            <img class="dash-art-bg" src=${e.albumArt} alt="" loading="lazy" />
+          `:B}
+          <div class="dash-gradient"></div>
+          ${e.albumArt?B:N`
+            <div class="dash-deco"></div>
+            <div class="dash-placeholder">
+              <ha-icon .icon=${e.source?.toLowerCase().includes("tv")||e.icon?.includes("tv")||e.icon?.includes("television")?"mdi:television-classic":e.appName?.toLowerCase().includes("spotify")?"mdi:spotify":"playing"===e.state||"paused"===e.state?"mdi:music-note":e.icon||"mdi:speaker"}></ha-icon>
+            </div>
+          `}
+
+          <div class="dash-content">
+            <!-- Top bar: speaker badge + group badge (glass pills) -->
+            <div class="dash-top">
+              <div class="dash-speaker glass-pill">
+                <ha-icon .icon=${e.icon||"mdi:speaker"}></ha-icon>
+                <span>${ke(e.name,xe)}</span>
+                ${i?N`
+                  <div class="dash-eq playing">
+                    <div class="dash-eq-bar"></div>
+                    <div class="dash-eq-bar"></div>
+                    <div class="dash-eq-bar"></div>
+                    <div class="dash-eq-bar"></div>
+                  </div>
+                `:B}
+              </div>
+              ${n>1?N`
+                <div class="dash-group-badge glass-pill">
+                  <ha-icon .icon=${"mdi:speaker-multiple"}></ha-icon>
+                  <span>${Re("media.speakers_count",{count:n})}</span>
+                </div>
+              `:B}
+            </div>
+
+            <!-- Spacer -->
+            <div class="dash-spacer"></div>
+
+            <!-- Bottom glass panel: track info + progress + transport -->
+            <div class="dash-info-panel glass-panel">
+              <div class="dash-track">
+                ${e.title?N`
+                  <div class="dash-track-title">${ke(e.title,22)}</div>
+                `:B}
+                ${e.artist?N`
+                  <div class="dash-track-artist">${ke(e.artist,28)}</div>
+                `:B}
+              </div>
+
+              <!-- Progress bar -->
+              ${e.duration>0&&Ha(e,2)?N`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${ja(r)}</span>
+                    <span class="dash-track-time">${ja(e.duration)}</span>
+                  </div>
+                  <div class="dash-progress"
+                    aria-label=${Re("media.seek_aria")}
+                    @pointerdown=${t=>this._onProgressPointerDown(t,e.entityId,e.duration)}
+                  >
+                    <div class="dash-progress-fill" style="width:${a}%"></div>
+                    <div class="dash-progress-thumb" style="left:${a}%"></div>
+                  </div>
+                </div>
+              `:e.duration>0?N`
+                <div class="dash-progress-wrap">
+                  <div class="dash-time-row">
+                    <span class="dash-track-time">${ja(r)}</span>
+                    <span class="dash-track-time">${ja(e.duration)}</span>
+                  </div>
+                  <div class="dash-progress" style="pointer-events:none">
+                    <div class="dash-progress-fill" style="width:${a}%"></div>
+                  </div>
+                </div>
+              `:B}
+
+              <!-- Transport -->
+              <div class="dash-transport">
+                ${Ha(e,32768)?N`
+                  <button class="transport-btn ${e.shuffle?"active":""}"
+                    aria-label=${Re("media.shuffle_aria")}
+                    @click=${t=>{t.stopPropagation(),this._toggleShuffle(e)}}>
+                    <ha-icon .icon=${"mdi:shuffle-variant"}></ha-icon>
+                  </button>
+                `:B}
+
+                ${Ha(e,16)?N`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${Re("media.prev_aria",{name:e.name})}
+                    @click=${t=>{t.stopPropagation(),this._previous(e.entityId)}}>
+                    <ha-icon .icon=${"mdi:skip-previous"}></ha-icon>
+                  </button>
+                `:B}
+
+                <button class="transport-btn transport-main"
+                  aria-label=${Re(i?"media.pause_aria":"media.play_aria",{name:e.name})}
+                  @click=${t=>{t.stopPropagation(),this._togglePlayPause(e)}}>
+                  <ha-icon .icon=${i?"mdi:pause":"mdi:play"}></ha-icon>
+                </button>
+
+                ${Ha(e,32)?N`
+                  <button class="transport-btn transport-skip"
+                    aria-label=${Re("media.next_aria",{name:e.name})}
+                    @click=${t=>{t.stopPropagation(),this._next(e.entityId)}}>
+                    <ha-icon .icon=${"mdi:skip-next"}></ha-icon>
+                  </button>
+                `:B}
+
+                ${Ha(e,262144)?N`
+                  <button class="transport-btn ${"off"!==e.repeat?"active":""}"
+                    aria-label=${Re("media.repeat_aria")}
+                    @click=${t=>{t.stopPropagation(),this._cycleRepeat(e)}}>
+                    <ha-icon .icon=${"one"===e.repeat?"mdi:repeat-once":"mdi:repeat"}></ha-icon>
+                  </button>
+                `:B}
+              </div>
+
+              <div class="dash-source-row">
+                ${o&&o.entityId!==e.entityId?N`
+                  <span class="dash-coordinator-badge">
+                    <ha-icon .icon=${o.icon||"mdi:speaker"}></ha-icon>
+                    ${o.name}
+                  </span>
+                `:B}
+                ${e.source?N`
+                  <span class="dash-track-source">${e.source}</span>
+                `:B}
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation arrows (desktop hover, multi-room) -->
+          ${this.isDashboard&&t>1?N`
+            <button class="dash-nav-arrow dash-nav-left" aria-label=${Re("media.prev_room_aria")}
+              @click=${e=>{e.stopPropagation(),this._swipeToRoom("right",(this._roomIndex-1+t)%t)}}>
+              <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
+            </button>
+            <button class="dash-nav-arrow dash-nav-right" aria-label=${Re("media.next_room_aria")}
+              @click=${e=>{e.stopPropagation(),this._swipeToRoom("left",(this._roomIndex+1)%t)}}>
+              <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
+            </button>
+          `:B}
+        </div>
+
+        <!-- Connected fold -->
+        <div class="ctrl-fold ${this._foldOpen?"open":""}">
+          <div class="ctrl-fold-inner">
+            <div class="dash-fold-sep-top"></div>
+            <div class="dash-fold-panel">
+              ${this._foldOpen?this._renderFoldContent(e,o,s):B}
+            </div>
+          </div>
+        </div>
+      </div>
+    `}_renderFoldContent(e,t,i){const a="queue"===this._foldTab;return N`
+      <div class="segmented">
+        <button class="seg-btn ${a?"":"active"}"
+                @click=${()=>{this._foldTab="controls"}}>
+          ${Re("media.controls_tab")}
+        </button>
+        <button class="seg-btn ${a?"active":""}"
+                @click=${()=>{this._foldTab="queue",this._loadQueue()}}>
+          ${Re("media.queue_tab")}
+        </button>
+      </div>
+      ${a?this._renderQueueTab():this._renderControlsTab(e,t,i)}
+    `}_renderControlsTab(e,t,i){return N`
+      <!-- Volume -->
+      ${Ha(e,4)?N`
+        <div class="ctrl-label">${Re("media.volume_label")}</div>
+        <div class="volume-row">
+          ${Ha(e,8)?N`
+            <button class="volume-btn ${e.isMuted?"muted":""}"
+              aria-label=${e.isMuted?Re("media.unmute_aria",{name:e.name}):Re("media.mute_aria",{name:e.name})}
+              @click=${t=>{t.stopPropagation(),this._toggleMute(e)}}>
+              <ha-icon .icon=${e.isMuted?"mdi:volume-off":e.volume>.5?"mdi:volume-high":"mdi:volume-medium"}></ha-icon>
+            </button>
+          `:B}
+          <glass-slider
+            .value=${Math.round(100*(e.isMuted?0:e.volume))}
+            color="var(--rgb-white)"
+            .label=${`${Math.round(100*(e.isMuted?0:e.volume))}%`}
+            @glass-slider-input=${t=>this._setVolume(e.entityId,t.detail.value/100)}
+            @glass-slider-change=${t=>this._setVolume(e.entityId,t.detail.value/100)}
+          ></glass-slider>
+        </div>
+      `:B}
+
+      <!-- Source chips -->
+      ${Ha(e,2048)&&e.sourceList.length>0?N`
+        <div class="dash-fold-sep"></div>
+        <div class="ctrl-label">${Re("media.source_label")}</div>
+        <div class="chips-row">
+          ${e.sourceList.map(t=>N`
+            <button class="chip ${e.source===t?"active":""}"
+              @click=${i=>{i.stopPropagation(),this._selectSource(e.entityId,t)}}>
+              <ha-icon .icon=${Fa[t]||"mdi:import"}></ha-icon>
+              <span>${t}</span>
+            </button>
+          `)}
+        </div>
+      `:B}
+
+      <!-- Sound mode chips -->
+      ${Ha(e,65536)&&e.soundModeList.length>0?N`
+        <div class="dash-fold-sep"></div>
+        <div class="ctrl-label">${Re("media.sound_mode_label")}</div>
+        <div class="chips-row">
+          ${e.soundModeList.map(t=>N`
+            <button class="chip ${e.soundMode===t?"active":""}"
+              @click=${i=>{i.stopPropagation(),this._selectSoundMode(e.entityId,t)}}>
+              <ha-icon .icon=${"mdi:equalizer"}></ha-icon>
+              <span>${t}</span>
+            </button>
+          `)}
+        </div>
+      `:B}
+
+      <!-- Multiroom grid (show if any groupable speakers exist) -->
+      ${i.length>1?this._renderMultiroomGrid(t,i):B}
+    `}async _loadQueue(){if(!this.hass)return;const e=++this._queueVersion,t=this._getCurrentMaster();if(t)try{const i=await this.hass.connection.sendMessagePromise({type:"call_service",domain:"sonos",service:"get_queue",target:{entity_id:t.entityId},return_response:!0});if(e!==this._queueVersion)return;const a=i?.response?.[t.entityId]??[];this._queueData=a.map(e=>({name:e.media_title??"",artist:e.media_artist??"",album_name:e.media_album_name??"",content_id:e.media_content_id??""}))}catch(i){if(e!==this._queueVersion)return;console.warn("[glass] queue load error:",i)}}_renderQueueTab(){const e=this._getCurrentMaster(),t=e?this.hass?.states[e.entityId]?.attributes?.queue_position??0:0,i=this._queueData.slice(t);return i.length?N`
+      <div class="queue-list">
+        ${i.map((e,i)=>{const a=e.name??"",r=e.artist??"",s=e.content_id??"",o=!!s&&this._radioTracks.some(e=>e.uri===s),n=t+i;return N`
+            <div class="queue-item">
+              <div class="queue-num">${i+1}</div>
+              <div class="queue-info">
+                <span class="queue-title">${ke(a,xe)}</span>
+                <span class="queue-artist">${r}</span>
+              </div>
+              ${o?N`<span class="queue-badge">${Re("media.radio_badge")}</span>`:B}
+              <button class="btn-icon xs queue-remove" aria-label="${Re("media.remove_from_queue")}"
+                      @click=${e=>{e.stopPropagation(),this._removeFromQueue(n)}}>
+                <ha-icon icon="mdi:close"></ha-icon>
+              </button>
+            </div>
+          `})}
+      </div>
+    `:N`<div class="queue-empty">${Re("media.queue_empty")}</div>`}async _removeFromQueue(e){if(this.configPreview)return;const t=this._getCurrentMaster();if(t&&this.hass){this._queueData=this._queueData.filter((t,i)=>i!==e);try{await this.hass.callService("sonos","remove_from_queue",{queue_position:e},{entity_id:t.entityId})}catch{this._loadQueue()}}}_getGroupablePlayers(){return this.hass?Object.values(this.hass.states).filter(e=>e.entity_id.startsWith("media_player.")).map(Aa).filter(e=>Ha(e,Ma)):[]}_findGroupCoordinator(e,t){if(Ha(e,Ma))return e;const i=t.find(t=>Oa(t.state)&&t.title&&t.title===e.title);return i||null}_renderMultiroomGrid(e,t){if(!this.hass||!e)return N``;const i=e.entityId,a=new Set(e.groupMembers),r=t.filter(e=>e.entityId!==i);return 0===r.length?N``:N`
+      <div class="dash-fold-sep"></div>
+      <div class="ctrl-label">${Re("media.speakers_label")}</div>
+      <div class="multiroom-grid">
+        ${r.map(e=>{const t=a.has(e.entityId);return N`
+            <div class="mr-cell ${t?"joined":""}">
+              <div class="mr-cell-top">
+                <button class="mr-icon-btn"
+                  aria-label=${Re(t?"media.remove_group_aria":"media.add_group_aria",{name:e.name})}
+                  @click=${a=>{a.stopPropagation(),t?this._unjoinGroup(e.entityId):this._smartJoin(i,e.entityId)}}>
+                  <ha-icon .icon=${e.icon||"mdi:speaker"}></ha-icon>
+                </button>
+                <div class="mr-info">
+                  <div class="mr-name">${e.name}</div>
+                </div>
+              </div>
+              ${t?N`
+                <div class="mr-vol-slider"
+                  @pointerdown=${t=>this._onMrVolPointerDown(t,e.entityId)}>
+                  <div class="mr-vol-fill" style="width:${Math.round(100*e.volume)}%"></div>
+                  <div class="mr-vol-icon"><ha-icon .icon=${"mdi:volume-medium"}></ha-icon></div>
+                  <span class="mr-vol-val">${Math.round(100*e.volume)}%</span>
+                </div>
+              `:B}
+            </div>
+          `})}
+      </div>
+    `}_collapseExpanded(){this._foldOpen&&(this._foldOpen=!1,this._foldTab="controls")}render(){if(this._lang,!this.hass)return B;if(!this._configLoaded)return B;const e=this._mediaConfig.show_header;if(this.isDashboard){const t=this._getActiveRooms();if(0===t.length)return this._lastMaster?(this._lastMasterStaleTimer||(this._lastMasterStaleTimer=window.setTimeout(()=>{this._lastMaster=null,this._lastMasterStaleTimer=0,this.requestUpdate()},2e3)),N`
+          ${e?N`
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-title">${Re("media.title")}</span>
+              </div>
+            </div>
+          `:B}
+          ${this._renderHero(this._lastMaster)}
+        `):B;if(this._lastMasterStaleTimer&&(clearTimeout(this._lastMasterStaleTimer),this._lastMasterStaleTimer=0),this._roomEntityId){const e=t.findIndex(e=>e.entityId===this._roomEntityId);e>=0?this._roomIndex=e:this._roomIndex>=t.length&&(this._roomIndex=0)}this._roomIndex>=t.length&&(this._roomIndex=0);const i=t[this._roomIndex];return this._roomEntityId=i.entityId,this._lastMaster=i,N`
+        ${e?N`
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-title">${Re("media.title")}</span>
+            </div>
+            ${i.source?N`
+              <span class="card-source active">${i.source}</span>
+            `:B}
+          </div>
+        `:B}
+        ${this._renderHero(i,t.length)}
+        ${t.length>1?N`
+          <div class="dash-dots">
+            ${t.map((e,t)=>N`
+              <button class="dash-dot ${t===this._roomIndex?"active":""}"
+                aria-label=${Re("media.room_dot_aria",{index:t+1})}
+                aria-current=${t===this._roomIndex?"true":"false"}
+                @click=${e=>{e.stopPropagation(),t!==this._roomIndex&&this._swipeToRoom(t>this._roomIndex?"left":"right",t)}}>
+              </button>
+            `)}
+          </div>
+        `:B}
+      `}const t=this._getPlayers(),i=this._findMaster(t);return i&&Ra(i.state)?(this._lastMasterStaleTimer&&(clearTimeout(this._lastMasterStaleTimer),this._lastMasterStaleTimer=0),this._lastMaster=i,N`
+      ${e?N`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${Re("media.title")}</span>
+          </div>
+          ${i.source?N`
+            <span class="card-source active">${i.source}</span>
+          `:B}
+        </div>
+      `:B}
+      ${this._renderHero(i)}
+    `):this._lastMaster?(this._lastMasterStaleTimer||(this._lastMasterStaleTimer=window.setTimeout(()=>{this._lastMaster=null,this._lastMasterStaleTimer=0,this.requestUpdate()},2e3)),N`
+        ${e?N`
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-title">${Re("media.title")}</span>
+            </div>
+          </div>
+        `:B}
+        ${this._renderHero(this._lastMaster)}
+      `):B}static{this.styles=[ve,be,ye,we,$e,Se,s`
+      :host {
+        width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
+        /* media player tokens */
+        --mp-color: #818cf8;
+        --mp-bg: rgba(var(--rgb-accent),0.1);
+        --mp-border: rgba(var(--rgb-accent),0.15);
+        --mp-glow: rgba(var(--rgb-accent),0.4);
+        --mp-sub: rgba(var(--rgb-accent),0.55);
+      }
+
+      /* ── Header ── */
+      .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
+      }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+      .card-title {
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1.5px; color: var(--t4);
+      }
+      .card-source {
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 50%;
+        opacity: 0; transition: opacity var(--t-fast);
+      }
+      .card-source.active { opacity: 1; color: rgba(var(--rgb-white),0.6); }
+
+      /* ── Swipe slide animation ── */
+      @keyframes swipe-exit-l {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+      }
+      @keyframes swipe-enter-r {
+        0%   { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+      @keyframes swipe-exit-r {
+        0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+      }
+      @keyframes swipe-enter-l {
+        0%   { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+        100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+      }
+      .swipe-exit-left  { animation: swipe-exit-l 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-enter-right { animation: swipe-enter-r 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-exit-right  { animation: swipe-exit-r 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards; pointer-events: none; will-change: transform, opacity; }
+      .swipe-enter-left  { animation: swipe-enter-l 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: none; will-change: transform, opacity; }
+
+      /* ── Dash wrap ── */
+      .dash-wrap {
+        position: relative; z-index: 1;
+        display: flex; flex-direction: column; gap: 0;
+      }
+
+      /* ── Hero card ── */
+      .dash-hero {
+        position: relative;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background: #111;
+        border: 1px solid var(--b2);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+        touch-action: pan-y;
+        user-select: none; -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-radius var(--t-layout), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) { .dash-hero:hover { border-color: var(--b3); } }
+
+      /* Connected fold: hero loses bottom radius when fold is open */
+      .dash-wrap.fold-open .dash-hero {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
+      }
+
+      /* ── Full-bleed artwork background ── */
+      .dash-art-bg {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; pointer-events: none; z-index: 0;
+        transition: opacity 0.8s;
+      }
+
+      /* ── Gradient overlay — minimal vignette to preserve artwork visibility ── */
+      .dash-gradient {
+        position: absolute; inset: 0; pointer-events: none; z-index: 1;
+        background: linear-gradient(
+          to bottom,
+          rgba(var(--rgb-black),0.08) 0%,
+          rgba(var(--rgb-black),0) 25%,
+          rgba(var(--rgb-black),0) 50%,
+          rgba(var(--rgb-black),0.15) 75%,
+          rgba(var(--rgb-black),0.4) 100%
+        );
+      }
+
+      /* ── Decorative shapes (no-artwork fallback) ── */
+      .dash-deco {
+        position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+        background: linear-gradient(135deg, rgba(30,30,50,1) 0%, rgba(15,15,30,1) 50%, rgba(25,20,40,1) 100%);
+      }
+      .dash-deco::before {
+        content: ''; position: absolute;
+        width: 17.5rem; height: 17.5rem; border-radius: 50%;
+        top: -5rem; right: -3.75rem;
+        background: radial-gradient(circle, rgba(var(--rgb-white),0.05), transparent 70%);
+      }
+      .dash-deco::after {
+        content: ''; position: absolute;
+        width: 13.75rem; height: 13.75rem; border-radius: 50%;
+        bottom: -3.125rem; left: -2.5rem;
+        background: radial-gradient(circle, rgba(168,85,247,0.06), transparent 70%);
+      }
+      .dash-placeholder {
+        position: absolute; inset: 0; pointer-events: none; z-index: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .dash-placeholder ha-icon {
+        --mdc-icon-size: 5rem;
+        color: rgba(var(--rgb-white),0.06);
+        display: flex; align-items: center; justify-content: center;
+      }
+
+      /* ── Content ── */
+      .dash-content {
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column;
+        min-height: 21.25rem;
+        padding: 0.875rem;
+      }
+
+      /* ── Glass pill (shared for top badges) ── */
+      .glass-pill {
+        backdrop-filter: var(--blur-md);
+        -webkit-backdrop-filter: var(--blur-md);
+        background: rgba(var(--rgb-black),0.22);
+        border: 1px solid rgba(var(--rgb-white),0.12);
+        box-shadow: 0 2px 8px rgba(var(--rgb-black),0.2);
+      }
+
+      /* ── Glass panel (bottom info card) — frosted glass, artwork bleeds through ── */
+      .glass-panel {
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(10px) saturate(1.4);
+        -webkit-backdrop-filter: blur(10px) saturate(1.4);
+        background: rgba(var(--rgb-black),0.25);
+        border: 1px solid rgba(var(--rgb-white),0.12);
+        box-shadow:
+          0 4px 16px rgba(var(--rgb-black),0.12),
+          inset 0 1px 0 rgba(var(--rgb-white),0.08);
+      }
+
+      /* ── Top bar ── */
+      .dash-top {
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .dash-speaker {
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        padding: 0.25rem 0.625rem 0.25rem 0.375rem;
+        border-radius: var(--radius-full, 9999px);
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.9);
+        overflow: hidden; white-space: nowrap;
+      }
+      .dash-speaker ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.8125rem;
+      }
+      .dash-group-badge {
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        padding: 0.125rem 0.5rem; border-radius: var(--radius-xl);
+        color: rgba(var(--rgb-white),0.9);
+        font-size: var(--fz-sm); font-weight: 600;
+      }
+      .dash-group-badge ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.75rem;
+      }
+
+      /* ── Equalizer bars ── */
+      .dash-eq {
+        display: flex; align-items: flex-end; gap: 0.125rem;
+        height: 0.875rem; margin-left: 0.375rem;
+      }
+      .dash-eq-bar {
+        width: 0.1875rem; border-radius: 1.5px;
+        background: #fff;
+        box-shadow: 0 0 3px rgba(var(--rgb-white),0.6);
+      }
+      .dash-eq.playing .dash-eq-bar:nth-child(1) {
+        height: 40%; animation: eq-lo 0.65s ease-in-out infinite alternate;
+      }
+      .dash-eq.playing .dash-eq-bar:nth-child(2) {
+        height: 80%; animation: eq-hi 0.52s ease-in-out infinite alternate;
+        animation-delay: 0.12s;
+      }
+      .dash-eq.playing .dash-eq-bar:nth-child(3) {
+        height: 55%; animation: eq-mid 0.78s ease-in-out infinite alternate;
+        animation-delay: 0.25s;
+      }
+      .dash-eq.playing .dash-eq-bar:nth-child(4) {
+        height: 70%; animation: eq-lo 0.6s ease-in-out infinite alternate;
+        animation-delay: 0.08s;
+      }
+      @keyframes eq-lo  { 0% { height: 15%; } 100% { height: 70%; } }
+      @keyframes eq-mid { 0% { height: 20%; } 100% { height: 90%; } }
+      @keyframes eq-hi  { 0% { height: 25%; } 100% { height: 100%; } }
+
+      /* ── Spacer ── */
+      .dash-spacer { flex: 1; }
+
+      /* ── Bottom info panel ── */
+      .dash-info-panel {
+        position: relative; z-index: 10;
+        display: flex; flex-direction: column; gap: 0.5rem;
+        padding: 0.75rem 0.875rem;
+      }
+
+      /* ── Track info ── */
+      .dash-track {
+        display: flex; flex-direction: column; gap: 0.125rem;
+        min-width: 0;
+      }
+      .dash-track-title {
+        font-size: var(--fz-lg); font-weight: 700; color: #fff; line-height: 1.2;
+        overflow: hidden; white-space: nowrap;
+        text-shadow: 0 1px 4px rgba(var(--rgb-black),0.5), 0 0 12px rgba(var(--rgb-black),0.3);
+      }
+      .dash-track-artist {
+        font-size: var(--fz-base); font-weight: 500; color: rgba(var(--rgb-white),0.75);
+        overflow: hidden; white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(var(--rgb-black),0.5);
+      }
+
+      /* ── Time row ── */
+      .dash-time-row {
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .dash-track-time {
+        font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-white),0.4);
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 1px 2px rgba(var(--rgb-black),0.4);
+      }
+      .dash-track-source {
+        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.5px; color: rgba(var(--rgb-white),0.3);
+        padding: 0.0625rem 0.375rem; border-radius: 4px;
+        background: rgba(var(--rgb-white),0.06);
+      }
+      .dash-source-row {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        margin-top: -0.125rem;
+      }
+      .dash-coordinator-badge {
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        font-size: var(--fz-xs); font-weight: 600; color: rgba(var(--rgb-white),0.5);
+      }
+      .dash-coordinator-badge ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.6875rem;
+      }
+
+      /* ── Progress bar ── */
+      .dash-progress-wrap {
+        margin-top: 0;
+      }
+      .dash-progress {
+        position: relative; width: 100%; height: 0.25rem;
+        border-radius: 2px; background: var(--s2);
+        cursor: pointer; touch-action: none;
+        transition: height var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .dash-progress:hover { height: 0.375rem; }
+        .dash-progress:hover .dash-progress-thumb { opacity: 1; }
+      }
+      .dash-progress-fill {
+        position: absolute; top: 0; left: 0; height: 100%;
+        border-radius: inherit;
+        background: rgba(var(--rgb-white),0.85);
+        box-shadow: 0 0 8px rgba(var(--rgb-white),0.3);
+        transition: width 0.3s linear;
+        pointer-events: none;
+      }
+      .dash-progress-thumb {
+        position: absolute; top: 50%; transform: translate(-50%, -50%);
+        width: 0.625rem; height: 0.625rem; border-radius: 50%;
+        background: #fff; box-shadow: 0 0 6px rgba(var(--rgb-black),0.3);
+        pointer-events: none; opacity: 0; transition: opacity var(--t-fast);
+      }
+
+      /* ── Transport ── */
+      .dash-transport {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        margin-top: 0.125rem;
+      }
+      .transport-btn {
+        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+        background: transparent; border: 1px solid transparent;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+        -webkit-tap-highlight-color: transparent;
+        color: rgba(var(--rgb-white),0.85);
+      }
+      .transport-btn ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-md);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .transport-btn:hover { background: rgba(var(--rgb-white),0.08); color: #fff; }
+      }
+      .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
+      .transport-btn.active {
+        color: #fff;
+        background: rgba(var(--rgb-white),0.12);
+        border-color: rgba(var(--rgb-white),0.25);
+      }
+
+      .transport-skip { width: 2.5rem; height: 2.5rem; }
+      .transport-skip ha-icon { --mdc-icon-size: 1.625rem; }
+      .transport-skip { color: rgba(var(--rgb-white),0.85); }
+
+      .transport-main {
+        width: 3.25rem; height: 3.25rem; border-radius: var(--radius-lg);
+        background: rgba(var(--rgb-white),0.12); border: 1px solid rgba(var(--rgb-white),0.15);
+        color: #fff;
+      }
+      .transport-main ha-icon { --mdc-icon-size: 1.75rem; }
+      @media (hover: hover) and (pointer: fine) {
+        .transport-main:hover {
+          background: rgba(var(--rgb-white),0.2); border-color: rgba(var(--rgb-white),0.25);
+        }
+        .transport-main:active { transform: scale(0.96); }
+      }
+      @media (pointer: coarse) { .transport-main:active { animation: bounce 0.3s ease; } }
+
+      /* ── Idle state ── */
+      .dash-idle {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        flex: 1; gap: 0.5rem; padding: 1.25rem;
+      }
+      .dash-idle ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 2rem; color: var(--t4);
+      }
+      .dash-idle span { font-size: var(--fz-base); color: var(--t3); font-weight: 500; }
+
+      /* ── Navigation arrows (hover on sides) ── */
+      .dash-nav-arrow {
+        position: absolute; top: 0; bottom: 0; width: 2.5rem; z-index: 8;
+        display: flex; align-items: center; justify-content: center;
+        background: none; border: none; cursor: pointer; padding: 0;
+        opacity: 0; transition: opacity var(--t-fast);
+        -webkit-tap-highlight-color: transparent; outline: none;
+      }
+      .dash-nav-arrow ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-xl); color: rgba(var(--rgb-white),0.7);
+        filter: drop-shadow(0 1px 4px rgba(var(--rgb-black),0.5));
+        transition: color var(--t-fast);
+      }
+      .dash-nav-left { left: 0; border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
+      .dash-nav-right { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
+      @media (hover: hover) and (pointer: fine) {
+        .dash-nav-left:hover, .dash-nav-right:hover {
+          background: linear-gradient(90deg, rgba(var(--rgb-black),0.25), transparent);
+        }
+        .dash-nav-right:hover {
+          background: linear-gradient(270deg, rgba(var(--rgb-black),0.25), transparent);
+        }
+        .dash-nav-arrow:hover ha-icon { color: #fff; }
+        .dash-hero:hover .dash-nav-arrow { opacity: 1; }
+      }
+      @media (pointer: coarse) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .dash-nav-arrow:active { transform: scale(0.95); } }
+      .dash-nav-arrow:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+      /* ── Room dots (dashboard swipe indicator) ── */
+      .dash-dots {
+        display: flex; justify-content: center; gap: 0.375rem;
+        padding: 0.5rem 0 0.125rem;
+      }
+      .dash-dot {
+        width: 0.375rem; height: 0.375rem; border-radius: 50%;
+        background: rgba(var(--rgb-white),0.2); border: none;
+        padding: 0; cursor: pointer; transition: all var(--t-fast);
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      .dash-dot.active {
+        background: rgba(var(--rgb-white),0.7);
+        transform: scale(1.3);
+      }
+      @media (hover: hover) and (pointer: fine) { .dash-dot:hover { background: rgba(var(--rgb-white),0.5); } }
+      @media (pointer: coarse) { .dash-dot:active { animation: bounce 0.3s ease; } }
+      .dash-dot:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.5); outline-offset: 2px; }
+
+      /* ══════════════════════════════════════════
+         Connected Fold
+         ══════════════════════════════════════════ */
+      .ctrl-fold {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0; transition: opacity 0.25s;
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
+        backdrop-filter: var(--blur-lg);
+        -webkit-backdrop-filter: var(--blur-lg);
+        border: 1px solid var(--b2);
+        border-top: none;
+        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+      }
+      .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+      .ctrl-label {
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1px; color: rgba(var(--rgb-white),0.5); margin-bottom: -0.25rem;
+      }
+
+      .dash-fold-sep-top {
+        height: 0.0625rem; margin: 0 0.75rem;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
+      }
+      .dash-fold-panel {
+        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 1rem 0.875rem;
+      }
+      .dash-fold-sep {
+        height: 0.0625rem; margin: 0.125rem 0;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
+      }
+
+      /* ── Volume row ── */
+      .volume-row { display: flex; align-items: center; gap: 0.5rem; }
+      .volume-btn {
+        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
+        background: transparent; border: none;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+        -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+        color: rgba(var(--rgb-white),0.85);
+      }
+      .volume-btn ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-md);
+      }
+      @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: #fff; } }
+      .volume-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
+      .volume-btn.muted { color: var(--c-alert); }
+
+      /* ── Volume slider ── */
+      glass-slider { flex: 1; }
+
+      /* ── Chips ── */
+      .chips-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 0.3125rem;
+        padding: 0.3125rem 0.625rem; border-radius: var(--radius-md);
+        border: 1px solid var(--b2); background: var(--s1);
+        font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.8px;
+        color: rgba(var(--rgb-white),0.7); cursor: pointer; transition: all var(--t-fast);
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      .chip ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-sm);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .chip:hover { background: var(--s3); color: #fff; border-color: var(--b3); }
+      }
+      .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
+      .chip.active {
+        border-color: rgba(var(--rgb-white),0.25); background: rgba(var(--rgb-white),0.1);
+        color: #fff;
+      }
+
+      /* ── Multiroom grid ── */
+      .multiroom-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem;
+      }
+      .mr-cell {
+        display: flex; flex-direction: column; gap: 0.25rem;
+        padding: 0.375rem; border-radius: var(--radius-md);
+        background: var(--s1); border: 1px solid var(--b1);
+        transition: all var(--t-fast);
+      }
+      .mr-cell.joined {
+        background: rgba(var(--rgb-white),0.04); border-color: rgba(var(--rgb-white),0.15);
+      }
+      .mr-cell-top {
+        display: flex; align-items: center; gap: 0.375rem;
+      }
+      .mr-icon-btn {
+        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
+        background: var(--s2); border: 1px solid var(--b1);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        cursor: pointer; padding: 0; outline: none;
+        transition: all var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+        color: rgba(var(--rgb-white),0.6);
+      }
+      .mr-icon-btn ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-sm);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: #fff; }
+      }
+      @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
+      @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
+      .mr-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      .mr-cell.joined .mr-icon-btn {
+        background: rgba(var(--rgb-white),0.08); border-color: rgba(var(--rgb-white),0.15); color: #fff;
+      }
+
+      .mr-info { flex: 1; min-width: 0; }
+      .mr-name {
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .mr-cell.joined .mr-name { color: #fff; }
+      .mr-coordinator {
+        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+        color: rgba(var(--rgb-white),0.5);
+      }
+
+      /* Multiroom volume slider */
+      .mr-vol-slider {
+        position: relative; width: 100%; height: 1.25rem;
+        border-radius: var(--radius-xs); background: var(--s2);
+        border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+        touch-action: none; user-select: none; -webkit-user-select: none;
+      }
+      .mr-vol-fill {
+        position: absolute; top: 0; left: 0; height: 100%;
+        border-radius: inherit; pointer-events: none;
+        background: linear-gradient(90deg, rgba(var(--rgb-white),0.06), rgba(var(--rgb-white),0.12));
+        transition: width var(--t-fast);
+      }
+      .mr-cell.joined .mr-vol-fill {
+        background: linear-gradient(90deg, rgba(var(--rgb-white),0.1), rgba(var(--rgb-white),0.2));
+      }
+      .mr-vol-val {
+        position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
+        font-size: var(--fz-xxs); font-weight: 600; color: rgba(var(--rgb-white),0.5); pointer-events: none;
+        font-variant-numeric: tabular-nums;
+      }
+      .mr-cell.joined .mr-vol-val { color: rgba(var(--rgb-white),0.7); }
+      .mr-vol-icon {
+        position: absolute; top: 0; bottom: 0; left: 0.375rem;
+        display: flex; align-items: center;
+        pointer-events: none;
+      }
+      .mr-vol-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.6875rem; color: rgba(var(--rgb-white),0.5);
+      }
+      .mr-cell.joined .mr-vol-icon ha-icon { color: rgba(var(--rgb-white),0.7); }
+
+      /* ── Segmented control ── */
+      .segmented {
+        display: inline-flex; gap: 0;
+        border-radius: var(--radius-lg); background: var(--s1);
+        border: 1px solid var(--b1); padding: 0.1875rem;
+        margin-bottom: 0.5rem; width: 100%;
+      }
+      .seg-btn {
+        flex: 1;
+        padding: 0.4375rem 0; border-radius: var(--radius-sm);
+        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+        color: rgba(var(--rgb-white),0.6); cursor: pointer; transition: all var(--t-fast);
+        border: none; background: transparent; outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .seg-btn.active {
+        background: rgba(var(--rgb-white),0.12); color: #fff;
+        box-shadow: 0 1px 4px rgba(var(--rgb-black),0.2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .seg-btn:hover:not(.active) { color: rgba(var(--rgb-white),0.85); }
+      }
+      .seg-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+      /* ── Queue tab ── */
+      .queue-loading, .queue-empty {
+        text-align: center;
+        padding: 1.25rem 0;
+        font-size: var(--fz-base);
+        color: rgba(var(--rgb-white),0.6);
+        font-weight: 500;
+      }
+      .queue-list {
+        max-height: 17.5rem;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .queue-list::-webkit-scrollbar { display: none; }
+      .queue-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.25rem;
+      }
+      .queue-num {
+        width: 1.25rem;
+        flex-shrink: 0;
+        font-size: var(--fz-base);
+        font-weight: 500;
+        color: rgba(var(--rgb-white),0.5);
+        text-align: center;
+      }
+      .queue-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .queue-title {
+        font-size: var(--fz-base);
+        font-weight: 500;
+        color: #fff;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .queue-artist {
+        font-size: var(--fz-sm);
+        color: rgba(var(--rgb-white),0.6);
+      }
+      .queue-badge {
+        font-size: var(--fz-xs);
+        padding: 0.0625rem 0.3125rem;
+        border-radius: var(--radius-sm);
+        background: rgba(var(--rgb-white),0.08);
+        color: rgba(var(--rgb-white),0.85);
+        flex-shrink: 0;
+      }
+      .queue-item .btn-icon {
+        width: 1.5rem; height: 1.5rem;
+        border-radius: var(--radius-sm);
+        background: transparent; border: none;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; padding: 0; outline: none;
+        color: rgba(var(--rgb-white),0.6); flex-shrink: 0;
+        transition: color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .queue-item .btn-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 1rem;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .queue-item .btn-icon:hover { color: #fff; }
+      }
+      .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      .queue-remove { opacity: 0.4; --mdc-icon-size: var(--icon-sm); }
+      @media (hover: hover) and (pointer: fine) {
+        .queue-remove:hover { opacity: 1; color: var(--c-alert, #ef4444) !important; }
+      }
+      @media (pointer: coarse) { .queue-remove:active { animation: bounce 0.3s ease; } }
+    `]}}La([pe()],qa.prototype,"areaId"),La([ue()],qa.prototype,"_foldOpen"),La([ue()],qa.prototype,"_mediaConfig"),La([ue()],qa.prototype,"_configLoaded"),La([ue()],qa.prototype,"_roomIndex"),La([ue()],qa.prototype,"_swipeClass"),La([ue()],qa.prototype,"_foldTab"),La([ue()],qa.prototype,"_queueData"),La([ue()],qa.prototype,"_radioTracks");try{customElements.define("glass-media-card",qa)}catch{}Ve("glass-weather-card-editor");var Va=Object.defineProperty,Na=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Va(t,i,s),s};const Ua={sunny:"sunny","clear-night":"clear_night",partlycloudy:"partly_cloudy",cloudy:"cloudy",fog:"foggy",rainy:"rainy",pouring:"pouring",snowy:"snowy","snowy-rainy":"snowy_rainy",hail:"hail",lightning:"lightning","lightning-rainy":"stormy",windy:"windy","windy-variant":"windy_variant",exceptional:"exceptional"},Wa={sunny:{icon:"mdi:weather-sunny",textKey:"weather.cond_sunny",tint:"#fbbf24",tintOp:.1,sparkStroke:"rgba(251,191,36,0.6)",sparkFill:"rgba(251,191,36,0.15)"},clear_night:{icon:"mdi:weather-night",textKey:"weather.cond_clear_night",tint:"#818cf8",tintOp:.08,sparkStroke:"rgba(129,140,248,0.5)",sparkFill:"rgba(129,140,248,0.12)"},partly_cloudy:{icon:"mdi:weather-partly-cloudy",textKey:"weather.cond_partly_cloudy",tint:"#fcd34d",tintOp:.07,sparkStroke:"rgba(252,211,77,0.5)",sparkFill:"rgba(252,211,77,0.12)"},cloudy:{icon:"mdi:weather-cloudy",textKey:"weather.cond_cloudy",tint:"#94a3b8",tintOp:.04,sparkStroke:"rgba(148,163,184,0.4)",sparkFill:"rgba(148,163,184,0.08)"},foggy:{icon:"mdi:weather-fog",textKey:"weather.cond_foggy",tint:"#94a3b8",tintOp:.04,sparkStroke:"rgba(148,163,184,0.35)",sparkFill:"rgba(148,163,184,0.08)"},rainy:{icon:"mdi:weather-rainy",textKey:"weather.cond_rainy",tint:"#60a5fa",tintOp:.1,sparkStroke:"rgba(96,165,250,0.6)",sparkFill:"rgba(96,165,250,0.15)"},pouring:{icon:"mdi:weather-pouring",textKey:"weather.cond_pouring",tint:"#3b82f6",tintOp:.14,sparkStroke:"rgba(59,130,246,0.7)",sparkFill:"rgba(59,130,246,0.18)"},snowy:{icon:"mdi:weather-snowy",textKey:"weather.cond_snowy",tint:"#e0f2fe",tintOp:.08,sparkStroke:"rgba(224,242,254,0.5)",sparkFill:"rgba(224,242,254,0.12)"},snowy_rainy:{icon:"mdi:weather-snowy-rainy",textKey:"weather.cond_snowy_rainy",tint:"#93c5fd",tintOp:.08,sparkStroke:"rgba(147,197,253,0.5)",sparkFill:"rgba(147,197,253,0.12)"},hail:{icon:"mdi:weather-hail",textKey:"weather.cond_hail",tint:"#bae6fd",tintOp:.1,sparkStroke:"rgba(186,230,253,0.5)",sparkFill:"rgba(186,230,253,0.12)"},lightning:{icon:"mdi:weather-lightning",textKey:"weather.cond_lightning",tint:"#c084fc",tintOp:.12,sparkStroke:"rgba(192,132,252,0.6)",sparkFill:"rgba(167,139,250,0.15)"},stormy:{icon:"mdi:weather-lightning-rainy",textKey:"weather.cond_stormy",tint:"#a78bfa",tintOp:.12,sparkStroke:"rgba(167,139,250,0.6)",sparkFill:"rgba(167,139,250,0.15)"},windy:{icon:"mdi:weather-windy",textKey:"weather.cond_windy",tint:"#6ee7b7",tintOp:.06,sparkStroke:"rgba(110,231,183,0.5)",sparkFill:"rgba(110,231,183,0.10)"},windy_variant:{icon:"mdi:weather-windy-variant",textKey:"weather.cond_windy_variant",tint:"#6ee7b7",tintOp:.06,sparkStroke:"rgba(110,231,183,0.4)",sparkFill:"rgba(110,231,183,0.10)"},exceptional:{icon:"mdi:alert-circle-outline",textKey:"weather.cond_exceptional",tint:"#fca5a5",tintOp:.1,sparkStroke:"rgba(252,165,165,0.5)",sparkFill:"rgba(252,165,165,0.12)"}},Ba=["compass_N","compass_NNE","compass_NE","compass_ENE","compass_E","compass_ESE","compass_SE","compass_SSE","compass_S","compass_SSW","compass_SW","compass_WSW","compass_W","compass_WNW","compass_NW","compass_NNW"];function Ka(e){return e<10?"0"+e:""+e}class Ya extends We{constructor(){super(...arguments),this._activeTab=null,this._forecastDaily=[],this._forecastHourly=[],this._clockTime="",this._clockSec="",this._clockDay="",this._clockDate="",this._weatherConfig={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},this._canvas=null,this._ctx=null,this._animId=0,this._particles=[],this._flashState={on:!1,opacity:0,timer:0,interval:200,color:"rgba(167,139,250,"},this._cW=0,this._cH=0,this._resizeObserver=null,this._cachedCond="",this._clockInterval=0,this._unsubDaily=null,this._unsubHourly=null,this._configLoaded=!1,this._configLoadingInProgress=!1,this._canvasReady=!1,this._needsCanvasReInit=!1,this._subscribedEntity="",this._subscribedShowDaily=!1,this._subscribedShowHourly=!1,this._subVersion=0,this._animRunning=!1,this._animate=()=>{if(!this.isConnected||!this._animRunning)return;const e=this._ctx;if(!e)return;e.clearRect(0,0,this._cW,this._cH);for(const i of this._particles)this._updateParticle(i),this._drawParticle(e,i);const t=this._cachedCond;"stormy"!==t&&"lightning"!==t||(this._updateFlash(),this._flashState.opacity>.01&&(e.fillStyle=this._flashState.color+this._flashState.opacity+")",e.fillRect(0,0,this._cW,this._cH))),this._animId=requestAnimationFrame(this._animate)}}static getConfigElement(){return document.createElement("glass-weather-card-editor")}getCardSize(){return 2}static{this.styles=[ve,be,ye,Ce,$e,s`
+    :host {
+      width: 100%;
+      max-width: 31.25rem;
+      margin: 0 auto;
+    }
+
+    .weather-card-wrap {
+      display: flex; flex-direction: column; gap: 0.375rem;
+    }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.375rem;
+    }
+    .card-title {
+      font-size: var(--fz-xs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+    .card-location {
+      font-size: var(--fz-xs); font-weight: 500; color: var(--t3);
+    }
+
+    .weather-card {
+      position: relative;
+      width: 100%; padding: 0.875rem 0.875rem 0.375rem;
+      box-sizing: border-box;
+    }
+
+    .card-inner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+
+    /* ── Header: clock + weather ── */
+    .wc-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+
+    .wc-clock-zone {
+      display: flex; flex-direction: column; gap: 0.0625rem;
+    }
+    .wc-clock-hm {
+      font-size: var(--fz-display); font-weight: 300; line-height: 1;
+      color: var(--t1); letter-spacing: -0.8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .wc-clock-sec {
+      font-size: var(--fz-base); font-weight: 300; color: var(--t4);
+      margin-left: 0.0625rem;
+    }
+    .wc-clock-date {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+    }
+    .wc-clock-day {
+      font-weight: 600; color: var(--t3);
+      text-transform: capitalize;
+    }
+
+    .wc-weather-zone {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.0625rem;
+    }
+    .wc-temp-row {
+      display: flex; align-items: baseline; gap: 0.125rem;
+    }
+    .wc-temp {
+      font-size: var(--fz-display); font-weight: 700; line-height: 1;
+      color: var(--t1); letter-spacing: -0.5px;
+    }
+    .wc-temp-unit {
+      font-size: var(--fz-base); font-weight: 400; color: var(--t3);
+    }
+    .wc-cond-row {
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .wc-cond-icon {
+      --mdc-icon-size: 0.8125rem;
+      width: 0.8125rem; height: 0.8125rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
+      transition: color var(--t-med), filter var(--t-med);
+    }
+    .wc-cond-icon.sunny { color: #fbbf24; filter: drop-shadow(0 0 4px rgba(var(--rgb-warning),0.35)); }
+    .wc-cond-icon.partly_cloudy { color: #fcd34d; }
+    .wc-cond-icon.cloudy { color: var(--t2); }
+    .wc-cond-icon.rainy { color: #60a5fa; filter: drop-shadow(0 0 4px rgba(var(--rgb-info),0.3)); }
+    .wc-cond-icon.pouring { color: #3b82f6; filter: drop-shadow(0 0 4px rgba(59,130,246,0.4)); }
+    .wc-cond-icon.stormy { color: #a78bfa; filter: drop-shadow(0 0 4px rgba(var(--rgb-purple),0.35)); }
+    .wc-cond-icon.lightning { color: #c084fc; filter: drop-shadow(0 0 5px rgba(192,132,252,0.4)); }
+    .wc-cond-icon.snowy { color: #e0f2fe; }
+    .wc-cond-icon.snowy_rainy { color: #93c5fd; }
+    .wc-cond-icon.hail { color: #bae6fd; filter: drop-shadow(0 0 3px rgba(186,230,253,0.3)); }
+    .wc-cond-icon.foggy { color: var(--t3); }
+    .wc-cond-icon.windy { color: #6ee7b7; filter: drop-shadow(0 0 3px rgba(110,231,183,0.3)); }
+    .wc-cond-icon.windy_variant { color: #6ee7b7; }
+    .wc-cond-icon.clear_night { color: #818cf8; filter: drop-shadow(0 0 4px rgba(var(--rgb-accent),0.35)); }
+    .wc-cond-icon.exceptional { color: #fca5a5; filter: drop-shadow(0 0 4px rgba(252,165,165,0.3)); }
+    .wc-cond-text {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+    }
+    .wc-feels {
+      font-size: var(--fz-xs); font-weight: 500; color: var(--t4);
+    }
+
+    /* ── Canvas animation ── */
+    .wc-anim {
+      position: absolute; inset: 0; border-radius: inherit;
+      overflow: hidden; pointer-events: none; z-index: 0;
+    }
+
+    /* ── Sparkline ── */
+    .wc-spark-zone {
+      position: relative;
+      width: 100%; height: 4rem;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .wc-spark-svg {
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .wc-spark-line {
+      fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: stroke var(--t-med), d var(--t-med);
+    }
+    .wc-spark-area {
+      stroke: none;
+      transition: fill var(--t-med), d var(--t-med);
+    }
+    .wc-spark-labels {
+      position: absolute; inset: 0;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 0.25rem 0.25rem;
+      pointer-events: none;
+    }
+    .wc-spark-lbl {
+      font-size: var(--fz-xxs); font-weight: 600; color: var(--t4);
+      text-align: center;
+    }
+    .wc-spark-now {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 0.0625rem;
+      background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.15), transparent);
+      pointer-events: none;
+    }
+    .wc-spark-now-dot {
+      position: absolute; top: 0;
+      width: 0.375rem; height: 0.375rem; border-radius: 50%;
+      background: var(--t1);
+      box-shadow: 0 0 6px rgba(var(--rgb-white),0.4);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── Metrics Grid ── */
+    .wc-metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.0625rem;
+      border-radius: var(--radius-sm);
+      background: var(--b1);
+      overflow: hidden;
+    }
+    .wc-metric {
+      display: flex; align-items: center; justify-content: center; gap: 0.1875rem;
+      padding: 0.3125rem 0.25rem;
+      background: var(--s1);
+    }
+    .wc-metric ha-icon {
+      --mdc-icon-size: 0.6875rem;
+      width: 0.6875rem; height: 0.6875rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t4);
+    }
+    .wc-metric.humidity ha-icon { color: rgba(var(--rgb-info),0.5); }
+    .wc-metric.pressure ha-icon { color: rgba(148,163,184,0.5); }
+    .wc-metric.wind ha-icon { color: rgba(110,231,183,0.5); }
+    .wc-metric.uv ha-icon { color: rgba(var(--rgb-warning),0.5); }
+    .wc-metric.visibility ha-icon { color: rgba(148,163,184,0.4); }
+    .wc-metric.sunrise ha-icon { color: rgba(var(--rgb-warning),0.4); }
+    .wc-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
+    .wc-metric-val { font-size: var(--fz-sm); font-weight: 600; color: var(--t2); }
+    .wc-metric-unit { font-size: var(--fz-xxs); font-weight: 400; color: var(--t4); }
+    .wc-metric-dir { font-size: var(--fz-xxs); font-weight: 600; color: var(--t4); margin-left: 0.0625rem; }
+
+    /* ── Forecast tabs ── */
+    /* ── Fold separator ── */
+    .wc-fold-sep {
+      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
+      opacity: 0; transition: opacity var(--t-layout);
+    }
+    .wc-fold-sep.visible { opacity: 1; }
+
+    .wc-forecast-zone {
+      display: flex; flex-direction: column; gap: 0.25rem;
+      margin-top: 0.125rem;
+    }
+    .wc-fc-tabs {
+      display: flex; gap: 0.1875rem;
+      margin: 0 auto; width: fit-content;
+    }
+    .wc-fc-tab {
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--b1);
+      border-radius: var(--radius-full);
+      background: transparent; color: var(--t4);
+      font-family: inherit; font-size: var(--fz-xs); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      cursor: pointer; transition: all var(--t-fast);
+      outline: none;
+    }
+    .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(var(--rgb-white),0.25); }
+    @media (hover: hover) and (pointer: fine) {
+      .wc-fc-tab:active { transform: scale(0.96); }
+    }
+    @media (pointer: coarse) {
+      .wc-fc-tab:active { animation: bounce 0.3s ease; }
+    }
+    .wc-fc-tab.active {
+      background: var(--s4); border-color: var(--b3); color: var(--t1);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .wc-fc-tab:hover { background: var(--s2); color: var(--t3); }
+    }
+
+    /* ── Daily list ── */
+    .wc-daily-list, .wc-hourly-list {
+      display: flex; flex-direction: column; gap: 0.0625rem;
+      padding: 0.125rem 0;
+    }
+    .wc-day-row {
+      display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.625rem 2.375rem;
+      align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.25rem;
+      border-radius: var(--radius-sm);
+      transition: background var(--t-fast);
+    }
+    .wc-day-row:first-child { background: var(--s2); }
+    .wc-day-label {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
+    }
+    .wc-day-row:first-child .wc-day-label { color: var(--t2); }
+    .wc-day-icon {
+      --mdc-icon-size: var(--icon-sm);
+      width: 0.875rem; height: 0.875rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
+    }
+    .wc-day-icon.sunny, .wc-hour-icon.sunny { color: #fbbf24; }
+    .wc-day-icon.partly_cloudy, .wc-hour-icon.partly_cloudy { color: #fcd34d; }
+    .wc-day-icon.cloudy, .wc-hour-icon.cloudy { color: var(--t2); }
+    .wc-day-icon.rainy, .wc-hour-icon.rainy { color: #60a5fa; }
+    .wc-day-icon.pouring, .wc-hour-icon.pouring { color: #3b82f6; }
+    .wc-day-icon.stormy, .wc-hour-icon.stormy { color: #a78bfa; }
+    .wc-day-icon.lightning, .wc-hour-icon.lightning { color: #c084fc; }
+    .wc-day-icon.snowy, .wc-hour-icon.snowy { color: #e0f2fe; }
+    .wc-day-icon.snowy_rainy, .wc-hour-icon.snowy_rainy { color: #93c5fd; }
+    .wc-day-icon.hail, .wc-hour-icon.hail { color: #bae6fd; }
+    .wc-day-icon.foggy, .wc-hour-icon.foggy { color: var(--t3); }
+    .wc-day-icon.windy, .wc-hour-icon.windy { color: #6ee7b7; }
+    .wc-day-icon.windy_variant, .wc-hour-icon.windy_variant { color: #6ee7b7; }
+    .wc-day-icon.clear_night, .wc-hour-icon.clear_night { color: #818cf8; }
+    .wc-day-icon.exceptional, .wc-hour-icon.exceptional { color: #fca5a5; }
+    .wc-day-cond {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wc-day-temps {
+      display: flex; align-items: baseline; gap: 0.125rem; justify-content: flex-end;
+    }
+    .wc-day-hi { font-size: var(--fz-base); font-weight: 700; color: var(--t1); }
+    .wc-day-lo { font-size: var(--fz-sm); font-weight: 500; color: var(--t4); }
+    .wc-day-precip {
+      font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-info),0.5);
+      text-align: right;
+    }
+
+    /* ── Hourly list ── */
+    .wc-hour-row {
+      display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.375rem 2rem;
+      align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.25rem;
+      border-radius: var(--radius-sm);
+      transition: background var(--t-fast);
+    }
+    .wc-hour-row.now { background: var(--s2); }
+    .wc-hour-time {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
+    }
+    .wc-hour-row.now .wc-hour-time { color: var(--t2); }
+    .wc-hour-icon {
+      --mdc-icon-size: var(--icon-sm);
+      width: 0.875rem; height: 0.875rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--t3);
+    }
+    .wc-hour-cond {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wc-hour-temp {
+      font-size: var(--fz-base); font-weight: 700; color: var(--t1);
+      text-align: right;
+    }
+    .wc-hour-precip {
+      font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-info),0.5);
+      text-align: right;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .wc-day-row:hover, .wc-hour-row:hover { background: var(--s1); }
+    }
+    @media (pointer: coarse) {
+      .wc-day-row:active, .wc-hour-row:active { animation: bounce 0.3s ease; }
+    }
+
+    /* ── Tint ── */
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0;
+      transition: opacity var(--t-slow);
+    }
+  `]}getTrackedEntityIds(){const e=[],t=this._getEntityId();return t&&e.push(t),this.hass?.states["sun.sun"]&&e.push("sun.sun"),e}_getEntityId(){if(this._config?.entity)return this._config.entity;if(this._weatherConfig.entity_id)return this._weatherConfig.entity_id;if(this.hass){const e=Object.keys(this.hass.states).find(e=>e.startsWith("weather."));if(e)return e}return""}_getWeatherState(){const e=this._getEntityId();return e?this.hass?.states[e]:void 0}_mapCondition(e){return Ua[e]??"cloudy"}_getConditionMeta(e){return Wa[e]??Wa.cloudy}connectedCallback(){super.connectedCallback(),this._startClock(),this._listen("weather-config-changed",()=>this._loadConfig()),this._canvasReady&&(this._needsCanvasReInit=!0)}disconnectedCallback(){super.disconnectedCallback(),this._stopClock(),this._stopAnimation(),this._unsubForecasts(),this._resizeObserver?.disconnect(),this._resizeObserver=null,this._canvas=null,this._ctx=null,this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1}_collapseExpanded(){null!==this._activeTab&&(this._activeTab=null)}updated(e){if(super.updated(e),e.has("hass")&&this.hass){this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1,this._unsubForecasts()),this._configLoaded||this._configLoadingInProgress||(this._backend=new Qe(this.hass),this._loadConfig());const e=this._getWeatherState();this._cachedCond=e?this._mapCondition(e.state):"",this._configLoaded&&this._subscribeForecasts()}this._needsCanvasReInit&&(this._needsCanvasReInit=!1,this._initCanvas())}firstUpdated(){this._canvasReady=!0,this._initCanvas()}async _loadConfig(){if(this._backend&&!this._configLoadingInProgress){this._configLoadingInProgress=!0;try{const e=await this._backend.send("get_config");e?.weather&&(this._weatherConfig=e.weather),this._configLoaded=!0,this._configLoadingInProgress=!1,this._subscribedEntity="",this._subscribeForecasts(),this.requestUpdate()}catch{this._configLoadingInProgress=!1}}}async _subscribeForecasts(){const e=this._getEntityId();if(!e||!this.hass)return;const t=this._subscribedShowDaily!==this._weatherConfig.show_daily||this._subscribedShowHourly!==this._weatherConfig.show_hourly;if(e===this._subscribedEntity&&!t)return;this._unsubForecasts(),this._subscribedEntity=e,this._subscribedShowDaily=this._weatherConfig.show_daily,this._subscribedShowHourly=this._weatherConfig.show_hourly;const i=++this._subVersion;if(this._weatherConfig.show_daily){const t=await this.hass.connection.subscribeMessage(e=>{this._forecastDaily=e.forecast??[]},{type:"weather/subscribe_forecast",forecast_type:"daily",entity_id:e});if(this._subVersion!==i)return void t();this._unsubDaily=t}if(this._weatherConfig.show_hourly){const t=await this.hass.connection.subscribeMessage(e=>{this._forecastHourly=e.forecast??[]},{type:"weather/subscribe_forecast",forecast_type:"hourly",entity_id:e});if(this._subVersion!==i)return void t();this._unsubHourly=t}}_unsubForecasts(){this._subVersion++,this._unsubDaily?.(),this._unsubDaily=null,this._unsubHourly?.(),this._unsubHourly=null,this._subscribedEntity=""}_startClock(){this._stopClock(),this._updateClock(),this._clockInterval=window.setInterval(()=>this._updateClock(),1e3)}_stopClock(){this._clockInterval&&(clearInterval(this._clockInterval),this._clockInterval=0)}_updateClock(){const e=new Date;var t,i;this._clockTime=Ka(e.getHours())+":"+Ka(e.getMinutes()),this._clockSec=":"+Ka(e.getSeconds()),this._clockDay=(t=e,i=this._lang,t.toLocaleDateString(i,{weekday:"long"})),this._clockDate=e.getDate()+" "+function(e,t){return e.toLocaleDateString(t,{month:"long"})}(e,this._lang)}_initCanvas(){if(this._resizeObserver?.disconnect(),this._resizeObserver=null,this._stopAnimation(),this._canvas=this.renderRoot.querySelector(".wc-anim"),!this._canvas)return;this._ctx=this._canvas.getContext("2d"),this._resizeObserver=new ResizeObserver(()=>this._resizeCanvas());const e=this._canvas.parentElement;e&&this._resizeObserver.observe(e),this._resizeCanvas(),this._startAnimation()}_resizeCanvas(){if(!this._canvas||!this._ctx)return;const e=this._canvas.parentElement;if(!e)return;const t=e.getBoundingClientRect(),i=window.devicePixelRatio||1;this._cW=t.width,this._cH=t.height,this._canvas.width=this._cW*i,this._canvas.height=this._cH*i,this._canvas.style.width=this._cW+"px",this._canvas.style.height=this._cH+"px",this._ctx.setTransform(i,0,0,i,0,0)}_startAnimation(){this._animRunning||(this._animRunning=!0,this._spawnParticles(this._cachedCond||"cloudy"),this._animate())}_stopAnimation(){this._animRunning=!1,this._animId&&(cancelAnimationFrame(this._animId),this._animId=0)}_rnd(e,t){return e+Math.random()*(t-e)}_spawnParticles(e){this._particles=[],this._flashState={on:!1,opacity:0,timer:0,interval:this._rnd(120,280),color:"rgba(167,139,250,"};const t=this._cW,i=this._cH;if(!t||!i)return;const a=(e,i,a,r,s,o)=>({type:"drop",x:this._rnd(0,t),y:this._rnd(-30,-5),len:this._rnd(i,a),speed:this._rnd(r,s),angle:o,color:e,opacity:this._rnd(.4,.7)}),r=()=>({type:"flake",x:this._rnd(0,t),y:this._rnd(-10,-3),r:this._rnd(1.5,3.5),speed:this._rnd(.4,1.2),drift:this._rnd(-.3,.3),phase:this._rnd(0,6.28),opacity:this._rnd(.3,.7)}),s=e=>({type:"mote",x:this._rnd(.1*t,.9*t),y:this._rnd(.3*i,.9*i),r:this._rnd(1,2.5),speed:this._rnd(.15,.4),drift:this._rnd(-.15,.15),phase:this._rnd(0,6.28),color:e,opacity:0,maxOp:this._rnd(.3,.7),life:0,maxLife:this._rnd(180,360)}),o=()=>({type:"star",x:this._rnd(.05*t,.95*t),y:this._rnd(.05*i,.7*i),r:this._rnd(.8,1.8),phase:this._rnd(0,6.28),speed:this._rnd(.008,.025)}),n=(e,a)=>({type:"cloud",x:this._rnd(-80,t),y:this._rnd(.05*i,.6*i),w:this._rnd(50,110),h:this._rnd(12,26),speed:this._rnd(.6*a,a),opacity:this._rnd(.6*e,e)}),c=()=>({type:"streak",x:this._rnd(-60,0),y:this._rnd(.1*i,.85*i),w:this._rnd(40,90),speed:this._rnd(2,5),opacity:this._rnd(.06,.14)}),l=()=>({type:"fog",x:this._rnd(-120,.5*t),y:this._rnd(.15*i,.75*i),w:this._rnd(80,160),h:this._rnd(18,35),speed:this._rnd(.2,.6),opacity:this._rnd(.02,.04)}),d=()=>({type:"hail",x:this._rnd(0,t),y:this._rnd(-15,-3),r:this._rnd(2,4),speed:this._rnd(3,5.5),opacity:this._rnd(.5,.8)}),h=this._particles;switch(e){case"sunny":for(let e=0;e<10;e++)h.push(s("rgba(251,191,36,"));break;case"clear_night":for(let e=0;e<14;e++)h.push(o());break;case"partly_cloudy":for(let e=0;e<3;e++)h.push(n(.035,.4));for(let e=0;e<4;e++)h.push(s("rgba(251,191,36,"));break;case"cloudy":for(let e=0;e<5;e++)h.push(n(.045,.35));break;case"foggy":for(let e=0;e<7;e++)h.push(l());break;case"rainy":for(let e=0;e<20;e++)h.push(a("rgba(96,165,250,",14,24,4,7,.14));for(let e=0;e<3;e++)h.push(n(.025,.3));break;case"pouring":for(let e=0;e<35;e++)h.push(a("rgba(59,130,246,",18,30,5.5,9,.1));for(let e=0;e<4;e++)h.push(n(.035,.35));break;case"stormy":for(let e=0;e<28;e++)h.push(a("rgba(167,139,250,",16,28,5,8,.26));for(let e=0;e<4;e++)h.push(n(.05,.5));this._flashState.interval=this._rnd(80,200);break;case"lightning":for(let e=0;e<4;e++)h.push(n(.04,.4));this._flashState.interval=this._rnd(60,160),this._flashState.color="rgba(192,132,252,";break;case"snowy":for(let e=0;e<18;e++)h.push(r());for(let e=0;e<3;e++)h.push(n(.025,.2));break;case"snowy_rainy":for(let e=0;e<10;e++)h.push(r());for(let e=0;e<14;e++)h.push(a("rgba(96,165,250,",12,20,3.5,6,.14));break;case"hail":for(let e=0;e<14;e++)h.push(d());for(let e=0;e<10;e++)h.push(a("rgba(96,165,250,",10,18,3.5,5.5,.14));break;case"windy":for(let e=0;e<8;e++)h.push(c());break;case"windy_variant":for(let e=0;e<6;e++)h.push(c());for(let e=0;e<4;e++)h.push(n(.035,1.2));break;case"exceptional":for(let e=0;e<8;e++)h.push(s("rgba(252,165,165,"));for(let e=0;e<5;e++)h.push(c())}}_updateParticle(e){const t=this._cW,i=this._cH;switch(e.type){case"drop":e.x=e.x+Math.sin(e.angle)*e.speed,e.y=e.y+Math.cos(e.angle)*e.speed,e.y>i+10&&(e.y=this._rnd(-30,-5),e.x=this._rnd(0,t));break;case"flake":e.y=e.y+e.speed,e.phase=e.phase+.02,e.x=e.x+e.drift+.3*Math.sin(e.phase),e.y>i+10&&(e.y=this._rnd(-10,-3),e.x=this._rnd(0,t));break;case"mote":{e.life=e.life+1,e.y=e.y-e.speed,e.x=e.x+e.drift+.2*Math.sin(e.phase+.015*e.life);const a=e.life/e.maxLife;e.opacity=a<.15?a/.15*e.maxOp:a>.85?(1-a)/.15*e.maxOp:e.maxOp,e.life>=e.maxLife&&(e.life=0,e.x=this._rnd(.1*t,.9*t),e.y=this._rnd(.3*i,.9*i),e.maxLife=this._rnd(180,360),e.maxOp=this._rnd(.3,.7));break}case"star":e.phase=e.phase+e.speed;break;case"cloud":e.x=e.x+e.speed,e.x>t+20&&(e.x=-e.w-this._rnd(10,60),e.y=this._rnd(.05*i,.6*i));break;case"streak":e.x=e.x+e.speed,e.x>t+20&&(e.x=this._rnd(-80,-20),e.y=this._rnd(.1*i,.85*i));break;case"fog":e.x=e.x+e.speed,e.x>t+40&&(e.x=-e.w-this._rnd(20,80),e.y=this._rnd(.15*i,.75*i));break;case"hail":e.y=e.y+e.speed,e.y>i+10&&(e.y=this._rnd(-15,-3),e.x=this._rnd(0,t))}}_drawParticle(e,t){switch(t.type){case"drop":{const i=Math.sin(t.angle)*t.len,a=Math.cos(t.angle)*t.len,r=e.createLinearGradient(t.x,t.y,t.x+i,t.y+a);r.addColorStop(0,t.color+"0)"),r.addColorStop(1,t.color+t.opacity+")"),e.beginPath(),e.moveTo(t.x,t.y),e.lineTo(t.x+i,t.y+a),e.strokeStyle=r,e.lineWidth=1.5,e.stroke();break}case"flake":e.beginPath(),e.arc(t.x,t.y,t.r,0,6.28),e.fillStyle="rgba(255,255,255,"+t.opacity+")",e.fill();break;case"mote":e.beginPath(),e.arc(t.x,t.y,t.r,0,6.28),e.fillStyle=t.color+t.opacity+")",e.shadowColor=t.color+.5*t.opacity+")",e.shadowBlur=6,e.fill(),e.shadowBlur=0;break;case"star":{const i=.15+.75*(.5+.5*Math.sin(t.phase));e.beginPath(),e.arc(t.x,t.y,t.r,0,6.28),e.fillStyle="rgba(255,255,255,"+i+")",e.fill();break}case"cloud":{const i=t.h/2;e.beginPath(),e.moveTo(t.x+i,t.y),e.lineTo(t.x+t.w-i,t.y),e.arcTo(t.x+t.w,t.y,t.x+t.w,t.y+i,i),e.arcTo(t.x+t.w,t.y+t.h,t.x+t.w-i,t.y+t.h,i),e.lineTo(t.x+i,t.y+t.h),e.arcTo(t.x,t.y+t.h,t.x,t.y+i,i),e.arcTo(t.x,t.y,t.x+i,t.y,i),e.closePath(),e.fillStyle="rgba(255,255,255,"+t.opacity+")",e.fill();break}case"streak":{const i=e.createLinearGradient(t.x,t.y,t.x+t.w,t.y);i.addColorStop(0,"rgba(255,255,255,0)"),i.addColorStop(.5,"rgba(255,255,255,"+t.opacity+")"),i.addColorStop(1,"rgba(255,255,255,0)"),e.beginPath(),e.moveTo(t.x,t.y),e.lineTo(t.x+t.w,t.y),e.strokeStyle=i,e.lineWidth=1,e.stroke();break}case"fog":{const i=t.h/2;e.beginPath(),e.moveTo(t.x+i,t.y),e.lineTo(t.x+t.w-i,t.y),e.arcTo(t.x+t.w,t.y,t.x+t.w,t.y+i,i),e.arcTo(t.x+t.w,t.y+t.h,t.x+t.w-i,t.y+t.h,i),e.lineTo(t.x+i,t.y+t.h),e.arcTo(t.x,t.y+t.h,t.x,t.y+i,i),e.arcTo(t.x,t.y,t.x+i,t.y,i),e.closePath(),e.fillStyle="rgba(255,255,255,"+t.opacity+")",e.fill();break}case"hail":e.beginPath(),e.arc(t.x,t.y,t.r,0,6.28),e.fillStyle="rgba(224,242,254,"+t.opacity+")",e.fill(),e.beginPath(),e.arc(t.x-.25*t.r,t.y-.25*t.r,.4*t.r,0,6.28),e.fillStyle="rgba(255,255,255,"+.3*t.opacity+")",e.fill()}}_updateFlash(){const e=this._flashState;e.timer++,e.on?(e.opacity*=.82,e.opacity<.02&&(e.on=!1,e.opacity=0,e.timer=0,e.interval=this._rnd(80,280))):e.timer>e.interval&&(e.on=!0,e.opacity=this._rnd(.12,.22))}_computeSparkline(e){const t=e.length;if(t<2)return{linePath:"",areaPath:"",nowY:32};let i=1/0,a=-1/0;for(const n of e)n.temperature<i&&(i=n.temperature),n.temperature>a&&(a=n.temperature);const r=a-i||1,s=e.map((e,i)=>({x:i/(t-1)*348,y:10+(a-e.temperature)/r*44}));let o=`M${s[0].x},${s[0].y}`;for(let n=0;n<s.length-1;n++){const e=s[Math.max(n-1,0)],t=s[n],i=s[Math.min(n+1,s.length-1)],a=s[Math.min(n+2,s.length-1)];o+=` C${t.x+(i.x-e.x)/6},${t.y+(i.y-e.y)/6} ${i.x-(a.x-t.x)/6},${i.y-(a.y-t.y)/6} ${i.x},${i.y}`}return{linePath:o,areaPath:o+" L348,64 L0,64 Z",nowY:s[0].y}}render(){this._lang;try{return this._renderContent()}catch(e){return console.error("[glass-weather-card] render error:",e),N`<div class="weather-card-wrap"><div class="glass weather-card"><div class="card-inner" style="padding:16px;text-align:center;color:var(--c-alert);font-size:var(--fz-base);">
+        <ha-icon .icon=${"mdi:alert-circle-outline"} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"></ha-icon>
+        Weather render error</div></div></div>`}}_renderContent(){const e=this._getWeatherState();if(!e)return N`<div class="weather-card-wrap">
+        ${this._weatherConfig.show_header?N`<div class="card-header"><span class="card-title">${Re("weather.title")}</span></div>`:B}
+        <div class="glass weather-card"><div class="card-inner" style="padding:20px;text-align:center;color:var(--t3);font-size:var(--fz-base);">${Re("common.no_entity")}</div></div>
+      </div>`;const t=e.attributes,i=e.state,a=this._mapCondition(i),r=this._getConditionMeta(a),s=t.temperature??0,o=t.apparent_temperature,n=t.humidity,c=t.wind_speed,l=t.wind_speed_unit??"km/h",d=t.wind_bearing,h=t.pressure,p=t.visibility,u=t.uv_index,g=t.friendly_name??"",_=t.temperature_unit??"°C",m=this.hass?.states["sun.sun"],f=m?.attributes.next_rising,v=m?.attributes.next_setting,b=f?new Date(f).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"",y=v?new Date(v).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"",w=new Set(this._weatherConfig.hidden_metrics),x=this._forecastHourly.slice(0,10),k=this._computeSparkline(x),$=`background: radial-gradient(ellipse at 80% 20%, ${r.tint}, transparent 70%); opacity: ${r.tintOp};`;return N`
+      <div class="weather-card-wrap">
+        ${this._weatherConfig.show_header?N`
+          <div class="card-header">
+            <span class="card-title">${Re("weather.title")}</span>
+            <span class="card-location">${g}</span>
+          </div>
+        `:B}
+
+        <div class="glass weather-card">
+          <div class="tint" style="${$}"></div>
+          <canvas class="wc-anim"></canvas>
+          <div class="card-inner">
+
+            <!-- Header: clock + weather -->
+            <div class="wc-header">
+              <div class="wc-clock-zone">
+                <div>
+                  <span class="wc-clock-hm">${this._clockTime}</span><span class="wc-clock-sec">${this._clockSec}</span>
+                </div>
+                <span class="wc-clock-date"><span class="wc-clock-day">${this._clockDay}</span> ${this._clockDate}</span>
+              </div>
+              <div class="wc-weather-zone">
+                <div class="wc-temp-row">
+                  <span class="wc-temp">${Math.round(s)}</span>
+                  <span class="wc-temp-unit">${_}</span>
+                </div>
+                <div class="wc-cond-row">
+                  <ha-icon .icon="${r.icon}" class="wc-cond-icon ${a}"></ha-icon>
+                  <span class="wc-cond-text">${Re(r.textKey)}</span>
+                </div>
+                ${null!=o?N`<span class="wc-feels">${Re("weather.feels_like",{temp:Math.round(o)})}</span>`:B}
+              </div>
+            </div>
+
+            <!-- Sparkline -->
+            ${x.length>=2?N`
+              <div class="wc-spark-zone">
+                <svg class="wc-spark-svg" viewBox="0 0 348 64" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="${r.sparkFill}" />
+                      <stop offset="100%" stop-color="transparent" />
+                    </linearGradient>
+                  </defs>
+                  ${U`<path class="wc-spark-area" d="${k.areaPath}" fill="url(#sparkGrad)" />`}
+                  ${U`<path class="wc-spark-line" d="${k.linePath}" stroke="${r.sparkStroke}" />`}
+                </svg>
+                <div class="wc-spark-now" style="left:0px;">
+                  <div class="wc-spark-now-dot" style="top:${k.nowY/64*100}%"></div>
+                </div>
+                <div class="wc-spark-labels">
+                  ${x.map((e,t)=>N`<span class="wc-spark-lbl">${t%2==0||t===x.length-1?0===t?Re("weather.now"):new Date(e.datetime).getHours()+"h":""}</span>`)}
+                </div>
+              </div>
+            `:B}
+
+            <!-- Metrics -->
+            ${this._renderMetrics(w,n,c,l,d,h,u,p,b,y)}
+
+            <!-- Forecast -->
+            ${this._renderForecasts(_)}
+
+          </div>
+        </div>
+      </div>
+    `}_renderMetrics(e,t,i,a,r,s,o,n,c,l){const d=[];var h;return e.has("humidity")||null==t||d.push(N`<div class="wc-metric humidity">
+        <ha-icon icon="mdi:water-percent"></ha-icon>
+        <span class="wc-metric-val">${t}%</span>
+      </div>`),e.has("wind")||null==i||d.push(N`<div class="wc-metric wind">
+        <ha-icon icon="mdi:weather-windy"></ha-icon>
+        <span class="wc-metric-val">${Math.round(i)}</span>
+        <span class="wc-metric-unit">${a}</span>
+        <span class="wc-metric-dir">${h=r,null==h?"":Re(`weather.${Ba[Math.round((+h%360+360)%360/22.5)%16]}`)}</span>
+      </div>`),e.has("pressure")||null==s||d.push(N`<div class="wc-metric pressure">
+        <ha-icon icon="mdi:gauge"></ha-icon>
+        <span class="wc-metric-val">${Math.round(s)}</span>
+        <span class="wc-metric-unit">hPa</span>
+      </div>`),e.has("uv")||null==o||d.push(N`<div class="wc-metric uv">
+        <ha-icon icon="mdi:sun-wireless"></ha-icon>
+        <span class="wc-metric-val">${Math.round(o)}</span>
+        <span class="wc-metric-unit">UV</span>
+      </div>`),e.has("visibility")||null==n||d.push(N`<div class="wc-metric visibility">
+        <ha-icon icon="mdi:eye-outline"></ha-icon>
+        <span class="wc-metric-val">${n}</span>
+        <span class="wc-metric-unit">km</span>
+      </div>`),!e.has("sunrise")&&c&&d.push(N`<div class="wc-metric sunrise">
+        <ha-icon icon="mdi:weather-sunset-up"></ha-icon>
+        <span class="wc-metric-val">${c}</span>
+      </div>`),!e.has("sunset")&&l&&d.push(N`<div class="wc-metric sunset">
+        <ha-icon icon="mdi:weather-sunset-down"></ha-icon>
+        <span class="wc-metric-val">${l}</span>
+      </div>`),0===d.length?B:N`<div class="wc-metrics">
+      ${d}
+    </div>`}_renderForecasts(e){const t=this._weatherConfig.show_daily,i=this._weatherConfig.show_hourly;return t||i?N`
+      <div class="wc-forecast-zone">
+        <div class="wc-fc-tabs">
+          ${t?N`<button class="wc-fc-tab ${"daily"===this._activeTab?"active":""}"
+            @click="${()=>this._switchTab("daily")}"
+            aria-expanded="${"daily"===this._activeTab?"true":"false"}"
+            aria-controls="wc-daily-panel"
+            aria-label="${Re("weather.daily_tab")}">${Re("weather.daily_tab")}</button>`:B}
+          ${i?N`<button class="wc-fc-tab ${"hourly"===this._activeTab?"active":""}"
+            @click="${()=>this._switchTab("hourly")}"
+            aria-expanded="${"hourly"===this._activeTab?"true":"false"}"
+            aria-controls="wc-hourly-panel"
+            aria-label="${Re("weather.hourly_tab")}">${Re("weather.hourly_tab")}</button>`:B}
+        </div>
+
+        <div class="wc-fold-sep ${"daily"===this._activeTab&&this._forecastDaily.length>0||"hourly"===this._activeTab&&this._forecastHourly.length>0?"visible":""}"></div>
+
+        ${t?N`
+          <div class="fold ${"daily"===this._activeTab?"open":""}" id="wc-daily-panel" role="region" aria-label="${Re("weather.daily_tab")}" aria-hidden="${"daily"!==this._activeTab?"true":"false"}">
+            <div class="fold-inner">
+              <div class="wc-daily-list">
+                ${this._forecastDaily.slice(0,7).map((e,t)=>{const i=this._mapCondition(e.condition),a=this._getConditionMeta(i),r=new Date(e.datetime),s=0===t?Re("weather.today"):(o=r,n=this._lang,o.toLocaleDateString(n,{weekday:"short"}));var o,n;return N`
+                    <div class="wc-day-row">
+                      <span class="wc-day-label">${s}</span>
+                      <ha-icon .icon="${a.icon}" class="wc-day-icon ${i}"></ha-icon>
+                      <span class="wc-day-cond">${Re(a.textKey)}</span>
+                      <div class="wc-day-temps">
+                        <span class="wc-day-hi">${Math.round(e.temperature)}&deg;</span>
+                        ${null!=e.templow?N`<span class="wc-day-lo">${Math.round(e.templow)}&deg;</span>`:B}
+                      </div>
+                      <span class="wc-day-precip">${null!=e.precipitation_probability&&e.precipitation_probability>0?e.precipitation_probability+"%":""}</span>
+                    </div>
+                  `})}
+              </div>
+            </div>
+          </div>
+        `:B}
+
+        ${i?N`
+          <div class="fold ${"hourly"===this._activeTab?"open":""}" id="wc-hourly-panel" role="region" aria-label="${Re("weather.hourly_tab")}" aria-hidden="${"hourly"!==this._activeTab?"true":"false"}">
+            <div class="fold-inner">
+              <div class="wc-hourly-list">
+                ${this._forecastHourly.slice(0,10).map((t,i)=>{const a=this._mapCondition(t.condition),r=this._getConditionMeta(a),s=new Date(t.datetime),o=0===i?Re("weather.now"):s.getHours()+"h";return N`
+                    <div class="wc-hour-row ${0===i?"now":""}">
+                      <span class="wc-hour-time">${o}</span>
+                      <ha-icon .icon="${r.icon}" class="wc-hour-icon ${a}"></ha-icon>
+                      <span class="wc-hour-cond">${Re(r.textKey)}</span>
+                      <span class="wc-hour-temp">${Math.round(t.temperature)}${e}</span>
+                      <span class="wc-hour-precip">${null!=t.precipitation_probability&&t.precipitation_probability>0?t.precipitation_probability+"%":""}</span>
+                    </div>
+                  `})}
+              </div>
+            </div>
+          </div>
+        `:B}
+      </div>
+    `:B}_switchTab(e){this._activeTab=this._activeTab===e?null:e}}Na([ue()],Ya.prototype,"_activeTab"),Na([ue()],Ya.prototype,"_forecastDaily"),Na([ue()],Ya.prototype,"_forecastHourly"),Na([ue()],Ya.prototype,"_clockTime"),Na([ue()],Ya.prototype,"_clockSec"),Na([ue()],Ya.prototype,"_clockDay"),Na([ue()],Ya.prototype,"_clockDate");try{customElements.define("glass-weather-card",Ya)}catch{}Ve("glass-presence-card-editor");var Ga=Object.defineProperty,Xa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ga(t,i,s),s};const Qa=[{from:"#6366f1",to:"#8b5cf6"},{from:"#ec4899",to:"#f472b6"},{from:"#f59e0b",to:"#fbbf24"},{from:"#10b981",to:"#34d399"},{from:"#06b6d4",to:"#22d3ee"},{from:"#f43f5e",to:"#fb7185"}];function Ja(e){if(null==e||""===e||"unknown"===e||"unavailable"===e)return null;const t=Number(e);return Number.isFinite(t)?t:null}class Za extends We{constructor(){super(...arguments),this._presenceConfig={show_header:!0,person_entities:[],smartphone_sensors:{},notify_services:{},driving_sensors:{}},this._activePerson=null,this._notifText="",this._configLoaded=!1,this._configLoadingInProgress=!1,this._prevActivePerson=null}static getConfigElement(){return document.createElement("glass-presence-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("presence-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._clockInterval=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1,clearInterval(this._clockInterval),this._clockInterval=void 0}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1),this._configLoaded||this._configLoadingInProgress||(this._backend=new Qe(this.hass),this._loadConfig())),e.has("_activePerson")&&this._activePerson&&this._activePerson!==this._prevActivePerson&&requestAnimationFrame(()=>requestAnimationFrame(()=>{this.shadowRoot?.querySelectorAll(".fold-sep").forEach(e=>e.classList.add("visible")),this.shadowRoot?.querySelector(".ctrl-fold")?.classList.add("open")})),this._prevActivePerson=this._activePerson}async _loadConfig(){if(this._backend&&!this._configLoadingInProgress){this._configLoadingInProgress=!0;try{const e=await this._backend.send("get_config");e?.presence_card&&(this._presenceConfig=e.presence_card),this._configLoaded=!0,this._configLoadingInProgress=!1,this.requestUpdate()}catch{this._configLoadingInProgress=!1}}}getTrackedEntityIds(){return this._getPersonIds()}_getPersonIds(){return this._presenceConfig.person_entities.length>0?this._presenceConfig.person_entities.filter(e=>this.hass?.states[e]):this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("person.")):[]}_getPersonData(e){const t=this.hass?.states[e];if(!t)return null;const i=t.attributes,a=i.friendly_name||e.split(".")[1],r=i.entity_picture||null,s=this._presenceConfig.smartphone_sensors[e],o=s?this.hass?.states[s]:null,n=o?.attributes??{};let c=o?Ja(o.state):null;null==c&&(c=Ja(i.battery_level));const l=Ja(n.heart_rate),d=Ja(n.oxygen_saturation),h=Ja(n.daily_steps),p=n.geocoded_location||null,u=this._presenceConfig.notify_services[e]||n.notify_service||null,g=this._presenceConfig.driving_sensors[e];let _=!1;return g&&this.hass?.states[g]?_="on"===this.hass.states[g].state:"on"!==n.android_auto&&!0!==n.android_auto||(_=!0),{entityId:e,name:a,state:t.state,entityPicture:r,latitude:Ja(i.latitude),longitude:Ja(i.longitude),sourceType:i.source_type||"gps",batteryLevel:c,lastUpdated:t.last_updated,geocodedLocation:p,heartRate:l,spo2:d,steps:h,isDriving:_,notifyService:u}}_presenceClass(e){let t=!1,i=!1;for(const a of e)"home"===a.state?t=!0:i=!0;return t&&i?"mixed":t?"home":"away"}_collapseExpanded(){this._activePerson&&(this._activePerson=null)}async _sendNotification(e){if(this.hass&&e.notifyService&&this._notifText.trim()){Be(this,"success");try{let t="notify",i=e.notifyService;if(i.includes(".")){const e=i.split(".");t=e[0],i=e.slice(1).join(".")}const a=this.hass.user?.name||"Home Assistant";this._safeCallService(t,i,{title:Re("presence.notif_title",{name:a}),message:this._notifText.trim()}),this._notifText="",this._activePerson=null}catch{}}}render(){if(this._lang,!this.hass)return B;const e=this._getPersonIds();if(0===e.length)return B;const t=e.map(e=>this._getPersonData(e)).filter(e=>null!==e);if(0===t.length)return B;const i=t.filter(e=>"home"===e.state).length,a=this._presenceClass(t),r=0===i?"all-away":i===t.length?"all-home":"mixed";return N`
+      ${this._presenceConfig.show_header?N`
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-title">${1===t.length?Re("presence.title_single"):Re("presence.title")}</span>
+              </div>
+              <span class="card-count ${r}">${i}/${t.length}</span>
+            </div>
+          `:B}
+      <div class="glass presence-card" data-presence=${a}>
+        <div class="card-tint"></div>
+        <div class="card-inner ${this._layoutClass(t.length)}">
+          ${this._renderPersons(t)}
+        </div>
+        ${this._renderFold(t,a)}
+      </div>
+    `}_layoutClass(e){return 1===e?"solo-layout":2===e?"":"family-layout"}_renderPersons(e){if(1===e.length)return N`
+        ${this._renderPerson(e[0],!1,0)}
+        ${this._renderSoloChips(e[0])}
+      `;if(2===e.length)return N`
+        ${this._renderPerson(e[0],!1,0)}
+        ${this._renderDistance(e[0],e[1])}
+        ${this._renderPerson(e[1],!0,1)}
+      `;const t=[];for(let i=0;i<e.length;i+=2)i>0&&t.push(N`<div class="family-sep"></div>`),i+1<e.length?t.push(N`
+          <div class="family-row">
+            ${this._renderPerson(e[i],!1,i)}
+            ${this._renderDistance(e[i],e[i+1])}
+            ${this._renderPerson(e[i+1],!0,i+1)}
+          </div>
+        `):t.push(N`
+          <div class="family-row solo-row">
+            ${this._renderPerson(e[i],!1,i)}
+          </div>
+        `);return N`${t}`}_renderPerson(e,t,i=0){const a=Qa[i%Qa.length],r=Te(e.state);return N`
+      <div class="person-block ${t?"right":""} ${r?"entity-unavailable":""}">
+        <button
+          class="avatar-wrapper"
+          aria-label=${Re("presence.avatar_aria",{name:e.name})}
+          aria-expanded=${String(this._activePerson===e.entityId)}
+          @click=${t=>{t.stopPropagation();const i=this._activePerson===e.entityId?null:e.entityId;i!==this._activePerson&&(this._notifText=""),this._activePerson=i}}
+        >
+          ${r?N`<div class="avatar avatar-fallback avatar-unavailable"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></div>`:N`
+                ${e.entityPicture?N`<img class="avatar" src=${e.entityPicture} alt=${e.name} />`:N`
+                      <div
+                        class="avatar avatar-fallback"
+                        style="background: linear-gradient(135deg, ${a.from}, ${a.to})"
+                      >
+                        <ha-icon .icon=${"mdi:account"}></ha-icon>
+                      </div>
+                    `}
+                <div class="avatar-status ${s=e.state,"home"===s?"home":"not_home"===s?"away":"zone"}"></div>
+              `}
+        </button>
+        <div class="person-info">
+          <div class="person-name">${e.name}</div>
+          <div class="person-sub">
+            <div class="person-line">
+              <span class="source-icon"><ha-icon .icon=${function(e){switch(e){case"gps":default:return"mdi:crosshairs-gps";case"router":return"mdi:router-wireless";case"bluetooth":case"bluetooth_le":return"mdi:bluetooth"}}(e.sourceType)}></ha-icon></span>
+              <span class="person-location">${ke(function(e){return"home"===e?Re("presence.home"):"not_home"===e?Re("presence.away"):e.charAt(0).toUpperCase()+e.slice(1)}(e.state),xe)}</span>
+              ${e.isDriving?N`<span class="driving-icon"><ha-icon .icon=${"mdi:car"}></ha-icon></span>`:B}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;var s}_renderDistance(e,t){if(null==e.latitude||null==e.longitude||null==t.latitude||null==t.longitude)return B;const i=function(e,t,i,a){const r=(i-e)*Math.PI/180,s=(a-t)*Math.PI/180,o=Math.sin(r/2)**2+Math.cos(e*Math.PI/180)*Math.cos(i*Math.PI/180)*Math.sin(s/2)**2;return 12742*Math.atan2(Math.sqrt(o),Math.sqrt(1-o))}(e.latitude,e.longitude,t.latitude,t.longitude),a=i<.05,r=String(i<1?Math.round(1e3*i):Math.round(i)),s=Re(i<1?"presence.distance_m":"presence.distance_km");return N`
+      <div class="distance-center ${a?"near":""}">
+        <div class="distance-line"></div>
+        <div class="distance-info">
+          <div class="distance-value">${r}</div>
+          <div class="distance-unit">${s}</div>
+        </div>
+        <div class="heart-pulse" aria-hidden="true"><ha-icon .icon=${"mdi:heart"}></ha-icon></div>
+        <div class="distance-line right"></div>
+      </div>
+    `}_renderSoloChips(e){return null==e.heartRate&&null==e.spo2&&null==e.steps?B:N`
+      <div class="solo-health-chips">
+        ${null!=e.heartRate?N`<div class="solo-chip bpm"><ha-icon .icon=${"mdi:heart-pulse"}></ha-icon><span class="solo-chip-val">${e.heartRate}</span></div>`:B}
+        ${null!=e.spo2?N`<div class="solo-chip spo2"><ha-icon .icon=${"mdi:water-percent"}></ha-icon><span class="solo-chip-val">${e.spo2}%</span></div>`:B}
+        ${null!=e.steps?N`<div class="solo-chip steps"><ha-icon .icon=${"mdi:walk"}></ha-icon><span class="solo-chip-val">${e.steps.toLocaleString()}</span></div>`:B}
+      </div>
+    `}_renderFold(e,t){if(!this._activePerson)return B;const i=e.find(e=>e.entityId===this._activePerson);if(!i)return B;const a=null!=i.heartRate||null!=i.spo2||null!=i.steps;return N`
+      <div class="fold-sep ${t}"></div>
+      <div class="ctrl-fold">
+        <div class="ctrl-fold-inner">
+          <div class="fold-content">
+            <div class="health-address-row">
+              ${i.geocodedLocation?N`
+                <ha-icon .icon=${"mdi:map-marker"}></ha-icon>
+                <span class="address-text">${i.geocodedLocation}</span>
+              `:B}
+              <span class="fold-meta">
+                ${null!=i.batteryLevel?N`
+                  <span class="fold-battery ${r=i.batteryLevel,r>50?"high":r>20?"medium":"low"}">
+                    <ha-icon .icon=${function(e){return e>80?"mdi:battery":e>60?"mdi:battery-70":e>40?"mdi:battery-50":e>20?"mdi:battery-30":"mdi:battery-10"}(i.batteryLevel)}></ha-icon>
+                    ${i.batteryLevel}%
+                  </span>
+                `:B}
+                <span class="fold-last-seen">${function(e){const t=Math.floor((Date.now()-new Date(e).getTime())/1e3);return t<60?Re("presence.just_now"):t<3600?Re("presence.min_ago",{count:Math.floor(t/60)}):t<86400?Re("presence.hours_ago",{count:Math.floor(t/3600)}):Re("presence.days_ago",{count:Math.floor(t/86400)})}(i.lastUpdated)}</span>
+              </span>
+            </div>
+            ${a?N`
+                  <div class="health-zone-label">
+                    ${Re("presence.health_label")}
+                    <span class="health-zone-name">${i.name}</span>
+                  </div>
+                  <div class="health-pills">
+                    ${null!=i.heartRate?N`
+                          <div class="health-pill bpm">
+                            <div class="health-pill-icon"><ha-icon .icon=${"mdi:heart-pulse"}></ha-icon></div>
+                            <div class="health-pill-data">
+                              <span class="health-pill-value">${i.heartRate}</span>
+                              <span class="health-pill-label">${Re("presence.bpm")}</span>
+                            </div>
+                          </div>
+                        `:B}
+                    ${null!=i.spo2?N`
+                          <div class="health-pill spo2">
+                            <div class="health-pill-icon"><ha-icon .icon=${"mdi:water-percent"}></ha-icon></div>
+                            <div class="health-pill-data">
+                              <span class="health-pill-value">${i.spo2}%</span>
+                              <span class="health-pill-label">${Re("presence.spo2")}</span>
+                            </div>
+                          </div>
+                        `:B}
+                    ${null!=i.steps?N`
+                          <div class="health-pill steps">
+                            <div class="health-pill-icon"><ha-icon .icon=${"mdi:walk"}></ha-icon></div>
+                            <div class="health-pill-data">
+                              <span class="health-pill-value">${i.steps.toLocaleString()}</span>
+                              <span class="health-pill-label">${Re("presence.steps")}</span>
+                            </div>
+                          </div>
+                        `:B}
+                  </div>
+                `:B}
+            ${i.notifyService?N`
+                  <div class="notif-zone">
+                    <div class="notif-to">
+                      ${Re("presence.notify_to")}
+                      <span class="notif-to-name">${i.name}</span>
+                    </div>
+                    <div class="notif-row">
+                      <textarea
+                        class="notif-input"
+                        placeholder=${Re("presence.notify_placeholder")}
+                        .value=${this._notifText}
+                        @input=${e=>{this._notifText=e.target.value}}
+                        @focus=${()=>this._scrollToTop()}
+                      ></textarea>
+                      <button
+                        class="notif-send"
+                        aria-label=${Re("presence.send_aria")}
+                        @click=${e=>{e.stopPropagation(),this._sendNotification(i)}}
+                      >
+                        <ha-icon .icon=${"mdi:send"}></ha-icon>
+                      </button>
+                    </div>
+                  </div>
+                `:B}
+          </div>
+        </div>
+      </div>
+    `;var r}static{this.styles=[ve,be,ye,Ce,we,$e,De,s`
+      :host {
+        width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
+      }
+
+      /* ── Header ── */
+      .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; padding: 0 0.375rem; min-height: 1.375rem; margin-bottom: 0.375rem;
+        box-sizing: border-box;
+      }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+      .card-title {
+        font-size: var(--fz-xs); font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1.5px;
+        color: var(--t4);
+      }
+      .card-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
+        border-radius: var(--radius-full);
+        font-size: var(--fz-xs); font-weight: 600;
+        transition: all var(--t-med);
+      }
+      .card-count.all-home { background: rgba(var(--rgb-success),0.15); color: var(--c-success); }
+      .card-count.all-away { background: rgba(var(--rgb-alert),0.15); color: var(--c-alert); }
+      .card-count.mixed { background: rgba(var(--rgb-warning),0.15); color: var(--c-warning); }
+
+      /* ── Presence card ── */
+      .presence-card { padding: 0.4375rem 0.875rem; width: 100%; box-sizing: border-box; }
+
+      .card-tint {
+        position: absolute; inset: 0; border-radius: inherit;
+        opacity: 0.06; z-index: 0;
+        transition: opacity var(--t-slow), background var(--t-slow);
+        pointer-events: none;
+      }
+      .presence-card[data-presence="home"] .card-tint {
+        background: radial-gradient(ellipse at 50% 50%, var(--c-success), transparent 70%);
+        opacity: 0.1;
+      }
+      .presence-card[data-presence="away"] .card-tint {
+        background: radial-gradient(ellipse at 50% 50%, var(--c-alert), transparent 70%);
+        opacity: 0.09;
+      }
+      .presence-card[data-presence="mixed"] .card-tint {
+        background: linear-gradient(to right, rgba(var(--rgb-success),0.15), transparent 40%, transparent 60%, rgba(var(--rgb-alert),0.15));
+        opacity: 0.5;
+      }
+
+      .card-inner {
+        position: relative; z-index: 1;
+        display: flex; align-items: center;
+      }
+
+      /* Solo: person left, chips right */
+      .card-inner.solo-layout { justify-content: space-between; gap: 0.5rem; }
+
+      /* Family: stacked pair rows */
+      .card-inner.family-layout { flex-direction: column; gap: 0; }
+      .family-row { display: flex; align-items: center; width: 100%; }
+      .family-sep {
+        height: 0.0625rem; margin: 0.5rem 0.75rem;
+        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+      }
+      .family-row.solo-row { justify-content: center; }
+      .family-row.solo-row .person-block { flex: 0 1 auto; }
+
+      /* ── Person block ── */
+      .person-block {
+        display: flex; align-items: center; gap: 0.625rem;
+        flex: 1; min-width: 0;
+      }
+      .person-block.right { flex-direction: row-reverse; text-align: right; }
+
+      .avatar-wrapper {
+        position: relative; flex-shrink: 0;
+        cursor: pointer; background: none; border: none;
+        padding: 0; border-radius: 50%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .avatar-wrapper:not(:focus-visible) { outline: none; }
+      .avatar-wrapper:active { transform: scale(0.96); }
+      .avatar-wrapper:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+      .avatar {
+        width: 2.375rem; height: 2.375rem; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: border-color var(--t-med);
+        object-fit: cover;
+      }
+      .avatar-fallback { border: 2px solid rgba(var(--rgb-white),0.1); }
+      img.avatar { display: block; }
+      .avatar-fallback ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-lg); color: rgba(var(--rgb-white),0.85);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .avatar-wrapper:hover .avatar { border-color: rgba(var(--rgb-white),0.3); }
+      }
+
+      .avatar-status {
+        position: absolute; bottom: -0.0625rem; right: -0.0625rem;
+        width: 0.75rem; height: 0.75rem; border-radius: 50%;
+        border: 2px solid rgba(15,25,35,0.9);
+        transition: background var(--t-med), box-shadow var(--t-med);
+      }
+      .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(var(--rgb-success),0.5); }
+      .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5); }
+      .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(var(--rgb-info),0.5); }
+
+      .avatar-unavailable {
+        border: 2px solid var(--c-alert);
+        background: rgba(var(--rgb-alert), 0.1);
+        color: var(--c-warning);
+      }
+      .avatar-unavailable ha-icon {
+        --mdc-icon-size: var(--icon-md);
+        color: var(--c-warning);
+      }
+
+      .person-info { min-width: 0; flex: 1; }
+      .person-name { font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2; }
+      .person-block.right .person-name { text-align: right; }
+
+      .person-sub { display: flex; flex-direction: column; gap: 0.125rem; margin-top: 0.125rem; }
+      .person-block.right .person-sub { align-items: flex-end; }
+
+      .person-line { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
+      .person-block.right .person-line { flex-direction: row-reverse; }
+
+      .person-location {
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+        white-space: nowrap; overflow: hidden; min-width: 0;
+      }
+      .source-icon { display: flex; align-items: center; flex-shrink: 0; }
+      .source-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-xs); color: var(--t4);
+      }
+
+      .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
+      .driving-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.75rem; color: var(--c-info); opacity: 0.7;
+      }
+
+      /* ── Distance ── */
+      .distance-center { flex-shrink: 0; display: flex; align-items: center; padding: 0; gap: 0; }
+      .distance-line {
+        width: 1.25rem; height: 0.0625rem;
+        background: linear-gradient(to right, var(--b1), var(--b3));
+      }
+      .distance-line.right { background: linear-gradient(to right, var(--b3), var(--b1)); }
+      .distance-info {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 0.0625rem; padding: 0 0.25rem;
+      }
+      .distance-value { font-size: var(--fz-lg); font-weight: 700; color: var(--t2); white-space: nowrap; line-height: 1; }
+      .distance-unit { font-size: var(--fz-xs); font-weight: 400; color: var(--t4); text-align: center; line-height: 1; }
+
+      .heart-pulse {
+        display: none; color: #f472b6; line-height: 1; padding: 0 0.25rem;
+        filter: drop-shadow(0 0 4px rgba(244,114,182,0.35));
+        animation: pulse-beat 2.5s ease-in-out infinite;
+      }
+      .heart-pulse ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-md);
+      }
+      .distance-center.near .heart-pulse { display: flex; align-items: center; }
+      .distance-center.near .distance-info { display: none; }
+      @keyframes pulse-beat {
+        0%, 100% { transform: scale(1); opacity: 0.55; }
+        50% { transform: scale(1.05); opacity: 0.85; }
+      }
+
+      /* ── Solo health chips ── */
+      .solo-health-chips { display: flex; align-items: center; gap: 0.3125rem; flex-shrink: 0; }
+      .solo-chip {
+        display: flex; align-items: center; gap: 0.1875rem;
+        padding: 0.25rem 0.5rem; border-radius: var(--radius-full);
+        background: var(--s2); border: 1px solid var(--b1);
+        white-space: nowrap; line-height: 1;
+      }
+      .solo-chip ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.75rem;
+      }
+      .solo-chip-val { font-size: var(--fz-base); font-weight: 600; }
+      .solo-chip.bpm ha-icon, .solo-chip.bpm .solo-chip-val { color: var(--c-alert); opacity: 0.8; }
+      .solo-chip.spo2 ha-icon, .solo-chip.spo2 .solo-chip-val { color: var(--c-info); opacity: 0.8; }
+      .solo-chip.steps ha-icon, .solo-chip.steps .solo-chip-val { color: var(--c-success); opacity: 0.8; }
+
+      /* ── Fold ── */
+      .fold-sep {
+        height: 0.0625rem; margin: 0.5rem 0.75rem 0;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple),0.25), transparent);
+        opacity: 0; transition: opacity 0.25s var(--ease-std);
+      }
+      .fold-sep.home { background: linear-gradient(90deg, transparent, rgba(var(--rgb-success),0.3), transparent); }
+      .fold-sep.mixed { background: linear-gradient(90deg, transparent, rgba(var(--rgb-info),0.3), transparent); }
+      .fold-sep.away { background: linear-gradient(90deg, transparent, rgba(var(--rgb-alert),0.3), transparent); }
+      .fold-sep.visible { opacity: 1; }
+      .fold-sep.bottom { margin: 0 0.75rem 0.25rem; }
+
+      .ctrl-fold {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+        position: relative; z-index: 1;
+      }
+      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold-inner { overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease-std); }
+      .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+      .fold-content { display: flex; flex-direction: column; gap: 0.375rem; padding-top: 0.5rem; }
+
+      /* ── Health zone ── */
+      .health-zone-label {
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+        display: flex; align-items: center; gap: 0.3125rem;
+      }
+      .health-zone-name { color: var(--t3); font-weight: 600; }
+
+      .health-address-row {
+        display: flex; align-items: center; gap: 0.3125rem;
+        padding: 0.3125rem 0.5rem; border-radius: var(--radius-sm);
+        background: var(--s1); border: 1px solid var(--b1);
+      }
+      .health-address-row > ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.75rem; color: var(--t4); flex-shrink: 0;
+      }
+      .address-text {
+        font-size: var(--fz-sm); font-weight: 400; color: var(--t3);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        flex: 1; min-width: 0;
+      }
+      .fold-battery {
+        display: flex; align-items: center; gap: 0.1875rem;
+        font-size: var(--fz-sm); font-weight: 500; flex-shrink: 0; margin-left: auto;
+      }
+      .fold-battery.high { color: var(--c-success); }
+      .fold-battery.medium { color: var(--c-warning); }
+      .fold-battery.low { color: var(--c-alert); }
+      .fold-battery ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-sm); color: inherit;
+      }
+      .fold-meta {
+        display: flex; align-items: center; gap: 0.375rem;
+        margin-left: auto; flex-shrink: 0;
+      }
+      .fold-last-seen {
+        font-size: var(--fz-sm); font-weight: 400; color: var(--t4); white-space: nowrap;
+      }
+
+      .health-pills { display: flex; gap: 0.375rem; }
+      .health-pill {
+        flex: 1; display: flex; align-items: center; gap: 0.375rem;
+        padding: 0.375rem 0.625rem; border-radius: var(--radius-md);
+        background: var(--s1); border: 1px solid var(--b1);
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .health-pill:hover { background: var(--s3); border-color: var(--b2); }
+      }
+      .health-pill-icon { flex-shrink: 0; display: flex; align-items: center; }
+      .health-pill-icon ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: var(--icon-sm);
+      }
+      .health-pill-data { display: flex; flex-direction: column; min-width: 0; }
+      .health-pill-value { font-size: var(--fz-md); font-weight: 700; line-height: 1.1; color: var(--t1); }
+      .health-pill-label {
+        font-size: var(--fz-xxs); font-weight: 500; text-transform: uppercase;
+        letter-spacing: 0.8px; color: var(--t4); line-height: 1.2;
+      }
+
+      .health-pill.bpm .health-pill-icon ha-icon { color: var(--c-alert); }
+      .health-pill.bpm .health-pill-value { color: var(--c-alert); opacity: 0.85; }
+      .health-pill.spo2 .health-pill-icon ha-icon { color: var(--c-info); }
+      .health-pill.spo2 .health-pill-value { color: var(--c-info); opacity: 0.85; }
+      .health-pill.steps .health-pill-icon ha-icon { color: var(--c-success); }
+      .health-pill.steps .health-pill-value { color: var(--c-success); opacity: 0.85; }
+
+      /* ── Notification zone ── */
+      .notif-zone { padding: 0.5rem 0 0.25rem; display: flex; gap: 0.5rem; flex-direction: column; }
+      .notif-to {
+        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
+        display: flex; align-items: center; gap: 0.3125rem;
+      }
+      .notif-to-name { color: var(--t2); font-weight: 600; }
+
+      .notif-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+      .notif-input {
+        flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
+        border: 1px solid var(--b2); background: var(--s1);
+        color: var(--t1); font-family: inherit; font-size: var(--fz-base);
+        outline: none; resize: none; height: 2.25rem; box-sizing: border-box;
+        transition: border-color var(--t-fast);
+      }
+      .notif-input::placeholder { color: var(--t4); }
+      .notif-input:focus { border-color: var(--b3); }
+
+      .notif-send {
+        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-lg);
+        border: 1px solid rgba(var(--rgb-success),0.2);
+        background: rgba(var(--rgb-success),0.1); color: var(--c-success);
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; transition: background var(--t-fast), border-color var(--t-fast);
+        padding: 0; outline: none; font-size: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .notif-send ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 1rem;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .notif-send:hover { background: rgba(var(--rgb-success),0.2); border-color: rgba(var(--rgb-success),0.3); }
+      }
+      .notif-send:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+      .notif-send:active { transform: scale(0.96); }
+
+      @media (pointer: coarse) {
+        .avatar-wrapper:active,
+        .notif-send:active { animation: bounce 0.3s ease; }
+      }
+    `]}}Xa([ue()],Za.prototype,"_presenceConfig"),Xa([ue()],Za.prototype,"_activePerson"),Xa([ue()],Za.prototype,"_notifText");try{customElements.define("glass-presence-card",Za)}catch{}Ve("glass-spotify-card-editor");var er=Object.defineProperty,tr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&er(t,i,s),s};function ir(e,t=300){if(!e)return"";const i=e.images??e.album?.images??[];if(0===i.length)return"";const a=[...i].sort((e,i)=>Math.abs((e.width??300)-t)-Math.abs((i.width??300)-t));return a[0]?.url??""}function ar(e){return e&&e.artists?.length?e.artists.map(e=>e.name).join(", "):""}function rr(e){switch(e){case"track":default:return"mdi:music-note";case"playlist":return"mdi:playlist-music";case"album":return"mdi:album";case"show":case"podcast":case"episode":return"mdi:podcast"}}class sr extends We{constructor(){super(...arguments),this._view="library",this._tab="all",this._searchQuery="",this._playlists=[],this._recentlyPlayed=[],this._savedTracks=[],this._savedShows=[],this._searchResults={tracks:[],playlists:[],shows:[]},this._searchLoading=!1,this._searchOffset=0,this._searchHasMore=!1,this._searchVersion=0,this._drilldown=null,this._speakers=[],this._pickerItem=null,this._selectedSpeakers=new Set,this._error=null,this._libraryLoading=!1,this._spotifyConfigured=null,this._foldOpen=!1,this._savedMap=new Map,this._sectionTotals={},this._loadingMore={},this._spotifyConfig={entity_id:"",show_header:!0,sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},this._configLoaded=!1,this._configLoadingInProgress=!1,this._loadVersion=0,this._radioQueueVersion=0,this._debounceTimer=0}static getConfigElement(){return document.createElement("glass-spotify-card-editor")}getCardSize(){return 4}static{this.styles=[ve,be,ye,$e,Se,s`
+    :host { width: 100%; max-width: 31.25rem; margin: 0 auto; }
+
+    .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
+
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 0.375rem; min-height: 1.375rem; }
+    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .card-title {
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--t4); display: flex; align-items: center; gap: 0.25rem;
+    }
+    .card-title ha-icon { color: var(--c-spotify); --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
+
+    .spotify-card { position: relative; width: 100%; padding: 0.875rem; box-sizing: border-box; overflow: hidden; }
+    .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0; }
+
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse at 20% 20%, rgba(var(--rgb-spotify),0.12), transparent 70%);
+      opacity: 0.6;
+    }
+
+    /* Search */
+    .search-row { display: flex; gap: 0.375rem; align-items: center; }
+    .search-input-wrap { position: relative; flex: 1; }
+    .search-input {
+      width: 100%; height: 2.25rem; padding: 0 2.25rem 0 2.125rem;
+      border-radius: var(--radius-lg); background: var(--s2);
+      border: 1px solid var(--b2); color: var(--t1);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 500;
+      outline: none; transition: all var(--t-fast);
+      -webkit-tap-highlight-color: transparent; box-sizing: border-box;
+    }
+    .search-input::placeholder { color: var(--t4); }
+    .search-input:focus { border-color: rgba(var(--rgb-spotify),0.3); background: var(--s3); box-shadow: 0 0 0 2px rgba(var(--rgb-spotify),0.1); }
+    .search-icon {
+      position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
+      pointer-events: none; display: flex; align-items: center; justify-content: center;
+    }
+    .search-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .search-clear {
+      position: absolute; top: 50%; right: 1.875rem; transform: translateY(-50%);
+      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
+      background: transparent; border: none;
+      display: none; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+    }
+    .search-clear.visible { display: flex; }
+    .search-clear ha-icon { --mdc-icon-size: var(--icon-sm); color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .search-clear:hover { background: var(--s3); } }
+    @media (pointer: coarse) { .search-clear:active { animation: bounce 0.3s ease; } }
+    .search-clear:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    /* Fold toggle arrow (inside search bar) */
+    .search-toggle {
+      position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
+      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
+      background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      transition: all var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .search-toggle ha-icon {
+      --mdc-icon-size: var(--icon-sm); color: var(--t4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform var(--t-fast), color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) { .search-toggle:hover { background: var(--s3); } }
+    @media (hover: hover) and (pointer: fine) { .search-toggle:hover ha-icon { color: var(--t2); } }
+    @media (pointer: coarse) { .search-toggle:active { animation: bounce 0.3s ease; } }
+    .search-toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .search-toggle.open ha-icon { transform: rotate(180deg); color: var(--c-spotify); }
+
+    /* Content fold (CSS Grid 0fr/1fr) */
+    .sp-fold {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .sp-fold.open { grid-template-rows: 1fr; }
+    .sp-fold-inner {
+      overflow: hidden; opacity: 0; min-height: 0;
+      transition: opacity var(--t-fast) 0s;
+      display: flex; flex-direction: column; gap: 0.625rem;
+    }
+    .sp-fold.open .sp-fold-inner { padding-top: 0.625rem; }
+    .sp-fold.open .sp-fold-inner {
+      opacity: 1;
+      transition: opacity var(--t-fast) 0.1s;
+    }
+
+    /* Fold separator */
+    .sp-fold-sep {
+      height: 0.0625rem; margin: 0.125rem 0.75rem 0;
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-spotify),0.15), transparent);
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    .sp-fold.open + .sp-fold-sep { opacity: 1; }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex; gap: 0; border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1); overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1; height: 1.875rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.25rem;
+      background: transparent; border: none; color: var(--t3);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn ha-icon { --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
+    .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .tab-btn:active { animation: bounce 0.3s ease; } }
+    .tab-btn.active { background: rgba(var(--rgb-spotify),0.1); color: var(--c-spotify); }
+    .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
+
+    /* Content area */
+    .content-area {
+      display: flex; flex-direction: column; gap: 0.375rem;
+      max-height: 23.75rem; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+    }
+    .content-area::-webkit-scrollbar { display: none; }
+
+    /* Section title */
+    .section-title {
+      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--t4); padding: 0.25rem 0.125rem 0.125rem; flex-shrink: 0;
+    }
+
+    /* Result row */
+    .result-row {
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.375rem 0.25rem; cursor: pointer; position: relative;
+      transition: background var(--t-fast); border-radius: var(--radius-md);
+      flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
+      font-family: inherit; text-align: left; color: inherit; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) { .result-row:hover { background: var(--s1); } }
+    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: scale(0.99); } }
+    @media (pointer: coarse) { .result-row:active { animation: bounce 0.3s ease; } }
+    .result-row:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    .result-art {
+      width: 2.625rem; height: 2.625rem; border-radius: var(--radius-sm); flex-shrink: 0;
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .result-art.round { border-radius: 50%; }
+    .result-art img { width: 100%; height: 100%; object-fit: cover; }
+    .result-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
+
+    .result-info { flex: 1; min-width: 0; }
+    .result-title {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .result-meta {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3); margin-top: 0.0625rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .result-type-badge {
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 0.0625rem 0.25rem; border-radius: var(--radius-full);
+      background: var(--s3); color: var(--t4); flex-shrink: 0;
+    }
+
+    .result-play {
+      width: 2rem; height: 2rem; border-radius: 50%;
+      background: var(--c-spotify); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0; transform: scale(0.8); flex-shrink: 0;
+    }
+    .result-play ha-icon { --mdc-icon-size: 1rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
+    @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
+    @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
+    .result-play:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    /* Playlist grid (horizontal scroll) */
+    .playlist-scroll {
+      display: flex; gap: 0.5rem; overflow-x: auto; overflow-y: hidden;
+      padding: 0.125rem 0.125rem 0.25rem; margin: 0 -0.125rem; scrollbar-width: none; flex-shrink: 0;
+    }
+    .playlist-scroll::-webkit-scrollbar { display: none; }
+
+    .playlist-card {
+      flex-shrink: 0; width: 5.25rem;
+      display: flex; flex-direction: column; gap: 0.375rem;
+      cursor: pointer; padding: 0; background: none; border: none;
+      outline: none; text-align: left; font-family: inherit;
+      -webkit-tap-highlight-color: transparent; color: inherit;
+    }
+    @media (hover: hover) and (pointer: fine) { .playlist-card:active { transform: scale(0.97); } }
+    @media (pointer: coarse) { .playlist-card:active { animation: bounce 0.3s ease; } }
+    .playlist-card:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    .playlist-art {
+      width: 5.25rem; height: 5.25rem; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative; transition: border-color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
+    .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
+    .playlist-art ha-icon { --mdc-icon-size: 2rem; color: rgba(var(--rgb-white),0.4); display: flex; align-items: center; justify-content: center; }
+
+    .playlist-art-play {
+      position: absolute; bottom: 0.375rem; right: 0.375rem;
+      width: 1.75rem; height: 1.75rem; border-radius: 50%;
+      background: var(--c-spotify);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: translateY(4px);
+      transition: all var(--t-fast);
+      box-shadow: 0 4px 12px rgba(var(--rgb-black),0.4);
+      pointer-events: none;
+    }
+    .playlist-art-play ha-icon { --mdc-icon-size: var(--icon-sm); color: #000; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
+    }
+
+    .playlist-name {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t2); line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .playlist-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
+
+    /* Drilldown header */
+    .drilldown-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* Back button */
+    .back-btn {
+      display: flex; align-items: center; gap: 0.25rem;
+      background: none; border: none; color: var(--t3);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      cursor: pointer; padding: 0.25rem 0.125rem; outline: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: color var(--t-fast);
+    }
+    .back-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .back-btn:hover { color: var(--t1); } }
+    @media (pointer: coarse) { .back-btn:active { animation: bounce 0.3s ease; } }
+    .back-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    /* Play all button */
+    .play-all-btn {
+      display: flex; align-items: center; gap: 0.25rem;
+      background: rgba(30, 215, 96, 0.12); border: none; color: var(--c-spotify-hover);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      cursor: pointer; padding: 0.25rem 0.625rem; border-radius: var(--radius-full);
+      outline: none; -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .play-all-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .play-all-btn:hover { background: rgba(30, 215, 96, 0.22); } }
+    @media (pointer: coarse) { .play-all-btn:active { animation: bounce 0.3s ease; } }
+    .play-all-btn:focus-visible { outline: 2px solid rgba(30, 215, 96, 0.4); outline-offset: 2px; }
+
+    /* Empty & error states */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2rem 1rem; gap: 0.5rem;
+    }
+    .empty-state ha-icon { --mdc-icon-size: 2rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .empty-state-text { font-size: var(--fz-base); font-weight: 500; color: var(--t4); text-align: center; }
+
+    .error-banner {
+      padding: 0.5rem 0.75rem; border-radius: var(--radius-md);
+      background: rgba(var(--rgb-alert),0.1); border: 1px solid rgba(var(--rgb-alert),0.2);
+      font-size: var(--fz-base); font-weight: 500; color: var(--c-alert);
+    }
+
+    .setup-banner {
+      display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+      padding: 1.5rem 1rem; text-align: center;
+    }
+    .setup-banner ha-icon { --mdc-icon-size: 2.5rem; color: var(--c-spotify); display: flex; align-items: center; justify-content: center; }
+    .setup-banner-text { font-size: var(--fz-base); color: var(--t3); line-height: 1.5; }
+    .setup-link {
+      font-size: var(--fz-base); font-weight: 600; color: var(--c-spotify);
+      background: rgba(var(--rgb-spotify),0.1); border: 1px solid rgba(var(--rgb-spotify),0.2);
+      border-radius: var(--radius-md); padding: 0.375rem 0.875rem;
+      cursor: pointer; text-decoration: none; outline: none;
+      -webkit-tap-highlight-color: transparent; transition: all var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) { .setup-link:hover { background: rgba(var(--rgb-spotify),0.2); } }
+    @media (pointer: coarse) { .setup-link:active { animation: bounce 0.3s ease; } }
+    .setup-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+
+    /* Load more button */
+    .load-more-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.5rem; border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+      color: var(--t3); font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
+      transition: all var(--t-fast); flex-shrink: 0;
+    }
+    @media (hover: hover) and (pointer: fine) { .load-more-btn:hover { background: var(--s2); color: var(--t1); } }
+    @media (pointer: coarse) { .load-more-btn:active { animation: bounce 0.3s ease; } }
+    .load-more-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    /* Speaker picker overlay */
+    .picker-backdrop {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(var(--rgb-black),0.5);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 1rem; padding-bottom: 5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .picker-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+    .speaker-picker {
+      width: 100%; max-width: 25rem;
+      padding: 1rem;
+      max-height: calc(100dvh - 10rem);
+      display: flex; flex-direction: column;
+      transform: translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .picker-backdrop.visible .speaker-picker { transform: translateY(0); }
+
+    .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .picker-title { font-size: var(--fz-md); font-weight: 700; color: var(--t1); }
+    .picker-close {
+      width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none; transition: all var(--t-fast);
+    }
+    .picker-close ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .picker-close:hover { background: var(--s3); } }
+    @media (pointer: coarse) { .picker-close:active { animation: bounce 0.3s ease; } }
+    .picker-close:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    .picker-track {
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem; margin-bottom: 0.75rem;
+      background: var(--s1); border-radius: var(--radius-md); border: 1px solid var(--b1);
+    }
+    .picker-track-art {
+      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); flex-shrink: 0;
+      background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .picker-track-art img { width: 100%; height: 100%; object-fit: cover; }
+    .picker-track-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .picker-track-info { flex: 1; min-width: 0; }
+    .picker-track-title { font-size: var(--fz-base); font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-track-artist { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .picker-speakers {
+      display: flex; flex-direction: column; gap: 0.25rem;
+      overflow-y: auto; flex: 1; min-height: 0;
+      scrollbar-width: none;
+    }
+    .picker-speakers::-webkit-scrollbar { display: none; }
+    .picker-speaker {
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem; border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+      cursor: pointer; transition: all var(--t-fast);
+      font-family: inherit; outline: none; width: 100%;
+      -webkit-tap-highlight-color: transparent; color: inherit;
+      flex-shrink: 0;
+    }
+    .picker-speaker.selected { border-color: rgba(var(--rgb-spotify),0.4); background: rgba(var(--rgb-spotify),0.08); }
+    @media (hover: hover) and (pointer: fine) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
+    @media (hover: hover) and (pointer: fine) { .picker-speaker:active { transform: scale(0.98); } }
+    @media (pointer: coarse) { .picker-speaker:active { animation: bounce 0.3s ease; } }
+    .picker-speaker:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+
+    .picker-speaker-icon {
+      width: 2rem; height: 2rem; border-radius: var(--radius-sm);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
+    }
+    .picker-speaker.selected .picker-speaker-icon { background: rgba(var(--rgb-spotify),0.15); border-color: rgba(var(--rgb-spotify),0.3); }
+    .picker-speaker-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    .picker-speaker.selected .picker-speaker-icon ha-icon { color: var(--c-spotify); }
+    .picker-speaker-name { flex: 1; font-size: var(--fz-base); font-weight: 600; color: var(--t2); }
+    .picker-speaker-status { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); white-space: nowrap; }
+    .picker-speaker-status.playing { color: rgba(var(--rgb-spotify),0.6); }
+    .picker-speaker-check {
+      width: 1.25rem; height: 1.25rem; border-radius: 50%;
+      border: 2px solid var(--b2); background: transparent;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
+    }
+    .picker-speaker.selected .picker-speaker-check { border-color: var(--c-spotify); background: var(--c-spotify); }
+    .picker-speaker-check ha-icon { --mdc-icon-size: var(--icon-sm); color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
+    .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
+
+    .picker-play-bar {
+      display: flex; gap: 0.5rem; padding-top: 0.5rem; flex-shrink: 0;
+    }
+    .picker-play-btn {
+      flex: 1; padding: 0.625rem; border-radius: var(--radius-md);
+      border: none; cursor: pointer; font-family: inherit; font-size: var(--fz-base); font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+      transition: all var(--t-fast); outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .picker-play-btn.primary { background: var(--c-spotify); color: #fff; }
+    .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
+    @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: var(--c-spotify-hover); } }
+    .picker-play-btn.primary ha-icon { --mdc-icon-size: var(--icon-md); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
+    @media (pointer: coarse) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
+
+    /* Now playing indicator */
+    .result-row.now-playing {
+      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
+      border-radius: var(--radius-sm);
+    }
+    .result-row.now-playing .result-title {
+      color: var(--c-accent);
+    }
+    .result-row .eq-bars { flex-shrink: 0; }
+
+    /* Heart (favorite) button */
+    .heart-btn {
+      width: 1.5rem; height: 1.5rem;
+      border-radius: var(--radius-sm);
+      background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      color: var(--t3); flex-shrink: 0;
+      transition: transform var(--t-fast), color var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .heart-btn ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .heart-btn.saved ha-icon {
+      color: var(--c-accent);
+    }
+    .heart-btn:active {
+      transform: scale(0.85);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .heart-btn:hover {
+        transform: scale(1.1);
+      }
+    }
+
+    /* Load more (library pagination) */
+    .load-more {
+      width: 100%;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .items-count {
+      font-size: var(--fz-sm);
+      color: var(--t3);
+    }
+
+    /* Loading spinner placeholder */
+    .loading-text { font-size: var(--fz-base); color: var(--t4); text-align: center; padding: 1rem 0; }
+  `]}getTrackedEntityIds(){const e=this._getEntityId(),t=e?[e]:[];return this._spotifyConfig?.entity_id&&!t.includes(this._spotifyConfig.entity_id)&&t.push(this._spotifyConfig.entity_id),t}_isNowPlaying(e){const t=this._spotifyConfig?.entity_id;if(!t)return!1;const i=this.hass?.states[t];return!(!i||"playing"!==i.state)&&(i.attributes.media_content_id??"")===e}_getEntityId(){if(this._config?.entity)return this._config.entity;if(this._spotifyConfig.entity_id)return this._spotifyConfig.entity_id;if(this.hass){const e=Object.keys(this.hass.states).find(e=>e.startsWith("media_player.spotify"));if(e)return e}return""}shouldUpdate(e){return!!super.shouldUpdate(e)&&("speaker_picker"!==this._view||1!==e.size||!e.has("hass"))}connectedCallback(){super.connectedCallback(),this._listen("spotify-config-changed",()=>{this._configLoaded=!1,this._loadConfig()})}disconnectedCallback(){super.disconnectedCallback(),this._debounceTimer&&clearTimeout(this._debounceTimer),this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1}_collapseExpanded(){"speaker_picker"!==this._view?(this._foldOpen&&(this._foldOpen=!1),this._drilldown&&(this._drilldown=null,this._view=this._searchQuery?"search":"library")):this._closePicker()}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1),this._configLoaded||this._configLoadingInProgress||(this._backend=new Qe(this.hass),this._loadConfig()))}async _loadConfig(){if(!this._backend||this._configLoadingInProgress)return;this._configLoadingInProgress=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;if(t?.spotify_card&&(this._spotifyConfig=t.spotify_card),this._configLoaded=!0,await this._checkSpotifyStatus(),e!==this._loadVersion)return;this._spotifyConfigured&&this._loadLibrary(),this.requestUpdate()}catch{}finally{e===this._loadVersion&&(this._configLoadingInProgress=!1)}}async _checkSpotifyStatus(){if(this._backend)try{const e=await this._backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}async _loadLibrary(){if(!this._backend)return;this._libraryLoading=!0,this._error=null;const e=this._spotifyConfig.max_items_per_section;try{const[t,i,a,r]=await Promise.all([this._backend.send("spotify_browse",{category:"playlists",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"recently_played",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_tracks",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_shows",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order})]);this._playlists=(t?.items??[]).filter(Boolean),this._recentlyPlayed=(i?.items??[]).filter(Boolean),this._savedTracks=(a?.items??[]).filter(Boolean),this._savedShows=(r?.items??[]).filter(Boolean).map(e=>e.show??e),this._sectionTotals={playlists:t?.total??0,recently_played:i?.total??0,saved_tracks:a?.total??0,saved_shows:r?.total??0};const s=[];for(const e of this._recentlyPlayed){const t=e.track??e;!t.id||"track"!==t.type&&t.type||s.push(t.id)}for(const e of this._savedTracks){const t=e.track??e;t.id&&s.push(t.id)}s.length&&this._checkSavedStatus(s)}catch(t){this._handleApiError(t)}finally{this._libraryLoading=!1}}_onSearchInput(e){const t=e.target.value;if(this._searchQuery=t,this._debounceTimer&&clearTimeout(this._debounceTimer),0===t.length)return this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},void(this._searchOffset=0);this._foldOpen||(this._foldOpen=!0),this._view="search",this._debounceTimer=window.setTimeout(()=>this._doSearch(!1),300)}_clearSearch(){this._searchQuery="",this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},this._searchOffset=0,this._foldOpen=!1}async _doSearch(e){if(!this._backend||!this._searchQuery)return;const t=++this._searchVersion;this._searchLoading=!0,this._error=null;const i=e?this._searchOffset:0;try{let a;a="tracks"===this._tab?["track"]:"playlists"===this._tab?["playlist"]:"podcasts"===this._tab?["show"]:["track","playlist","show"];const r=await this._backend.send("spotify_search",{query:this._searchQuery,types:a,limit:12,offset:i});if(t!==this._searchVersion)return;const s=(r?.tracks?.items??[]).filter(Boolean),o=(r?.playlists?.items??[]).filter(Boolean),n=(r?.shows?.items??[]).filter(Boolean);this._searchResults=e?{tracks:[...this._searchResults.tracks,...s],playlists:[...this._searchResults.playlists,...o],shows:[...this._searchResults.shows,...n]}:{tracks:s,playlists:o,shows:n},this._searchOffset=i+12;const c=(r?.tracks?.total??0)+(r?.playlists?.total??0)+(r?.shows?.total??0),l=this._searchResults.tracks.length+this._searchResults.playlists.length+this._searchResults.shows.length;this._searchHasMore=l<c;const d=s.filter(e=>e.id).map(e=>e.id);d.length&&this._checkSavedStatus(d)}catch(a){if(t!==this._searchVersion)return;this._handleApiError(a)}finally{t===this._searchVersion&&(this._searchLoading=!1)}}async _openDrilldown(e,t,i){if(this._backend){this._view="drilldown",this._drilldown={title:i,type:e,id:t,items:[],total:0,offset:0,loading:!0},this._error=null;try{const i="playlist"===e?"playlist_tracks":"album_tracks",a=await this._backend.send("spotify_browse",{category:i,content_id:t,limit:20,offset:0,sort_order:this._spotifyConfig.sort_order}),r=a?.items??[];if(!this._drilldown)return;this._drilldown={...this._drilldown,items:r,total:a?.total??0,offset:20,loading:!1};const s=r.map(e=>(e.track??e).id).filter(Boolean);s.length&&this._checkSavedStatus(s)}catch(a){this._handleApiError(a),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}async _loadMoreDrilldown(){if(this._drilldown&&this._backend){this._drilldown={...this._drilldown,loading:!0};try{const e="playlist"===this._drilldown.type?"playlist_tracks":"album_tracks",t=await this._backend.send("spotify_browse",{category:e,content_id:this._drilldown.id,limit:20,offset:this._drilldown.offset,sort_order:this._spotifyConfig.sort_order}),i=t?.items??[];this._drilldown={...this._drilldown,items:[...this._drilldown.items,...i],offset:this._drilldown.offset+20,loading:!1};const a=i.map(e=>(e.track??e).id).filter(Boolean);a.length&&this._checkSavedStatus(a)}catch(e){this._handleApiError(e),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}_goBack(){this._drilldown=null,this._view=this._searchQuery?"search":"library"}_openPicker(e){if(this._pickerItem=e,this._view="speaker_picker",this._selectedSpeakers=new Set,this.hass){const e=this._spotifyConfig.visible_speakers,t=e.length>0;this._speakers=Object.entries(this.hass.states).filter(([i])=>!!i.startsWith("media_player.")&&!(t&&!e.includes(i))).map(([e,t])=>{const i=t.attributes.device_class??"";let a="mdi:speaker";return"tv"===i||e.includes("tv")?a="mdi:television":"receiver"===i?a="mdi:audio-video":(e.includes("nest")||e.includes("hub")||e.includes("echo_show"))&&(a="mdi:tablet"),{entityId:e,name:t.attributes.friendly_name??e,state:t.state,mediaTitle:t.attributes.media_title??null,icon:a}}).sort((i,a)=>{if(t)return e.indexOf(i.entityId)-e.indexOf(a.entityId);const r=e=>"playing"===e?0:"paused"===e?1:2;return r(i.state)-r(a.state)})}}_closePicker(){this._pickerItem=null,this._view=this._drilldown?"drilldown":this._searchQuery?"search":"library"}_toggleSpeakerSelection(e){const t=new Set(this._selectedSpeakers);t.has(e)?t.delete(e):t.add(e),this._selectedSpeakers=t}async _playOnSelectedSpeakers(){if(!this.hass||!this._pickerItem||0===this._selectedSpeakers.size)return;Be(this,"light");const e=this._pickerItem,t=e.uri??`spotify:${e.type}:${e.id}`,i=[...this._selectedSpeakers],a="track"===e.type?"music":"playlist"===e.type?"playlist":"album"===e.type?"music":"podcast";try{for(const e of i){const t=this.hass.states[e];if(!t)continue;const i=t.attributes.group_members;i&&i.length>1&&this._safeCallService("media_player","unjoin",{},{entity_id:e})}i.length>1&&await new Promise(e=>setTimeout(e,600));const r=i[0];if(this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:r}),i.length>1){const e=i.slice(1),s=this.hass.states[r];if(s&&!!(524288&s.attributes.supported_features))await new Promise(e=>setTimeout(e,800)),this._safeCallService("media_player","join",{group_members:e},{entity_id:r});else for(const i of e)this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:i})}"track"!==e.type&&"episode"!==e.type||!this._backend||this._seedRadioQueue(e)}catch{}this._closePicker()}async _seedRadioQueue(e){if(!this._backend)return;const t=++this._radioQueueVersion;try{if(await new Promise(e=>setTimeout(e,2e3)),!this._backend||t!==this._radioQueueVersion)return;const i=await this._backend.send("spotify_browse",{category:"recommendations",seed_tracks:[e.id],limit:20});if(t!==this._radioQueueVersion)return;const a=i?.tracks??[];ge.emit("radio-queue-started",{count:a.length});let r=0;for(let e=0;e<a.length;e++){const i=a[e];if(!this._backend||t!==this._radioQueueVersion)break;const s=i.uri??`spotify:track:${i.id}`;try{await this._backend.send("spotify_add_to_queue",{uri:s}),r++,ge.emit("radio-queue-track-added",{track:{id:i.id,name:i.name,uri:s,artist:ar(i)||void 0},index:e}),await new Promise(e=>setTimeout(e,150))}catch{break}}t===this._radioQueueVersion&&ge.emit("radio-queue-complete",{total:r})}catch(i){t===this._radioQueueVersion&&ge.emit("radio-queue-error",{message:i.message??"Unknown error"})}}async _loadMoreItems(e){if(!this._backend||this._loadingMore[e])return;this._loadingMore={...this._loadingMore,[e]:!0};const t=this._spotifyConfig.max_items_per_section;let i=0;"playlists"===e?i=this._playlists.length:"recently_played"===e?i=this._recentlyPlayed.length:"saved_tracks"===e?i=this._savedTracks.length:"saved_shows"===e&&(i=this._savedShows.length);try{const a=await this._backend.send("spotify_browse",{category:e,limit:t,offset:i,sort_order:this._spotifyConfig.sort_order}),r=(a?.items??[]).filter(Boolean);if("playlists"===e)this._playlists=[...this._playlists,...r];else if("recently_played"===e)this._recentlyPlayed=[...this._recentlyPlayed,...r];else if("saved_tracks"===e){this._savedTracks=[...this._savedTracks,...r];const e=r.map(e=>(e.track??e).id).filter(Boolean);e.length&&this._checkSavedStatus(e)}else"saved_shows"===e&&(this._savedShows=[...this._savedShows,...r.map(e=>e.show??e)]);null!=a?.total&&(this._sectionTotals={...this._sectionTotals,[e]:a.total})}catch(a){this._handleApiError(a)}finally{this._loadingMore={...this._loadingMore,[e]:!1}}}_renderLoadMore(e,t){const i=this._sectionTotals[e]??0;return t>=i?B:N`
+      <button class="load-more-btn load-more" ?disabled=${this._loadingMore[e]} @click=${()=>this._loadMoreItems(e)}>
+        ${Re("spotify.load_more")}
+        <span class="items-count">${Re("spotify.items_count",{current:String(t),total:String(i)})}</span>
+      </button>
+    `}async _checkSavedStatus(e){const t=[...new Set(e)];if(t.length&&this._backend)try{const e=await this._backend.send("spotify_check_saved",{track_ids:t});if(!this.isConnected)return;const i=new Map(this._savedMap);for(const[t,a]of Object.entries(e??{}))i.set(t,a);this._savedMap=i}catch{}}async _toggleSaved(e){if(!this._backend)return;Be(this,"success");const t=this._savedMap.get(e)??!1,i=new Map(this._savedMap);i.set(e,!t),this._savedMap=i;try{t?await this._backend.send("spotify_remove_tracks",{track_ids:[e]}):await this._backend.send("spotify_save_tracks",{track_ids:[e]})}catch{const i=new Map(this._savedMap);i.set(e,t),this._savedMap=i}}_handleApiError(e){const t=e;"spotify_not_configured"===t.code?this._spotifyConfigured=!1:t.message?.includes("rate limit")||t.message?.includes("429")?this._error=Re("spotify.error_rate_limit",{seconds:"30"}):this._error=Re("spotify.error_api")}render(){if(this._lang,!this._configLoaded)return B;const e=this._getEntityId();if(!1===this._spotifyConfigured)return this._renderShell(N`
+        <div class="setup-banner">
+          <ha-icon .icon=${"mdi:spotify"}></ha-icon>
+          <div class="setup-banner-text">${Re("spotify.not_configured")}</div>
+          <a class="setup-link" href="/config/integrations/dashboard" target="_blank">
+            ${Re("spotify.open_config")}
+          </a>
+        </div>
+      `);if(!e)return this._renderShell(N`
+        <div class="setup-banner">
+          <ha-icon .icon=${"mdi:spotify"}></ha-icon>
+          <div class="setup-banner-text">${Re("spotify.no_entity")}</div>
+          <a class="setup-link" href="/glass-cards" target="_blank">
+            ${Re("spotify.open_config")}
+          </a>
+        </div>
+      `);const t="speaker_picker"===this._view&&this._pickerItem;return N`
+      ${this._renderShell(N`
+        ${this._error?N`<div class="error-banner">${this._error}</div>`:B}
+        ${"drilldown"===this._view&&this._drilldown?this._renderDrilldown():N`
+            ${this._renderSearch()}
+            <div class="sp-fold ${this._foldOpen?"open":""}">
+              <div class="sp-fold-inner">
+                ${this._renderTabs()}
+                <div class="content-area">
+                  ${"search"===this._view?this._renderSearchResults():this._renderLibrary()}
+                </div>
+              </div>
+            </div>
+          `}
+      `)}
+      ${t?this._renderSpeakerPicker():B}
+    `}_renderShell(e){return N`
+      <div class="spotify-card-wrap">
+        ${this._spotifyConfig.show_header?N`
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-title">${Re("spotify.title")}</span>
+            </div>
+          </div>
+        `:B}
+        <div class="glass spotify-card">
+          <div class="tint"></div>
+          <div class="card-inner">${e}</div>
+        </div>
+      </div>
+    `}_renderSearch(){return N`
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <div class="search-icon"><ha-icon .icon=${"mdi:magnify"}></ha-icon></div>
+          <input
+            class="search-input"
+            type="text"
+            placeholder=${Re("spotify.search_placeholder")}
+            .value=${this._searchQuery}
+            @input=${this._onSearchInput}
+            @focus=${()=>{this._foldOpen||(this._foldOpen=!0),this._scrollToTop()}}
+          />
+          <button
+            class="search-clear ${this._searchQuery?"visible":""}"
+            aria-label="${Re("spotify.clear_search")}"
+            @click=${this._clearSearch}
+          >
+            <ha-icon .icon=${"mdi:close"}></ha-icon>
+          </button>
+          <button
+            class="search-toggle ${this._foldOpen?"open":""}"
+            aria-label=${Re("spotify.toggle_library")}
+            @click=${()=>{this._foldOpen=!this._foldOpen}}
+          >
+            <ha-icon .icon=${"mdi:chevron-down"}></ha-icon>
+          </button>
+        </div>
+      </div>
+    `}_renderTabs(){return N`
+      <div class="tab-bar">
+        ${[{id:"all",labelKey:"spotify.tab_all",icon:"mdi:home"},{id:"tracks",labelKey:"spotify.tab_tracks",icon:"mdi:music-note"},{id:"playlists",labelKey:"spotify.tab_playlists",icon:"mdi:playlist-music"},{id:"podcasts",labelKey:"spotify.tab_podcasts",icon:"mdi:podcast"}].map(e=>N`
+          <button
+            class="tab-btn ${this._tab===e.id?"active":""}"
+            aria-label=${Re(e.labelKey)}
+            @click=${()=>{this._tab=e.id,this._searchQuery&&(this._searchOffset=0,this._doSearch(!1))}}
+          >
+            <ha-icon .icon=${e.icon}></ha-icon>
+            <span>${Re(e.labelKey)}</span>
+          </button>
+        `)}
+      </div>
+    `}_renderLibrary(){if(this._libraryLoading)return N`<div class="loading-text">${Re("spotify.loading")}</div>`;const e="all"===this._tab||"playlists"===this._tab,t="all"===this._tab||"tracks"===this._tab,i="all"===this._tab||"podcasts"===this._tab;return e&&this._playlists.length>0||t&&(this._recentlyPlayed.length>0||this._savedTracks.length>0)||i&&this._savedShows.length>0?N`
+      ${e&&this._playlists.length>0?N`
+        <div class="section-title">${Re("spotify.my_playlists")}</div>
+        <div class="playlist-scroll">
+          ${this._playlists.map(e=>this._renderPlaylistCard(e))}
+        </div>
+        ${this._renderLoadMore("playlists",this._playlists.length)}
+      `:B}
+
+      ${t&&this._recentlyPlayed.length>0?N`
+        <div class="section-title">${Re("spotify.recently_played")}</div>
+        ${this._recentlyPlayed.map(e=>{const t=e.track??e;return this._renderResultRow(t,t.type??"track")})}
+        ${this._renderLoadMore("recently_played",this._recentlyPlayed.length)}
+      `:B}
+
+      ${t&&this._savedTracks.length>0?N`
+        <div class="section-title">${Re("spotify.saved_tracks")}</div>
+        ${this._savedTracks.map(e=>{const t=e.track??e;return this._renderResultRow(t,"track")})}
+        ${this._renderLoadMore("saved_tracks",this._savedTracks.length)}
+      `:B}
+
+      ${i&&this._savedShows.length>0?N`
+        <div class="section-title">${Re("spotify.followed_podcasts")}</div>
+        ${this._savedShows.map(e=>this._renderResultRow({...e,type:"show"},"show"))}
+        ${this._renderLoadMore("saved_shows",this._savedShows.length)}
+      `:B}
+    `:N`
+        <div class="empty-state">
+          <ha-icon .icon=${"mdi:music-note-off"}></ha-icon>
+          <div class="empty-state-text">${Re("spotify.no_content")}</div>
+        </div>
+      `}_renderPlaylistCard(e){const t=ir(e,160),i=e.tracks?.total??0;return N`
+      <button
+        class="playlist-card"
+        aria-label=${e.name}
+        @click=${()=>this._openDrilldown("playlist",e.id,e.name)}
+      >
+        <div class="playlist-art" style=${t?"":"background:#3040a0"}>
+          ${t?N`<img src=${t} alt="" loading="lazy" />`:N`<ha-icon .icon=${"mdi:playlist-music"}></ha-icon>`}
+          <div class="playlist-art-play"><ha-icon .icon=${"mdi:play"}></ha-icon></div>
+        </div>
+        <div class="playlist-name">${e.name}</div>
+        ${i>0?N`<div class="playlist-count">${Re("spotify.tracks_count",{count:String(i)})}</div>`:B}
+      </button>
+    `}_renderResultRow(e,t){if(!e)return B;const i=ir(e,64),a=ar(e)||(e.owner?.display_name??""),r="show"===t||"episode"===t,s=e.uri??`spotify:${e.type??t}:${e.id}`,o=this._isNowPlaying(s);return N`
+      <div
+        class="result-row ${o?"now-playing":""}"
+        role="button"
+        tabindex="0"
+        @click=${()=>{"playlist"===t?this._openDrilldown("playlist",e.id,e.name):"album"===t?this._openDrilldown("album",e.id,e.name):this._openPicker(e)}}
+        @keydown=${e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),e.currentTarget.click())}}
+      >
+        <div class="result-art ${r?"round":""}">
+          ${i?N`<img src=${i} alt="" loading="lazy" />`:N`<ha-icon .icon=${rr(t)}></ha-icon>`}
+        </div>
+        <div class="result-info">
+          <div class="result-title">${e.name}</div>
+          <div class="result-meta">
+            <span class="result-type-badge">${Re(function(e){switch(e){case"track":default:return"spotify.type_track";case"playlist":return"spotify.type_playlist";case"album":return"spotify.type_album";case"show":case"episode":return"spotify.type_podcast"}}(t))}</span>
+            <span>${a}</span>
+          </div>
+        </div>
+        ${"track"!==t&&"episode"!==t||!e.id?B:N`
+          <button class="heart-btn ${this._savedMap.get(e.id)?"saved":""}"
+                  aria-label="${this._savedMap.get(e.id)?Re("spotify.remove_track"):Re("spotify.save_track")}"
+                  @click=${t=>{t.stopPropagation(),this._toggleSaved(e.id)}}>
+            <ha-icon .icon="${this._savedMap.get(e.id)?"mdi:heart":"mdi:heart-outline"}"></ha-icon>
+          </button>
+        `}
+        ${o?N`<div class="eq-bars"><span></span><span></span><span></span></div>`:N`
+            <button
+              class="result-play"
+              aria-label=${Re("spotify.play_aria",{name:e.name})}
+              @click=${t=>{t.stopPropagation(),this._openPicker(e)}}
+            >
+              <ha-icon .icon=${"mdi:play"}></ha-icon>
+            </button>
+          `}
+      </div>
+    `}_renderSearchResults(){if(this._searchLoading&&0===this._searchOffset)return N`<div class="loading-text">${Re("spotify.loading")}</div>`;const{tracks:e,playlists:t,shows:i}=this._searchResults,a=("all"===this._tab||"tracks"===this._tab)&&e.length>0,r=("all"===this._tab||"playlists"===this._tab)&&t.length>0,s=("all"===this._tab||"podcasts"===this._tab)&&i.length>0;return a||r||s?N`
+      ${a?N`
+        ${"all"===this._tab?N`<div class="section-title">${Re("spotify.tab_tracks")}</div>`:B}
+        ${e.map(e=>this._renderResultRow(e,"track"))}
+      `:B}
+
+      ${r?N`
+        ${"all"===this._tab?N`<div class="section-title">${Re("spotify.tab_playlists")}</div>`:B}
+        ${t.map(e=>this._renderResultRow(e,"playlist"))}
+      `:B}
+
+      ${s?N`
+        ${"all"===this._tab?N`<div class="section-title">${Re("spotify.tab_podcasts")}</div>`:B}
+        ${i.map(e=>this._renderResultRow({...e,type:"show"},"show"))}
+      `:B}
+
+      ${this._searchHasMore?N`
+        <button class="load-more-btn" @click=${()=>this._doSearch(!0)} ?disabled=${this._searchLoading}>
+          ${this._searchLoading?Re("spotify.loading"):Re("spotify.load_more")}
+        </button>
+      `:B}
+    `:N`
+        <div class="empty-state">
+          <ha-icon .icon=${"mdi:music-note-off"}></ha-icon>
+          <div class="empty-state-text">${Re("spotify.no_results",{query:this._searchQuery})}</div>
+        </div>
+      `}_playFullDrilldown(){if(!this._drilldown)return;const e=this._drilldown,t=`spotify:${e.type}:${e.id}`;this._openPicker({id:e.id,name:e.title,type:e.type,uri:t})}_renderDrilldown(){const e=this._drilldown;return e?N`
+      <div class="drilldown-header">
+        <button class="back-btn" @click=${this._goBack}>
+          <ha-icon .icon=${"mdi:arrow-left"}></ha-icon>
+          ${Re("spotify.back")}
+        </button>
+        <button class="play-all-btn" @click=${this._playFullDrilldown} aria-label=${Re("spotify.play_all")}>
+          <ha-icon .icon=${"mdi:play-circle"}></ha-icon>
+          ${Re("spotify.play_all")}
+        </button>
+      </div>
+      <div class="section-title">${e.title}</div>
+      <div class="content-area">
+        ${e.items.map(e=>{const t=e.track??e;return this._renderResultRow(t,t.type??"track")})}
+        ${e.loading?N`<div class="loading-text">${Re("spotify.loading")}</div>`:B}
+        ${!e.loading&&e.items.length<e.total?N`
+          <button class="load-more-btn" ?disabled=${e.loading} @click=${this._loadMoreDrilldown}>
+            ${Re("spotify.load_more")}
+          </button>
+        `:B}
+      </div>
+    `:B}_renderSpeakerPicker(){const e=this._pickerItem;if(!e)return B;const t=ir(e,64),i=ar(e),a=this._selectedSpeakers.size>0;return N`
+      <div class="picker-backdrop visible" role="presentation" @click=${e=>{e.target.classList.contains("picker-backdrop")&&this._closePicker()}}>
+        <div class="glass speaker-picker">
+          <div class="picker-header">
+            <div class="picker-title">${Re("spotify.play_on")}</div>
+            <button class="picker-close" aria-label="${Re("common.close")}" @click=${this._closePicker}>
+              <ha-icon .icon=${"mdi:close"}></ha-icon>
+            </button>
+          </div>
+
+          <div class="picker-track">
+            <div class="picker-track-art">
+              ${t?N`<img src=${t} alt="" />`:N`<ha-icon .icon=${rr(e.type??"track")}></ha-icon>`}
+            </div>
+            <div class="picker-track-info">
+              <div class="picker-track-title">${e.name}</div>
+              ${i?N`<div class="picker-track-artist">${i}</div>`:B}
+            </div>
+          </div>
+
+          <div class="picker-speakers">
+            ${this._speakers.map(e=>{const t=this._selectedSpeakers.has(e.entityId);return N`
+                <button class="picker-speaker ${t?"selected":""}" @click=${()=>this._toggleSpeakerSelection(e.entityId)}>
+                  <div class="picker-speaker-icon">
+                    <ha-icon .icon=${e.icon}></ha-icon>
+                  </div>
+                  <div class="picker-speaker-name">${e.name}</div>
+                  <div class="picker-speaker-status ${"playing"===e.state?"playing":""}">
+                    ${"playing"===e.state&&e.mediaTitle?e.mediaTitle:"paused"===e.state?Re("spotify.paused"):Re("spotify.available")}
+                  </div>
+                  <div class="picker-speaker-check">
+                    <ha-icon .icon=${"mdi:check"}></ha-icon>
+                  </div>
+                </button>
+              `})}
+          </div>
+
+          <div class="picker-play-bar">
+            <button
+              class="picker-play-btn primary"
+              ?disabled=${!a}
+              @click=${()=>this._playOnSelectedSpeakers()}
+              aria-label=${Re("spotify.play")}
+            >
+              <ha-icon .icon=${"mdi:play"}></ha-icon>
+              ${Re("spotify.play")}${a?` (${this._selectedSpeakers.size})`:""}
+            </button>
+          </div>
+        </div>
+      </div>
+    `}}tr([ue()],sr.prototype,"_view"),tr([ue()],sr.prototype,"_tab"),tr([ue()],sr.prototype,"_searchQuery"),tr([ue()],sr.prototype,"_playlists"),tr([ue()],sr.prototype,"_recentlyPlayed"),tr([ue()],sr.prototype,"_savedTracks"),tr([ue()],sr.prototype,"_savedShows"),tr([ue()],sr.prototype,"_searchResults"),tr([ue()],sr.prototype,"_searchLoading"),tr([ue()],sr.prototype,"_searchOffset"),tr([ue()],sr.prototype,"_searchHasMore"),tr([ue()],sr.prototype,"_drilldown"),tr([ue()],sr.prototype,"_speakers"),tr([ue()],sr.prototype,"_pickerItem"),tr([ue()],sr.prototype,"_selectedSpeakers"),tr([ue()],sr.prototype,"_error"),tr([ue()],sr.prototype,"_libraryLoading"),tr([ue()],sr.prototype,"_spotifyConfigured"),tr([ue()],sr.prototype,"_foldOpen"),tr([ue()],sr.prototype,"_savedMap"),tr([ue()],sr.prototype,"_sectionTotals"),tr([ue()],sr.prototype,"_loadingMore");try{customElements.define("glass-spotify-card",sr)}catch{}Ve("glass-camera-carousel-card-editor");var or=Object.defineProperty,nr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&or(t,i,s),s};const cr=1,lr="mdi:cctv",dr="mdi:webcam",hr="mdi:doorbell-video",pr={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},ur={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},gr=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],_r=new Map;function mr(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const l of Object.keys(i))i[l].device_id===r&&l.startsWith("binary_sensor.")&&t[l]&&(s+=`:${l}=${t[l].state}`);const o=_r.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[l,d]of Object.entries(i))d.device_id===r&&n.push(l);const c={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const l of n){const e=t[l];if(e&&(l.startsWith("binary_sensor.")&&ur.motion.test(l)&&(c.motionSensorId=l),l.startsWith("switch.")&&ur.record.test(l)&&(c.recordSwitchId=l),ur.siren.test(l)&&(c.sirenId=l),l.startsWith("light.")&&ur.floodlight.test(l)&&(c.floodlightId=l),l.startsWith("switch.")&&ur.auto_tracking.test(l)&&(c.autoTrackId=l),l.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of gr)t.test(l)&&!c.aiDetected.includes(i)&&c.aiDetected.push(i)}return _r.set(e,{key:s,result:c}),c}function fr(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?hr:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?dr:lr}class vr extends We{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._camConfig=null,this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav, .stream-placeholder"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),_r.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=mr(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new Qe(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?Ye(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(t===this._cachedCamerasKey)return this._cachedCameraIds;const i=this._camConfig?.entity_order??[];if(i.length){const t=i.filter(t=>e.includes(t)),a=e.filter(e=>!t.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...t,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}return this._cachedCamerasKey=t,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!gr.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=mr(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:fr(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return B;const e=this._getCameraIds();if(!e.length)return B;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]);return N`
+      ${t?N`
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-title">${Re("camera.title")}</span>
+          </div>
+        </div>
+      `:B}
+      <div class="glass carousel-card">
+        <div class="tint" style="${this._tintStyle(i)}"></div>
+        <div class="carousel-inner">
+          <div class="carousel-viewport"
+            @pointerdown=${this._onPointerDown}
+            @pointermove=${this._onPointerMove}
+            @pointerup=${this._onPointerUp}
+            @pointercancel=${this._onPointerCancel}
+          >
+            <div class="carousel-track" style="transform:translateX(-${100*this._carouselIndex}%)">
+              ${e.map((e,t)=>this._renderSlide(e,t===this._carouselIndex))}
+            </div>
+            ${e.length>1?N`
+              <button class="carousel-nav prev" aria-label="${Re("camera.prev_aria")}" @click=${this._prev}>
+                <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
+              </button>
+              <button class="carousel-nav next" aria-label="${Re("camera.next_aria")}" @click=${this._next}>
+                <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
+              </button>
+            `:B}
+          </div>
+          ${e.length>1?N`
+            <div class="carousel-dots">
+              ${e.map((e,t)=>this._renderDot(e,t))}
+            </div>
+          `:B}
+          ${i?this._renderInfoBar(i):B}
+          ${i?this._renderActions(i):B}
+        </div>
+      </div>
+    `}_tintStyle(e){if(!e||!e.isOn||"idle"===e.state)return"opacity:0";return`background:radial-gradient(ellipse at 50% 50%,${e.aiDetected.length>0?"var(--c-warning)":"var(--cam-color)"},transparent 70%);opacity:0.12`}_renderSlide(e,t){const i=this._getCameraInfo(e);if(!i)return N`<div class="carousel-slide"><div class="carousel-slide-inner off-feed"></div></div>`;const a=this._liveIds.has(e)||"streaming"===i.state||"recording"===i.state,r=i.isOn&&a&&t,s=i.isOn?a?"active-feed":"idle-feed":"off-feed";return N`
+      <div class="carousel-slide">
+        <div class="carousel-slide-inner ${s}">
+          ${r&&this.hass?N`
+            <ha-camera-stream
+              .hass=${this.hass}
+              .stateObj=${i.entity}
+              .controls=${!1}
+              .muted=${!0}
+              class="cam-stream"
+            ></ha-camera-stream>
+          `:i.entityPicture&&i.isOn?N`
+            <img class="cam-thumbnail" src="${i.entityPicture}" alt="${i.name}" />
+          `:B}
+          ${i.isOn?N`
+            <div class="stream-overlay-top">
+              <div class="stream-cam-name">
+                <ha-icon .icon=${i.icon} style="--mdc-icon-size:12px"></ha-icon>
+                <span>${i.name}</span>
+                ${i.isRecording?N`
+                  <span class="rec-indicator">
+                    <span class="rec-circle"></span> REC
+                  </span>
+                `:B}
+              </div>
+              <div class="stream-time">${(new Date).toLocaleTimeString(void 0,{hour:"2-digit",minute:"2-digit"})}</div>
+            </div>
+            <div class="stream-overlay-bottom">
+              ${i.aiDetected.length>0?N`
+                <div class="stream-ai-tags">
+                  ${i.aiDetected.map(e=>N`
+                    <div class="stream-ai-tag">
+                      <ha-icon .icon=${pr[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
+                      ${Re(`camera.ai_${e}`)}
+                    </div>
+                  `)}
+                </div>
+              `:N`<div></div>`}
+            </div>
+            ${a?B:N`
+              <button class="stream-placeholder" @click=${t=>{t.stopPropagation(),this._startStream(e)}}
+                aria-label="${Re("camera.tap_to_stream")}">
+                <ha-icon .icon=${i.icon} style="--mdc-icon-size:36px;color:var(--t4)"></ha-icon>
+                <span>${Re("camera.tap_to_stream")}</span>
+              </button>
+            `}
+          `:N`
+            <div class="stream-placeholder">
+              <ha-icon .icon=${"mdi:camera-off"} style="--mdc-icon-size:36px;color:var(--t4)"></ha-icon>
+              <span>${Re("camera.camera_off")}</span>
+            </div>
+          `}
+        </div>
+      </div>
+    `}_renderDot(e,t){const i=this._getCameraInfo(e);let a="carousel-dot-btn";return t===this._carouselIndex&&(a+=" active"),i?.aiDetected.length&&(a+=" motion-dot"),N`
+      <button class="${a}"
+        aria-label="${Re("camera.dot_aria",{name:i?.name||""})}"
+        @click=${()=>this._goTo(t)}
+      ></button>
+    `}_renderInfoBar(e){const t=e.isOn&&"idle"!==e.state;return N`
+      <div class="carousel-info">
+        <div class="carousel-cam-icon ${t?"on":""}">
+          <ha-icon .icon=${e.icon} style="--mdc-icon-size:16px"></ha-icon>
+        </div>
+        <div class="carousel-info-text">
+          <div class="carousel-cam-name">${ke(e.name,xe)}</div>
+          <div class="carousel-cam-sub">
+            <span class="carousel-state ${t?"live":""}">${function(e,t){if(!t)return Re("camera.off");switch(e){case"idle":return Re("camera.idle");case"streaming":return Re("camera.streaming");case"recording":return Re("camera.recording");default:return e}}(e.state,e.isOn)}</span>
+            ${e.aiDetected.length>0&&e.isOn?N`
+              <div class="carousel-ai-mini">
+                ${e.aiDetected.map(e=>N`
+                  <div class="ai-badge active">
+                    <ha-icon .icon=${pr[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
+                  </div>
+                `)}
+              </div>
+            `:B}
+          </div>
+        </div>
+      </div>
+    `}_renderActions(e){if(!e.isOn)return N`
+        <div class="carousel-actions">
+          <button class="action-btn" @click=${()=>this._togglePower(e)} aria-label="${Re("camera.power_on")}">
+            <ha-icon .icon=${"mdi:power"} style="--mdc-icon-size:14px"></ha-icon>
+            ${Re("camera.power_on")}
+          </button>
+        </div>
+      `;const t=0!==(e.features&cr),i=!!e.sirenId&&"on"===this.hass?.states[e.sirenId]?.state,a=!!e.floodlightId&&"on"===this.hass?.states[e.floodlightId]?.state,r=!!e.autoTrackId&&"on"===this.hass?.states[e.autoTrackId]?.state;return N`
+      <div class="carousel-actions">
+        ${t?N`
+          <button class="action-btn active" @click=${()=>this._togglePower(e)} aria-label="${Re("camera.power_off")}">
+            <ha-icon .icon=${"mdi:power"} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        `:B}
+        <button class="action-btn" @click=${()=>this._snapshot(e)} aria-label="${Re("camera.snapshot")}">
+          <ha-icon .icon=${"mdi:camera"} style="--mdc-icon-size:14px"></ha-icon>
+          ${Re("camera.snapshot")}
+        </button>
+        ${e.recordSwitchId?N`
+          <button class="action-btn ${e.isRecording?"active-alert":""}" @click=${()=>this._toggleRecord(e)}
+            aria-label="${e.isRecording?Re("camera.record_stop"):Re("camera.record_start")}">
+            <ha-icon .icon=${e.isRecording?"mdi:record-circle":"mdi:record"} style="--mdc-icon-size:14px"></ha-icon>
+            ${e.isRecording?Re("camera.record_stop"):Re("camera.record_start")}
+          </button>
+        `:B}
+        ${e.motionDetectionSupported?N`
+          <button class="action-btn ${e.motionDetectionEnabled?"active":""}" @click=${()=>this._toggleMotion(e)}
+            aria-label="${e.motionDetectionEnabled?Re("camera.motion_on_aria"):Re("camera.motion_off_aria")}">
+            <ha-icon .icon=${e.motionDetectionEnabled?"mdi:motion-sensor":"mdi:motion-sensor-off"} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        `:B}
+        ${e.sirenId?N`
+          <button class="action-btn ${i?"active-alert":""}" @click=${()=>this._toggleSiren(e)}
+            aria-label="${Re("camera.siren_aria")}">
+            <ha-icon .icon=${"mdi:bullhorn"} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        `:B}
+        ${e.floodlightId?N`
+          <button class="action-btn ${a?"active-warning":""}" @click=${()=>this._toggleFloodlight(e)}
+            aria-label="${Re("camera.floodlight_aria")}">
+            <ha-icon .icon=${a?"mdi:flashlight":"mdi:flashlight-off"} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        `:B}
+        ${e.autoTrackId?N`
+          <button class="action-btn ${r?"active":""}" @click=${()=>this._toggleAutoTrack(e)}
+            aria-label="${Re("camera.auto_track_aria")}">
+            <ha-icon .icon=${"mdi:target-account"} style="--mdc-icon-size:14px"></ha-icon>
+          </button>
+        `:B}
+      </div>
+    `}static{this.styles=[ve,be,ye,we,$e,s`
+      :host {
+        width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
+
+        --cam-color: #60a5fa;
+        --cam-bg: rgba(var(--rgb-info),0.1);
+        --cam-border: rgba(var(--rgb-info),0.15);
+        --cam-glow: rgba(var(--rgb-info),0.4);
+        --cam-sub: rgba(var(--rgb-info),0.6);
+      }
+
+      .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
+      }
+      .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
+      .card-title {
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1.5px; color: var(--t4);
+      }
+
+      .carousel-card { width: 100%; padding: 0.875rem; position: relative; box-sizing: border-box; }
+      .carousel-inner {
+        position: relative; z-index: 1;
+        display: flex; flex-direction: column; gap: 0.625rem;
+      }
+
+      .tint {
+        position: absolute; inset: 0; border-radius: inherit;
+        pointer-events: none; z-index: 0;
+        transition: opacity 1.2s cubic-bezier(0.4,0,0.2,1), background 1.2s cubic-bezier(0.4,0,0.2,1);
+      }
+
+      /* — Viewport — */
+      .carousel-viewport {
+        position: relative; width: 100%; aspect-ratio: 16 / 9;
+        border-radius: var(--radius-lg); overflow: hidden;
+        background: #0a0f18; border: 1px solid var(--b1);
+        touch-action: pan-y;
+      }
+      .carousel-track {
+        display: flex; width: 100%; height: 100%;
+        transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+      }
+      .carousel-slide {
+        flex: 0 0 100%; width: 100%; height: 100%;
+        position: relative;
+      }
+      .carousel-slide-inner {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .carousel-slide-inner.active-feed {
+        background:
+          radial-gradient(circle at 25% 35%, rgba(40,60,90,0.4) 0%, transparent 40%),
+          radial-gradient(circle at 65% 55%, rgba(30,50,70,0.3) 0%, transparent 45%),
+          radial-gradient(circle at 50% 80%, rgba(50,40,60,0.2) 0%, transparent 50%),
+          linear-gradient(135deg, #141e2e 0%, #0d1520 40%, #111a28 100%);
+      }
+      .carousel-slide-inner.idle-feed {
+        background:
+          radial-gradient(circle at 30% 40%, rgba(var(--rgb-info),0.06) 0%, transparent 50%),
+          radial-gradient(circle at 70% 60%, rgba(var(--rgb-accent),0.04) 0%, transparent 50%),
+          linear-gradient(135deg, #0d1520 0%, #0a0f18 100%);
+      }
+      .carousel-slide-inner.off-feed {
+        background: linear-gradient(135deg, #0a0e14 0%, #080c12 100%);
+      }
+
+      .cam-thumbnail {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; z-index: 0;
+      }
+      .cam-stream {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        display: block; z-index: 0; overflow: hidden;
+        --video-object-fit: cover;
+      }
+
+      /* — Stream overlays — */
+      .stream-overlay-top {
+        position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.5rem 0.625rem;
+        background: linear-gradient(180deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
+      }
+      .stream-cam-name {
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
+        display: flex; align-items: center; gap: 0.3125rem;
+      }
+      .stream-cam-name ha-icon { display: flex; align-items: center; justify-content: center; }
+      .rec-indicator {
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        font-size: var(--fz-xs); font-weight: 700; color: var(--c-alert);
+        letter-spacing: 0.5px;
+      }
+      .rec-circle {
+        width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--c-alert);
+        animation: rec-pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes rec-pulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--c-alert); }
+        50% { opacity: 0.4; box-shadow: 0 0 0px var(--c-alert); }
+      }
+      .stream-time {
+        font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-white),0.5);
+        font-variant-numeric: tabular-nums;
+      }
+      .stream-overlay-bottom {
+        position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.5rem 0.625rem;
+        background: linear-gradient(0deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
+      }
+      .stream-ai-tags { display: flex; gap: 0.25rem; }
+      .stream-ai-tag {
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        padding: 0.125rem 0.375rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-xs); font-weight: 600;
+        background: rgba(var(--rgb-info),0.15); color: var(--cam-color);
+        border: 1px solid rgba(var(--rgb-info),0.2);
+      }
+      .stream-ai-tag ha-icon { display: flex; align-items: center; justify-content: center; }
+      .stream-placeholder {
+        display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
+        z-index: 3; background: none; border: none; padding: 0; cursor: pointer;
+        outline: none; -webkit-tap-highlight-color: transparent;
+        font-family: inherit;
+      }
+      .stream-placeholder:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 4px; border-radius: var(--radius-md); }
+      .stream-placeholder span { font-size: var(--fz-sm); color: var(--t4); font-weight: 500; }
+      button.stream-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; justify-content: center; }
+
+      /* — Nav arrows — */
+      .carousel-nav {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        width: 2rem; height: 2rem; border-radius: 50%;
+        background: rgba(var(--rgb-black),0.4); border: 1px solid rgba(var(--rgb-white),0.1);
+        -webkit-backdrop-filter: var(--blur-sm);
+        backdrop-filter: var(--blur-sm);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; padding: 0; outline: none;
+        font-family: inherit; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        -webkit-tap-highlight-color: transparent;
+        z-index: 5; opacity: 0.7;
+      }
+      .carousel-nav ha-icon {
+        --mdc-icon-size: var(--icon-md); color: rgba(var(--rgb-white),0.8);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .carousel-nav:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: -2px; }
+      .carousel-nav:active { transform: translateY(-50%) scale(0.92); }
+      .carousel-nav.prev { left: 0.5rem; }
+      .carousel-nav.next { right: 0.5rem; }
+
+      @media (hover: hover) and (pointer: fine) {
+        .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
+      }
+
+      /* — Dots — */
+      .carousel-dots {
+        display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+      }
+      .carousel-dot-btn {
+        width: 0.5rem; height: 0.5rem; border-radius: 50%; padding: 0;
+        border: none; background: var(--t4); cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4,0,0.2,1); outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .carousel-dot-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 2px; }
+      .carousel-dot-btn.active {
+        width: 1.25rem; border-radius: 4px;
+        background: var(--cam-color); box-shadow: 0 0 8px var(--cam-glow);
+      }
+      .carousel-dot-btn.recording {
+        background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5);
+      }
+      .carousel-dot-btn.recording.active {
+        background: var(--c-alert);
+        animation: rec-pulse 1.5s ease-in-out infinite;
+      }
+      .carousel-dot-btn.motion-dot {
+        background: var(--c-warning); box-shadow: 0 0 6px rgba(var(--rgb-warning),0.4);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .carousel-dot-btn:hover { background: var(--t3); }
+      }
+
+      /* — Info bar — */
+      .carousel-info {
+        display: flex; align-items: center; gap: 0.625rem; padding: 0 0.125rem;
+      }
+      .carousel-cam-icon {
+        width: 2rem; height: 2rem; border-radius: var(--radius-md);
+        background: var(--s2); border: 1px solid var(--b1);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      }
+      .carousel-cam-icon ha-icon {
+        color: var(--t3); display: flex; align-items: center; justify-content: center;
+      }
+      .carousel-cam-icon.on { background: var(--cam-bg); border-color: var(--cam-border); }
+      .carousel-cam-icon.on ha-icon { color: var(--cam-color); }
+      .carousel-info-text { flex: 1; min-width: 0; }
+      .carousel-cam-name {
+        font-size: var(--fz-md); font-weight: 600; color: var(--t1);
+        overflow: hidden; white-space: nowrap;
+      }
+      .carousel-cam-sub {
+        display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.0625rem;
+      }
+      .carousel-state { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
+      .carousel-state.live { color: var(--cam-sub); }
+      .carousel-ai-mini { display: flex; gap: 0.125rem; align-items: center; }
+      .ai-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1rem; height: 1rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-sm); transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      }
+      .ai-badge.active { background: rgba(var(--rgb-info),0.12); color: var(--cam-color); }
+      .ai-badge ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        filter: drop-shadow(0 0 4px var(--cam-glow));
+      }
+
+      /* — Quick actions — */
+      .carousel-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+      .action-btn {
+        display: inline-flex; align-items: center; gap: 0.3125rem;
+        padding: 0.375rem 0.75rem; border-radius: var(--radius-md);
+        border: 1px solid var(--b2); background: var(--s1);
+        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+        color: var(--t3); cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+        outline: none; -webkit-tap-highlight-color: transparent;
+      }
+      .action-btn ha-icon { display: flex; align-items: center; justify-content: center; }
+      .action-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      .action-btn:active { transform: scale(0.96); }
+      .action-btn.active { border-color: var(--cam-border); background: var(--cam-bg); color: var(--cam-color); }
+      .action-btn.active-alert { border-color: rgba(var(--rgb-alert),0.2); background: rgba(var(--rgb-alert),0.1); color: var(--c-alert); }
+      .action-btn.active-warning { border-color: rgba(var(--rgb-warning),0.2); background: rgba(var(--rgb-warning),0.1); color: var(--c-warning); }
+
+      @media (hover: hover) and (pointer: fine) {
+        .action-btn:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+      }
+      @media (pointer: coarse) {
+        .action-btn:active { animation: bounce 0.15s ease-out; }
+      }
+    `]}}nr([pe()],vr.prototype,"areaId"),nr([ue()],vr.prototype,"_carouselIndex"),nr([ue()],vr.prototype,"_liveIds");try{customElements.define("glass-camera-carousel-card",vr)}catch{}Ve("glass-title-card-editor");var br=Object.defineProperty,yr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&br(t,i,s),s};const wr={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},xr={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function kr(e){if(wr[e])return wr[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return wr.neutral}const $r={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Sr={icon:"mdi:clock-outline",color:"var(--t3)"};class Cr extends We{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=$r[e]||Sr,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[ve,be,$e,s`
+    :host {
+      width: 100%;
+      max-width: 31.25rem;
+      margin: 0 auto;
+    }
+
+    .title-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0; padding: 0.125rem 1rem 0;
+      text-align: center;
+    }
+
+    .title-text {
+      font-size: var(--fz-xl); font-weight: 700; color: var(--t1);
+      letter-spacing: -0.3px; line-height: 1.2;
+      display: flex; align-items: center; gap: 0.875rem;
+      width: 100%;
+    }
+    .title-text::before, .title-text::after {
+      content: ''; flex: 1; height: 0.0625rem;
+      background: linear-gradient(90deg, transparent, var(--b3));
+    }
+    .title-text::after {
+      background: linear-gradient(90deg, var(--b3), transparent);
+    }
+
+    /* ── Dash trigger ── */
+    .dash-trigger {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 1.25rem;
+      padding: 0.125rem 1rem;
+      cursor: pointer; border: none; background: none; outline: none;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: var(--radius-full);
+      transition: background var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .dash-trigger:hover { background: var(--s1); }
+    }
+    .dash-trigger:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+    @media (pointer: coarse) {
+      .dash-trigger:active { transform: scale(0.96); }
+    }
+
+    .dash-line {
+      width: 1.25rem; height: 0.125rem; border-radius: 1px;
+      background: var(--t4);
+      transition: background var(--t-med), width var(--t-med), box-shadow var(--t-med);
+    }
+
+    /* ── Fold section ── */
+    .fold-section {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+      overflow: hidden;
+      width: 100%;
+    }
+    .fold-section.open { grid-template-rows: 1fr; }
+    .fold-section-inner {
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.2s var(--ease-std) 0s;
+    }
+    .fold-section.open .fold-section-inner {
+      opacity: 1;
+      transition: opacity 0.2s var(--ease-std) 0.1s;
+    }
+
+    /* Fold separator */
+    .fold-sep {
+      height: 0.0625rem; width: 80%; margin: 0.25rem auto;
+      background: linear-gradient(90deg, transparent, var(--b3), transparent);
+    }
+
+    /* ── Chips group ── */
+    .chips-group-label {
+      font-size: var(--fz-xs); font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t3);
+      text-align: center; padding: 0.375rem 0 0.125rem;
+    }
+    .chips-group + .chips-group .chips-group-label {
+      border-top: 1px solid var(--b1);
+      margin: 0 20%; padding-top: 0.5rem;
+    }
+
+    .chips-row {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 0.375rem; padding: 0.25rem 0.25rem 0.5rem;
+    }
+
+    /* ── Chip ── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.3125rem;
+      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    }
+    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+    .chip ha-icon {
+      --mdc-icon-size: var(--icon-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    @media (pointer: coarse) {
+      .chip:active { transform: scale(0.94); }
+    }
+
+    @keyframes chip-pulse {
+      0%   { box-shadow: inset 0 0 0 0 currentColor; }
+      50%  { box-shadow: inset 0 0 8px 1px currentColor; }
+      100% { box-shadow: inset 0 0 0 0 currentColor; }
+    }
+    .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
+
+    /* ── Period indicator ── */
+    .period-indicator {
+      position: relative;
+      height: 0.75rem;
+      overflow: hidden;
+      width: 100%;
+    }
+    .period-item {
+      width: 100%;
+      height: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--fz-xs);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t3);
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+      position: absolute;
+      top: 0;
+      transition: transform var(--t-layout), opacity var(--t-layout);
+    }
+    .period-item ha-icon {
+      margin-right: 0.25rem;
+    }
+    .period-item::after {
+      content: '';
+      display: inline-block;
+      width: calc(9px + 0.25rem);
+    }
+    .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
+    .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
+    .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
+    .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
+    .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
+  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++,this._sceneTimeout&&(clearTimeout(this._sceneTimeout),this._sceneTimeout=0)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new Qe(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=[this._periodEntityId];for(const t of this._titleConfig.sources)if("input_select"===t.source_type&&t.entity)e.push(t.entity);else for(const i of t.modes)i.id.includes(".")&&e.push(i.id);return e}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_dashStyle(e){if(0===e.length)return"";const t=e.map(e=>kr(e)),i="width:"+Math.min(20+4*e.length,36)+"px";if(1===t.length)return`background:${t[0].dot};box-shadow:0 0 8px ${t[0].glow};${i}`;const a=t.length,r=t.flatMap((e,t)=>[`${e.dot} ${Math.round(t/a*100)}%`,`${e.dot} ${Math.round((t+1)/a*100)}%`]).join(", "),s=t.filter(e=>"none"!==e.glow);return`background:linear-gradient(90deg, ${r});box-shadow:${s.length>0?s.map(e=>`0 0 6px ${e.glow}`).join(", "):"none"};${i}`}_getActiveColors(e){if("input_select"===e.source_type){if(!e.entity||!this.hass)return[];const t=this.hass.states[e.entity];if(!t)return[];const i=e.modes.find(e=>e.id===t.state),a=i?.color||"neutral";return"neutral"!==a?[a]:[]}if("booleans"===e.source_type){if(!this.hass)return[];const t=[];for(const i of e.modes)if("on"===this.hass.states[i.id]?.state){const e=i.color||"success";"neutral"!==e&&t.push(e)}return t}if(this._activatingSceneId){const t=e.modes.find(e=>e.id===this._activatingSceneId);if(t)return[t.color||"accent"]}return[]}_isChipActive(e,t,i){return"input_select"===e.source_type?!(!e.entity||!this.hass)&&this.hass.states[e.entity]?.state===t.id:"booleans"===e.source_type?"on"===this.hass?.states[t.id]?.state:"scenes"===e.source_type&&this._activatingSceneId===t.id}_selectOption(e,t){e.entity&&this.hass&&this._safeCallService("input_select","select_option",{option:t},{entity_id:e.entity})}_activateScene(e){this.hass&&(Be(this,"light"),this._safeCallService("scene","turn_on",{},{entity_id:e}),this._activatingSceneId=e,this._sceneTimeout&&clearTimeout(this._sceneTimeout),this._sceneTimeout=window.setTimeout(()=>{this._activatingSceneId=null,this._sceneTimeout=0},2e3),this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))}))}_toggleBoolean(e){this.hass&&this._safeCallService("input_boolean","toggle",{},{entity_id:e})}_toggleFold(){this._foldOpen=!this._foldOpen}_onClickOutside(e){if(!this._foldOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelector(".dash-trigger"),r=i.querySelector(".fold-section");a&&r&&!t.includes(a)&&!t.includes(r)&&(this._foldOpen=!1)}render(){this._lang;const e=this._titleConfig.title;if(!e)return this.style.display="none",B;this.style.display="";const t=this._titleConfig.sources,i=t.length>0&&t.some(e=>e.modes.length>0),a=[];if(i)for(const s of t)a.push(...this._getActiveColors(s));const r=a.length>0?this._dashStyle(a):"";return N`
+      <div class="title-card">
+        <div class="title-text">${e}</div>
+        ${this._renderPeriodIndicator()}
+        ${i?N`
+          <button
+            class="dash-trigger"
+            @click=${()=>this._toggleFold()}
+            aria-label=${Re("title_card.toggle_modes_aria")}
+            aria-expanded=${this._foldOpen?"true":"false"}
+          >
+            <div
+              class="dash-line"
+              style="${r}"
+            ></div>
+          </button>
+          <div class="fold-section ${this._foldOpen?"open":""}">
+            <div class="fold-section-inner">
+              <div class="fold-sep"></div>
+              ${t.map((e,i)=>this._renderSourceGroup(e,i,t.length>1))}
+            </div>
+          </div>
+        `:B}
+      </div>
+    `}_renderPeriodIndicator(){if(!this.hass)return B;const e=this.hass.states[this._periodEntityId];if(!e)return B;const t=e.attributes?.options??[];if(0===t.length)return B;const i=e.state,a=t.indexOf(i);if(-1===a)return N`<div class="period-indicator"></div>`;const r=kr(this._getPeriodVisual(i).color);return N`
+      <div class="period-indicator" aria-live="polite" aria-label="${i}">
+        ${t.map((e,t)=>{const i=this._getPeriodPos(t,a),s=this._getPeriodVisual(e);return N`
+            <div class="period-item ${i}"
+              style="${"pos-center"===i?`color:${r.text}`:""}">
+              <ha-icon .icon=${s.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              ${e}
+            </div>
+          `})}
+      </div>
+    `}_getPeriodPos(e,t){const i=e-t;return i<=-2?"pos-far-left":-1===i?"pos-left":0===i?"pos-center":1===i?"pos-right":"pos-far-right"}_renderSourceGroup(e,t,i){if(0===e.modes.length)return B;const a=xr[e.source_type],r=e.label||(a?Re(a):e.source_type);return N`
+      <div class="chips-group">
+        ${i?N`<div class="chips-group-label">${r}</div>`:B}
+        <div class="chips-row">
+          ${e.modes.map((t,i)=>{const a=this._isChipActive(e,t,i),r=kr(t.color||"neutral");return N`
+              <button
+                class="chip"
+                data-id=${t.id}
+                style="${a?`color:${r.text};background:${r.dot}14;border-color:${r.dot}33;`:""}"
+                aria-label=${t.label||t.id}
+                @click=${a=>{a.stopPropagation(),this._onChipClick(e,t,i)}}
+              >
+                ${t.icon?N`<ha-icon .icon=${t.icon}></ha-icon>`:B}
+                ${t.label||t.id.split(".")[1]||t.id}
+              </button>
+            `})}
+        </div>
+      </div>
+    `}_onChipClick(e,t,i){"input_select"===e.source_type?this._selectOption(e,t.id):"scenes"===e.source_type?this._activateScene(t.id):"booleans"===e.source_type&&this._toggleBoolean(t.id)}}yr([ue()],Cr.prototype,"_foldOpen"),yr([ue()],Cr.prototype,"_activatingSceneId");try{customElements.define("glass-title-card",Cr)}catch{}}();

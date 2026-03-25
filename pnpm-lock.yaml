@@ -36,7 +36,13 @@ importers:
         specifier: ^7.3.1
         version: 7.3.1(terser@5.46.0)
 
+  cards/camera-carousel: {}
+
+  cards/climate-card: {}
+
   cards/cover-card: {}
+
+  cards/fan-card: {}
 
   cards/light-card: {}
 
