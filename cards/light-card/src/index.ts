@@ -1111,7 +1111,7 @@ export class GlassLightCard extends BaseCard {
 
   private _toggleLight(entityId: string) {
     fireHaptic(this, 'light');
-    this.hass?.callService('light', 'toggle', {}, { entity_id: entityId });
+    this._safeCallService('light', 'toggle', {}, { entity_id: entityId });
   }
 
   private _toggleAll() {
@@ -1120,7 +1120,7 @@ export class GlassLightCard extends BaseCard {
     const anyOn = lights.some((l) => l.state === 'on');
     const service = anyOn ? 'turn_off' : 'turn_on';
     const ids = lights.map((l) => l.entity_id);
-    this.hass?.callService('light', service, {}, { entity_id: ids });
+    this._safeCallService('light', service, {}, { entity_id: ids });
     if (anyOn) {
       this._expandedEntity = null;
     }
@@ -1129,7 +1129,7 @@ export class GlassLightCard extends BaseCard {
   private _turnAllOff() {
     const lights = this._getLights();
     const ids = lights.map((l) => l.entity_id);
-    this.hass?.callService('light', 'turn_off', {}, { entity_id: ids });
+    this._safeCallService('light', 'turn_off', {}, { entity_id: ids });
     this._expandedEntity = null;
   }
 
@@ -1188,11 +1188,11 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _setBrightness(entityId: string, value: number) {
-    this.hass?.callService('light', 'turn_on', { brightness_pct: value }, { entity_id: entityId });
+    this._safeCallService('light', 'turn_on', { brightness_pct: value }, { entity_id: entityId });
   }
 
   private _setColorTemp(entityId: string, kelvin: number) {
-    this.hass?.callService(
+    this._safeCallService(
       'light',
       'turn_on',
       { color_temp_kelvin: kelvin },
@@ -1201,11 +1201,11 @@ export class GlassLightCard extends BaseCard {
   }
 
   private _setHsColor(entityId: string, hue: number, sat: number) {
-    this.hass?.callService('light', 'turn_on', { hs_color: [hue, sat * 100] }, { entity_id: entityId });
+    this._safeCallService('light', 'turn_on', { hs_color: [hue, sat * 100] }, { entity_id: entityId });
   }
 
   private _setEffect(entityId: string, effect: string) {
-    this.hass?.callService('light', 'turn_on', { effect }, { entity_id: entityId });
+    this._safeCallService('light', 'turn_on', { effect }, { entity_id: entityId });
   }
 
   private _openColorPicker(entityId: string, currentRgb: [number, number, number] | null) {
