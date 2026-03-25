@@ -2,6 +2,30 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.144 (2026-03-25)
+
+### Config Panel
+- fix: les tabs dashboard recoivent le bon slice de config via `_sliceFor()` — corrige la persistance des reglages (display mode climate, etc.)
+- fix: suppression du pass-through save qui ecrasait les configs individuelles des tabs
+- feat: selecteur d'entites volets pour le dashboard (cover dashboard entity picker)
+- feat: reordonnement des personnes par drag-and-drop dans la carte presence
+- feat: numeros d'ordre sur les grilles pieces et cartes dashboard
+- feat: toggles deplaces en bas des cartes grille avec separateur et label Active/Desactive
+- fix: toggle mode d'affichage climat adapte au contexte (dashboard vs popup)
+- fix: tab entites orphelines — layout restructure, scrollbar masquee, breadcrumb renomme
+- fix: capteurs smartphone presence compactes (labels redondants supprimes)
+- fix: ombres des cartes preview visibles (padding panel + overflow visible sur folds ouverts)
+- fix: suppression du separateur permanent dans le detail de piece
+
+### Climate Card
+- feat: gestes uniformises — tap = toggle on/off, long-press = expand controles (liste et normal)
+- feat: tabs entites affichent le nom de la piece sur l'onglet selectionne
+- i18n: Climat renomme en Thermostat (fr)
+
+### Base Card / Preview
+- fix: fallback `visibleAreaIds` sur toutes les areas `hass.areas` pour les previews (light, climate, fan)
+- feat: title card affiche un placeholder en mode configPreview quand le titre est vide
+
 ## 2026-03-25
 
 ### Config Panel
