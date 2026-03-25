@@ -9,7 +9,7 @@ import {
 } from '@glass-cards/base-card';
 import {
   type RoomEntry,
-  type TabId, type DragContext,
+  type DragContext,
 } from './types';
 
 import { type NavState, DEFAULT_NAV, pushNav, readNavFromHistory, navEquals } from './nav-state.js';
@@ -108,34 +108,10 @@ export class GlassConfigPanel extends LitElement {
   _configReady = false;
   _wizardCompleted = true; // default true, overridden by loadConfig
   _suppressAutoSave = false;
-  _autoSaveTimer?: ReturnType<typeof setTimeout>;
   _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() _toastError = false;
 
   private _popstateHandler?: (e: PopStateEvent) => void;
-
-  /** Backward-compat getter for persistence.ts which routes save() by tab id */
-  get _tab(): TabId {
-    const sub = this._nav.subSection;
-    if (sub) {
-      const map: Record<string, TabId> = {
-        dashboard: 'dashboard', title: 'title',
-        spotify: 'spotify', presence: 'presence', camera: 'camera_carousel',
-        weather: 'weather', popup: 'popup', orphans: 'unassigned',
-        light: 'light', cover: 'cover', climate: 'climate', media: 'media', fan: 'fan',
-      };
-      return map[sub] ?? 'dashboard';
-    }
-    return 'dashboard';
-  }
-
-  /** Backward-compat getter for persistence.ts active tab element lookup */
-  get _activeTabEl(): Element | null {
-    const tag = `config-tab-${this._tab.replace('_', '-')}`;
-    return this.shadowRoot?.querySelector(tag)
-      ?? this.shadowRoot?.querySelector(`config-tab-${this._tab}`)
-      ?? null;
-  }
 
   static styles = [
     glassTokens, hostMixin, glassMixin, bounceMixin,
@@ -153,7 +129,6 @@ export class GlassConfigPanel extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._mounted = true;
-    this.addEventListener('tab-dirty', this._onTabDirty);
     this.addEventListener('tab-toast', this._onTabToast as EventListener);
     this.addEventListener('rooms-changed', this._onRoomsChanged as EventListener);
     this.addEventListener('rooms-reordered', this._onRoomsReordered as EventListener);
@@ -169,7 +144,6 @@ export class GlassConfigPanel extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._mounted = false;
-    this.removeEventListener('tab-dirty', this._onTabDirty);
     this.removeEventListener('tab-toast', this._onTabToast as EventListener);
     this.removeEventListener('rooms-changed', this._onRoomsChanged as EventListener);
     this.removeEventListener('rooms-reordered', this._onRoomsReordered as EventListener);
@@ -179,7 +153,6 @@ export class GlassConfigPanel extends LitElement {
       this._popstateHandler = undefined;
     }
     if (this._toastTimeout !== undefined) { clearTimeout(this._toastTimeout); this._toastTimeout = undefined; }
-    if (this._autoSaveTimer !== undefined) { clearTimeout(this._autoSaveTimer); this._autoSaveTimer = undefined; }
     this._backend = undefined;
   }
 
@@ -206,7 +179,6 @@ export class GlassConfigPanel extends LitElement {
 
   _beginSuppressAutoSave() { this._suppressAutoSave = true; }
 
-  private _onTabDirty = () => { this._scheduleAutoSave(); };
   private _onRoomsChanged = (e: Event) => {
     const detail = (e as CustomEvent<{ rooms: RoomEntry[] }>).detail;
     this._rooms = detail.rooms;
@@ -245,11 +217,6 @@ export class GlassConfigPanel extends LitElement {
     this._toastTimeout = setTimeout(() => { this._toast = false; }, 2500);
   };
 
-  private _scheduleAutoSave() {
-    if (this._autoSaveTimer !== undefined) clearTimeout(this._autoSaveTimer);
-    this._autoSaveTimer = setTimeout(() => { this._autoSaveTimer = undefined; if (!this._saving) this._save(); }, 800);
-  }
-
   // ─── Navigation ───
 
   private _navigateTo(nav: NavState) {
@@ -284,7 +251,6 @@ export class GlassConfigPanel extends LitElement {
   async _loadWeatherConfig() { return P.loadWeatherConfig(this); }
   async _loadSpotifyConfig() { const spotifyTab = this.shadowRoot?.querySelector('config-tab-spotify') as import('./tabs/spotify').ConfigTabSpotify | null; if (spotifyTab) spotifyTab.reload(); }
   async _loadTitleConfig() { const titleTab = this.shadowRoot?.querySelector('config-tab-title') as import('./tabs/title').ConfigTabTitle | null; if (titleTab) titleTab.reload(); }
-  _save() { P.save(this); }
   async _reset() { return P.resetConfig(this); }
   async _saveClimate() { const climateTab = this.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.save(); }
   async _saveDashboard() {

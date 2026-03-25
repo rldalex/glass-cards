@@ -251,7 +251,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
 // ─── Per-card load helpers ───
 
 export async function loadFanConfig(self: GlassConfigPanel): Promise<void> {
-  const fanTab = self._activeTabEl as import('./tabs/fan').ConfigTabFan | null;
+  const fanTab = self.shadowRoot?.querySelector('config-tab-fan') as import('./tabs/fan').ConfigTabFan | null;
   if (fanTab) fanTab.reload();
 }
 
@@ -270,19 +270,19 @@ export async function loadDashboardConfig(_self: GlassConfigPanel): Promise<void
 }
 
 export async function loadPresenceConfig(self: GlassConfigPanel): Promise<void> {
-  const presenceTab = self._activeTabEl as import('./tabs/presence').ConfigTabPresence | null;
+  const presenceTab = self.shadowRoot?.querySelector('config-tab-presence') as import('./tabs/presence').ConfigTabPresence | null;
   if (presenceTab) presenceTab.reload();
 }
 
 
 // loadCameraCarouselConfig — moved to ConfigTabCamera.reload()
 export async function loadCameraCarouselConfig(self: GlassConfigPanel): Promise<void> {
-  const cameraTab = self._activeTabEl as import('./tabs/camera-carousel').ConfigTabCamera | null;
+  const cameraTab = self.shadowRoot?.querySelector('config-tab-camera') as import('./tabs/camera-carousel').ConfigTabCamera | null;
   if (cameraTab) cameraTab.reload();
 }
 
 export async function loadWeatherConfig(self: GlassConfigPanel): Promise<void> {
-  const weatherTab = self._activeTabEl as import('./tabs/weather').ConfigTabWeather | null;
+  const weatherTab = self.shadowRoot?.querySelector('config-tab-weather') as import('./tabs/weather').ConfigTabWeather | null;
   if (weatherTab) weatherTab.reload();
 }
 
@@ -294,55 +294,6 @@ export async function loadSpotifyConfig(self: GlassConfigPanel): Promise<void> {
 export async function loadTitleConfig(self: GlassConfigPanel): Promise<void> {
   const titleTab = self.shadowRoot?.querySelector('config-tab-title') as import('./tabs/title').ConfigTabTitle | null;
   if (titleTab) titleTab.reload();
-}
-
-// ─── Save ───
-
-// saveNavbar — removed (navbar tab deleted)
-
-// savePopup — moved to ConfigTabPopup.save()
-
-// saveLights — moved to ConfigTabLight.save()
-// saveSchedule — moved to ConfigTabLight._saveSchedule()
-// saveCover — moved to ConfigTabCover.save()
-
-export async function saveFan(self: GlassConfigPanel): Promise<void> {
-  const fanTab = self._activeTabEl as import('./tabs/fan').ConfigTabFan | null;
-  if (fanTab) fanTab.save();
-}
-
-export async function saveClimate(self: GlassConfigPanel): Promise<void> {
-  const climateTab = self.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null;
-  if (climateTab) await climateTab.save();
-}
-
-export async function saveMedia(self: GlassConfigPanel): Promise<void> {
-  const mediaTab = self.shadowRoot?.querySelector('config-tab-media') as import('./tabs/media').ConfigTabMedia | null;
-  if (mediaTab) mediaTab.save();
-}
-
-// savePresence — moved to ConfigTabPresence.save()
-
-// saveCameraCarousel — moved to ConfigTabCamera.save()
-export async function saveCameraCarousel(self: GlassConfigPanel): Promise<void> {
-  const cameraTab = self._activeTabEl as import('./tabs/camera-carousel').ConfigTabCamera | null;
-  if (cameraTab) cameraTab.save();
-}
-
-// saveWeather — moved to ConfigTabWeather.save()
-
-export async function saveSpotify(self: GlassConfigPanel): Promise<void> {
-  const spotifyTab = self.shadowRoot?.querySelector('config-tab-spotify') as import('./tabs/spotify').ConfigTabSpotify | null;
-  if (spotifyTab) spotifyTab.save();
-}
-
-export async function saveTitle(self: GlassConfigPanel): Promise<void> {
-  const titleTab = self.shadowRoot?.querySelector('config-tab-title') as import('./tabs/title').ConfigTabTitle | null;
-  if (titleTab) titleTab.save();
-}
-
-export async function saveDashboard(_self: GlassConfigPanel): Promise<void> {
-  // Dashboard view manages its own save via auto-save — no-op
 }
 
 // ─── Reset ───
@@ -359,74 +310,3 @@ export async function checkSpotifyStatus(_self: GlassConfigPanel): Promise<void>
   // Spotify status is now checked internally by ConfigTabSpotify
 }
 
-// ─── Per-tabId Debounced Save ───
-
-/** Maps for per-tab save management */
-const _saveTimers = new Map<string, number>();
-const _saving = new Map<string, boolean>();
-
-/**
- * Schedule a debounced save for a specific tab section.
- * Ensures only one save is in-flight per tabId; queues new saves if blocked.
- * @param tabId - Unique identifier for the tab/section (e.g., 'light', 'cover', 'climate')
- * @param saveFn - Async function that performs the save
- * @param delay - Debounce delay in milliseconds (default: 800)
- */
-export function scheduleTabSave(tabId: string, saveFn: () => Promise<void>, delay = 800): void {
-  const existing = _saveTimers.get(tabId);
-  if (existing) clearTimeout(existing);
-
-  const timer = window.setTimeout(async () => {
-    _saveTimers.delete(tabId);
-    // Guard: if already saving this tab, re-schedule
-    if (_saving.get(tabId)) {
-      scheduleTabSave(tabId, saveFn, delay);
-      return;
-    }
-    _saving.set(tabId, true);
-    try {
-      await saveFn();
-    } finally {
-      _saving.set(tabId, false);
-    }
-  }, delay);
-
-  _saveTimers.set(tabId, timer);
-}
-
-// ─── Navigation-based Save (existing behavior) ───
-
-export function save(self: GlassConfigPanel): void {
-  if (self._tab === 'popup') {
-    // Popup config is now managed by room-detail view
-  } else if (self._tab === 'light') {
-    const lightTab = self.shadowRoot?.querySelector('config-tab-light') as import('./tabs/light').ConfigTabLight | null;
-    if (lightTab) lightTab.save();
-  } else if (self._tab === 'weather') {
-    const weatherTab = self._activeTabEl as import('./tabs/weather').ConfigTabWeather | null;
-    if (weatherTab) weatherTab.save();
-  } else if (self._tab === 'title') {
-    saveTitle(self);
-  } else if (self._tab === 'cover') {
-    const coverTab = self.shadowRoot?.querySelector('config-tab-cover') as import('./tabs/cover').ConfigTabCover | null;
-    if (coverTab) coverTab.save();
-  } else if (self._tab === 'climate') {
-    saveClimate(self);
-  } else if (self._tab === 'fan') {
-    saveFan(self);
-  } else if (self._tab === 'spotify') {
-    const spotifyTab = self.shadowRoot?.querySelector('config-tab-spotify') as import('./tabs/spotify').ConfigTabSpotify | null;
-    if (spotifyTab) spotifyTab.save();
-  } else if (self._tab === 'media') {
-    saveMedia(self);
-  } else if (self._tab === 'presence') {
-    const presenceTab = self._activeTabEl as import('./tabs/presence').ConfigTabPresence | null;
-    if (presenceTab) presenceTab.save();
-  } else if (self._tab === 'camera_carousel') {
-    saveCameraCarousel(self);
-  } else if (self._tab === 'unassigned') {
-    // No save — assignments go directly to HA entity registry
-  } else {
-    saveDashboard(self);
-  }
-}
