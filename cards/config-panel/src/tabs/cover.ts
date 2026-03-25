@@ -75,53 +75,21 @@ export class ConfigTabCover extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_cover_config', this.collectSaveData());
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_cover_config', this.collectSaveData());
 
-      if (this._coverRoom && this._coverRoomEntities.length > 0) {
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        let existingLayouts: Record<string, string> = {};
-        try {
-          const existing = await this.backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-            entity_layouts: Record<string, string>;
-          } | null>('get_room', { area_id: this._coverRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-            existingLayouts = existing.entity_layouts ?? {};
-          }
-        } catch { /* ignore */ }
-
-        const coverEntityIds = new Set(this._coverRoomEntities.map((e) => e.entityId));
-        const nonCoverHidden = existingHidden.filter((id) => !coverEntityIds.has(id));
-        const hiddenCovers = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const nonCoverOrder = existingOrder.filter((id) => !coverEntityIds.has(id));
-        const entityOrder = [...nonCoverOrder, ...this._coverRoomEntities.map((e) => e.entityId)];
-
-        const layouts: Record<string, string> = { ...existingLayouts };
-        for (const e of this._coverRoomEntities) {
-          layouts[e.entityId] = e.layout;
-        }
-
-        await this.backend.send('set_room', {
-          area_id: this._coverRoom,
-          hidden_entities: [...nonCoverHidden, ...hiddenCovers],
-          entity_order: entityOrder,
-          entity_layouts: layouts,
-        });
+    if (this._coverRoom && this._coverRoomEntities.length > 0) {
+      const cardIds = new Set(this._coverRoomEntities.map((e) => e.entityId));
+      const hiddenIds = this._coverRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+      const orderedIds = this._coverRoomEntities.map((e) => e.entityId);
+      const layouts: Record<string, string> = {};
+      for (const e of this._coverRoomEntities) {
+        layouts[e.entityId] = e.layout;
       }
-
-      this._fireToast(true);
-      bus.emit('cover-config-changed', undefined);
-      if (this._coverRoom) bus.emit('room-config-changed', { areaId: this._coverRoom });
-    } catch {
-      this._fireToast(false);
+      await this._saveRoomEntities(this._coverRoom, cardIds, hiddenIds, orderedIds, layouts);
     }
+
+    bus.emit('cover-config-changed', undefined);
   }
 
   async reload(): Promise<void> {

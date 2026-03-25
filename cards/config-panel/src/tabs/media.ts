@@ -45,15 +45,9 @@ export class ConfigTabMedia extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_media_config', this.collectSaveData());
-      this._fireToast(true);
-      bus.emit('media-config-changed', undefined);
-    } catch {
-      this._fireToast(false);
-    }
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_media_config', this.collectSaveData());
+    bus.emit('media-config-changed', undefined);
   }
 
   async reload(): Promise<void> {

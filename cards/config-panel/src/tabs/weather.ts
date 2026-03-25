@@ -58,15 +58,9 @@ export class ConfigTabWeather extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_weather', this.collectSaveData());
-      this._fireToast(true);
-      bus.emit('weather-config-changed', undefined);
-    } catch {
-      this._fireToast(false);
-    }
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_weather', this.collectSaveData());
+    bus.emit('weather-config-changed', undefined);
   }
 
   async reload(): Promise<void> {

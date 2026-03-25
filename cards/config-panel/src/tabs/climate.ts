@@ -61,46 +61,23 @@ export class ConfigTabClimate extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend || this._saving) return;
+  protected override _canSave(): boolean {
+    return !!this.backend && !this._saving;
+  }
+
+  protected override async _performSave(): Promise<void> {
     this._saving = true;
     try {
-      const allIds = this._climateRoomEntities.map((e) => e.entityId);
-      const hiddenIds = this._climateRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-
-      await this.backend.send('set_climate_config', this.collectSaveData());
+      await this.backend!.send('set_climate_config', this.collectSaveData());
 
       if (this._climateRoom && this._climateRoomEntities.length > 0) {
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        try {
-          const existing = await this.backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-          } | null>('get_room', { area_id: this._climateRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-          }
-        } catch { /* ignore */ }
-
-        const climateEntityIds = new Set(this._climateRoomEntities.map((e) => e.entityId));
-        const nonClimateHidden = existingHidden.filter((id) => !climateEntityIds.has(id));
-        const nonClimateOrder = existingOrder.filter((id) => !climateEntityIds.has(id));
-
-        await this.backend.send('set_room', {
-          area_id: this._climateRoom,
-          hidden_entities: [...nonClimateHidden, ...hiddenIds],
-          entity_order: [...nonClimateOrder, ...allIds],
-        });
-
-        bus.emit('room-config-changed', { areaId: this._climateRoom });
+        const cardIds = new Set(this._climateRoomEntities.map((e) => e.entityId));
+        const hiddenIds = this._climateRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+        const orderedIds = this._climateRoomEntities.map((e) => e.entityId);
+        await this._saveRoomEntities(this._climateRoom, cardIds, hiddenIds, orderedIds);
       }
 
-      this._fireToast(true);
       bus.emit('climate-config-changed', undefined);
-    } catch {
-      this._fireToast(false);
     } finally {
       this._saving = false;
     }

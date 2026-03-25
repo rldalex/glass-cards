@@ -51,53 +51,21 @@ export class ConfigTabFan extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_fan_config', this.collectSaveData());
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_fan_config', this.collectSaveData());
 
-      if (this._fanRoom && this._fanRoomEntities.length > 0) {
-        let existingHidden: string[] = [];
-        let existingOrder: string[] = [];
-        let existingLayouts: Record<string, string> = {};
-        try {
-          const existing = await this.backend.send<{
-            hidden_entities: string[];
-            entity_order: string[];
-            entity_layouts: Record<string, string>;
-          } | null>('get_room', { area_id: this._fanRoom });
-          if (existing) {
-            existingHidden = existing.hidden_entities ?? [];
-            existingOrder = existing.entity_order ?? [];
-            existingLayouts = existing.entity_layouts ?? {};
-          }
-        } catch { /* ignore */ }
-
-        const fanEntityIds = new Set(this._fanRoomEntities.map((e) => e.entityId));
-        const nonFanHidden = existingHidden.filter((id) => !fanEntityIds.has(id));
-        const hiddenFans = this._fanRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
-        const nonFanOrder = existingOrder.filter((id) => !fanEntityIds.has(id));
-        const entityOrder = [...nonFanOrder, ...this._fanRoomEntities.map((e) => e.entityId)];
-
-        const layouts: Record<string, string> = { ...existingLayouts };
-        for (const e of this._fanRoomEntities) {
-          layouts[e.entityId] = e.layout;
-        }
-
-        await this.backend.send('set_room', {
-          area_id: this._fanRoom,
-          hidden_entities: [...nonFanHidden, ...hiddenFans],
-          entity_order: entityOrder,
-          entity_layouts: layouts,
-        });
+    if (this._fanRoom && this._fanRoomEntities.length > 0) {
+      const cardIds = new Set(this._fanRoomEntities.map((e) => e.entityId));
+      const hiddenIds = this._fanRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+      const orderedIds = this._fanRoomEntities.map((e) => e.entityId);
+      const layouts: Record<string, string> = {};
+      for (const e of this._fanRoomEntities) {
+        layouts[e.entityId] = e.layout;
       }
-
-      this._fireToast(true);
-      bus.emit('fan-config-changed', undefined);
-      if (this._fanRoom) bus.emit('room-config-changed', { areaId: this._fanRoom });
-    } catch {
-      this._fireToast(false);
+      await this._saveRoomEntities(this._fanRoom, cardIds, hiddenIds, orderedIds, layouts);
     }
+
+    bus.emit('fan-config-changed', undefined);
   }
 
   async reload(): Promise<void> {

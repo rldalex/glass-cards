@@ -113,15 +113,9 @@ export class ConfigTabTitle extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_title_config', this.collectSaveData());
-      this._fireToast(true);
-      bus.emit('title-config-changed', undefined);
-    } catch {
-      this._fireToast(false);
-    }
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_title_config', this.collectSaveData());
+    bus.emit('title-config-changed', undefined);
   }
 
   async reload(): Promise<void> {

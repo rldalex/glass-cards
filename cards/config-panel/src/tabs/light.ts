@@ -85,51 +85,25 @@ export class ConfigTabLight extends BaseConfigTab {
     };
   }
 
-  async save(): Promise<void> {
-    if (!this.backend) return;
-    try {
-      await this.backend.send('set_light_config', {
-        show_header: this._lightShowHeader,
-      });
+  protected override async _performSave(): Promise<void> {
+    await this.backend!.send('set_light_config', {
+      show_header: this._lightShowHeader,
+    });
 
-      if (!this._lightRoom) {
-        this._fireToast(true);
-        bus.emit('light-config-changed', undefined);
-        return;
-      }
-
-      // Load existing hidden_entities to preserve non-light hidden entries
-      let existingHidden: string[] = [];
-      try {
-        const existing = await this.backend.send<{
-          hidden_entities: string[];
-        } | null>('get_room', { area_id: this._lightRoom });
-        if (existing) existingHidden = existing.hidden_entities ?? [];
-      } catch { /* ignore */ }
-
-      const lightEntityIds = new Set(this._lights.map((l) => l.entityId));
-      const nonLightHidden = existingHidden.filter((id) => !lightEntityIds.has(id));
-      const hiddenLights = this._lights.filter((l) => !l.visible).map((l) => l.entityId);
-
+    if (this._lightRoom && this._lights.length > 0) {
+      const cardIds = new Set(this._lights.map((l) => l.entityId));
+      const hiddenIds = this._lights.filter((l) => !l.visible).map((l) => l.entityId);
+      const orderedIds = this._lights.map((l) => l.entityId);
       const layouts: Record<string, string> = {};
       for (const l of this._lights) {
         if (l.layout === 'full') {
           layouts[l.entityId] = l.layout;
         }
       }
-      await this.backend.send('set_room', {
-        area_id: this._lightRoom,
-        entity_order: this._lights.map((l) => l.entityId),
-        hidden_entities: [...nonLightHidden, ...hiddenLights],
-        entity_layouts: layouts,
-      });
-      if (!this._mounted) return;
-      this._fireToast(true);
-      bus.emit('light-config-changed', undefined);
-      bus.emit('room-config-changed', { areaId: this._lightRoom });
-    } catch {
-      this._fireToast(false);
+      await this._saveRoomEntities(this._lightRoom, cardIds, hiddenIds, orderedIds, layouts);
     }
+
+    bus.emit('light-config-changed', undefined);
   }
 
   async reload(): Promise<void> {
