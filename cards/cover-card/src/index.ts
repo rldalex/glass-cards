@@ -568,20 +568,20 @@ class GlassCoverCard extends BaseCard {
     const state = cv.entity.state;
     if (state === 'opening' || state === 'closing') {
       this._lastDirection.set(cv.entityId, state);
-      this.hass.callService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
     } else if (state === 'closed') {
       this._lastDirection.delete(cv.entityId);
-      this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'open_cover', {}, { entity_id: cv.entityId });
     } else {
       // open or partially open — check if we stopped mid-way
       const last = this._lastDirection.get(cv.entityId);
       this._lastDirection.delete(cv.entityId);
       if (last === 'opening') {
-        this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+        this._safeCallService('cover', 'close_cover', {}, { entity_id: cv.entityId });
       } else if (last === 'closing') {
-        this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+        this._safeCallService('cover', 'open_cover', {}, { entity_id: cv.entityId });
       } else {
-        this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+        this._safeCallService('cover', 'close_cover', {}, { entity_id: cv.entityId });
       }
     }
   }
@@ -590,21 +590,21 @@ class GlassCoverCard extends BaseCard {
     e.stopPropagation();
     if (!this.hass) return;
     fireHaptic(this, 'light');
-    this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+    this._safeCallService('cover', 'open_cover', {}, { entity_id: cv.entityId });
   }
 
   private _closeCover(cv: CoverInfo, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
     fireHaptic(this, 'light');
-    this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+    this._safeCallService('cover', 'close_cover', {}, { entity_id: cv.entityId });
   }
 
   private _stopCover(cv: CoverInfo, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
     fireHaptic(this, 'light');
-    this.hass.callService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
+    this._safeCallService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
   }
 
   private _setPosition(cv: CoverInfo, position: number) {
@@ -614,7 +614,7 @@ class GlassCoverCard extends BaseCard {
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(cv.entityId, window.setTimeout(() => {
       this._throttleTimers.delete(cv.entityId);
-      this.hass?.callService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
     }, 50));
   }
 
@@ -625,7 +625,7 @@ class GlassCoverCard extends BaseCard {
     if (existing) clearTimeout(existing);
     this._throttleTimers.set(key, window.setTimeout(() => {
       this._throttleTimers.delete(key);
-      this.hass?.callService('cover', 'set_cover_tilt_position', { tilt_position: tiltPosition }, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'set_cover_tilt_position', { tilt_position: tiltPosition }, { entity_id: cv.entityId });
     }, 50));
   }
 
@@ -634,7 +634,7 @@ class GlassCoverCard extends BaseCard {
     const covers = this._getCovers();
     for (const cv of covers) {
       if (cv.features & F.OPEN) {
-        this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+        this._safeCallService('cover', 'open_cover', {}, { entity_id: cv.entityId });
       }
     }
   }
@@ -644,7 +644,7 @@ class GlassCoverCard extends BaseCard {
     const covers = this._getCovers();
     for (const cv of covers) {
       if (cv.features & F.CLOSE) {
-        this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+        this._safeCallService('cover', 'close_cover', {}, { entity_id: cv.entityId });
       }
     }
   }
@@ -654,11 +654,11 @@ class GlassCoverCard extends BaseCard {
     if (!this.hass) return;
     fireHaptic(this, 'selection');
     if (cv.features & F.SET_POSITION) {
-      this.hass.callService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
     } else if (position > 0) {
-      this.hass.callService('cover', 'open_cover', {}, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'open_cover', {}, { entity_id: cv.entityId });
     } else {
-      this.hass.callService('cover', 'close_cover', {}, { entity_id: cv.entityId });
+      this._safeCallService('cover', 'close_cover', {}, { entity_id: cv.entityId });
     }
   }
 
