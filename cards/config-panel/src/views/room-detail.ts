@@ -6,6 +6,7 @@ import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
 import { getAreaEntities } from '@glass-cards/base-card';
 import type { SceneEntry } from '../types';
 import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS } from '../types';
+import { createSaveScheduler } from '../utils/save-scheduler';
 
 interface SectionDef {
   id: string;
@@ -57,7 +58,7 @@ export class ConfigRoomDetail extends LitElement {
 
   private _loaded = false;
   private _autoOpenDone = false;
-  private _saveTimer?: ReturnType<typeof setTimeout>;
+  private _saveScheduler = createSaveScheduler();
 
   protected createRenderRoot() { return this; }
 
@@ -79,7 +80,7 @@ export class ConfigRoomDetail extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this._saveTimer) { clearTimeout(this._saveTimer); this._saveTimer = undefined; }
+    this._saveScheduler.cancel();
   }
 
   // ── Load ──
@@ -193,9 +194,7 @@ export class ConfigRoomDetail extends LitElement {
   // ── Save ──
 
   private _scheduleSave(): void {
-    if (this._saveTimer) clearTimeout(this._saveTimer);
-    this._saveTimer = setTimeout(() => { this._saveTimer = undefined; this._save(); }, 800);
-    this.dispatchEvent(new CustomEvent('tab-dirty', { bubbles: true, composed: true }));
+    this._saveScheduler.schedule(() => this._save());
   }
 
   private async _save(): Promise<void> {

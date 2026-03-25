@@ -4,6 +4,7 @@ import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
 import type { RoomEntry } from '../types';
+import { createSaveScheduler } from '../utils/save-scheduler';
 
 // Card metadata for the grid
 interface DashCardMeta {
@@ -67,7 +68,7 @@ export class ConfigDashboardView extends LitElement {
   // Sub-config extras for pass-through save
   private _cardSubExtras: Record<string, Record<string, unknown>> = {};
 
-  private _saveTimer?: ReturnType<typeof setTimeout>;
+  private _saveScheduler = createSaveScheduler();
 
   protected createRenderRoot() { return this; }
 
@@ -79,7 +80,7 @@ export class ConfigDashboardView extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this._saveTimer) { clearTimeout(this._saveTimer); this._saveTimer = undefined; }
+    this._saveScheduler.cancel();
   }
 
   // ── Load ──
@@ -113,9 +114,7 @@ export class ConfigDashboardView extends LitElement {
   // ── Save ──
 
   private _scheduleSave(): void {
-    if (this._saveTimer) clearTimeout(this._saveTimer);
-    this._saveTimer = setTimeout(() => { this._saveTimer = undefined; this._save(); }, 800);
-    this.dispatchEvent(new CustomEvent('tab-dirty', { bubbles: true, composed: true }));
+    this._saveScheduler.schedule(() => this._save());
   }
 
   private async _save(): Promise<void> {
