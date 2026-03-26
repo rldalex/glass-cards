@@ -1471,28 +1471,12 @@
       }
 
       .dashboard-cards {
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 0.75rem;
         padding: 0 0.75rem 2.8125rem;
         max-width: 31.25rem;
         margin: 0 auto;
-      }
-      @media (min-width: 768px) {
-        .dashboard-cards {
-          grid-template-columns: repeat(2, 1fr);
-          max-width: 50rem;
-        }
-      }
-      @media (min-width: 1200px) {
-        .dashboard-cards {
-          grid-template-columns: repeat(3, 1fr);
-          max-width: 75rem;
-        }
-      }
-      /* Title spans all columns */
-      .dashboard-cards > glass-title-card {
-        grid-column: 1 / -1;
       }
 
       .navbar {
