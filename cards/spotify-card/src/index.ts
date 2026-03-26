@@ -143,7 +143,7 @@ class GlassSpotifyCard extends BaseCard {
   // — Styles —
 
   static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin, css`
-    :host { width: 100%; max-width: 31.25rem; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+    :host { width: 100%; margin: 0 auto; user-select: none; -webkit-user-select: none; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
 

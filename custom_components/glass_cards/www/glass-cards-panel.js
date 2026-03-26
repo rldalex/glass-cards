@@ -41,7 +41,7 @@
 
       /* ── Layout ── */
       .page-wrap {
-        max-width: 27.5rem;
+        max-width: 40rem;
         margin: 0 auto;
       }
 
@@ -5441,7 +5441,6 @@
     `:B}}Ii([pe({attribute:!1})],Ei.prototype,"hass"),Ii([pe({type:Boolean})],Ei.prototype,"narrow"),Ii([ue()],Ei.prototype,"_lang"),Ii([ue()],Ei.prototype,"_nav"),Ii([ue()],Ei.prototype,"_rooms"),Ii([ue()],Ei.prototype,"_emptyRooms"),Ii([ue()],Ei.prototype,"_selectedRoom"),Ii([ue()],Ei.prototype,"_toast"),Ii([ue()],Ei.prototype,"_saving"),Ii([ue()],Ei.prototype,"_dragIdx"),Ii([ue()],Ei.prototype,"_dropIdx"),Ii([ue()],Ei.prototype,"_dragContext"),Ii([ue()],Ei.prototype,"_dragModeSrcIdx"),Ii([ue()],Ei.prototype,"_toastError");try{customElements.define("glass-config-panel",Ei)}catch{}Ue("glass-light-card-editor");var Di=Object.defineProperty,zi=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Di(t,i,s),s};const Pi=[[3e3,"light.temp_warm","#ffd4a3"],[4e3,"light.temp_warm","#ffedb3"],[4800,"light.temp_neutral","#fff5e6"],[9999,"light.temp_cold","#e0ecf5"]];function Ti(e){for(const[t,i,a]of Pi)if(e<t)return{label:He(i),color:a};return{label:He("light.temp_cold"),color:"#e0ecf5"}}function Li(e,t){return`rgba(${e[0]},${e[1]},${e[2]},${t})`}const Ai=[[251,191,36],[248,113,113],[244,114,182],[167,139,250],[129,140,248],[96,165,250],[74,222,128],[240,240,240]];const Mi=["off","candle","fire"];class Oi extends Ke{constructor(){super(...arguments),this._expandedEntity=null,this._dragValues=new Map,this._colorPickerEntity=null,this._colorPickerRgb=null,this._colorPickerPos=null,this._colorPickerHs=null,this._showHeader=!0,this._lightConfigLoaded=!1,this._throttleTimers=new Map,this._roomConfig=null,this._roomConfigLoaded=!1,this._lightsFingerprint="",this._schedules=null,this._schedulesLoaded=!1,this._dashboardHiddenEntities=new Set,this._dashboardHiddenLoaded=!1,this._wheelCanvas=null}static getConfigElement(){return document.createElement("glass-light-card-editor")}get _isDashboardMode(){return!(this.areaId||this._config?.area)&&!this._config?.entity}static{this.styles=[ye,we,xe,Ee,ke,Ce,Te,s`
       :host {
         width: 100%;
-        max-width: 31.25rem;
         margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
@@ -6534,7 +6533,6 @@
     `}static{this.styles=[ye,we,xe,Ee,ke,Ce,Te,s`
     :host {
       width: 100%;
-      max-width: 31.25rem;
       margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
@@ -7197,7 +7195,6 @@
   `]}}ca([pe({attribute:!1})],da.prototype,"areaId"),ca([pe({attribute:!1})],da.prototype,"visibleAreaIds"),ca([ue()],da.prototype,"_showHeader"),ca([ue()],da.prototype,"_displayMode"),ca([ue()],da.prototype,"_configReady"),ca([ue()],da.prototype,"_expanded"),ca([ue()],da.prototype,"_selectedEntity"),ca([ue()],da.prototype,"_foldOpen");try{customElements.define("glass-climate-card",da)}catch{}Ue("glass-cover-card-editor");var ha=Object.defineProperty,pa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ha(t,i,s),s};const ua=1,ga=2,_a=4,ma=8,fa=128,va={shutter:["mdi:window-shutter-open","mdi:window-shutter"],blind:["mdi:blinds-open","mdi:blinds"],curtain:["mdi:curtains","mdi:curtains-closed"],garage:["mdi:garage-open","mdi:garage"],gate:["mdi:gate-open","mdi:gate"],door:["mdi:door-open","mdi:door-closed"],awning:["mdi:awning-outline","mdi:awning-outline"],shade:["mdi:roller-shade-open","mdi:roller-shade"],window:["mdi:window-open","mdi:window-closed"],damper:["mdi:valve-open","mdi:valve"]},ba={vertical:{open:"mdi:arrow-up",close:"mdi:arrow-down",stop:"mdi:stop"},garage:{open:"mdi:garage-open",close:"mdi:garage",stop:"mdi:stop"},gate:{open:"mdi:gate-open",close:"mdi:gate",stop:"mdi:stop"},door:{open:"mdi:door-open",close:"mdi:door-closed",stop:null},damper:{open:"mdi:valve-open",close:"mdi:valve",stop:null},window:{open:"mdi:window-open",close:"mdi:window-closed",stop:null}};function ya(e,t){return(va[e]||va.shutter)[t?0:1]}class wa extends Ke{constructor(){super(...arguments),this._expanded=null,this._coverConfig={show_header:!0,dashboard_entities:[],dashboard_compact:!0,entity_presets:{}},this._roomConfig=null,this._configLoaded=!1,this._configLoading=!1,this._roomLoading=!1,this._throttleTimers=new Map,this._lastDirection=new Map,this._coversCache=null,this._coversCacheKey=""}static getConfigElement(){return document.createElement("glass-cover-card-editor")}getCardSize(){return 3}static{this.styles=[ye,we,xe,Ee,ke,Ce,Te,s`
     :host {
       width: 100%;
-      max-width: 31.25rem;
       margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
@@ -7601,7 +7598,6 @@
     `}}pa([pe()],wa.prototype,"areaId"),pa([ue()],wa.prototype,"_expanded");try{customElements.define("glass-cover-card",wa)}catch{}Ue("glass-fan-card-editor");var xa=Object.defineProperty,ka=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&xa(t,i,s),s};const $a=1,Sa=2,Ca=4,Ia=8,Ea={auto:"mdi:autorenew",eco:"mdi:leaf",night:"mdi:weather-night",nuit:"mdi:weather-night",comfort:"mdi:sofa",confort:"mdi:sofa",silent:"mdi:volume-off",silence:"mdi:volume-off",turbo:"mdi:lightning-bolt"};function Da(e,t){return e<=0?0:Math.max(1,Math.min(t,Math.round(e/(100/t))))}function za(e,t){return e<=0?0:e/t*100}function Pa(e,t){return za(Da(e,t),t)}const Ta={auto:"fan.preset_auto",eco:"fan.preset_eco",night:"fan.preset_night",nuit:"fan.preset_night",comfort:"fan.preset_comfort",confort:"fan.preset_comfort",silent:"fan.preset_silent",silence:"fan.preset_silent",turbo:"fan.preset_turbo"};function La(e){const t=Ta[e.toLowerCase()];return t?He(t):e.charAt(0).toUpperCase()+e.slice(1)}class Aa extends Ke{constructor(){super(...arguments),this._expandedEntity=null,this._dragValues=new Map,this._showHeader=!0,this._fanConfigLoaded=!1,this._roomConfig=null,this._roomConfigLoaded=!1,this._roomConfigLoading=!1,this._fansFingerprint="",this._dashboardHiddenEntities=new Set,this._dashboardHiddenLoaded=!1,this._throttleTimers=new Map,this._schedules=null,this._schedulesLoaded=!1}static getConfigElement(){return document.createElement("glass-fan-card-editor")}getCardSize(){return 3}get _isDashboardMode(){return!this.areaId}static{this.styles=[ye,we,xe,Ee,ke,Ce,Te,s`
     :host {
       width: 100%;
-      max-width: 31.25rem;
       margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
@@ -8505,7 +8501,6 @@
       `):B}static{this.styles=[ye,we,xe,ke,Ce,Ie,s`
       :host {
         width: 100%;
-        max-width: 31.25rem;
         margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
@@ -9188,7 +9183,6 @@
     `]}}Oa([pe()],Ua.prototype,"areaId"),Oa([ue()],Ua.prototype,"_foldOpen"),Oa([ue()],Ua.prototype,"_mediaConfig"),Oa([ue()],Ua.prototype,"_configLoaded"),Oa([ue()],Ua.prototype,"_roomIndex"),Oa([ue()],Ua.prototype,"_swipeClass"),Oa([ue()],Ua.prototype,"_foldTab"),Oa([ue()],Ua.prototype,"_queueData"),Oa([ue()],Ua.prototype,"_radioTracks");try{customElements.define("glass-media-card",Ua)}catch{}Ue("glass-weather-card-editor");var Wa=Object.defineProperty,Ba=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Wa(t,i,s),s};const Ka={sunny:"sunny","clear-night":"clear_night",partlycloudy:"partly_cloudy",cloudy:"cloudy",fog:"foggy",rainy:"rainy",pouring:"pouring",snowy:"snowy","snowy-rainy":"snowy_rainy",hail:"hail",lightning:"lightning","lightning-rainy":"stormy",windy:"windy","windy-variant":"windy_variant",exceptional:"exceptional"},Ya={sunny:{icon:"mdi:weather-sunny",textKey:"weather.cond_sunny",tint:"#fbbf24",tintOp:.1,sparkStroke:"rgba(251,191,36,0.6)",sparkFill:"rgba(251,191,36,0.15)"},clear_night:{icon:"mdi:weather-night",textKey:"weather.cond_clear_night",tint:"#818cf8",tintOp:.08,sparkStroke:"rgba(129,140,248,0.5)",sparkFill:"rgba(129,140,248,0.12)"},partly_cloudy:{icon:"mdi:weather-partly-cloudy",textKey:"weather.cond_partly_cloudy",tint:"#fcd34d",tintOp:.07,sparkStroke:"rgba(252,211,77,0.5)",sparkFill:"rgba(252,211,77,0.12)"},cloudy:{icon:"mdi:weather-cloudy",textKey:"weather.cond_cloudy",tint:"#94a3b8",tintOp:.04,sparkStroke:"rgba(148,163,184,0.4)",sparkFill:"rgba(148,163,184,0.08)"},foggy:{icon:"mdi:weather-fog",textKey:"weather.cond_foggy",tint:"#94a3b8",tintOp:.04,sparkStroke:"rgba(148,163,184,0.35)",sparkFill:"rgba(148,163,184,0.08)"},rainy:{icon:"mdi:weather-rainy",textKey:"weather.cond_rainy",tint:"#60a5fa",tintOp:.1,sparkStroke:"rgba(96,165,250,0.6)",sparkFill:"rgba(96,165,250,0.15)"},pouring:{icon:"mdi:weather-pouring",textKey:"weather.cond_pouring",tint:"#3b82f6",tintOp:.14,sparkStroke:"rgba(59,130,246,0.7)",sparkFill:"rgba(59,130,246,0.18)"},snowy:{icon:"mdi:weather-snowy",textKey:"weather.cond_snowy",tint:"#e0f2fe",tintOp:.08,sparkStroke:"rgba(224,242,254,0.5)",sparkFill:"rgba(224,242,254,0.12)"},snowy_rainy:{icon:"mdi:weather-snowy-rainy",textKey:"weather.cond_snowy_rainy",tint:"#93c5fd",tintOp:.08,sparkStroke:"rgba(147,197,253,0.5)",sparkFill:"rgba(147,197,253,0.12)"},hail:{icon:"mdi:weather-hail",textKey:"weather.cond_hail",tint:"#bae6fd",tintOp:.1,sparkStroke:"rgba(186,230,253,0.5)",sparkFill:"rgba(186,230,253,0.12)"},lightning:{icon:"mdi:weather-lightning",textKey:"weather.cond_lightning",tint:"#c084fc",tintOp:.12,sparkStroke:"rgba(192,132,252,0.6)",sparkFill:"rgba(167,139,250,0.15)"},stormy:{icon:"mdi:weather-lightning-rainy",textKey:"weather.cond_stormy",tint:"#a78bfa",tintOp:.12,sparkStroke:"rgba(167,139,250,0.6)",sparkFill:"rgba(167,139,250,0.15)"},windy:{icon:"mdi:weather-windy",textKey:"weather.cond_windy",tint:"#6ee7b7",tintOp:.06,sparkStroke:"rgba(110,231,183,0.5)",sparkFill:"rgba(110,231,183,0.10)"},windy_variant:{icon:"mdi:weather-windy-variant",textKey:"weather.cond_windy_variant",tint:"#6ee7b7",tintOp:.06,sparkStroke:"rgba(110,231,183,0.4)",sparkFill:"rgba(110,231,183,0.10)"},exceptional:{icon:"mdi:alert-circle-outline",textKey:"weather.cond_exceptional",tint:"#fca5a5",tintOp:.1,sparkStroke:"rgba(252,165,165,0.5)",sparkFill:"rgba(252,165,165,0.12)"}},Ga=["compass_N","compass_NNE","compass_NE","compass_ENE","compass_E","compass_ESE","compass_SE","compass_SSE","compass_S","compass_SSW","compass_SW","compass_WSW","compass_W","compass_WNW","compass_NW","compass_NNW"];function Xa(e){return e<10?"0"+e:""+e}class Qa extends Ke{constructor(){super(...arguments),this._activeTab=null,this._forecastDaily=[],this._forecastHourly=[],this._clockTime="",this._clockSec="",this._clockDay="",this._clockDate="",this._weatherConfig={entity_id:"",hidden_metrics:[],show_daily:!0,show_hourly:!0,show_header:!0},this._canvas=null,this._ctx=null,this._animId=0,this._particles=[],this._flashState={on:!1,opacity:0,timer:0,interval:200,color:"rgba(167,139,250,"},this._cW=0,this._cH=0,this._resizeObserver=null,this._cachedCond="",this._clockInterval=0,this._unsubDaily=null,this._unsubHourly=null,this._configLoaded=!1,this._configLoadingInProgress=!1,this._canvasReady=!1,this._needsCanvasReInit=!1,this._subscribedEntity="",this._subscribedShowDaily=!1,this._subscribedShowHourly=!1,this._subVersion=0,this._animRunning=!1,this._animate=()=>{if(!this.isConnected||!this._animRunning)return;const e=this._ctx;if(!e)return;e.clearRect(0,0,this._cW,this._cH);for(const i of this._particles)this._updateParticle(i),this._drawParticle(e,i);const t=this._cachedCond;"stormy"!==t&&"lightning"!==t||(this._updateFlash(),this._flashState.opacity>.01&&(e.fillStyle=this._flashState.color+this._flashState.opacity+")",e.fillRect(0,0,this._cW,this._cH))),this._animId=requestAnimationFrame(this._animate)}}static getConfigElement(){return document.createElement("glass-weather-card-editor")}getCardSize(){return 2}static{this.styles=[ye,we,xe,Ee,Ce,s`
     :host {
       width: 100%;
-      max-width: 31.25rem;
       margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
@@ -9832,7 +9826,6 @@
     `;var r}static{this.styles=[ye,we,xe,Ee,ke,Ce,Te,s`
       :host {
         width: 100%;
-        max-width: 31.25rem;
         margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
@@ -10163,7 +10156,7 @@
         .notif-send:active { animation: bounce 0.3s ease; }
       }
     `]}}Za([ue()],ir.prototype,"_presenceConfig"),Za([ue()],ir.prototype,"_activePerson"),Za([ue()],ir.prototype,"_notifText");try{customElements.define("glass-presence-card",ir)}catch{}Ue("glass-spotify-card-editor");var ar=Object.defineProperty,rr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ar(t,i,s),s};function sr(e,t=300){if(!e)return"";const i=e.images??e.album?.images??[];if(0===i.length)return"";const a=[...i].sort((e,i)=>Math.abs((e.width??300)-t)-Math.abs((i.width??300)-t));return a[0]?.url??""}function or(e){return e&&e.artists?.length?e.artists.map(e=>e.name).join(", "):""}function nr(e){switch(e){case"track":default:return"mdi:music-note";case"playlist":return"mdi:playlist-music";case"album":return"mdi:album";case"show":case"podcast":case"episode":return"mdi:podcast"}}class cr extends Ke{constructor(){super(...arguments),this._view="library",this._tab="all",this._searchQuery="",this._playlists=[],this._recentlyPlayed=[],this._savedTracks=[],this._savedShows=[],this._searchResults={tracks:[],playlists:[],shows:[]},this._searchLoading=!1,this._searchOffset=0,this._searchHasMore=!1,this._searchVersion=0,this._drilldown=null,this._speakers=[],this._pickerItem=null,this._selectedSpeakers=new Set,this._error=null,this._libraryLoading=!1,this._spotifyConfigured=null,this._foldOpen=!1,this._savedMap=new Map,this._sectionTotals={},this._loadingMore={},this._spotifyConfig={entity_id:"",show_header:!0,sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},this._configLoaded=!1,this._configLoadingInProgress=!1,this._loadVersion=0,this._radioQueueVersion=0,this._debounceTimer=0}static getConfigElement(){return document.createElement("glass-spotify-card-editor")}getCardSize(){return 4}static{this.styles=[ye,we,xe,Ce,Ie,s`
-    :host { width: 100%; max-width: 31.25rem; margin: 0 auto; user-select: none; -webkit-user-select: none; }
+    :host { width: 100%; margin: 0 auto; user-select: none; -webkit-user-select: none; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
 
@@ -11086,7 +11079,6 @@
     `}static{this.styles=[ye,we,xe,Ee,ke,Ce,s`
       :host {
         width: 100%;
-        max-width: 31.25rem;
         margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
@@ -11390,7 +11382,6 @@
     `]}}dr([pe()],wr.prototype,"areaId"),dr([ue()],wr.prototype,"_carouselIndex"),dr([ue()],wr.prototype,"_liveIds"),dr([ue()],wr.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",wr)}catch{}Ue("glass-title-card-editor");var xr=Object.defineProperty,kr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&xr(t,i,s),s};const $r={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},Sr={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function Cr(e){if($r[e])return $r[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return $r.neutral}const Ir={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Er={icon:"mdi:clock-outline",color:"var(--t3)"};class Dr extends Ke{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=Ir[e]||Er,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[ye,we,Ce,s`
     :host {
       width: 100%;
-      max-width: 31.25rem;
       margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;

@@ -150,7 +150,6 @@ export class GlassNavbarCard extends BaseCard {
     css`
       :host {
         width: 100%;
-        max-width: 31.25rem;
         margin: 0 auto;
         padding: 0.375rem 0 5rem; /* top + space for fixed navbar */
         user-select: none;

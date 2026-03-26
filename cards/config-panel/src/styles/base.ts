@@ -50,7 +50,7 @@ export const baseStyles = css`
 
       /* ── Layout ── */
       .page-wrap {
-        max-width: 27.5rem;
+        max-width: 40rem;
         margin: 0 auto;
       }
 
