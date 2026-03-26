@@ -2,6 +2,29 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.147 (2026-03-26)
+
+### Mobile UX
+- fix: remplacement des 55 `transition: all` par des proprietes explicites sur 12 cartes — elimine le scintillement des icones lors des animations fold
+- fix: desactivation du copier-coller par appui long sur toutes les cartes (`user-select: none`)
+- fix: rectangle bleu au tap sur light card (tap highlight + pointer-events isolation sur les folds)
+- fix: grille config panel passe a 3 colonnes sur mobile (au lieu de 4 trop petites)
+
+### Navbar
+- feat: hauteur augmentee de 58px a 64px, icones proportionnellement agrandies (22→24px)
+- feat: bouton parametres visible uniquement pour les admins (`hass.user.is_admin`)
+
+### Haptic & Scrollbars
+- fix: retour haptique unifie en `light` partout (convention HA officielle)
+- fix: scrollbars masquees globalement (dropdowns, icon pickers, grilles inline)
+
+### Fan Card
+- fix: affichage vitesse simplifie au pourcentage seul (suppression "Vitesse 1/6")
+
+### Hue Icons
+- feat: integration de hass-hue-icons v1.2.53 (512 icones SVG Philips Hue, licence MIT)
+- les icones sont disponibles comme `hue:nom-icone` dans tout HA sans installation separee
+
 ## v0.0.144 (2026-03-25)
 
 ### Config Panel
