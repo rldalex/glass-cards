@@ -1492,12 +1492,8 @@
           max-width: 75rem;
         }
       }
-      /* Full-width cards span all columns */
-      .dashboard-cards > glass-weather-card,
-      .dashboard-cards > glass-title-card,
-      .dashboard-cards > glass-media-card,
-      .dashboard-cards > glass-camera-carousel-card,
-      .dashboard-cards > glass-spotify-card {
+      /* Title spans all columns */
+      .dashboard-cards > glass-title-card {
         grid-column: 1 / -1;
       }
 
