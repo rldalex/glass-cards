@@ -1473,12 +1473,32 @@
       }
 
       .dashboard-cards {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 0.75rem;
         padding: 0 0.75rem 2.8125rem;
         max-width: 31.25rem;
         margin: 0 auto;
+      }
+      @media (min-width: 768px) {
+        .dashboard-cards {
+          grid-template-columns: repeat(2, 1fr);
+          max-width: 50rem;
+        }
+      }
+      @media (min-width: 1200px) {
+        .dashboard-cards {
+          grid-template-columns: repeat(3, 1fr);
+          max-width: 75rem;
+        }
+      }
+      /* Full-width cards span all columns */
+      .dashboard-cards > glass-weather-card,
+      .dashboard-cards > glass-title-card,
+      .dashboard-cards > glass-media-card,
+      .dashboard-cards > glass-camera-carousel-card,
+      .dashboard-cards > glass-spotify-card {
+        grid-column: 1 / -1;
       }
 
       .navbar {
