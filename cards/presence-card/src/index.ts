@@ -614,7 +614,6 @@ export class GlassPresenceCard extends BaseCard {
     css`
       :host {
         width: 100%;
-        margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
       }

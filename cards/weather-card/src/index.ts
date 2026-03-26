@@ -154,7 +154,6 @@ class GlassWeatherCard extends BaseCard {
   static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, foldMixin, bounceMixin, css`
     :host {
       width: 100%;
-      margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
     }

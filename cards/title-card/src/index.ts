@@ -118,7 +118,6 @@ class GlassTitleCard extends BaseCard {
   static styles = [glassTokens, hostMixin, bounceMixin, css`
     :host {
       width: 100%;
-      margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
     }

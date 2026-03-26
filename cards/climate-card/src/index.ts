@@ -991,7 +991,6 @@ export class GlassClimateCard extends BaseCard {
   static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
     :host {
       width: 100%;
-      margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
       color: var(--t1);

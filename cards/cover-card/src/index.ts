@@ -158,7 +158,6 @@ class GlassCoverCard extends BaseCard {
   static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
     :host {
       width: 100%;
-      margin: 0 auto;
       user-select: none;
       -webkit-user-select: none;
     }
