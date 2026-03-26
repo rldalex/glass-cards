@@ -50,7 +50,7 @@ class TestAsyncSetupEntry:
             patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
             patch(
                 "custom_components.glass_cards._resolve_static_assets",
-                return_value=(False, False, "", ""),
+                return_value=(False, False, False, "", "", ""),
             ),
         ):
             mock_store_cls.return_value.async_load = AsyncMock()
@@ -68,7 +68,7 @@ class TestAsyncSetupEntry:
             patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
             patch(
                 "custom_components.glass_cards._resolve_static_assets",
-                return_value=(True, True, "/glass_cards/glass-cards.js?v=abc", "/glass_cards/glass-cards-panel.js?v=def"),
+                return_value=(True, True, True, "/glass_cards/glass-cards.js?v=abc", "/glass_cards/glass-cards-panel.js?v=def", "/glass_cards/hass-hue-icons.js?v=ghi"),
             ),
             patch("custom_components.glass_cards.add_extra_js_url") as mock_add_js,
         ):
@@ -76,7 +76,7 @@ class TestAsyncSetupEntry:
             await async_setup_entry(mock_hass_with_http, mock_entry)
 
             mock_hass_with_http.http.async_register_static_paths.assert_called_once()
-            mock_add_js.assert_called_once()
+            assert mock_add_js.call_count == 2
 
     @pytest.mark.asyncio
     async def test_skips_js_when_missing(self, mock_hass_with_http, mock_entry):
@@ -85,7 +85,7 @@ class TestAsyncSetupEntry:
             patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
             patch(
                 "custom_components.glass_cards._resolve_static_assets",
-                return_value=(False, False, "", ""),
+                return_value=(False, False, False, "", "", ""),
             ),
             patch("custom_components.glass_cards.add_extra_js_url") as mock_add_js,
         ):
@@ -94,6 +94,23 @@ class TestAsyncSetupEntry:
 
             mock_hass_with_http.http.async_register_static_paths.assert_not_called()
             mock_add_js.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_serves_js_without_hue_icons(self, mock_hass_with_http, mock_entry):
+        """Should register main JS but not hue icons when hue file is missing."""
+        with (
+            patch("custom_components.glass_cards.GlassCardsStore") as mock_store_cls,
+            patch(
+                "custom_components.glass_cards._resolve_static_assets",
+                return_value=(True, True, False, "/glass_cards/glass-cards.js?v=abc", "/glass_cards/glass-cards-panel.js?v=def", ""),
+            ),
+            patch("custom_components.glass_cards.add_extra_js_url") as mock_add_js,
+        ):
+            mock_store_cls.return_value.async_load = AsyncMock()
+            await async_setup_entry(mock_hass_with_http, mock_entry)
+
+            mock_hass_with_http.http.async_register_static_paths.assert_called_once()
+            assert mock_add_js.call_count == 1
 
 
 class TestAsyncUnloadEntry:

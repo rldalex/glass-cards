@@ -13,7 +13,7 @@ from homeassistant.components.frontend import (
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN, JS_PATH, PANEL_JS_PATH, get_js_url, get_panel_js_url
+from .const import DOMAIN, HUE_ICONS_PATH, JS_PATH, PANEL_JS_PATH, get_hue_icons_url, get_js_url, get_panel_js_url
 from .spotify_cache import SpotifyCache
 from .store import GlassCardsStore
 from .websocket_api import async_register_commands
@@ -25,14 +25,16 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _resolve_static_assets(
-    js_path: str, panel_js_path: str
-) -> tuple[bool, bool, str, str]:
+    js_path: str, panel_js_path: str, hue_icons_path: str
+) -> tuple[bool, bool, bool, str, str, str]:
     """Resolve file existence and hashed URLs (runs in executor thread)."""
     js_exists = os.path.isfile(js_path)
     panel_exists = os.path.isfile(panel_js_path)
+    hue_exists = os.path.isfile(hue_icons_path)
     js_url = get_js_url() if js_exists else ""
     panel_js_url = get_panel_js_url() if panel_exists else ""
-    return js_exists, panel_exists, js_url, panel_js_url
+    hue_icons_url = get_hue_icons_url() if hue_exists else ""
+    return js_exists, panel_exists, hue_exists, js_url, panel_js_url, hue_icons_url
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
@@ -80,8 +82,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Compute file hashes off the event loop (blocking I/O)
     js_path = os.path.join(www_dir, "glass-cards.js")
     panel_js_path = os.path.join(www_dir, "glass-cards-panel.js")
-    js_exists, panel_exists, js_url, panel_js_url = await hass.async_add_executor_job(
-        _resolve_static_assets, js_path, panel_js_path
+    hue_icons_path = os.path.join(www_dir, "hass-hue-icons.js")
+    js_exists, panel_exists, hue_exists, js_url, panel_js_url, hue_icons_url = (
+        await hass.async_add_executor_job(
+            _resolve_static_assets, js_path, panel_js_path, hue_icons_path
+        )
     )
 
     # Serve the main JS bundle
@@ -96,6 +101,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         static_paths.append(
             StaticPathConfig(PANEL_JS_PATH, panel_js_path, cache_headers=False)
         )
+
+    # Serve Hue icons (bundled from hass-hue-icons)
+    if hue_exists:
+        static_paths.append(
+            StaticPathConfig(HUE_ICONS_PATH, hue_icons_path, cache_headers=False)
+        )
+        add_extra_js_url(hass, hue_icons_url)
 
     if static_paths:
         try:

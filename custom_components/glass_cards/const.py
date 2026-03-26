@@ -4,10 +4,11 @@ import hashlib
 import os
 
 DOMAIN = "glass_cards"
-VERSION = "0.0.140"
+VERSION = "0.0.147"
 
 JS_PATH = "/glass_cards/glass-cards.js"
 PANEL_JS_PATH = "/glass_cards/glass-cards-panel.js"
+HUE_ICONS_PATH = "/glass_cards/hass-hue-icons.js"
 STORAGE_KEY = "glass_cards"
 STORAGE_VERSION = 1
 
@@ -35,3 +36,10 @@ def get_panel_js_url() -> str:
     www_dir = os.path.join(os.path.dirname(__file__), "www")
     h = _file_hash(os.path.join(www_dir, "glass-cards-panel.js"))
     return f"{PANEL_JS_PATH}?v={h}"
+
+
+def get_hue_icons_url() -> str:
+    """Return the Hue icons JS URL with a content-hash for cache-busting."""
+    www_dir = os.path.join(os.path.dirname(__file__), "www")
+    h = _file_hash(os.path.join(www_dir, "hass-hue-icons.js"))
+    return f"{HUE_ICONS_PATH}?v={h}"
