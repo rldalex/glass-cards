@@ -1810,6 +1810,10 @@ export class GlassMediaCard extends BaseCard {
       .multiroom-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem;
       }
+      :host([size="xs"]) .multiroom-grid,
+      :host([size="sm"]) .multiroom-grid {
+        grid-template-columns: 1fr;
+      }
       .mr-cell {
         display: flex; flex-direction: column; gap: 0.25rem;
         padding: 0.375rem; border-radius: var(--radius-md);

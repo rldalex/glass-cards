@@ -5,6 +5,8 @@ export const tabStyles = css`
       /* ── Tab panel animation ── */
       .tab-panel {
         animation: panel-in 0.3s var(--ease-out) both;
+        max-width: 40rem;
+        margin: 0 auto;
       }
       @keyframes panel-in {
         from {

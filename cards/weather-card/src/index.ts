@@ -317,6 +317,9 @@ class GlassWeatherCard extends BaseCard {
       background: var(--b1);
       overflow: hidden;
     }
+    :host([size="xs"]) .wc-metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
     .wc-metric {
       display: flex; align-items: center; justify-content: center; gap: 0.1875rem;
       padding: 0.3125rem 0.25rem;

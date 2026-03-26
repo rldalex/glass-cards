@@ -81,6 +81,16 @@ export const glassTokens: CSSResult = css`
     --icon-md: 1.125rem;
     --icon-lg: 1.375rem;
     --icon-xl: 1.5rem;
+
+    /* Spacing scale — base 0.25rem (4px) */
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.25rem;
+    --sp-6: 1.5rem;
+    --sp-8: 2rem;
+    --sp-10: 2.5rem;
   }
 `;
 
@@ -598,6 +608,11 @@ export const unavailableMixin: CSSResult = css`
 export function isEntityUnavailable(state: string | undefined): boolean {
   return !state || state === 'unavailable' || state === 'unknown';
 }
+
+// — Responsive system —
+export { BREAKPOINTS, type CardSize } from './breakpoints';
+export { ResizeMixin } from './resize-mixin';
+export { cardBase, gridResponsive } from './base-styles';
 
 // — Glass Slider Component —
 import './glass-slider';

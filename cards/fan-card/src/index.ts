@@ -236,6 +236,10 @@ class GlassFanCard extends BaseCard {
       position: relative; z-index: 1;
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
     }
+    :host([size="xs"]) .card-inner,
+    :host([size="sm"]) .card-inner {
+      grid-template-columns: 1fr;
+    }
 
     .tint {
       transition: opacity var(--t-slow), background var(--t-slow);

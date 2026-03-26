@@ -3,7 +3,7 @@ import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
-import { initMarqueeObserver } from '@glass-cards/ui-core';
+import { initMarqueeObserver, BREAKPOINTS, type CardSize } from '@glass-cards/ui-core';
 
 // — HA Types —
 
@@ -100,6 +100,8 @@ export abstract class BaseCard extends LitElement {
   protected _config?: LovelaceCardConfig;
   protected _busCleanups: (() => void)[] = [];
   private _marqueeCleanup: (() => void) | null = null;
+  private _ro?: ResizeObserver;
+  private _cardSize: CardSize = 'md';
   private _gestureTimer = 0;
   private _gestureFired = false;
   private _gestureStart: { x: number; y: number; t: number } | null = null;
@@ -146,6 +148,23 @@ export abstract class BaseCard extends LitElement {
     this._busCleanups = [];
     document.addEventListener('click', this._boundDocClick, true);
     this._marqueeCleanup = initMarqueeObserver(this.shadowRoot);
+    this._ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? this.offsetWidth;
+      this._applyCardSize(w);
+    });
+    this._ro.observe(this);
+  }
+
+  private _applyCardSize(w: number) {
+    let next: CardSize = 'xl';
+    if (w < BREAKPOINTS.xs) next = 'xs';
+    else if (w < BREAKPOINTS.sm) next = 'sm';
+    else if (w < BREAKPOINTS.md) next = 'md';
+    else if (w < BREAKPOINTS.lg) next = 'lg';
+    if (next !== this._cardSize) {
+      this._cardSize = next;
+      this.setAttribute('size', next);
+    }
   }
 
   protected _listen<K extends keyof GlassEventMap>(
@@ -162,6 +181,8 @@ export abstract class BaseCard extends LitElement {
     document.removeEventListener('click', this._boundDocClick, true);
     this._marqueeCleanup?.();
     this._marqueeCleanup = null;
+    this._ro?.disconnect();
+    this._ro = undefined;
     clearTimeout(this._gestureTimer);
   }
 
