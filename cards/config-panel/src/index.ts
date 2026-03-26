@@ -353,6 +353,7 @@ export class GlassConfigPanel extends LitElement {
         return html`<config-room-list
           .hass=${this.hass}
           .rooms=${this._rooms}
+          .backend=${this._backend}
           @room-select=${(e: CustomEvent) => this._navigateTo({ section: 'rooms', roomId: e.detail })}
         ></config-room-list>`;
       case 'dashboard':

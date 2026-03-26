@@ -174,6 +174,7 @@ class NavbarConfig:
     room_order: list[str] = field(default_factory=list)
     hidden_rooms: list[str] = field(default_factory=list)
     auto_sort: bool = True
+    popup_auto_close: int = 0  # seconds, 0 = disabled
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -181,6 +182,7 @@ class NavbarConfig:
             "room_order": self.room_order,
             "hidden_rooms": self.hidden_rooms,
             "auto_sort": self.auto_sort,
+            "popup_auto_close": self.popup_auto_close,
         }
 
     @classmethod
@@ -192,6 +194,7 @@ class NavbarConfig:
             room_order=[str(x) for x in raw_room_order if isinstance(x, str)],
             hidden_rooms=[str(x) for x in raw_hidden_rooms if isinstance(x, str)],
             auto_sort=bool(data.get("auto_sort", True)),
+            popup_auto_close=int(data["popup_auto_close"]) if "popup_auto_close" in data and data["popup_auto_close"] is not None else 0,
         )
 
 

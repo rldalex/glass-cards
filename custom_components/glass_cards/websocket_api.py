@@ -255,6 +255,7 @@ async def ws_set_room(
         vol.Optional("room_order"): [str],
         vol.Optional("hidden_rooms"): [str],
         vol.Optional("auto_sort"): bool,
+        vol.Optional("popup_auto_close"): vol.Any(int, None),
     }
 )
 @websocket_api.async_response
@@ -275,6 +276,8 @@ async def ws_set_navbar(
         store.data.navbar.hidden_rooms = msg["hidden_rooms"]
     if "auto_sort" in msg:
         store.data.navbar.auto_sort = msg["auto_sort"]
+    if "popup_auto_close" in msg:
+        store.data.navbar.popup_auto_close = int(msg["popup_auto_close"]) if msg["popup_auto_close"] is not None else 0
 
     try:
         await store.async_save()

@@ -433,6 +433,10 @@
     "show_room": "Afficher dans la navbar",
     "popup_scenes": "Scènes",
     "popup_scenes_desc": "Réordonnez et masquez les scènes affichées en haut du popup.",
+    "popup_auto_close": "Fermeture automatique",
+    "popup_auto_close_desc": "Fermer le popup automatiquement après un délai d'inactivité.",
+    "popup_auto_close_duration": "Délai",
+    "popup_auto_close_off": "Désactivé",
     "popup_select_room": "Sélectionnez une pièce",
 
     "light_room": "Pièce",

@@ -433,6 +433,10 @@
     "show_room": "Show in navbar",
     "popup_scenes": "Scenes",
     "popup_scenes_desc": "Reorder and hide scenes shown at the top of the popup.",
+    "popup_auto_close": "Auto close",
+    "popup_auto_close_desc": "Automatically close the popup after an inactivity delay.",
+    "popup_auto_close_duration": "Delay",
+    "popup_auto_close_off": "Disabled",
     "popup_select_room": "Select a room",
 
     "light_room": "Room",

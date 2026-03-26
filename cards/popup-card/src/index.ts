@@ -54,6 +54,9 @@ export class GlassRoomPopup extends LitElement {
   private _swipeAnimTimer?: ReturnType<typeof setTimeout>;
   private _currentRoomIndex?: number;
   private _pendingSwipe?: { areaId: string; originRect?: DOMRect; roomIndex?: number };
+  private _autoCloseTimeout?: ReturnType<typeof setTimeout>;
+  private _popupAutoClose = 0;
+  private _globalConfigLoaded = false;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
@@ -429,6 +432,8 @@ export class GlassRoomPopup extends LitElement {
       if (this._peekTimeout !== undefined) { clearTimeout(this._peekTimeout); this._peekTimeout = undefined; }
       this._roomConfigs.clear();
       this._loadingRooms.clear();
+      this._globalConfigLoaded = false;
+      this._loadGlobalConfig();
       if (this._areaId) this._loadRoomConfig(this._areaId);
     });
     document.addEventListener('keydown', this._boundKeydown);
@@ -447,6 +452,10 @@ export class GlassRoomPopup extends LitElement {
     if (this._closeTimeout !== undefined) {
       clearTimeout(this._closeTimeout);
       this._closeTimeout = undefined;
+    }
+    if (this._autoCloseTimeout !== undefined) {
+      clearTimeout(this._autoCloseTimeout);
+      this._autoCloseTimeout = undefined;
     }
     this._peekedRooms.clear();
     this._loadingRooms.clear();
@@ -469,6 +478,7 @@ export class GlassRoomPopup extends LitElement {
   }
 
   private _handleOpen(payload: { areaId: string; originRect?: DOMRect; roomIndex?: number }) {
+    this._loadGlobalConfig();
     // Case 1: Room switch while popup is already open → directional swipe animation
     if (
       this._open &&
@@ -486,7 +496,11 @@ export class GlassRoomPopup extends LitElement {
       this._swipeAnimating = true;
       this._swipeClass = direction === 'left' ? 'swipe-exit-left' : 'swipe-exit-right';
 
-      // Cancel stale peek timeout before swapping rooms
+      // Cancel stale timers before swapping rooms
+      if (this._autoCloseTimeout !== undefined) {
+        clearTimeout(this._autoCloseTimeout);
+        this._autoCloseTimeout = undefined;
+      }
       if (this._peekTimeout !== undefined) {
         clearTimeout(this._peekTimeout);
         this._peekTimeout = undefined;
@@ -570,6 +584,10 @@ export class GlassRoomPopup extends LitElement {
   }
 
   private _handleClose() {
+    if (this._autoCloseTimeout !== undefined) {
+      clearTimeout(this._autoCloseTimeout);
+      this._autoCloseTimeout = undefined;
+    }
     if (this._pendingRaf !== undefined) {
       cancelAnimationFrame(this._pendingRaf);
       this._pendingRaf = undefined;
@@ -601,11 +619,26 @@ export class GlassRoomPopup extends LitElement {
     }
   }
 
+  private async _loadGlobalConfig() {
+    if (this._globalConfigLoaded || !this.hass) return;
+    this._globalConfigLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{ navbar?: { popup_auto_close?: number } }>('get_config');
+      this._popupAutoClose = result?.navbar?.popup_auto_close ?? 0;
+    } catch {
+      this._popupAutoClose = 0;
+    }
+  }
+
   private async _loadRoomConfig(areaId: string) {
     if (!this.hass) return;
     if (this._roomConfigs.has(areaId)) {
-      // Config already cached (even if null) — just trigger peek
-      if (this._open && this._areaId === areaId) this._maybePeekScenes(areaId);
+      // Config already cached (even if null) — trigger peek + auto-close
+      if (this._open && this._areaId === areaId) {
+        this._maybePeekScenes(areaId);
+        this._startAutoCloseTimer(areaId);
+      }
       return;
     }
     if (this._loadingRooms.has(areaId)) return;
@@ -621,8 +654,25 @@ export class GlassRoomPopup extends LitElement {
     } finally {
       this._loadingRooms.delete(areaId);
     }
-    // Trigger peek after config is resolved
-    if (this._open && this._areaId === areaId) this._maybePeekScenes(areaId);
+    // Trigger peek + auto-close after config is resolved
+    if (this._open && this._areaId === areaId) {
+      this._maybePeekScenes(areaId);
+      this._startAutoCloseTimer(areaId);
+    }
+  }
+
+  private _startAutoCloseTimer(areaId: string) {
+    if (this._autoCloseTimeout !== undefined) {
+      clearTimeout(this._autoCloseTimeout);
+      this._autoCloseTimeout = undefined;
+    }
+    if (this._popupAutoClose <= 0) return;
+    this._autoCloseTimeout = setTimeout(() => {
+      this._autoCloseTimeout = undefined;
+      if (this._open && this._areaId === areaId) {
+        bus.emit('popup-close', undefined);
+      }
+    }, this._popupAutoClose * 1000);
   }
 
   private _onOverlayClick() {
