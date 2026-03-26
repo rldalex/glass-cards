@@ -8,7 +8,7 @@ import {
   type EntityRegistryEntry,
 } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CameraEntityFeature) —
@@ -223,6 +223,7 @@ class GlassCameraCarouselCard extends BaseCard {
 
   @state() private _carouselIndex = 0;
   @state() private _liveIds = new Set<string>();
+  @state() private _foldOpen = false;
 
   private _backend: BackendService | undefined;
   private _camConfig: CameraBackendConfig | null = null;
@@ -460,6 +461,7 @@ class GlassCameraCarouselCard extends BaseCard {
     const ids = this._getCameraIds();
     if (!ids.length) return;
     this._carouselIndex = ((idx % ids.length) + ids.length) % ids.length;
+    this._foldOpen = false;
     this._setupCycleTimer(); // Reset cycle timer on manual navigation
     this.requestUpdate();
   }
@@ -583,6 +585,12 @@ class GlassCameraCarouselCard extends BaseCard {
     const showHeader = this._camConfig?.show_header !== false;
     const currentCam = this._getCameraInfo(ids[this._carouselIndex]);
 
+    const heroGesture = this._bindGesture({
+      onTap: () => { /* tap on hero = no-op (swipe handles navigation) */ },
+      onLongPress: () => { this._foldOpen = !this._foldOpen; },
+      exclude: '.carousel-nav, .stream-placeholder',
+    });
+
     return html`
       ${showHeader ? html`
         <div class="card-header">
@@ -591,34 +599,42 @@ class GlassCameraCarouselCard extends BaseCard {
           </div>
         </div>
       ` : nothing}
-      <div class="glass carousel-card">
-        <div class="tint" style="${this._tintStyle(currentCam)}"></div>
-        <div class="carousel-inner">
-          <div class="carousel-viewport"
-            @pointerdown=${this._onPointerDown}
-            @pointermove=${this._onPointerMove}
-            @pointerup=${this._onPointerUp}
-            @pointercancel=${this._onPointerCancel}
-          >
-            <div class="carousel-track" style="transform:translateX(-${this._carouselIndex * 100}%)">
-              ${ids.map((eid, idx) => this._renderSlide(eid, idx === this._carouselIndex))}
-            </div>
-            ${ids.length > 1 ? html`
-              <button class="carousel-nav prev" aria-label="${t('camera.prev_aria')}" @click=${this._prev}>
-                <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
-              </button>
-              <button class="carousel-nav next" aria-label="${t('camera.next_aria')}" @click=${this._next}>
-                <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-              </button>
-            ` : nothing}
+      <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''}">
+        <div class="carousel-hero"
+          @pointerdown=${(e: PointerEvent) => { heroGesture.pointerdown(e); this._onPointerDown(e); }}
+          @pointermove=${(e: PointerEvent) => { heroGesture.pointermove(e); this._onPointerMove(e); }}
+          @pointerup=${(e: PointerEvent) => { heroGesture.pointerup(e); this._onPointerUp(e); }}
+          @pointercancel=${() => { heroGesture.pointercancel(); this._onPointerCancel(); }}
+          @contextmenu=${heroGesture.contextmenu}
+        >
+          <div class="tint" style="${this._tintStyle(currentCam)}"></div>
+          <div class="carousel-track" style="transform:translateX(-${this._carouselIndex * 100}%)">
+            ${ids.map((eid, idx) => this._renderSlide(eid, idx === this._carouselIndex))}
           </div>
+          ${ids.length > 1 ? html`
+            <button class="carousel-nav prev" aria-label="${t('camera.prev_aria')}" @click=${this._prev}>
+              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
+            </button>
+            <button class="carousel-nav next" aria-label="${t('camera.next_aria')}" @click=${this._next}>
+              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
+            </button>
+          ` : nothing}
           ${ids.length > 1 ? html`
             <div class="carousel-dots">
               ${ids.map((eid, idx) => this._renderDot(eid, idx))}
             </div>
           ` : nothing}
-          ${currentCam ? this._renderInfoBar(currentCam) : nothing}
-          ${currentCam ? this._renderActions(currentCam) : nothing}
+        </div>
+
+        <!-- Connected fold -->
+        <div class="ctrl-fold ${this._foldOpen ? 'open' : ''}">
+          <div class="ctrl-fold-inner">
+            <div class="fold-sep-top"></div>
+            <div class="fold-panel">
+              ${currentCam ? this._renderInfoBar(currentCam) : nothing}
+              ${currentCam ? this._renderActions(currentCam) : nothing}
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -806,6 +822,7 @@ class GlassCameraCarouselCard extends BaseCard {
     glassTokens,
     hostMixin,
     glassMixin,
+    foldMixin,
     marqueeMixin,
     bounceMixin,
     css`
@@ -833,10 +850,35 @@ class GlassCameraCarouselCard extends BaseCard {
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 0.875rem; position: relative; box-sizing: border-box; }
-      .carousel-inner {
+      /* — Wrap — */
+      .cam-wrap {
         position: relative; z-index: 1;
-        display: flex; flex-direction: column; gap: 0.625rem;
+        display: flex; flex-direction: column; gap: 0;
+      }
+
+      /* — Hero — */
+      .carousel-hero {
+        position: relative; width: 100%; aspect-ratio: 16 / 9;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background: #0a0f18;
+        border: 1px solid var(--b2);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+        touch-action: pan-y;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-radius var(--t-layout), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) { .carousel-hero:hover { border-color: var(--b3); } }
+
+      /* Connected fold: hero loses bottom radius when fold is open */
+      .cam-wrap.fold-open .carousel-hero {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
       }
 
       .tint {
@@ -845,14 +887,8 @@ class GlassCameraCarouselCard extends BaseCard {
         transition: opacity 1.2s cubic-bezier(0.4,0,0.2,1), background 1.2s cubic-bezier(0.4,0,0.2,1);
       }
 
-      /* — Viewport — */
-      .carousel-viewport {
-        position: relative; width: 100%; aspect-ratio: 16 / 9;
-        border-radius: var(--radius-lg); overflow: hidden;
-        background: #0a0f18; border: 1px solid var(--b1);
-        touch-action: pan-y;
-      }
       .carousel-track {
+        position: absolute; inset: 0;
         display: flex; width: 100%; height: 100%;
         transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
       }
@@ -971,8 +1007,9 @@ class GlassCameraCarouselCard extends BaseCard {
         .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
       }
 
-      /* — Dots — */
+      /* — Dots (overlay inside hero) — */
       .carousel-dots {
+        position: absolute; bottom: 0.5rem; left: 0; right: 0; z-index: 5;
         display: flex; align-items: center; justify-content: center; gap: 0.375rem;
       }
       .carousel-dot-btn {
@@ -999,6 +1036,37 @@ class GlassCameraCarouselCard extends BaseCard {
 
       @media (hover: hover) and (pointer: fine) {
         .carousel-dot-btn:hover { background: var(--t3); }
+      }
+
+      /* — Connected Fold — */
+      .ctrl-fold {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0; transition: opacity 0.25s;
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
+        backdrop-filter: var(--blur-lg);
+        -webkit-backdrop-filter: var(--blur-lg);
+        border: 1px solid var(--b2);
+        border-top: none;
+        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+      }
+      .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+      .fold-sep-top {
+        height: 0.0625rem; margin: 0 0.75rem;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
+      }
+      .fold-panel {
+        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 0.875rem 0.875rem;
       }
 
       /* — Info bar — */
