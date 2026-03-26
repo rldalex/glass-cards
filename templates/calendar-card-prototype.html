@@ -128,9 +128,9 @@
 
     /* ==================== CALENDAR CARD ==================== */
     .calendar-card {
-      padding: 14px 16px;
       width: 360px;
       max-width: 100%;
+      overflow: hidden;
     }
 
     .card-inner {
@@ -571,364 +571,199 @@
     .calendar-card:nth-child(3) { animation-delay: 0.18s; }
     .calendar-card:nth-child(4) { animation-delay: 0.24s; }
 
-    /* ── VARIANT LABEL ── */
-    .variant-label {
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--t4);
-      text-align: center;
-      padding: 12px 0 2px;
-    }
+    /* ==================== V4 — COMPACT BAR + FOLD ==================== */
 
-    /* ==================== V2 — TIMELINE ==================== */
-    .v2-header {
+    /* ── Compact bar ── */
+    .v4-compact {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
+      gap: 0.625rem;
+      padding: 0.625rem 0.875rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .v2-date {
+    .v4-compact-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
 
-    .v2-day-pill {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: rgba(129, 140, 248, 0.12);
-      border: 1px solid rgba(129, 140, 248, 0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
+    .v4-compact-icon {
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--c-accent);
+      flex-shrink: 0;
     }
 
-    .v2-day-pill-num {
-      font-size: 16px;
+    .v4-compact-date {
+      font-size: var(--fz-base, 11px);
+      font-weight: 700;
+      color: var(--t1);
+      white-space: nowrap;
+      line-height: 1rem;
+    }
+
+    .v4-compact-count {
+      font-size: var(--fz-xs, 9px);
       font-weight: 700;
       color: var(--c-accent);
-      line-height: 1;
-    }
-
-    .v2-day-pill-label {
-      font-size: 7px;
-      font-weight: 600;
-      color: var(--c-accent);
-      opacity: 0.7;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      line-height: 1;
-    }
-
-    .v2-day-text {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .v2-day-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--t2);
-    }
-
-    .v2-day-sub {
-      font-size: 9px;
-      font-weight: 500;
-      color: var(--t4);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .v2-count {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--t3);
-      padding: 4px 10px;
+      background: rgba(129, 140, 248, 0.12);
+      border: 1px solid rgba(129, 140, 248, 0.2);
       border-radius: var(--radius-full);
-      background: var(--s1);
-      border: 1px solid var(--b1);
-    }
-
-    .v2-timeline {
-      position: relative;
-      padding-left: 52px;
-    }
-
-    /* Vertical line */
-    .v2-timeline::before {
-      content: '';
-      position: absolute;
-      left: 22px;
-      top: 4px;
-      bottom: 4px;
-      width: 1px;
-      background: linear-gradient(to bottom, var(--b3), var(--b1));
-    }
-
-    .v2-event {
-      position: relative;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 6px 0;
-      background: none;
-      border: none;
-      cursor: pointer;
-      outline: none;
-      font-family: inherit;
-      text-align: left;
-      width: 100%;
-    }
-
-    .v2-event:focus-visible {
-      outline: 2px solid rgba(255, 255, 255, 0.25);
-      outline-offset: 2px;
-      border-radius: var(--radius-sm);
-    }
-
-    .v2-event:active {
-      transform: scale(0.96);
-    }
-
-    /* Time on the left axis */
-    .v2-time {
-      position: absolute;
-      left: -52px;
-      top: 6px;
-      width: 40px;
-      text-align: right;
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--t4);
+      padding: 0 0.375rem;
+      min-width: 0.875rem;
+      height: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       line-height: 1;
+      box-sizing: border-box;
     }
 
-    .v2-event.now .v2-time {
-      color: var(--c-accent);
-      font-weight: 600;
+    /* Thin separator between left info and ticker */
+    .v4-compact-sep {
+      width: 0.0625rem;
+      height: 0.75rem;
+      background: var(--b2);
+      flex-shrink: 0;
     }
 
-    /* Node dot on timeline */
-    .v2-node {
-      position: absolute;
-      left: -34px;
-      top: 7px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      border: 2px solid;
-    }
-
-    .v2-event.now .v2-node {
-      box-shadow: 0 0 6px currentColor;
-    }
-
-    .v2-event-card {
+    /* ── Roll-up ticker ── */
+    .v4-ticker-wrap {
       flex: 1;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      background: var(--s1);
-      border: 1px solid var(--b1);
-      transition: background var(--t-fast), border-color var(--t-fast);
+      min-width: 0;
+      height: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .v4-ticker-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0.375rem;
+      position: absolute;
+      left: 0; right: 0;
+      top: 0; bottom: 0;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .v2-event:hover .v2-event-card {
+    .v4-ticker-item.below  { transform: translateY(100%); opacity: 0; }
+    .v4-ticker-item.active { transform: translateY(0);    opacity: 1; }
+    .v4-ticker-item.above  { transform: translateY(-100%); opacity: 0; }
+    .v4-ticker-item.hidden { display: none; }
+
+    .v4-ticker-dot {
+      width: 0.3125rem;
+      height: 0.3125rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .v4-ticker-text {
+      font-size: var(--fz-base, 11px);
+      font-weight: 500;
+      color: var(--t2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1rem;
+    }
+
+    .v4-ticker-time {
+      font-size: var(--fz-base, 11px);
+      font-weight: 500;
+      color: var(--t4);
+      flex-shrink: 0;
+      line-height: 1rem;
+    }
+
+    .v4-ticker-item.now .v4-ticker-text {
+      color: var(--t1);
+      font-weight: 600;
+    }
+
+    .v4-ticker-item.now .v4-ticker-time {
+      color: var(--c-accent);
+    }
+
+    /* ── Toggle button ── */
+    .v4-compact-toggle {
+      width: 1.375rem;
+      height: 1.375rem;
+      border-radius: var(--radius-sm);
       background: var(--s2);
+      border: 1px solid var(--b1);
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--t3);
+      flex-shrink: 0;
+      transition: background var(--t-fast), border-color var(--t-fast);
+    }
+
+    .v4-compact-toggle:hover {
+      background: var(--s3);
       border-color: var(--b2);
     }
 
-    .v2-event-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .v2-event-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--t2);
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .v2-event.now .v2-event-title {
-      color: var(--t1);
-    }
-
-    .v2-event-duration {
-      font-size: 9px;
-      font-weight: 400;
-      color: var(--t4);
-      line-height: 1.3;
-    }
-
-    .v2-event-badge {
-      font-size: 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 2px 6px;
-      border-radius: var(--radius-full);
-      flex-shrink: 0;
-    }
-
-    /* ==================== V3 — AGENDA ULTRA-COMPACT ==================== */
-    .v3-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .v3-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: var(--radius-sm);
-      background: var(--s2);
-      border: 1px solid var(--b1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .v3-icon svg {
-      width: 14px;
-      height: 14px;
-      color: var(--t3);
-    }
-
-    .v3-title {
-      flex: 1;
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--t4);
-    }
-
-    .v3-today-chip {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--t1);
-      padding: 3px 10px;
-      border-radius: var(--radius-full);
-      background: var(--s2);
-      border: 1px solid var(--b2);
-    }
-
-    .v3-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .v3-row {
-      display: grid;
-      grid-template-columns: 44px 3px 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--b1);
-      background: none;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      cursor: pointer;
-      outline: none;
-      font-family: inherit;
-      text-align: left;
-      width: 100%;
-      transition: background var(--t-fast);
-    }
-
-    .v3-row:last-child {
-      border-bottom: none;
-    }
-
-    .v3-row:hover {
-      background: var(--s1);
-    }
-
-    .v3-row:focus-visible {
+    .v4-compact-toggle:focus-visible {
       outline: 2px solid rgba(255, 255, 255, 0.25);
       outline-offset: -2px;
-      border-radius: var(--radius-sm);
     }
 
-    .v3-row:active {
-      transform: scale(0.96);
+    .v4-compact-toggle svg {
+      width: 0.75rem;
+      height: 0.75rem;
+      transition: transform var(--t-fast);
     }
 
-    .v3-row-time {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--t3);
-      text-align: right;
-      line-height: 1;
+    .calendar-card.open .v4-compact-toggle svg {
+      transform: rotate(180deg);
     }
 
-    .v3-row.now .v3-row-time {
-      color: var(--c-accent);
+    /* ── Fold ── */
+    .v4-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
     }
 
-    .v3-row-bar {
-      width: 3px;
-      height: 16px;
-      border-radius: 2px;
+    .calendar-card.open .v4-fold {
+      grid-template-rows: 1fr;
     }
 
-    .v3-row-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--t2);
-      white-space: nowrap;
+    .v4-fold-inner {
       overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.2s ease 0s;
     }
 
-    .v3-row.now .v3-row-title {
-      color: var(--t1);
+    .calendar-card.open .v4-fold-inner {
+      opacity: 1;
+      transition: opacity 0.2s ease 0.1s;
     }
 
-    .v3-row-meta {
-      font-size: 9px;
+    .v4-fold-sep {
+      height: 0.0625rem;
+      margin: 0 0.75rem 0.625rem;
+      background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.15), transparent);
+    }
+
+    .v4-fold .card-inner {
+      padding: 0 0.875rem 0.875rem;
+    }
+
+    /* ── Empty ticker ── */
+    .v4-ticker-empty {
+      font-size: var(--fz-base, 11px);
       font-weight: 500;
       color: var(--t4);
-      flex-shrink: 0;
-    }
-
-    .v3-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--b1);
-    }
-
-    .v3-next-label {
-      font-size: 9px;
-      font-weight: 500;
-      color: var(--t4);
-    }
-
-    .v3-next-event {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--t3);
+      font-style: italic;
     }
 
     /* ==================== V4 — MONTH MINI-GRID ==================== */
@@ -936,11 +771,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 0.625rem;
     }
 
     .v4-month-label {
-      font-size: 13px;
+      font-size: var(--fz-md, 13px);
       font-weight: 700;
       color: var(--t1);
       letter-spacing: -0.3px;
@@ -948,12 +783,12 @@
 
     .v4-nav {
       display: flex;
-      gap: 4px;
+      gap: 0.25rem;
     }
 
     .v4-nav-btn {
-      width: 24px;
-      height: 24px;
+      width: 1.375rem;
+      height: 1.375rem;
       border-radius: var(--radius-sm);
       background: var(--s2);
       border: 1px solid var(--b1);
@@ -981,19 +816,19 @@
     }
 
     .v4-nav-btn svg {
-      width: 12px;
-      height: 12px;
+      width: 0.75rem;
+      height: 0.75rem;
     }
 
     .v4-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 1px;
-      margin-bottom: 10px;
+      margin-bottom: 0.625rem;
     }
 
     .v4-grid-head {
-      font-size: 8px;
+      font-size: var(--fz-xxs, 8px);
       font-weight: 600;
       color: var(--t4);
       text-transform: uppercase;
@@ -1017,12 +852,12 @@
     }
 
     .v4-grid-num {
-      font-size: 10px;
+      font-size: var(--fz-sm, 10px);
       font-weight: 500;
       color: var(--t3);
       line-height: 1;
-      width: 20px;
-      height: 20px;
+      width: 1.25rem;
+      height: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1037,36 +872,36 @@
 
     .v4-grid-dots {
       display: flex;
-      gap: 2px;
-      min-height: 3px;
+      gap: 0.125rem;
+      min-height: 0.1875rem;
     }
 
     .v4-grid-dot {
-      width: 3px;
-      height: 3px;
+      width: 0.1875rem;
+      height: 0.1875rem;
       border-radius: 50%;
     }
 
     .v4-separator {
-      height: 1px;
+      height: 0.0625rem;
       background: var(--b1);
-      margin-bottom: 8px;
+      margin-bottom: 0.5rem;
     }
 
     .v4-upcoming-label {
-      font-size: 9px;
+      font-size: var(--fz-xs, 9px);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--t4);
-      margin-bottom: 6px;
+      margin-bottom: 0.375rem;
     }
 
     .v4-event-mini {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 5px 8px;
+      gap: 0.5rem;
+      padding: 0.3125rem 0.5rem;
       border-radius: var(--radius-sm);
       background: none;
       border: none;
@@ -1092,8 +927,8 @@
     }
 
     .v4-event-dot {
-      width: 6px;
-      height: 6px;
+      width: 0.375rem;
+      height: 0.375rem;
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -1101,7 +936,7 @@
     .v4-event-text {
       flex: 1;
       min-width: 0;
-      font-size: 11px;
+      font-size: var(--fz-base, 11px);
       font-weight: 600;
       color: var(--t2);
       white-space: nowrap;
@@ -1110,7 +945,7 @@
     }
 
     .v4-event-hour {
-      font-size: 10px;
+      font-size: var(--fz-sm, 10px);
       font-weight: 500;
       color: var(--t4);
       flex-shrink: 0;
@@ -1185,125 +1020,53 @@
 
   <div class="dashboard-column">
 
-    <div class="glass calendar-card" id="card">
-      <div class="card-inner">
-
-        <!-- HEADER -->
-        <div class="cal-header">
-          <div class="cal-today">
-            <span class="cal-day-num" id="cal-day-num"></span>
-            <div class="cal-day-meta">
-              <span class="cal-day-name" id="cal-day-name"></span>
-              <span class="cal-month-year" id="cal-month-year"></span>
-            </div>
-          </div>
-          <span class="cal-event-count" id="cal-count"></span>
+    <div class="glass calendar-card" id="card-v4">
+      <!-- ── Compact bar (visible when fold closed) ── -->
+      <div class="v4-compact" id="v4-compact">
+        <div class="v4-compact-left">
+          <svg class="v4-compact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span class="v4-compact-date" id="v4-compact-date"></span>
+          <span class="v4-compact-count" id="v4-compact-count"></span>
         </div>
-
-        <!-- WEEK STRIP -->
-        <div class="week-strip" id="week-strip" role="group" aria-label="Semaine en cours"></div>
-
-        <!-- SEPARATOR -->
-        <div class="cal-separator"></div>
-
-        <!-- NOW INDICATOR -->
-        <div class="now-indicator" id="now-indicator">
-          <div class="now-dot"></div>
-          <div class="now-line"></div>
-          <span class="now-time" id="now-time"></span>
+        <div class="v4-compact-sep"></div>
+        <div class="v4-ticker-wrap">
+          <div class="v4-ticker" id="v4-ticker"></div>
         </div>
-
-        <!-- EVENT LIST -->
-        <div class="event-list" id="event-list"></div>
-
-        <!-- FOLD: MORE EVENTS -->
-        <div class="fold" id="more-fold">
-          <div class="fold-inner">
-            <div class="event-list" id="more-events"></div>
-            <div class="cal-legend" id="cal-legend"></div>
-          </div>
-        </div>
-
-        <button class="fold-toggle" id="fold-toggle"
-          aria-expanded="false" aria-controls="more-fold"
-          aria-label="Afficher plus d'événements" style="display:none;">
-          <span id="fold-toggle-text"></span>
+        <button class="v4-compact-toggle" id="v4-toggle-btn" aria-label="Ouvrir le calendrier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
-
       </div>
-    </div>
 
-    <!-- ============ V2 — TIMELINE ============ -->
-    <div class="variant-label">V2 — Timeline</div>
-    <div class="glass calendar-card" id="card-v2">
-      <div class="card-inner">
-        <div class="v2-header">
-          <div class="v2-date">
-            <div class="v2-day-pill">
-              <span class="v2-day-pill-num" id="v2-day-num"></span>
-              <span class="v2-day-pill-label" id="v2-day-label"></span>
+      <!-- ── Fold: full calendar (hidden by default) ── -->
+      <div class="v4-fold" id="v4-fold">
+        <div class="v4-fold-inner">
+          <div class="v4-fold-sep"></div>
+          <div class="card-inner">
+            <div class="v4-header">
+              <span class="v4-month-label" id="v4-month"></span>
+              <div class="v4-nav">
+                <button class="v4-nav-btn" aria-label="Mois précédent">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                <button class="v4-nav-btn" aria-label="Mois suivant">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 6 15 12 9 18"/>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div class="v2-day-text">
-              <span class="v2-day-name" id="v2-day-name"></span>
-              <span class="v2-day-sub" id="v2-day-sub"></span>
-            </div>
-          </div>
-          <span class="v2-count" id="v2-count"></span>
-        </div>
-        <div class="v2-timeline" id="v2-timeline"></div>
-      </div>
-    </div>
-
-    <!-- ============ V3 — AGENDA COMPACT ============ -->
-    <div class="variant-label">V3 — Agenda compact</div>
-    <div class="glass calendar-card" id="card-v3">
-      <div class="card-inner">
-        <div class="v3-header">
-          <div class="v3-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-          </div>
-          <span class="v3-title">Aujourd'hui</span>
-          <span class="v3-today-chip" id="v3-date"></span>
-        </div>
-        <div class="v3-rows" id="v3-rows"></div>
-        <div class="v3-footer" id="v3-footer" style="display:none;">
-          <span class="v3-next-label">Prochain</span>
-          <span class="v3-next-event" id="v3-next"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ V4 — MONTH MINI-GRID ============ -->
-    <div class="variant-label">V4 — Mois + aperçu</div>
-    <div class="glass calendar-card" id="card-v4">
-      <div class="card-inner">
-        <div class="v4-header">
-          <span class="v4-month-label" id="v4-month"></span>
-          <div class="v4-nav">
-            <button class="v4-nav-btn" aria-label="Mois précédent">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-            <button class="v4-nav-btn" aria-label="Mois suivant">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 6 15 12 9 18"/>
-              </svg>
-            </button>
+            <div class="v4-grid" id="v4-grid"></div>
+            <div class="v4-separator"></div>
+            <div class="v4-upcoming-label">Prochains</div>
+            <div id="v4-upcoming"></div>
           </div>
         </div>
-        <div class="v4-grid" id="v4-grid"></div>
-        <div class="v4-separator"></div>
-        <div class="v4-upcoming-label">Prochains</div>
-        <div id="v4-upcoming"></div>
       </div>
     </div>
 
@@ -1353,409 +1116,106 @@
 
     var EVENTS_EMPTY = [];
 
-    /* Week dots per day (0=lun..6=dim), varies per scenario */
-    var WEEK_DOTS_BUSY = [
-      ['travail'],
-      ['travail', 'famille'],
-      ['travail', 'famille', 'anniversaires', 'taches', 'perso'],
-      ['travail'],
-      ['perso', 'travail'],
-      ['famille'],
-      []
-    ];
-    var WEEK_DOTS_LIGHT = [[], [], [], [], [], ['famille', 'taches'], []];
-    var WEEK_DOTS_EMPTY = [[], [], [], [], [], [], []];
-
-    var MAX_VISIBLE = 4;
     var currentView = 'busy';
 
-    /* ── BUILD WEEK STRIP ── */
-    function buildWeekStrip(dotData) {
-      var strip = document.getElementById('week-strip');
-      while (strip.firstChild) strip.removeChild(strip.firstChild);
-
+    /* ══════════════════ V4 — COMPACT BAR + TICKER ══════════════════ */
+    function renderV4Compact(events) {
       var now = new Date();
-      var dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
-      var monday = new Date(now);
-      monday.setDate(now.getDate() - dayOfWeek);
+      var jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+      var mois = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+      document.getElementById('v4-compact-date').textContent = jours[now.getDay()] + ' ' + now.getDate() + ' ' + mois[now.getMonth()];
+      document.getElementById('v4-compact-count').textContent = events.length;
 
-      var labels = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
+      var ticker = document.getElementById('v4-ticker');
+      while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
 
-      for (var i = 0; i < 7; i++) {
-        var d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-
-        var btn = document.createElement('button');
-        btn.className = 'week-day';
-        if (i === dayOfWeek) btn.classList.add('today', 'selected');
-        btn.setAttribute('aria-label', labels[i] + ' ' + d.getDate());
-
-        var lbl = document.createElement('span');
-        lbl.className = 'week-day-label';
-        lbl.textContent = labels[i];
-
-        var num = document.createElement('span');
-        num.className = 'week-day-num';
-        num.textContent = d.getDate();
-
-        var dots = document.createElement('div');
-        dots.className = 'week-day-dots';
-
-        var dayDots = dotData[i] || [];
-        /* Max 3 dots per day */
-        var shown = dayDots.slice(0, 3);
-        for (var j = 0; j < shown.length; j++) {
-          var dot = document.createElement('span');
-          dot.className = 'week-dot';
-          dot.style.background = CAL_COLORS[shown[j]] ? CAL_COLORS[shown[j]].color : 'var(--t4)';
-          dots.appendChild(dot);
-        }
-
-        btn.appendChild(lbl);
-        btn.appendChild(num);
-        btn.appendChild(dots);
-        strip.appendChild(btn);
-      }
-    }
-
-    /* ── BUILD EVENT ROW ── */
-    function createEventRow(ev) {
-      var btn = document.createElement('button');
-      btn.className = 'event-row';
-      if (ev.now) btn.classList.add('now');
-      btn.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ', toute la journée'));
-
-      var bar = document.createElement('div');
-      bar.className = 'event-color-bar';
-      var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : 'var(--t4)';
-      bar.style.background = 'linear-gradient(to bottom, ' + calColor + ', ' + calColor + '66)';
-
-      var content = document.createElement('div');
-      content.className = 'event-content';
-
-      var title = document.createElement('span');
-      title.className = 'event-title';
-      title.textContent = ev.title;
-
-      content.appendChild(title);
-
-      if (ev.time) {
-        var time = document.createElement('span');
-        time.className = 'event-time';
-        time.textContent = ev.time;
-        content.appendChild(time);
-      }
-
-      btn.appendChild(bar);
-      btn.appendChild(content);
-
-      if (ev.allday) {
-        var badge = document.createElement('span');
-        badge.className = 'event-allday';
-        badge.textContent = 'Journée';
-        btn.appendChild(badge);
-      }
-
-      return btn;
-    }
-
-    /* ── BUILD LEGEND ── */
-    function buildLegend(events) {
-      var legend = document.getElementById('cal-legend');
-      while (legend.firstChild) legend.removeChild(legend.firstChild);
-
-      var seen = {};
-      for (var i = 0; i < events.length; i++) {
-        var cal = events[i].cal;
-        if (seen[cal]) continue;
-        seen[cal] = true;
-
-        var item = document.createElement('div');
-        item.className = 'cal-legend-item';
-
-        var dot = document.createElement('span');
-        dot.className = 'cal-legend-dot';
-        dot.style.background = CAL_COLORS[cal] ? CAL_COLORS[cal].color : 'var(--t4)';
-
-        var label = document.createElement('span');
-        label.className = 'cal-legend-label';
-        label.textContent = CAL_COLORS[cal] ? CAL_COLORS[cal].label : cal;
-
-        item.appendChild(dot);
-        item.appendChild(label);
-        legend.appendChild(item);
-      }
-    }
-
-    /* ── RENDER ── */
-    function render(events, dotData) {
-      /* Header */
-      var now = new Date();
-      var jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-      var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
-      document.getElementById('cal-day-num').textContent = now.getDate();
-      document.getElementById('cal-day-name').textContent = jours[now.getDay()];
-      document.getElementById('cal-month-year').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
-      document.getElementById('cal-count').textContent = events.length;
-
-      /* Now indicator */
-      var h = now.getHours();
-      var m = now.getMinutes();
-      document.getElementById('now-time').textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
-
-      /* Week */
-      buildWeekStrip(dotData);
-
-      /* Events */
-      var listEl = document.getElementById('event-list');
-      var moreEl = document.getElementById('more-events');
-      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
-      while (moreEl.firstChild) moreEl.removeChild(moreEl.firstChild);
-
-      var fold = document.getElementById('more-fold');
-      var toggleBtn = document.getElementById('fold-toggle');
+      /* Stop previous timer */
+      if (window._tickerTimer) clearInterval(window._tickerTimer);
 
       if (events.length === 0) {
-        var empty = document.createElement('div');
-        empty.className = 'cal-empty';
-
-        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', '0 0 24 24');
-        svg.setAttribute('fill', 'none');
-        svg.setAttribute('stroke', 'currentColor');
-        svg.setAttribute('stroke-width', '1.5');
-        svg.setAttribute('stroke-linecap', 'round');
-        svg.setAttribute('stroke-linejoin', 'round');
-        var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        path1.setAttribute('x', '3');
-        path1.setAttribute('y', '4');
-        path1.setAttribute('width', '18');
-        path1.setAttribute('height', '18');
-        path1.setAttribute('rx', '2');
-        var path2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        path2.setAttribute('x1', '16'); path2.setAttribute('y1', '2');
-        path2.setAttribute('x2', '16'); path2.setAttribute('y2', '6');
-        var path3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        path3.setAttribute('x1', '8'); path3.setAttribute('y1', '2');
-        path3.setAttribute('x2', '8'); path3.setAttribute('y2', '6');
-        var path4 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        path4.setAttribute('x1', '3'); path4.setAttribute('y1', '10');
-        path4.setAttribute('x2', '21'); path4.setAttribute('y2', '10');
-        svg.appendChild(path1);
-        svg.appendChild(path2);
-        svg.appendChild(path3);
-        svg.appendChild(path4);
-
-        var emptyTitle = document.createElement('span');
-        emptyTitle.className = 'cal-empty-title';
-        emptyTitle.textContent = 'Rien de prévu';
-
-        var emptySub = document.createElement('span');
-        emptySub.className = 'cal-empty-sub';
-        emptySub.textContent = 'Profitez de votre journée';
-
-        empty.appendChild(svg);
-        empty.appendChild(emptyTitle);
-        empty.appendChild(emptySub);
-        listEl.appendChild(empty);
-
-        toggleBtn.style.display = 'none';
-        fold.classList.remove('open');
-        document.getElementById('now-indicator').style.display = 'none';
-        buildLegend([]);
+        var empty = document.createElement('span');
+        empty.className = 'v4-ticker-empty';
+        empty.style.cssText = 'position:relative;height:1.125rem;display:flex;align-items:center;';
+        empty.textContent = 'Aucun événement';
+        ticker.appendChild(empty);
         return;
       }
 
-      document.getElementById('now-indicator').style.display = '';
-
-      var visible = events.slice(0, MAX_VISIBLE);
-      var hidden = events.slice(MAX_VISIBLE);
-
-      for (var i = 0; i < visible.length; i++) {
-        listEl.appendChild(createEventRow(visible[i]));
-      }
-
-      if (hidden.length > 0) {
-        for (var j = 0; j < hidden.length; j++) {
-          moreEl.appendChild(createEventRow(hidden[j]));
-        }
-        toggleBtn.style.display = '';
-        document.getElementById('fold-toggle-text').textContent = hidden.length + ' de plus';
-        toggleBtn.setAttribute('aria-expanded', 'false');
-        fold.classList.remove('open');
-        toggleBtn.classList.remove('open');
-      } else {
-        toggleBtn.style.display = 'none';
-        fold.classList.remove('open');
-      }
-
-      buildLegend(events);
-    }
-
-    /* ── FOLD TOGGLE ── */
-    document.getElementById('fold-toggle').addEventListener('click', function () {
-      var fold = document.getElementById('more-fold');
-      var isOpen = fold.classList.contains('open');
-      fold.classList.toggle('open');
-      this.classList.toggle('open');
-      this.setAttribute('aria-expanded', String(!isOpen));
-      document.getElementById('fold-toggle-text').textContent = isOpen
-        ? (document.getElementById('more-events').children.length + ' de plus')
-        : 'Réduire';
-    });
-
-    /* ── CONTROLS ── */
-    function setTime(t, btn) {
-      document.body.setAttribute('data-time', t);
-      document.querySelectorAll('.control-btn[data-time]').forEach(function (b) {
-        b.classList.toggle('active', b === btn);
-      });
-    }
-
-    function setView(view, btn) {
-      currentView = view;
-      document.querySelectorAll('.control-btn[data-view]').forEach(function (b) {
-        b.classList.toggle('active', b === btn);
-      });
-      if (view === 'busy') renderAll(EVENTS_BUSY, WEEK_DOTS_BUSY);
-      else if (view === 'light') renderAll(EVENTS_LIGHT, WEEK_DOTS_LIGHT);
-      else renderAll(EVENTS_EMPTY, WEEK_DOTS_EMPTY);
-    }
-
-    /* ══════════════════ V2 — TIMELINE ══════════════════ */
-    function renderV2(events) {
-      var now = new Date();
-      var jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-      var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-      var joursShort = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
-
-      document.getElementById('v2-day-num').textContent = now.getDate();
-      document.getElementById('v2-day-label').textContent = joursShort[now.getDay()];
-      document.getElementById('v2-day-name').textContent = jours[now.getDay()];
-      document.getElementById('v2-day-sub').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
-      document.getElementById('v2-count').textContent = events.length + ' événement' + (events.length > 1 ? 's' : '');
-
-      var tl = document.getElementById('v2-timeline');
-      while (tl.firstChild) tl.removeChild(tl.firstChild);
-
+      /* Build all items */
+      var items = [];
       for (var i = 0; i < events.length; i++) {
         var ev = events[i];
-        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
+        var item = document.createElement('div');
+        item.className = 'v4-ticker-item hidden';
+        if (ev.now) item.classList.add('now');
 
-        var row = document.createElement('button');
-        row.className = 'v2-event';
-        if (ev.now) row.classList.add('now');
-        row.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ''));
+        var dot = document.createElement('span');
+        dot.className = 'v4-ticker-dot';
+        dot.style.background = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : 'var(--t4)';
 
-        var timeEl = document.createElement('span');
-        timeEl.className = 'v2-time';
-        timeEl.textContent = ev.time ? ev.time.split(' - ')[0] : '';
-
-        var node = document.createElement('span');
-        node.className = 'v2-node';
-        node.style.borderColor = calColor;
-        node.style.background = ev.now ? calColor : 'transparent';
-        node.style.color = calColor;
-
-        var card = document.createElement('div');
-        card.className = 'v2-event-card';
-
-        var content = document.createElement('div');
-        content.className = 'v2-event-content';
-
-        var title = document.createElement('span');
-        title.className = 'v2-event-title';
-        title.textContent = ev.title;
-        content.appendChild(title);
-
-        if (ev.time && ev.time.indexOf('-') !== -1) {
-          var dur = document.createElement('span');
-          dur.className = 'v2-event-duration';
-          dur.textContent = ev.time;
-          content.appendChild(dur);
-        }
-
-        card.appendChild(content);
-
-        if (ev.allday) {
-          var badge = document.createElement('span');
-          badge.className = 'v2-event-badge';
-          badge.textContent = 'Journée';
-          badge.style.background = calColor + '1a';
-          badge.style.color = calColor;
-          card.appendChild(badge);
-        }
-
-        row.appendChild(timeEl);
-        row.appendChild(node);
-        row.appendChild(card);
-        tl.appendChild(row);
-      }
-    }
-
-    /* ══════════════════ V3 — AGENDA COMPACT ══════════════════ */
-    function renderV3(events) {
-      var now = new Date();
-      document.getElementById('v3-date').textContent = now.getDate() + '/' + (now.getMonth() + 1);
-
-      var rows = document.getElementById('v3-rows');
-      while (rows.firstChild) rows.removeChild(rows.firstChild);
-
-      var timed = events.filter(function(e) { return e.time; });
-      var shown = timed.slice(0, 5);
-
-      for (var i = 0; i < shown.length; i++) {
-        var ev = shown[i];
-        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
-
-        var row = document.createElement('button');
-        row.className = 'v3-row';
-        if (ev.now) row.classList.add('now');
-        row.setAttribute('aria-label', ev.title + ', ' + ev.time);
+        var text = document.createElement('span');
+        text.className = 'v4-ticker-text';
+        text.textContent = ev.title;
 
         var time = document.createElement('span');
-        time.className = 'v3-row-time';
-        time.textContent = ev.time.split(' - ')[0];
+        time.className = 'v4-ticker-time';
+        time.textContent = ev.time ? ev.time.split(' - ')[0] : 'Journée';
 
-        var bar = document.createElement('span');
-        bar.className = 'v3-row-bar';
-        bar.style.background = calColor;
-
-        var title = document.createElement('span');
-        title.className = 'v3-row-title';
-        title.textContent = ev.title;
-
-        var meta = document.createElement('span');
-        meta.className = 'v3-row-meta';
-        if (ev.time.indexOf('-') !== -1) {
-          var parts = ev.time.split(' - ');
-          meta.textContent = parts[1];
-        }
-
-        row.appendChild(time);
-        row.appendChild(bar);
-        row.appendChild(title);
-        row.appendChild(meta);
-        rows.appendChild(row);
+        item.appendChild(dot);
+        item.appendChild(text);
+        item.appendChild(time);
+        ticker.appendChild(item);
+        items.push(item);
       }
 
-      /* Footer: next event */
-      var footer = document.getElementById('v3-footer');
-      var allday = events.filter(function(e) { return e.allday; });
-      if (allday.length > 0) {
-        footer.style.display = '';
-        document.getElementById('v3-next').textContent = allday[0].title;
-      } else if (timed.length > 5) {
-        footer.style.display = '';
-        document.getElementById('v3-next').textContent = '+' + (timed.length - 5) + ' événements';
-      } else {
-        footer.style.display = 'none';
-      }
+      /* Show first item immediately */
+      var current = 0;
+      items[0].className = items[0].className.replace('hidden', 'active');
+
+      if (events.length === 1) return;
+
+      /* Roll-up cycle: every 3.5s, exit current upward + enter next from below */
+      window._tickerTimer = setInterval(function() {
+        var prev = current;
+        current = (current + 1) % items.length;
+
+        /* Current exits upward */
+        items[prev].className = items[prev].className.replace('active', 'above');
+
+        /* Next enters from below — first position it below without transition */
+        items[current].classList.remove('hidden', 'above');
+        items[current].classList.add('below');
+        /* Force reflow so the browser registers the 'below' position */
+        void items[current].offsetHeight;
+        /* Then animate to active */
+        items[current].classList.remove('below');
+        items[current].classList.add('active');
+
+        /* After transition, hide the exited item */
+        setTimeout(function() {
+          items[prev].classList.remove('above');
+          items[prev].classList.add('hidden');
+        }, 500);
+      }, 3500);
     }
+
+    /* ══════════════════ V4 — TOGGLE ══════════════════ */
+    var v4Open = false;
+    function toggleV4() {
+      v4Open = !v4Open;
+      document.getElementById('card-v4').classList.toggle('open', v4Open);
+    }
+    document.getElementById('v4-compact').addEventListener('click', function(e) {
+      if (!e.target.closest('.v4-compact-toggle')) toggleV4();
+    });
+    document.getElementById('v4-toggle-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleV4();
+    });
 
     /* ══════════════════ V4 — MONTH MINI-GRID ══════════════════ */
     function renderV4(events) {
+      renderV4Compact(events);
       var now = new Date();
       var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
       document.getElementById('v4-month').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
@@ -1866,15 +1326,27 @@
     }
 
     /* ══════════════════ RENDER ALL ══════════════════ */
-    function renderAll(events, dotData) {
-      render(events, dotData);
-      renderV2(events);
-      renderV3(events);
+    function renderAll(events) {
       renderV4(events);
     }
 
+    /* ── CONTROLS ── */
+    function setTime(t, btn) {
+      document.body.setAttribute('data-time', t);
+      document.querySelectorAll('[data-time]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    function setView(view, btn) {
+      currentView = view;
+      document.querySelectorAll('[data-view]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var events = view === 'busy' ? EVENTS_BUSY : view === 'light' ? EVENTS_LIGHT : EVENTS_EMPTY;
+      renderAll(events);
+    }
+
     /* ── INIT ── */
-    renderAll(EVENTS_BUSY, WEEK_DOTS_BUSY);
+    renderAll(EVENTS_BUSY);
   </script>
 
 </body>

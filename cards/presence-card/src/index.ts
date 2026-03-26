@@ -125,6 +125,8 @@ export class GlassPresenceCard extends BaseCard {
   };
   @state() private _activePerson: string | null = null;
   @state() private _notifText = '';
+  @state() private _notifSent = false;
+  private _notifSentTimer = 0;
 
   private _backend?: BackendService;
   private _configLoaded = false;
@@ -148,6 +150,7 @@ export class GlassPresenceCard extends BaseCard {
     this._configLoadingInProgress = false;
     clearInterval(this._clockInterval);
     this._clockInterval = undefined;
+    if (this._notifSentTimer) { clearTimeout(this._notifSentTimer); this._notifSentTimer = 0; }
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -314,7 +317,12 @@ export class GlassPresenceCard extends BaseCard {
         message: this._notifText.trim(),
       });
       this._notifText = '';
-      this._activePerson = null;
+      this._notifSent = true;
+      if (this._notifSentTimer) clearTimeout(this._notifSentTimer);
+      this._notifSentTimer = window.setTimeout(() => {
+        this._notifSent = false;
+        this._activePerson = null;
+      }, 2000);
     } catch {
       // silent
     }
@@ -567,31 +575,38 @@ export class GlassPresenceCard extends BaseCard {
             ${person.notifyService
               ? html`
                   <div class="notif-zone">
-                    <div class="notif-to">
-                      ${t('presence.notify_to')}
-                      <span class="notif-to-name">${person.name}</span>
-                    </div>
-                    <div class="notif-row">
-                      <textarea
-                        class="notif-input"
-                        placeholder=${t('presence.notify_placeholder')}
-                        .value=${this._notifText}
-                        @input=${(e: InputEvent) => {
-                          this._notifText = (e.target as HTMLTextAreaElement).value;
-                        }}
-                        @focus=${() => this._scrollToTop()}
-                      ></textarea>
-                      <button
-                        class="notif-send"
-                        aria-label=${t('presence.send_aria')}
-                        @click=${(e: Event) => {
-                          e.stopPropagation();
-                          this._sendNotification(person);
-                        }}
-                      >
-                        <ha-icon .icon=${'mdi:send'}></ha-icon>
-                      </button>
-                    </div>
+                    ${this._notifSent ? html`
+                      <div class="notif-toast">
+                        <ha-icon .icon=${'mdi:check-circle'}></ha-icon>
+                        ${t('presence.notif_sent')}
+                      </div>
+                    ` : html`
+                      <div class="notif-to">
+                        ${t('presence.notify_to')}
+                        <span class="notif-to-name">${person.name}</span>
+                      </div>
+                      <div class="notif-row">
+                        <textarea
+                          class="notif-input"
+                          placeholder=${t('presence.notify_placeholder')}
+                          .value=${this._notifText}
+                          @input=${(e: InputEvent) => {
+                            this._notifText = (e.target as HTMLTextAreaElement).value;
+                          }}
+                          @focus=${() => this._scrollToTop()}
+                        ></textarea>
+                        <button
+                          class="notif-send"
+                          aria-label=${t('presence.send_aria')}
+                          @click=${(e: Event) => {
+                            e.stopPropagation();
+                            this._sendNotification(person);
+                          }}
+                        >
+                          <ha-icon .icon=${'mdi:send'}></ha-icon>
+                        </button>
+                      </div>
+                    `}
                   </div>
                 `
               : nothing}
@@ -937,6 +952,20 @@ export class GlassPresenceCard extends BaseCard {
       }
       .notif-send:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
       .notif-send:active { transform: scale(0.96); }
+
+      .notif-toast {
+        display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+        padding: 0.5rem; font-size: var(--fz-base); font-weight: 600;
+        color: var(--c-success);
+        animation: toast-in 0.3s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+      }
+      .notif-toast ha-icon {
+        --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center;
+      }
+      @keyframes toast-in {
+        from { opacity: 0; transform: scale(0.9); }
+        to   { opacity: 1; transform: scale(1); }
+      }
 
       @media (pointer: coarse) {
         .avatar-wrapper:active,
