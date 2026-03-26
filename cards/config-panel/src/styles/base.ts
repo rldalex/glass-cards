@@ -53,6 +53,12 @@ export const baseStyles = css`
         max-width: 40rem;
         margin: 0 auto;
       }
+      @media (min-width: 1024px) {
+        .page-wrap { max-width: 56rem; }
+      }
+      @media (min-width: 1440px) {
+        .page-wrap { max-width: 72rem; }
+      }
 
       /* ── Header ── */
       .page-header {
@@ -1117,7 +1123,7 @@ export const baseStyles = css`
         font-weight: 500;
       }
 
-      /* ── Mobile nav adjustments ── */
+      /* ── Responsive breakpoints ── */
       @media (max-width: 600px) {
         .panel-sidebar {
           padding: 0 0.125rem 0.5rem;
@@ -1138,6 +1144,18 @@ export const baseStyles = css`
         }
         .room-card ha-icon { --mdc-icon-size: 1.375rem; }
         .room-card .room-name { font-size: var(--fz-xs); }
+      }
+      @media (min-width: 1024px) {
+        .room-grid {
+          grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+          gap: 0.75rem;
+        }
+      }
+      @media (min-width: 1440px) {
+        .room-grid {
+          grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+          gap: 1rem;
+        }
       }
 
       /* ═══════════════════════════════════════════════

@@ -1262,4 +1262,16 @@ export const formStyles = css`
         color: var(--c-warning);
         opacity: 0.7;
       }
+
+      /* ── Responsive breakpoints ── */
+      @media (min-width: 1024px) {
+        .icon-picker-grid {
+          grid-template-columns: repeat(10, 1fr);
+        }
+      }
+      @media (min-width: 1440px) {
+        .icon-picker-grid {
+          grid-template-columns: repeat(12, 1fr);
+        }
+      }
 `;

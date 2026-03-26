@@ -44,6 +44,12 @@
         max-width: 40rem;
         margin: 0 auto;
       }
+      @media (min-width: 1024px) {
+        .page-wrap { max-width: 56rem; }
+      }
+      @media (min-width: 1440px) {
+        .page-wrap { max-width: 72rem; }
+      }
 
       /* ── Header ── */
       .page-header {
@@ -1108,7 +1114,7 @@
         font-weight: 500;
       }
 
-      /* ── Mobile nav adjustments ── */
+      /* ── Responsive breakpoints ── */
       @media (max-width: 600px) {
         .panel-sidebar {
           padding: 0 0.125rem 0.5rem;
@@ -1129,6 +1135,18 @@
         }
         .room-card ha-icon { --mdc-icon-size: 1.375rem; }
         .room-card .room-name { font-size: var(--fz-xs); }
+      }
+      @media (min-width: 1024px) {
+        .room-grid {
+          grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+          gap: 0.75rem;
+        }
+      }
+      @media (min-width: 1440px) {
+        .room-grid {
+          grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+          gap: 1rem;
+        }
       }
 
       /* ═══════════════════════════════════════════════
@@ -2802,6 +2820,18 @@
       .pw-ua-area-trigger.pw-ua-unassigned .pw-ua-area-icon {
         color: var(--c-warning);
         opacity: 0.7;
+      }
+
+      /* ── Responsive breakpoints ── */
+      @media (min-width: 1024px) {
+        .icon-picker-grid {
+          grid-template-columns: repeat(10, 1fr);
+        }
+      }
+      @media (min-width: 1440px) {
+        .icon-picker-grid {
+          grid-template-columns: repeat(12, 1fr);
+        }
       }
 `],de={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:b},he=(e=de,t,i)=>{const{kind:a,metadata:r}=i;let s=globalThis.litPropertyMetadata.get(r);if(void 0===s&&globalThis.litPropertyMetadata.set(r,s=new Map),"setter"===a&&((e=Object.create(e)).wrapped=!0),s.set(i.name,e),"accessor"===a){const{name:a}=i;return{set(i){const r=t.get.call(this);t.set.call(this,i),this.requestUpdate(a,r,e,!0,i)},init(t){return void 0!==t&&this.C(a,void 0,e,t),t}}}if("setter"===a){const{name:a}=i;return function(i){const r=this[a];t.call(this,i),this.requestUpdate(a,r,e,!0,i)}}throw Error("Unsupported decorator location: "+a)};function pe(e){return(t,i)=>"object"==typeof i?he(e,t,i):((e,t,i)=>{const a=t.hasOwnProperty(i);return t.constructor.createProperty(i,e),a?Object.getOwnPropertyDescriptor(t,i):void 0})(e,t,i)}function ue(e){return pe({...e,state:!0,attribute:!1})}const ge="__glassEventBus",_e=window,me=_e[ge]??(_e[ge]=new class{constructor(){this.listeners=new Map}on(e,t){let i=this.listeners.get(e);return i||(i=new Set,this.listeners.set(e,i)),i.add(t),()=>this.off(e,t)}off(e,t){this.listeners.get(e)?.delete(t)}emit(e,t){const i=this.listeners.get(e);if(i)for(const a of[...i])a(t)}});var fe=Object.defineProperty,ve=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&fe(t,i,s),s};class be extends ne{constructor(){super(...arguments),this.value=0,this.min=0,this.max=100,this.step=1,this.color="var(--rgb-accent)",this.label="",this.disabled=!1,this._dragging=!1,this._dragValue=0,this._ac=null}static{this.styles=[s`
       :host {
