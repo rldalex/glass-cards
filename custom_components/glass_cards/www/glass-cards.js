@@ -1477,6 +1477,8 @@
         flex-direction: column;
         gap: 0.75rem;
         padding: 0 0.75rem 2.8125rem;
+        max-width: 31.25rem;
+        margin: 0 auto;
       }
 
       .navbar {
@@ -1831,7 +1833,6 @@
       position: relative;
       width: 100%; padding: 0.875rem 0.875rem 0.375rem;
       box-sizing: border-box;
-      aspect-ratio: 4 / 3;
       display: flex; flex-direction: column; justify-content: center;
     }
 
@@ -3092,7 +3093,6 @@
       touch-action: pan-y; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent; cursor: default;
       transition: border-color var(--t-fast), border-radius var(--t-layout);
-      aspect-ratio: 4 / 3;
       display: flex; flex-direction: column; justify-content: center;
     }
     .card-inner { position: relative; z-index: 1; }

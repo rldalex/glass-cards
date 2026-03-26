@@ -161,6 +161,8 @@ export class GlassNavbarCard extends BaseCard {
         flex-direction: column;
         gap: 0.75rem;
         padding: 0 0.75rem 2.8125rem;
+        max-width: 31.25rem;
+        margin: 0 auto;
       }
 
       .navbar {
