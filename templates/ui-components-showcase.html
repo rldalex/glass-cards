@@ -1,0 +1,2943 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Kit - Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      /* ── Radius ── */
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-full: 9999px;
+
+      /* ── Transitions ── */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      /* ── Semantic Colors ── */
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      /* ── Text (white opacity hierarchy) ── */
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      /* ── Surfaces ── */
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      /* ── Borders ── */
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Layout ── */
+    .kit { max-width: 480px; margin: 0 auto; padding: 32px 16px 80px; display: flex; flex-direction: column; gap: 28px; }
+    .kit-title { font-size: 22px; font-weight: 700; }
+    .kit-sub { font-size: 11px; color: var(--t3); margin-top: 2px; }
+    .section { display: flex; flex-direction: column; gap: 10px; }
+    .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--t4); padding: 0 4px; }
+    .desc { font-size: 10px; color: var(--t3); padding: 0 4px; margin-top: -4px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .sep { height: 1px; background: var(--b1); }
+
+    /* ================================================================
+       COMPONENTS
+       ================================================================ */
+
+    /* ── 1. GLASS SURFACE ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+      transition: border-color var(--t-fast);
+    }
+    .glass:hover { border-color: rgba(255,255,255,0.13); }
+
+    .glass-float {
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 20px 60px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+    }
+
+    /* ── 2. CARD TINT ── */
+    .tint {
+      position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none; z-index: 0; transition: opacity var(--t-slow);
+    }
+    .tint-success { background: radial-gradient(ellipse at 50% 50%, var(--c-success), transparent 70%); opacity: 0.18; }
+    .tint-alert   { background: radial-gradient(ellipse at 50% 50%, var(--c-alert),   transparent 70%); opacity: 0.18; }
+    .tint-warning { background: radial-gradient(ellipse at 50% 50%, var(--c-warning), transparent 70%); opacity: 0.18; }
+    .tint-accent  { background: radial-gradient(ellipse at 50% 50%, var(--c-accent),  transparent 70%); opacity: 0.18; }
+    .tint-custom  { opacity: 0.1; } /* couleur via style inline */
+
+    /* ── 3. BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border: 1px solid var(--b2); background: var(--s2); color: var(--t2);
+      font-family: inherit; font-weight: 600; cursor: pointer;
+      transition: all var(--t-fast); outline: none;
+      touch-action: manipulation; user-select: none; -webkit-user-select: none;
+    }
+    .btn:hover, .btn:focus-visible { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+
+    .btn-lg { height: 44px; padding: 0 20px; border-radius: var(--radius-lg); font-size: 13px; }
+    .btn-md { height: 36px; padding: 0 14px; border-radius: 12px; font-size: 12px; }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+
+    .btn-icon    { width: 40px; height: 40px; padding: 0; border-radius: 12px; }
+    .btn-icon.sm { width: 32px; height: 32px; border-radius: var(--radius-md); }
+    .btn-icon.xs { width: 28px; height: 28px; border-radius: var(--radius-sm); }
+    .btn-icon i    { font-size: 18px; }
+    .btn-icon.sm i { font-size: 16px; }
+    .btn-icon.xs i { font-size: 14px; }
+
+    .btn-success { border-color: rgba(74,222,128,0.2);  background: rgba(74,222,128,0.1);  color: var(--c-success); }
+    .btn-success:hover { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); }
+    .btn-alert   { border-color: rgba(248,113,113,0.2); background: rgba(248,113,113,0.1); color: var(--c-alert); }
+    .btn-alert:hover   { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.3); }
+    .btn-warning { border-color: rgba(251,191,36,0.2);  background: rgba(251,191,36,0.1);  color: var(--c-warning); }
+    .btn-warning:hover { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.3); }
+    .btn-accent  { border-color: rgba(129,140,248,0.25); background: rgba(129,140,248,0.12); color: var(--c-accent); }
+    .btn-accent:hover  { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.35); }
+    .btn-ghost   { border-color: transparent; background: transparent; }
+    .btn-ghost:hover   { background: var(--s2); border-color: transparent; }
+
+    /* ── 4. TOGGLE ── */
+    .toggle {
+      position: relative; width: 44px; height: 24px; border-radius: 12px;
+      background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none; font-size: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--t3); transition: all var(--t-fast);
+    }
+    .toggle.on { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); }
+    .toggle.on::after { transform: translateX(20px); background: var(--c-success); box-shadow: 0 0 8px rgba(74,222,128,0.4); }
+
+    /* ── 5. SLIDER (horizontal) ── */
+    .slider {
+      position: relative; width: 100%; height: 36px;
+      border-radius: var(--radius-lg); background: var(--s1);
+      border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+    }
+    .slider-fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      border-radius: inherit; pointer-events: none;
+      transition: width var(--t-fast);
+    }
+    .slider-fill.warm   { background: linear-gradient(90deg, rgba(251,191,36,0.15), rgba(251,191,36,0.25)); }
+    .slider-fill.cool   { background: linear-gradient(90deg, rgba(96,165,250,0.15), rgba(96,165,250,0.25)); }
+    .slider-fill.accent { background: linear-gradient(90deg, rgba(129,140,248,0.15), rgba(129,140,248,0.25)); }
+    .slider-fill.white  { background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.15)); }
+
+    .slider-thumb {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 8px; height: 20px; border-radius: 4px;
+      background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+      pointer-events: none; transition: left var(--t-fast);
+    }
+    .slider-lbl {
+      position: absolute; top: 50%; left: 12px; transform: translateY(-50%);
+      font-size: 11px; font-weight: 600; color: var(--t2);
+      pointer-events: none; display: flex; align-items: center; gap: 6px;
+    }
+    .slider-lbl i { font-size: 16px; opacity: 0.6; }
+    .slider-val {
+      position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
+      font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
+    }
+
+    /* ── 6. SLIDER (vertical) ── */
+    .slider-v {
+      position: relative; width: 56px; border-radius: var(--radius-lg);
+      background: var(--s1); border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+    }
+    .slider-v-fill {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      border-radius: inherit; pointer-events: none; transition: height var(--t-fast);
+    }
+    .slider-v-fill.warm   { background: linear-gradient(0deg, rgba(251,191,36,0.3), rgba(251,191,36,0.1)); }
+    .slider-v-fill.cool   { background: linear-gradient(0deg, rgba(96,165,250,0.3), rgba(96,165,250,0.1)); }
+    .slider-v-fill.accent { background: linear-gradient(0deg, rgba(129,140,248,0.3), rgba(129,140,248,0.1)); }
+    .slider-v-icon {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-size: 18px; color: var(--t3); pointer-events: none;
+    }
+    .slider-v-val {
+      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+      font-size: 11px; font-weight: 700; color: var(--t2); pointer-events: none;
+    }
+    .slider-v-thumb {
+      position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 8px; border-radius: 4px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 0 8px rgba(255,255,255,0.2);
+      pointer-events: none; transition: top var(--t-fast);
+    }
+
+    /* ── 7. CHIP ── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: var(--radius-md);
+      border: 1px solid var(--b2); background: var(--s1);
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    .chip.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .chip i { font-size: 14px; }
+    .chip-xs { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    /* ── 8. BADGE ── */
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600;
+    }
+    .badge-success { background: rgba(74,222,128,0.15);  color: var(--c-success); }
+    .badge-alert   { background: rgba(248,113,113,0.15); color: var(--c-alert); }
+    .badge-warning { background: rgba(251,191,36,0.15);  color: var(--c-warning); }
+    .badge-info    { background: rgba(96,165,250,0.15);  color: var(--c-info); }
+
+    /* ── 9. DOT ── */
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-success { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+    .dot-alert   { background: var(--c-alert);   box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+    .dot-warning { background: var(--c-warning); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+    .dot-off     { background: var(--t4); }
+
+    /* ── 10. ICON BOX ── */
+    .icon-box {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--t-fast);
+    }
+    .icon-box i { font-size: 18px; color: var(--t3); transition: all var(--t-fast); }
+    .icon-box.lit i { color: var(--c-warning); filter: drop-shadow(0 0 6px rgba(251,191,36,0.6)); }
+
+    /* ── 11. AVATAR ── */
+    .avatar-wrap {
+      position: relative; flex-shrink: 0; cursor: pointer;
+      background: none; border: none; padding: 0; outline: none; border-radius: 50%;
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.1);
+      transition: border-color var(--t-med); display: block;
+    }
+    .avatar-wrap:hover .avatar, .avatar-wrap:focus-visible .avatar { border-color: rgba(255,255,255,0.3); }
+    .avatar-dot {
+      position: absolute; bottom: -1px; right: -1px;
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid rgba(17,24,39,0.9);
+    }
+    .avatar-dot.home { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+    .avatar-dot.away { background: var(--c-alert);   box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+
+    /* ── 12. BATTERY ── */
+    .batt { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; }
+    .batt-high { color: rgba(74,222,128,0.6); }
+    .batt-mid  { color: rgba(251,191,36,0.6); }
+    .batt-low  { color: rgba(248,113,113,0.7); }
+    .batt-box {
+      width: 14px; height: 7px; border: 1px solid currentColor;
+      border-radius: 2px; padding: 1px; position: relative; opacity: 0.8;
+    }
+    .batt-box::after {
+      content: ''; position: absolute; right: -3px; top: 50%; transform: translateY(-50%);
+      width: 1.5px; height: 3.5px; background: currentColor; border-radius: 0 1px 1px 0; opacity: 0.5;
+    }
+    .batt-fill { height: 100%; background: currentColor; border-radius: 1px; display: block; }
+
+    /* ── 13. INPUT ── */
+    .input {
+      width: 100%; padding: 10px 14px; border-radius: 12px;
+      border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t1); font-family: inherit; font-size: 13px;
+      outline: none; transition: border-color var(--t-fast);
+    }
+    .input:focus { border-color: var(--b3); }
+    .input::placeholder { color: var(--t4); }
+
+    .textarea {
+      resize: none; height: 40px; padding: 10px 12px;
+      border-radius: 12px; border: 1px solid var(--b2);
+      background: var(--s1); color: var(--t1);
+      font-family: inherit; font-size: 12px;
+      outline: none; transition: border-color var(--t-fast);
+    }
+    .textarea:focus { border-color: var(--b3); }
+
+    /* ── 14. PROGRESS ── */
+    .progress { width: 100%; height: 6px; border-radius: 3px; background: var(--s2); overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: inherit; transition: width var(--t-med); }
+
+    /* ── 15. GAUGE (circular) ── */
+    .gauge { position: relative; }
+    .gauge svg { transform: rotate(-90deg); }
+    .gauge-bg { fill: none; stroke: var(--s2); }
+    .gauge-arc { fill: none; stroke-linecap: round; transition: stroke-dashoffset var(--t-med); }
+    .gauge-center {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .gauge-val { font-size: 16px; font-weight: 700; line-height: 1; }
+    .gauge-lbl { font-size: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--t4); }
+
+    /* ── 16. SPARKLINE ── */
+    .spark { display: flex; align-items: flex-end; gap: 2px; height: 24px; }
+    .spark-bar { width: 4px; border-radius: 2px; background: rgba(96,165,250,0.4); }
+
+    /* ── 17. COLOR DOT ── */
+    .cdot {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none;
+      background: none; position: relative;
+    }
+    .cdot::before { content: ''; position: absolute; inset: 2px; border-radius: 50%; }
+    .cdot:hover { transform: scale(1.15); }
+    .cdot.active { border-color: rgba(255,255,255,0.6); }
+
+    /* ── 18. COLLAPSIBLE (CSS Grid 0fr/1fr) ── */
+    .fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-layout); }
+    .fold.open { grid-template-rows: 1fr; }
+    .fold-inner { overflow: hidden; opacity: 0; transition: opacity var(--t-fast); }
+    .fold.open .fold-inner { opacity: 1; }
+
+    /* ── 19. TOAST ── */
+    .toast {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: var(--radius-lg);
+      backdrop-filter: blur(20px); font-size: 12px; font-weight: 500;
+    }
+    .toast-success { background: rgba(74,222,128,0.15);  border: 1px solid rgba(74,222,128,0.2);  color: var(--c-success); }
+    .toast-alert   { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.2); color: var(--c-alert); }
+    .toast-info    { background: rgba(96,165,250,0.15);  border: 1px solid rgba(96,165,250,0.2);  color: var(--c-info); }
+    .toast i { font-size: 16px; }
+
+    /* ── 20. PLACEHOLDER ── */
+    .placeholder {
+      height: 56px; border-radius: var(--radius-lg);
+      border: 1px dashed var(--b2); background: rgba(255,255,255,0.02);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .placeholder span { font-size: 10px; font-weight: 500; color: var(--t4); text-transform: uppercase; }
+
+    /* ── DIVIDER WITH LABEL ── */
+    .divider-label {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .divider-label::before, .divider-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--b1);
+    }
+    .divider-label span {
+      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t4); white-space: nowrap;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; padding: 24px 16px;
+    }
+    .empty-state i { font-size: 32px; color: var(--t4); }
+    .empty-state-title { font-size: 13px; font-weight: 600; color: var(--t2); }
+    .empty-state-desc { font-size: 11px; color: var(--t3); text-align: center; }
+
+    /* ── INLINE ALERT / BANNER ── */
+    .banner {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--radius-lg);
+      font-size: 11px; font-weight: 500;
+    }
+    .banner i { font-size: 16px; flex-shrink: 0; }
+    .banner-info {
+      background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.12);
+      color: var(--t2);
+    }
+    .banner-info i { color: var(--c-info); }
+    .banner-warning {
+      background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.12);
+      color: var(--t2);
+    }
+    .banner-warning i { color: var(--c-warning); }
+    .banner-alert {
+      background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.12);
+      color: var(--t2);
+    }
+    .banner-alert i { color: var(--c-alert); }
+    .banner-success {
+      background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.12);
+      color: var(--t2);
+    }
+    .banner-success i { color: var(--c-success); }
+
+    /* ── MARQUEE TEXT ── */
+    .marquee {
+      overflow: hidden; white-space: nowrap; position: relative;
+    }
+    .marquee-inner {
+      display: inline-block;
+      animation: marquee-scroll 8s linear infinite;
+      padding-right: 40px;
+    }
+    @keyframes marquee-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── MULTIROOM TILES ── */
+    .mr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mr-tile {
+      padding: 10px; border-radius: var(--radius-lg);
+      background: var(--s1); border: 1px solid var(--b1);
+      cursor: pointer; transition: all var(--t-fast);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .mr-tile:hover { background: var(--s2); border-color: var(--b2); }
+    .mr-tile.on {
+      background: rgba(129,140,248,0.06); border-color: rgba(129,140,248,0.15);
+    }
+    .mr-tile-head {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mr-tile-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .mr-tile-icon i { font-size: 14px; color: var(--t3); }
+    .mr-tile.on .mr-tile-icon {
+      background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.2);
+    }
+    .mr-tile.on .mr-tile-icon i { color: var(--c-accent); }
+    .mr-tile-name {
+      font-size: 11px; font-weight: 600; color: var(--t2);
+      flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mr-tile.on .mr-tile-name { color: var(--t1); }
+    .mr-tile-vol {
+      display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-layout);
+    }
+    .mr-tile.on .mr-tile-vol { grid-template-rows: 1fr; }
+    .mr-tile-vol-inner {
+      overflow: hidden; opacity: 0; transition: opacity var(--t-fast);
+    }
+    .mr-tile.on .mr-tile-vol-inner { opacity: 1; }
+    .mr-tile-vol-inner .slider { height: 24px; }
+
+    /* ── 21. SCROLL MASK ── */
+    .scroll-mask {
+      overflow-x: auto; overflow-y: hidden;
+      scrollbar-width: none; scroll-behavior: smooth;
+    }
+    .scroll-mask::-webkit-scrollbar { display: none; }
+    .scroll-mask.mask-right {
+      mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    }
+    .scroll-mask.mask-left {
+      mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to left, black calc(100% - 24px), transparent 100%);
+    }
+    .scroll-mask.mask-both {
+      mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 24px), transparent 100%);
+    }
+
+    /* ── 22. STEPPER ── */
+    .stepper {
+      display: inline-flex; align-items: center; gap: 0;
+      border-radius: 12px; border: 1px solid var(--b2);
+      background: var(--s1); overflow: hidden;
+    }
+    .stepper-btn {
+      width: 36px; height: 36px; display: flex;
+      align-items: center; justify-content: center;
+      background: transparent; border: none; color: var(--t2);
+      font-family: inherit; font-size: 18px; font-weight: 700;
+      cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+    }
+    .stepper-btn:hover { background: var(--s3); color: var(--t1); }
+    .stepper-btn:active { transform: scale(0.9); }
+    .stepper-val {
+      min-width: 48px; text-align: center;
+      font-size: 14px; font-weight: 700; color: var(--t1);
+      border-left: 1px solid var(--b1); border-right: 1px solid var(--b1);
+      padding: 0 4px; line-height: 36px;
+    }
+    .stepper-unit {
+      font-size: 10px; font-weight: 400; color: var(--t3);
+    }
+
+    /* ── 23. SKELETON LOADER ── */
+    .skeleton {
+      border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--s1) 25%, var(--s3) 50%, var(--s1) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+    @keyframes skeleton-shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── 24. COUNT BADGE ── */
+    .count-badge {
+      position: absolute; top: -4px; right: -4px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: var(--radius-full);
+      font-size: 9px; font-weight: 700; line-height: 16px;
+      text-align: center; z-index: 1;
+    }
+    .count-badge-alert {
+      background: var(--c-alert); color: #fff;
+      box-shadow: 0 0 6px rgba(248,113,113,0.4);
+    }
+    .count-badge-accent {
+      background: var(--c-accent); color: #fff;
+      box-shadow: 0 0 6px rgba(129,140,248,0.4);
+    }
+    .count-badge-success {
+      background: var(--c-success); color: #111827;
+      box-shadow: 0 0 6px rgba(74,222,128,0.4);
+    }
+
+    /* ── 25. ICON GLOW / PULSE ── */
+    .icon-glow-light {
+      color: var(--c-warning);
+      filter: drop-shadow(0 0 6px rgba(251,191,36,0.6));
+      animation: glow-light 3s ease-in-out infinite;
+    }
+    @keyframes glow-light {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(251,191,36,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(251,191,36,0.2)); }
+    }
+    .icon-glow-alert {
+      color: var(--c-alert);
+      filter: drop-shadow(0 0 6px rgba(248,113,113,0.6));
+      animation: glow-alert 2s ease-in-out infinite;
+    }
+    @keyframes glow-alert {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(248,113,113,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(248,113,113,0.2)); }
+    }
+    .icon-glow-info {
+      color: var(--c-info);
+      filter: drop-shadow(0 0 6px rgba(96,165,250,0.6));
+      animation: glow-info 2s ease-in-out infinite;
+    }
+    @keyframes glow-info {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(96,165,250,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(96,165,250,0.2)); }
+    }
+    .icon-pulse-music {
+      animation: pulse-music 0.8s ease-in-out infinite;
+    }
+    @keyframes pulse-music {
+      0%, 100% { transform: scale(1); }
+      30%  { transform: scale(1.2); }
+      50%  { transform: scale(0.95); }
+      70%  { transform: scale(1.1); }
+    }
+    .icon-pulse-beat {
+      animation: pulse-beat 1s ease-in-out infinite;
+    }
+    @keyframes pulse-beat {
+      0%, 100% { transform: scale(1); }
+      50%  { transform: scale(1.15); }
+    }
+
+    /* ── 26. DROPDOWN ── */
+    .dropdown {
+      position: relative; display: inline-block;
+    }
+    .dropdown-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 12px;
+      border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t2); font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all var(--t-fast); outline: none;
+    }
+    .dropdown-trigger:hover { background: var(--s3); border-color: var(--b3); }
+    .dropdown-trigger i { font-size: 16px; transition: transform var(--t-fast); }
+    .dropdown.open .dropdown-trigger i.arrow { transform: rotate(180deg); }
+
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 6px); left: 0; min-width: 160px;
+      border-radius: var(--radius-lg); padding: 4px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      z-index: 10;
+      opacity: 0; transform: translateY(-4px); pointer-events: none;
+      transition: all var(--t-fast);
+    }
+    .dropdown.open .dropdown-menu {
+      opacity: 1; transform: translateY(0); pointer-events: all;
+    }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 500; color: var(--t2);
+      cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; width: 100%;
+      font-family: inherit; outline: none; text-align: left;
+    }
+    .dropdown-item:hover { background: var(--s3); color: var(--t1); }
+    .dropdown-item.active { color: var(--c-accent); }
+    .dropdown-item i { font-size: 16px; }
+
+    /* ── 27. RANGE SLIDER (dual thumb) ── */
+    .range-track {
+      position: relative; width: 100%; height: 36px;
+      border-radius: var(--radius-lg); background: var(--s1);
+      border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+    }
+    .range-fill {
+      position: absolute; top: 0; height: 100%;
+      background: linear-gradient(90deg, rgba(129,140,248,0.15), rgba(129,140,248,0.25));
+      pointer-events: none;
+    }
+    .range-thumb {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 8px; height: 20px; border-radius: 4px;
+      background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+      pointer-events: none;
+    }
+    .range-lbl {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-size: 10px; font-weight: 600; color: var(--t3); pointer-events: none;
+    }
+
+    /* ── 28. TAB BAR ── */
+    .tabs {
+      display: flex; gap: 0;
+      border-radius: 12px; background: var(--s1);
+      border: 1px solid var(--b1); padding: 3px; overflow: hidden;
+    }
+    .tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 7px 12px; border-radius: 9px;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab:hover { color: var(--t2); }
+    .tab.active {
+      background: var(--s4); color: var(--t1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .tab i { font-size: 14px; }
+
+    /* ── 29. THUMBNAIL ── */
+    .thumb {
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid var(--b1); position: relative;
+      background: var(--s1);
+    }
+    .thumb img, .thumb svg {
+      display: block; width: 100%; height: 100%; object-fit: cover;
+    }
+    .thumb-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 50%);
+      display: flex; align-items: flex-end; padding: 10px;
+    }
+    .thumb-overlay span {
+      font-size: 11px; font-weight: 600; color: var(--t1);
+    }
+    .thumb-sm { width: 56px; height: 56px; border-radius: var(--radius-md); }
+    .thumb-md { width: 80px; height: 80px; }
+    .thumb-lg { width: 100%; aspect-ratio: 16/9; }
+
+    /* ── 30. TOOLTIP ── */
+    .tip-wrap { position: relative; display: inline-flex; }
+    .tip {
+      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      padding: 5px 10px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px); border: 1px solid var(--b2);
+      font-size: 10px; font-weight: 500; color: var(--t1);
+      white-space: nowrap; pointer-events: none;
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    .tip::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: rgba(255,255,255,0.12);
+    }
+    .tip-wrap:hover .tip { opacity: 1; }
+
+    /* ── 31. RIPPLE ── */
+    .ripple {
+      position: relative; overflow: hidden;
+    }
+    .ripple-wave {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      transform: scale(0); animation: ripple-expand 0.5s ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes ripple-expand {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* ── 32. SPINNER ── */
+    .spinner {
+      border: 2px solid var(--s2);
+      border-top-color: var(--t2);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .spinner-sm { width: 16px; height: 16px; }
+    .spinner-md { width: 24px; height: 24px; }
+    .spinner-lg { width: 32px; height: 32px; }
+    .spinner-accent { border-top-color: var(--c-accent); }
+    .spinner-success { border-top-color: var(--c-success); }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Animations ── */
+    @keyframes pulse-glow {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(251,191,36,0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(251,191,36,0.2)); }
+    }
+
+    /* ── 33. ACCORDION ── */
+    .accordion { display: flex; flex-direction: column; gap: 0; }
+    .accordion-item {
+      border: 1px solid var(--b1); border-bottom: none;
+      background: var(--s1); overflow: hidden;
+    }
+    .accordion-item:first-child { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    .accordion-item:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg); border-bottom: 1px solid var(--b1); }
+    .accordion-header {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 12px 14px;
+      background: transparent; border: none; color: var(--t2);
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; outline: none; transition: all var(--t-fast);
+    }
+    .accordion-header:hover { background: var(--s2); color: var(--t1); }
+    .accordion-header i { font-size: 16px; transition: transform var(--t-fast); }
+    .accordion-item.open .accordion-header i { transform: rotate(180deg); }
+    .accordion-body {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+    .accordion-item.open .accordion-body { grid-template-rows: 1fr; }
+    .accordion-body-inner {
+      overflow: hidden; opacity: 0; transition: opacity var(--t-fast);
+    }
+    .accordion-item.open .accordion-body-inner { opacity: 1; }
+    .accordion-body-content { padding: 0 14px 12px; font-size: 11px; color: var(--t3); }
+
+    /* ── 34. BOTTOM SHEET / DRAWER ── */
+    .sheet-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none; transition: opacity var(--t-fast);
+    }
+    .sheet-overlay.open { opacity: 1; pointer-events: all; }
+    .sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 101;
+      max-height: 70vh; border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2); border-bottom: none;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+      transform: translateY(100%); transition: transform var(--t-layout);
+      display: flex; flex-direction: column;
+    }
+    .sheet-overlay.open + .sheet,
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: var(--t4); margin: 10px auto 0; flex-shrink: 0;
+    }
+    .sheet-content { padding: 16px; overflow-y: auto; flex: 1; }
+
+    /* ── 35. POPOVER ── */
+    .popover-wrap { position: relative; display: inline-flex; }
+    .popover {
+      position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(4px);
+      min-width: 180px; padding: 12px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      opacity: 0; pointer-events: none;
+      transition: all var(--t-fast); z-index: 20;
+    }
+    .popover.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+    .popover::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 6px solid transparent; border-top-color: rgba(255,255,255,0.1);
+    }
+
+    /* ── 36. SELECT ── */
+    .select-wrap { position: relative; width: 100%; }
+    .select-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 10px 14px;
+      border-radius: 12px; border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t2); font-family: inherit; font-size: 13px; font-weight: 500;
+      cursor: pointer; outline: none; transition: border-color var(--t-fast);
+    }
+    .select-trigger:focus, .select-wrap.open .select-trigger { border-color: var(--b3); }
+    .select-trigger i { font-size: 16px; color: var(--t3); transition: transform var(--t-fast); }
+    .select-wrap.open .select-trigger i { transform: rotate(180deg); }
+    .select-menu {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      max-height: 200px; overflow-y: auto;
+      border-radius: var(--radius-lg); padding: 4px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4); z-index: 10;
+      opacity: 0; transform: translateY(-4px); pointer-events: none;
+      transition: all var(--t-fast);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .select-menu::-webkit-scrollbar { width: 4px; }
+    .select-menu::-webkit-scrollbar-track { background: transparent; }
+    .select-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .select-menu::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    .select-wrap.open .select-menu { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .select-search {
+      width: calc(100% - 8px); margin: 4px; padding: 7px 10px;
+      border-radius: var(--radius-sm); border: 1px solid var(--b1);
+      background: var(--s1); color: var(--t1);
+      font-family: inherit; font-size: 11px; outline: none;
+    }
+    .select-search::placeholder { color: var(--t4); }
+    .select-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 500; color: var(--t2);
+      cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; width: 100%;
+      font-family: inherit; outline: none; text-align: left;
+    }
+    .select-option:hover { background: var(--s3); color: var(--t1); }
+    .select-option.selected { color: var(--c-accent); }
+    .select-option.hidden { display: none; }
+
+    /* ── 37. RADIO GROUP ── */
+    .radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .radio-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0; background: none; border: none;
+      cursor: pointer; outline: none; font-family: inherit;
+    }
+    .radio-circle {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--b3); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t-fast); flex-shrink: 0;
+    }
+    .radio-circle::after {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: transparent; transition: all var(--t-fast);
+      transform: scale(0);
+    }
+    .radio-item.active .radio-circle {
+      border-color: var(--c-accent);
+    }
+    .radio-item.active .radio-circle::after {
+      background: var(--c-accent); transform: scale(1);
+      box-shadow: 0 0 6px rgba(129,140,248,0.4);
+    }
+    .radio-label { font-size: 12px; font-weight: 500; color: var(--t2); }
+    .radio-item.active .radio-label { color: var(--t1); }
+
+    /* ── 38. CHECKBOX ── */
+    .check-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0; background: none; border: none;
+      cursor: pointer; outline: none; font-family: inherit;
+    }
+    .check-box {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--b3); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t-fast); flex-shrink: 0;
+    }
+    .check-box i {
+      font-size: 12px; color: #fff;
+      opacity: 0; transform: scale(0); transition: all var(--t-fast);
+    }
+    .check-item.checked .check-box {
+      background: var(--c-accent); border-color: var(--c-accent);
+      box-shadow: 0 0 6px rgba(129,140,248,0.3);
+    }
+    .check-item.checked .check-box i { opacity: 1; transform: scale(1); }
+    .check-label { font-size: 12px; font-weight: 500; color: var(--t2); }
+    .check-item.checked .check-label { color: var(--t1); }
+
+    /* ── 39. CONFIRM DIALOG ── */
+    .dialog-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity var(--t-fast);
+    }
+    .dialog-overlay.open { opacity: 1; pointer-events: all; }
+    .dialog {
+      width: 320px; max-width: calc(100vw - 32px);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
+      backdrop-filter: blur(50px) saturate(1.5);
+      -webkit-backdrop-filter: blur(50px) saturate(1.5);
+      border: 1px solid var(--b2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      padding: 24px; transform: scale(0.95); transition: transform var(--t-fast);
+    }
+    .dialog-overlay.open .dialog { transform: scale(1); }
+    .dialog-title { font-size: 15px; font-weight: 700; color: var(--t1); margin-bottom: 8px; }
+    .dialog-desc { font-size: 12px; color: var(--t3); line-height: 1.5; margin-bottom: 20px; }
+    .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* ── 40. CAROUSEL / SWIPER ── */
+    .carousel {
+      overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+      display: flex; gap: 10px; padding: 4px;
+      scrollbar-width: none;
+      mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+    }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel-item {
+      scroll-snap-align: start; flex-shrink: 0;
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid var(--b1); background: var(--s1);
+    }
+    .carousel-dots {
+      display: flex; gap: 6px; justify-content: center; margin-top: 8px;
+    }
+    .carousel-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--t4); transition: all var(--t-fast);
+      padding: 0; border: none; cursor: pointer; outline: none;
+    }
+    .carousel-dot.active { background: var(--t1); width: 16px; border-radius: 3px; }
+
+    /* ── 41. INPUT OTP ── */
+    .otp-group { display: flex; gap: 8px; }
+    .otp-input {
+      width: 40px; height: 48px; text-align: center;
+      border-radius: 12px; border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t1); font-family: inherit; font-size: 20px; font-weight: 700;
+      outline: none; transition: border-color var(--t-fast);
+      caret-color: var(--c-accent);
+    }
+    .otp-input:focus { border-color: var(--c-accent); box-shadow: 0 0 0 2px rgba(129,140,248,0.15); }
+    .otp-input::placeholder { color: var(--t4); font-weight: 400; }
+
+    /* ── 42. DATA TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t4); text-align: left;
+      padding: 8px 10px; border-bottom: 1px solid var(--b2);
+    }
+    .data-table th button {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; color: inherit;
+      font: inherit; cursor: pointer; outline: none;
+    }
+    .data-table th button:hover { color: var(--t2); }
+    .data-table td {
+      font-size: 12px; color: var(--t2); padding: 10px;
+      border-bottom: 1px solid var(--b1);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--s1); }
+
+    /* ── 43. PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .page-btn {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: 1px solid transparent;
+      color: var(--t3); font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all var(--t-fast); outline: none;
+    }
+    .page-btn:hover { background: var(--s2); color: var(--t1); border-color: var(--b1); }
+    .page-btn.active {
+      background: var(--s4); border-color: var(--b3); color: var(--t1);
+    }
+    .page-btn:disabled { opacity: 0.3; cursor: default; }
+    .page-btn i { font-size: 16px; }
+
+    /* ── 44. BREADCRUMB ── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+    }
+    .breadcrumb-item {
+      color: var(--t3); background: none; border: none;
+      font: inherit; cursor: pointer; outline: none;
+      padding: 2px 4px; border-radius: 4px; transition: all var(--t-fast);
+    }
+    .breadcrumb-item:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-item.current { color: var(--t1); cursor: default; }
+    .breadcrumb-item.current:hover { background: transparent; }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+
+    /* ── 45. SEGMENTED CONTROL ── */
+    .segmented {
+      display: inline-flex; gap: 0;
+      border-radius: 12px; background: var(--s1);
+      border: 1px solid var(--b1); padding: 3px;
+    }
+    .seg-btn {
+      padding: 7px 16px; border-radius: 9px;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+      border: none; background: transparent; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg-btn:hover { color: var(--t2); }
+    .seg-btn.active {
+      background: var(--s4); color: var(--t1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ── 46. COLOR PICKER ── */
+
+    /* Color dots — inline quick-pick row (used in light-card) */
+    .color-row {
+      display: flex; align-items: center; gap: 6px;
+      justify-content: center; flex-wrap: wrap;
+    }
+    .cdot {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none;
+      background: none; position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cdot::before {
+      content: ''; position: absolute; inset: 2px; border-radius: 50%;
+      background: var(--cdot-color);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .cdot:hover { transform: scale(1.15); }
+      .cdot:active { transform: scale(1.1); }
+    }
+    @media (pointer: coarse) {
+      .cdot:active { animation: bounce 0.3s ease; }
+    }
+    .cdot:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .cdot.active { border-color: rgba(255, 255, 255, 0.6); }
+
+    /* Rainbow picker button — opens color wheel dialog */
+    .color-picker-btn {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer; padding: 0;
+      outline: none; background: none; -webkit-tap-highlight-color: transparent;
+      transition: all var(--t-fast); flex-shrink: 0; position: relative;
+    }
+    .color-picker-btn::before {
+      content: ''; position: absolute; inset: 2px; border-radius: 50%;
+      background: conic-gradient(
+        hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
+        hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
+      );
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .color-picker-btn:hover { transform: scale(1.15); }
+    }
+    @media (pointer: coarse) {
+      .color-picker-btn:active { animation: bounce 0.3s ease; }
+    }
+    .color-picker-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+
+    /* Color wheel dialog overlay */
+    .cp-overlay {
+      position: fixed; inset: 0; z-index: 10001;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      animation: cpFadeIn 0.2s ease;
+    }
+    @keyframes cpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .cp-dialog {
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4); -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      border: 1px solid var(--b2); border-radius: var(--radius-xl);
+      padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.15);
+      max-width: 300px; width: 90vw;
+    }
+    .cp-dialog .cp-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--t3);
+    }
+
+    /* HSV canvas wheel */
+    .cp-wheel-wrap { position: relative; width: 220px; height: 220px; }
+    .cp-wheel-wrap canvas { width: 100%; height: 100%; border-radius: 50%; cursor: crosshair; }
+
+    /* Cursor with drop-line (light-card style) */
+    .cp-cursor {
+      position: absolute; width: 24px; height: 24px; border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
+      pointer-events: none; transform: translate(-50%, calc(-50% - 28px));
+      transition: left 0.05s, top 0.05s;
+    }
+    .cp-cursor::after {
+      content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 10px; background: rgba(255,255,255,0.5); border-radius: 1px;
+    }
+
+    /* Preview bar + hex display */
+    .cp-preview {
+      width: 100%; height: 36px; border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+    }
+    .cp-hex {
+      font-size: 12px; font-weight: 600; color: var(--t2);
+      font-family: monospace; letter-spacing: 0.5px;
+    }
+
+    /* Confirm / close button */
+    .cp-close {
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--t2);
+      background: var(--s2); border: 1px solid var(--b2);
+      border-radius: var(--radius-md); padding: 8px 24px;
+      cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-fast), border-color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .cp-close:hover { background: var(--s3); border-color: var(--b3); }
+    }
+    @media (pointer: coarse) {
+      .cp-close:active { animation: bounce 0.3s ease; }
+    }
+    .cp-close:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+
+    /* Legacy swatch grid (kept for preset grids) */
+    .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .color-swatch {
+      width: 100%; aspect-ratio: 1; border-radius: var(--radius-sm);
+      border: 2px solid transparent; cursor: pointer;
+      transition: all var(--t-fast); padding: 0; outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .color-swatch:hover { transform: scale(1.1); }
+    }
+    @media (pointer: coarse) {
+      .color-swatch:active { animation: bounce 0.3s ease; }
+    }
+    .color-swatch:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+    .color-swatch.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+
+    /* ── 47. DATE/TIME PICKER ── */
+    .picker-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4px 10px;
+    }
+    .picker-month { font-size: 13px; font-weight: 700; color: var(--t1); }
+    .picker-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+    }
+    .picker-day-label {
+      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--t4); text-align: center;
+      padding: 4px 0;
+    }
+    .picker-day {
+      aspect-ratio: 1; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 500; color: var(--t3);
+      background: transparent; border: none; cursor: pointer;
+      transition: all var(--t-fast); outline: none; font-family: inherit;
+    }
+    .picker-day:hover { background: var(--s2); color: var(--t1); }
+    .picker-day.today { border: 1px solid var(--b3); color: var(--t1); }
+    .picker-day.selected {
+      background: rgba(129,140,248,0.2); color: var(--c-accent); font-weight: 700;
+      border: 1px solid rgba(129,140,248,0.3);
+    }
+    .picker-day.other-month { opacity: 0.3; }
+    .time-input {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .time-digit {
+      width: 44px; height: 40px; text-align: center;
+      border-radius: 10px; border: 1px solid var(--b2); background: var(--s1);
+      color: var(--t1); font-family: inherit; font-size: 16px; font-weight: 700;
+      outline: none; transition: border-color var(--t-fast);
+    }
+    .time-digit:focus { border-color: var(--c-accent); }
+    .time-sep { font-size: 18px; font-weight: 700; color: var(--t3); }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="kit">
+    <div>
+      <div class="kit-title">Glass Cards — UI Kit</div>
+      <div class="kit-sub">Primitives atomiques pour toutes les futures cartes</div>
+    </div>
+
+    <!-- ═══ TYPOGRAPHY ═══ -->
+    <div class="section">
+      <div class="label">Typographie</div>
+      <div class="glass" style="padding: 16px;">
+        <div class="col" style="gap: 6px;">
+          <div style="font-size:16px; font-weight:700; color:var(--t1);">Primary — 0.88 / 700</div>
+          <div style="font-size:13px; font-weight:600; color:var(--t2);">Secondary — 0.60 / 600</div>
+          <div style="font-size:11px; font-weight:400; color:var(--t3);">Tertiary — 0.45 / 400</div>
+          <div style="font-size:9px; font-weight:500; text-transform:uppercase; letter-spacing:1.2px; color:var(--t4);">Quaternary — 0.25 / 500</div>
+          <div class="sep"></div>
+          <div style="display:flex; align-items:baseline; gap:4px;">
+            <span style="font-size:28px; font-weight:700; line-height:1;">21.5</span>
+            <span style="font-size:14px; color:var(--t3);">°C</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SURFACES ═══ -->
+    <div class="section">
+      <div class="label">Surfaces Glass</div>
+      <div class="glass" style="padding: 16px;">
+        <span style="font-size:12px; color:var(--t2);">Standard — blur(40px) sat(1.4)</span>
+      </div>
+      <div class="glass glass-float" style="padding: 16px;">
+        <span style="font-size:12px; color:var(--t2);">Floating — blur(50px) sat(1.5)</span>
+      </div>
+    </div>
+
+    <!-- ═══ CARD TINTS ═══ -->
+    <div class="section">
+      <div class="label">Card Tints</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div class="glass" style="padding:14px; position:relative;">
+          <div class="tint tint-success"></div>
+          <span style="position:relative;z-index:1;font-size:11px;color:var(--t3);">Success</span>
+        </div>
+        <div class="glass" style="padding:14px; position:relative;">
+          <div class="tint tint-alert"></div>
+          <span style="position:relative;z-index:1;font-size:11px;color:var(--t3);">Alert</span>
+        </div>
+        <div class="glass" style="padding:14px; position:relative;">
+          <div class="tint tint-warning"></div>
+          <span style="position:relative;z-index:1;font-size:11px;color:var(--t3);">Warning</span>
+        </div>
+        <div class="glass" style="padding:14px; position:relative;">
+          <div class="tint tint-accent"></div>
+          <span style="position:relative;z-index:1;font-size:11px;color:var(--t3);">Accent</span>
+        </div>
+      </div>
+      <div class="desc">Tint custom — couleur par room via style inline</div>
+      <div class="glass" style="padding:14px; position:relative;">
+        <div class="tint tint-custom" style="background:radial-gradient(ellipse at 50% 50%, #ec4899, transparent 70%);"></div>
+        <span style="position:relative;z-index:1;font-size:11px;color:var(--t3);">Custom pink tint</span>
+      </div>
+    </div>
+
+    <!-- ═══ BUTTONS ═══ -->
+    <div class="section">
+      <div class="label">Boutons — tailles</div>
+      <div class="row">
+        <button class="btn btn-lg">Large</button>
+        <button class="btn btn-md">Medium</button>
+        <button class="btn btn-sm">Small</button>
+      </div>
+
+      <div class="label">Boutons — variantes</div>
+      <div class="row">
+        <button class="btn btn-md btn-accent">Accent</button>
+        <button class="btn btn-md btn-success">Success</button>
+        <button class="btn btn-md btn-alert">Alert</button>
+        <button class="btn btn-md btn-warning">Warning</button>
+      </div>
+
+      <div class="label">Boutons — icone</div>
+      <div class="row">
+        <button class="btn btn-icon" aria-label="Power"><i class="mdi mdi-power"></i></button>
+        <button class="btn btn-icon sm" aria-label="Cog"><i class="mdi mdi-cog"></i></button>
+        <button class="btn btn-icon xs" aria-label="Close"><i class="mdi mdi-close"></i></button>
+        <button class="btn btn-icon btn-success" aria-label="Check"><i class="mdi mdi-check"></i></button>
+        <button class="btn btn-icon btn-alert" aria-label="Delete"><i class="mdi mdi-delete"></i></button>
+        <button class="btn btn-ghost btn-icon" aria-label="More"><i class="mdi mdi-dots-vertical"></i></button>
+      </div>
+
+      <div class="label">Boutons — avec icone + texte</div>
+      <div class="row">
+        <button class="btn btn-md"><i class="mdi mdi-lightbulb-outline"></i> Allumer</button>
+        <button class="btn btn-md btn-accent"><i class="mdi mdi-play"></i> Lancer</button>
+      </div>
+    </div>
+
+    <!-- ═══ TOGGLES ═══ -->
+    <div class="section">
+      <div class="label">Toggle Switch</div>
+      <div class="glass" style="padding:16px;">
+        <div class="col" style="gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13px; font-weight:500; color:var(--t2);">Etat On</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')" aria-label="Toggle"></button>
+          </div>
+          <div class="sep"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13px; font-weight:500; color:var(--t2);">Etat Off</span>
+            <button class="toggle" onclick="this.classList.toggle('on')" aria-label="Toggle"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDERS H ═══ -->
+    <div class="section">
+      <div class="label">Slider Horizontal</div>
+      <div class="col" style="gap:10px;">
+        <div class="slider" onclick="hSlider(this,event)">
+          <div class="slider-fill warm" style="width:72%;"></div>
+          <div class="slider-thumb" style="left:72%;"></div>
+          <div class="slider-lbl"><i class="mdi mdi-brightness-6"></i> Luminosite</div>
+          <div class="slider-val">72%</div>
+        </div>
+        <div class="slider" onclick="hSlider(this,event)">
+          <div class="slider-fill cool" style="width:45%;"></div>
+          <div class="slider-thumb" style="left:45%;"></div>
+          <div class="slider-lbl"><i class="mdi mdi-thermometer"></i> Couleur</div>
+          <div class="slider-val">3200K</div>
+        </div>
+        <div class="slider" onclick="hSlider(this,event)">
+          <div class="slider-fill accent" style="width:60%;"></div>
+          <div class="slider-thumb" style="left:60%;"></div>
+          <div class="slider-lbl"><i class="mdi mdi-volume-high"></i> Volume</div>
+          <div class="slider-val">60%</div>
+        </div>
+        <div class="slider" onclick="hSlider(this,event)">
+          <div class="slider-fill white" style="width:35%;"></div>
+          <div class="slider-thumb" style="left:35%;"></div>
+          <div class="slider-lbl"><i class="mdi mdi-timer-outline"></i> Progression</div>
+          <div class="slider-val">35%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDERS V ═══ -->
+    <div class="section">
+      <div class="label">Slider Vertical</div>
+      <div class="glass" style="padding:20px;">
+        <div style="display:flex; align-items:flex-end; justify-content:center; gap:12px; height:160px;">
+          <div class="slider-v" style="height:100%;" onclick="vSlider(this,event)">
+            <div class="slider-v-fill warm" style="height:75%;"></div>
+            <div class="slider-v-thumb" style="top:calc(25% - 4px);"></div>
+            <div class="slider-v-icon"><i class="mdi mdi-brightness-6"></i></div>
+            <div class="slider-v-val">75%</div>
+          </div>
+          <div class="slider-v" style="height:100%;" onclick="vSlider(this,event)">
+            <div class="slider-v-fill cool" style="height:40%;"></div>
+            <div class="slider-v-thumb" style="top:calc(60% - 4px);"></div>
+            <div class="slider-v-icon"><i class="mdi mdi-thermometer"></i></div>
+            <div class="slider-v-val">40%</div>
+          </div>
+          <div class="slider-v" style="height:100%;" onclick="vSlider(this,event)">
+            <div class="slider-v-fill accent" style="height:55%;"></div>
+            <div class="slider-v-thumb" style="top:calc(45% - 4px);"></div>
+            <div class="slider-v-icon"><i class="mdi mdi-volume-high"></i></div>
+            <div class="slider-v-val">55%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHIPS ═══ -->
+    <div class="section">
+      <div class="label">Chips</div>
+      <div class="row">
+        <button class="chip active" onclick="chipToggle(this)"><i class="mdi mdi-home"></i> Maison</button>
+        <button class="chip" onclick="chipToggle(this)"><i class="mdi mdi-weather-sunny"></i> Jour</button>
+        <button class="chip" onclick="chipToggle(this)"><i class="mdi mdi-shield-check"></i> Securite</button>
+      </div>
+      <div class="desc">Variant XS (scenes)</div>
+      <div class="row">
+        <button class="chip chip-xs active" onclick="chipToggle(this)">Detente</button>
+        <button class="chip chip-xs" onclick="chipToggle(this)">Film</button>
+        <button class="chip chip-xs" onclick="chipToggle(this)">Soiree</button>
+        <button class="chip chip-xs" onclick="chipToggle(this)">Nuit</button>
+        <button class="chip chip-xs" onclick="chipToggle(this)">Focus</button>
+      </div>
+    </div>
+
+    <!-- ═══ BADGES ═══ -->
+    <div class="section">
+      <div class="label">Badges</div>
+      <div class="row">
+        <span class="badge badge-success">En ligne</span>
+        <span class="badge badge-alert">Alerte</span>
+        <span class="badge badge-warning">Attention</span>
+        <span class="badge badge-info">Info</span>
+      </div>
+    </div>
+
+    <!-- ═══ DOTS ═══ -->
+    <div class="section">
+      <div class="label">Status Dots</div>
+      <div class="row" style="gap:14px;">
+        <div style="display:flex;align-items:center;gap:6px;"><span class="dot dot-success"></span><span style="font-size:11px;color:var(--t3);">Home</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span class="dot dot-alert"></span><span style="font-size:11px;color:var(--t3);">Away</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span class="dot dot-warning"></span><span style="font-size:11px;color:var(--t3);">Idle</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span class="dot dot-off"></span><span style="font-size:11px;color:var(--t3);">Off</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ ICON BOX ═══ -->
+    <div class="section">
+      <div class="label">Icon Box</div>
+      <div class="row" style="gap:10px;">
+        <div class="icon-box"><i class="mdi mdi-lightbulb-outline"></i></div>
+        <div class="icon-box lit"><i class="mdi mdi-lightbulb"></i></div>
+        <div class="icon-box"><i class="mdi mdi-thermometer"></i></div>
+        <div class="icon-box"><i class="mdi mdi-water-percent"></i></div>
+        <div class="icon-box"><i class="mdi mdi-door"></i></div>
+        <div class="icon-box"><i class="mdi mdi-motion-sensor"></i></div>
+      </div>
+    </div>
+
+    <!-- ═══ AVATARS ═══ -->
+    <div class="section">
+      <div class="label">Avatar + Status</div>
+      <div class="row" style="gap:16px;">
+        <button class="avatar-wrap" aria-label="Alex">
+          <svg class="avatar" viewBox="0 0 120 120"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#8b5cf6"/></linearGradient></defs><circle cx="60" cy="60" r="60" fill="url(#g1)"/><circle cx="60" cy="44" r="17" fill="rgba(255,255,255,0.85)"/><ellipse cx="60" cy="92" rx="30" ry="24" fill="rgba(255,255,255,0.85)"/></svg>
+          <div class="avatar-dot home"></div>
+        </button>
+        <button class="avatar-wrap" aria-label="Marie">
+          <svg class="avatar" viewBox="0 0 120 120"><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ec4899"/><stop offset="100%" style="stop-color:#f472b6"/></linearGradient></defs><circle cx="60" cy="60" r="60" fill="url(#g2)"/><circle cx="60" cy="44" r="17" fill="rgba(255,255,255,0.85)"/><ellipse cx="60" cy="92" rx="30" ry="24" fill="rgba(255,255,255,0.85)"/></svg>
+          <div class="avatar-dot away"></div>
+        </button>
+        <button class="avatar-wrap" aria-label="Enfant">
+          <svg class="avatar" viewBox="0 0 120 120"><defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f59e0b"/><stop offset="100%" style="stop-color:#fbbf24"/></linearGradient></defs><circle cx="60" cy="60" r="60" fill="url(#g3)"/><circle cx="60" cy="44" r="17" fill="rgba(255,255,255,0.85)"/><ellipse cx="60" cy="92" rx="30" ry="24" fill="rgba(255,255,255,0.85)"/></svg>
+          <div class="avatar-dot home"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ BATTERY ═══ -->
+    <div class="section">
+      <div class="label">Battery</div>
+      <div class="row" style="gap:16px;">
+        <span class="batt batt-high"><span class="batt-box"><span class="batt-fill" style="width:92%"></span></span> 92%</span>
+        <span class="batt batt-mid"><span class="batt-box"><span class="batt-fill" style="width:45%"></span></span> 45%</span>
+        <span class="batt batt-low"><span class="batt-box"><span class="batt-fill" style="width:12%"></span></span> 12%</span>
+      </div>
+    </div>
+
+    <!-- ═══ COLOR DOTS ═══ -->
+    <div class="section">
+      <div class="label">Color Dots</div>
+      <div class="glass" style="padding:10px;">
+        <div class="row" style="gap:10px; justify-content:center;">
+          <button class="cdot active" onclick="cdotPick(this)" style="--c:#fbbf24;" aria-label="Warm"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#60a5fa;" aria-label="Cool"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#f0f0f0;" aria-label="White"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#a78bfa;" aria-label="Purple"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#f472b6;" aria-label="Pink"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#4ade80;" aria-label="Green"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+          <button class="cdot" onclick="cdotPick(this)" style="--c:#f87171;" aria-label="Red"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INPUTS ═══ -->
+    <div class="section">
+      <div class="label">Inputs</div>
+      <div class="col">
+        <input type="text" class="input" placeholder="Texte libre...">
+        <div style="display:flex; gap:8px;">
+          <textarea class="textarea" style="flex:1;" placeholder="Message..."></textarea>
+          <button class="btn btn-icon btn-success" aria-label="Envoyer"><i class="mdi mdi-send"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="section">
+      <div class="label">Progress Bars</div>
+      <div class="col" style="gap:10px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--t3);">Success 78%</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:78%;background:var(--c-success);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--t3);">Warning 62%</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:62%;background:var(--c-warning);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--t3);">Alert 89%</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:89%;background:var(--c-alert);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--t3);">Info 45%</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:45%;background:var(--c-info);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GAUGES ═══ -->
+    <div class="section">
+      <div class="label">Circular Gauges</div>
+      <div class="row" style="justify-content:space-around;">
+        <div class="gauge" style="width:80px;height:80px;">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-width="6"/>
+            <circle class="gauge-arc" cx="40" cy="40" r="34" stroke="var(--c-success)" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="47"/>
+          </svg>
+          <div class="gauge-center"><span class="gauge-val" style="color:var(--c-success);">78%</span><span class="gauge-lbl">Batterie</span></div>
+        </div>
+        <div class="gauge" style="width:80px;height:80px;">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-width="6"/>
+            <circle class="gauge-arc" cx="40" cy="40" r="34" stroke="var(--c-alert)" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="171"/>
+          </svg>
+          <div class="gauge-center"><span class="gauge-val" style="color:var(--c-alert);">21.5</span><span class="gauge-lbl">Temp</span></div>
+        </div>
+        <div class="gauge" style="width:80px;height:80px;">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-width="6"/>
+            <circle class="gauge-arc" cx="40" cy="40" r="34" stroke="var(--c-info)" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="85"/>
+          </svg>
+          <div class="gauge-center"><span class="gauge-val" style="color:var(--c-info);">60%</span><span class="gauge-lbl">Humid</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SPARKLINE ═══ -->
+    <div class="section">
+      <div class="label">Sparkline</div>
+      <div class="glass" style="padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t2);">Label</div>
+            <div style="display:flex;align-items:baseline;gap:4px;">
+              <span style="font-size:20px;font-weight:700;">342</span>
+              <span style="font-size:11px;color:var(--t3);">W</span>
+            </div>
+          </div>
+          <div class="spark">
+            <div class="spark-bar" style="height:30%;"></div>
+            <div class="spark-bar" style="height:50%;"></div>
+            <div class="spark-bar" style="height:40%;"></div>
+            <div class="spark-bar" style="height:70%;"></div>
+            <div class="spark-bar" style="height:55%;"></div>
+            <div class="spark-bar" style="height:85%;"></div>
+            <div class="spark-bar" style="height:65%;"></div>
+            <div class="spark-bar" style="height:90%;"></div>
+            <div class="spark-bar" style="height:75%;"></div>
+            <div class="spark-bar" style="height:60%;"></div>
+            <div class="spark-bar" style="height:80%;"></div>
+            <div class="spark-bar" style="height:95%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ COLLAPSIBLE ═══ -->
+    <div class="section">
+      <div class="label">Collapsible (CSS Grid 0fr → 1fr)</div>
+      <div class="glass" style="padding:16px;">
+        <button class="btn btn-md" onclick="document.getElementById('demo-fold').classList.toggle('open')" style="width:100%;">
+          <i class="mdi mdi-chevron-down"></i> Toggle
+        </button>
+        <div class="fold" id="demo-fold">
+          <div class="fold-inner">
+            <div style="padding:12px 0 0; font-size:12px; color:var(--t2);">
+              Contenu revele via <code style="color:var(--c-accent);">grid-template-rows: 0fr → 1fr</code>. Pas de max-height.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOASTS ═══ -->
+    <div class="section">
+      <div class="label">Toasts</div>
+      <div class="col" style="gap:8px;">
+        <div class="toast toast-success"><i class="mdi mdi-check-circle"></i> Action reussie</div>
+        <div class="toast toast-alert"><i class="mdi mdi-alert-circle"></i> Erreur detectee</div>
+        <div class="toast toast-info"><i class="mdi mdi-information"></i> Information</div>
+      </div>
+    </div>
+
+    <!-- ═══ SEPARATOR ═══ -->
+    <div class="section">
+      <div class="label">Separator</div>
+      <div class="glass" style="padding:16px;">
+        <div style="font-size:12px;color:var(--t2);">Avant</div>
+        <div class="sep" style="margin:8px 0;"></div>
+        <div style="font-size:12px;color:var(--t2);">Apres</div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION TITLE ═══ -->
+    <div class="section">
+      <div class="label">Section Title (popup)</div>
+      <div class="glass" style="padding:16px;">
+        <div style="font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--t4); padding-bottom:8px;">Titre de section</div>
+        <div class="placeholder"><span>Contenu</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ DIVIDER WITH LABEL ═══ -->
+    <div class="section">
+      <div class="label">Divider avec Label</div>
+      <div class="glass" style="padding:16px;">
+        <div style="font-size:12px; color:var(--t2); margin-bottom:8px;">Contenu au dessus</div>
+        <div class="divider-label"><span>ou</span></div>
+        <div style="font-size:12px; color:var(--t2); margin-top:8px;">Contenu en dessous</div>
+      </div>
+      <div class="glass" style="padding:16px;">
+        <div class="divider-label"><span>Appareils hors ligne</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ EMPTY STATE ═══ -->
+    <div class="section">
+      <div class="label">Empty State</div>
+      <div class="glass" style="padding:0; overflow:hidden;">
+        <div class="empty-state">
+          <i class="mdi mdi-lightbulb-off-outline"></i>
+          <div class="empty-state-title">Aucune lumiere active</div>
+          <div class="empty-state-desc">Toutes les lumieres de cette piece sont eteintes</div>
+        </div>
+      </div>
+      <div class="glass" style="padding:0; overflow:hidden;">
+        <div class="empty-state">
+          <i class="mdi mdi-wifi-off"></i>
+          <div class="empty-state-title">Appareil indisponible</div>
+          <div class="empty-state-desc">Verifiez la connexion reseau</div>
+          <button class="btn btn-sm" style="margin-top:4px;"><i class="mdi mdi-refresh" style="font-size:14px;"></i> Reessayer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INLINE ALERT / BANNER ═══ -->
+    <div class="section">
+      <div class="label">Inline Alert / Banner</div>
+      <div class="col" style="gap:8px;">
+        <div class="banner banner-info"><i class="mdi mdi-information-outline"></i> Mise a jour disponible pour 3 appareils</div>
+        <div class="banner banner-warning"><i class="mdi mdi-alert-outline"></i> Batterie capteur porte entree faible (12%)</div>
+        <div class="banner banner-alert"><i class="mdi mdi-alert-circle-outline"></i> Detecteur fumee declenche — Cuisine</div>
+        <div class="banner banner-success"><i class="mdi mdi-check-circle-outline"></i> Sauvegarde terminee avec succes</div>
+      </div>
+    </div>
+
+    <!-- ═══ MARQUEE TEXT ═══ -->
+    <div class="section">
+      <div class="label">Marquee Text</div>
+      <div class="desc">Defilement auto pour texte trop long</div>
+      <div class="glass" style="padding:12px 14px;">
+        <div class="marquee" style="font-size:13px; font-weight:600; color:var(--t1);">
+          <span class="marquee-inner">Bohemian Rhapsody — Queen — A Night at the Opera (1975) &nbsp;&nbsp;&nbsp; Bohemian Rhapsody — Queen — A Night at the Opera (1975) &nbsp;&nbsp;&nbsp;</span>
+        </div>
+        <div style="font-size:11px; color:var(--t3); margin-top:2px;">Sonos One — Salon</div>
+      </div>
+    </div>
+
+    <!-- ═══ PLACEHOLDER ═══ -->
+    <div class="section">
+      <div class="label">Placeholder</div>
+      <div class="placeholder"><span>Slot vide</span></div>
+    </div>
+
+    <!-- ═══ SCROLL MASK ═══ -->
+    <div class="section">
+      <div class="label">Scroll Mask</div>
+      <div class="desc">Fondu lateral sur contenu scrollable</div>
+      <div class="glass" style="padding:8px;">
+        <div class="scroll-mask mask-right" id="scroll-demo" style="display:flex; gap:6px; padding:4px;">
+          <button class="chip" style="flex-shrink:0;">Salon</button>
+          <button class="chip" style="flex-shrink:0;">Cuisine</button>
+          <button class="chip" style="flex-shrink:0;">Chambre</button>
+          <button class="chip" style="flex-shrink:0;">Bureau</button>
+          <button class="chip" style="flex-shrink:0;">SDB</button>
+          <button class="chip" style="flex-shrink:0;">Garage</button>
+          <button class="chip" style="flex-shrink:0;">Jardin</button>
+          <button class="chip" style="flex-shrink:0;">Terrasse</button>
+          <button class="chip" style="flex-shrink:0;">Cave</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ STEPPER ═══ -->
+    <div class="section">
+      <div class="label">Stepper</div>
+      <div class="row" style="gap:16px;">
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepVal('s1',-0.5)" aria-label="Decrease">-</button>
+          <div class="stepper-val" id="s1">22.0<span class="stepper-unit">°C</span></div>
+          <button class="stepper-btn" onclick="stepVal('s1',0.5)" aria-label="Increase">+</button>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepVal('s2',-5)" aria-label="Decrease">-</button>
+          <div class="stepper-val" id="s2">60<span class="stepper-unit">%</span></div>
+          <button class="stepper-btn" onclick="stepVal('s2',5)" aria-label="Increase">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SKELETON LOADER ═══ -->
+    <div class="section">
+      <div class="label">Skeleton Loader</div>
+      <div class="glass" style="padding:16px;">
+        <div class="col" style="gap:10px;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <div class="skeleton" style="width:36px; height:36px; border-radius:10px; flex-shrink:0;"></div>
+            <div class="col" style="flex:1; gap:6px;">
+              <div class="skeleton" style="width:60%; height:12px;"></div>
+              <div class="skeleton" style="width:40%; height:10px;"></div>
+            </div>
+          </div>
+          <div class="skeleton" style="width:100%; height:36px; border-radius:14px;"></div>
+          <div style="display:flex; gap:8px;">
+            <div class="skeleton" style="flex:1; height:28px; border-radius:10px;"></div>
+            <div class="skeleton" style="flex:1; height:28px; border-radius:10px;"></div>
+            <div class="skeleton" style="flex:1; height:28px; border-radius:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ COUNT BADGE ═══ -->
+    <div class="section">
+      <div class="label">Count Badge</div>
+      <div class="row" style="gap:20px;">
+        <div style="position:relative;">
+          <button class="btn btn-icon" aria-label="Notifications"><i class="mdi mdi-bell-outline"></i></button>
+          <span class="count-badge count-badge-alert">3</span>
+        </div>
+        <div style="position:relative;">
+          <button class="btn btn-icon" aria-label="Devices"><i class="mdi mdi-devices"></i></button>
+          <span class="count-badge count-badge-accent">12</span>
+        </div>
+        <div style="position:relative;">
+          <button class="btn btn-icon" aria-label="Updates"><i class="mdi mdi-update"></i></button>
+          <span class="count-badge count-badge-success">1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ICON GLOW / PULSE ═══ -->
+    <div class="section">
+      <div class="label">Icon Glow & Pulse</div>
+      <div class="row" style="gap:16px;">
+        <div class="icon-box"><i class="mdi mdi-lightbulb icon-glow-light"></i></div>
+        <div class="icon-box"><i class="mdi mdi-alert-circle icon-glow-alert"></i></div>
+        <div class="icon-box"><i class="mdi mdi-water icon-glow-info"></i></div>
+        <div class="icon-box"><i class="mdi mdi-music icon-pulse-music" style="color:var(--c-accent);"></i></div>
+        <div class="icon-box"><i class="mdi mdi-heart icon-pulse-beat" style="color:var(--c-alert);"></i></div>
+      </div>
+    </div>
+
+    <!-- ═══ DROPDOWN ═══ -->
+    <div class="section">
+      <div class="label">Dropdown</div>
+      <div class="row" style="gap:16px;">
+        <div class="dropdown" id="dd1">
+          <button class="dropdown-trigger" onclick="toggleDd('dd1')">
+            <i class="mdi mdi-home"></i> Salon
+            <i class="mdi mdi-chevron-down arrow"></i>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item active" onclick="selectDd('dd1',this)"><i class="mdi mdi-sofa"></i> Salon</button>
+            <button class="dropdown-item" onclick="selectDd('dd1',this)"><i class="mdi mdi-fridge"></i> Cuisine</button>
+            <button class="dropdown-item" onclick="selectDd('dd1',this)"><i class="mdi mdi-bed"></i> Chambre</button>
+            <button class="dropdown-item" onclick="selectDd('dd1',this)"><i class="mdi mdi-desk"></i> Bureau</button>
+          </div>
+        </div>
+        <div class="dropdown" id="dd2">
+          <button class="dropdown-trigger" onclick="toggleDd('dd2')">
+            <i class="mdi mdi-fire"></i> Chauffage
+            <i class="mdi mdi-chevron-down arrow"></i>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item active" onclick="selectDd('dd2',this)"><i class="mdi mdi-fire"></i> Chauffage</button>
+            <button class="dropdown-item" onclick="selectDd('dd2',this)"><i class="mdi mdi-snowflake"></i> Climatisation</button>
+            <button class="dropdown-item" onclick="selectDd('dd2',this)"><i class="mdi mdi-autorenew"></i> Auto</button>
+            <button class="dropdown-item" onclick="selectDd('dd2',this)"><i class="mdi mdi-power"></i> Off</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RANGE SLIDER ═══ -->
+    <div class="section">
+      <div class="label">Range Slider (dual)</div>
+      <div class="desc">Min/max — temperature, plage horaire</div>
+      <div class="range-track" id="range1">
+        <div class="range-fill" style="left:25%; width:40%;"></div>
+        <div class="range-thumb" style="left:25%;"></div>
+        <div class="range-thumb" style="left:65%;"></div>
+        <span class="range-lbl" style="left:12px;">18°</span>
+        <span class="range-lbl" style="right:12px; left:auto;">24°</span>
+      </div>
+    </div>
+
+    <!-- ═══ TAB BAR ═══ -->
+    <div class="section">
+      <div class="label">Tab Bar</div>
+      <div class="tabs">
+        <button class="tab active" onclick="tabSwitch(this)"><i class="mdi mdi-lightbulb-outline"></i> Lumieres</button>
+        <button class="tab" onclick="tabSwitch(this)"><i class="mdi mdi-thermostat"></i> Climat</button>
+        <button class="tab" onclick="tabSwitch(this)"><i class="mdi mdi-speaker"></i> Media</button>
+      </div>
+      <div class="desc">Variante icone seule</div>
+      <div class="tabs" style="max-width:200px;">
+        <button class="tab active" onclick="tabSwitch(this)"><i class="mdi mdi-view-grid"></i></button>
+        <button class="tab" onclick="tabSwitch(this)"><i class="mdi mdi-format-list-bulleted"></i></button>
+        <button class="tab" onclick="tabSwitch(this)"><i class="mdi mdi-cog"></i></button>
+      </div>
+    </div>
+
+    <!-- ═══ THUMBNAIL ═══ -->
+    <div class="section">
+      <div class="label">Thumbnail / Image</div>
+      <div class="desc">Camera, album art, entity picture</div>
+      <div class="row" style="gap:10px;">
+        <div class="thumb thumb-sm">
+          <svg viewBox="0 0 56 56"><rect width="56" height="56" fill="#1e293b"/><circle cx="28" cy="22" r="8" fill="rgba(255,255,255,0.15)"/><ellipse cx="28" cy="46" rx="16" ry="14" fill="rgba(255,255,255,0.15)"/></svg>
+        </div>
+        <div class="thumb thumb-md">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" fill="#1e293b"/><rect x="20" y="20" width="40" height="40" rx="6" fill="rgba(129,140,248,0.2)"/><circle cx="40" cy="40" r="12" fill="rgba(129,140,248,0.3)"/></svg>
+          <div class="thumb-overlay"><span>Album Art</span></div>
+        </div>
+      </div>
+      <div class="thumb thumb-lg">
+        <svg viewBox="0 0 320 180"><rect width="320" height="180" fill="#0f172a"/><circle cx="160" cy="78" r="30" fill="rgba(255,255,255,0.08)"/><path d="M153 65 l20 13 l-20 13z" fill="rgba(255,255,255,0.15)"/><text x="160" y="135" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="12" font-family="sans-serif">Camera Feed</text></svg>
+        <div class="thumb-overlay"><span>Camera Entree</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ TOOLTIP ═══ -->
+    <div class="section">
+      <div class="label">Tooltip</div>
+      <div class="row" style="gap:16px;">
+        <div class="tip-wrap">
+          <button class="btn btn-icon sm" aria-label="Info"><i class="mdi mdi-information-outline"></i></button>
+          <div class="tip">Plus d'informations</div>
+        </div>
+        <div class="tip-wrap">
+          <span style="font-size:14px; font-weight:700; color:var(--t1); cursor:default;">21.5°C</span>
+          <div class="tip">Mis a jour il y a 2 min</div>
+        </div>
+        <div class="tip-wrap">
+          <div class="dot dot-success"></div>
+          <div class="tip">En ligne</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RIPPLE ═══ -->
+    <div class="section">
+      <div class="label">Ripple</div>
+      <div class="desc">Feedback tactile — cliquer pour tester</div>
+      <div class="row" style="gap:10px;">
+        <button class="btn btn-lg ripple" onclick="doRipple(event)" style="width:140px;">Tap me</button>
+        <button class="btn btn-icon ripple" onclick="doRipple(event)" aria-label="Ripple"><i class="mdi mdi-gesture-tap"></i></button>
+      </div>
+    </div>
+
+    <!-- ═══ SPINNER ═══ -->
+    <div class="section">
+      <div class="label">Spinner</div>
+      <div class="row" style="gap:16px; align-items:center;">
+        <div class="spinner spinner-sm"></div>
+        <div class="spinner spinner-md spinner-accent"></div>
+        <div class="spinner spinner-lg spinner-success"></div>
+        <span style="font-size:11px; color:var(--t3);">Chargement...</span>
+      </div>
+    </div>
+
+    <!-- ═══ MEDIA PRIMITIVES ═══ -->
+    <div class="section">
+      <div class="label">Media — Transport Controls</div>
+      <div class="glass" style="padding:16px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+          <button class="btn btn-ghost btn-icon sm" aria-label="Shuffle"><i class="mdi mdi-shuffle-variant"></i></button>
+          <button class="btn btn-ghost btn-icon sm" aria-label="Previous"><i class="mdi mdi-skip-previous"></i></button>
+          <button class="btn btn-icon btn-accent" aria-label="Play"><i class="mdi mdi-play"></i></button>
+          <button class="btn btn-ghost btn-icon sm" aria-label="Next"><i class="mdi mdi-skip-next"></i></button>
+          <button class="btn btn-ghost btn-icon sm" aria-label="Repeat"><i class="mdi mdi-repeat"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Media — Progress Track</div>
+      <div class="col" style="gap:4px;">
+        <div class="slider" onclick="hSlider(this,event)">
+          <div class="slider-fill white" style="width:35%;"></div>
+          <div class="slider-thumb" style="left:35%;"></div>
+          <div class="slider-lbl" style="font-size:10px; color:var(--t3);">1:24</div>
+          <div class="slider-val" style="font-size:10px;">4:02</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Media — Volume</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-ghost btn-icon xs" aria-label="Mute"><i class="mdi mdi-volume-off"></i></button>
+        <div class="slider" style="flex:1;" onclick="hSlider(this,event)">
+          <div class="slider-fill accent" style="width:55%;"></div>
+          <div class="slider-thumb" style="left:55%;"></div>
+          <div class="slider-val">55%</div>
+        </div>
+        <button class="btn btn-ghost btn-icon xs" aria-label="Max"><i class="mdi mdi-volume-high"></i></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Media — Now Playing</div>
+      <div class="glass" style="padding:16px; position:relative;">
+        <div class="tint tint-custom" style="background:radial-gradient(ellipse at 30% 50%, rgba(129,140,248,0.2), transparent 70%); opacity:0.3;"></div>
+        <div style="display:flex; gap:12px; align-items:center; position:relative; z-index:1;">
+          <div class="thumb thumb-sm" style="flex-shrink:0;">
+            <svg viewBox="0 0 56 56"><rect width="56" height="56" fill="#1e293b"/><rect x="12" y="12" width="32" height="32" rx="4" fill="rgba(129,140,248,0.25)"/><circle cx="28" cy="28" r="10" fill="rgba(129,140,248,0.35)"/></svg>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:var(--t1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Bohemian Rhapsody</div>
+            <div style="font-size:11px; color:var(--t3);">Queen</div>
+          </div>
+          <button class="btn btn-ghost btn-icon xs" aria-label="Play"><i class="mdi mdi-play"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Media — Multiroom</div>
+      <div class="desc">Tap pour activer une enceinte, le volume apparait</div>
+      <div class="mr-grid">
+
+        <div class="mr-tile on" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker icon-pulse-music"></i></div>
+            <span class="mr-tile-name">Salon</span>
+            <span style="font-size:10px; font-weight:700; color:var(--c-accent);">72%</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:72%;"></div>
+                <div class="slider-thumb" style="left:72%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mr-tile on" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker"></i></div>
+            <span class="mr-tile-name">Cuisine</span>
+            <span style="font-size:10px; font-weight:700; color:var(--c-accent);">45%</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:45%;"></div>
+                <div class="slider-thumb" style="left:45%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mr-tile" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker"></i></div>
+            <span class="mr-tile-name">Chambre</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:30%;"></div>
+                <div class="slider-thumb" style="left:30%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mr-tile" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker"></i></div>
+            <span class="mr-tile-name">Bureau</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:50%;"></div>
+                <div class="slider-thumb" style="left:50%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mr-tile" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker"></i></div>
+            <span class="mr-tile-name">SDB</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:0%;"></div>
+                <div class="slider-thumb" style="left:0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mr-tile" onclick="mrToggle(this)">
+          <div class="mr-tile-head">
+            <div class="mr-tile-icon"><i class="mdi mdi-speaker"></i></div>
+            <span class="mr-tile-name">Terrasse</span>
+          </div>
+          <div class="mr-tile-vol">
+            <div class="mr-tile-vol-inner">
+              <div class="slider" style="height:24px;">
+                <div class="slider-fill accent" style="width:0%;"></div>
+                <div class="slider-thumb" style="left:0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Media — Queue Item</div>
+      <div class="glass" style="padding:8px 12px;">
+        <div class="col" style="gap:6px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:10px; font-weight:600; color:var(--t4); width:16px; text-align:center;">1</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:12px; font-weight:600; color:var(--t1);">Bohemian Rhapsody</div>
+              <div style="font-size:10px; color:var(--t3);">Queen — 4:02</div>
+            </div>
+            <button class="btn btn-ghost btn-icon xs" aria-label="More"><i class="mdi mdi-dots-vertical"></i></button>
+          </div>
+          <div class="sep"></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:10px; font-weight:600; color:var(--t4); width:16px; text-align:center;">2</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:12px; font-weight:600; color:var(--t2);">Don't Stop Me Now</div>
+              <div style="font-size:10px; color:var(--t3);">Queen — 3:29</div>
+            </div>
+            <button class="btn btn-ghost btn-icon xs" aria-label="More"><i class="mdi mdi-dots-vertical"></i></button>
+          </div>
+          <div class="sep"></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:10px; font-weight:600; color:var(--t4); width:16px; text-align:center;">3</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:12px; font-weight:600; color:var(--t2);">Somebody to Love</div>
+              <div style="font-size:10px; color:var(--t3);">Queen — 4:56</div>
+            </div>
+            <button class="btn btn-ghost btn-icon xs" aria-label="More"><i class="mdi mdi-dots-vertical"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ACCORDION ═══ -->
+    <div class="section">
+      <div class="label">Accordion</div>
+      <div class="accordion">
+        <div class="accordion-item open">
+          <button class="accordion-header" onclick="accToggle(this)">
+            <span>Lumieres — 4 actives</span>
+            <i class="mdi mdi-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+              <div class="accordion-body-content">
+                Salon 72% · Cuisine 100% · Couloir 30% · Bureau 55%
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="accToggle(this)">
+            <span>Climat — 21.5°C</span>
+            <i class="mdi mdi-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+              <div class="accordion-body-content">
+                Mode chauffage · Consigne 22°C · Humidite 45%
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="accToggle(this)">
+            <span>Securite — Armee</span>
+            <i class="mdi mdi-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-body-inner">
+              <div class="accordion-body-content">
+                Alarme armee · 3 capteurs ouverts · Camera active
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BOTTOM SHEET ═══ -->
+    <div class="section">
+      <div class="label">Bottom Sheet / Drawer</div>
+      <div class="desc">Modal glissant depuis le bas</div>
+      <button class="btn btn-md btn-accent" onclick="openSheet()">Ouvrir Bottom Sheet</button>
+      <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+      <div class="sheet" id="sheet-demo">
+        <div class="sheet-handle"></div>
+        <div class="sheet-content">
+          <div style="font-size:15px; font-weight:700; color:var(--t1); margin-bottom:12px;">Parametres lumiere</div>
+          <div class="col" style="gap:12px;">
+            <div class="slider" onclick="hSlider(this,event)">
+              <div class="slider-fill warm" style="width:65%;"></div>
+              <div class="slider-thumb" style="left:65%;"></div>
+              <div class="slider-lbl"><i class="mdi mdi-brightness-6"></i> Luminosite</div>
+              <div class="slider-val">65%</div>
+            </div>
+            <div class="slider" onclick="hSlider(this,event)">
+              <div class="slider-fill cool" style="width:50%;"></div>
+              <div class="slider-thumb" style="left:50%;"></div>
+              <div class="slider-lbl"><i class="mdi mdi-thermometer"></i> Temperature</div>
+              <div class="slider-val">3500K</div>
+            </div>
+            <div class="row" style="gap:10px; justify-content:center;">
+              <button class="cdot active" onclick="cdotPick(this)" style="--c:#fbbf24;" aria-label="Warm"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+              <button class="cdot" onclick="cdotPick(this)" style="--c:#60a5fa;" aria-label="Cool"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+              <button class="cdot" onclick="cdotPick(this)" style="--c:#f0f0f0;" aria-label="White"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+              <button class="cdot" onclick="cdotPick(this)" style="--c:#a78bfa;" aria-label="Purple"><span style="position:absolute;inset:2px;border-radius:50%;background:var(--c);"></span></button>
+            </div>
+            <div class="sep"></div>
+            <div class="dialog-actions">
+              <button class="btn btn-md" onclick="closeSheet()">Fermer</button>
+              <button class="btn btn-md btn-accent" onclick="closeSheet()">Appliquer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ POPOVER ═══ -->
+    <div class="section">
+      <div class="label">Popover</div>
+      <div class="desc">Contenu flottant ancre a un element</div>
+      <div class="row" style="gap:16px;">
+        <div class="popover-wrap">
+          <button class="btn btn-md" onclick="togglePopover(this)"><i class="mdi mdi-information-outline" style="font-size:16px;"></i> Details</button>
+          <div class="popover">
+            <div style="font-size:12px; font-weight:600; color:var(--t1); margin-bottom:6px;">Capteur Salon</div>
+            <div style="font-size:11px; color:var(--t3); line-height:1.5;">Temperature: 21.5°C<br>Humidite: 45%<br>Derniere MAJ: il y a 2 min</div>
+          </div>
+        </div>
+        <div class="popover-wrap">
+          <button class="btn btn-icon sm" aria-label="Help" onclick="togglePopover(this)"><i class="mdi mdi-help-circle-outline"></i></button>
+          <div class="popover">
+            <div style="font-size:11px; color:var(--t2); line-height:1.5;">Cliquez sur une entite pour afficher ses details et son historique.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SELECT ═══ -->
+    <div class="section">
+      <div class="label">Select (avec recherche)</div>
+      <div class="select-wrap" id="sel1">
+        <button class="select-trigger" onclick="toggleSelect('sel1')">
+          <span>Choisir une entite...</span>
+          <i class="mdi mdi-chevron-down"></i>
+        </button>
+        <div class="select-menu">
+          <input type="text" class="select-search" placeholder="Rechercher..." oninput="filterSelect('sel1', this.value)">
+          <button class="select-option" onclick="pickSelect('sel1',this)" data-label="Salon — Lumiere"><i class="mdi mdi-lightbulb-outline" style="font-size:16px;color:var(--t3);"></i> Salon — Lumiere</button>
+          <button class="select-option" onclick="pickSelect('sel1',this)" data-label="Cuisine — Lumiere"><i class="mdi mdi-lightbulb-outline" style="font-size:16px;color:var(--t3);"></i> Cuisine — Lumiere</button>
+          <button class="select-option" onclick="pickSelect('sel1',this)" data-label="Chambre — Temp"><i class="mdi mdi-thermometer" style="font-size:16px;color:var(--t3);"></i> Chambre — Temp</button>
+          <button class="select-option" onclick="pickSelect('sel1',this)" data-label="Bureau — Volet"><i class="mdi mdi-blinds" style="font-size:16px;color:var(--t3);"></i> Bureau — Volet</button>
+          <button class="select-option" onclick="pickSelect('sel1',this)" data-label="Garage — Porte"><i class="mdi mdi-garage" style="font-size:16px;color:var(--t3);"></i> Garage — Porte</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RADIO GROUP ═══ -->
+    <div class="section">
+      <div class="label">Radio Group</div>
+      <div class="glass" style="padding:16px;">
+        <div class="radio-group" id="rg1">
+          <button class="radio-item active" onclick="radioSelect('rg1',this)">
+            <span class="radio-circle"></span>
+            <span class="radio-label">Chauffage</span>
+          </button>
+          <button class="radio-item" onclick="radioSelect('rg1',this)">
+            <span class="radio-circle"></span>
+            <span class="radio-label">Climatisation</span>
+          </button>
+          <button class="radio-item" onclick="radioSelect('rg1',this)">
+            <span class="radio-circle"></span>
+            <span class="radio-label">Auto</span>
+          </button>
+          <button class="radio-item" onclick="radioSelect('rg1',this)">
+            <span class="radio-circle"></span>
+            <span class="radio-label">Off</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHECKBOX ═══ -->
+    <div class="section">
+      <div class="label">Checkbox</div>
+      <div class="glass" style="padding:16px;">
+        <div class="col" style="gap:10px;">
+          <button class="check-item checked" onclick="this.classList.toggle('checked')">
+            <span class="check-box"><i class="mdi mdi-check"></i></span>
+            <span class="check-label">Activer notifications</span>
+          </button>
+          <button class="check-item checked" onclick="this.classList.toggle('checked')">
+            <span class="check-box"><i class="mdi mdi-check"></i></span>
+            <span class="check-label">Mode absence automatique</span>
+          </button>
+          <button class="check-item" onclick="this.classList.toggle('checked')">
+            <span class="check-box"><i class="mdi mdi-check"></i></span>
+            <span class="check-label">Eteindre tout au depart</span>
+          </button>
+          <button class="check-item" onclick="this.classList.toggle('checked')">
+            <span class="check-box"><i class="mdi mdi-check"></i></span>
+            <span class="check-label">Activer mode nuit</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CONFIRM DIALOG ═══ -->
+    <div class="section">
+      <div class="label">Confirmation Dialog</div>
+      <div class="desc">Pour actions destructives</div>
+      <div class="row">
+        <button class="btn btn-md btn-alert" onclick="openDialog('dlg1')"><i class="mdi mdi-delete" style="font-size:16px;"></i> Supprimer</button>
+        <button class="btn btn-md btn-warning" onclick="openDialog('dlg2')"><i class="mdi mdi-power" style="font-size:16px;"></i> Redemarrer</button>
+      </div>
+      <div class="dialog-overlay" id="dlg1" onclick="if(event.target===this)closeDialog('dlg1')">
+        <div class="dialog">
+          <div class="dialog-title">Supprimer l'appareil ?</div>
+          <div class="dialog-desc">Cette action est irreversible. Toutes les donnees associees seront perdues.</div>
+          <div class="dialog-actions">
+            <button class="btn btn-md" onclick="closeDialog('dlg1')">Annuler</button>
+            <button class="btn btn-md btn-alert" onclick="closeDialog('dlg1')">Supprimer</button>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-overlay" id="dlg2" onclick="if(event.target===this)closeDialog('dlg2')">
+        <div class="dialog">
+          <div class="dialog-title">Redemarrer le systeme ?</div>
+          <div class="dialog-desc">Home Assistant sera indisponible pendant environ 2 minutes.</div>
+          <div class="dialog-actions">
+            <button class="btn btn-md" onclick="closeDialog('dlg2')">Annuler</button>
+            <button class="btn btn-md btn-warning" onclick="closeDialog('dlg2')">Redemarrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CAROUSEL ═══ -->
+    <div class="section">
+      <div class="label">Carousel / Swiper</div>
+      <div class="desc">Swipe horizontal — cameras, scenes</div>
+      <div class="carousel" id="carousel1">
+        <div class="carousel-item" style="width:200px; height:120px;">
+          <svg viewBox="0 0 200 120" width="200" height="120"><rect width="200" height="120" fill="#0f172a"/><text x="100" y="55" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="11" font-family="sans-serif">Camera Entree</text><circle cx="100" cy="55" r="20" fill="rgba(255,255,255,0.06)"/><path d="M94 50 l14 8 l-14 8z" fill="rgba(255,255,255,0.12)"/></svg>
+        </div>
+        <div class="carousel-item" style="width:200px; height:120px;">
+          <svg viewBox="0 0 200 120" width="200" height="120"><rect width="200" height="120" fill="#0f172a"/><text x="100" y="55" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="11" font-family="sans-serif">Camera Jardin</text><circle cx="100" cy="55" r="20" fill="rgba(255,255,255,0.06)"/><path d="M94 50 l14 8 l-14 8z" fill="rgba(255,255,255,0.12)"/></svg>
+        </div>
+        <div class="carousel-item" style="width:200px; height:120px;">
+          <svg viewBox="0 0 200 120" width="200" height="120"><rect width="200" height="120" fill="#0f172a"/><text x="100" y="55" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="11" font-family="sans-serif">Camera Garage</text><circle cx="100" cy="55" r="20" fill="rgba(255,255,255,0.06)"/><path d="M94 50 l14 8 l-14 8z" fill="rgba(255,255,255,0.12)"/></svg>
+        </div>
+        <div class="carousel-item" style="width:200px; height:120px;">
+          <svg viewBox="0 0 200 120" width="200" height="120"><rect width="200" height="120" fill="#0f172a"/><text x="100" y="55" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="11" font-family="sans-serif">Camera Salon</text><circle cx="100" cy="55" r="20" fill="rgba(255,255,255,0.06)"/><path d="M94 50 l14 8 l-14 8z" fill="rgba(255,255,255,0.12)"/></svg>
+        </div>
+      </div>
+      <div class="carousel-dots">
+        <button class="carousel-dot active" aria-label="Slide 1"></button>
+        <button class="carousel-dot" aria-label="Slide 2"></button>
+        <button class="carousel-dot" aria-label="Slide 3"></button>
+        <button class="carousel-dot" aria-label="Slide 4"></button>
+      </div>
+    </div>
+
+    <!-- ═══ INPUT OTP ═══ -->
+    <div class="section">
+      <div class="label">Input OTP / Code</div>
+      <div class="desc">Saisie de code — alarme, serrure</div>
+      <div class="glass" style="padding:16px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+          <div class="otp-group">
+            <input type="text" class="otp-input" maxlength="1" placeholder="·" oninput="otpNext(this)">
+            <input type="text" class="otp-input" maxlength="1" placeholder="·" oninput="otpNext(this)">
+            <input type="text" class="otp-input" maxlength="1" placeholder="·" oninput="otpNext(this)">
+            <input type="text" class="otp-input" maxlength="1" placeholder="·" oninput="otpNext(this)">
+          </div>
+          <span style="font-size:11px; color:var(--t3);">Entrez le code d'acces</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DATA TABLE ═══ -->
+    <div class="section">
+      <div class="label">Data Table</div>
+      <div class="glass" style="padding:10px; overflow:hidden;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><button>Appareil <i class="mdi mdi-arrow-down" style="font-size:10px;"></i></button></th>
+              <th><button>Etat</button></th>
+              <th style="text-align:right;"><button>Valeur</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><span class="dot dot-success"></span> Salon</div></td>
+              <td><span class="badge badge-success" style="font-size:9px;">On</span></td>
+              <td style="text-align:right; font-weight:600;">72%</td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><span class="dot dot-warning"></span> Chambre</div></td>
+              <td><span class="badge badge-warning" style="font-size:9px;">Idle</span></td>
+              <td style="text-align:right; font-weight:600;">21.5°C</td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><span class="dot dot-alert"></span> Garage</div></td>
+              <td><span class="badge badge-alert" style="font-size:9px;">Alert</span></td>
+              <td style="text-align:right; font-weight:600;">Ouvert</td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><span class="dot dot-off"></span> Bureau</div></td>
+              <td><span class="badge badge-info" style="font-size:9px;">Off</span></td>
+              <td style="text-align:right; font-weight:600;">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ PAGINATION ═══ -->
+    <div class="section">
+      <div class="label">Pagination</div>
+      <div style="display:flex; justify-content:center;">
+        <div class="pagination">
+          <button class="page-btn" disabled aria-label="Previous"><i class="mdi mdi-chevron-left"></i></button>
+          <button class="page-btn active" onclick="pagSwitch(this)">1</button>
+          <button class="page-btn" onclick="pagSwitch(this)">2</button>
+          <button class="page-btn" onclick="pagSwitch(this)">3</button>
+          <button class="page-btn" onclick="pagSwitch(this)">4</button>
+          <button class="page-btn" onclick="pagSwitch(this)">5</button>
+          <button class="page-btn" aria-label="Next"><i class="mdi mdi-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BREADCRUMB ═══ -->
+    <div class="section">
+      <div class="label">Breadcrumb</div>
+      <div class="glass" style="padding:12px 14px;">
+        <div class="breadcrumb">
+          <button class="breadcrumb-item">Maison</button>
+          <i class="mdi mdi-chevron-right breadcrumb-sep"></i>
+          <button class="breadcrumb-item">Salon</button>
+          <i class="mdi mdi-chevron-right breadcrumb-sep"></i>
+          <span class="breadcrumb-item current">Lumiere plafond</span>
+        </div>
+      </div>
+      <div class="glass" style="padding:12px 14px;">
+        <div class="breadcrumb">
+          <button class="breadcrumb-item">Automatisations</button>
+          <i class="mdi mdi-chevron-right breadcrumb-sep"></i>
+          <button class="breadcrumb-item">Eclairage</button>
+          <i class="mdi mdi-chevron-right breadcrumb-sep"></i>
+          <span class="breadcrumb-item current">Coucher de soleil</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SEGMENTED CONTROL ═══ -->
+    <div class="section">
+      <div class="label">Segmented Control</div>
+      <div class="desc">Toggle rapide entre 2-3 options</div>
+      <div class="col" style="gap:10px;">
+        <div class="segmented">
+          <button class="seg-btn active" onclick="segSwitch(this)">Jour</button>
+          <button class="seg-btn" onclick="segSwitch(this)">Semaine</button>
+          <button class="seg-btn" onclick="segSwitch(this)">Mois</button>
+        </div>
+        <div class="segmented">
+          <button class="seg-btn active" onclick="segSwitch(this)">°C</button>
+          <button class="seg-btn" onclick="segSwitch(this)">°F</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ COLOR PICKER ═══ -->
+    <div class="section">
+      <div class="label">Color Dots (inline quick-pick)</div>
+      <div class="desc">Rangée de dots couleur + bouton rainbow pour ouvrir le picker complet</div>
+      <div class="glass" style="padding:16px;">
+        <div class="color-row">
+          <button class="cdot active" style="--cdot-color:#fbbf24;" onclick="cdotPick(this)" aria-label="Warm"></button>
+          <button class="cdot" style="--cdot-color:#f87171;" onclick="cdotPick(this)" aria-label="Red"></button>
+          <button class="cdot" style="--cdot-color:#f472b6;" onclick="cdotPick(this)" aria-label="Pink"></button>
+          <button class="cdot" style="--cdot-color:#a78bfa;" onclick="cdotPick(this)" aria-label="Purple"></button>
+          <button class="cdot" style="--cdot-color:#818cf8;" onclick="cdotPick(this)" aria-label="Indigo"></button>
+          <button class="cdot" style="--cdot-color:#60a5fa;" onclick="cdotPick(this)" aria-label="Blue"></button>
+          <button class="cdot" style="--cdot-color:#4ade80;" onclick="cdotPick(this)" aria-label="Green"></button>
+          <button class="cdot" style="--cdot-color:#f0f0f0;" onclick="cdotPick(this)" aria-label="White"></button>
+          <button class="color-picker-btn" onclick="openCpDemo()" aria-label="Ouvrir le color picker"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label">Color Wheel Dialog</div>
+      <div class="desc">Canvas HSV interactif + curseur drop-line + preview hex</div>
+      <div class="glass" style="padding:16px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+          <!-- Inline demo (not in overlay for showcase visibility) -->
+          <div class="cp-wheel-wrap" id="cp-wheel-wrap">
+            <canvas id="cp-canvas" width="440" height="440"></canvas>
+            <div class="cp-cursor" id="cp-cursor" style="left:75%;top:40%;background:#f87171;"></div>
+          </div>
+          <div class="cp-preview" id="cp-preview" style="background:#f87171;"></div>
+          <span class="cp-hex" id="cp-hex">#f87171</span>
+          <div style="width:100%;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t4);margin-bottom:8px;">Presets</div>
+            <div class="color-grid">
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#fbbf24;" aria-label="Warm"></button>
+              <button class="color-swatch active" onclick="swatchPick(this)" style="background:#f87171;" aria-label="Red"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#f472b6;" aria-label="Pink"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#a78bfa;" aria-label="Purple"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#818cf8;" aria-label="Indigo"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#60a5fa;" aria-label="Blue"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#34d399;" aria-label="Emerald"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#4ade80;" aria-label="Green"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#a3e635;" aria-label="Lime"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#f0f0f0;" aria-label="White"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#fde68a;" aria-label="Soft warm"></button>
+              <button class="color-swatch" onclick="swatchPick(this)" style="background:#67e8f9;" aria-label="Cyan"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DATE/TIME PICKER ═══ -->
+    <div class="section">
+      <div class="label">Date Picker</div>
+      <div class="glass" style="padding:16px;">
+        <div class="picker-header">
+          <button class="btn btn-ghost btn-icon xs" aria-label="Mois precedent"><i class="mdi mdi-chevron-left"></i></button>
+          <span class="picker-month">Mars 2026</span>
+          <button class="btn btn-ghost btn-icon xs" aria-label="Mois suivant"><i class="mdi mdi-chevron-right"></i></button>
+        </div>
+        <div class="picker-grid">
+          <span class="picker-day-label">Lu</span>
+          <span class="picker-day-label">Ma</span>
+          <span class="picker-day-label">Me</span>
+          <span class="picker-day-label">Je</span>
+          <span class="picker-day-label">Ve</span>
+          <span class="picker-day-label">Sa</span>
+          <span class="picker-day-label">Di</span>
+          <button class="picker-day other-month" onclick="dayPick(this)">23</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">24</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">25</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">26</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">27</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">28</button>
+          <button class="picker-day" onclick="dayPick(this)">1</button>
+          <button class="picker-day" onclick="dayPick(this)">2</button>
+          <button class="picker-day" onclick="dayPick(this)">3</button>
+          <button class="picker-day" onclick="dayPick(this)">4</button>
+          <button class="picker-day" onclick="dayPick(this)">5</button>
+          <button class="picker-day today" onclick="dayPick(this)">6</button>
+          <button class="picker-day" onclick="dayPick(this)">7</button>
+          <button class="picker-day" onclick="dayPick(this)">8</button>
+          <button class="picker-day" onclick="dayPick(this)">9</button>
+          <button class="picker-day" onclick="dayPick(this)">10</button>
+          <button class="picker-day" onclick="dayPick(this)">11</button>
+          <button class="picker-day" onclick="dayPick(this)">12</button>
+          <button class="picker-day" onclick="dayPick(this)">13</button>
+          <button class="picker-day selected" onclick="dayPick(this)">14</button>
+          <button class="picker-day" onclick="dayPick(this)">15</button>
+          <button class="picker-day" onclick="dayPick(this)">16</button>
+          <button class="picker-day" onclick="dayPick(this)">17</button>
+          <button class="picker-day" onclick="dayPick(this)">18</button>
+          <button class="picker-day" onclick="dayPick(this)">19</button>
+          <button class="picker-day" onclick="dayPick(this)">20</button>
+          <button class="picker-day" onclick="dayPick(this)">21</button>
+          <button class="picker-day" onclick="dayPick(this)">22</button>
+          <button class="picker-day" onclick="dayPick(this)">23</button>
+          <button class="picker-day" onclick="dayPick(this)">24</button>
+          <button class="picker-day" onclick="dayPick(this)">25</button>
+          <button class="picker-day" onclick="dayPick(this)">26</button>
+          <button class="picker-day" onclick="dayPick(this)">27</button>
+          <button class="picker-day" onclick="dayPick(this)">28</button>
+          <button class="picker-day" onclick="dayPick(this)">29</button>
+          <button class="picker-day" onclick="dayPick(this)">30</button>
+          <button class="picker-day" onclick="dayPick(this)">31</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">1</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">2</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">3</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">4</button>
+          <button class="picker-day other-month" onclick="dayPick(this)">5</button>
+        </div>
+      </div>
+
+      <div class="label" style="margin-top:6px;">Time Picker</div>
+      <div class="glass" style="padding:16px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+          <div class="time-input">
+            <input type="text" class="time-digit" value="18" maxlength="2">
+            <span class="time-sep">:</span>
+            <input type="text" class="time-digit" value="30" maxlength="2">
+          </div>
+          <div class="segmented" style="margin-left:8px;">
+            <button class="seg-btn active" onclick="segSwitch(this)">24h</button>
+            <button class="seg-btn" onclick="segSwitch(this)">AM/PM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── Slider drag (mouse + touch) ── */
+    function hUpdate(el, clientX) {
+      const r = el.getBoundingClientRect();
+      const p = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+      el.querySelector('.slider-fill').style.width = p + '%';
+      el.querySelector('.slider-thumb').style.left = p + '%';
+      const v = el.querySelector('.slider-val');
+      if (v && !v.textContent.includes('K')) v.textContent = Math.round(p) + '%';
+    }
+
+    function vUpdate(el, clientY) {
+      const r = el.getBoundingClientRect();
+      const p = Math.max(0, Math.min(100, ((r.bottom - clientY) / r.height) * 100));
+      el.querySelector('.slider-v-fill').style.height = p + '%';
+      el.querySelector('.slider-v-val').textContent = Math.round(p) + '%';
+      const thumb = el.querySelector('.slider-v-thumb');
+      if (thumb) thumb.style.top = 'calc(' + (100 - p) + '% - 4px)';
+    }
+
+    function initDrag(selector, updateFn, axis) {
+      document.querySelectorAll(selector).forEach(el => {
+        function start(clientX, clientY) {
+          updateFn(el, axis === 'x' ? clientX : clientY);
+          function move(cx, cy) { updateFn(el, axis === 'x' ? cx : cy); }
+          function onMouseMove(ev) { ev.preventDefault(); move(ev.clientX, ev.clientY); }
+          function onTouchMove(ev) { ev.preventDefault(); move(ev.touches[0].clientX, ev.touches[0].clientY); }
+          function stop() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', stop);
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', stop);
+          }
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', stop);
+          document.addEventListener('touchmove', onTouchMove, { passive: false });
+          document.addEventListener('touchend', stop);
+        }
+        el.addEventListener('mousedown', e => { e.preventDefault(); start(e.clientX, e.clientY); });
+        el.addEventListener('touchstart', e => { start(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+      });
+    }
+
+    initDrag('.slider', hUpdate, 'x');
+    initDrag('.slider-v', vUpdate, 'y');
+
+    /* Keep hSlider/vSlider for backward compat */
+    function hSlider(el, e) { hUpdate(el, e.clientX); }
+    function vSlider(el, e) { vUpdate(el, e.clientY); }
+
+    function chipToggle(c) {
+      c.parentElement.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    }
+
+    function cdotPick(d) {
+      d.parentElement.querySelectorAll('.cdot').forEach(x => x.classList.remove('active'));
+      d.classList.add('active');
+    }
+
+    /* Stepper */
+    function stepVal(id, delta) {
+      const el = document.getElementById(id);
+      const unitEl = el.querySelector('.stepper-unit');
+      const unit = unitEl.textContent;
+      const cur = parseFloat(el.firstChild.textContent);
+      const next = Math.max(0, Math.min(100, cur + delta));
+      el.firstChild.textContent = (unit === '°C' ? next.toFixed(1) : Math.round(next));
+    }
+
+    /* Dropdown */
+    function toggleDd(id) {
+      const dd = document.getElementById(id);
+      document.querySelectorAll('.dropdown.open').forEach(d => { if (d.id !== id) d.classList.remove('open'); });
+      dd.classList.toggle('open');
+    }
+    function selectDd(id, item) {
+      const dd = document.getElementById(id);
+      dd.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      dd.classList.remove('open');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    });
+
+    /* Tab bar */
+    function tabSwitch(tab) {
+      tab.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    }
+
+    /* Ripple */
+    function doRipple(e) {
+      const btn = e.currentTarget;
+      const r = btn.getBoundingClientRect();
+      const size = Math.max(r.width, r.height);
+      const wave = document.createElement('span');
+      wave.className = 'ripple-wave';
+      wave.style.width = wave.style.height = size + 'px';
+      wave.style.left = (e.clientX - r.left - size / 2) + 'px';
+      wave.style.top = (e.clientY - r.top - size / 2) + 'px';
+      btn.appendChild(wave);
+      wave.addEventListener('animationend', () => wave.remove());
+    }
+
+    /* Multiroom toggle */
+    function mrToggle(tile) {
+      tile.classList.toggle('on');
+    }
+
+    /* Scroll mask auto-update */
+    const scrollDemo = document.getElementById('scroll-demo');
+    if (scrollDemo) {
+      scrollDemo.addEventListener('scroll', () => {
+        const s = scrollDemo;
+        const atStart = s.scrollLeft <= 5;
+        const atEnd = s.scrollLeft + s.offsetWidth >= s.scrollWidth - 5;
+        s.classList.remove('mask-left', 'mask-right', 'mask-both');
+        if (atStart && !atEnd) s.classList.add('mask-right');
+        else if (!atStart && atEnd) s.classList.add('mask-left');
+        else if (!atStart && !atEnd) s.classList.add('mask-both');
+      });
+    }
+
+    /* Accordion */
+    function accToggle(header) {
+      header.parentElement.classList.toggle('open');
+    }
+
+    /* Bottom Sheet */
+    function openSheet() {
+      document.getElementById('sheet-overlay').classList.add('open');
+      document.getElementById('sheet-demo').classList.add('open');
+    }
+    function closeSheet() {
+      document.getElementById('sheet-overlay').classList.remove('open');
+      document.getElementById('sheet-demo').classList.remove('open');
+    }
+
+    /* Popover */
+    function togglePopover(btn) {
+      const pop = btn.parentElement.querySelector('.popover');
+      pop.classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.popover-wrap')) {
+        document.querySelectorAll('.popover.open').forEach(p => p.classList.remove('open'));
+      }
+    });
+
+    /* Select */
+    function toggleSelect(id) {
+      const wrap = document.getElementById(id);
+      document.querySelectorAll('.select-wrap.open').forEach(s => { if (s.id !== id) s.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    }
+    function pickSelect(id, opt) {
+      const wrap = document.getElementById(id);
+      wrap.querySelectorAll('.select-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      wrap.querySelector('.select-trigger span').textContent = opt.dataset.label;
+      wrap.classList.remove('open');
+    }
+    function filterSelect(id, val) {
+      const wrap = document.getElementById(id);
+      const lower = val.toLowerCase();
+      wrap.querySelectorAll('.select-option').forEach(o => {
+        o.classList.toggle('hidden', !o.dataset.label.toLowerCase().includes(lower));
+      });
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.select-wrap')) {
+        document.querySelectorAll('.select-wrap.open').forEach(s => s.classList.remove('open'));
+      }
+    });
+
+    /* Radio Group */
+    function radioSelect(groupId, item) {
+      document.getElementById(groupId).querySelectorAll('.radio-item').forEach(r => r.classList.remove('active'));
+      item.classList.add('active');
+    }
+
+    /* Confirm Dialog */
+    function openDialog(id) { document.getElementById(id).classList.add('open'); }
+    function closeDialog(id) { document.getElementById(id).classList.remove('open'); }
+
+    /* OTP auto-next */
+    function otpNext(input) {
+      if (input.value.length === 1 && input.nextElementSibling) {
+        input.nextElementSibling.focus();
+      }
+    }
+
+    /* Pagination */
+    function pagSwitch(btn) {
+      btn.parentElement.querySelectorAll('.page-btn:not([aria-label])').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* Segmented Control */
+    function segSwitch(btn) {
+      btn.parentElement.querySelectorAll('.seg-btn').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* Color dots (cdot inline quick-pick) */
+    function cdotPick(btn) {
+      btn.parentElement.querySelectorAll('.cdot').forEach(d => d.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* Rainbow button — demo alert (in prod: opens cp-overlay dialog) */
+    function openCpDemo() {
+      alert('En production, ouvre le dialog cp-overlay avec le canvas HSV wheel.');
+    }
+
+    /* Color swatch grid */
+    function swatchPick(btn) {
+      btn.parentElement.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      /* Update wheel preview if present */
+      var hex = btn.style.background || btn.style.backgroundColor;
+      var preview = document.getElementById('cp-preview');
+      var hexLabel = document.getElementById('cp-hex');
+      if (preview) preview.style.background = hex;
+      if (hexLabel) hexLabel.textContent = rgb2hex(hex);
+    }
+
+    /* HSV Canvas Color Wheel — matches light-card implementation */
+    function hsToRgb(h, s) {
+      var v = 1, c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+      var r = 0, g = 0, b = 0;
+      if (h < 60) { r = c; g = x; }
+      else if (h < 120) { r = x; g = c; }
+      else if (h < 180) { g = c; b = x; }
+      else if (h < 240) { g = x; b = c; }
+      else if (h < 300) { r = x; b = c; }
+      else { r = c; b = x; }
+      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+    }
+
+    function rgb2hex(str) {
+      /* Parse "rgb(r, g, b)" or hex */
+      if (str.startsWith('#')) return str;
+      var m = str.match(/\d+/g);
+      if (!m || m.length < 3) return str;
+      return '#' + m.slice(0,3).map(function(c) { return parseInt(c).toString(16).padStart(2,'0'); }).join('');
+    }
+
+    function drawColorWheel(canvas) {
+      var size = 440;
+      canvas.width = size; canvas.height = size;
+      var ctx = canvas.getContext('2d');
+      var cx = size / 2, cy = size / 2, radius = size / 2;
+      var img = ctx.createImageData(size, size);
+      for (var y = 0; y < size; y++) {
+        for (var x = 0; x < size; x++) {
+          var dx = x - cx, dy = y - cy;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          var idx = (y * size + x) * 4;
+          if (dist <= radius) {
+            var angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+            var sat = dist / radius;
+            var rgb = hsToRgb(angle, sat);
+            img.data[idx] = rgb[0];
+            img.data[idx + 1] = rgb[1];
+            img.data[idx + 2] = rgb[2];
+            img.data[idx + 3] = 255;
+          } else {
+            img.data[idx + 3] = 0;
+          }
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function onWheelInteraction(e) {
+      e.preventDefault();
+      var canvas = document.getElementById('cp-canvas');
+      var cursor = document.getElementById('cp-cursor');
+      var preview = document.getElementById('cp-preview');
+      var hexLabel = document.getElementById('cp-hex');
+      var rect = canvas.getBoundingClientRect();
+
+      function update(ev) {
+        var clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+        var clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+        var px = (clientX - rect.left) / rect.width;
+        var py = (clientY - rect.top) / rect.height;
+        /* Clamp to circle */
+        var dx = px - 0.5, dy = py - 0.5;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0.5) { dx = dx / dist * 0.5; dy = dy / dist * 0.5; }
+        var fx = dx + 0.5, fy = dy + 0.5;
+        var angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+        var sat = Math.min(dist, 0.5) / 0.5;
+        var rgb = hsToRgb(angle, sat);
+        var hex = '#' + rgb.map(function(c) { return c.toString(16).padStart(2,'0'); }).join('');
+        cursor.style.left = (fx * 100) + '%';
+        cursor.style.top = (fy * 100) + '%';
+        cursor.style.background = hex;
+        if (preview) preview.style.background = hex;
+        if (hexLabel) hexLabel.textContent = hex;
+      }
+
+      update(e);
+      function onMove(ev) { ev.preventDefault(); update(ev); }
+      function onEnd() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    }
+
+    /* Init color wheel on load */
+    (function() {
+      var canvas = document.getElementById('cp-canvas');
+      if (canvas) {
+        drawColorWheel(canvas);
+        canvas.addEventListener('mousedown', onWheelInteraction);
+        canvas.addEventListener('touchstart', onWheelInteraction, { passive: false });
+      }
+    })();
+
+    /* Day picker */
+    function dayPick(btn) {
+      btn.closest('.picker-grid').querySelectorAll('.picker-day').forEach(d => d.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    /* Re-init drag for sheet sliders after DOM load */
+    setTimeout(() => {
+      initDrag('.sheet .slider', hUpdate, 'x');
+    }, 100);
+  </script>
+</body>
+
+</html>

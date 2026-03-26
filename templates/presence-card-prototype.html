@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presence Card - Glass Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #a78bfa;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    --avatar-size: 38px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px; padding: 40px 16px 100px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient background ── */
+  .ambient-bg {
+    position: fixed; inset: 0; z-index: -1;
+    transition: background var(--t-slow);
+  }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: background var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Glass ── */
+  .glass {
+    position: relative; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2); transition: border-color var(--t-fast);
+  }
+  .glass:hover { border-color: rgba(255,255,255,0.13); }
+
+  /* ── Card header (outside glass, matches media-hero pattern) ── */
+  .presence-card-wrap {
+    width: 380px; max-width: 100%;
+    animation: float-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0 6px; min-height: 22px; margin-bottom: 6px;
+    box-sizing: border-box;
+  }
+  .card-header-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title {
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--t4);
+  }
+  .card-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 14px; height: 14px; padding: 0 4px;
+    border-radius: var(--radius-full);
+    font-size: 9px; font-weight: 600;
+    transition: all var(--t-med);
+  }
+  .card-count.all-home { background: rgba(74,222,128,0.15); color: var(--c-success); }
+  .card-count.all-away { background: rgba(248,113,113,0.15); color: var(--c-alert); }
+  .card-count.mixed { background: rgba(251,191,36,0.15); color: var(--c-warning); }
+
+  /* ── Presence card ── */
+  .presence-card {
+    padding: 7px 14px; width: 100%; box-sizing: border-box;
+  }
+  @keyframes float-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    opacity: 0.06; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+    pointer-events: none;
+  }
+  .presence-card[data-presence="home"] .card-tint {
+    background: radial-gradient(ellipse at 50% 50%, var(--c-success), transparent 70%);
+    opacity: 0.1;
+  }
+  .presence-card[data-presence="away"] .card-tint {
+    background: radial-gradient(ellipse at 50% 50%, var(--c-alert), transparent 70%);
+    opacity: 0.09;
+  }
+  .presence-card[data-presence="mixed"] .card-tint {
+    background: linear-gradient(to right, rgba(74,222,128,0.15), transparent 40%, transparent 60%, rgba(248,113,113,0.15));
+    opacity: 0.5;
+  }
+
+  .card-inner {
+    position: relative; z-index: 1;
+    display: flex; align-items: center;
+  }
+
+  /* Solo layout: person left, compact health chips right */
+  .card-inner.solo-layout {
+    justify-content: space-between; gap: 8px;
+  }
+  .solo-health-chips {
+    display: flex; align-items: center; gap: 5px;
+    flex-shrink: 0;
+  }
+  .solo-chip {
+    display: flex; align-items: center; gap: 3px;
+    padding: 4px 8px; border-radius: var(--radius-full);
+    background: var(--s2); border: 1px solid var(--b1);
+    white-space: nowrap; line-height: 1;
+  }
+  .solo-chip i { font-size: 12px; }
+  .solo-chip-val { font-size: 11px; font-weight: 600; }
+  .solo-chip.bpm i, .solo-chip.bpm .solo-chip-val { color: var(--c-alert); opacity: 0.8; }
+  .solo-chip.spo2 i, .solo-chip.spo2 .solo-chip-val { color: var(--c-info); opacity: 0.8; }
+  .solo-chip.steps i, .solo-chip.steps .solo-chip-val { color: var(--c-success); opacity: 0.8; }
+
+  /* Family layout: stacked couple-style rows */
+  .card-inner.family-layout {
+    flex-direction: column; gap: 0;
+  }
+  .family-row {
+    display: flex; align-items: center; width: 100%;
+  }
+  .family-sep {
+    height: 1px; margin: 8px 12px;
+    background: linear-gradient(90deg, transparent, var(--b2), transparent);
+  }
+  /* Odd last person: centered, capped width */
+  .family-row.solo-row {
+    justify-content: center;
+  }
+  .family-row.solo-row .person-block {
+    flex: 0 1 auto;
+  }
+
+  /* ── Person block ── */
+  .person-block {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;
+  }
+  .person-block.right {
+    flex-direction: row-reverse; text-align: right;
+  }
+
+  .avatar-wrapper {
+    position: relative; flex-shrink: 0;
+    cursor: pointer; background: none; border: none;
+    padding: 0; border-radius: 50%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .avatar-wrapper:not(:focus-visible) { outline: none; }
+  .avatar-wrapper:active { transform: scale(0.96); }
+  .avatar-wrapper:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+
+  .avatar {
+    width: var(--avatar-size); height: var(--avatar-size);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color var(--t-med);
+  }
+  .avatar i { font-size: 22px; color: rgba(255,255,255,0.85); }
+
+  @media (hover: hover) {
+    .avatar-wrapper:hover .avatar { border-color: rgba(255,255,255,0.3); }
+  }
+  .avatar-wrapper:focus-visible .avatar { border-color: rgba(255,255,255,0.3); }
+
+  .avatar-status {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid rgba(15,25,35,0.9);
+    transition: background var(--t-med), box-shadow var(--t-med);
+  }
+  .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+  .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+  .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+
+  .person-info { min-width: 0; flex: 1; }
+  .person-name { font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2; }
+  .person-block.right .person-name { text-align: right; }
+
+  .person-sub { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .person-block.right .person-sub { align-items: flex-end; }
+
+  .person-line { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .person-block.right .person-line { flex-direction: row-reverse; }
+
+  .person-location {
+    font-size: 10px; font-weight: 500; color: var(--t3);
+    white-space: nowrap; overflow: hidden; min-width: 0;
+  }
+
+  /* Source type icon */
+  .source-icon { display: flex; align-items: center; flex-shrink: 0; }
+  .source-icon i { font-size: 10px; color: var(--t4); }
+
+  /* Driving icon (collapsed row) */
+  .driving-icon { display: flex; align-items: center; flex-shrink: 0; }
+  .driving-icon i { font-size: 12px; color: var(--c-info); opacity: 0.7; }
+
+  /* Fold meta (battery + last seen, inside address row) */
+  .fold-meta {
+    display: flex; align-items: center; gap: 6px;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .fold-battery {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 500; flex-shrink: 0;
+    margin-left: auto;
+  }
+  .fold-battery.high { color: var(--c-success); }
+  .fold-battery.medium { color: var(--c-warning); }
+  .fold-battery.low { color: var(--c-alert); }
+  .fold-battery i { font-size: 14px; color: inherit; }
+  .fold-last-seen {
+    font-size: 10px; font-weight: 400; color: var(--t4); white-space: nowrap;
+  }
+
+  /* ── Distance center ── */
+  .distance-center {
+    flex-shrink: 0; display: flex; align-items: center; padding: 0; gap: 0;
+  }
+  .distance-line {
+    width: 20px; height: 1px;
+    background: linear-gradient(to right, var(--b1), var(--b3));
+  }
+  .distance-line.right {
+    background: linear-gradient(to right, var(--b3), var(--b1));
+  }
+  .distance-info {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 1px; padding: 0 4px;
+  }
+  .distance-value {
+    font-size: 14px; font-weight: 700; color: var(--t2);
+    white-space: nowrap; line-height: 1;
+  }
+  .distance-unit {
+    font-size: 9px; font-weight: 400; color: var(--t4);
+    text-align: center; line-height: 1;
+  }
+
+  /* Heart pulse when distance < 10m */
+  .heart-pulse {
+    display: none; color: #f472b6; line-height: 1; padding: 0 4px;
+    filter: drop-shadow(0 0 4px rgba(244,114,182,0.35));
+    animation: pulse-beat 2.5s ease-in-out infinite;
+  }
+  .heart-pulse i { font-size: 18px; }
+  .distance-center.near .heart-pulse { display: flex; align-items: center; }
+  .distance-center.near .distance-info { display: none; }
+
+  @keyframes pulse-beat {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50% { transform: scale(1.05); opacity: 0.85; }
+  }
+
+  /* ── Fold separator ── */
+  .fold-sep {
+    height: 1px; margin: 8px 12px 0;
+    background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
+    opacity: 0; transition: opacity 0.25s var(--ease-std);
+  }
+  .fold-sep.home { background: linear-gradient(90deg, transparent, rgba(74,222,128,0.3), transparent); }
+  .fold-sep.mixed { background: linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent); }
+  .fold-sep.away { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.3), transparent); }
+  .fold-sep.visible { opacity: 1; }
+
+  /* ── Collapsible fold (CSS Grid + opacity fade) ── */
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+    position: relative; z-index: 1;
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden;
+    opacity: 0; transition: opacity 0.25s var(--ease-std);
+  }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+  .fold-content { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+
+  /* ── Health zone ── */
+  .health-zone-label {
+    font-size: 10px; font-weight: 500; color: var(--t4);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .health-zone-name { color: var(--t3); font-weight: 600; }
+
+  .health-address-row {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 8px; border-radius: var(--radius-sm);
+    background: var(--s1); border: 1px solid var(--b1);
+  }
+  .health-address-row > i { font-size: 12px; color: var(--t4); flex-shrink: 0; }
+  .health-address-row .address-text {
+    font-size: 10px; font-weight: 400; color: var(--t3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1; min-width: 0;
+  }
+
+  .health-pills { display: flex; gap: 6px; }
+  .health-pill {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: var(--radius-md);
+    background: var(--s1); border: 1px solid var(--b1);
+    transition: background var(--t-fast), border-color var(--t-fast);
+  }
+  @media (hover: hover) {
+    .health-pill:hover { background: var(--s3); border-color: var(--b2); }
+  }
+  .health-pill-icon { flex-shrink: 0; display: flex; align-items: center; }
+  .health-pill-icon i { font-size: 14px; }
+  .health-pill-data { display: flex; flex-direction: column; min-width: 0; }
+  .health-pill-value { font-size: 13px; font-weight: 700; line-height: 1.1; color: var(--t1); }
+  .health-pill-label {
+    font-size: 8px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--t4); line-height: 1.2;
+  }
+
+  .health-pill.bpm .health-pill-icon i { color: var(--c-alert); }
+  .health-pill.bpm .health-pill-value { color: var(--c-alert); opacity: 0.85; }
+  .health-pill.spo2 .health-pill-icon i { color: var(--c-info); }
+  .health-pill.spo2 .health-pill-value { color: var(--c-info); opacity: 0.85; }
+  .health-pill.steps .health-pill-icon i { color: var(--c-success); }
+  .health-pill.steps .health-pill-value { color: var(--c-success); opacity: 0.85; }
+
+  /* ── Notification zone ── */
+  .notif-zone {
+    padding: 8px 0 4px;
+    display: flex; gap: 8px; flex-direction: column;
+  }
+  .notif-to {
+    font-size: 10px; font-weight: 500; color: var(--t4);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .notif-to-name { color: var(--t2); font-weight: 600; }
+
+  .notif-row { display: flex; gap: 8px; align-items: flex-end; }
+  .notif-input {
+    flex: 1; padding: 8px 12px; border-radius: 12px;
+    border: 1px solid var(--b2); background: var(--s1);
+    color: var(--t1); font-family: inherit; font-size: 12px;
+    outline: none; resize: none; height: 36px;
+    box-sizing: border-box;
+    transition: border-color var(--t-fast);
+  }
+  .notif-input::placeholder { color: var(--t4); }
+  .notif-input:focus { border-color: var(--b3); }
+
+  .notif-send {
+    width: 36px; height: 36px; border-radius: var(--radius-lg);
+    border: 1px solid rgba(74,222,128,0.2);
+    background: rgba(74,222,128,0.1); color: var(--c-success);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background var(--t-fast), border-color var(--t-fast);
+    padding: 0; outline: none; font-size: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .notif-send i { font-size: 16px; }
+  @media (hover: hover) {
+    .notif-send:hover { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); }
+  }
+  .notif-send:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+  .notif-send:active { transform: scale(0.96); }
+
+  /* ── Demo controls ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<div class="presence-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title">Presence</span>
+    </div>
+    <span class="card-count" id="card-count"></span>
+  </div>
+  <div id="card-root"></div>
+</div>
+
+<!-- Demo Controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Presence</span>
+    <button class="demo-btn active" onclick="setScenario('mixed',this)">Mixte</button>
+    <button class="demo-btn" onclick="setScenario('home',this)">Maison</button>
+    <button class="demo-btn" onclick="setScenario('away',this)">Absents</button>
+    <button class="demo-btn" onclick="setScenario('zone',this)">Zones</button>
+    <button class="demo-btn" onclick="setScenario('near',this)">Proche</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Personnes</span>
+    <button class="demo-btn" onclick="setCount(1,this)">Solo</button>
+    <button class="demo-btn active" onclick="setCount(2,this)">Couple</button>
+    <button class="demo-btn" onclick="setCount(3,this)">Famille 3</button>
+    <button class="demo-btn" onclick="setCount(4,this)">Famille 4</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   HA PERSON / DEVICE_TRACKER DATA MODEL
+   ================================================================ */
+
+/* source_type icons (matches HA source_type values) */
+var SOURCE_ICONS = {
+  gps: 'mdi-crosshairs-gps',
+  router: 'mdi-router-wireless',
+  bluetooth: 'mdi-bluetooth',
+  bluetooth_le: 'mdi-bluetooth'
+};
+
+/* Zone icons */
+var ZONE_ICONS = {
+  home: 'mdi-home',
+  work: 'mdi-briefcase',
+  gym: 'mdi-dumbbell',
+  school: 'mdi-school'
+};
+
+/* Avatar colors per person */
+var AVATAR_COLORS = [
+  { from: '#6366f1', to: '#8b5cf6' },
+  { from: '#ec4899', to: '#f472b6' },
+  { from: '#f59e0b', to: '#fbbf24' },
+  { from: '#10b981', to: '#34d399' }
+];
+
+/* Person definitions (simulates HA person entities) */
+var personDefs = {
+  alex: {
+    name: 'Alex',
+    entity_picture: null,
+    device_trackers: ['device_tracker.alex_phone_gps', 'device_tracker.alex_router'],
+    avatar_idx: 0
+  },
+  marie: {
+    name: 'Marie',
+    entity_picture: null,
+    device_trackers: ['device_tracker.marie_phone_gps', 'device_tracker.marie_router'],
+    avatar_idx: 1
+  },
+  lucas: {
+    name: 'Lucas',
+    entity_picture: null,
+    device_trackers: ['device_tracker.lucas_phone_gps'],
+    avatar_idx: 2
+  },
+  emma: {
+    name: 'Emma',
+    entity_picture: null,
+    device_trackers: ['device_tracker.emma_phone_gps'],
+    avatar_idx: 3
+  }
+};
+
+/* Person states (simulates HA person state + attributes) */
+var persons = {
+  alex: {
+    state: 'home',
+    latitude: 47.636, longitude: 6.863, gps_accuracy: 10,
+    source: 'device_tracker.alex_phone_gps', source_type: 'gps',
+    battery_level: 82, last_updated: Date.now() - 120000,
+    address: '4 Rue des Acacias, 90380 Roppe',
+    health: { bpm: 72, spo2: 98, steps: 4832 },
+    isDriving: false
+  },
+  marie: {
+    state: 'not_home',
+    latitude: 47.365, longitude: 7.345, gps_accuracy: 15,
+    source: 'device_tracker.marie_phone_gps', source_type: 'gps',
+    battery_level: 45, last_updated: Date.now() - 300000,
+    address: 'Route de Porrentruy 12, 2800 Delemont',
+    health: { bpm: 65, spo2: 99, steps: 7241 },
+    isDriving: true
+  },
+  lucas: {
+    state: 'home',
+    latitude: 47.636, longitude: 6.863, gps_accuracy: 5,
+    source: 'device_tracker.lucas_phone_gps', source_type: 'gps',
+    battery_level: 91, last_updated: Date.now() - 60000,
+    address: '4 Rue des Acacias, 90380 Roppe',
+    health: { bpm: 80, spo2: 97, steps: 8120 },
+    isDriving: false
+  },
+  emma: {
+    state: 'home',
+    latitude: 47.636, longitude: 6.863, gps_accuracy: 8,
+    source: 'device_tracker.emma_phone_gps', source_type: 'bluetooth_le',
+    battery_level: 23, last_updated: Date.now() - 900000,
+    address: '4 Rue des Acacias, 90380 Roppe',
+    health: { bpm: 68, spo2: 99, steps: 3210 },
+    isDriving: false
+  }
+};
+
+var visiblePersons = ['alex', 'marie'];
+var activePerson = null;
+var distanceKm = 47;
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function mdi(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+/* Format "il y a X min" from timestamp */
+function timeAgo(ts) {
+  var diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return 'a l\'instant';
+  if (diff < 3600) return 'il y a ' + Math.floor(diff / 60) + ' min';
+  if (diff < 86400) return 'il y a ' + Math.floor(diff / 3600) + 'h';
+  return 'il y a ' + Math.floor(diff / 86400) + 'j';
+}
+
+/* State -> status class */
+function stateClass(state) {
+  if (state === 'home') return 'home';
+  if (state === 'not_home') return 'away';
+  return 'zone';
+}
+
+/* State -> display text */
+function stateText(state) {
+  if (state === 'home') return 'Maison';
+  if (state === 'not_home') return 'Absent';
+  return state.charAt(0).toUpperCase() + state.slice(1);
+}
+
+/* Battery icon based on level */
+function batteryIcon(level) {
+  if (level > 80) return 'mdi-battery';
+  if (level > 60) return 'mdi-battery-70';
+  if (level > 40) return 'mdi-battery-50';
+  if (level > 20) return 'mdi-battery-30';
+  return 'mdi-battery-10';
+}
+
+function batteryClass(level) {
+  if (level > 50) return 'high';
+  if (level > 20) return 'medium';
+  return 'low';
+}
+
+/* Presence class for card tint */
+function presenceClass(ids) {
+  var hasHome = false; var hasAway = false;
+  ids.forEach(function(id) {
+    if (persons[id].state === 'home') hasHome = true;
+    else hasAway = true;
+  });
+  if (hasHome && hasAway) return 'mixed';
+  if (hasHome) return 'home';
+  return 'away';
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var root = document.getElementById('card-root');
+  var wasActive = activePerson;
+  activePerson = null;
+  while (root.firstChild) root.removeChild(root.firstChild);
+
+  /* Update header count pill */
+  var homeCount = 0;
+  visiblePersons.forEach(function(id) {
+    if (persons[id].state === 'home') homeCount++;
+  });
+  var countEl = document.getElementById('card-count');
+  countEl.textContent = homeCount + '/' + visiblePersons.length;
+  var countClass = 'card-count ';
+  if (homeCount === 0) countClass += 'all-away';
+  else if (homeCount === visiblePersons.length) countClass += 'all-home';
+  else countClass += 'mixed';
+  countEl.className = countClass;
+
+  var card = el('div', 'glass presence-card');
+  card.setAttribute('data-presence', presenceClass(visiblePersons));
+
+  var tint = el('div', 'card-tint');
+  card.appendChild(tint);
+
+  var inner = el('div', 'card-inner');
+
+  if (visiblePersons.length === 1) {
+    /* Solo layout: person left, health pills right */
+    inner.classList.add('solo-layout');
+    inner.appendChild(buildPersonBlock(visiblePersons[0], false));
+    var chips = buildSoloHealthChips(visiblePersons[0]);
+    if (chips) inner.appendChild(chips);
+  } else if (visiblePersons.length === 2) {
+    /* Couple layout: person -- distance -- person */
+    inner.appendChild(buildPersonBlock(visiblePersons[0], false));
+    inner.appendChild(buildDistanceCenter());
+    inner.appendChild(buildPersonBlock(visiblePersons[1], true));
+  } else {
+    /* Family layout: stacked couple-style pairs */
+    inner.classList.add('family-layout');
+    for (var i = 0; i < visiblePersons.length; i += 2) {
+      if (i > 0) {
+        inner.appendChild(el('div', 'family-sep'));
+      }
+      var row = el('div', 'family-row');
+      if (i + 1 < visiblePersons.length) {
+        /* Pair: person left -- distance -- person right (mirrored) */
+        var idA = visiblePersons[i], idB = visiblePersons[i + 1];
+        var pairKm = haversineKm(
+          persons[idA].latitude, persons[idA].longitude,
+          persons[idB].latitude, persons[idB].longitude
+        );
+        row.appendChild(buildPersonBlock(idA, false));
+        row.appendChild(buildDistanceBetween(pairKm, true));
+        row.appendChild(buildPersonBlock(idB, true));
+      } else {
+        /* Odd last: centered */
+        row.classList.add('solo-row');
+        row.appendChild(buildPersonBlock(visiblePersons[i], false));
+      }
+      inner.appendChild(row);
+    }
+  }
+
+  card.appendChild(inner);
+
+  /* Fold: health + notification (only when a person is active, not in solo mode) */
+  var isOpen = visiblePersons.length > 1 && wasActive !== null && persons[wasActive];
+  if (isOpen) {
+    activePerson = wasActive;
+
+    var presClass = presenceClass(visiblePersons);
+    var foldSepTop = el('div', 'fold-sep ' + presClass);
+    var fold = el('div', 'ctrl-fold');
+    var foldInner = el('div', 'ctrl-fold-inner');
+    var foldContent = el('div', 'fold-content');
+
+    renderHealthZone(foldContent, wasActive);
+    renderNotifZone(foldContent, wasActive);
+
+    foldInner.appendChild(foldContent);
+    fold.appendChild(foldInner);
+
+    /* Only top separator (prod doesn't have bottom fold-sep) */
+    card.appendChild(foldSepTop);
+    card.appendChild(fold);
+  }
+
+  root.appendChild(card);
+
+  /* Animate fold */
+  if (isOpen) {
+    if (wasActive === activePerson) {
+      fold.classList.add('open');
+      foldSepTop.classList.add('visible');
+    } else {
+      (function(f, st) {
+        requestAnimationFrame(function() { requestAnimationFrame(function() {
+          f.classList.add('open');
+          st.classList.add('visible');
+        }); });
+      })(fold, foldSepTop);
+    }
+  }
+}
+
+/* ── Person block ── */
+function buildPersonBlock(id, isRight) {
+  var def = personDefs[id];
+  var state = persons[id];
+  var block = el('div', 'person-block' + (isRight ? ' right' : ''));
+
+  /* Avatar button */
+  var avatarBtn = el('button', 'avatar-wrapper');
+  avatarBtn.setAttribute('aria-label', 'Informations et notifications pour ' + def.name);
+  avatarBtn.setAttribute('aria-expanded', String(activePerson === id));
+
+  var colors = AVATAR_COLORS[def.avatar_idx % AVATAR_COLORS.length];
+  var avatar = el('div', 'avatar');
+  avatar.style.background = 'linear-gradient(135deg, ' + colors.from + ', ' + colors.to + ')';
+  avatar.style.border = '2px solid rgba(255,255,255,0.1)';
+
+  var avatarIcon = mdi('mdi-account');
+  avatarIcon.style.fontSize = '22px';
+  avatarIcon.style.color = 'rgba(255,255,255,0.85)';
+  avatar.appendChild(avatarIcon);
+
+  avatarBtn.appendChild(avatar);
+
+  var statusDot = el('div', 'avatar-status ' + stateClass(state.state));
+  avatarBtn.appendChild(statusDot);
+
+  avatarBtn.addEventListener('click', (function(pid) {
+    return function(e) {
+      e.stopPropagation();
+      if (activePerson === pid) {
+        activePerson = null;
+      } else {
+        activePerson = pid;
+      }
+      render();
+    };
+  })(id));
+
+  block.appendChild(avatarBtn);
+
+  /* Info */
+  var info = el('div', 'person-info');
+  info.appendChild(el('div', 'person-name', { text: def.name }));
+
+  var sub = el('div', 'person-sub');
+
+  /* Location line: source icon + location + driving icon */
+  var locLine = el('div', 'person-line');
+
+  var srcIcon = el('span', 'source-icon');
+  srcIcon.appendChild(mdi(SOURCE_ICONS[state.source_type] || 'mdi-crosshairs-gps'));
+  locLine.appendChild(srcIcon);
+
+  var locText = el('span', 'person-location', { text: stateText(state.state) });
+  locLine.appendChild(locText);
+
+  /* Driving icon if applicable */
+  if (state.isDriving) {
+    var driveIcon = el('span', 'driving-icon');
+    driveIcon.appendChild(mdi('mdi-car'));
+    locLine.appendChild(driveIcon);
+  }
+
+  sub.appendChild(locLine);
+
+  info.appendChild(sub);
+  block.appendChild(info);
+
+  return block;
+}
+
+/* ── Haversine distance (km) ── */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLon = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* ── Distance center (shared by couple & family) ── */
+function buildDistanceBetween(km, showHeart) {
+  var center = el('div', 'distance-center');
+
+  if (km < 0.01) {
+    center.classList.add('near');
+  }
+
+  var lineL = el('div', 'distance-line');
+  center.appendChild(lineL);
+
+  var distInfo = el('div', 'distance-info');
+  if (km < 1) {
+    distInfo.appendChild(el('div', 'distance-value', { text: String(Math.round(km * 1000)) }));
+    distInfo.appendChild(el('div', 'distance-unit', { text: 'm' }));
+  } else {
+    distInfo.appendChild(el('div', 'distance-value', { text: String(Math.round(km)) }));
+    distInfo.appendChild(el('div', 'distance-unit', { text: 'km' }));
+  }
+  center.appendChild(distInfo);
+
+  if (showHeart) {
+    var heart = el('div', 'heart-pulse');
+    heart.setAttribute('aria-hidden', 'true');
+    heart.appendChild(mdi('mdi-heart'));
+    center.appendChild(heart);
+  }
+
+  var lineR = el('div', 'distance-line right');
+  center.appendChild(lineR);
+
+  return center;
+}
+
+/* Legacy wrapper for couple mode */
+function buildDistanceCenter() {
+  return buildDistanceBetween(distanceKm, true);
+}
+
+/* ── Solo health chips (compact inline) ── */
+function buildSoloHealthChips(id) {
+  var state = persons[id];
+  if (!state.health) return null;
+
+  var row = el('div', 'solo-health-chips');
+
+  var bpm = el('div', 'solo-chip bpm');
+  bpm.appendChild(mdi('mdi-heart-pulse'));
+  bpm.appendChild(el('span', 'solo-chip-val', { text: String(state.health.bpm) }));
+  row.appendChild(bpm);
+
+  var spo2 = el('div', 'solo-chip spo2');
+  spo2.appendChild(mdi('mdi-water-percent'));
+  spo2.appendChild(el('span', 'solo-chip-val', { text: state.health.spo2 + '%' }));
+  row.appendChild(spo2);
+
+  var steps = el('div', 'solo-chip steps');
+  steps.appendChild(mdi('mdi-walk'));
+  steps.appendChild(el('span', 'solo-chip-val', { text: state.health.steps.toLocaleString('fr-FR') }));
+  row.appendChild(steps);
+
+  return row;
+}
+
+/* ── Health zone ── */
+function renderHealthZone(container, id) {
+  var def = personDefs[id];
+  var state = persons[id];
+
+  /* Address row with battery + last-seen */
+  var addrRow = el('div', 'health-address-row');
+  if (state.address) {
+    addrRow.appendChild(mdi('mdi-map-marker'));
+    addrRow.appendChild(el('span', 'address-text', { text: state.address }));
+  }
+  var foldMeta = el('span', 'fold-meta');
+  if (state.battery_level != null) {
+    var bat = el('span', 'fold-battery ' + batteryClass(state.battery_level));
+    bat.appendChild(mdi(batteryIcon(state.battery_level)));
+    bat.appendChild(document.createTextNode(state.battery_level + '%'));
+    foldMeta.appendChild(bat);
+  }
+  var lastSeen = el('span', 'fold-last-seen', { text: timeAgo(state.last_updated) });
+  foldMeta.appendChild(lastSeen);
+  addrRow.appendChild(foldMeta);
+  container.appendChild(addrRow);
+
+  /* Health pills (from separate sensor entities, shown as convenience) */
+  if (state.health) {
+    var label = el('div', 'health-zone-label');
+    label.appendChild(document.createTextNode('Sante '));
+    label.appendChild(el('span', 'health-zone-name', { text: def.name }));
+    container.appendChild(label);
+
+    var pills = el('div', 'health-pills');
+
+    var bpmPill = el('div', 'health-pill bpm');
+    var bpmIcon = el('div', 'health-pill-icon');
+    bpmIcon.appendChild(mdi('mdi-heart-pulse'));
+    bpmPill.appendChild(bpmIcon);
+    var bpmData = el('div', 'health-pill-data');
+    bpmData.appendChild(el('span', 'health-pill-value', { text: String(state.health.bpm) }));
+    bpmData.appendChild(el('span', 'health-pill-label', { text: 'bpm' }));
+    bpmPill.appendChild(bpmData);
+    pills.appendChild(bpmPill);
+
+    var spo2Pill = el('div', 'health-pill spo2');
+    var spo2Icon = el('div', 'health-pill-icon');
+    spo2Icon.appendChild(mdi('mdi-water-percent'));
+    spo2Pill.appendChild(spo2Icon);
+    var spo2Data = el('div', 'health-pill-data');
+    spo2Data.appendChild(el('span', 'health-pill-value', { text: state.health.spo2 + '%' }));
+    spo2Data.appendChild(el('span', 'health-pill-label', { text: 'SpO2' }));
+    spo2Pill.appendChild(spo2Data);
+    pills.appendChild(spo2Pill);
+
+    var stepsPill = el('div', 'health-pill steps');
+    var stepsIcon = el('div', 'health-pill-icon');
+    stepsIcon.appendChild(mdi('mdi-walk'));
+    stepsPill.appendChild(stepsIcon);
+    var stepsData = el('div', 'health-pill-data');
+    var stepsStr = state.health.steps.toLocaleString('fr-FR');
+    stepsData.appendChild(el('span', 'health-pill-value', { text: stepsStr }));
+    stepsData.appendChild(el('span', 'health-pill-label', { text: 'pas' }));
+    stepsPill.appendChild(stepsData);
+    pills.appendChild(stepsPill);
+
+    container.appendChild(pills);
+  }
+}
+
+/* ── Notification zone ── */
+function renderNotifZone(container, id) {
+  var def = personDefs[id];
+
+  var zone = el('div', 'notif-zone');
+
+  var label = el('div', 'notif-to');
+  label.appendChild(document.createTextNode('Notifier '));
+  label.appendChild(el('span', 'notif-to-name', { text: def.name }));
+  zone.appendChild(label);
+
+  var row = el('div', 'notif-row');
+
+  var input = el('textarea', 'notif-input');
+  input.setAttribute('placeholder', 'Ton message...');
+  input.id = 'notif-input';
+  row.appendChild(input);
+
+  var sendBtn = el('button', 'notif-send');
+  sendBtn.setAttribute('aria-label', 'Envoyer la notification');
+  sendBtn.appendChild(mdi('mdi-send'));
+  sendBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    sendNotif();
+  });
+  row.appendChild(sendBtn);
+
+  zone.appendChild(row);
+  container.appendChild(zone);
+}
+
+/* ── Send notification ── */
+function sendNotif() {
+  var input = document.getElementById('notif-input');
+  if (!input || !input.value.trim()) return;
+
+  activePerson = null;
+  render();
+}
+
+/* ================================================================
+   SCENARIOS
+   ================================================================ */
+var scenarios = {
+  mixed: {
+    alex: { state: 'home', source_type: 'gps', battery_level: 82, last_updated: Date.now() - 120000, address: '4 Rue des Acacias, 90380 Roppe' },
+    marie: { state: 'not_home', source_type: 'gps', battery_level: 45, last_updated: Date.now() - 300000, address: 'Route de Porrentruy 12, 2800 Delemont' },
+    lucas: { state: 'home', source_type: 'gps', battery_level: 91, last_updated: Date.now() - 60000, address: '4 Rue des Acacias, 90380 Roppe' },
+    emma: { state: 'home', source_type: 'bluetooth_le', battery_level: 23, last_updated: Date.now() - 900000, address: '4 Rue des Acacias, 90380 Roppe' },
+    dist: 47
+  },
+  home: {
+    alex: { state: 'home', source_type: 'router', battery_level: 82, last_updated: Date.now() - 30000, address: '4 Rue des Acacias, 90380 Roppe' },
+    marie: { state: 'home', source_type: 'router', battery_level: 45, last_updated: Date.now() - 30000, address: '4 Rue des Acacias, 90380 Roppe' },
+    lucas: { state: 'home', source_type: 'bluetooth_le', battery_level: 91, last_updated: Date.now() - 120000, address: '4 Rue des Acacias, 90380 Roppe' },
+    emma: { state: 'home', source_type: 'bluetooth_le', battery_level: 56, last_updated: Date.now() - 60000, address: '4 Rue des Acacias, 90380 Roppe' },
+    dist: 0.005
+  },
+  away: {
+    alex: { state: 'not_home', source_type: 'gps', battery_level: 62, last_updated: Date.now() - 600000, address: 'Zone industrielle, 90000 Belfort' },
+    marie: { state: 'not_home', source_type: 'gps', battery_level: 38, last_updated: Date.now() - 420000, address: 'Route de Porrentruy 12, 2800 Delemont' },
+    lucas: { state: 'not_home', source_type: 'gps', battery_level: 70, last_updated: Date.now() - 180000, address: 'Rue de la Gare 5, 90000 Belfort' },
+    emma: { state: 'not_home', source_type: 'gps', battery_level: 15, last_updated: Date.now() - 1200000, address: 'Ecole Victor Hugo, Belfort' },
+    dist: 12
+  },
+  zone: {
+    alex: { state: 'work', source_type: 'gps', battery_level: 74, last_updated: Date.now() - 180000, address: 'Zone industrielle, 90000 Belfort' },
+    marie: { state: 'gym', source_type: 'gps', battery_level: 52, last_updated: Date.now() - 600000, address: 'Salle de sport, 90000 Belfort' },
+    lucas: { state: 'school', source_type: 'gps', battery_level: 88, last_updated: Date.now() - 300000, address: 'College Victor Hugo, 90000 Belfort' },
+    emma: { state: 'home', source_type: 'router', battery_level: 45, last_updated: Date.now() - 60000, address: '4 Rue des Acacias, 90380 Roppe' },
+    dist: 8
+  },
+  near: {
+    alex: { state: 'home', source_type: 'router', battery_level: 82, last_updated: Date.now() - 30000, address: '4 Rue des Acacias, 90380 Roppe' },
+    marie: { state: 'not_home', source_type: 'gps', battery_level: 45, last_updated: Date.now() - 10000, address: 'En approche...' },
+    lucas: { state: 'home', source_type: 'bluetooth_le', battery_level: 91, last_updated: Date.now() - 120000, address: '4 Rue des Acacias, 90380 Roppe' },
+    emma: { state: 'home', source_type: 'bluetooth_le', battery_level: 56, last_updated: Date.now() - 60000, address: '4 Rue des Acacias, 90380 Roppe' },
+    dist: 0.005
+  }
+};
+
+function setScenario(name, btn) {
+  var s = scenarios[name];
+  Object.keys(s).forEach(function(key) {
+    if (key === 'dist') { distanceKm = s.dist; return; }
+    if (persons[key]) {
+      persons[key].state = s[key].state;
+      persons[key].source_type = s[key].source_type;
+      persons[key].battery_level = s[key].battery_level;
+      persons[key].last_updated = s[key].last_updated;
+      persons[key].address = s[key].address;
+    }
+  });
+  activePerson = null;
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  render();
+}
+
+function setCount(n, btn) {
+  var allIds = Object.keys(personDefs);
+  visiblePersons = allIds.slice(0, n);
+  activePerson = null;
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  render();
+}
+
+function setTime(t, btn) {
+  document.body.setAttribute('data-time', t);
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+/* ── Init ── */
+render();
+</script>
+</body>
+</html>

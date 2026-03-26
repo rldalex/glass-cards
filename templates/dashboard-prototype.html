@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Prototype - Glass Cards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens */
+            --card-radius: 22px;
+            --nav-radius: 20px;
+            --nav-height: 58px;
+            --nav-item-size: 42px;
+
+            /* Easing */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Transitions */
+            --transition-slow: 1.2s var(--ease-std);
+            --transition-med: 0.4s var(--ease-std);
+            --transition-fast: 0.2s var(--ease-std);
+            --transition-layout: 0.35s var(--ease-out);
+            --t-fast: 0.2s var(--ease-std);
+            --t-layout: 0.35s var(--ease-out);
+
+            /* Semantic Colors */
+            --color-success: #4ade80;
+            --color-alert: #f87171;
+            --color-warning: #fbbf24;
+            --color-info: #60a5fa;
+            --color-mixed: #a78bfa;
+            --c-accent: #818cf8;
+
+            /* Surfaces/Borders/Text Tokens */
+            --t1: rgba(255, 255, 255, 0.88);
+            --t2: rgba(255, 255, 255, 0.60);
+            --t3: rgba(255, 255, 255, 0.45);
+            --t4: rgba(255, 255, 255, 0.25);
+            --s2: rgba(255, 255, 255, 0.06);
+            --s3: rgba(255, 255, 255, 0.08);
+            --b1: rgba(255, 255, 255, 0.06);
+            --b2: rgba(255, 255, 255, 0.08);
+            --b3: rgba(255, 255, 255, 0.15);
+            --radius-md: 10px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background var(--transition-slow);
+            overflow: hidden;
+        }
+
+        /* ==================== BOUNCE ==================== */
+        @keyframes bounce {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(0.94); }
+            100% { transform: scale(1); }
+        }
+
+        /* ==================== AMBIENT BACKGROUND ==================== */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            transition: all var(--transition-slow);
+        }
+
+        .ambient-bg::before,
+        .ambient-bg::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            transition: all var(--transition-slow);
+        }
+
+        .ambient-bg::before {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            right: -100px;
+        }
+
+        .ambient-bg::after {
+            width: 500px;
+            height: 500px;
+            bottom: -150px;
+            left: -100px;
+        }
+
+        body[data-time="morning"] {
+            background: #0f1923;
+        }
+
+        body[data-time="morning"] .ambient-bg::before {
+            background: #1a6b8a;
+        }
+
+        body[data-time="morning"] .ambient-bg::after {
+            background: #2d8a6e;
+        }
+
+        body[data-time="day"] {
+            background: #111827;
+        }
+
+        body[data-time="day"] .ambient-bg::before {
+            background: #3b6fa0;
+        }
+
+        body[data-time="day"] .ambient-bg::after {
+            background: #4a90a0;
+        }
+
+        body[data-time="evening"] {
+            background: #1a1118;
+        }
+
+        body[data-time="evening"] .ambient-bg::before {
+            background: #8a4a2d;
+        }
+
+        body[data-time="evening"] .ambient-bg::after {
+            background: #6b3a5a;
+        }
+
+        body[data-time="night"] {
+            background: #0a0e1a;
+        }
+
+        body[data-time="night"] .ambient-bg::before {
+            background: #1a2040;
+        }
+
+        body[data-time="night"] .ambient-bg::after {
+            background: #2a1a3a;
+        }
+
+        /* ==================== PAGE CONTENT ==================== */
+        .dashboard-content {
+            width: 100%;
+            padding: 40px 24px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .dashboard-header p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+
+        /* ==================== BOTTOM NAVBAR ==================== */
+        .navbar {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            border-radius: var(--nav-radius);
+            z-index: 9997;
+            width: calc(100vw - 32px);
+            max-width: 500px;
+            overflow: hidden;
+
+            /* Glass */
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    rgba(255, 255, 255, 0.03) 50%,
+                    rgba(255, 255, 255, 0.06) 100%);
+            backdrop-filter: blur(40px) saturate(1.4);
+            -webkit-backdrop-filter: blur(40px) saturate(1.4);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-scroll {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            padding-block: 8px;
+            flex: 1;
+        }
+
+        .nav-scroll::before,
+        .nav-scroll::after {
+            content: '';
+            flex: 1 0 8px;
+        }
+
+        .nav-scroll.mask-right {
+            mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+        }
+
+        .nav-scroll.mask-left {
+            mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+        }
+
+        .nav-scroll.mask-both {
+            mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 20px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 20px), transparent 100%);
+        }
+
+        .nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ==================== NAV ITEM ==================== */
+        .nav-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--nav-item-size);
+            min-width: var(--nav-item-size);
+            padding: 0 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background var(--transition-med), color 0.6s ease;
+            flex-shrink: 0;
+            overflow: visible;
+            color: rgba(255,255,255,0.45);
+
+            /* Accessibility: Reset Button Styles */
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            outline: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .nav-item:hover {
+                background: var(--s2);
+            }
+        }
+
+        @media (pointer: coarse) {
+            .nav-item:active {
+                animation: bounce 0.3s ease;
+            }
+        }
+
+        .nav-item:focus-visible {
+            outline: 2px solid rgba(255,255,255,0.3);
+            outline-offset: -2px;
+        }
+
+        .nav-content {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-content {
+            gap: 6px;
+        }
+
+        .nav-item-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-med);
+        }
+
+        .nav-item-icon i {
+            color: inherit;
+            transition: all var(--transition-med);
+        }
+
+        /* CSS Grid fold for nav label */
+        .nav-label-wrap {
+            display: grid;
+            grid-template-columns: 0fr;
+            transition: grid-template-columns 0.35s var(--ease-out);
+            overflow: hidden;
+        }
+
+        .nav-item.active .nav-label-wrap {
+            grid-template-columns: 1fr;
+        }
+
+        .nav-item-label {
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 0;
+            opacity: 0;
+            transition: opacity var(--t-fast);
+        }
+
+        .nav-item.active .nav-item-label {
+            opacity: 1;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--t1);
+        }
+
+        /* ==================== NAV INDICATORS ==================== */
+        .nav-item.has-light .nav-content > .nav-item-icon i {
+            color: #fbbf24;
+            filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+            animation: pulse-light 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-light {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.2));
+            }
+        }
+
+        /* Humidity bar centered on nav-content */
+        .humidity-bar {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+            background: #60a5fa;
+            opacity: 0.8;
+            box-shadow: 0 0 6px rgba(96, 165, 250, 0.4);
+        }
+
+        /* Temp Badges in Navbar */
+        .nav-temp-badge {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-med);
+        }
+
+        .nav-item.has-temp-hot .nav-temp-badge {
+            opacity: 1;
+            color: #f87171;
+            filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.6));
+            animation: pulse-temp-hot 2s infinite ease-in-out;
+        }
+
+        .nav-item.has-temp-cold .nav-temp-badge {
+            opacity: 1;
+            color: #60a5fa;
+            filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+            animation: pulse-temp-cold 2s infinite ease-in-out;
+        }
+
+        .nav-item.has-music .nav-content > .nav-item-icon i {
+            animation: pulse-music 0.8s ease-in-out infinite;
+        }
+
+        /* Combined: light glow + music bounce */
+        .nav-item.has-light.has-music .nav-content > .nav-item-icon i {
+            color: #fbbf24;
+            animation:
+                pulse-light 3s ease-in-out infinite,
+                pulse-music 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-music {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            30% {
+                transform: scale(1.2);
+            }
+
+            50% {
+                transform: scale(0.95);
+            }
+
+            70% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes pulse-temp-hot {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 0 transparent);
+            }
+
+            50% {
+                transform: scale(1.15);
+                filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.6));
+            }
+        }
+
+        @keyframes pulse-temp-cold {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 0 transparent);
+            }
+
+            50% {
+                transform: scale(1.15);
+                filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.6));
+            }
+        }
+
+        /* ==================== POPUP OVERLAY ==================== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9995;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease-std);
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ==================== POPUP CARD ==================== */
+        .popup-card {
+            position: fixed;
+            z-index: 9999;
+            width: calc(100vw - 16px);
+            max-width: 500px;
+            bottom: 90px;
+            min-height: calc(100vh - 120px);
+            max-height: calc(100vh - 120px);
+            left: 50%;
+            transform: translateX(-50%);
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            border-radius: var(--card-radius);
+            padding: 16px;
+
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    rgba(255, 255, 255, 0.03) 50%,
+                    rgba(255, 255, 255, 0.06) 100%);
+            backdrop-filter: blur(50px) saturate(1.5);
+            -webkit-backdrop-filter: blur(50px) saturate(1.5);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 20px 60px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) scale(0.3);
+            transition: transform 0.45s var(--ease-out), opacity 0.3s var(--ease-std);
+        }
+
+        .popup-card::-webkit-scrollbar {
+            display: none;
+        }
+
+        .popup-card.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .popup-card.closing {
+            transform: translateX(-50%) scale(0.3);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 1, 1), opacity 0.25s ease;
+        }
+
+        /* ==================== SWIPE ANIMATIONS ==================== */
+        @keyframes swipe-exit-l {
+            0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        }
+        @keyframes swipe-enter-r {
+            0%   { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
+            100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        }
+        @keyframes swipe-exit-r {
+            0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translateX(25%) scale(0.95); opacity: 0; filter: blur(4px); }
+        }
+        @keyframes swipe-enter-l {
+            0%   { transform: translateX(-25%) scale(0.95); opacity: 0; filter: blur(4px); }
+            100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+        }
+
+        .dialog-inner.swipe-exit-left {
+            animation: swipe-exit-l 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
+            pointer-events: none;
+        }
+        .dialog-inner.swipe-enter-right {
+            animation: swipe-enter-r 220ms var(--ease-out) forwards;
+            pointer-events: none;
+        }
+        .dialog-inner.swipe-exit-right {
+            animation: swipe-exit-r 180ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
+            pointer-events: none;
+        }
+        .dialog-inner.swipe-enter-left {
+            animation: swipe-enter-l 220ms var(--ease-out) forwards;
+            pointer-events: none;
+        }
+
+        /* ==================== POPUP HEADER ==================== */
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform var(--t-fast);
+            padding: 0;
+            outline: none;
+            color: var(--t2);
+            font-family: inherit;
+        }
+
+        .header-icon:focus-visible {
+            outline: 2px solid var(--c-accent);
+            outline-offset: 2px;
+        }
+
+        .scene-dash {
+            width: 16px;
+            height: 3px;
+            background: var(--t4);
+            border-radius: 4px;
+            margin-top: 6px;
+            opacity: 0;
+            transform-origin: center;
+            transform: scaleX(0.75);
+            transition: opacity 0.3s var(--ease-std), transform 0.3s var(--ease-std);
+        }
+
+        .scene-dash.visible {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+
+        .header-icon i {
+            width: 20px;
+            height: 20px;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popup-room-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--t1);
+            line-height: 1.2;
+        }
+
+        .popup-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 2px;
+        }
+
+        .popup-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--t3);
+        }
+
+        /* Header separator */
+        .header-sep {
+            height: 1px;
+            margin: 8px 12px;
+            background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), transparent);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--b1);
+            background: transparent;
+            color: var(--t3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background var(--t-fast);
+            padding: 0;
+            outline: none;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .popup-close:hover {
+                background: var(--s3);
+            }
+        }
+
+        @media (pointer: coarse) {
+            .popup-close:active {
+                animation: bounce 0.3s ease;
+            }
+        }
+
+        .popup-close:focus-visible {
+            outline: 2px solid var(--c-accent);
+            outline-offset: 2px;
+        }
+
+        /* ==================== POPUP SCENES (OPTIMIZED GRID) ==================== */
+        .scenes-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.6s var(--ease-std);
+        }
+
+        .scenes-wrapper.open {
+            grid-template-rows: 1fr;
+        }
+
+        .scenes-inner {
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s var(--ease-std);
+        }
+
+        .scenes-wrapper.open .scenes-inner {
+            opacity: 1;
+        }
+
+        .scene-chips {
+            display: flex;
+            gap: 6px;
+            padding: 0 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .scene-chips:empty {
+            display: none;
+        }
+
+        .scene-chip {
+            padding: 5px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--b1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--t3);
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+            outline: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .scene-chip:hover {
+                background: var(--s3);
+                border-color: var(--b3);
+                color: var(--t1);
+            }
+        }
+
+        @media (pointer: coarse) {
+            .scene-chip:active {
+                animation: bounce 0.3s ease;
+            }
+        }
+
+        .scene-chip:focus-visible {
+            outline: 2px solid var(--c-accent);
+            outline-offset: 2px;
+        }
+
+        .scene-chip.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: var(--t1);
+        }
+
+        /* ==================== POPUP SECTIONS ==================== */
+        .popup-section {
+            padding: 0 0 12px;
+        }
+
+        .popup-section-title {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255, 255, 255, 0.25);
+            padding: 0 4px 8px;
+        }
+
+        .popup-placeholder {
+            height: 56px;
+            border-radius: 14px;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-placeholder span {
+            font-size: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+        }
+
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body data-time="evening">
+
+    <div class="ambient-bg"></div>
+    <div class="dashboard-content">
+        <div class="dashboard-header">
+            <h1></h1>
+            <p></p>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-scroll" id="nav-scroll">
+
+            <button class="nav-item" data-room="salon" onclick="openPopup('salon', this)"
+                aria-label="Ouvrir la piece Salon">
+                <div class="nav-temp-badge"><i class="mdi mdi-thermometer-high"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-sofa" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Salon</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="cuisine" onclick="openPopup('cuisine', this)"
+                aria-label="Ouvrir la piece Cuisine">
+                <div class="nav-temp-badge"><i class="mdi mdi-thermometer-high"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-fridge" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Cuisine</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="chambre" onclick="openPopup('chambre', this)"
+                aria-label="Ouvrir la piece Chambre">
+                <div class="nav-temp-badge"><i class="mdi mdi-snowflake"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-bed" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Chambre</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="sdb" onclick="openPopup('sdb', this)"
+                aria-label="Ouvrir la Salle de bain">
+                <div class="nav-temp-badge"><i class="mdi mdi-thermometer-high"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-shower" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">SDB</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="bureau" onclick="openPopup('bureau', this)"
+                aria-label="Ouvrir la piece Bureau">
+                <div class="nav-temp-badge"><i class="mdi mdi-snowflake"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-desk" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Bureau</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="garage" onclick="openPopup('garage', this)"
+                aria-label="Ouvrir le Garage">
+                <div class="nav-temp-badge"><i class="mdi mdi-snowflake"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-garage" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Garage</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="jardin" onclick="openPopup('jardin', this)"
+                aria-label="Ouvrir le Jardin">
+                <div class="nav-temp-badge"><i class="mdi mdi-thermometer-high"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-tree" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Jardin</span></div>
+                </div>
+            </button>
+
+            <button class="nav-item" data-room="entree" onclick="openPopup('entree', this)"
+                aria-label="Ouvrir l'Entree">
+                <div class="nav-temp-badge"><i class="mdi mdi-snowflake"></i></div>
+                <div class="nav-content">
+                    <div class="nav-item-icon"><i class="mdi mdi-door" style="font-size: 22px;"></i></div>
+                    <div class="nav-label-wrap"><span class="nav-item-label">Entree</span></div>
+                </div>
+            </button>
+
+        </div>
+    </nav>
+
+    <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
+
+    <div class="popup-card" id="popup-card" role="dialog" aria-modal="true" aria-labelledby="popup-name">
+        <div class="dialog-inner" id="dialog-inner">
+        <div class="popup-header">
+            <div class="header-left">
+                <button class="header-icon" id="popup-icon" onclick="toggleScenes()"
+                    aria-label="Afficher les scenes d'ambiance" aria-expanded="false"></button>
+                <div class="scene-dash" id="popup-scene-dash"></div>
+            </div>
+            <div class="popup-header-info">
+                <div class="popup-room-name" id="popup-name"></div>
+                <div class="popup-meta" id="popup-meta"></div>
+            </div>
+            <button class="popup-close" onclick="closePopup()" aria-label="Fermer la fenetre">
+                <i class="mdi mdi-close" style="font-size: 16px;"></i>
+            </button>
+        </div>
+
+        <div class="header-sep"></div>
+
+        <div class="scenes-wrapper" id="scenes-wrapper">
+            <div class="scenes-inner">
+                <div class="scene-chips" id="scene-chips"></div>
+            </div>
+        </div>
+
+        <div class="cards" id="popup-body"></div>
+        </div>
+    </div>
+
+    <script>
+        var HUMIDITY_THRESHOLD = 65;
+        var TEMP_HIGH = 24.0;
+        var TEMP_LOW = 17.0;
+
+        var rooms = {
+            salon: { title: 'Salon', icon: '<i class="mdi mdi-sofa" style="font-size: 24px;"></i>', humidity: 52, temp: 25.5, scenes: ['Detente', 'Film', 'Soiree'], devices: [{ name: 'Lumiere', on: true, light: true, music: false }, { name: 'Sonos', on: true, light: false, music: true }] },
+            cuisine: { title: 'Cuisine', icon: '<i class="mdi mdi-fridge" style="font-size: 24px;"></i>', humidity: 71, temp: 22.0, scenes: ['Cuisine', 'Repas'], devices: [{ name: 'Four', on: false, light: false, music: false }] },
+            chambre: { title: 'Chambre', icon: '<i class="mdi mdi-bed" style="font-size: 24px;"></i>', humidity: 55, temp: 19.5, scenes: ['Nuit', 'Lecture'], devices: [{ name: 'Lampe', on: false, light: true, music: false }] },
+            sdb: { title: 'Salle de bain', icon: '<i class="mdi mdi-shower" style="font-size: 24px;"></i>', humidity: 78, temp: 23.0, scenes: ['Bain'], devices: [{ name: 'Spot', on: true, light: true, music: false }] },
+            bureau: { title: 'Bureau', icon: '<i class="mdi mdi-desk" style="font-size: 24px;"></i>', humidity: 48, temp: 20.5, scenes: ['Focus'], devices: [{ name: 'Ecran', on: true, light: false, music: false }] },
+            garage: { title: 'Garage', icon: '<i class="mdi mdi-garage" style="font-size: 24px;"></i>', humidity: 40, temp: 15.0, scenes: [], devices: [{ name: 'Porte', on: false, light: false, music: false }] },
+            jardin: { title: 'Jardin', icon: '<i class="mdi mdi-tree" style="font-size: 24px;"></i>', humidity: 88, temp: 18.2, scenes: ['Arrosage'], devices: [{ name: 'Spot', on: true, light: true, music: false }] },
+            entree: { title: 'Entree', icon: '<i class="mdi mdi-door" style="font-size: 24px;"></i>', humidity: 50, temp: 20.1, scenes: ['Arrivee'], devices: [{ name: 'Lumiere', on: true, light: true, music: false }] }
+        };
+
+        var popupOpen = false;
+        var popupRoomKey = null;
+        var scenePeekedRooms = {};
+        var roomOrder = Object.keys(rooms);
+
+        function initNavbar() {
+            var navItems = document.querySelectorAll('.nav-item');
+            for (var i = 0; i < navItems.length; i++) {
+                var el = navItems[i];
+                var room = rooms[el.dataset.room];
+                if (!room) continue;
+
+                var hasLight = false, hasMusic = false;
+                for (var d = 0; d < room.devices.length; d++) {
+                    if (room.devices[d].light && room.devices[d].on) hasLight = true;
+                    if (room.devices[d].music && room.devices[d].on) hasMusic = true;
+                }
+                if (hasLight) el.classList.add('has-light'); else el.classList.remove('has-light');
+                if (hasMusic) el.classList.add('has-music'); else el.classList.remove('has-music');
+
+                // Humidity bar
+                var navContent = el.querySelector('.nav-content');
+                if (room.humidity >= HUMIDITY_THRESHOLD && navContent) {
+                    var oldBar = navContent.querySelector('.humidity-bar');
+                    if (!oldBar) {
+                        var bar = document.createElement('div');
+                        bar.className = 'humidity-bar';
+                        navContent.appendChild(bar);
+                    }
+                }
+
+                // Temp Badges
+                var badgeIcon = el.querySelector('.nav-temp-badge i');
+                if (room.temp >= TEMP_HIGH) {
+                    el.classList.add('has-temp-hot');
+                    el.classList.remove('has-temp-cold');
+                    badgeIcon.className = 'mdi mdi-thermometer-high';
+                } else if (room.temp <= TEMP_LOW) {
+                    el.classList.add('has-temp-cold');
+                    el.classList.remove('has-temp-hot');
+                    badgeIcon.className = 'mdi mdi-snowflake';
+                } else {
+                    el.classList.remove('has-temp-hot', 'has-temp-cold');
+                }
+            }
+            updateNavMask();
+        }
+        initNavbar();
+
+        function updateNavMask() {
+            var scroll = document.querySelector('.nav-scroll');
+            if (!scroll) return;
+            var isScrollable = scroll.scrollWidth > scroll.offsetWidth;
+            var isAtStart = scroll.scrollLeft <= 5;
+            var isAtEnd = scroll.scrollLeft + scroll.offsetWidth >= scroll.scrollWidth - 5;
+            scroll.classList.remove('mask-left', 'mask-right', 'mask-both');
+            if (isScrollable) {
+                if (isAtStart) scroll.classList.add('mask-right');
+                else if (isAtEnd) scroll.classList.add('mask-left');
+                else scroll.classList.add('mask-both');
+            }
+        }
+
+        document.querySelector('.nav-scroll').addEventListener('scroll', updateNavMask);
+        window.addEventListener('resize', updateNavMask);
+
+        function openPopup(roomKey, originEl) {
+            if (popupOpen && popupRoomKey === roomKey) { closePopup(); return; }
+
+            // Swipe animation for room switch
+            if (popupOpen && popupRoomKey !== roomKey) {
+                var oldIdx = roomOrder.indexOf(popupRoomKey);
+                var newIdx = roomOrder.indexOf(roomKey);
+                var direction = newIdx > oldIdx ? 'left' : 'right';
+                var dialogInner = document.getElementById('dialog-inner');
+
+                var navItems = document.querySelectorAll('.nav-item');
+                for (var n = 0; n < navItems.length; n++) navItems[n].classList.remove('active');
+                originEl.classList.add('active');
+
+                dialogInner.className = 'dialog-inner ' + (direction === 'left' ? 'swipe-exit-left' : 'swipe-exit-right');
+
+                setTimeout(function() {
+                    popupRoomKey = roomKey;
+                    renderPopup(roomKey);
+                    dialogInner.className = 'dialog-inner ' + (direction === 'left' ? 'swipe-enter-right' : 'swipe-enter-left');
+                    setTimeout(function() {
+                        dialogInner.className = 'dialog-inner';
+                    }, 220);
+                }, 180);
+                return;
+            }
+
+            var navItems2 = document.querySelectorAll('.nav-item');
+            for (var n2 = 0; n2 < navItems2.length; n2++) navItems2[n2].classList.remove('active');
+            originEl.classList.add('active');
+            var data = rooms[roomKey];
+            if (!data) return;
+
+            popupRoomKey = roomKey;
+            popupOpen = true;
+            renderPopup(roomKey);
+
+            var card = document.getElementById('popup-card');
+            var rect = originEl.getBoundingClientRect();
+            var cardLeft = (window.innerWidth - Math.min(500, window.innerWidth - 16)) / 2;
+            card.style.transformOrigin = (rect.left + rect.width / 2 - cardLeft) + 'px bottom';
+
+            requestAnimationFrame(function() {
+                document.getElementById('popup-overlay').classList.add('active');
+                card.classList.remove('closing');
+                card.classList.add('active');
+            });
+        }
+
+        function closePopup() {
+            if (!popupOpen) return;
+            popupOpen = false;
+            var card = document.getElementById('popup-card');
+            card.classList.add('closing');
+            card.classList.remove('active');
+            document.getElementById('popup-overlay').classList.remove('active');
+            var navItems = document.querySelectorAll('.nav-item');
+            for (var n = 0; n < navItems.length; n++) navItems[n].classList.remove('active');
+            setTimeout(function() { card.classList.remove('closing'); }, 350);
+        }
+
+        function toggleScenes() {
+            var scenesEl = document.getElementById('scene-chips');
+            if (!scenesEl.children.length) return;
+            var wrapper = document.getElementById('scenes-wrapper');
+            wrapper.classList.toggle('open');
+
+            // Update aria-expanded
+            var iconBtn = document.getElementById('popup-icon');
+            var isOpen = wrapper.classList.contains('open');
+            iconBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        function activateScene(btn) {
+            var chips = btn.closest('.scene-chips').querySelectorAll('.scene-chip');
+            for (var c = 0; c < chips.length; c++) chips[c].classList.remove('active');
+            btn.classList.add('active');
+        }
+
+        function renderPopup(roomKey) {
+            var data = rooms[roomKey];
+            var iconEl = document.getElementById('popup-icon');
+            iconEl.textContent = '';
+            var iconTemp = document.createElement('div');
+            iconTemp.innerHTML = data.icon;
+            while (iconTemp.firstChild) iconEl.appendChild(iconTemp.firstChild);
+            iconEl.setAttribute('aria-expanded', 'false');
+
+            var innerIcon = iconEl.querySelector('svg') || iconEl.querySelector('i');
+            if (innerIcon) {
+                var hasLight = false;
+                for (var d = 0; d < data.devices.length; d++) {
+                    if (data.devices[d].light && data.devices[d].on) hasLight = true;
+                }
+                innerIcon.style.transition = 'all 0.3s ease';
+                innerIcon.style.color = hasLight ? '#fbbf24' : 'rgba(255, 255, 255, 0.35)';
+                innerIcon.style.filter = hasLight ? 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.6))' : 'none';
+                var hasMusic = false;
+                for (var dm = 0; dm < data.devices.length; dm++) {
+                    if (data.devices[dm].music && data.devices[dm].on) hasMusic = true;
+                }
+                innerIcon.style.animation = hasMusic ? 'pulse-music 0.8s ease-in-out infinite' : 'none';
+            }
+
+            document.getElementById('popup-name').textContent = data.title;
+
+            var tempStyle = '';
+            if (data.temp >= TEMP_HIGH) {
+                tempStyle = 'color: rgba(248, 113, 113, 0.7)';
+            } else if (data.temp <= TEMP_LOW) {
+                tempStyle = 'color: rgba(96, 165, 250, 0.7)';
+            }
+
+            var metaEl = document.getElementById('popup-meta');
+            metaEl.textContent = '';
+            var tempSpan = document.createElement('span');
+            tempSpan.className = 'popup-meta-item';
+            if (tempStyle) tempSpan.setAttribute('style', tempStyle);
+            tempSpan.textContent = data.temp + '\u00b0C';
+            metaEl.appendChild(tempSpan);
+
+            var humSpan = document.createElement('span');
+            humSpan.className = 'popup-meta-item';
+            if (data.humidity >= HUMIDITY_THRESHOLD) humSpan.setAttribute('style', 'color: rgba(96, 165, 250, 0.7)');
+            humSpan.textContent = data.humidity + '%';
+            metaEl.appendChild(humSpan);
+
+            var scenesWrapper = document.getElementById('scenes-wrapper');
+            var scenesEl = document.getElementById('scene-chips');
+            var sceneDash = document.getElementById('popup-scene-dash');
+            scenesWrapper.classList.remove('open');
+
+            if (data.scenes.length > 0) {
+                sceneDash.classList.add('visible');
+                scenesEl.textContent = '';
+                for (var s = 0; s < data.scenes.length; s++) {
+                    var chipBtn = document.createElement('button');
+                    chipBtn.className = 'scene-chip';
+                    chipBtn.textContent = data.scenes[s];
+                    chipBtn.setAttribute('aria-label', 'Activer la scene ' + data.scenes[s]);
+                    chipBtn.addEventListener('click', function() { activateScene(this); });
+                    scenesEl.appendChild(chipBtn);
+                }
+                if (!scenePeekedRooms[roomKey]) {
+                    scenePeekedRooms[roomKey] = true;
+                    setTimeout(function() {
+                        iconEl.style.transition = 'transform 0.15s ease';
+                        iconEl.style.transform = 'scale(1.15)';
+                        setTimeout(function() {
+                            iconEl.style.transform = 'scale(1)';
+                            setTimeout(function() {
+                                scenesWrapper.classList.add('open');
+                                setTimeout(function() { scenesWrapper.classList.remove('open'); }, 1000);
+                            }, 100);
+                        }, 150);
+                    }, 400);
+                }
+            } else {
+                sceneDash.classList.remove('visible');
+                scenesEl.textContent = '';
+            }
+
+            var cardDomains = [
+                { key: 'light', label: 'Light', filter: function(d) { return d.light; } },
+                { key: 'media', label: 'Media', filter: function(d) { return d.music; } },
+                { key: 'cover', label: 'Cover', filter: function() { return false; } },
+                { key: 'fan', label: 'Fan', filter: function() { return false; } }
+            ];
+
+            var bodyEl = document.getElementById('popup-body');
+            bodyEl.textContent = '';
+            for (var cd = 0; cd < cardDomains.length; cd++) {
+                var section = document.createElement('div');
+                section.className = 'popup-section';
+
+                var sTitle = document.createElement('div');
+                sTitle.className = 'popup-section-title';
+                sTitle.textContent = cardDomains[cd].label;
+                section.appendChild(sTitle);
+
+                var placeholder = document.createElement('div');
+                placeholder.className = 'popup-placeholder';
+                var pSpan = document.createElement('span');
+                var matching = data.devices.filter(cardDomains[cd].filter);
+                pSpan.textContent = matching.length > 0 ? matching.length + ' ' + cardDomains[cd].label.toLowerCase() : cardDomains[cd].label + ' card';
+                placeholder.appendChild(pSpan);
+                section.appendChild(placeholder);
+
+                bodyEl.appendChild(section);
+            }
+        }
+
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePopup(); });
+    </script>
+
+</body>
+
+</html>

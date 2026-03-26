@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Title Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px 120px;
+    gap: 40px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient ── */
+  .ambient-bg { position: fixed; inset: 0; z-index: -1; transition: all var(--t-slow); }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Title card ── */
+  .title-card {
+    width: 380px; max-width: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 4px 16px 0;
+    text-align: center;
+  }
+
+  .title-text {
+    font-size: 22px; font-weight: 700; color: var(--t1);
+    letter-spacing: -0.3px; line-height: 1.2;
+    display: flex; align-items: center; gap: 14px;
+    width: 100%;
+  }
+  .title-text::before, .title-text::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--b3));
+  }
+  .title-text::after {
+    background: linear-gradient(90deg, var(--b3), transparent);
+  }
+
+  /* ── Period indicator (text-only horizontal slide) ── */
+  .period-indicator {
+    position: relative;
+    height: 14px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .period-slide {
+    display: flex;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  .period-item {
+    width: 100%;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--t4);
+    white-space: nowrap;
+    user-select: none;
+    flex-shrink: 0;
+    position: absolute;
+    top: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  .period-item i {
+    font-size: 11px;
+    margin-right: 5px;
+  }
+  /* Counterbalance icon width on the right so text stays visually centered */
+  .period-item::after {
+    content: '';
+    display: inline-block;
+    width: 16px; /* same as icon width + margin */
+  }
+
+  /* Positions: prev = left faded, active = center, next = right faded */
+  .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
+  .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
+  .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
+  .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
+  .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
+
+  /* Active color per period */
+  .period-item.pos-center { color: var(--t3); }
+  body[data-time="morning"] .period-item.pos-center { color: #f0a050; }
+  body[data-time="day"]     .period-item.pos-center { color: #7db8e0; }
+  body[data-time="evening"] .period-item.pos-center { color: #e08040; }
+  body[data-time="night"]   .period-item.pos-center { color: #8b8ff0; }
+
+  /* ── Dash trigger ── */
+  .dash-trigger {
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px 16px;
+    cursor: pointer; border: none; background: none; outline: none;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: var(--radius-full);
+    transition: all var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .dash-trigger:hover { background: var(--s1); }
+  }
+  .dash-trigger:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+  @media (pointer: coarse) {
+    .dash-trigger:active { transform: scale(0.96); }
+  }
+
+  .dash-line {
+    width: 20px; height: 2px; border-radius: 1px;
+    background: var(--t4);
+    transition: all var(--t-med);
+  }
+
+  /* ── Fold section ── */
+  .fold-section {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+    overflow: hidden;
+    width: 100%;
+  }
+  .fold-section.open { grid-template-rows: 1fr; }
+  .fold-section-inner {
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-std) 0s;
+  }
+  .fold-section.open .fold-section-inner {
+    opacity: 1;
+    transition: opacity 0.2s var(--ease-std) 0.1s;
+  }
+
+  /* Fold separator */
+  .fold-sep {
+    height: 1px; width: 80%; margin: 4px auto;
+    background: linear-gradient(90deg, transparent, var(--b3), transparent);
+  }
+
+  /* ── Chips group ── */
+  .chips-group-label {
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--t4);
+    text-align: center; padding: 6px 0 2px;
+  }
+  .chips-group + .chips-group .chips-group-label {
+    border-top: 1px solid var(--b1);
+    margin: 0 20%; padding-top: 8px;
+  }
+
+  .chips-row {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; padding: 4px 4px 8px;
+  }
+
+  /* ── Chip ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  }
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+  .chip i { font-size: 14px; }
+  @media (pointer: coarse) {
+    .chip:active { transform: scale(0.94); }
+  }
+
+  @keyframes chip-pulse {
+    0%   { box-shadow: inset 0 0 0 0 currentColor; }
+    50%  { box-shadow: inset 0 0 8px 1px currentColor; }
+    100% { box-shadow: inset 0 0 0 0 currentColor; }
+  }
+  .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
+
+  /* ── Title-only variant (no mode) ── */
+  .title-card.no-mode .dash-trigger,
+  .title-card.no-mode .fold-section,
+  .title-card.no-mode .fold-sep { display: none; }
+
+  /* ── Demo ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<div id="card-root"></div>
+
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Après-midi</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Rouleau</span>
+    <button class="demo-btn" onclick="cyclePeriod()">Cycle &rarr;</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Source</span>
+    <button class="demo-btn active" onclick="toggleSource('input_select',this)">input_select</button>
+    <button class="demo-btn" onclick="toggleSource('scenes',this)">Scenes</button>
+    <button class="demo-btn" onclick="toggleSource('booleans',this)">Booleans</button>
+    <button class="demo-btn" onclick="setNoSource(this)">Titre seul</button>
+    <button class="demo-btn" onclick="setMixte(this)">Mixte</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   COLOR MAP — matches prod resolveColor()
+   ================================================================ */
+var COLOR_MAP = {
+  success: { text: 'var(--c-success)', dot: '#4ade80', glow: 'rgba(74,222,128,0.5)' },
+  warning: { text: 'var(--c-warning)', dot: '#fbbf24', glow: 'rgba(251,191,36,0.5)' },
+  info:    { text: 'var(--c-info)',    dot: '#60a5fa', glow: 'rgba(96,165,250,0.5)' },
+  accent:  { text: 'var(--c-accent)',  dot: '#818cf8', glow: 'rgba(129,140,248,0.5)' },
+  alert:   { text: 'var(--c-alert)',   dot: '#f87171', glow: 'rgba(248,113,113,0.5)' },
+  neutral: { text: 'var(--t3)',        dot: 'var(--t4)', glow: 'none' }
+};
+
+function resolveColor(colorKey) {
+  if (COLOR_MAP[colorKey]) return COLOR_MAP[colorKey];
+  if (colorKey && colorKey.charAt(0) === '#' && colorKey.length === 7) {
+    var r = parseInt(colorKey.slice(1, 3), 16);
+    var g = parseInt(colorKey.slice(3, 5), 16);
+    var b = parseInt(colorKey.slice(5, 7), 16);
+    return { text: colorKey, dot: colorKey, glow: 'rgba(' + r + ',' + g + ',' + b + ',0.5)' };
+  }
+  return COLOR_MAP.neutral;
+}
+
+var GROUP_LABELS = { input_select: 'Mode', scenes: 'Scenes', booleans: 'Toggles' };
+
+/* ================================================================
+   PERIOD WHEEL — maps input_select.periode_journee
+   ================================================================ */
+var PERIODS = [
+  { id: 'Matin', label: 'Matin',  icon: 'mdi-weather-sunset-up',   timeKey: 'morning' },
+  { id: 'Après-midi', label: 'Après-midi', icon: 'mdi-white-balance-sunny', timeKey: 'day' },
+  { id: 'Soir',  label: 'Soir',   icon: 'mdi-weather-sunset-down', timeKey: 'evening' },
+  { id: 'Nuit',  label: 'Nuit',   icon: 'mdi-weather-night',       timeKey: 'night' }
+];
+
+var currentPeriodIndex = 2; // Default: Soir (matches body data-time="evening")
+var periodTransitioning = false;
+
+/* ================================================================
+   HA MODE SOURCES
+   ================================================================ */
+var MODE_SOURCES = {
+  input_select: {
+    entity_id: 'input_select.house_mode',
+    modes: [
+      { id: 'normal',    label: 'Normal',    icon: 'mdi-home',           color: 'neutral' },
+      { id: 'invite',    label: 'Invite',    icon: 'mdi-account-group',  color: 'success' },
+      { id: 'bebe_dort', label: 'Bebe dort', icon: 'mdi-baby-carriage',  color: 'info' },
+      { id: 'cinema',    label: 'Cinema',    icon: 'mdi-movie-open',     color: 'accent' },
+      { id: 'absence',   label: 'Absence',   icon: 'mdi-shield-lock',    color: 'alert' }
+    ],
+    activeIndex: 0
+  },
+  scenes: {
+    modes: [
+      { id: 'scene.mode_normal',    label: 'Normal',    icon: 'mdi-home',           color: 'neutral' },
+      { id: 'scene.mode_invite',    label: 'Invite',    icon: 'mdi-account-group',  color: 'success' },
+      { id: 'scene.mode_bebe_dort', label: 'Bebe dort', icon: 'mdi-baby-carriage',  color: 'info' },
+      { id: 'scene.mode_cinema',    label: 'Cinema',    icon: 'mdi-movie-open',     color: 'accent' }
+    ],
+    lastActivatedId: null
+  },
+  booleans: {
+    modes: [
+      { id: 'input_boolean.mode_invite',    label: 'Invite',    icon: 'mdi-account-group',  color: 'success', state: 'off' },
+      { id: 'input_boolean.mode_bebe_dort', label: 'Bebe dort', icon: 'mdi-baby-carriage',  color: 'info',    state: 'off' },
+      { id: 'input_boolean.mode_cinema',    label: 'Cinema',    icon: 'mdi-movie-open',     color: 'accent',  state: 'off' },
+      { id: 'input_boolean.mode_absence',   label: 'Absence',   icon: 'mdi-shield-lock',    color: 'alert',   state: 'off' }
+    ]
+  }
+};
+
+var activeSources = ['input_select'];
+var titleText = 'La Villa';
+var foldOpen = false;
+var sceneTimeout = null;
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function mdi(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+/* ================================================================
+   ACTIVE COLORS — per source
+   ================================================================ */
+function getActiveColors(src) {
+  var data = MODE_SOURCES[src];
+  if (!data) return [];
+
+  if (src === 'input_select') {
+    if (data.activeIndex >= 0 && data.activeIndex < data.modes.length) {
+      var c = data.modes[data.activeIndex].color || 'neutral';
+      return c !== 'neutral' ? [c] : [];
+    }
+    return [];
+  }
+
+  if (src === 'booleans') {
+    var colors = [];
+    for (var i = 0; i < data.modes.length; i++) {
+      if (data.modes[i].state === 'on') {
+        var c2 = data.modes[i].color || 'success';
+        if (c2 !== 'neutral') colors.push(c2);
+      }
+    }
+    return colors;
+  }
+
+  if (src === 'scenes') {
+    if (data.lastActivatedId) {
+      for (var j = 0; j < data.modes.length; j++) {
+        if (data.modes[j].id === data.lastActivatedId) {
+          return [data.modes[j].color || 'accent'];
+        }
+      }
+    }
+    return [];
+  }
+
+  return [];
+}
+
+/* ================================================================
+   DASH STYLE — multi-color gradient
+   ================================================================ */
+function dashStyle(colors) {
+  if (colors.length === 0) return '';
+  var resolved = colors.map(resolveColor);
+  var width = 'width:' + Math.min(20 + colors.length * 4, 36) + 'px';
+
+  if (resolved.length === 1) {
+    return 'background:' + resolved[0].dot + ';box-shadow:0 0 8px ' + resolved[0].glow + ';' + width;
+  }
+
+  var n = resolved.length;
+  var stops = [];
+  for (var i = 0; i < n; i++) {
+    stops.push(resolved[i].dot + ' ' + Math.round(i / n * 100) + '%');
+    stops.push(resolved[i].dot + ' ' + Math.round((i + 1) / n * 100) + '%');
+  }
+  var validGlows = resolved.filter(function(r) { return r.glow !== 'none'; });
+  var glows = validGlows.length > 0
+    ? validGlows.map(function(r) { return '0 0 6px ' + r.glow; }).join(', ')
+    : 'none';
+  return 'background:linear-gradient(90deg, ' + stops.join(', ') + ');box-shadow:' + glows + ';' + width;
+}
+
+/* ================================================================
+   CHIP ACTIVE CHECK
+   ================================================================ */
+function isChipActive(src, mode, idx) {
+  if (src === 'input_select') {
+    return idx === MODE_SOURCES.input_select.activeIndex;
+  }
+  if (src === 'booleans') {
+    return mode.state === 'on';
+  }
+  if (src === 'scenes') {
+    return MODE_SOURCES.scenes.lastActivatedId === mode.id;
+  }
+  return false;
+}
+
+/* ================================================================
+   ACTIONS
+   ================================================================ */
+function selectOption(optionIndex) {
+  MODE_SOURCES.input_select.activeIndex = optionIndex;
+  render();
+}
+
+function activateScene(sceneId) {
+  MODE_SOURCES.scenes.lastActivatedId = sceneId;
+  render();
+
+  setTimeout(function() {
+    var chip = document.querySelector('.chip[data-id="' + sceneId + '"]');
+    if (chip) {
+      chip.classList.add('pulsing');
+      setTimeout(function() { chip.classList.remove('pulsing'); }, 600);
+    }
+  }, 20);
+
+  if (sceneTimeout) clearTimeout(sceneTimeout);
+  sceneTimeout = setTimeout(function() {
+    MODE_SOURCES.scenes.lastActivatedId = null;
+    sceneTimeout = null;
+    render();
+  }, 2000);
+}
+
+function toggleBoolean(boolId) {
+  var data = MODE_SOURCES.booleans;
+  for (var i = 0; i < data.modes.length; i++) {
+    if (data.modes[i].id === boolId) {
+      data.modes[i].state = (data.modes[i].state === 'on') ? 'off' : 'on';
+      break;
+    }
+  }
+  render();
+}
+
+function toggleFold() {
+  foldOpen = !foldOpen;
+  render();
+}
+
+document.addEventListener('click', function(e) {
+  if (!foldOpen) return;
+  if (!e.target.closest('.dash-trigger') && !e.target.closest('.fold-section')) {
+    foldOpen = false;
+    render();
+  }
+});
+
+/* ================================================================
+   PERIOD WHEEL — build the drum
+   ================================================================ */
+function getPeriodPosition(i) {
+  var diff = i - currentPeriodIndex;
+  if (diff <= -2) return 'pos-far-left';
+  if (diff === -1) return 'pos-left';
+  if (diff === 0) return 'pos-center';
+  if (diff === 1) return 'pos-right';
+  return 'pos-far-right';
+}
+
+function buildPeriodIndicator() {
+  var container = el('div', 'period-indicator');
+
+  for (var i = 0; i < PERIODS.length; i++) {
+    var item = el('div', 'period-item ' + getPeriodPosition(i));
+    item.setAttribute('data-period-index', i);
+    item.appendChild(mdi(PERIODS[i].icon));
+    item.appendChild(document.createTextNode(PERIODS[i].label));
+    container.appendChild(item);
+  }
+
+  return container;
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var root = document.getElementById('card-root');
+  while (root.firstChild) root.removeChild(root.firstChild);
+
+  var card = el('div', 'title-card');
+  var hasSources = activeSources.length > 0 && activeSources.some(function(s) {
+    return MODE_SOURCES[s] && MODE_SOURCES[s].modes.length > 0;
+  });
+  if (!hasSources) card.classList.add('no-mode');
+
+  /* ── Title ── */
+  card.appendChild(el('div', 'title-text', { text: titleText }));
+
+  /* ── Period indicator ── */
+  card.appendChild(buildPeriodIndicator());
+
+  if (hasSources) {
+    /* Collect all active colors across sources for the dash */
+    var activeColors = [];
+    for (var si = 0; si < activeSources.length; si++) {
+      var srcColors = getActiveColors(activeSources[si]);
+      for (var ci = 0; ci < srcColors.length; ci++) {
+        activeColors.push(srcColors[ci]);
+      }
+    }
+
+    /* Dash trigger */
+    var dashBtn = el('button', 'dash-trigger');
+    dashBtn.setAttribute('aria-label', 'Ouvrir les modes');
+    dashBtn.setAttribute('aria-expanded', String(foldOpen));
+
+    var dashLine = el('div', 'dash-line');
+    var ds = dashStyle(activeColors);
+    if (ds) dashLine.setAttribute('style', ds);
+    dashBtn.appendChild(dashLine);
+
+    dashBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleFold();
+    });
+    card.appendChild(dashBtn);
+
+    /* Fold section */
+    var foldSection = el('div', 'fold-section' + (foldOpen ? ' open' : ''));
+    var foldInner = el('div', 'fold-section-inner');
+
+    foldInner.appendChild(el('div', 'fold-sep'));
+
+    var showLabel = activeSources.length > 1;
+    for (var gi = 0; gi < activeSources.length; gi++) {
+      (function(src) {
+        var data = MODE_SOURCES[src];
+        if (!data || data.modes.length === 0) return;
+
+        var group = el('div', 'chips-group');
+
+        if (showLabel) {
+          group.appendChild(el('div', 'chips-group-label', { text: GROUP_LABELS[src] || src }));
+        }
+
+        var chipsRow = el('div', 'chips-row');
+        var modes = data.modes;
+
+        for (var m = 0; m < modes.length; m++) {
+          (function(mode, idx) {
+            var active = isChipActive(src, mode, idx);
+            var mc = resolveColor(mode.color || 'neutral');
+
+            var chip = el('button', 'chip');
+            chip.setAttribute('data-id', mode.id);
+            chip.setAttribute('aria-label', mode.label || mode.id);
+
+            if (active) {
+              chip.setAttribute('style',
+                'color:' + mc.text + ';background:' + mc.dot + '14;border-color:' + mc.dot + '33;'
+              );
+            }
+
+            chip.appendChild(mdi(mode.icon));
+            chip.appendChild(document.createTextNode(mode.label));
+
+            chip.addEventListener('click', function(e) {
+              e.stopPropagation();
+              if (src === 'input_select') selectOption(idx);
+              else if (src === 'scenes') activateScene(mode.id);
+              else if (src === 'booleans') toggleBoolean(mode.id);
+            });
+
+            chipsRow.appendChild(chip);
+          })(modes[m], m);
+        }
+
+        group.appendChild(chipsRow);
+        foldInner.appendChild(group);
+      })(activeSources[gi]);
+    }
+
+    foldSection.appendChild(foldInner);
+    card.appendChild(foldSection);
+  }
+
+  root.appendChild(card);
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+function animatePeriodTo(newIndex) {
+  if (newIndex === currentPeriodIndex) return;
+  currentPeriodIndex = newIndex;
+
+  // Sync body data-time
+  document.body.setAttribute('data-time', PERIODS[currentPeriodIndex].timeKey);
+
+  // Update time buttons
+  var timeBtns = document.querySelectorAll('.controls-group')[0].querySelectorAll('.demo-btn');
+  timeBtns.forEach(function(b) { b.classList.remove('active'); });
+  if (timeBtns[currentPeriodIndex]) timeBtns[currentPeriodIndex].classList.add('active');
+
+  // Animate items by updating position classes
+  var items = document.querySelectorAll('.period-item');
+  items.forEach(function(item) {
+    var idx = parseInt(item.getAttribute('data-period-index'));
+    item.className = 'period-item ' + getPeriodPosition(idx);
+  });
+}
+
+function setTime(t, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  for (var i = 0; i < PERIODS.length; i++) {
+    if (PERIODS[i].timeKey === t) {
+      animatePeriodTo(i);
+      break;
+    }
+  }
+}
+
+function cyclePeriod() {
+  var next = (currentPeriodIndex + 1) % PERIODS.length;
+  animatePeriodTo(next);
+}
+
+function toggleSource(src, btn) {
+  var idx = activeSources.indexOf(src);
+  if (idx >= 0) {
+    activeSources.splice(idx, 1);
+    btn.classList.remove('active');
+  } else {
+    activeSources.push(src);
+    btn.classList.add('active');
+  }
+  var btns = btn.parentElement.querySelectorAll('.demo-btn');
+  btns[btns.length - 2].classList.remove('active');
+  btns[btns.length - 1].classList.remove('active');
+  if (activeSources.length === 0) btns[btns.length - 2].classList.add('active');
+  foldOpen = false;
+  render();
+}
+
+function setNoSource(btn) {
+  activeSources = [];
+  foldOpen = false;
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  render();
+}
+
+function setMixte(btn) {
+  activeSources = ['scenes', 'booleans'];
+  MODE_SOURCES.booleans.modes[0].state = 'off';
+  MODE_SOURCES.booleans.modes[1].state = 'off';
+  MODE_SOURCES.booleans.modes[2].state = 'on';
+  MODE_SOURCES.booleans.modes[3].state = 'off';
+  MODE_SOURCES.scenes.lastActivatedId = null;
+  foldOpen = false;
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  render();
+}
+
+/* ── Init ── */
+render();
+</script>
+
+</body>
+</html>

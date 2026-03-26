@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Title — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview title card ── */
+    .preview-title-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 8px;
+    }
+    .preview-title-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--t1);
+      line-height: 1.2;
+    }
+    .preview-mode-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .preview-mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      background: var(--s3);
+      border: 1px solid var(--b2);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .preview-mode-pill i { font-size: 11px; }
+    .preview-mode-pill.active {
+      background: rgba(129, 140, 248, 0.12);
+      border-color: rgba(129, 140, 248, 0.2);
+      color: var(--c-accent);
+    }
+    .preview-period-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 2px;
+    }
+    .preview-period-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .preview-period-text {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t3);
+    }
+    .preview-period-icon {
+      font-size: 12px;
+    }
+    .preview-dash-line {
+      height: 3px;
+      border-radius: 2px;
+      width: 24px;
+      margin-top: 2px;
+    }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Tab panel (direct content, no fold) ── */
+    .tab-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ── Input field ── */
+    .input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s var(--ease-std);
+    }
+    .input:focus { border-color: var(--b3); }
+    .input::placeholder { color: var(--t4); }
+
+    /* ── Field group / row / label ── */
+    .field-group { display: flex; flex-direction: column; gap: 8px; }
+    .field-row { display: flex; flex-direction: column; gap: 4px; }
+    .field-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t4);
+    }
+    .field-input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+    .field-input:focus { border-color: var(--b3); }
+    .field-input::placeholder { color: var(--t4); }
+
+    /* ── Dropdown ── */
+    .dropdown { position: relative; }
+    .dropdown-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+    }
+    .dropdown-trigger:hover { border-color: var(--b3); background: var(--s2); }
+    .dropdown-trigger i:first-child { font-size: 14px; color: var(--t3); }
+    .dropdown-trigger span { flex: 1; text-align: left; }
+    .dropdown-trigger .arrow { font-size: 16px; color: var(--t4); transition: transform 0.2s var(--ease-std); }
+    .dropdown.open .dropdown-trigger .arrow { transform: rotate(180deg); }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: linear-gradient(135deg, rgba(30,40,60,0.98) 0%, rgba(20,28,42,0.98) 100%);
+      backdrop-filter: blur(40px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      padding: 4px;
+    }
+    .dropdown.open .dropdown-menu { display: flex; }
+    .dropdown-search {
+      padding: 6px 10px;
+      border: 1px solid var(--b1);
+      border-radius: var(--radius-xs);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 11px;
+      outline: none;
+      margin-bottom: 4px;
+    }
+    .dropdown-search::placeholder { color: var(--t4); }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: none;
+      background: none;
+      border-radius: var(--radius-xs);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      text-align: left;
+      transition: all 0.15s var(--ease-std);
+    }
+    .dropdown-item:hover { background: var(--s2); color: var(--t1); }
+    .dropdown-item.active { background: var(--s3); color: var(--t1); }
+    .dropdown-item i { font-size: 14px; color: var(--t3); }
+
+    /* ── Item list (drag-reorder rows) ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-card {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s var(--ease-std), background 0.2s var(--ease-std);
+    }
+    .item-card + .item-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-row.dragging { opacity: 0.4; }
+    .item-row.drop-target {
+      background: rgba(129, 140, 248, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-accent);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-handle i {
+      font-size: 16px;
+      color: var(--t4);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Source type badge ── */
+    .source-type-badge {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      background: rgba(129, 140, 248, 0.1);
+      color: rgba(129, 140, 248, 0.7);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* ── Mode chip ── */
+    .mode-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t2);
+      cursor: grab;
+      transition: all 0.2s var(--ease-std);
+    }
+    .mode-chip:hover { background: var(--s3); border-color: var(--b2); }
+    .mode-chip i { font-size: 12px; }
+    .mode-chip .mode-remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: none;
+      border: none;
+      color: var(--t4);
+      cursor: pointer;
+      font-size: 10px;
+      padding: 0;
+      margin-left: 2px;
+      transition: all 0.15s var(--ease-std);
+    }
+    .mode-chip .mode-remove:hover { color: var(--c-alert); background: rgba(248, 113, 113, 0.1); }
+
+    /* ── Period dot ── */
+    .period-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Expand chevron ── */
+    .expand-chevron {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: none;
+      color: var(--t3);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s var(--ease-std);
+      flex-shrink: 0;
+    }
+    .expand-chevron:hover { background: var(--s2); color: var(--t1); }
+    .expand-chevron i { font-size: 16px; transition: transform 0.3s var(--ease-out); }
+    .expand-chevron.open i { transform: rotate(180deg); }
+
+    /* ── Remove button (x) ── */
+    .btn-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: none;
+      color: var(--t4);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s var(--ease-std);
+      flex-shrink: 0;
+    }
+    .btn-remove:hover { color: var(--c-alert); background: rgba(248, 113, 113, 0.08); }
+    .btn-remove i { font-size: 14px; }
+
+    /* ── Source item fold ── */
+    .source-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease-out);
+    }
+    .source-fold.open {
+      grid-template-rows: 1fr;
+    }
+    .source-fold-inner {
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s var(--ease-std), visibility 0.2s var(--ease-std);
+    }
+    .source-fold.open .source-fold-inner {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0.1s;
+    }
+    .source-fold-content {
+      padding: 8px 8px 12px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Period item fold ── */
+    .period-fold-content {
+      padding: 8px 8px 12px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Icon picker button ── */
+    .icon-picker-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t3);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .icon-picker-btn:hover { border-color: var(--b3); background: var(--s2); color: var(--t1); }
+    .icon-picker-btn i { font-size: 16px; }
+
+    /* ── Color picker button ── */
+    .color-picker-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t3);
+    }
+    .color-picker-btn:hover { border-color: var(--b3); background: var(--s2); }
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Color chips row ── */
+    .color-chips {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .color-chip {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s var(--ease-std);
+      outline: none;
+    }
+    .color-chip:hover { transform: scale(1.15); }
+    .color-chip.active { border-color: var(--t1); transform: scale(1.15); }
+    .color-chip.c-neutral { background: var(--t4); }
+    .color-chip.c-success { background: var(--c-success); }
+    .color-chip.c-warning { background: var(--c-warning); }
+    .color-chip.c-info { background: var(--c-info); }
+    .color-chip.c-accent { background: var(--c-accent); }
+    .color-chip.c-alert { background: var(--c-alert); }
+
+    /* ── Inline field row (label + input side by side) ── */
+    .inline-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .inline-field .field-label {
+      width: 60px;
+      flex-shrink: 0;
+    }
+    .inline-field .field-input,
+    .inline-field .input {
+      flex: 1;
+    }
+
+    /* ── Date range row ── */
+    .date-range-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .date-range-row .field-input {
+      width: 70px;
+      flex: none;
+      text-align: center;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    .date-range-sep {
+      font-size: 12px;
+      color: var(--t4);
+      font-weight: 500;
+    }
+
+    /* ── Add button ── */
+    .btn-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--b2);
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-add:hover { border-color: var(--b3); background: var(--s1); color: var(--t2); }
+    .btn-add i { font-size: 14px; }
+
+    /* ── Modes list in source fold ── */
+    .modes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+    .btn-primary {
+      background: rgba(129, 140, 248, 0.15);
+      border-color: rgba(129, 140, 248, 0.25);
+      color: var(--c-accent);
+    }
+    .btn-primary:hover {
+      background: rgba(129, 140, 248, 0.25);
+      border-color: rgba(129, 140, 248, 0.35);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn" onclick="alert('Navigate to Pieces')">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn active">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn" onclick="alert('Navigate to Avance')">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back" onclick="alert('Back to General')">General</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Title</span>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           CONTENT: Title tab (no section folds)
+           ═══════════════════════════════════════ -->
+
+      <!-- ── 1. Preview encart ── -->
+      <div class="preview-encart">
+        <div class="preview-label">Apercu</div>
+        <div class="preview-title-card">
+          <div class="preview-title-text" id="preview-title">Maison</div>
+          <div class="preview-mode-chips">
+            <span class="preview-mode-pill active">
+              <i class="mdi mdi-weather-sunny"></i>
+              Matin
+            </span>
+            <span class="preview-mode-pill">
+              <i class="mdi mdi-weather-sunset-down"></i>
+              Soiree
+            </span>
+            <span class="preview-mode-pill">
+              <i class="mdi mdi-weather-night"></i>
+              Nuit
+            </span>
+          </div>
+          <div class="preview-dash-line" style="background: var(--c-accent); width: 24px; box-shadow: 0 0 6px var(--c-accent);"></div>
+          <div class="preview-period-row">
+            <i class="mdi mdi-flower preview-period-icon" style="color:#4ade80;"></i>
+            <span class="preview-period-dot" style="background:#4ade80;"></span>
+            <span class="preview-period-text">Printemps</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab panel (direct content) ── -->
+      <div class="tab-panel">
+
+        <!-- ── 2. Sub-section: Titre ── -->
+        <div class="sub-section">
+          <div class="section-label">Titre</div>
+          <div class="section-desc">Texte principal affiche en haut du dashboard.</div>
+          <input
+            class="input"
+            type="text"
+            value="Maison"
+            placeholder="Nom de la maison..."
+            oninput="document.getElementById('preview-title').textContent = this.value || 'Maison';"
+          >
+        </div>
+
+        <!-- ── 3. Sub-section: Sources ── -->
+        <div class="sub-section">
+          <div class="section-label">Sources</div>
+          <div class="section-desc">Configurez les sources de modes affiches sous le titre. Chaque source peut etre un input_select, des scenes ou des booleans.</div>
+
+          <div class="item-list" id="source-list">
+
+            <!-- ── Source 1: Mode (input_select) — EXPANDED ── -->
+            <div class="item-card" id="source-0">
+              <div class="item-row" draggable="true">
+                <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                <i class="mdi mdi-form-select" style="font-size:15px;color:var(--t3);"></i>
+                <span class="item-name">Mode</span>
+                <span class="source-type-badge">input_select</span>
+                <button class="expand-chevron open" onclick="toggleSourceFold(this, 'source-fold-0')" aria-label="Replier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer source Mode')" aria-label="Supprimer la source">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold open" id="source-fold-0">
+                <div class="source-fold-inner">
+                  <div class="source-fold-content">
+
+                    <!-- Type -->
+                    <div class="field-row">
+                      <span class="field-label">Type</span>
+                      <div class="dropdown" id="dd-source-type-0">
+                        <button class="dropdown-trigger" onclick="toggleDropdown('dd-source-type-0')">
+                          <i class="mdi mdi-form-select"></i>
+                          <span>input_select</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <button class="dropdown-item active" onclick="toggleDropdown('dd-source-type-0')">
+                            <i class="mdi mdi-form-select"></i>
+                            input_select
+                          </button>
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-type-0')">
+                            <i class="mdi mdi-palette"></i>
+                            scenes
+                          </button>
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-type-0')">
+                            <i class="mdi mdi-toggle-switch"></i>
+                            booleans
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Entite -->
+                    <div class="field-row">
+                      <span class="field-label">Entite</span>
+                      <div class="dropdown" id="dd-source-entity-0">
+                        <button class="dropdown-trigger" onclick="toggleDropdown('dd-source-entity-0')">
+                          <i class="mdi mdi-form-select"></i>
+                          <span>input_select.mode_maison</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation()">
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-entity-0')">
+                            <i class="mdi mdi-close"></i>
+                            Aucun
+                          </button>
+                          <button class="dropdown-item active" onclick="toggleDropdown('dd-source-entity-0')">
+                            <i class="mdi mdi-form-select"></i>
+                            input_select.mode_maison
+                          </button>
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-entity-0')">
+                            <i class="mdi mdi-form-select"></i>
+                            input_select.saison
+                          </button>
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-entity-0')">
+                            <i class="mdi mdi-form-select"></i>
+                            input_select.ambiance
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Label -->
+                    <div class="field-row">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Mode" placeholder="Label de la source..." oninput="document.querySelector('#source-0 .item-name').textContent = this.value || 'Mode';">
+                    </div>
+
+                    <!-- Modes -->
+                    <div class="field-row">
+                      <span class="field-label">Modes</span>
+                      <div class="modes-list" id="modes-list-0">
+
+                        <!-- Mode: Matin -->
+                        <div class="mode-chip" draggable="true">
+                          <i class="mdi mdi-weather-sunny" style="color:#f0a050;"></i>
+                          <span>Matin</span>
+                          <button class="mode-remove" onclick="alert('Supprimer mode Matin')" aria-label="Supprimer le mode Matin">
+                            <i class="mdi mdi-close"></i>
+                          </button>
+                        </div>
+
+                        <!-- Mode: Soiree -->
+                        <div class="mode-chip" draggable="true">
+                          <i class="mdi mdi-weather-sunset-down" style="color:#e08040;"></i>
+                          <span>Soiree</span>
+                          <button class="mode-remove" onclick="alert('Supprimer mode Soiree')" aria-label="Supprimer le mode Soiree">
+                            <i class="mdi mdi-close"></i>
+                          </button>
+                        </div>
+
+                        <!-- Mode: Nuit -->
+                        <div class="mode-chip" draggable="true">
+                          <i class="mdi mdi-weather-night" style="color:#8b8ff0;"></i>
+                          <span>Nuit</span>
+                          <button class="mode-remove" onclick="alert('Supprimer mode Nuit')" aria-label="Supprimer le mode Nuit">
+                            <i class="mdi mdi-close"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Add mode button -->
+                    <button class="btn-add" onclick="alert('Ouvrir le selecteur de modes')">
+                      <i class="mdi mdi-plus"></i>
+                      Ajouter un mode
+                    </button>
+
+                    <!-- Mode detail rows (expanded view of each mode for editing) -->
+                    <div class="field-row" style="margin-top:4px;">
+                      <span class="field-label">Detail des modes</span>
+                    </div>
+
+                    <!-- Mode detail: Matin -->
+                    <div style="padding:8px;background:var(--s1);border-radius:var(--radius-sm);display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                        <span style="font-size:10px;font-weight:600;color:var(--t3);flex:1;">Matin</span>
+                      </div>
+                      <div class="inline-field">
+                        <span class="field-label">Label</span>
+                        <input class="input" type="text" value="Matin" style="font-size:11px;padding:6px 10px;">
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Icone</span>
+                        <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Matin')" aria-label="Choisir une icone">
+                          <i class="mdi mdi-weather-sunny"></i>
+                        </button>
+                        <span style="font-size:10px;color:var(--t4);">mdi:weather-sunny</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Couleur</span>
+                        <div class="color-chips">
+                          <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                          <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                          <button class="color-chip c-warning active" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                          <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                          <button class="color-chip c-accent" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                          <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Mode detail: Soiree -->
+                    <div style="padding:8px;background:var(--s1);border-radius:var(--radius-sm);display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                        <span style="font-size:10px;font-weight:600;color:var(--t3);flex:1;">Soiree</span>
+                      </div>
+                      <div class="inline-field">
+                        <span class="field-label">Label</span>
+                        <input class="input" type="text" value="Soiree" style="font-size:11px;padding:6px 10px;">
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Icone</span>
+                        <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Soiree')" aria-label="Choisir une icone">
+                          <i class="mdi mdi-weather-sunset-down"></i>
+                        </button>
+                        <span style="font-size:10px;color:var(--t4);">mdi:weather-sunset-down</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Couleur</span>
+                        <div class="color-chips">
+                          <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                          <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                          <button class="color-chip c-warning" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                          <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                          <button class="color-chip c-accent active" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                          <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Mode detail: Nuit -->
+                    <div style="padding:8px;background:var(--s1);border-radius:var(--radius-sm);display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                        <span style="font-size:10px;font-weight:600;color:var(--t3);flex:1;">Nuit</span>
+                      </div>
+                      <div class="inline-field">
+                        <span class="field-label">Label</span>
+                        <input class="input" type="text" value="Nuit" style="font-size:11px;padding:6px 10px;">
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Icone</span>
+                        <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Nuit')" aria-label="Choisir une icone">
+                          <i class="mdi mdi-weather-night"></i>
+                        </button>
+                        <span style="font-size:10px;color:var(--t4);">mdi:weather-night</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="field-label" style="width:60px;">Couleur</span>
+                        <div class="color-chips">
+                          <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                          <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                          <button class="color-chip c-warning" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                          <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                          <button class="color-chip c-accent active" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                          <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Source 2: Scenes — COLLAPSED ── -->
+            <div class="item-card" id="source-1">
+              <div class="item-row" draggable="true">
+                <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                <i class="mdi mdi-palette" style="font-size:15px;color:var(--t3);"></i>
+                <span class="item-name">Scenes</span>
+                <span class="source-type-badge">scenes</span>
+                <button class="expand-chevron" onclick="toggleSourceFold(this, 'source-fold-1')" aria-label="Deplier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer source Scenes')" aria-label="Supprimer la source">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold" id="source-fold-1">
+                <div class="source-fold-inner">
+                  <div class="source-fold-content">
+                    <div class="field-row">
+                      <span class="field-label">Type</span>
+                      <div class="dropdown" id="dd-source-type-1">
+                        <button class="dropdown-trigger" onclick="toggleDropdown('dd-source-type-1')">
+                          <i class="mdi mdi-palette"></i>
+                          <span>scenes</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-type-1')">
+                            <i class="mdi mdi-form-select"></i>
+                            input_select
+                          </button>
+                          <button class="dropdown-item active" onclick="toggleDropdown('dd-source-type-1')">
+                            <i class="mdi mdi-palette"></i>
+                            scenes
+                          </button>
+                          <button class="dropdown-item" onclick="toggleDropdown('dd-source-type-1')">
+                            <i class="mdi mdi-toggle-switch"></i>
+                            booleans
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="field-row">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Scenes" placeholder="Label de la source...">
+                    </div>
+                    <div class="field-row">
+                      <span class="field-label">Entites</span>
+                      <div class="modes-list">
+                        <div class="mode-chip">
+                          <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                          <span>scene.cinema</span>
+                          <button class="mode-remove" onclick="alert('Supprimer scene.cinema')" aria-label="Supprimer">
+                            <i class="mdi mdi-close"></i>
+                          </button>
+                        </div>
+                        <div class="mode-chip">
+                          <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                          <span>scene.romantique</span>
+                          <button class="mode-remove" onclick="alert('Supprimer scene.romantique')" aria-label="Supprimer">
+                            <i class="mdi mdi-close"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="btn-add" onclick="alert('Ajouter une entite scene')">
+                      <i class="mdi mdi-plus"></i>
+                      Ajouter une entite
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Add source dropdown -->
+          <div style="margin-top:8px;">
+            <div class="dropdown" id="dd-add-source">
+              <button class="dropdown-trigger" onclick="toggleDropdown('dd-add-source')">
+                <i class="mdi mdi-plus"></i>
+                <span>Ajouter une source</span>
+                <i class="mdi mdi-chevron-down arrow"></i>
+              </button>
+              <div class="dropdown-menu" role="listbox">
+                <button class="dropdown-item" onclick="alert('Ajouter source input_select'); toggleDropdown('dd-add-source')">
+                  <i class="mdi mdi-form-select"></i>
+                  Input Select
+                </button>
+                <button class="dropdown-item" onclick="alert('Ajouter source scenes'); toggleDropdown('dd-add-source')">
+                  <i class="mdi mdi-palette"></i>
+                  Scenes
+                </button>
+                <button class="dropdown-item" onclick="alert('Ajouter source booleans'); toggleDropdown('dd-add-source')">
+                  <i class="mdi mdi-toggle-switch"></i>
+                  Booleans
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 4. Sub-section: Periode ── -->
+        <div class="sub-section">
+          <div class="section-label">Periode</div>
+          <div class="section-desc">Indicateur de periode affiche sous le titre. Associe a un input_select pour changer dynamiquement selon la saison ou le moment.</div>
+
+          <!-- Entite periode dropdown -->
+          <div class="field-row">
+            <span class="field-label">Entite periode</span>
+            <div class="dropdown" id="dd-period-entity">
+              <button class="dropdown-trigger" onclick="toggleDropdown('dd-period-entity')">
+                <i class="mdi mdi-form-select"></i>
+                <span>input_select.saison</span>
+                <i class="mdi mdi-chevron-down arrow"></i>
+              </button>
+              <div class="dropdown-menu" role="listbox">
+                <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation()">
+                <button class="dropdown-item" onclick="toggleDropdown('dd-period-entity')">
+                  <i class="mdi mdi-clock-outline"></i>
+                  Auto (heure du jour)
+                </button>
+                <button class="dropdown-item active" onclick="toggleDropdown('dd-period-entity')">
+                  <i class="mdi mdi-form-select"></i>
+                  input_select.saison
+                </button>
+                <button class="dropdown-item" onclick="toggleDropdown('dd-period-entity')">
+                  <i class="mdi mdi-form-select"></i>
+                  input_select.mode_maison
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Period options list -->
+          <div class="field-row" style="margin-top:4px;">
+            <span class="field-label">Options de periode</span>
+            <span class="section-desc" style="padding:0;">Personnalisez l'icone et la couleur pour chaque option de la periode.</span>
+          </div>
+
+          <div class="item-list" id="period-list">
+
+            <!-- ── Period 1: Printemps — EXPANDED ── -->
+            <div class="item-card" id="period-0">
+              <div class="item-row" style="cursor:pointer;">
+                <span class="period-dot" style="background:#4ade80; box-shadow:0 0 6px rgba(74,222,128,0.4);"></span>
+                <i class="mdi mdi-flower" style="font-size:15px;color:#4ade80;"></i>
+                <span class="item-name">Printemps</span>
+                <button class="expand-chevron open" onclick="toggleSourceFold(this, 'period-fold-0')" aria-label="Replier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer periode Printemps')" aria-label="Supprimer">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold open" id="period-fold-0">
+                <div class="source-fold-inner">
+                  <div class="period-fold-content">
+
+                    <!-- Icon picker -->
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Icone</span>
+                      <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Printemps')" aria-label="Choisir une icone">
+                        <i class="mdi mdi-flower"></i>
+                      </button>
+                      <span style="font-size:10px;color:var(--t4);">mdi:flower</span>
+                    </div>
+
+                    <!-- Color picker -->
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Couleur</span>
+                      <div class="color-chips">
+                        <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                        <button class="color-chip c-success active" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                        <button class="color-chip c-warning" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                        <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                        <button class="color-chip c-accent" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                        <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                      </div>
+                    </div>
+
+                    <!-- Label -->
+                    <div class="inline-field">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Printemps" style="font-size:11px;padding:6px 10px;">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="inline-field">
+                      <span class="field-label">Description</span>
+                      <input class="input" type="text" value="Saison du renouveau" placeholder="Description..." style="font-size:11px;padding:6px 10px;">
+                    </div>
+
+                    <!-- Date range -->
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Dates</span>
+                      <div class="date-range-row">
+                        <input class="field-input" type="text" value="01/03" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                        <span class="date-range-sep">&rarr;</span>
+                        <input class="field-input" type="text" value="31/05" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Period 2: Ete — COLLAPSED ── -->
+            <div class="item-card" id="period-1">
+              <div class="item-row" style="cursor:pointer;">
+                <span class="period-dot" style="background:#fbbf24; box-shadow:0 0 6px rgba(251,191,36,0.4);"></span>
+                <i class="mdi mdi-white-balance-sunny" style="font-size:15px;color:#fbbf24;"></i>
+                <span class="item-name">Ete</span>
+                <button class="expand-chevron" onclick="toggleSourceFold(this, 'period-fold-1')" aria-label="Deplier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer periode Ete')" aria-label="Supprimer">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold" id="period-fold-1">
+                <div class="source-fold-inner">
+                  <div class="period-fold-content">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Icone</span>
+                      <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Ete')" aria-label="Choisir une icone">
+                        <i class="mdi mdi-white-balance-sunny"></i>
+                      </button>
+                      <span style="font-size:10px;color:var(--t4);">mdi:white-balance-sunny</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Couleur</span>
+                      <div class="color-chips">
+                        <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                        <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                        <button class="color-chip c-warning active" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                        <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                        <button class="color-chip c-accent" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                        <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                      </div>
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Ete" style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Description</span>
+                      <input class="input" type="text" value="Saison chaude" placeholder="Description..." style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Dates</span>
+                      <div class="date-range-row">
+                        <input class="field-input" type="text" value="01/06" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                        <span class="date-range-sep">&rarr;</span>
+                        <input class="field-input" type="text" value="31/08" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Period 3: Automne — COLLAPSED ── -->
+            <div class="item-card" id="period-2">
+              <div class="item-row" style="cursor:pointer;">
+                <span class="period-dot" style="background:#f97316; box-shadow:0 0 6px rgba(249,115,22,0.4);"></span>
+                <i class="mdi mdi-leaf" style="font-size:15px;color:#f97316;"></i>
+                <span class="item-name">Automne</span>
+                <button class="expand-chevron" onclick="toggleSourceFold(this, 'period-fold-2')" aria-label="Deplier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer periode Automne')" aria-label="Supprimer">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold" id="period-fold-2">
+                <div class="source-fold-inner">
+                  <div class="period-fold-content">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Icone</span>
+                      <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Automne')" aria-label="Choisir une icone">
+                        <i class="mdi mdi-leaf"></i>
+                      </button>
+                      <span style="font-size:10px;color:var(--t4);">mdi:leaf</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Couleur</span>
+                      <div class="color-chips">
+                        <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                        <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                        <button class="color-chip c-warning" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                        <button class="color-chip c-info" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                        <button class="color-chip c-accent active" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                        <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                      </div>
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Automne" style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Description</span>
+                      <input class="input" type="text" value="Saison des couleurs" placeholder="Description..." style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Dates</span>
+                      <div class="date-range-row">
+                        <input class="field-input" type="text" value="01/09" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                        <span class="date-range-sep">&rarr;</span>
+                        <input class="field-input" type="text" value="30/11" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Period 4: Hiver — COLLAPSED ── -->
+            <div class="item-card" id="period-3">
+              <div class="item-row" style="cursor:pointer;">
+                <span class="period-dot" style="background:#60a5fa; box-shadow:0 0 6px rgba(96,165,250,0.4);"></span>
+                <i class="mdi mdi-snowflake" style="font-size:15px;color:#60a5fa;"></i>
+                <span class="item-name">Hiver</span>
+                <button class="expand-chevron" onclick="toggleSourceFold(this, 'period-fold-3')" aria-label="Deplier">
+                  <i class="mdi mdi-chevron-down"></i>
+                </button>
+                <button class="btn-remove" onclick="alert('Supprimer periode Hiver')" aria-label="Supprimer">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+              <div class="source-fold" id="period-fold-3">
+                <div class="source-fold-inner">
+                  <div class="period-fold-content">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Icone</span>
+                      <button class="icon-picker-btn" onclick="alert('Ouvrir icon picker pour Hiver')" aria-label="Choisir une icone">
+                        <i class="mdi mdi-snowflake"></i>
+                      </button>
+                      <span style="font-size:10px;color:var(--t4);">mdi:snowflake</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Couleur</span>
+                      <div class="color-chips">
+                        <button class="color-chip c-neutral" onclick="selectColor(this)" aria-label="Couleur neutre"></button>
+                        <button class="color-chip c-success" onclick="selectColor(this)" aria-label="Couleur succes"></button>
+                        <button class="color-chip c-warning" onclick="selectColor(this)" aria-label="Couleur warning"></button>
+                        <button class="color-chip c-info active" onclick="selectColor(this)" aria-label="Couleur info"></button>
+                        <button class="color-chip c-accent" onclick="selectColor(this)" aria-label="Couleur accent"></button>
+                        <button class="color-chip c-alert" onclick="selectColor(this)" aria-label="Couleur alerte"></button>
+                      </div>
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Label</span>
+                      <input class="input" type="text" value="Hiver" style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div class="inline-field">
+                      <span class="field-label">Description</span>
+                      <input class="input" type="text" value="Saison froide" placeholder="Description..." style="font-size:11px;padding:6px 10px;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span class="field-label" style="width:70px;">Dates</span>
+                      <div class="date-range-row">
+                        <input class="field-input" type="text" value="01/12" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                        <span class="date-range-sep">&rarr;</span>
+                        <input class="field-input" type="text" value="28/02" style="width:60px;text-align:center;padding:6px 6px;font-size:11px;border-radius:var(--radius-xs);border:1px solid var(--b2);background:var(--s1);color:var(--t1);outline:none;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Add period button -->
+          <button class="btn-add" onclick="alert('Ajouter une periode')" style="margin-top:8px;">
+            <i class="mdi mdi-plus"></i>
+            Ajouter une periode
+          </button>
+        </div>
+
+        <!-- ── 5. Save bar ── -->
+        <div class="save-bar">
+          <button class="btn btn-ghost btn-sm" onclick="alert('Reset')">
+            <i class="mdi mdi-refresh" style="font-size:14px;"></i>
+            Reinitialiser
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="alert('Sauvegarde!')">
+            <i class="mdi mdi-content-save" style="font-size:14px;"></i>
+            Sauvegarder
+          </button>
+        </div>
+
+      </div><!-- /tab-panel -->
+
+    </div><!-- /config-panel -->
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    // Toggle dropdown open/close
+    function toggleDropdown(id) {
+      const dd = document.getElementById(id);
+      if (!dd) return;
+      dd.classList.toggle('open');
+      // Close other dropdowns
+      document.querySelectorAll('.dropdown.open').forEach(function(d) {
+        if (d.id !== id) d.classList.remove('open');
+      });
+    }
+
+    // Toggle source/period fold open/close
+    function toggleSourceFold(chevronBtn, foldId) {
+      const fold = document.getElementById(foldId);
+      if (!fold) return;
+      const isOpen = fold.classList.contains('open');
+      if (isOpen) {
+        fold.classList.remove('open');
+        chevronBtn.classList.remove('open');
+      } else {
+        fold.classList.add('open');
+        chevronBtn.classList.add('open');
+      }
+    }
+
+    // Color chip selection
+    function selectColor(btn) {
+      const parent = btn.closest('.color-chips');
+      if (!parent) return;
+      parent.querySelectorAll('.color-chip').forEach(function(c) { c.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('.dropdown.open').forEach(function(dd) {
+        if (!dd.contains(e.target)) {
+          dd.classList.remove('open');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

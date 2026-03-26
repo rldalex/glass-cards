@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Fan — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+      --c-cyan: #2dd4bf;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Section header (fold) ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 4px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+      border-radius: var(--radius-sm);
+    }
+    .section-header:hover { background: var(--s1); }
+    .section-header-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-header-icon i {
+      font-size: 15px;
+    }
+    .section-header-text {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+    .section-header-arrow {
+      font-size: 16px;
+      color: var(--t3);
+      transition: transform 0.35s var(--ease-out);
+    }
+    .section-header[aria-expanded="true"] .section-header-arrow {
+      transform: rotate(180deg);
+    }
+
+    /* ── Fold separator ── */
+    .fold-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--c-accent), transparent);
+      opacity: 0;
+      transition: opacity 0.35s var(--ease-out);
+      margin: 0 8px;
+    }
+    .fold-sep.visible { opacity: 0.3; }
+    .fold-sep.cyan { background: linear-gradient(90deg, transparent, var(--c-cyan), transparent); }
+
+    /* ── Section fold (grid 0fr/1fr) ── */
+    .section-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease-out);
+    }
+    .section-fold.open {
+      grid-template-rows: 1fr;
+    }
+    .section-fold-inner {
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s var(--ease-std), visibility 0.2s var(--ease-std);
+    }
+    .section-fold.open .section-fold-inner {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0.1s;
+    }
+    .section-content {
+      padding: 12px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview fan card ── */
+    .preview-fan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 6px;
+    }
+    .preview-fan-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preview-fan-header-title {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+    }
+    .preview-fan-header-count {
+      font-size: 8px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+    }
+    .preview-fan-header-toggle {
+      width: 28px;
+      height: 14px;
+      border-radius: var(--radius-sm);
+      position: relative;
+    }
+    .preview-fan-header-toggle-knob {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      transition: all var(--t-fast);
+    }
+
+    .preview-fan-card {
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      position: relative;
+      border-radius: var(--radius-lg);
+    }
+    .preview-fan-tint {
+      grid-column: 1 / -1;
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    /* ── Fan row ── */
+    .fan-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 2px;
+      position: relative;
+      z-index: 1;
+      grid-column: 1 / -1;
+    }
+    .fan-row.compact {
+      grid-column: auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .fan-row.compact.right {
+      padding-left: 8px;
+      position: relative;
+    }
+    .fan-row.compact.right::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+    }
+    .fan-icon-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--b1);
+      background: var(--s2);
+    }
+    .fan-icon-btn i {
+      font-size: 13px;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fan-row[data-state="on"] .fan-icon-btn {
+      background: rgba(45, 212, 191, 0.1);
+      border-color: rgba(45, 212, 191, 0.15);
+    }
+    .fan-row[data-state="on"] .fan-icon-btn i {
+      color: #2dd4bf;
+      filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.4));
+    }
+    .fan-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .fan-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t1);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .fan-sub {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 1px;
+    }
+    .fan-speed-text {
+      font-size: 8px;
+      font-weight: 500;
+    }
+    .fan-step-text {
+      font-size: 7px;
+      color: var(--t4);
+    }
+    .fan-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--t4);
+    }
+    .fan-row[data-state="on"] .fan-speed-text {
+      color: rgba(45, 212, 191, 0.6);
+    }
+    .fan-row[data-state="on"] .fan-dot {
+      background: #2dd4bf;
+      box-shadow: 0 0 6px rgba(45, 212, 191, 0.4);
+    }
+
+    /* ── Fan spin animation ── */
+    @keyframes spin-fan {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .fan-spin-slow { animation: spin-fan 1.5s linear infinite; }
+    .fan-spin-fast { animation: spin-fan 0.8s linear infinite; }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Item list (drag-reorder rows) ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-card {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s var(--ease-std), background 0.2s var(--ease-std);
+    }
+    .item-card + .item-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-row.disabled { opacity: 0.45; }
+    .item-row.dragging { opacity: 0.4; }
+    .item-row.drop-target {
+      background: rgba(45, 212, 191, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-cyan);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-handle i {
+      font-size: 16px;
+      color: var(--t4);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Layout button ── */
+    .layout-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      flex-shrink: 0;
+    }
+    .layout-btn:hover {
+      background: var(--s4);
+      border-color: var(--b3);
+      color: var(--t1);
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Banner ── */
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-lg);
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .banner i { font-size: 16px; flex-shrink: 0; }
+    .banner-info {
+      background: rgba(96, 165, 250, 0.08);
+      border: 1px solid rgba(96, 165, 250, 0.12);
+      color: var(--t2);
+    }
+    .banner-info i { color: var(--c-info); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn active">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back">Pieces</button>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Salon</span>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           SECTION FOLD: Ventilateurs (open, cyan theme)
+           ═══════════════════════════════════════ -->
+      <button class="section-header" aria-expanded="true"
+        onclick="
+          const isOpen = this.getAttribute('aria-expanded') === 'true';
+          this.setAttribute('aria-expanded', !isOpen);
+          const fold = this.nextElementSibling.nextElementSibling;
+          const seps = [this.nextElementSibling, fold.nextElementSibling];
+          fold.classList.toggle('open');
+          seps.forEach(s => s && s.classList && s.classList.toggle('visible'));
+        ">
+        <div class="section-header-icon" style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.12);">
+          <i class="mdi mdi-fan" style="color:var(--c-cyan);"></i>
+        </div>
+        <span class="section-header-text">Ventilateurs</span>
+        <i class="mdi mdi-chevron-down section-header-arrow"></i>
+      </button>
+
+      <div class="fold-sep cyan visible"></div>
+
+      <div class="section-fold open">
+        <div class="section-fold-inner">
+          <div class="section-content">
+
+            <!-- ── Preview encart ── -->
+            <div class="preview-encart">
+              <div class="preview-label">Apercu</div>
+
+              <!-- Preview header -->
+              <div class="preview-fan-header" id="preview-header">
+                <div class="preview-fan-header-left">
+                  <span class="preview-fan-header-title">Ventilateurs</span>
+                  <span class="preview-fan-header-count" style="background:rgba(45,212,191,0.15);color:#2dd4bf;">1/2</span>
+                </div>
+                <div class="preview-fan-header-toggle" style="background:rgba(45,212,191,0.25);">
+                  <div class="preview-fan-header-toggle-knob" style="background:#2dd4bf;right:2px;"></div>
+                </div>
+              </div>
+
+              <!-- Preview card -->
+              <div class="preview-fan-card glass">
+                <div class="preview-fan-tint" style="background:radial-gradient(ellipse at 50% 50%, #2dd4bf, transparent 70%);opacity:0.09;"></div>
+
+                <!-- Entity 1: Ventilateur salon (on, speed 3) -->
+                <div class="fan-row" data-state="on" style="grid-column:1/-1;">
+                  <div class="fan-icon-btn">
+                    <i class="mdi mdi-fan fan-spin-slow"></i>
+                  </div>
+                  <div class="fan-info">
+                    <div class="fan-name">Ventilateur salon</div>
+                    <div class="fan-sub">
+                      <span class="fan-speed-text">67%</span>
+                      <span class="fan-step-text">Vitesse 2/3</span>
+                    </div>
+                  </div>
+                  <div class="fan-dot"></div>
+                </div>
+
+                <!-- Entity 2: Ventilateur chambre (off) -->
+                <div class="fan-row" data-state="off" style="grid-column:1/-1;">
+                  <div class="fan-icon-btn">
+                    <i class="mdi mdi-fan"></i>
+                  </div>
+                  <div class="fan-info">
+                    <div class="fan-name">Ventilateur chambre</div>
+                    <div class="fan-sub">
+                      <span class="fan-speed-text" style="color:var(--t4);">Off</span>
+                    </div>
+                  </div>
+                  <div class="fan-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Sub-section: Comportement ── -->
+            <div class="sub-section">
+              <div class="section-label">Comportement</div>
+              <div class="feature-list">
+                <button class="feature-row" role="switch" aria-checked="true"
+                  onclick="
+                    var tog = this.querySelector('.toggle');
+                    tog.classList.toggle('on');
+                    var isOn = tog.classList.contains('on');
+                    this.setAttribute('aria-checked', isOn);
+                    document.getElementById('preview-header').style.display = isOn ? 'flex' : 'none';
+                  ">
+                  <div class="feature-icon">
+                    <i class="mdi mdi-page-layout-header"></i>
+                  </div>
+                  <div class="feature-text">
+                    <div class="feature-name">Afficher le header</div>
+                    <div class="feature-desc">Titre et compteur au-dessus de la carte</div>
+                  </div>
+                  <span class="toggle on"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── Sub-section: Ventilateurs de la piece ── -->
+            <div class="sub-section">
+              <div class="section-label">Ventilateurs de la piece (2)</div>
+              <div class="section-desc">Ordre, disposition et visibilite des ventilateurs. Glissez pour reorganiser.</div>
+              <div style="margin-top:4px;">
+                <div class="item-list" id="fan-entity-list">
+
+                  <!-- Entity 1: Ventilateur salon (visible, full) -->
+                  <div class="item-card" draggable="true"
+                    ondragstart="
+                      this.classList.add('dragging');
+                      event.dataTransfer.effectAllowed = 'move';
+                      window._dragSrc = this;
+                    "
+                    ondragend="
+                      this.classList.remove('dragging');
+                      document.querySelectorAll('#fan-entity-list .item-card').forEach(function(c){c.classList.remove('drop-target')});
+                      window._dragSrc = null;
+                    "
+                    ondragover="
+                      event.preventDefault();
+                      if (window._dragSrc && window._dragSrc !== this) this.classList.add('drop-target');
+                    "
+                    ondragleave="this.classList.remove('drop-target')"
+                    ondrop="
+                      event.preventDefault();
+                      this.classList.remove('drop-target');
+                      if (window._dragSrc && window._dragSrc !== this) {
+                        var list = this.parentNode;
+                        var items = Array.from(list.children);
+                        var fromIdx = items.indexOf(window._dragSrc);
+                        var toIdx = items.indexOf(this);
+                        if (fromIdx < toIdx) {
+                          list.insertBefore(window._dragSrc, this.nextSibling);
+                        } else {
+                          list.insertBefore(window._dragSrc, this);
+                        }
+                      }
+                    ">
+                    <div class="item-row">
+                      <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                      <div class="item-info">
+                        <span class="item-name">Ventilateur salon</span>
+                        <span class="item-meta">fan.ventilateur_salon</span>
+                      </div>
+                      <button class="layout-btn" onclick="
+                        event.stopPropagation();
+                        this.textContent = this.textContent.trim() === 'FULL' ? 'COMPACT' : 'FULL';
+                      " title="Disposition: pleine largeur">FULL</button>
+                      <button class="toggle on" onclick="
+                        event.stopPropagation();
+                        this.classList.toggle('on');
+                        var row = this.closest('.item-row');
+                        row.classList.toggle('disabled', !this.classList.contains('on'));
+                      " aria-label="Visibilite Ventilateur salon"></button>
+                    </div>
+                  </div>
+
+                  <!-- Entity 2: Ventilateur chambre (visible, compact) -->
+                  <div class="item-card" draggable="true"
+                    ondragstart="
+                      this.classList.add('dragging');
+                      event.dataTransfer.effectAllowed = 'move';
+                      window._dragSrc = this;
+                    "
+                    ondragend="
+                      this.classList.remove('dragging');
+                      document.querySelectorAll('#fan-entity-list .item-card').forEach(function(c){c.classList.remove('drop-target')});
+                      window._dragSrc = null;
+                    "
+                    ondragover="
+                      event.preventDefault();
+                      if (window._dragSrc && window._dragSrc !== this) this.classList.add('drop-target');
+                    "
+                    ondragleave="this.classList.remove('drop-target')"
+                    ondrop="
+                      event.preventDefault();
+                      this.classList.remove('drop-target');
+                      if (window._dragSrc && window._dragSrc !== this) {
+                        var list = this.parentNode;
+                        var items = Array.from(list.children);
+                        var fromIdx = items.indexOf(window._dragSrc);
+                        var toIdx = items.indexOf(this);
+                        if (fromIdx < toIdx) {
+                          list.insertBefore(window._dragSrc, this.nextSibling);
+                        } else {
+                          list.insertBefore(window._dragSrc, this);
+                        }
+                      }
+                    ">
+                    <div class="item-row">
+                      <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                      <div class="item-info">
+                        <span class="item-name">Ventilateur chambre</span>
+                        <span class="item-meta">fan.ventilateur_chambre</span>
+                      </div>
+                      <button class="layout-btn" onclick="
+                        event.stopPropagation();
+                        this.textContent = this.textContent.trim() === 'FULL' ? 'COMPACT' : 'FULL';
+                      " title="Disposition: compact">COMPACT</button>
+                      <button class="toggle on" onclick="
+                        event.stopPropagation();
+                        this.classList.toggle('on');
+                        var row = this.closest('.item-row');
+                        row.classList.toggle('disabled', !this.classList.contains('on'));
+                      " aria-label="Visibilite Ventilateur chambre"></button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Save bar ── -->
+            <div class="save-bar">
+              <button class="btn btn-ghost btn-sm">
+                <i class="mdi mdi-restore" style="font-size:14px;"></i>
+                Reinitialiser
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="fold-sep cyan visible"></div>
+
+      <!-- ═══════════════════════════════════════
+           Other sections (collapsed, for context)
+           ═══════════════════════════════════════ -->
+
+      <button class="section-header" aria-expanded="false"
+        onclick="
+          const isOpen = this.getAttribute('aria-expanded') === 'true';
+          this.setAttribute('aria-expanded', !isOpen);
+          const fold = this.nextElementSibling.nextElementSibling;
+          const seps = [this.nextElementSibling, fold.nextElementSibling];
+          fold.classList.toggle('open');
+          seps.forEach(s => s && s.classList && s.classList.toggle('visible'));
+        ">
+        <div class="section-header-icon" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.12);">
+          <i class="mdi mdi-lightbulb-group" style="color:var(--c-warning);"></i>
+        </div>
+        <span class="section-header-text">Lumieres</span>
+        <i class="mdi mdi-chevron-down section-header-arrow"></i>
+      </button>
+      <div class="fold-sep"></div>
+      <div class="section-fold">
+        <div class="section-fold-inner">
+          <div class="section-content">
+            <div class="banner banner-info">
+              <i class="mdi mdi-lightbulb-group"></i>
+              <span>Configuration des lumieres de cette piece...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fold-sep"></div>
+
+      <button class="section-header" aria-expanded="false"
+        onclick="
+          const isOpen = this.getAttribute('aria-expanded') === 'true';
+          this.setAttribute('aria-expanded', !isOpen);
+          const fold = this.nextElementSibling.nextElementSibling;
+          const seps = [this.nextElementSibling, fold.nextElementSibling];
+          fold.classList.toggle('open');
+          seps.forEach(s => s && s.classList && s.classList.toggle('visible'));
+        ">
+        <div class="section-header-icon" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.12);">
+          <i class="mdi mdi-window-shutter" style="color:var(--c-purple);"></i>
+        </div>
+        <span class="section-header-text">Volets</span>
+        <i class="mdi mdi-chevron-down section-header-arrow"></i>
+      </button>
+      <div class="fold-sep"></div>
+      <div class="section-fold">
+        <div class="section-fold-inner">
+          <div class="section-content">
+            <div class="banner banner-info">
+              <i class="mdi mdi-window-shutter"></i>
+              <span>Configuration des volets de cette piece...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fold-sep"></div>
+
+    </div>
+  </div>
+
+</body>
+
+</html>

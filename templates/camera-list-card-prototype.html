@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Camera List Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    --cam-color: #60a5fa;
+    --cam-bg: rgba(96,165,250,0.1);
+    --cam-border: rgba(96,165,250,0.15);
+    --cam-glow: rgba(96,165,250,0.4);
+    --cam-sub: rgba(96,165,250,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #0f1923;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 120px;
+    gap: 12px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient ── */
+  .ambient-bg { position: fixed; inset: 0; z-index: -1; transition: all var(--t-slow); }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Glass ── */
+  .glass {
+    position: relative; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2); transition: border-color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .glass:hover { border-color: rgba(255,255,255,0.13); }
+  }
+
+  /* ── Tint ── */
+  .tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+  }
+
+  /* ── Card ── */
+  .cam-card-wrap {
+    width: 500px; max-width: 100%;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .cam-card { width: 100%; padding: 2px 14px; }
+  .card-inner { position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-title {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--t4);
+  }
+  .card-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 14px; height: 14px; padding: 0 4px;
+    border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+    transition: all var(--t-med);
+  }
+  .card-count.some { background: rgba(96,165,250,0.15); color: var(--cam-color); }
+  .card-count.none { background: var(--s2); color: var(--t3); }
+  .card-count.all  { background: rgba(96,165,250,0.2); color: var(--cam-color); }
+
+  .card-header-actions { display: flex; gap: 4px; }
+  .header-action-btn {
+    width: 22px; height: 22px; border-radius: var(--radius-sm);
+    background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; transition: all var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .header-action-btn i {
+    font-size: 14px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .header-action-btn:hover { background: var(--s3); border-color: var(--b3); }
+    .header-action-btn:hover i { color: var(--t1); }
+  }
+  @media (hover: hover) {
+    .header-action-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .header-action-btn:active { animation: bounce 0.3s ease; }
+  }
+  .header-action-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  /* ── Row ── */
+  .cam-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 4px; position: relative;
+    transition: background var(--t-fast);
+    border-radius: var(--radius-md);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cam-row:hover { background: var(--s1); }
+  }
+  @media (pointer: coarse) {
+    .cam-row:active { animation: bounce 0.3s ease; }
+  }
+
+  /* ── Icon button ── */
+  .cam-icon-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-md);
+    background: var(--s2); border: 1px solid var(--b1);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all var(--t-fast);
+    cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .cam-icon-btn i {
+    font-size: 18px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--t-fast);
+  }
+  .cam-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (hover: hover) and (pointer: fine) {
+    .cam-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+    .cam-icon-btn:hover i { color: var(--t2); }
+  }
+  @media (hover: hover) {
+    .cam-icon-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .cam-icon-btn:active { animation: bounce 0.3s ease; }
+  }
+  .cam-row[data-active="true"] .cam-icon-btn { background: var(--cam-bg); border-color: var(--cam-border); }
+  .cam-row[data-active="true"] .cam-icon-btn i { color: var(--cam-color); filter: drop-shadow(0 0 6px var(--cam-glow)); }
+
+  /* Recording pulse on icon */
+  .cam-icon-btn .rec-dot {
+    position: absolute; top: 4px; right: 4px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--c-alert); opacity: 0;
+    transition: opacity var(--t-fast);
+  }
+  .cam-row[data-recording="true"] .cam-icon-btn .rec-dot {
+    opacity: 1;
+    animation: rec-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes rec-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--c-alert); }
+    50% { opacity: 0.4; box-shadow: 0 0 0px var(--c-alert); }
+  }
+
+  /* ── Expand button (separate from icon-btn) ── */
+  .cam-expand-btn {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 10px;
+    background: none; border: none; padding: 0;
+    font-family: inherit; cursor: pointer; outline: none;
+    text-align: left; color: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cam-expand-btn:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Info ── */
+  .cam-info { flex: 1; min-width: 0; }
+  .cam-name {
+    font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
+    white-space: nowrap; overflow: hidden;
+  }
+  .cam-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+  .cam-state-text {
+    font-size: 10px; font-weight: 500; color: var(--t3);
+    transition: color var(--t-med);
+  }
+  .cam-row[data-active="true"] .cam-state-text { color: var(--cam-sub); }
+  .cam-type-badge {
+    font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 1px 5px; border-radius: var(--radius-full);
+    background: var(--s2); color: var(--t4);
+  }
+  .cam-type-badge.reolink { background: rgba(96,165,250,0.08); color: rgba(96,165,250,0.5); }
+  .cam-type-badge.nest { background: rgba(251,191,36,0.08); color: rgba(251,191,36,0.5); }
+
+  /* AI detection badges */
+  .cam-ai-badges { display: flex; gap: 3px; align-items: center; }
+  .ai-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: var(--radius-sm);
+    font-size: 11px; transition: all var(--t-fast);
+  }
+  .ai-badge.inactive { background: transparent; color: var(--t4); }
+  .ai-badge.active { background: rgba(96,165,250,0.12); color: var(--cam-color); }
+  .ai-badge.active i { filter: drop-shadow(0 0 4px var(--cam-glow)); }
+  .ai-badge i {
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Motion dot */
+  .cam-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: var(--t4); transition: all var(--t-med);
+  }
+  .cam-row[data-active="true"] .cam-dot {
+    background: var(--cam-color); box-shadow: 0 0 8px var(--cam-glow);
+  }
+  .cam-row[data-motion="true"] .cam-dot {
+    background: var(--c-warning); box-shadow: 0 0 8px rgba(251,191,36,0.5);
+    animation: motion-pulse 2s ease-in-out infinite;
+  }
+  @keyframes motion-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+
+  /* ── Fold separator ── */
+  .fold-sep {
+    height: 0; margin: 0 12px; overflow: hidden;
+    background: linear-gradient(90deg, transparent, rgba(96,165,250,0.25), transparent);
+    opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
+  }
+  .fold-sep.visible { height: 1px; opacity: 1; }
+
+  /* ── Fold ── */
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden; opacity: 0;
+    transition: opacity 0.25s var(--ease-std);
+  }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+  .ctrl-panel {
+    padding: 6px 0 4px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .ctrl-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    color: var(--cam-sub); text-transform: uppercase;
+  }
+
+  /* ── Stream preview ── */
+  .stream-preview {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    border-radius: var(--radius-lg); overflow: hidden;
+    background: #0a0f18; border: 1px solid var(--b1);
+  }
+  .stream-preview-inner {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(96,165,250,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(129,140,248,0.04) 0%, transparent 50%),
+      linear-gradient(135deg, #0d1520 0%, #0a0f18 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .stream-overlay-top {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+  }
+  .stream-cam-name {
+    font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .stream-cam-name i {
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stream-cam-name .rec-indicator {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 9px; font-weight: 700; color: var(--c-alert);
+    letter-spacing: 0.5px;
+  }
+  .stream-cam-name .rec-indicator .rec-circle {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--c-alert);
+    animation: rec-pulse 1.5s ease-in-out infinite;
+  }
+  .stream-time {
+    font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.5);
+    font-variant-numeric: tabular-nums;
+  }
+  .stream-overlay-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+  }
+  .stream-quality {
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 2px 6px;
+    border-radius: var(--radius-sm); background: rgba(0,0,0,0.4);
+    color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .stream-ai-tags { display: flex; gap: 4px; }
+  .stream-ai-tag {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 6px; border-radius: var(--radius-sm);
+    font-size: 9px; font-weight: 600;
+    background: rgba(96,165,250,0.15); color: var(--cam-color);
+    border: 1px solid rgba(96,165,250,0.2);
+  }
+  .stream-ai-tag i {
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .stream-placeholder {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .stream-placeholder i {
+    font-size: 36px; color: var(--t4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stream-placeholder span { font-size: 10px; color: var(--t4); font-weight: 500; }
+
+  .stream-preview.active .stream-preview-inner {
+    background:
+      radial-gradient(circle at 25% 35%, rgba(40,60,90,0.4) 0%, transparent 40%),
+      radial-gradient(circle at 65% 55%, rgba(30,50,70,0.3) 0%, transparent 45%),
+      radial-gradient(circle at 50% 80%, rgba(50,40,60,0.2) 0%, transparent 50%),
+      linear-gradient(135deg, #141e2e 0%, #0d1520 40%, #111a28 100%);
+  }
+
+  /* ── PTZ Pad ── */
+  .ptz-section {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .ptz-pad {
+    position: relative; width: 120px; height: 120px; flex-shrink: 0;
+  }
+  .ptz-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%; border: 1px solid var(--b2);
+    background: var(--s1);
+  }
+  .ptz-btn {
+    position: absolute; width: 34px; height: 34px;
+    border-radius: 50%; background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; transition: all var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+    z-index: 1;
+  }
+  .ptz-btn i {
+    font-size: 16px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .ptz-btn:hover { background: var(--s4); border-color: var(--b3); }
+    .ptz-btn:hover i { color: var(--t1); }
+  }
+  @media (hover: hover) {
+    .ptz-btn:active { transform: scale(0.92); }
+  }
+  @media (pointer: coarse) {
+    .ptz-btn:active { animation: bounce 0.3s ease; }
+  }
+  .ptz-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  .ptz-btn.up    { top: 2px;  left: 50%; transform: translateX(-50%); }
+  .ptz-btn.down  { bottom: 2px; left: 50%; transform: translateX(-50%); }
+  .ptz-btn.left  { left: 2px; top: 50%; transform: translateY(-50%); }
+  .ptz-btn.right { right: 2px; top: 50%; transform: translateY(-50%); }
+  .ptz-btn.center {
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--cam-bg); border-color: var(--cam-border);
+  }
+  .ptz-btn.center i { color: var(--cam-color); font-size: 18px; }
+  @media (hover: hover) and (pointer: fine) {
+    .ptz-btn.center:hover { background: rgba(96,165,250,0.18); }
+  }
+
+  /* PTZ side controls */
+  .ptz-side {
+    flex: 1; display: flex; flex-direction: column; gap: 8px;
+    min-width: 0;
+  }
+  .ptz-zoom-row { display: flex; gap: 6px; }
+  .ptz-zoom-btn {
+    flex: 1; height: 36px; border-radius: var(--radius-md);
+    background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; transition: all var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ptz-zoom-btn i {
+    font-size: 18px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .ptz-zoom-btn:hover { background: var(--s3); border-color: var(--b3); }
+    .ptz-zoom-btn:hover i { color: var(--t1); }
+  }
+  @media (hover: hover) {
+    .ptz-zoom-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .ptz-zoom-btn:active { animation: bounce 0.3s ease; }
+  }
+  .ptz-zoom-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  .ptz-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* ── Quick actions ── */
+  .actions-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .action-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .action-btn:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  }
+  .action-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (hover: hover) {
+    .action-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .action-btn:active { animation: bounce 0.3s ease; }
+  }
+  .action-btn i {
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .action-btn.active { border-color: var(--cam-border); background: var(--cam-bg); color: var(--cam-color); }
+  .action-btn.active-alert { border-color: rgba(248,113,113,0.2); background: rgba(248,113,113,0.1); color: var(--c-alert); }
+  .action-btn.active-warning { border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.1); color: var(--c-warning); }
+
+  /* ── Toggle ── */
+  .toggle {
+    position: relative; width: 44px; height: 24px; border-radius: 12px;
+    background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
+    transition: all var(--t-fast); padding: 0; outline: none;
+    font-family: inherit; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--t3);
+    transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .toggle.on { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.3); }
+  .toggle.on::after { transform: translateX(20px); background: var(--cam-color); box-shadow: 0 0 8px var(--cam-glow); }
+  .toggle:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+
+  /* ── Setting row ── */
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 2px 0;
+  }
+  .setting-label {
+    font-size: 11px; font-weight: 500; color: var(--t2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .setting-label i {
+    font-size: 14px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Chip ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  }
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (hover: hover) {
+    .chip:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .chip:active { animation: bounce 0.3s ease; }
+  }
+  .chip i {
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chip.active { border-color: var(--cam-border); background: var(--cam-bg); color: var(--cam-color); }
+
+  .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+
+  /* ── Slider ── */
+  .slider-wrap { display: flex; align-items: center; gap: 8px; }
+  .slider-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; flex-shrink: 0;
+  }
+  .slider-icon i {
+    font-size: 18px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slider {
+    position: relative; flex: 1; height: 36px;
+    border-radius: var(--radius-lg); background: var(--s1);
+    border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .slider-fill {
+    position: absolute; top: 0; left: 0; height: 100%;
+    border-radius: inherit; pointer-events: none;
+    background: linear-gradient(90deg, rgba(96,165,250,0.15), rgba(96,165,250,0.25));
+    transition: width 0.05s linear;
+  }
+  .slider-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 8px; height: 20px; border-radius: 4px;
+    background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    pointer-events: none; transition: left 0.05s linear;
+  }
+  .slider-val {
+    position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
+    font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
+  }
+
+  /* ── Marquee ── */
+  .marquee {
+    display: inline-block; white-space: nowrap;
+    animation: marquee-scroll 6s linear infinite;
+  }
+  @keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── Bounce (touch feedback) ── */
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Demo ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="morning">
+
+<div class="ambient-bg"></div>
+
+<div class="cam-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title">Cameras</span>
+      <span class="card-count" id="card-count"></span>
+    </div>
+    <div class="card-header-actions">
+      <button class="header-action-btn" onclick="toggleAllMotion(true)" aria-label="Activer detection"><i class="mdi mdi-motion-sensor"></i></button>
+      <button class="header-action-btn" onclick="toggleAllMotion(false)" aria-label="Desactiver detection"><i class="mdi mdi-motion-sensor-off"></i></button>
+    </div>
+  </div>
+  <div class="glass cam-card" id="card">
+    <div class="tint" id="card-tint"></div>
+    <div class="card-inner" id="cam-list"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn active" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Scenario</span>
+    <button class="demo-btn active" onclick="setScenario('mixed',this)">Mixte</button>
+    <button class="demo-btn" onclick="setScenario('all-idle',this)">Tout Idle</button>
+    <button class="demo-btn" onclick="setScenario('alert',this)">Alerte</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   HA CAMERA ENTITY MODEL
+   ================================================================ */
+var F = { ON_OFF: 1, STREAM: 2 };
+
+var CAM_ICONS = {
+  outdoor:  'mdi-cctv',
+  indoor:   'mdi-webcam',
+  doorbell: 'mdi-doorbell-video',
+  ptz:      'mdi-cctv',
+  hub:      'mdi-tablet'
+};
+
+var MARQUEE_MAX = 18;
+
+var camDefs = {
+  entree: {
+    name: 'Entree Principale',
+    brand: 'reolink', model: 'RLC-823A',
+    icon: 'ptz',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: true, has_siren: true, has_floodlight: true,
+    has_ai: true, ai_types: ['person', 'vehicle', 'pet'],
+    stream_types: ['fluent', 'clear'],
+    has_auto_track: true
+  },
+  jardin: {
+    name: 'Jardin',
+    brand: 'reolink', model: 'RLC-810A',
+    icon: 'outdoor',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: true, has_floodlight: true,
+    has_ai: true, ai_types: ['person', 'vehicle', 'animal'],
+    stream_types: ['fluent', 'clear'],
+    has_auto_track: false
+  },
+  garage: {
+    name: 'Garage',
+    brand: 'reolink', model: 'RLC-520A',
+    icon: 'indoor',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: false, has_floodlight: false,
+    has_ai: true, ai_types: ['person', 'vehicle'],
+    stream_types: ['fluent', 'clear'],
+    has_auto_track: false
+  },
+  porte: {
+    name: 'Sonnette',
+    brand: 'reolink', model: 'Doorbell WiFi',
+    icon: 'doorbell',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: true, has_floodlight: false,
+    has_ai: true, ai_types: ['person', 'package'],
+    stream_types: ['fluent', 'clear'],
+    has_auto_track: false
+  },
+  salon: {
+    name: 'Salon',
+    brand: 'nest', model: 'Nest Cam Indoor',
+    icon: 'indoor',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: false, has_floodlight: false,
+    has_ai: true, ai_types: ['person', 'motion', 'sound'],
+    stream_types: ['webrtc'],
+    has_auto_track: false
+  },
+  cuisine: {
+    name: 'Cuisine',
+    brand: 'nest', model: 'Nest Hub Max',
+    icon: 'hub',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: false, has_floodlight: false,
+    has_ai: true, ai_types: ['person', 'motion', 'sound'],
+    stream_types: ['webrtc'],
+    has_auto_track: false
+  },
+  terrasse: {
+    name: 'Terrasse Arriere Grande Zone',
+    brand: 'nest', model: 'Nest Cam Outdoor',
+    icon: 'outdoor',
+    supported_features: F.ON_OFF | F.STREAM,
+    has_ptz: false, has_siren: false, has_floodlight: false,
+    has_ai: true, ai_types: ['person', 'motion'],
+    stream_types: ['webrtc'],
+    has_auto_track: false
+  }
+};
+
+var cameras = {
+  entree:   { state: 'streaming', is_on: true, motion_detection: true, recording: true, floodlight: false, siren: false, auto_track: true, ai_detected: ['person'], stream_quality: 'fluent' },
+  jardin:   { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: true,  siren: false, auto_track: false, ai_detected: ['vehicle'], stream_quality: 'fluent' },
+  garage:   { state: 'idle',      is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'fluent' },
+  porte:    { state: 'idle',      is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'fluent' },
+  salon:    { state: 'idle',      is_on: true, motion_detection: false, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'webrtc' },
+  cuisine:  { state: 'idle',      is_on: false, motion_detection: false, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'webrtc' },
+  terrasse: { state: 'streaming', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: ['person', 'motion'], stream_quality: 'webrtc' }
+};
+
+var STATE_TEXT = { idle: 'Veille', streaming: 'En direct', recording: 'Enregistrement' };
+var AI_ICONS = {
+  person: 'mdi-human', vehicle: 'mdi-car', pet: 'mdi-dog', animal: 'mdi-paw',
+  package: 'mdi-package-variant', motion: 'mdi-motion-sensor', sound: 'mdi-volume-high', face: 'mdi-face-recognition'
+};
+var PTZ_PRESETS = ['Portail', 'Allee', 'Parking', 'Jardin'];
+
+var activeCam = null;
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function ico(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+/** DOM-safe marquee: returns text node or <span class="marquee"> */
+function marqueeEl(text) {
+  if (!text || text.length <= MARQUEE_MAX) {
+    return document.createTextNode(text || '');
+  }
+  var span = document.createElement('span');
+  span.className = 'marquee';
+  span.textContent = text + '\u00A0\u00A0\u00A0' + text + '\u00A0\u00A0\u00A0';
+  return span;
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var list = document.getElementById('cam-list');
+  var wasActive = activeCam;
+  activeCam = null;
+
+  while (list.firstChild) list.removeChild(list.firstChild);
+
+  var ids = Object.keys(camDefs);
+  for (var idx = 0; idx < ids.length; idx++) {
+    var id = ids[idx];
+    var isOpen = wasActive === id;
+    if (isOpen) activeCam = id;
+
+    list.appendChild(buildRow(id, isOpen));
+
+    var fold = buildFold(id, isOpen);
+    if (isOpen) {
+      var sepTop = el('div', 'fold-sep');
+      list.appendChild(sepTop);
+      list.appendChild(fold);
+      var sepBottom = el('div', 'fold-sep');
+      list.appendChild(sepBottom);
+
+      if (wasActive === id) {
+        fold.classList.add('open');
+        sepTop.classList.add('visible');
+        sepBottom.classList.add('visible');
+      } else {
+        (function(f, st, sb) {
+          requestAnimationFrame(function() { requestAnimationFrame(function() {
+            f.classList.add('open');
+            st.classList.add('visible');
+            sb.classList.add('visible');
+          }); });
+        })(fold, sepTop, sepBottom);
+      }
+    } else {
+      list.appendChild(fold);
+    }
+  }
+
+  updateHeader();
+  updateTint();
+}
+
+function buildRow(id, isOpen) {
+  var def = camDefs[id];
+  var cam = cameras[id];
+  var isActive = cam.is_on && cam.state !== 'idle';
+  var hasMotion = cam.ai_detected.length > 0;
+
+  var row = el('div', 'cam-row');
+  row.setAttribute('data-active', String(isActive));
+  row.setAttribute('data-recording', String(cam.recording));
+  row.setAttribute('data-motion', String(hasMotion));
+  row.setAttribute('data-id', id);
+
+  // Icon button
+  var btn = el('button', 'cam-icon-btn');
+  btn.setAttribute('aria-label', (cam.is_on ? 'Eteindre ' : 'Allumer ') + def.name);
+  btn.appendChild(ico(CAM_ICONS[def.icon] || 'mdi-cctv'));
+  btn.appendChild(el('div', 'rec-dot'));
+  btn.addEventListener('click', (function(camId) {
+    return function(e) {
+      e.stopPropagation();
+      var c = cameras[camId];
+      c.is_on = !c.is_on;
+      if (!c.is_on) { c.state = 'idle'; c.recording = false; c.ai_detected = []; }
+      render();
+    };
+  })(id));
+  row.appendChild(btn);
+
+  // Expand button (separate from icon)
+  var expandBtn = el('button', 'cam-expand-btn');
+  expandBtn.setAttribute('aria-expanded', String(isOpen));
+  expandBtn.setAttribute('aria-controls', 'fold-' + id);
+  expandBtn.setAttribute('aria-label', 'Controles ' + def.name);
+
+  // Info
+  var info = el('div', 'cam-info');
+  var nameEl = el('div', 'cam-name');
+  nameEl.appendChild(marqueeEl(def.name));
+  info.appendChild(nameEl);
+
+  var sub = el('div', 'cam-sub');
+  var stateStr = cam.is_on ? (STATE_TEXT[cam.state] || cam.state) : 'Eteint';
+  sub.appendChild(el('span', 'cam-state-text', { text: stateStr }));
+  var brandClass = def.brand === 'reolink' ? 'reolink' : 'nest';
+  sub.appendChild(el('span', 'cam-type-badge ' + brandClass, { text: def.model }));
+  info.appendChild(sub);
+  expandBtn.appendChild(info);
+
+  // AI badges (compact, in row)
+  if (def.has_ai && cam.is_on) {
+    var aiBadges = el('div', 'cam-ai-badges');
+    for (var a = 0; a < def.ai_types.length; a++) {
+      var aiType = def.ai_types[a];
+      var isDetected = cam.ai_detected.indexOf(aiType) !== -1;
+      var badge = el('div', 'ai-badge ' + (isDetected ? 'active' : 'inactive'));
+      badge.setAttribute('title', aiType);
+      badge.appendChild(ico(AI_ICONS[aiType] || 'mdi-eye'));
+      aiBadges.appendChild(badge);
+    }
+    expandBtn.appendChild(aiBadges);
+  }
+
+  // Status dot
+  expandBtn.appendChild(el('div', 'cam-dot'));
+
+  expandBtn.addEventListener('click', (function(camId) {
+    return function(e) {
+      e.stopPropagation();
+      activeCam = activeCam === camId ? null : camId;
+      render();
+    };
+  })(id));
+
+  row.appendChild(expandBtn);
+  return row;
+}
+
+function buildFold(id, withControls) {
+  var fold = el('div', 'ctrl-fold');
+  fold.id = 'fold-' + id;
+  fold.setAttribute('role', 'region');
+  fold.setAttribute('aria-hidden', String(!withControls));
+  var inner = el('div', 'ctrl-fold-inner');
+  var panel = el('div', 'ctrl-panel');
+  panel.setAttribute('data-id', id);
+  if (withControls) populateControls(panel, id);
+  inner.appendChild(panel);
+  fold.appendChild(inner);
+  return fold;
+}
+
+/* ================================================================
+   PANEL
+   ================================================================ */
+function populateControls(panel, id) {
+  var def = camDefs[id];
+  var cam = cameras[id];
+
+  panel.appendChild(el('span', 'ctrl-label', { text: def.name }));
+
+  // ── Stream preview ──
+  var preview = el('div', 'stream-preview' + (cam.state !== 'idle' && cam.is_on ? ' active' : ''));
+  var previewInner = el('div', 'stream-preview-inner');
+
+  if (cam.is_on) {
+    var overlayTop = el('div', 'stream-overlay-top');
+    var camLabel = el('div', 'stream-cam-name');
+    camLabel.appendChild(ico(CAM_ICONS[def.icon]));
+    var nameSpan = document.createElement('span');
+    nameSpan.textContent = def.name;
+    camLabel.appendChild(nameSpan);
+    if (cam.recording) {
+      var recInd = el('span', 'rec-indicator');
+      recInd.appendChild(el('span', 'rec-circle'));
+      recInd.appendChild(document.createTextNode(' REC'));
+      camLabel.appendChild(recInd);
+    }
+    overlayTop.appendChild(camLabel);
+    overlayTop.appendChild(el('div', 'stream-time', { text: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }));
+    previewInner.appendChild(overlayTop);
+
+    var overlayBottom = el('div', 'stream-overlay-bottom');
+    var qualityLabel = cam.stream_quality === 'webrtc' ? 'WebRTC' : cam.stream_quality.toUpperCase();
+    overlayBottom.appendChild(el('div', 'stream-quality', { text: qualityLabel }));
+    if (cam.ai_detected.length > 0) {
+      var aiTags = el('div', 'stream-ai-tags');
+      for (var a = 0; a < cam.ai_detected.length; a++) {
+        var tag = el('div', 'stream-ai-tag');
+        tag.appendChild(ico(AI_ICONS[cam.ai_detected[a]]));
+        tag.appendChild(document.createTextNode(cam.ai_detected[a]));
+        aiTags.appendChild(tag);
+      }
+      overlayBottom.appendChild(aiTags);
+    }
+    previewInner.appendChild(overlayBottom);
+
+    if (cam.state === 'idle') {
+      var ph = el('div', 'stream-placeholder');
+      ph.appendChild(ico(CAM_ICONS[def.icon]));
+      ph.appendChild(el('span', '', { text: 'Appuyer pour diffuser' }));
+      previewInner.appendChild(ph);
+    }
+  } else {
+    var phOff = el('div', 'stream-placeholder');
+    phOff.appendChild(ico('mdi-camera-off'));
+    phOff.appendChild(el('span', '', { text: 'Camera eteinte' }));
+    previewInner.appendChild(phOff);
+  }
+
+  preview.appendChild(previewInner);
+  panel.appendChild(preview);
+
+  if (!cam.is_on) return;
+
+  // ── PTZ Controls ──
+  if (def.has_ptz) {
+    panel.appendChild(el('span', 'ctrl-label', { text: 'PTZ' }));
+
+    var ptzSection = el('div', 'ptz-section');
+    var pad = el('div', 'ptz-pad');
+    pad.appendChild(el('div', 'ptz-ring'));
+
+    var dirs = [
+      { cls: 'up',    icon: 'mdi-chevron-up',    label: 'Haut' },
+      { cls: 'down',  icon: 'mdi-chevron-down',  label: 'Bas' },
+      { cls: 'left',  icon: 'mdi-chevron-left',  label: 'Gauche' },
+      { cls: 'right', icon: 'mdi-chevron-right', label: 'Droite' },
+      { cls: 'center', icon: 'mdi-home',         label: 'Position initiale' }
+    ];
+    for (var d = 0; d < dirs.length; d++) {
+      var ptzBtn = el('button', 'ptz-btn ' + dirs[d].cls);
+      ptzBtn.setAttribute('aria-label', dirs[d].label);
+      ptzBtn.appendChild(ico(dirs[d].icon));
+      pad.appendChild(ptzBtn);
+    }
+    ptzSection.appendChild(pad);
+
+    var side = el('div', 'ptz-side');
+    var zoomRow = el('div', 'ptz-zoom-row');
+    var zoomOut = el('button', 'ptz-zoom-btn');
+    zoomOut.setAttribute('aria-label', 'Zoom arriere');
+    zoomOut.appendChild(ico('mdi-magnify-minus'));
+    zoomRow.appendChild(zoomOut);
+    var zoomIn = el('button', 'ptz-zoom-btn');
+    zoomIn.setAttribute('aria-label', 'Zoom avant');
+    zoomIn.appendChild(ico('mdi-magnify-plus'));
+    zoomRow.appendChild(zoomIn);
+    side.appendChild(zoomRow);
+
+    if (def.has_auto_track) {
+      var trackRow = el('div', 'setting-row');
+      var trackLabel = el('div', 'setting-label');
+      trackLabel.appendChild(ico('mdi-target-account'));
+      trackLabel.appendChild(document.createTextNode('Auto-tracking'));
+      trackRow.appendChild(trackLabel);
+      var trackToggle = el('button', 'toggle' + (cam.auto_track ? ' on' : ''));
+      trackToggle.setAttribute('aria-label', 'Auto-tracking');
+      trackToggle.addEventListener('click', (function(camId) {
+        return function(e) {
+          e.stopPropagation();
+          cameras[camId].auto_track = !cameras[camId].auto_track;
+          render();
+        };
+      })(id));
+      trackRow.appendChild(trackToggle);
+      side.appendChild(trackRow);
+    }
+
+    side.appendChild(el('span', 'ctrl-label', { text: 'Presets' }));
+    var presetsRow = el('div', 'ptz-presets');
+    for (var p = 0; p < PTZ_PRESETS.length; p++) {
+      var presetChip = el('button', 'chip');
+      presetChip.appendChild(ico('mdi-map-marker'));
+      var ps = document.createElement('span');
+      ps.textContent = PTZ_PRESETS[p];
+      presetChip.appendChild(ps);
+      presetsRow.appendChild(presetChip);
+    }
+    side.appendChild(presetsRow);
+    ptzSection.appendChild(side);
+    panel.appendChild(ptzSection);
+  }
+
+  // ── Quick actions ──
+  panel.appendChild(el('div', 'ctrl-sep'));
+  var actions = el('div', 'actions-row');
+
+  var snapBtn = el('button', 'action-btn');
+  snapBtn.appendChild(ico('mdi-camera'));
+  snapBtn.appendChild(document.createTextNode('Capture'));
+  actions.appendChild(snapBtn);
+
+  var recBtn = el('button', 'action-btn' + (cam.recording ? ' active-alert' : ''));
+  recBtn.appendChild(ico(cam.recording ? 'mdi-record-circle' : 'mdi-record'));
+  recBtn.appendChild(document.createTextNode(cam.recording ? 'Stop' : 'Enregistrer'));
+  recBtn.addEventListener('click', (function(camId) {
+    return function(e) {
+      e.stopPropagation();
+      var c = cameras[camId];
+      c.recording = !c.recording;
+      c.state = c.recording ? 'recording' : 'streaming';
+      render();
+    };
+  })(id));
+  actions.appendChild(recBtn);
+
+  var motionBtn = el('button', 'action-btn' + (cam.motion_detection ? ' active' : ''));
+  motionBtn.appendChild(ico(cam.motion_detection ? 'mdi-motion-sensor' : 'mdi-motion-sensor-off'));
+  motionBtn.appendChild(document.createTextNode('Detection'));
+  motionBtn.addEventListener('click', (function(camId) {
+    return function(e) {
+      e.stopPropagation();
+      cameras[camId].motion_detection = !cameras[camId].motion_detection;
+      if (!cameras[camId].motion_detection) cameras[camId].ai_detected = [];
+      render();
+    };
+  })(id));
+  actions.appendChild(motionBtn);
+
+  if (def.has_siren) {
+    var sirenBtn = el('button', 'action-btn' + (cam.siren ? ' active-alert' : ''));
+    sirenBtn.appendChild(ico('mdi-bullhorn'));
+    sirenBtn.appendChild(document.createTextNode('Sirene'));
+    sirenBtn.addEventListener('click', (function(camId) {
+      return function(e) {
+        e.stopPropagation();
+        cameras[camId].siren = !cameras[camId].siren;
+        render();
+      };
+    })(id));
+    actions.appendChild(sirenBtn);
+  }
+
+  if (def.has_floodlight) {
+    var lightBtn = el('button', 'action-btn' + (cam.floodlight ? ' active-warning' : ''));
+    lightBtn.appendChild(ico(cam.floodlight ? 'mdi-flashlight' : 'mdi-flashlight-off'));
+    lightBtn.appendChild(document.createTextNode('Projecteur'));
+    lightBtn.addEventListener('click', (function(camId) {
+      return function(e) {
+        e.stopPropagation();
+        cameras[camId].floodlight = !cameras[camId].floodlight;
+        render();
+      };
+    })(id));
+    actions.appendChild(lightBtn);
+  }
+
+  panel.appendChild(actions);
+
+  // ── Stream quality selector ──
+  if (def.stream_types.length > 1) {
+    panel.appendChild(el('div', 'ctrl-sep'));
+    var qualRow = el('div', 'setting-row');
+    var qualLabel = el('div', 'setting-label');
+    qualLabel.appendChild(ico('mdi-quality-high'));
+    qualLabel.appendChild(document.createTextNode('Qualite stream'));
+    qualRow.appendChild(qualLabel);
+    var qualChips = el('div', 'actions-row');
+    qualChips.style.gap = '4px';
+    for (var q = 0; q < def.stream_types.length; q++) {
+      (function(qt) {
+        var qChip = el('button', 'chip' + (cam.stream_quality === qt ? ' active' : ''));
+        qChip.textContent = qt === 'fluent' ? 'Fluent' : qt === 'clear' ? 'Clear (4K)' : qt.toUpperCase();
+        qChip.addEventListener('click', (function(camId) {
+          return function(e) {
+            e.stopPropagation();
+            cameras[camId].stream_quality = qt;
+            render();
+          };
+        })(id));
+        qualChips.appendChild(qChip);
+      })(def.stream_types[q]);
+    }
+    qualRow.appendChild(qualChips);
+    panel.appendChild(qualRow);
+  }
+
+  // ── Privacy mode ──
+  if (def.brand === 'reolink') {
+    panel.appendChild(el('div', 'ctrl-sep'));
+    var privRow = el('div', 'setting-row');
+    var privLabel = el('div', 'setting-label');
+    privLabel.appendChild(ico('mdi-shield-lock'));
+    privLabel.appendChild(document.createTextNode('Mode prive'));
+    privRow.appendChild(privLabel);
+    var privToggle = el('button', 'toggle');
+    privToggle.setAttribute('aria-label', 'Mode prive');
+    privRow.appendChild(privToggle);
+    panel.appendChild(privRow);
+  }
+}
+
+/* ================================================================
+   HEADER & TINT
+   ================================================================ */
+function updateHeader() {
+  var ids = Object.keys(cameras);
+  var n = 0;
+  for (var i = 0; i < ids.length; i++) {
+    if (cameras[ids[i]].is_on) n++;
+  }
+  var badge = document.getElementById('card-count');
+  badge.textContent = n + '/' + ids.length;
+  badge.className = 'card-count ' + (n === 0 ? 'none' : n === ids.length ? 'all' : 'some');
+}
+
+function updateTint() {
+  var tint = document.getElementById('card-tint');
+  var ids = Object.keys(cameras);
+  var hasAlert = false;
+  var nActive = 0;
+  for (var i = 0; i < ids.length; i++) {
+    if (cameras[ids[i]].is_on && cameras[ids[i]].state !== 'idle') nActive++;
+    if (cameras[ids[i]].ai_detected.length > 0) hasAlert = true;
+  }
+  if (nActive === 0) { tint.style.opacity = '0'; return; }
+  var ratio = nActive / ids.length;
+  var tintColor = hasAlert ? 'var(--c-warning)' : 'var(--cam-color)';
+  tint.style.background = 'radial-gradient(ellipse at 50% 50%, ' + tintColor + ', transparent 70%)';
+  tint.style.opacity = (ratio * 0.18).toFixed(3);
+}
+
+function toggleAllMotion(state) {
+  var ids = Object.keys(cameras);
+  for (var i = 0; i < ids.length; i++) {
+    cameras[ids[i]].motion_detection = state;
+    if (!state) cameras[ids[i]].ai_detected = [];
+  }
+  render();
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+function setTime(t, btn) {
+  document.body.setAttribute('data-time', t);
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function setScenario(scenario, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (scenario === 'all-idle') {
+    var ids = Object.keys(cameras);
+    for (var i = 0; i < ids.length; i++) {
+      cameras[ids[i]].state = 'idle';
+      cameras[ids[i]].recording = false;
+      cameras[ids[i]].ai_detected = [];
+      cameras[ids[i]].siren = false;
+      cameras[ids[i]].floodlight = false;
+      cameras[ids[i]].is_on = true;
+    }
+  } else if (scenario === 'alert') {
+    cameras.entree = { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: true, siren: true, auto_track: true, ai_detected: ['person'], stream_quality: 'clear' };
+    cameras.jardin = { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: true, siren: false, auto_track: false, ai_detected: ['person', 'vehicle'], stream_quality: 'clear' };
+    cameras.garage = { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: false, siren: false, auto_track: false, ai_detected: ['person'], stream_quality: 'clear' };
+    cameras.porte = { state: 'streaming', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: true, auto_track: false, ai_detected: ['person', 'package'], stream_quality: 'fluent' };
+    cameras.salon = { state: 'streaming', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: ['person', 'sound'], stream_quality: 'webrtc' };
+    cameras.cuisine = { state: 'streaming', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: ['motion'], stream_quality: 'webrtc' };
+    cameras.terrasse = { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: false, siren: false, auto_track: false, ai_detected: ['person', 'motion'], stream_quality: 'webrtc' };
+  } else {
+    cameras.entree = { state: 'streaming', is_on: true, motion_detection: true, recording: true, floodlight: false, siren: false, auto_track: true, ai_detected: ['person'], stream_quality: 'fluent' };
+    cameras.jardin = { state: 'recording', is_on: true, motion_detection: true, recording: true, floodlight: true, siren: false, auto_track: false, ai_detected: ['vehicle'], stream_quality: 'fluent' };
+    cameras.garage = { state: 'idle', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'fluent' };
+    cameras.porte = { state: 'idle', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'fluent' };
+    cameras.salon = { state: 'idle', is_on: true, motion_detection: false, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'webrtc' };
+    cameras.cuisine = { state: 'idle', is_on: false, motion_detection: false, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: [], stream_quality: 'webrtc' };
+    cameras.terrasse = { state: 'streaming', is_on: true, motion_detection: true, recording: false, floodlight: false, siren: false, auto_track: false, ai_detected: ['person', 'motion'], stream_quality: 'webrtc' };
+  }
+
+  activeCam = null;
+  render();
+}
+
+/* ── Init ── */
+render();
+</script>
+
+</body>
+</html>

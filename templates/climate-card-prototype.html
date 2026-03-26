@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Climate Card — Dashboard Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    /* Climate semantic colors */
+    --cl-heat: #f97316;
+    --cl-heat-bg: rgba(249,115,22,0.1);
+    --cl-heat-border: rgba(249,115,22,0.15);
+    --cl-heat-glow: rgba(249,115,22,0.4);
+    --cl-heat-sub: rgba(249,115,22,0.6);
+
+    --cl-cool: #38bdf8;
+    --cl-cool-bg: rgba(56,189,248,0.1);
+    --cl-cool-border: rgba(56,189,248,0.15);
+    --cl-cool-glow: rgba(56,189,248,0.4);
+    --cl-cool-sub: rgba(56,189,248,0.6);
+
+    --cl-auto: #a78bfa;
+    --cl-auto-bg: rgba(167,139,250,0.1);
+    --cl-auto-border: rgba(167,139,250,0.15);
+    --cl-auto-glow: rgba(167,139,250,0.4);
+
+    --cl-off: var(--t4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #1a1118;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 120px;
+    gap: 12px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient ── */
+  .ambient-bg { position: fixed; inset: 0; z-index: -1; transition: all var(--t-slow); }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Glass ── */
+  .glass {
+    position: relative; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2); transition: border-color var(--t-fast);
+  }
+  /* glass:hover in @media block below */
+
+  .tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+    opacity: 0;
+  }
+  .tint.heat {
+    opacity: 0.15;
+    background: radial-gradient(ellipse at 50% 40%, var(--cl-heat), transparent 70%);
+  }
+  .tint.cool {
+    opacity: 0.15;
+    background: radial-gradient(ellipse at 50% 40%, var(--cl-cool), transparent 70%);
+  }
+  .tint.auto-tint {
+    opacity: 0.12;
+    background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
+  }
+
+  /* ── Canvas animation layer ── */
+  .thermal-canvas {
+    position: absolute; inset: 0; border-radius: inherit;
+    overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .thermal-canvas canvas {
+    width: 100%; height: 100%;
+  }
+
+  /* ── Card layout ── */
+  .climate-card-wrap {
+    display: flex; flex-direction: column; gap: 6px;
+    width: 500px; max-width: 100%;
+  }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-title {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--t4);
+  }
+  .card-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 14px; height: 14px; padding: 0 4px;
+    border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+    transition: all var(--t-med);
+  }
+  .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
+  .card-count.none { background: var(--s2); color: var(--t3); }
+
+  .card-header-right { font-size: 10px; font-weight: 500; color: var(--t3); }
+
+  .climate-card {
+    width: 100%; padding: 14px; overflow: hidden;
+    touch-action: pan-y; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: default;
+    transition: border-color var(--t-fast), border-radius var(--t-layout);
+  }
+  .card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── Tab bar (entity selector) ── */
+  .entity-tabs {
+    display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+    border-radius: 12px; background: var(--s1);
+    border: 1px solid var(--b1); padding: 3px;
+  }
+  .entity-tabs::-webkit-scrollbar { display: none; }
+
+  .entity-tab {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 10px; border-radius: 9px; min-width: 0;
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    border: none; background: transparent; outline: none;
+    -webkit-tap-highlight-color: transparent; white-space: nowrap;
+  }
+  .entity-tab:active { transform: scale(0.96); }
+  .entity-tab:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+
+  .entity-tab .tab-dot {
+    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+    transition: all var(--t-med);
+  }
+
+  .entity-tab.active {
+    background: var(--s4); color: var(--t1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .entity-tab.active.heat {
+    background: var(--cl-heat-bg); color: var(--cl-heat);
+    box-shadow: 0 1px 6px rgba(249,115,22,0.15);
+  }
+  .entity-tab.active.cool {
+    background: var(--cl-cool-bg); color: var(--cl-cool);
+    box-shadow: 0 1px 6px rgba(56,189,248,0.15);
+  }
+
+  .entity-tab .tab-dot.heating {
+    background: var(--cl-heat); box-shadow: 0 0 6px var(--cl-heat-glow);
+  }
+  .entity-tab .tab-dot.cooling {
+    background: var(--cl-cool); box-shadow: 0 0 6px var(--cl-cool-glow);
+  }
+  .entity-tab .tab-dot.idle { background: var(--t3); }
+  .entity-tab .tab-dot.off { background: var(--t4); }
+
+  /* ── Arc gauge ── */
+  .gauge-section {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0; gap: 0;
+  }
+
+  .arc-gauge {
+    position: relative; width: 240px; height: 160px;
+  }
+
+  .arc-gauge svg {
+    width: 100%; height: 100%;
+  }
+
+  .arc-bg {
+    fill: none; stroke: var(--s2); stroke-width: 8;
+    stroke-linecap: round;
+  }
+  .arc-range {
+    fill: none; stroke-width: 8; stroke-linecap: round;
+    opacity: 0.15;
+    transition: stroke var(--t-med), opacity var(--t-med);
+  }
+  .arc-progress {
+    fill: none; stroke-width: 8; stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s var(--ease-out), stroke var(--t-med);
+    filter: drop-shadow(0 0 6px var(--cl-heat-glow));
+  }
+  .arc-progress.heat { stroke: var(--cl-heat); filter: drop-shadow(0 0 8px var(--cl-heat-glow)); }
+  .arc-progress.cool { stroke: var(--cl-cool); filter: drop-shadow(0 0 8px var(--cl-cool-glow)); }
+  .arc-progress.auto-arc { stroke: var(--cl-auto); filter: drop-shadow(0 0 8px var(--cl-auto-glow)); }
+  .arc-progress.off { stroke: var(--t4); filter: none; }
+
+  /* Target indicator on arc */
+  .arc-target-dot {
+    fill: rgba(255,255,255,0.9);
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+    transition: all 0.6s var(--ease-out);
+  }
+
+  /* Tick marks */
+  .arc-tick { stroke: var(--t4); stroke-width: 1; opacity: 0.3; }
+  .arc-tick-major { stroke: var(--t3); stroke-width: 1.5; opacity: 0.5; }
+  .arc-tick-label {
+    font-size: 8px; font-weight: 500; fill: var(--t4);
+    text-anchor: middle; dominant-baseline: middle;
+  }
+
+  /* Center display */
+  .gauge-center {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    width: 160px;
+  }
+  .gauge-current-temp {
+    font-size: 48px; font-weight: 300; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -2px;
+    transition: color var(--t-med);
+  }
+  .gauge-current-temp .unit {
+    font-size: 20px; font-weight: 400; color: var(--t3);
+    vertical-align: super; margin-left: -2px;
+  }
+  .gauge-current-temp.heat { color: var(--t1); }
+  .gauge-current-temp.cool { color: var(--t1); }
+  .gauge-current-temp.off { color: var(--t3); }
+
+  .gauge-action-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; transition: color var(--t-med);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .gauge-action-label i { font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .gauge-action-label.heat { color: var(--cl-heat-sub); }
+  .gauge-action-label.cool { color: var(--cl-cool-sub); }
+  .gauge-action-label.idle { color: var(--t3); }
+  .gauge-action-label.off { color: var(--t4); }
+
+  /* ── Temperature control panel (glass sub-panel) ── */
+  .temp-control-panel {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 10px 16px;
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(4px) saturate(1.2);
+    -webkit-backdrop-filter: blur(4px) saturate(1.2);
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .temp-stepper-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .temp-stepper-btn i { font-size: 20px; color: var(--t2); transition: color var(--t-fast); display: flex; align-items: center; justify-content: center; }
+  /* temp-stepper-btn:hover in @media block below */
+  .temp-stepper-btn:active { transform: scale(0.96); }
+  .temp-stepper-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+  .temp-stepper-btn[disabled] { opacity: 0.3; pointer-events: none; }
+
+  .target-display {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    min-width: 100px;
+  }
+  .target-label {
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--t4);
+  }
+  .target-value {
+    font-size: 28px; font-weight: 600; line-height: 1.1;
+    font-variant-numeric: tabular-nums; letter-spacing: -1px;
+    transition: color var(--t-med);
+  }
+  .target-value .unit { font-size: 14px; font-weight: 400; color: var(--t3); }
+  .target-value.heat { color: var(--cl-heat); }
+  .target-value.cool { color: var(--cl-cool); }
+  .target-value.auto-val { color: var(--cl-auto); }
+  .target-value.off { color: var(--t4); }
+
+  /* ── Gauge sub-info (humidity, preset) ── */
+  .gauge-sub-info {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 500; color: var(--t3);
+  }
+  .gauge-sub-info i { font-size: 12px; opacity: 0.5; display: flex; align-items: center; justify-content: center; }
+
+  /* ── HVAC mode chips ── */
+  .mode-section {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .mode-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--t4); padding: 0 2px;
+  }
+  .mode-row { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  /* chip:hover in @media block below */
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
+  .chip:active { transform: scale(0.96); }
+  .chip i { font-size: 14px; display: flex; align-items: center; justify-content: center; }
+
+  .chip.active-heat {
+    border-color: var(--cl-heat-border); background: var(--cl-heat-bg); color: var(--cl-heat);
+  }
+  .chip.active-cool {
+    border-color: var(--cl-cool-border); background: var(--cl-cool-bg); color: var(--cl-cool);
+  }
+  .chip.active-auto {
+    border-color: rgba(167,139,250,0.2); background: rgba(167,139,250,0.08); color: rgba(167,139,250,0.8);
+  }
+  .chip.active-off {
+    border-color: var(--b3); background: var(--s3); color: var(--t2);
+  }
+
+  /* ── Connected fold (external, like media hero) ── */
+  .climate-wrap {
+    display: flex; flex-direction: column;
+  }
+  .climate-wrap.fold-open .climate-card {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden; opacity: 0;
+    transition: opacity 0.25s var(--ease-std);
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    border: 1px solid var(--b2);
+    border-top: none;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.3),
+      0 2px 8px rgba(0,0,0,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+  .ctrl-fold-sep-top {
+    height: 1px; margin: 0 12px;
+    background: linear-gradient(90deg, transparent, var(--b3), transparent);
+    transition: background var(--t-med);
+  }
+  .ctrl-fold-sep-top.heat-sep {
+    background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+  }
+  .ctrl-fold-sep-top.cool-sep {
+    background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+  }
+
+  .ctrl-panel {
+    padding: 12px 14px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .ctrl-fold-sep {
+    height: 1px; margin: 2px 0;
+    background: linear-gradient(90deg, transparent, var(--b3), transparent);
+  }
+
+  /* Long-press visual feedback */
+  .climate-card.lp-pulse {
+    animation: lp-scale 0.2s var(--ease-out);
+  }
+  @keyframes lp-scale {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.985); }
+    100% { transform: scale(1); }
+  }
+
+  /* Touch hint — subtle glow line at card bottom when fold is closed */
+  .climate-card::after {
+    content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+    height: 2px; border-radius: 1px;
+    background: linear-gradient(90deg, transparent, var(--b3), transparent);
+    opacity: 0; transition: opacity var(--t-med);
+    z-index: 2;
+  }
+  .climate-wrap:not(.fold-open) .climate-card::after { opacity: 1; }
+
+  /* ── Pulse animation on heating/cooling icon ── */
+  @keyframes pulse-heat {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
+    50%      { filter: drop-shadow(0 0 2px rgba(249,115,22,0.15)); }
+  }
+  @keyframes pulse-cool {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.6)); }
+    50%      { filter: drop-shadow(0 0 2px rgba(56,189,248,0.15)); }
+  }
+
+  /* ── Hover: desktop only ── */
+  @media (hover: hover) and (pointer: fine) {
+    .glass:hover { border-color: rgba(255,255,255,0.13); }
+    .entity-tab:not(.active):hover { background: var(--s2); color: var(--t2); }
+    .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
+    .temp-stepper-btn:hover i { color: var(--t1); }
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+    .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  }
+  @media (pointer: coarse) {
+    .entity-tab:active, .temp-stepper-btn:active, .chip:active {
+      animation: bounce 0.3s var(--ease-out);
+    }
+  }
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Demo controls ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  /* demo-btn:hover in @media block below */
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<!-- Climate Card — Dashboard Graphical Mode -->
+<div class="climate-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title">Climat</span>
+      <span class="card-count" id="card-count"></span>
+    </div>
+    <span class="card-header-right" id="card-header-right"></span>
+  </div>
+
+  <div class="climate-wrap" id="climate-wrap">
+    <div class="glass climate-card" id="card">
+      <div class="tint" id="card-tint"></div>
+      <div class="thermal-canvas" id="thermal-canvas-wrap">
+        <canvas id="thermal-canvas"></canvas>
+      </div>
+      <div class="card-inner" id="card-inner"></div>
+    </div>
+    <!-- Connected fold (long-press to toggle) -->
+    <div class="ctrl-fold" id="ctrl-fold">
+      <div class="ctrl-fold-inner">
+        <div class="ctrl-fold-sep-top" id="ctrl-fold-sep-top"></div>
+        <div class="ctrl-panel" id="ctrl-panel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Demo Controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Etat</span>
+    <button class="demo-btn" onclick="setGlobal('all-heat',this)">Tout Chauffe</button>
+    <button class="demo-btn active" onclick="setGlobal('partial',this)">Partiel</button>
+    <button class="demo-btn" onclick="setGlobal('all-off',this)">Tout Off</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Saison</span>
+    <button class="demo-btn active" onclick="setSeason('winter',this)">Hiver</button>
+    <button class="demo-btn" onclick="setSeason('summer',this)">Ete</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Entites</span>
+    <button class="demo-btn active" onclick="setEntityCount('multi',this)">Multiple</button>
+    <button class="demo-btn" onclick="setEntityCount('single',this)">1 seul</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   DATA
+   ================================================================ */
+var HVAC_ICONS = {
+  heat: 'mdi-fire', cool: 'mdi-snowflake', heat_cool: 'mdi-sun-snowflake-variant',
+  auto: 'mdi-thermostat-auto', dry: 'mdi-water-percent', fan_only: 'mdi-fan', off: 'mdi-power'
+};
+var PRESET_ICONS = {
+  none: 'mdi-circle-outline', eco: 'mdi-leaf', comfort: 'mdi-sofa',
+  boost: 'mdi-rocket-launch', away: 'mdi-home-export-outline', sleep: 'mdi-sleep'
+};
+var ACTION_LABELS = {
+  heating: 'Chauffe', cooling: 'Refroidit', idle: 'En attente', off: 'Eteint', drying: 'Deshumidifie'
+};
+var ACTION_ICONS = {
+  heating: 'mdi-fire', cooling: 'mdi-snowflake', idle: 'mdi-timer-sand',
+  off: 'mdi-power-standby', drying: 'mdi-water-percent'
+};
+
+var climateDefs = {
+  nest: {
+    name: 'Thermostat Nest', short: 'Nest', icon: 'mdi-thermostat',
+    hvac_modes: ['off', 'heat', 'cool', 'heat_cool'],
+    preset_modes: ['none', 'eco'],
+    min_temp: 9, max_temp: 32, step: 0.5, has_humidity: true
+  },
+  salon: {
+    name: 'Radiateur Salon', short: 'Salon', icon: 'mdi-radiator',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5, has_humidity: false
+  },
+  chambre: {
+    name: 'Radiateur Chambre', short: 'Chambre', icon: 'mdi-radiator',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5, has_humidity: false
+  },
+  bureau: {
+    name: 'Radiateur Bureau', short: 'Bureau', icon: 'mdi-radiator',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5, has_humidity: false
+  },
+  cuisine: {
+    name: 'Radiateur Cuisine', short: 'Cuisine', icon: 'mdi-radiator',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5, has_humidity: false
+  },
+  sdb: {
+    name: 'Seche-serviettes', short: 'SdB', icon: 'mdi-radiator',
+    hvac_modes: ['off', 'heat'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5, has_humidity: false
+  }
+};
+
+var climates = {
+  nest:    { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: 'none', current_temp: 20.5, target_temp: 21.5, humidity: 45 },
+  salon:   { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: null,   current_temp: 19.8, target_temp: 21.0, humidity: null },
+  chambre: { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 21.2, target_temp: 20.0, humidity: null },
+  bureau:  { hvac_mode: 'auto', hvac_action: 'heating', preset_mode: null,   current_temp: 18.5, target_temp: 20.0, humidity: null },
+  cuisine: { hvac_mode: 'off',  hvac_action: 'off',     preset_mode: null,   current_temp: 19.0, target_temp: 19.0, humidity: null },
+  sdb:     { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 22.0, target_temp: 22.0, humidity: null }
+};
+
+var selectedEntity = 'nest';
+var foldOpen = false;
+var _lpTimer = null;
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+  }
+  return e;
+}
+function mdi(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+function getColorClass(action) {
+  if (action === 'heating') return 'heat';
+  if (action === 'cooling') return 'cool';
+  return '';
+}
+function getModeChipClass(mode) {
+  if (mode === 'heat') return 'active-heat';
+  if (mode === 'cool') return 'active-cool';
+  if (mode === 'heat_cool' || mode === 'auto') return 'active-auto';
+  if (mode === 'off') return 'active-off';
+  return '';
+}
+
+/* ================================================================
+   ARC GAUGE — SVG
+   ================================================================ */
+function createArcPath(cx, cy, r, startAngle, endAngle) {
+  var startRad = (startAngle - 90) * Math.PI / 180;
+  var endRad = (endAngle - 90) * Math.PI / 180;
+  var x1 = cx + r * Math.cos(startRad);
+  var y1 = cy + r * Math.sin(startRad);
+  var x2 = cx + r * Math.cos(endRad);
+  var y2 = cy + r * Math.sin(endRad);
+  var largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+  return 'M ' + x1 + ' ' + y1 + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + x2 + ' ' + y2;
+}
+
+function getPointOnArc(cx, cy, r, angle) {
+  var rad = (angle - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function tempToAngle(temp, minT, maxT) {
+  var startAngle = -120;
+  var endAngle = 120;
+  var ratio = Math.max(0, Math.min(1, (temp - minT) / (maxT - minT)));
+  return startAngle + ratio * (endAngle - startAngle);
+}
+
+function renderArcGauge(container, id) {
+  var def = climateDefs[id];
+  var state = climates[id];
+  var isOff = state.hvac_mode === 'off';
+
+  var cx = 120, cy = 125, r = 90;
+  var startAngle = -120, endAngle = 120;
+  var totalAngle = endAngle - startAngle;
+
+  var section = el('div', 'gauge-section');
+
+  /* SVG */
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 240 165');
+  svg.setAttribute('fill', 'none');
+
+  /* Tick marks */
+  var tickCount = 12;
+  for (var t = 0; t <= tickCount; t++) {
+    var tickAngle = startAngle + (t / tickCount) * totalAngle;
+    var inner = getPointOnArc(cx, cy, r - 4, tickAngle);
+    var outer = getPointOnArc(cx, cy, r + (t % 3 === 0 ? 6 : 3), tickAngle);
+    var tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tick.setAttribute('x1', inner.x); tick.setAttribute('y1', inner.y);
+    tick.setAttribute('x2', outer.x); tick.setAttribute('y2', outer.y);
+    tick.setAttribute('class', t % 3 === 0 ? 'arc-tick-major' : 'arc-tick');
+    svg.appendChild(tick);
+
+    /* Labels on major ticks */
+    if (t % 3 === 0) {
+      var labelTemp = def.min_temp + (t / tickCount) * (def.max_temp - def.min_temp);
+      var labelPos = getPointOnArc(cx, cy, r + 14, tickAngle);
+      var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', labelPos.x); label.setAttribute('y', labelPos.y);
+      label.setAttribute('class', 'arc-tick-label');
+      label.textContent = Math.round(labelTemp) + '°';
+      svg.appendChild(label);
+    }
+  }
+
+  /* Background arc */
+  var bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  bgPath.setAttribute('d', createArcPath(cx, cy, r, startAngle, endAngle));
+  bgPath.setAttribute('class', 'arc-bg');
+  svg.appendChild(bgPath);
+
+  if (!isOff) {
+    /* Progress arc — current temp position */
+    var currentAngle = tempToAngle(state.current_temp, def.min_temp, def.max_temp);
+    var progressPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    var arcLen = createArcPath(cx, cy, r, startAngle, endAngle);
+
+    /* Calculate dash values */
+    var fullLen = Math.PI * r * (totalAngle / 180);
+    var currentRatio = Math.max(0, Math.min(1, (state.current_temp - def.min_temp) / (def.max_temp - def.min_temp)));
+    var progressLen = currentRatio * fullLen;
+
+    progressPath.setAttribute('d', arcLen);
+    progressPath.setAttribute('stroke-dasharray', fullLen);
+    progressPath.setAttribute('stroke-dashoffset', fullLen - progressLen);
+
+    var colorClass = state.hvac_action === 'heating' ? 'heat' :
+                     state.hvac_action === 'cooling' ? 'cool' :
+                     (state.hvac_mode === 'auto' || state.hvac_mode === 'heat_cool') ? 'auto-arc' : 'off';
+    progressPath.setAttribute('class', 'arc-progress ' + colorClass);
+    svg.appendChild(progressPath);
+
+    /* Target indicator dot */
+    var targetAngle = tempToAngle(state.target_temp, def.min_temp, def.max_temp);
+    var targetPos = getPointOnArc(cx, cy, r, targetAngle);
+    var targetDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    targetDot.setAttribute('cx', targetPos.x);
+    targetDot.setAttribute('cy', targetPos.y);
+    targetDot.setAttribute('r', '5');
+    targetDot.setAttribute('class', 'arc-target-dot');
+    svg.appendChild(targetDot);
+
+  }
+
+  var gaugeWrap = el('div', 'arc-gauge');
+  gaugeWrap.appendChild(svg);
+
+  /* Center display */
+  var center = el('div', 'gauge-center');
+  var tempEl = el('div', 'gauge-current-temp ' + (isOff ? 'off' : ''));
+  tempEl.textContent = state.current_temp.toFixed(1);
+  var unitSpan = document.createElement('span');
+  unitSpan.className = 'unit';
+  unitSpan.textContent = '°';
+  tempEl.appendChild(unitSpan);
+  center.appendChild(tempEl);
+
+  var actionEl = el('div', 'gauge-action-label ' + (isOff ? 'off' : getColorClass(state.hvac_action) || 'idle'));
+  actionEl.appendChild(mdi(ACTION_ICONS[state.hvac_action] || 'mdi-help'));
+  var actionText = document.createElement('span');
+  actionText.textContent = ACTION_LABELS[state.hvac_action] || 'Inconnu';
+  actionEl.appendChild(actionText);
+  center.appendChild(actionEl);
+
+  /* Humidity + preset sub-info */
+  var hasSubInfo = (def.has_humidity && state.humidity !== null) || (state.preset_mode && state.preset_mode !== 'none');
+  if (hasSubInfo) {
+    var subInfo = el('div', 'gauge-sub-info');
+    if (def.has_humidity && state.humidity !== null) {
+      subInfo.appendChild(mdi('mdi-water-percent'));
+      subInfo.appendChild(el('span', '', { text: state.humidity + '%' }));
+    }
+    if (state.preset_mode && state.preset_mode !== 'none') {
+      if (def.has_humidity && state.humidity !== null) {
+        var dot = el('span', ''); dot.textContent = '·'; dot.style.opacity = '0.4';
+        subInfo.appendChild(dot);
+      }
+      subInfo.appendChild(mdi(PRESET_ICONS[state.preset_mode] || 'mdi-cog'));
+      subInfo.appendChild(el('span', '', { text: state.preset_mode.charAt(0).toUpperCase() + state.preset_mode.slice(1) }));
+    }
+    center.appendChild(subInfo);
+  }
+
+  gaugeWrap.appendChild(center);
+  section.appendChild(gaugeWrap);
+
+  /* Temperature stepper */
+  var stepperRow = el('div', 'temp-control-panel');
+
+  var minusBtn = el('button', 'temp-stepper-btn');
+  minusBtn.setAttribute('aria-label', 'Baisser la temperature cible');
+  minusBtn.appendChild(mdi('mdi-minus'));
+  if (isOff) minusBtn.setAttribute('disabled', '');
+  else {
+    minusBtn.addEventListener('click', (function(cid, step, min) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.target_temp = Math.max(min, +(c.target_temp - step).toFixed(1));
+        c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        if (c.hvac_mode === 'cool') c.hvac_action = c.current_temp > c.target_temp ? 'cooling' : 'idle';
+        render();
+      };
+    })(id, def.step, def.min_temp));
+  }
+  stepperRow.appendChild(minusBtn);
+
+  var targetDisp = el('div', 'target-display');
+  /* Label removed — context is clear from - value + layout */
+  var targetVal = el('div', 'target-value ' + (isOff ? 'off' :
+    state.hvac_action === 'heating' ? 'heat' :
+    state.hvac_action === 'cooling' ? 'cool' :
+    (state.hvac_mode === 'auto' || state.hvac_mode === 'heat_cool') ? 'auto-val' : 'off'));
+  targetVal.textContent = isOff ? '--' : state.target_temp.toFixed(1);
+  if (!isOff) {
+    var tUnit = document.createElement('span');
+    tUnit.className = 'unit';
+    tUnit.textContent = '°C';
+    targetVal.appendChild(tUnit);
+  }
+  targetDisp.appendChild(targetVal);
+  stepperRow.appendChild(targetDisp);
+
+  var plusBtn = el('button', 'temp-stepper-btn');
+  plusBtn.setAttribute('aria-label', 'Augmenter la temperature cible');
+  plusBtn.appendChild(mdi('mdi-plus'));
+  if (isOff) plusBtn.setAttribute('disabled', '');
+  else {
+    plusBtn.addEventListener('click', (function(cid, step, max) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.target_temp = Math.min(max, +(c.target_temp + step).toFixed(1));
+        c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        if (c.hvac_mode === 'cool') c.hvac_action = c.current_temp > c.target_temp ? 'cooling' : 'idle';
+        render();
+      };
+    })(id, def.step, def.max_temp));
+  }
+  stepperRow.appendChild(plusBtn);
+  section.appendChild(stepperRow);
+
+  container.appendChild(section);
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var inner = document.getElementById('card-inner');
+  while (inner.firstChild) inner.removeChild(inner.firstChild);
+
+  var state = climates[selectedEntity];
+  var def = climateDefs[selectedEntity];
+
+  /* ── Entity tab bar (only if multiple thermostats) ── */
+  var ids = Object.keys(climateDefs);
+  var isSingle = ids.length <= 1;
+
+  if (!isSingle) {
+    var tabs = el('div', 'entity-tabs');
+
+    /* Sort: heating > cooling > idle > off */
+    var actionOrder = { heating: 0, cooling: 1, idle: 2, off: 3 };
+    ids.sort(function(a, b) {
+      return (actionOrder[climates[a].hvac_action] || 3) - (actionOrder[climates[b].hvac_action] || 3);
+    });
+
+    ids.forEach(function(id) {
+      var d = climateDefs[id];
+      var s = climates[id];
+      var isSelected = id === selectedEntity;
+      var activeClass = isSelected ? ' active' : '';
+      var colorClass = isSelected ? (s.hvac_action === 'heating' ? ' heat' :
+        s.hvac_action === 'cooling' ? ' cool' : '') : '';
+
+      var tab = el('button', 'entity-tab' + activeClass + colorClass);
+      tab.setAttribute('aria-label', d.name);
+      tab.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+      var dot = el('span', 'tab-dot ' + s.hvac_action);
+      tab.appendChild(dot);
+
+      var name = document.createElement('span');
+      name.textContent = d.short;
+      tab.appendChild(name);
+
+      tab.addEventListener('click', (function(cid) {
+        return function() { selectedEntity = cid; render(); };
+      })(id));
+      tabs.appendChild(tab);
+    });
+    inner.appendChild(tabs);
+  }
+
+  /* ── Arc gauge ── */
+  renderArcGauge(inner, selectedEntity);
+
+  /* ── Update tint + header ── */
+  updateTint();
+  updateHeader();
+  updateThermalCanvas();
+
+  /* ── Render external fold panel ── */
+  renderFoldPanel();
+}
+
+/* ================================================================
+   FOLD PANEL (external, connected)
+   ================================================================ */
+function renderFoldPanel() {
+  var panel = document.getElementById('ctrl-panel');
+  var foldEl = document.getElementById('ctrl-fold');
+  var wrap = document.getElementById('climate-wrap');
+  var sepTop = document.getElementById('ctrl-fold-sep-top');
+  while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+  var state = climates[selectedEntity];
+  var def = climateDefs[selectedEntity];
+
+  /* Fold separator color */
+  var sepClass = 'ctrl-fold-sep-top';
+  if (state.hvac_action === 'heating') sepClass += ' heat-sep';
+  else if (state.hvac_action === 'cooling') sepClass += ' cool-sep';
+  sepTop.className = sepClass;
+
+  /* HVAC modes */
+  var modeSection = el('div', 'mode-section');
+  modeSection.appendChild(el('div', 'mode-label', { text: 'Mode' }));
+  var modeRow = el('div', 'mode-row');
+  def.hvac_modes.forEach(function(mode) {
+    var isActive = state.hvac_mode === mode;
+    var chipCls = isActive ? getModeChipClass(mode) : '';
+    var chip = el('button', 'chip' + (chipCls ? ' ' + chipCls : ''));
+    chip.appendChild(mdi(HVAC_ICONS[mode]));
+    var span = document.createElement('span');
+    span.textContent = mode === 'heat_cool' ? 'Auto' : mode.charAt(0).toUpperCase() + mode.slice(1);
+    chip.appendChild(span);
+    chip.setAttribute('aria-label', 'Mode ' + mode);
+    chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    chip.addEventListener('click', (function(cid, m) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.hvac_mode = m;
+        if (m === 'off') { c.hvac_action = 'off'; }
+        else if (m === 'cool') { c.hvac_action = c.current_temp > c.target_temp ? 'cooling' : 'idle'; }
+        else { c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle'; }
+        render();
+      };
+    })(selectedEntity, mode));
+    modeRow.appendChild(chip);
+  });
+  modeSection.appendChild(modeRow);
+  panel.appendChild(modeSection);
+
+  /* Presets */
+  if (def.preset_modes && def.preset_modes.length > 0) {
+    panel.appendChild(el('div', 'ctrl-fold-sep'));
+    var presetSection = el('div', 'mode-section');
+    presetSection.appendChild(el('div', 'mode-label', { text: 'Preset' }));
+    var presetRow = el('div', 'mode-row');
+    def.preset_modes.forEach(function(preset) {
+      var isActive = state.preset_mode === preset;
+      var chipCls = isActive ? 'active-auto' : '';
+      var chip = el('button', 'chip' + (chipCls ? ' ' + chipCls : ''));
+      chip.appendChild(mdi(PRESET_ICONS[preset] || 'mdi-cog'));
+      var span = document.createElement('span');
+      span.textContent = preset === 'none' ? 'Normal' : preset.charAt(0).toUpperCase() + preset.slice(1);
+      chip.appendChild(span);
+      chip.setAttribute('aria-label', 'Preset ' + preset);
+      chip.addEventListener('click', (function(cid, p) {
+        return function(e) {
+          e.stopPropagation();
+          climates[cid].preset_mode = p;
+          if (p === 'eco') climates[cid].target_temp = Math.max(climateDefs[cid].min_temp, climates[cid].target_temp - 2);
+          render();
+        };
+      })(selectedEntity, preset));
+      presetRow.appendChild(chip);
+    });
+    presetSection.appendChild(presetRow);
+    panel.appendChild(presetSection);
+  }
+
+  /* Update fold open/close state */
+  if (foldOpen) {
+    foldEl.classList.add('open');
+    wrap.classList.add('fold-open');
+  } else {
+    foldEl.classList.remove('open');
+    wrap.classList.remove('fold-open');
+  }
+}
+
+/* ── Tint ── */
+function updateTint() {
+  var tint = document.getElementById('card-tint');
+  var state = climates[selectedEntity];
+  if (state.hvac_action === 'heating') tint.className = 'tint heat';
+  else if (state.hvac_action === 'cooling') tint.className = 'tint cool';
+  else if (state.hvac_mode === 'auto' || state.hvac_mode === 'heat_cool') tint.className = 'tint auto-tint';
+  else tint.className = 'tint';
+}
+
+/* ── Header ── */
+function updateHeader() {
+  var ids = Object.keys(climates);
+  var isSingle = ids.length <= 1;
+  var countEl = document.getElementById('card-count');
+  var rightEl = document.getElementById('card-header-right');
+
+  if (isSingle) {
+    /* Single thermostat: no badge, show hvac state */
+    countEl.style.display = 'none';
+    var state = climates[selectedEntity];
+    var actionLabel = ACTION_LABELS[state.hvac_action] || 'Inconnu';
+    var colorClass = getColorClass(state.hvac_action);
+    rightEl.textContent = '';
+    rightEl.className = 'card-header-right';
+    var icon = mdi(ACTION_ICONS[state.hvac_action] || 'mdi-help');
+    if (colorClass) icon.style.color = colorClass === 'heat' ? 'var(--cl-heat)' : 'var(--cl-cool)';
+    else if (state.hvac_action === 'idle') icon.style.color = 'var(--t3)';
+    else icon.style.color = 'var(--t4)';
+    rightEl.appendChild(icon);
+    var span = document.createElement('span');
+    span.textContent = ' ' + actionLabel;
+    if (colorClass) span.style.color = colorClass === 'heat' ? 'var(--cl-heat)' : 'var(--cl-cool)';
+    rightEl.appendChild(span);
+  } else {
+    /* Multiple: badge + average */
+    countEl.style.display = '';
+    var activeCount = 0;
+    var sum = 0;
+    ids.forEach(function(id) {
+      sum += climates[id].current_temp;
+      if (climates[id].hvac_action === 'heating' || climates[id].hvac_action === 'cooling') activeCount++;
+    });
+    countEl.textContent = activeCount + '/' + ids.length;
+    countEl.className = 'card-count ' + (activeCount === 0 ? 'none' : 'some');
+    rightEl.textContent = 'Moy. ' + (sum / ids.length).toFixed(1) + '°C';
+  }
+}
+
+/* ================================================================
+   THERMAL CANVAS ANIMATION
+   ================================================================ */
+var particles = [];
+var animFrame = null;
+
+function initParticles(action, width, height) {
+  particles = [];
+  var count = action === 'off' || action === 'idle' ? 0 : 30;
+  for (var i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: 1 + Math.random() * 2.5,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: action === 'heating' ? -(0.3 + Math.random() * 0.8) : (0.3 + Math.random() * 0.8),
+      opacity: 0.1 + Math.random() * 0.3,
+      life: Math.random()
+    });
+  }
+}
+
+function updateThermalCanvas() {
+  var canvas = document.getElementById('thermal-canvas');
+  var wrap = document.getElementById('thermal-canvas-wrap');
+  var state = climates[selectedEntity];
+
+  canvas.width = wrap.offsetWidth * 2;
+  canvas.height = wrap.offsetHeight * 2;
+  canvas.style.width = wrap.offsetWidth + 'px';
+  canvas.style.height = wrap.offsetHeight + 'px';
+
+  initParticles(state.hvac_action, canvas.width, canvas.height);
+
+  if (animFrame) cancelAnimationFrame(animFrame);
+  if (state.hvac_action === 'off' || state.hvac_action === 'idle') return;
+
+  var ctx = canvas.getContext('2d');
+  var isHeat = state.hvac_action === 'heating';
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(function(p) {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      p.life += 0.003;
+
+      /* Fade in/out based on life cycle */
+      var alpha = p.opacity;
+      if (p.life < 0.1) alpha *= p.life / 0.1;
+      if (p.life > 0.8) alpha *= (1 - p.life) / 0.2;
+
+      /* Wrap around */
+      if (isHeat && p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; p.life = 0; }
+      if (!isHeat && p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; p.life = 0; }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      if (isHeat) {
+        ctx.fillStyle = 'rgba(249, 115, 22, ' + alpha + ')';
+      } else {
+        ctx.fillStyle = 'rgba(56, 189, 248, ' + alpha + ')';
+      }
+      ctx.fill();
+
+      /* Glow effect */
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      if (isHeat) {
+        ctx.fillStyle = 'rgba(249, 115, 22, ' + (alpha * 0.15) + ')';
+      } else {
+        ctx.fillStyle = 'rgba(56, 189, 248, ' + (alpha * 0.15) + ')';
+      }
+      ctx.fill();
+    });
+
+    animFrame = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+function setTime(time, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.body.setAttribute('data-time', time);
+}
+
+function setGlobal(state, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (state === 'all-heat') {
+    Object.keys(climates).forEach(function(id) {
+      climates[id].hvac_mode = 'heat';
+      climates[id].hvac_action = 'heating';
+      climates[id].target_temp = climates[id].current_temp + 2;
+    });
+  } else if (state === 'all-off') {
+    Object.keys(climates).forEach(function(id) {
+      climates[id].hvac_mode = 'off';
+      climates[id].hvac_action = 'off';
+    });
+  } else {
+    climates.nest =    { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: 'none', current_temp: 20.5, target_temp: 21.5, humidity: 45 };
+    climates.salon =   { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: null,   current_temp: 19.8, target_temp: 21.0, humidity: null };
+    climates.chambre = { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 21.2, target_temp: 20.0, humidity: null };
+    climates.bureau =  { hvac_mode: 'auto', hvac_action: 'heating', preset_mode: null,   current_temp: 18.5, target_temp: 20.0, humidity: null };
+    climates.cuisine = { hvac_mode: 'off',  hvac_action: 'off',     preset_mode: null,   current_temp: 19.0, target_temp: 19.0, humidity: null };
+    climates.sdb =     { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 22.0, target_temp: 22.0, humidity: null };
+  }
+  render();
+}
+
+function setSeason(season, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (season === 'summer') {
+    climateDefs.nest.hvac_modes = ['off', 'heat', 'cool', 'heat_cool'];
+    climates.nest = { hvac_mode: 'cool', hvac_action: 'cooling', preset_mode: 'none', current_temp: 26.5, target_temp: 24.0, humidity: 62 };
+    ['salon', 'chambre', 'bureau', 'cuisine', 'sdb'].forEach(function(id) {
+      climates[id].hvac_mode = 'off';
+      climates[id].hvac_action = 'off';
+      climates[id].current_temp = 24 + Math.random() * 4;
+    });
+    selectedEntity = 'nest';
+  } else {
+    climates.nest =    { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: 'none', current_temp: 20.5, target_temp: 21.5, humidity: 45 };
+    climates.salon =   { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: null,   current_temp: 19.8, target_temp: 21.0, humidity: null };
+    climates.chambre = { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 21.2, target_temp: 20.0, humidity: null };
+    climates.bureau =  { hvac_mode: 'auto', hvac_action: 'heating', preset_mode: null,   current_temp: 18.5, target_temp: 20.0, humidity: null };
+    climates.cuisine = { hvac_mode: 'off',  hvac_action: 'off',     preset_mode: null,   current_temp: 19.0, target_temp: 19.0, humidity: null };
+    climates.sdb =     { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 22.0, target_temp: 22.0, humidity: null };
+  }
+  render();
+}
+
+/* ================================================================
+   ENTITY COUNT TOGGLE (single / multi)
+   ================================================================ */
+var _savedClimateDefs = null;
+var _savedClimates = null;
+
+function setEntityCount(mode, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (mode === 'single') {
+    /* Save current multi state, keep only selected entity */
+    _savedClimateDefs = JSON.parse(JSON.stringify(climateDefs));
+    _savedClimates = JSON.parse(JSON.stringify(climates));
+    var keepId = selectedEntity;
+    var keepDef = climateDefs[keepId];
+    var keepState = climates[keepId];
+    Object.keys(climateDefs).forEach(function(id) {
+      if (id !== keepId) { delete climateDefs[id]; delete climates[id]; }
+    });
+  } else {
+    /* Restore multi state */
+    if (_savedClimateDefs) {
+      Object.keys(_savedClimateDefs).forEach(function(id) {
+        if (!climateDefs[id]) {
+          climateDefs[id] = _savedClimateDefs[id];
+          climates[id] = _savedClimates[id];
+        }
+      });
+    }
+  }
+  render();
+}
+
+/* ================================================================
+   LONG-PRESS GESTURE (toggle fold)
+   ================================================================ */
+function initGestures() {
+  var card = document.getElementById('card');
+  var sx = 0, sy = 0, lp = false;
+
+  card.addEventListener('pointerdown', function(e) {
+    /* Ignore if target is a button or interactive element */
+    if (e.target.closest('button, .entity-chip, .temp-stepper-btn')) return;
+    sx = e.clientX; sy = e.clientY;
+    lp = false;
+    _lpTimer = setTimeout(function() {
+      lp = true;
+      foldOpen = !foldOpen;
+      /* Visual feedback pulse */
+      card.classList.add('lp-pulse');
+      setTimeout(function() { card.classList.remove('lp-pulse'); }, 250);
+      renderFoldPanel();
+    }, 500);
+  });
+
+  card.addEventListener('pointermove', function(e) {
+    if (lp) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) clearTimeout(_lpTimer);
+  });
+
+  card.addEventListener('pointerup', function() {
+    clearTimeout(_lpTimer);
+  });
+
+  card.addEventListener('pointercancel', function() {
+    clearTimeout(_lpTimer);
+  });
+}
+
+/* ── Init ── */
+render();
+initGestures();
+</script>
+</body>
+</html>

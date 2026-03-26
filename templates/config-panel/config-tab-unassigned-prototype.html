@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Unassigned — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Banner ── */
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-lg);
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .banner i { font-size: 16px; flex-shrink: 0; }
+    .banner-warning {
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.12);
+      color: var(--t2);
+    }
+    .banner-warning i { color: var(--c-warning); }
+    .banner-warning .count {
+      font-weight: 700;
+      color: var(--c-warning);
+    }
+    .banner-info {
+      background: rgba(96, 165, 250, 0.08);
+      border: 1px solid rgba(96, 165, 250, 0.12);
+      color: var(--t2);
+    }
+    .banner-info i { color: var(--c-info); }
+
+    /* ── Search input ── */
+    .search-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: var(--t4);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+    }
+    .search-input::placeholder { color: var(--t4); }
+    .search-input:focus {
+      border-color: var(--b3);
+      background: var(--s2);
+    }
+
+    /* ── Entity list ── */
+    .entity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Entity row ── */
+    .entity-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: background 0.2s var(--ease-std);
+    }
+    .entity-row:hover { background: var(--s1); }
+    .entity-row + .entity-row {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    /* ── Icon picker button ── */
+    .icon-picker-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      padding: 0;
+    }
+    .icon-picker-btn i { font-size: 16px; color: var(--c-warning); }
+    .icon-picker-btn:hover {
+      background: rgba(251, 191, 36, 0.12);
+      border-color: rgba(251, 191, 36, 0.2);
+    }
+
+    /* ── Entity info ── */
+    .entity-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* ── Entity name (click-to-edit) ── */
+    .entity-name-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      border-radius: var(--radius-xs);
+      transition: all 0.2s var(--ease-std);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-align: left;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .entity-name-btn:hover {
+      background: var(--s2);
+      color: var(--t1);
+    }
+    .entity-name-btn .pencil-icon {
+      font-size: 11px;
+      color: var(--t4);
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.2s var(--ease-std);
+    }
+    .entity-name-btn:hover .pencil-icon { opacity: 1; }
+
+    /* ── Inline edit input ── */
+    .entity-rename-input {
+      width: 100%;
+      padding: 3px 6px;
+      border-radius: var(--radius-xs);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.06);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s var(--ease-std);
+    }
+    .entity-rename-input:focus {
+      border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    /* ── Entity meta ── */
+    .entity-meta {
+      font-size: 9px;
+      color: var(--t4);
+      padding: 0 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Room dropdown ── */
+    .room-dropdown {
+      position: relative;
+      flex-shrink: 0;
+      max-width: 150px;
+    }
+    .room-dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--c-warning);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .room-dropdown-trigger:hover {
+      background: var(--s3);
+      border-color: var(--b3);
+    }
+    .room-dropdown-trigger.assigned {
+      color: var(--t2);
+    }
+    .room-dropdown-trigger .label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .room-dropdown-trigger .arrow {
+      font-size: 14px;
+      color: var(--t4);
+      flex-shrink: 0;
+      transition: transform 0.2s var(--ease-std);
+    }
+    .room-dropdown.open .room-dropdown-trigger .arrow {
+      transform: rotate(180deg);
+    }
+
+    /* ── Dropdown menu ── */
+    .room-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      min-width: 180px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(26,34,51,0.98) 0%, rgba(20,28,42,0.98) 50%, rgba(23,32,48,0.98) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4);
+      border: 1px solid var(--b2);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 4px;
+    }
+    .room-dropdown.open .room-dropdown-menu {
+      display: flex;
+    }
+
+    .room-dropdown-search {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 11px;
+      outline: none;
+      margin-bottom: 4px;
+    }
+    .room-dropdown-search::placeholder { color: var(--t4); }
+
+    .room-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: var(--radius-xs);
+      transition: background 0.15s var(--ease-std);
+      outline: none;
+      text-align: left;
+      width: 100%;
+    }
+    .room-dropdown-item:hover { background: var(--s3); color: var(--t1); }
+    .room-dropdown-item.active {
+      background: rgba(251, 191, 36, 0.1);
+      color: var(--c-warning);
+    }
+    .room-dropdown-item i { font-size: 14px; color: var(--t3); flex-shrink: 0; }
+    .room-dropdown-item.active i { color: var(--c-warning); }
+
+    /* ── Icon picker modal ── */
+    .icon-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .icon-modal-overlay.open { display: flex; }
+    .icon-modal {
+      width: 100%;
+      max-width: 25rem;
+      max-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4);
+      border: 1px solid var(--b2);
+      overflow: hidden;
+    }
+    .icon-modal-header {
+      padding: 0.875rem 1rem 0.625rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      border-bottom: 1px solid var(--b1);
+    }
+    .icon-modal-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t3);
+    }
+    .icon-modal-search {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .icon-modal-search::placeholder { color: var(--t4); }
+    .icon-modal-grid-wrap {
+      overflow: auto;
+      flex: 1;
+      padding: 0.5rem;
+    }
+    .icon-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+    .icon-grid-btn {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      cursor: pointer;
+      color: var(--t1);
+      padding: 0;
+      transition: all 0.15s var(--ease-std);
+      outline: none;
+    }
+    .icon-grid-btn:hover { background: var(--s3); border-color: var(--b3); }
+    .icon-grid-btn.selected {
+      border: 2px solid rgba(251, 191, 36, 0.5);
+      background: rgba(251, 191, 36, 0.1);
+    }
+    .icon-grid-btn i { font-size: 20px; }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Tab content spacing ── */
+    .tab-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn active">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back">Avance</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Entites orphelines</span>
+      </div>
+
+      <!-- ── Tab content (no folds) ── -->
+      <div class="tab-content">
+
+        <!-- Section label + desc -->
+        <div class="sub-section">
+          <div class="section-label">Entites orphelines</div>
+          <div class="section-desc">Gerez les entites qui ne sont assignees a aucune piece. Renommez, changez l'icone ou assignez-les a une piece pour qu'elles apparaissent dans la configuration.</div>
+        </div>
+
+        <!-- Banner warning -->
+        <div class="banner banner-warning" id="banner-warning">
+          <i class="mdi mdi-alert-circle-outline"></i>
+          <span><span class="count" id="unassigned-count">3</span> entites ne sont assignees a aucune piece</span>
+        </div>
+
+        <!-- Search -->
+        <div class="sub-section">
+          <div class="section-label">Recherche</div>
+          <div class="search-wrap">
+            <i class="mdi mdi-magnify"></i>
+            <input type="text" class="search-input" id="entity-search"
+              placeholder="Rechercher une entite..."
+              aria-label="Rechercher une entite">
+          </div>
+        </div>
+
+        <!-- Entities list -->
+        <div class="sub-section">
+          <div class="section-label" style="display:flex;align-items:center;">
+            Entites orphelines
+            <span style="margin-left:6px;font-size:11px;font-weight:500;color:var(--t3);" id="entity-count">(3)</span>
+          </div>
+
+          <div class="entity-list" id="entity-list">
+            <!-- Entities are rendered by JS -->
+          </div>
+
+          <!-- No results message (hidden by default) -->
+          <div class="banner banner-warning" id="no-results" style="display:none;">
+            <i class="mdi mdi-magnify"></i>
+            <span>Aucune entite ne correspond a la recherche</span>
+          </div>
+        </div>
+
+        <!-- Banner info -->
+        <div class="banner banner-info">
+          <i class="mdi mdi-information-outline"></i>
+          <span>Les entites assignees a une piece apparaitront automatiquement dans la configuration de cette piece.</span>
+        </div>
+
+        <!-- Save bar -->
+        <div class="save-bar">
+          <button class="btn btn-ghost btn-sm" onclick="resetAll()">
+            <i class="mdi mdi-restore" style="font-size:14px;"></i>
+            Reinitialiser
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Icon Picker Modal ── -->
+  <div class="icon-modal-overlay" id="icon-modal" onclick="if(event.target===this)closeIconModal()">
+    <div class="icon-modal">
+      <div class="icon-modal-header">
+        <span class="icon-modal-title">Changer l'icone</span>
+        <input type="text" class="icon-modal-search" id="icon-modal-search"
+          placeholder="mdi:...">
+      </div>
+      <div class="icon-modal-grid-wrap">
+        <div class="icon-modal-grid" id="icon-modal-grid">
+          <!-- Icons rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Data ──
+    const ROOMS = [
+      { id: 'salon', name: 'Salon', icon: 'mdi-sofa' },
+      { id: 'chambre', name: 'Chambre', icon: 'mdi-bed' },
+      { id: 'cuisine', name: 'Cuisine', icon: 'mdi-silverware-fork-knife' },
+      { id: 'bureau', name: 'Bureau', icon: 'mdi-desk' },
+      { id: 'garage', name: 'Garage', icon: 'mdi-garage' },
+      { id: 'salle_de_bain', name: 'Salle de bain', icon: 'mdi-shower' },
+    ];
+
+    const ICON_LIST = [
+      'mdi-lightbulb', 'mdi-lightbulb-outline', 'mdi-lightbulb-group', 'mdi-led-strip',
+      'mdi-lamp', 'mdi-ceiling-light', 'mdi-floor-lamp', 'mdi-desk-lamp',
+      'mdi-thermometer', 'mdi-thermometer-lines', 'mdi-temperature-celsius',
+      'mdi-power-socket-fr', 'mdi-power-plug', 'mdi-power-plug-outline',
+      'mdi-fan', 'mdi-fan-speed-1', 'mdi-fan-speed-2', 'mdi-fan-speed-3',
+      'mdi-fire', 'mdi-snowflake', 'mdi-thermostat', 'mdi-thermostat-box',
+      'mdi-window-shutter', 'mdi-blinds', 'mdi-curtains',
+      'mdi-television', 'mdi-speaker', 'mdi-cast', 'mdi-video',
+      'mdi-camera', 'mdi-cctv', 'mdi-motion-sensor', 'mdi-door-open',
+      'mdi-garage-variant', 'mdi-water', 'mdi-gas-cylinder',
+      'mdi-robot-vacuum', 'mdi-washing-machine', 'mdi-dishwasher',
+      'mdi-home', 'mdi-home-outline', 'mdi-home-floor-1', 'mdi-home-floor-2',
+      'mdi-alert-circle-outline', 'mdi-help-circle', 'mdi-cancel',
+    ];
+
+    const INITIAL_ENTITIES = [
+      { entityId: 'light.lampe_couloir', name: 'Lampe couloir', domain: 'light', icon: 'mdi-lightbulb', areaId: null, areaName: null },
+      { entityId: 'sensor.temperature_garage', name: 'Temperature garage', domain: 'sensor', icon: 'mdi-thermometer', areaId: null, areaName: null },
+      { entityId: 'switch.prise_atelier', name: 'Prise atelier', domain: 'switch', icon: 'mdi-power-socket-fr', areaId: null, areaName: null },
+    ];
+
+    let entities = JSON.parse(JSON.stringify(INITIAL_ENTITIES));
+    let editingEntity = null;
+    let iconPickerEntity = null;
+    let currentSearch = '';
+    let openDropdownId = null;
+
+    // ── DOM helpers ──
+    function createEl(tag, attrs, children) {
+      const el = document.createElement(tag);
+      if (attrs) {
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === 'className') el.className = v;
+          else if (k === 'textContent') el.textContent = v;
+          else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+          else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+          else el.setAttribute(k, v);
+        }
+      }
+      if (children) {
+        if (typeof children === 'string') el.textContent = children;
+        else if (Array.isArray(children)) children.forEach(c => { if (c) el.appendChild(c); });
+        else el.appendChild(children);
+      }
+      return el;
+    }
+
+    // ── Render ──
+    function renderEntities() {
+      const list = document.getElementById('entity-list');
+      const noResults = document.getElementById('no-results');
+      const countEl = document.getElementById('entity-count');
+      const search = currentSearch.toLowerCase();
+
+      const filtered = search
+        ? entities.filter(e => e.name.toLowerCase().includes(search) || e.entityId.toLowerCase().includes(search))
+        : entities;
+
+      const unassignedCount = entities.filter(e => !e.areaId).length;
+      countEl.textContent = '(' + filtered.length + ')';
+
+      // Update banner count
+      document.getElementById('unassigned-count').textContent = unassignedCount;
+
+      // Clear list
+      while (list.firstChild) list.removeChild(list.firstChild);
+
+      if (filtered.length === 0) {
+        noResults.style.display = 'flex';
+        return;
+      }
+      noResults.style.display = 'none';
+
+      filtered.forEach(function(e) {
+        var isEditing = editingEntity === e.entityId;
+        var isAssigned = !!e.areaId;
+        var roomLabel = e.areaName || 'Choisir une piece...';
+
+        // Row container
+        var row = createEl('div', { className: 'entity-row', 'data-entity-id': e.entityId });
+
+        // Icon picker button
+        var iconBtn = createEl('button', {
+          className: 'icon-picker-btn',
+          title: 'Changer l\'icone',
+          'aria-label': 'Changer l\'icone: ' + e.name,
+          onClick: function() { openIconModal(e.entityId); }
+        });
+        var iconI = createEl('i', { className: 'mdi ' + e.icon });
+        iconBtn.appendChild(iconI);
+        row.appendChild(iconBtn);
+
+        // Entity info
+        var info = createEl('div', { className: 'entity-info' });
+
+        if (isEditing) {
+          var renameInput = createEl('input', {
+            type: 'text',
+            className: 'entity-rename-input',
+            value: e.name,
+            'aria-label': 'Renommer: ' + e.name,
+            onBlur: function() { finishRename(e.entityId, this.value); },
+            onKeydown: function(ev) { handleRenameKey(ev, e.entityId); },
+            onFocus: function() { this.select(); }
+          });
+          info.appendChild(renameInput);
+          requestAnimationFrame(function() { renameInput.focus(); });
+        } else {
+          var nameBtn = createEl('button', {
+            className: 'entity-name-btn',
+            title: 'Renommer',
+            'aria-label': 'Renommer: ' + e.name,
+            onClick: function() { startRename(e.entityId); }
+          });
+          var nameSpan = createEl('span', { textContent: e.name });
+          var pencil = createEl('i', { className: 'mdi mdi-pencil pencil-icon' });
+          nameBtn.appendChild(nameSpan);
+          nameBtn.appendChild(pencil);
+          info.appendChild(nameBtn);
+        }
+
+        var meta = createEl('span', { className: 'entity-meta', textContent: e.entityId });
+        info.appendChild(meta);
+        row.appendChild(info);
+
+        // Room dropdown
+        var dropdown = createEl('div', {
+          className: 'room-dropdown' + (openDropdownId === e.entityId ? ' open' : ''),
+          id: 'dropdown-' + e.entityId
+        });
+
+        var trigger = createEl('button', {
+          className: 'room-dropdown-trigger' + (isAssigned ? ' assigned' : ''),
+          'aria-expanded': openDropdownId === e.entityId ? 'true' : 'false',
+          'aria-haspopup': 'listbox',
+          onClick: function(ev) {
+            ev.stopPropagation();
+            toggleDropdown(e.entityId);
+          }
+        });
+        var labelSpan = createEl('span', { className: 'label', textContent: roomLabel });
+        var arrowI = createEl('i', { className: 'mdi mdi-chevron-down arrow' });
+        trigger.appendChild(labelSpan);
+        trigger.appendChild(arrowI);
+        dropdown.appendChild(trigger);
+
+        // Dropdown menu
+        var menu = createEl('div', { className: 'room-dropdown-menu', role: 'listbox' });
+        var searchInput = createEl('input', {
+          type: 'text',
+          className: 'room-dropdown-search',
+          placeholder: 'Rechercher...',
+          onClick: function(ev) { ev.stopPropagation(); },
+          onInput: function() { rebuildRoomItems(e.entityId, this.value, menu, this); }
+        });
+        menu.appendChild(searchInput);
+        appendRoomItems(menu, e.entityId, e.areaId, '');
+        dropdown.appendChild(menu);
+        row.appendChild(dropdown);
+
+        list.appendChild(row);
+      });
+    }
+
+    function appendRoomItems(menu, entityId, currentAreaId, search) {
+      var filtered = search
+        ? ROOMS.filter(function(r) { return r.name.toLowerCase().includes(search.toLowerCase()); })
+        : ROOMS;
+
+      filtered.forEach(function(r) {
+        var isActive = r.id === currentAreaId;
+        var item = createEl('button', {
+          className: 'room-dropdown-item' + (isActive ? ' active' : ''),
+          role: 'option',
+          'aria-selected': isActive ? 'true' : 'false',
+          onClick: function() { assignRoom(entityId, r.id, r.name); }
+        });
+        var icon = createEl('i', { className: 'mdi ' + r.icon });
+        item.appendChild(icon);
+        item.appendChild(document.createTextNode(r.name));
+        menu.appendChild(item);
+      });
+    }
+
+    function rebuildRoomItems(entityId, search, menu, searchInput) {
+      // Remove all items but keep search input
+      while (menu.children.length > 1) {
+        menu.removeChild(menu.lastChild);
+      }
+      var entity = entities.find(function(e) { return e.entityId === entityId; });
+      appendRoomItems(menu, entityId, entity ? entity.areaId : null, search);
+    }
+
+    // ── Search ──
+    document.getElementById('entity-search').addEventListener('input', function() {
+      currentSearch = this.value;
+      renderEntities();
+    });
+
+    // ── Rename ──
+    function startRename(entityId) {
+      editingEntity = entityId;
+      renderEntities();
+    }
+
+    function finishRename(entityId, newName) {
+      var trimmed = newName.trim();
+      if (trimmed) {
+        var entity = entities.find(function(e) { return e.entityId === entityId; });
+        if (entity) entity.name = trimmed;
+      }
+      editingEntity = null;
+      renderEntities();
+    }
+
+    function handleRenameKey(event, entityId) {
+      if (event.key === 'Enter') event.target.blur();
+      if (event.key === 'Escape') {
+        editingEntity = null;
+        renderEntities();
+      }
+    }
+
+    // ── Room dropdown ──
+    function toggleDropdown(entityId) {
+      var wasOpen = openDropdownId === entityId;
+      closeAllDropdowns();
+      if (!wasOpen) {
+        openDropdownId = entityId;
+        renderEntities();
+        requestAnimationFrame(function() {
+          var dropdown = document.getElementById('dropdown-' + entityId);
+          if (dropdown) {
+            var search = dropdown.querySelector('.room-dropdown-search');
+            if (search) search.focus();
+          }
+        });
+      }
+    }
+
+    function closeAllDropdowns() {
+      if (openDropdownId) {
+        openDropdownId = null;
+        renderEntities();
+      }
+    }
+
+    function assignRoom(entityId, roomId, roomName) {
+      var entity = entities.find(function(e) { return e.entityId === entityId; });
+      if (entity) {
+        entity.areaId = roomId;
+        entity.areaName = roomName;
+      }
+      openDropdownId = null;
+      renderEntities();
+    }
+
+    // ── Icon picker ──
+    function openIconModal(entityId) {
+      iconPickerEntity = entityId;
+      var modal = document.getElementById('icon-modal');
+      modal.classList.add('open');
+      var searchEl = document.getElementById('icon-modal-search');
+      searchEl.value = '';
+      renderIconGrid('');
+      requestAnimationFrame(function() { searchEl.focus(); });
+    }
+
+    function closeIconModal() {
+      iconPickerEntity = null;
+      document.getElementById('icon-modal').classList.remove('open');
+    }
+
+    document.getElementById('icon-modal-search').addEventListener('input', function() {
+      renderIconGrid(this.value);
+    });
+
+    function renderIconGrid(search) {
+      var grid = document.getElementById('icon-modal-grid');
+      var entity = entities.find(function(e) { return e.entityId === iconPickerEntity; });
+      var currentIcon = entity ? entity.icon : '';
+      var query = search.toLowerCase().trim();
+
+      var filtered = query
+        ? ICON_LIST.filter(function(icon) { return icon.toLowerCase().includes(query); })
+        : ICON_LIST;
+
+      while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+      if (filtered.length === 0) {
+        var empty = createEl('div', {
+          style: { gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '13px' },
+          textContent: 'Aucune icone trouvee'
+        });
+        grid.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(function(icon) {
+        var btn = createEl('button', {
+          className: 'icon-grid-btn' + (icon === currentIcon ? ' selected' : ''),
+          title: icon,
+          onClick: function() { selectIcon(icon); }
+        });
+        btn.appendChild(createEl('i', { className: 'mdi ' + icon }));
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectIcon(icon) {
+      if (iconPickerEntity) {
+        var entity = entities.find(function(e) { return e.entityId === iconPickerEntity; });
+        if (entity) entity.icon = icon;
+      }
+      closeIconModal();
+      renderEntities();
+    }
+
+    // ── Reset ──
+    function resetAll() {
+      entities = JSON.parse(JSON.stringify(INITIAL_ENTITIES));
+      editingEntity = null;
+      openDropdownId = null;
+      currentSearch = '';
+      document.getElementById('entity-search').value = '';
+      renderEntities();
+    }
+
+    // ── Close dropdowns on outside click ──
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.room-dropdown')) {
+        if (openDropdownId) {
+          openDropdownId = null;
+          renderEntities();
+        }
+      }
+    });
+
+    // ── Init ──
+    renderEntities();
+  </script>
+
+</body>
+
+</html>

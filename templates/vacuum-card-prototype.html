@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Vacuum Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+    --c-purple: #a78bfa;
+    --c-cyan: #22d3ee;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    --vac-color: #22d3ee;
+    --vac-bg: rgba(34,211,238,0.1);
+    --vac-border: rgba(34,211,238,0.15);
+    --vac-glow: rgba(34,211,238,0.4);
+    --vac-sub: rgba(34,211,238,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #0f1923;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 120px;
+    gap: 16px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient ── */
+  .ambient-bg { position: fixed; inset: 0; z-index: -1; transition: all var(--t-slow); }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Glass ── */
+  .glass {
+    position: relative; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2); transition: border-color var(--t-fast);
+  }
+  .glass:hover { border-color: rgba(255,255,255,0.13); }
+
+  /* ── Tint ── */
+  .tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+  }
+
+  /* ── Card ── */
+  .vac-card-wrap {
+    width: 380px; max-width: 100%;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .vac-card { width: 100%; padding: 16px; }
+  .card-inner {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ── Hero section ── */
+  .vac-hero { display: flex; align-items: center; gap: 12px; }
+  .vac-icon-box {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: var(--s2); border: 1px solid var(--b1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; transition: all var(--t-med);
+  }
+  .vac-icon-box i { font-size: 26px; color: var(--t3); transition: all var(--t-med); }
+  .vac-icon-box.active { background: var(--vac-bg); border-color: var(--vac-border); }
+  .vac-icon-box.active i { color: var(--vac-color); filter: drop-shadow(0 0 8px var(--vac-glow)); }
+  .vac-icon-box.error { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.15); }
+  .vac-icon-box.error i { color: var(--c-alert); filter: drop-shadow(0 0 8px rgba(248,113,113,0.4)); }
+  .vac-icon-box.cleaning i { animation: vac-spin 3s linear infinite; }
+  @keyframes vac-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .vac-icon-box.returning i { animation: vac-bob 1.5s ease-in-out infinite; }
+  @keyframes vac-bob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-3px); } }
+
+  .vac-info { flex: 1; min-width: 0; }
+  .vac-name { font-size: 15px; font-weight: 700; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vac-model { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--t4); margin-top: 1px; }
+  .vac-state-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .vac-state-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; transition: all var(--t-med); }
+  .vac-state-dot.docked { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.4); }
+  .vac-state-dot.cleaning { background: var(--vac-color); box-shadow: 0 0 6px var(--vac-glow); animation: dot-pulse 2s ease-in-out infinite; }
+  .vac-state-dot.paused { background: var(--c-warning); box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+  .vac-state-dot.returning { background: var(--c-info); box-shadow: 0 0 6px rgba(96,165,250,0.4); }
+  .vac-state-dot.idle { background: var(--t3); }
+  .vac-state-dot.error { background: var(--c-alert); box-shadow: 0 0 6px rgba(248,113,113,0.5); animation: dot-pulse 1s ease-in-out infinite; }
+  @keyframes dot-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+  .vac-state-text { font-size: 11px; font-weight: 500; color: var(--t2); }
+
+  /* Battery */
+  .vac-battery { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+  .vac-batt-icon { position: relative; width: 28px; height: 14px; border: 1.5px solid var(--t3); border-radius: 3px; transition: border-color var(--t-med); }
+  .vac-batt-icon::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 2px; height: 6px; border-radius: 0 1px 1px 0; background: var(--t3); transition: background var(--t-med); }
+  .vac-batt-fill { position: absolute; top: 1.5px; left: 1.5px; bottom: 1.5px; border-radius: 1px; transition: width var(--t-med), background var(--t-med); }
+  .vac-batt-fill.high { background: var(--c-success); }
+  .vac-batt-fill.mid { background: var(--c-warning); }
+  .vac-batt-fill.low { background: var(--c-alert); }
+  .vac-batt-pct { font-size: 10px; font-weight: 600; color: var(--t3); font-variant-numeric: tabular-nums; }
+  .vac-battery.charging .vac-batt-icon { border-color: var(--c-success); }
+  .vac-battery.charging .vac-batt-icon::after { background: var(--c-success); }
+  .vac-battery.charging .vac-batt-pct { color: var(--c-success); }
+
+  /* ── Map ── */
+  .vac-map { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden; background: #080c14; border: 1px solid var(--b1); }
+  .vac-map-inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .vac-map-floor { position: absolute; inset: 16px; border-radius: var(--radius-md); opacity: 0.6; }
+  .vac-map-room {
+    position: absolute; border-radius: var(--radius-sm);
+    border: 1px solid; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; transition: all var(--t-fast);
+  }
+  .vac-map-room:hover { filter: brightness(1.3); }
+  .vac-map-room.selected { border-width: 2px; filter: brightness(1.2); }
+  .vac-map-room.r1 { top: 8%; left: 5%; width: 40%; height: 35%; background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.2); color: rgba(34,211,238,0.5); }
+  .vac-map-room.r2 { top: 8%; left: 48%; width: 47%; height: 35%; background: rgba(129,140,248,0.08); border-color: rgba(129,140,248,0.2); color: rgba(129,140,248,0.5); }
+  .vac-map-room.r3 { top: 46%; left: 5%; width: 55%; height: 48%; background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.2); color: rgba(74,222,128,0.5); }
+  .vac-map-room.r4 { top: 46%; left: 63%; width: 32%; height: 25%; background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.2); color: rgba(251,191,36,0.5); }
+  .vac-map-room.r5 { top: 74%; left: 63%; width: 32%; height: 20%; background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); color: rgba(248,113,113,0.5); }
+
+  .vac-robot-dot {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--vac-color); box-shadow: 0 0 10px var(--vac-glow), 0 0 20px rgba(34,211,238,0.2);
+    transition: top 0.8s var(--ease-out), left 0.8s var(--ease-out); z-index: 2;
+  }
+  .vac-robot-dot.cleaning { animation: robot-pulse 2s ease-in-out infinite; }
+  @keyframes robot-pulse {
+    0%, 100% { box-shadow: 0 0 10px var(--vac-glow), 0 0 20px rgba(34,211,238,0.2); }
+    50% { box-shadow: 0 0 16px var(--vac-glow), 0 0 30px rgba(34,211,238,0.3); }
+  }
+
+  .vac-map-trail { position: absolute; inset: 16px; z-index: 1; pointer-events: none; }
+  .vac-map-trail svg { width: 100%; height: 100%; }
+
+  .vac-dock-icon {
+    position: absolute; bottom: 22px; left: 22px; width: 16px; height: 16px;
+    border-radius: 3px; background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.25);
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+  }
+  .vac-dock-icon i { font-size: 10px; color: rgba(74,222,128,0.6); }
+
+  .vac-map-stats { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 3; }
+  .vac-map-stat {
+    display: inline-flex; align-items: center; gap: 3px; padding: 3px 7px;
+    border-radius: var(--radius-sm); background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.08); font-size: 9px; font-weight: 600;
+    color: rgba(255,255,255,0.6); font-variant-numeric: tabular-nums;
+  }
+  .vac-map-stat i { font-size: 10px; opacity: 0.6; }
+
+  /* ── Transport ── */
+  .vac-transport { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .transport-btn {
+    width: 44px; height: 44px; border-radius: 14px; background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: all var(--t-fast); outline: none; padding: 0; font-size: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .transport-btn i { font-size: 22px; color: var(--t2); transition: color var(--t-fast); }
+  .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
+  .transport-btn:hover i { color: var(--t1); }
+  .transport-btn:active { transform: scale(0.96); }
+  .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  .transport-btn.primary { width: 52px; height: 52px; border-radius: 16px; background: var(--vac-bg); border-color: var(--vac-border); }
+  .transport-btn.primary i { color: var(--vac-color); font-size: 26px; }
+  .transport-btn.primary:hover { background: rgba(34,211,238,0.18); border-color: rgba(34,211,238,0.25); }
+  .transport-btn.active { background: var(--vac-bg); border-color: var(--vac-border); }
+  .transport-btn.active i { color: var(--vac-color); }
+
+  /* ── Fold ── */
+  .fold-sep { height: 1px; background: linear-gradient(90deg, transparent, rgba(34,211,238,0.25), transparent); opacity: 0; transition: opacity 0.25s var(--ease-std); }
+  .fold-sep.visible { opacity: 1; }
+  .ctrl-fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-layout); }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner { overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease-std); }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+  .ctrl-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; color: var(--vac-sub); text-transform: uppercase; }
+
+  /* ── Chip ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+    border-radius: var(--radius-md); border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 10px; font-weight: 600; color: var(--t3);
+    cursor: pointer; transition: all var(--t-fast); outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  .chip:active { transform: scale(0.96); }
+  .chip i { font-size: 12px; }
+  .chip.active { border-color: var(--vac-border); background: var(--vac-bg); color: var(--vac-color); }
+  .chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  /* ── Setting row ── */
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; gap: 8px; }
+  .setting-label { font-size: 11px; font-weight: 500; color: var(--t2); display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .setting-label i { font-size: 14px; color: var(--t3); display: flex; align-items: center; }
+
+  /* ── Toggle ── */
+  .toggle {
+    position: relative; width: 44px; height: 24px; border-radius: 12px; background: var(--s2);
+    border: 1px solid var(--b2); cursor: pointer; transition: all var(--t-fast);
+    padding: 0; outline: none; font-size: 0; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--t3); transition: all var(--t-fast);
+  }
+  .toggle.on { background: rgba(34,211,238,0.2); border-color: rgba(34,211,238,0.3); }
+  .toggle.on::after { transform: translateX(20px); background: var(--vac-color); box-shadow: 0 0 8px var(--vac-glow); }
+
+  /* ── Consumable bars ── */
+  .consumable-row { display: flex; flex-direction: column; gap: 8px; }
+  .consumable { display: flex; align-items: center; gap: 8px; }
+  .consumable-icon { width: 24px; height: 24px; border-radius: 6px; background: var(--s2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .consumable-icon i { font-size: 12px; color: var(--t3); }
+  .consumable-info { flex: 1; min-width: 0; }
+  .consumable-name { font-size: 10px; font-weight: 600; color: var(--t2); display: flex; justify-content: space-between; }
+  .consumable-name .hours { color: var(--t3); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .consumable-bar { width: 100%; height: 4px; border-radius: 2px; background: var(--s2); overflow: hidden; margin-top: 3px; }
+  .consumable-fill { height: 100%; border-radius: inherit; transition: width var(--t-med); }
+  .consumable-fill.ok { background: var(--c-success); }
+  .consumable-fill.warn { background: var(--c-warning); }
+  .consumable-fill.crit { background: var(--c-alert); }
+
+  /* ── Status pills ── */
+  .status-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+    border-radius: var(--radius-sm); font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .status-pill i { font-size: 11px; }
+  .status-pill.ok { background: rgba(74,222,128,0.08); color: rgba(74,222,128,0.6); border: 1px solid rgba(74,222,128,0.1); }
+  .status-pill.warn { background: rgba(251,191,36,0.08); color: rgba(251,191,36,0.6); border: 1px solid rgba(251,191,36,0.1); }
+  .status-pill.err { background: rgba(248,113,113,0.08); color: rgba(248,113,113,0.6); border: 1px solid rgba(248,113,113,0.1); }
+  .status-pill.info { background: rgba(34,211,238,0.08); color: rgba(34,211,238,0.6); border: 1px solid rgba(34,211,238,0.1); }
+
+  .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+
+  /* ── Header ── */
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--t4); }
+  .header-action-btn {
+    width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--s2);
+    border: 1px solid var(--b2); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; outline: none; font-size: 0;
+    transition: all var(--t-fast); -webkit-tap-highlight-color: transparent;
+  }
+  .header-action-btn i { font-size: 14px; color: var(--t3); transition: color var(--t-fast); }
+  .header-action-btn:hover { background: var(--s3); border-color: var(--b3); }
+  .header-action-btn:hover i { color: var(--t1); }
+  .header-action-btn:active { transform: scale(0.96); }
+  .header-action-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  /* ── Fold toggle ── */
+  .fold-toggle { display: flex; align-items: center; justify-content: center; padding: 4px 0; cursor: pointer; }
+  .fold-toggle i { font-size: 18px; color: var(--t4); transition: transform var(--t-fast), color var(--t-fast); }
+  .fold-toggle:hover i { color: var(--t2); }
+  .fold-toggle.open i { transform: rotate(180deg); }
+
+  /* ── Room chips ── */
+  .room-chip {
+    display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px;
+    border-radius: var(--radius-md); border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 10px; font-weight: 600; color: var(--t3);
+    cursor: pointer; transition: all var(--t-fast); outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .room-chip:hover { background: var(--s3); border-color: var(--b3); color: var(--t2); }
+  .room-chip:active { transform: scale(0.96); }
+  .room-chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  .room-chip.selected { border-color: var(--vac-border); background: var(--vac-bg); color: var(--vac-color); }
+  .room-chip .room-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ── Demo ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px; border-radius: 20px;
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+    border: 1px solid var(--b2); z-index: 100; flex-wrap: wrap;
+    justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--t4); margin-right: 2px; }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2); border-radius: var(--radius-md);
+    background: var(--s1); color: var(--t3); font-family: inherit; font-size: 11px;
+    font-weight: 500; cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="day">
+
+<div class="ambient-bg"></div>
+
+<div class="vac-card-wrap" id="vac-card-wrap"></div>
+
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn active" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Etat</span>
+    <button class="demo-btn" onclick="setState('docked',this)">Docke</button>
+    <button class="demo-btn active" onclick="setState('cleaning',this)">Nettoyage</button>
+    <button class="demo-btn" onclick="setState('paused',this)">Pause</button>
+    <button class="demo-btn" onclick="setState('returning',this)">Retour</button>
+    <button class="demo-btn" onclick="setState('error',this)">Erreur</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   HA VACUUM ENTITY — ROBOROCK SAROS 10R
+   ================================================================
+   VacuumEntityFeature: STATE=1, START=2, STOP=4, PAUSE=8,
+     RETURN_HOME=16, FAN_SPEED=32, CLEAN_SPOT=64, CLEAN_AREA=128,
+     MAP=256, LOCATE=512, SEND_COMMAND=1024
+   States: cleaning, docked, idle, paused, returning, error
+   Saros 10R: 22kPa, FlexiArm side+mop, AdaptiLift chassis,
+     StarSight 2.0 ToF+AI, 6400mAh, hot water wash dock
+   ================================================================ */
+
+var FAN_SPEEDS = ['off', 'quiet', 'balanced', 'turbo', 'max', 'max_plus'];
+var FAN_LABELS = { off: 'Off', quiet: 'Silencieux', balanced: 'Equilibre', turbo: 'Turbo', max: 'Max', max_plus: 'Max+' };
+var FAN_ICONS = { off: 'mdi-fan-off', quiet: 'mdi-fan-speed-1', balanced: 'mdi-fan-speed-2', turbo: 'mdi-fan-speed-3', max: 'mdi-fan', max_plus: 'mdi-fan-plus' };
+
+var MOP_MODES = ['off', 'standard', 'deep', 'deep_plus'];
+var MOP_LABELS = { off: 'Off', standard: 'Standard', deep: 'Intensif', deep_plus: 'Intensif+' };
+
+var MOP_INTENSITIES = ['off', 'mild', 'moderate', 'intense'];
+var MOP_INT_LABELS = { off: 'Off', mild: 'Leger', moderate: 'Modere', intense: 'Intense' };
+
+var EMPTY_MODES = ['light', 'balanced', 'max', 'smart'];
+var EMPTY_LABELS = { light: 'Leger', balanced: 'Equilibre', max: 'Max', smart: 'Auto' };
+
+var STATE_TEXT = {
+  docked: 'Sur la base', cleaning: 'Nettoyage en cours',
+  paused: 'En pause', returning: 'Retour a la base',
+  idle: 'Inactif', error: 'Erreur'
+};
+var STATE_ICONS = {
+  docked: 'mdi-robot-vacuum', cleaning: 'mdi-robot-vacuum',
+  paused: 'mdi-pause-circle-outline', returning: 'mdi-home-import-outline',
+  idle: 'mdi-robot-vacuum-off', error: 'mdi-alert-circle-outline'
+};
+
+var ROOMS = [
+  { id: 'salon',   name: 'Salon',   color: 'rgba(34,211,238,VAL)', cls: 'r1' },
+  { id: 'chambre', name: 'Chambre', color: 'rgba(129,140,248,VAL)', cls: 'r2' },
+  { id: 'cuisine', name: 'Cuisine', color: 'rgba(74,222,128,VAL)', cls: 'r3' },
+  { id: 'sdb',     name: 'SdB',     color: 'rgba(251,191,36,VAL)', cls: 'r4' },
+  { id: 'entree',  name: 'Entree',  color: 'rgba(248,113,113,VAL)', cls: 'r5' }
+];
+
+var ROBOT_POS = {
+  salon: { top: '22%', left: '20%' }, chambre: { top: '22%', left: '68%' },
+  cuisine: { top: '65%', left: '30%' }, sdb: { top: '55%', left: '76%' },
+  entree: { top: '82%', left: '76%' }, dock: { top: '88%', left: '12%' }
+};
+
+var vac = {
+  state: 'cleaning', battery: 72, charging: false,
+  fan_speed: 'turbo', mop_mode: 'deep', mop_intensity: 'moderate',
+  empty_mode: 'smart', mop_attached: true, water_ok: true,
+  area_cleaned: 45, time_cleaning: 38, progress: 62,
+  error_msg: '', current_room: 'cuisine', selected_rooms: [],
+  dnd: false, child_lock: false, led: true,
+  consumables: {
+    main_brush: { pct: 78, hours_left: 195 },
+    side_brush: { pct: 45, hours_left: 90 },
+    filter:     { pct: 62, hours_left: 124 },
+    sensor:     { pct: 91, hours_left: 273 }
+  }
+};
+
+var detailsOpen = false;
+
+/* ── DOM helpers ── */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function ico(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var wrap = document.getElementById('vac-card-wrap');
+  while (wrap.firstChild) wrap.removeChild(wrap.firstChild);
+
+  // Header
+  var header = el('div', 'card-header');
+  var hLeft = el('div', 'card-header-left');
+  hLeft.appendChild(el('span', 'card-title', { text: 'Aspirateur' }));
+  header.appendChild(hLeft);
+  var locateBtn = el('button', 'header-action-btn');
+  locateBtn.setAttribute('aria-label', 'Localiser');
+  locateBtn.appendChild(ico('mdi-crosshairs'));
+  locateBtn.addEventListener('click', function() {
+    locateBtn.querySelector('i').style.color = 'var(--vac-color)';
+    setTimeout(function() { locateBtn.querySelector('i').style.color = ''; }, 1500);
+  });
+  header.appendChild(locateBtn);
+  wrap.appendChild(header);
+
+  // Card
+  var card = el('div', 'glass vac-card');
+  var tint = el('div', 'tint');
+  card.appendChild(tint);
+
+  var inner = el('div', 'card-inner');
+  inner.appendChild(buildHero());
+  inner.appendChild(buildMap());
+  inner.appendChild(buildTransport());
+  inner.appendChild(buildFanSpeed());
+  if (vac.mop_attached) inner.appendChild(buildMopControls());
+  inner.appendChild(buildRoomSelection());
+
+  // Fold separator + details toggle
+  var sep = el('div', 'fold-sep visible');
+  inner.appendChild(sep);
+
+  var foldToggle = el('div', 'fold-toggle' + (detailsOpen ? ' open' : ''));
+  foldToggle.appendChild(ico('mdi-chevron-down'));
+  foldToggle.addEventListener('click', function() { detailsOpen = !detailsOpen; render(); });
+  inner.appendChild(foldToggle);
+
+  // Details fold
+  var fold = el('div', 'ctrl-fold' + (detailsOpen ? ' open' : ''));
+  var foldInner = el('div', 'ctrl-fold-inner');
+  var foldContent = el('div', '');
+  foldContent.style.cssText = 'display:flex;flex-direction:column;gap:12px;padding:4px 0 2px;';
+  foldContent.appendChild(buildStatusPills());
+  foldContent.appendChild(buildEmptyMode());
+  foldContent.appendChild(buildConsumables());
+  foldContent.appendChild(buildSettings());
+  foldInner.appendChild(foldContent);
+  fold.appendChild(foldInner);
+  inner.appendChild(fold);
+
+  card.appendChild(inner);
+
+  // Tint
+  if (vac.state === 'cleaning') {
+    tint.style.background = 'radial-gradient(ellipse at 50% 50%, var(--vac-color), transparent 70%)';
+    tint.style.opacity = '0.12';
+  } else if (vac.state === 'error') {
+    tint.style.background = 'radial-gradient(ellipse at 50% 50%, var(--c-alert), transparent 70%)';
+    tint.style.opacity = '0.1';
+  } else if (vac.state === 'returning') {
+    tint.style.background = 'radial-gradient(ellipse at 50% 50%, var(--c-info), transparent 70%)';
+    tint.style.opacity = '0.08';
+  } else {
+    tint.style.opacity = '0';
+  }
+
+  wrap.appendChild(card);
+}
+
+/* ── Hero ── */
+function buildHero() {
+  var hero = el('div', 'vac-hero');
+
+  var iconCls = 'vac-icon-box';
+  if (vac.state === 'cleaning') iconCls += ' active cleaning';
+  else if (vac.state === 'returning') iconCls += ' active returning';
+  else if (vac.state === 'error') iconCls += ' error';
+  var iconBox = el('div', iconCls);
+  iconBox.appendChild(ico(STATE_ICONS[vac.state]));
+  hero.appendChild(iconBox);
+
+  var info = el('div', 'vac-info');
+  info.appendChild(el('div', 'vac-name', { text: 'Saros 10R' }));
+  info.appendChild(el('div', 'vac-model', { text: 'Roborock' }));
+  var stRow = el('div', 'vac-state-row');
+  stRow.appendChild(el('div', 'vac-state-dot ' + vac.state));
+  var stText = STATE_TEXT[vac.state];
+  if (vac.state === 'error' && vac.error_msg) stText = vac.error_msg;
+  if (vac.state === 'cleaning') stText += ' \u00b7 ' + vac.progress + '%';
+  stRow.appendChild(el('span', 'vac-state-text', { text: stText }));
+  info.appendChild(stRow);
+  hero.appendChild(info);
+
+  var batt = el('div', 'vac-battery' + (vac.charging ? ' charging' : ''));
+  var battIcon = el('div', 'vac-batt-icon');
+  var fillCls = 'vac-batt-fill';
+  if (vac.battery > 50) fillCls += ' high';
+  else if (vac.battery > 20) fillCls += ' mid';
+  else fillCls += ' low';
+  var fill = el('div', fillCls);
+  fill.style.width = Math.max(2, (vac.battery / 100) * 23) + 'px';
+  battIcon.appendChild(fill);
+  batt.appendChild(battIcon);
+  batt.appendChild(el('span', 'vac-batt-pct', { text: vac.battery + '%' + (vac.charging ? ' \u26a1' : '') }));
+  hero.appendChild(batt);
+
+  return hero;
+}
+
+/* ── Map ── */
+function buildMap() {
+  var map = el('div', 'vac-map');
+  var inner = el('div', 'vac-map-inner');
+
+  // Rooms
+  var floor = el('div', 'vac-map-floor');
+  for (var r = 0; r < ROOMS.length; r++) {
+    (function(room) {
+      var isSel = vac.selected_rooms.indexOf(room.id) !== -1;
+      var rm = el('div', 'vac-map-room ' + room.cls + (isSel ? ' selected' : ''));
+      rm.textContent = room.name;
+      rm.setAttribute('data-room', room.id);
+      rm.addEventListener('click', function() {
+        var idx = vac.selected_rooms.indexOf(room.id);
+        if (idx !== -1) vac.selected_rooms.splice(idx, 1);
+        else vac.selected_rooms.push(room.id);
+        render();
+      });
+      floor.appendChild(rm);
+    })(ROOMS[r]);
+  }
+  inner.appendChild(floor);
+
+  // Trail (SVG built with safe DOM)
+  if (vac.state === 'cleaning' || vac.state === 'paused') {
+    var trail = el('div', 'vac-map-trail');
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M 10,85 L 10,60 L 35,60 L 35,40 L 15,40 L 15,15 L 35,15 L 35,30 L 55,30 L 55,15 L 85,15 L 85,30 L 65,30 L 65,55 L 45,55 L 45,75 L 30,75');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'rgba(34,211,238,0.2)');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    trail.appendChild(svg);
+    inner.appendChild(trail);
+  }
+
+  // Robot dot
+  var pos = (vac.state === 'docked' || vac.state === 'returning') ? ROBOT_POS.dock : (ROBOT_POS[vac.current_room] || ROBOT_POS.dock);
+  var dot = el('div', 'vac-robot-dot' + (vac.state === 'cleaning' ? ' cleaning' : ''));
+  dot.style.top = pos.top;
+  dot.style.left = pos.left;
+  inner.appendChild(dot);
+
+  // Dock
+  var dock = el('div', 'vac-dock-icon');
+  dock.appendChild(ico('mdi-ev-station'));
+  inner.appendChild(dock);
+
+  // Stats overlay
+  if (vac.state === 'cleaning' || vac.state === 'paused') {
+    var stats = el('div', 'vac-map-stats');
+    var areaStat = el('div', 'vac-map-stat');
+    areaStat.appendChild(ico('mdi-texture-box'));
+    areaStat.appendChild(document.createTextNode(vac.area_cleaned + ' m\u00b2'));
+    stats.appendChild(areaStat);
+    var timeStat = el('div', 'vac-map-stat');
+    timeStat.appendChild(ico('mdi-timer-outline'));
+    timeStat.appendChild(document.createTextNode(vac.time_cleaning + ' min'));
+    stats.appendChild(timeStat);
+    var progStat = el('div', 'vac-map-stat');
+    progStat.appendChild(ico('mdi-percent'));
+    progStat.appendChild(document.createTextNode(vac.progress + '%'));
+    stats.appendChild(progStat);
+    inner.appendChild(stats);
+  }
+
+  map.appendChild(inner);
+  return map;
+}
+
+/* ── Transport ── */
+function buildTransport() {
+  var tr = el('div', 'vac-transport');
+  var isCleaning = vac.state === 'cleaning';
+  var isPaused = vac.state === 'paused';
+
+  var homeBtn = el('button', 'transport-btn' + (vac.state === 'returning' ? ' active' : ''));
+  homeBtn.setAttribute('aria-label', 'Retour base');
+  homeBtn.appendChild(ico('mdi-home-import-outline'));
+  homeBtn.addEventListener('click', function() { vac.state = 'returning'; vac.charging = false; render(); });
+  tr.appendChild(homeBtn);
+
+  var stopBtn = el('button', 'transport-btn');
+  stopBtn.setAttribute('aria-label', 'Stop');
+  stopBtn.appendChild(ico('mdi-stop'));
+  stopBtn.addEventListener('click', function() { vac.state = 'idle'; render(); });
+  tr.appendChild(stopBtn);
+
+  if (isCleaning) {
+    var pauseBtn = el('button', 'transport-btn primary');
+    pauseBtn.setAttribute('aria-label', 'Pause');
+    pauseBtn.appendChild(ico('mdi-pause'));
+    pauseBtn.addEventListener('click', function() { vac.state = 'paused'; render(); });
+    tr.appendChild(pauseBtn);
+  } else {
+    var playBtn = el('button', 'transport-btn primary');
+    playBtn.setAttribute('aria-label', isPaused ? 'Reprendre' : 'Demarrer');
+    playBtn.appendChild(ico('mdi-play'));
+    playBtn.addEventListener('click', function() { vac.state = 'cleaning'; vac.charging = false; render(); });
+    tr.appendChild(playBtn);
+  }
+
+  var spotBtn = el('button', 'transport-btn');
+  spotBtn.setAttribute('aria-label', 'Nettoyage spot');
+  spotBtn.appendChild(ico('mdi-target'));
+  tr.appendChild(spotBtn);
+
+  var locBtn = el('button', 'transport-btn');
+  locBtn.setAttribute('aria-label', 'Localiser');
+  locBtn.appendChild(ico('mdi-crosshairs'));
+  locBtn.addEventListener('click', function() {
+    locBtn.style.background = 'var(--vac-bg)';
+    locBtn.style.borderColor = 'var(--vac-border)';
+    locBtn.querySelector('i').style.color = 'var(--vac-color)';
+    setTimeout(function() { locBtn.style.background = ''; locBtn.style.borderColor = ''; locBtn.querySelector('i').style.color = ''; }, 2000);
+  });
+  tr.appendChild(locBtn);
+
+  return tr;
+}
+
+/* ── Fan speed ── */
+function buildFanSpeed() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Aspiration' }));
+  var row = el('div', 'chip-row');
+  for (var f = 0; f < FAN_SPEEDS.length; f++) {
+    (function(speed) {
+      var chip = el('button', 'chip' + (vac.fan_speed === speed ? ' active' : ''));
+      chip.appendChild(ico(FAN_ICONS[speed] || 'mdi-fan'));
+      var s = document.createElement('span'); s.textContent = FAN_LABELS[speed]; chip.appendChild(s);
+      chip.addEventListener('click', function() { vac.fan_speed = speed; render(); });
+      row.appendChild(chip);
+    })(FAN_SPEEDS[f]);
+  }
+  wrap.appendChild(row);
+  return wrap;
+}
+
+/* ── Mop controls ── */
+function buildMopControls() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+  var modeWrap = el('div', '');
+  modeWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  modeWrap.appendChild(el('span', 'ctrl-label', { text: 'Serpillere \u2014 Mode' }));
+  var modeRow = el('div', 'chip-row');
+  for (var m = 0; m < MOP_MODES.length; m++) {
+    (function(mode) {
+      var chip = el('button', 'chip' + (vac.mop_mode === mode ? ' active' : ''));
+      chip.appendChild(ico(mode === 'off' ? 'mdi-water-off' : 'mdi-water'));
+      var s = document.createElement('span'); s.textContent = MOP_LABELS[mode]; chip.appendChild(s);
+      chip.addEventListener('click', function() { vac.mop_mode = mode; render(); });
+      modeRow.appendChild(chip);
+    })(MOP_MODES[m]);
+  }
+  modeWrap.appendChild(modeRow);
+  wrap.appendChild(modeWrap);
+
+  var intWrap = el('div', '');
+  intWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  intWrap.appendChild(el('span', 'ctrl-label', { text: 'Serpillere \u2014 Debit' }));
+  var intRow = el('div', 'chip-row');
+  for (var i = 0; i < MOP_INTENSITIES.length; i++) {
+    (function(intensity) {
+      var chip = el('button', 'chip' + (vac.mop_intensity === intensity ? ' active' : ''));
+      chip.appendChild(ico(intensity === 'off' ? 'mdi-water-off' : intensity === 'intense' ? 'mdi-water-plus' : 'mdi-water-outline'));
+      var s = document.createElement('span'); s.textContent = MOP_INT_LABELS[intensity]; chip.appendChild(s);
+      chip.addEventListener('click', function() { vac.mop_intensity = intensity; render(); });
+      intRow.appendChild(chip);
+    })(MOP_INTENSITIES[i]);
+  }
+  intWrap.appendChild(intRow);
+  wrap.appendChild(intWrap);
+
+  return wrap;
+}
+
+/* ── Room selection ── */
+function buildRoomSelection() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Pieces' }));
+  var row = el('div', 'chip-row');
+  for (var r = 0; r < ROOMS.length; r++) {
+    (function(room) {
+      var isSel = vac.selected_rooms.indexOf(room.id) !== -1;
+      var chip = el('button', 'room-chip' + (isSel ? ' selected' : ''));
+      var dot = el('span', 'room-dot');
+      dot.style.background = room.color.replace('VAL', '0.6');
+      chip.appendChild(dot);
+      chip.appendChild(document.createTextNode(room.name));
+      chip.addEventListener('click', function() {
+        var idx = vac.selected_rooms.indexOf(room.id);
+        if (idx !== -1) vac.selected_rooms.splice(idx, 1);
+        else vac.selected_rooms.push(room.id);
+        render();
+      });
+      row.appendChild(chip);
+    })(ROOMS[r]);
+  }
+
+  if (vac.selected_rooms.length > 0) {
+    var goBtn = el('button', 'chip active');
+    goBtn.appendChild(ico('mdi-play'));
+    var gs = document.createElement('span');
+    gs.textContent = 'Nettoyer (' + vac.selected_rooms.length + ')';
+    goBtn.appendChild(gs);
+    goBtn.addEventListener('click', function() {
+      vac.state = 'cleaning'; vac.charging = false;
+      vac.current_room = vac.selected_rooms[0];
+      vac.progress = 0; vac.area_cleaned = 0; vac.time_cleaning = 0;
+      render();
+    });
+    row.appendChild(goBtn);
+  }
+
+  wrap.appendChild(row);
+  return wrap;
+}
+
+/* ── Status pills ── */
+function buildStatusPills() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Etat' }));
+  var pills = el('div', 'status-pills');
+
+  if (vac.mop_attached) {
+    var mp = el('div', 'status-pill ok');
+    mp.appendChild(ico('mdi-spray-bottle'));
+    mp.appendChild(document.createTextNode('Serpillere'));
+    pills.appendChild(mp);
+  }
+
+  var wp = el('div', 'status-pill ' + (vac.water_ok ? 'ok' : 'warn'));
+  wp.appendChild(ico(vac.water_ok ? 'mdi-water-check' : 'mdi-water-alert'));
+  wp.appendChild(document.createTextNode(vac.water_ok ? 'Eau OK' : 'Eau basse'));
+  pills.appendChild(wp);
+
+  if (vac.charging) {
+    var cp = el('div', 'status-pill info');
+    cp.appendChild(ico('mdi-lightning-bolt'));
+    cp.appendChild(document.createTextNode('Charge'));
+    pills.appendChild(cp);
+  }
+
+  var fp = el('div', 'status-pill info');
+  fp.appendChild(ico('mdi-robot-outline'));
+  fp.appendChild(document.createTextNode('FlexiArm'));
+  pills.appendChild(fp);
+
+  var ap = el('div', 'status-pill info');
+  ap.appendChild(ico('mdi-arrow-expand-up'));
+  ap.appendChild(document.createTextNode('AdaptiLift'));
+  pills.appendChild(ap);
+
+  if (vac.state === 'error') {
+    var ep = el('div', 'status-pill err');
+    ep.appendChild(ico('mdi-alert-circle'));
+    ep.appendChild(document.createTextNode(vac.error_msg || 'Erreur'));
+    pills.appendChild(ep);
+  }
+
+  wrap.appendChild(pills);
+  return wrap;
+}
+
+/* ── Empty mode ── */
+function buildEmptyMode() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Vidage automatique' }));
+  var row = el('div', 'chip-row');
+  for (var e = 0; e < EMPTY_MODES.length; e++) {
+    (function(mode) {
+      var chip = el('button', 'chip' + (vac.empty_mode === mode ? ' active' : ''));
+      chip.appendChild(ico(mode === 'smart' ? 'mdi-auto-fix' : 'mdi-delete-variant'));
+      var s = document.createElement('span'); s.textContent = EMPTY_LABELS[mode]; chip.appendChild(s);
+      chip.addEventListener('click', function() { vac.empty_mode = mode; render(); });
+      row.appendChild(chip);
+    })(EMPTY_MODES[e]);
+  }
+  wrap.appendChild(row);
+  return wrap;
+}
+
+/* ── Consumables ── */
+function buildConsumables() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Consommables' }));
+  var cRow = el('div', 'consumable-row');
+
+  var items = [
+    { key: 'main_brush', name: 'Brosse principale', icon: 'mdi-broom' },
+    { key: 'side_brush', name: 'Brosse laterale',   icon: 'mdi-rotate-right' },
+    { key: 'filter',     name: 'Filtre HEPA',       icon: 'mdi-air-filter' },
+    { key: 'sensor',     name: 'Capteur',            icon: 'mdi-access-point' }
+  ];
+
+  for (var c = 0; c < items.length; c++) {
+    var item = items[c];
+    var data = vac.consumables[item.key];
+    var con = el('div', 'consumable');
+
+    var cIcon = el('div', 'consumable-icon');
+    cIcon.appendChild(ico(item.icon));
+    con.appendChild(cIcon);
+
+    var cInfo = el('div', 'consumable-info');
+    var cName = el('div', 'consumable-name');
+    cName.appendChild(document.createTextNode(item.name));
+    cName.appendChild(el('span', 'hours', { text: data.hours_left + 'h' }));
+    cInfo.appendChild(cName);
+
+    var bar = el('div', 'consumable-bar');
+    var fillCls = 'consumable-fill';
+    if (data.pct > 50) fillCls += ' ok';
+    else if (data.pct > 20) fillCls += ' warn';
+    else fillCls += ' crit';
+    var barFill = el('div', fillCls);
+    barFill.style.width = data.pct + '%';
+    bar.appendChild(barFill);
+    cInfo.appendChild(bar);
+    con.appendChild(cInfo);
+    cRow.appendChild(con);
+  }
+
+  wrap.appendChild(cRow);
+  return wrap;
+}
+
+/* ── Settings ── */
+function buildSettings() {
+  var wrap = el('div', '');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  wrap.appendChild(el('span', 'ctrl-label', { text: 'Parametres' }));
+
+  var settings = [
+    { key: 'dnd',        label: 'Ne pas deranger', icon: 'mdi-moon-waning-crescent' },
+    { key: 'child_lock', label: 'Securite enfant',  icon: 'mdi-lock-outline' },
+    { key: 'led',        label: 'LED indicateur',   icon: 'mdi-led-on' }
+  ];
+
+  for (var s = 0; s < settings.length; s++) {
+    (function(setting) {
+      var row = el('div', 'setting-row');
+      var lbl = el('div', 'setting-label');
+      lbl.appendChild(ico(setting.icon));
+      lbl.appendChild(document.createTextNode(setting.label));
+      row.appendChild(lbl);
+      var toggle = el('button', 'toggle' + (vac[setting.key] ? ' on' : ''));
+      toggle.setAttribute('aria-label', setting.label);
+      toggle.addEventListener('click', function() { vac[setting.key] = !vac[setting.key]; render(); });
+      row.appendChild(toggle);
+      wrap.appendChild(row);
+    })(settings[s]);
+  }
+
+  return wrap;
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+function setTime(t, btn) {
+  document.body.setAttribute('data-time', t);
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function setState(state, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  vac.state = state;
+  vac.error_msg = '';
+
+  if (state === 'docked') {
+    vac.battery = 100; vac.charging = true;
+    vac.area_cleaned = 0; vac.time_cleaning = 0; vac.progress = 0;
+  } else if (state === 'cleaning') {
+    vac.battery = 72; vac.charging = false;
+    vac.area_cleaned = 45; vac.time_cleaning = 38; vac.progress = 62;
+    vac.current_room = 'cuisine';
+  } else if (state === 'paused') {
+    vac.battery = 65; vac.charging = false;
+    vac.area_cleaned = 30; vac.time_cleaning = 25; vac.progress = 40;
+    vac.current_room = 'chambre';
+  } else if (state === 'returning') {
+    vac.battery = 18; vac.charging = false;
+    vac.area_cleaned = 82; vac.time_cleaning = 67; vac.progress = 95;
+  } else if (state === 'error') {
+    vac.battery = 55; vac.charging = false;
+    vac.error_msg = 'Brosse bloquee';
+    vac.current_room = 'salon';
+  }
+
+  render();
+}
+
+// ── Init ──
+render();
+</script>
+
+</body>
+</html>

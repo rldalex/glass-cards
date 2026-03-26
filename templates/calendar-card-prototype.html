@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Card - Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 40px 16px 100px;
+      transition: background var(--t-slow);
+    }
+
+    /* ==================== AMBIENT BACKGROUND ==================== */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      transition: background var(--t-slow);
+    }
+
+    .ambient-bg::before,
+    .ambient-bg::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.4;
+      transition: background var(--t-slow);
+    }
+
+    .ambient-bg::before {
+      width: 600px;
+      height: 600px;
+      top: -200px;
+      right: -100px;
+    }
+
+    .ambient-bg::after {
+      width: 500px;
+      height: 500px;
+      bottom: -150px;
+      left: -100px;
+    }
+
+    body[data-time="morning"] { background: #0f1923; }
+    body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+    body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+
+    body[data-time="day"] { background: #111827; }
+    body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+    body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+
+    body[data-time="evening"] { background: #1a1118; }
+    body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+    body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+
+    body[data-time="night"] { background: #0a0e1a; }
+    body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+    body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+    /* ==================== GLASS BASE ==================== */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+      transition: border-color var(--t-fast);
+    }
+
+    .glass:hover {
+      border-color: var(--b3);
+    }
+
+    /* ==================== CALENDAR CARD ==================== */
+    .calendar-card {
+      padding: 14px 16px;
+      width: 360px;
+      max-width: 100%;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .cal-today {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .cal-day-num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--t1);
+      line-height: 1;
+      letter-spacing: -0.5px;
+    }
+
+    .cal-day-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .cal-day-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t2);
+      line-height: 1.2;
+      text-transform: capitalize;
+    }
+
+    .cal-month-year {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t4);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      line-height: 1.3;
+    }
+
+    .cal-event-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: var(--radius-full);
+      background: rgba(129, 140, 248, 0.12);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      color: var(--c-accent);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* ── WEEK STRIP ── */
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 12px;
+      padding: 6px 4px;
+      border-radius: var(--radius-md);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+    }
+
+    .week-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      transition: background var(--t-fast);
+    }
+
+    .week-day:hover {
+      background: var(--s3);
+    }
+
+    .week-day:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+    }
+
+    .week-day:active {
+      transform: scale(0.96);
+    }
+
+    .week-day-label {
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--t4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1;
+    }
+
+    .week-day-num {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t3);
+      line-height: 1;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+
+    .week-day.today .week-day-num {
+      background: rgba(129, 140, 248, 0.2);
+      color: var(--c-accent);
+      font-weight: 700;
+    }
+
+    .week-day.selected .week-day-num {
+      background: var(--s4);
+      color: var(--t1);
+    }
+
+    .week-day-dots {
+      display: flex;
+      gap: 3px;
+      min-height: 4px;
+      align-items: center;
+    }
+
+    .week-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+    }
+
+    /* ── SEPARATOR ── */
+    .cal-separator {
+      height: 1px;
+      background: var(--b1);
+      margin-bottom: 10px;
+    }
+
+    /* ── EVENT LIST ── */
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .event-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+      transition: background var(--t-fast);
+    }
+
+    .event-row:hover {
+      background: var(--s2);
+    }
+
+    .event-row:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+    }
+
+    .event-row:active {
+      transform: scale(0.96);
+    }
+
+    .event-color-bar {
+      width: 3px;
+      height: 28px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .event-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .event-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-time {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--t3);
+      line-height: 1.2;
+    }
+
+    .event-row.now .event-title {
+      color: var(--t1);
+    }
+
+    .event-row.now .event-time {
+      color: var(--c-accent);
+      font-weight: 500;
+    }
+
+    .event-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--t4);
+      flex-shrink: 0;
+    }
+
+    /* ── ALL DAY BADGE ── */
+    .event-allday {
+      font-size: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--t4);
+      padding: 2px 6px;
+      border-radius: var(--radius-full);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+      flex-shrink: 0;
+    }
+
+    /* ── NOW INDICATOR ── */
+    .now-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+      margin-bottom: 4px;
+    }
+
+    .now-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--c-accent);
+      box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+      animation: now-pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes now-pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .now-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(129, 140, 248, 0.4), transparent);
+    }
+
+    .now-time {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--c-accent);
+      opacity: 0.8;
+    }
+
+    /* ── FOLD: MORE EVENTS ── */
+    .fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--t-layout);
+    }
+
+    .fold.open {
+      grid-template-rows: 1fr;
+    }
+
+    .fold-inner {
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity var(--t-fast);
+    }
+
+    .fold.open .fold-inner {
+      opacity: 1;
+    }
+
+    .fold-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
+      padding: 6px 0 2px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t4);
+      transition: color var(--t-fast);
+    }
+
+    .fold-toggle:hover {
+      color: var(--t3);
+    }
+
+    .fold-toggle:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .fold-toggle:active {
+      transform: scale(0.96);
+    }
+
+    .fold-toggle svg {
+      width: 12px;
+      height: 12px;
+      transition: transform var(--t-fast);
+    }
+
+    .fold-toggle.open svg {
+      transform: rotate(180deg);
+    }
+
+    /* ── EMPTY STATE ── */
+    .cal-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 16px 0 8px;
+    }
+
+    .cal-empty svg {
+      width: 24px;
+      height: 24px;
+      color: var(--t4);
+      margin-bottom: 2px;
+    }
+
+    .cal-empty-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t3);
+    }
+
+    .cal-empty-sub {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--t4);
+    }
+
+    /* ── CALENDAR LEGEND (in fold) ── */
+    .cal-legend {
+      display: flex;
+      gap: 10px;
+      padding: 8px 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .cal-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cal-legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .cal-legend-label {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t4);
+    }
+
+    /* ==================== LAYOUT ==================== */
+    .dashboard-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 360px;
+      max-width: 100%;
+    }
+
+    @keyframes float-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .calendar-card {
+      animation: float-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+    }
+
+    .calendar-card:nth-child(2) { animation-delay: 0.12s; }
+    .calendar-card:nth-child(3) { animation-delay: 0.18s; }
+    .calendar-card:nth-child(4) { animation-delay: 0.24s; }
+
+    /* ── VARIANT LABEL ── */
+    .variant-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      text-align: center;
+      padding: 12px 0 2px;
+    }
+
+    /* ==================== V2 — TIMELINE ==================== */
+    .v2-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .v2-date {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .v2-day-pill {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(129, 140, 248, 0.12);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .v2-day-pill-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--c-accent);
+      line-height: 1;
+    }
+
+    .v2-day-pill-label {
+      font-size: 7px;
+      font-weight: 600;
+      color: var(--c-accent);
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1;
+    }
+
+    .v2-day-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .v2-day-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+
+    .v2-day-sub {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t4);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .v2-count {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t3);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+    }
+
+    .v2-timeline {
+      position: relative;
+      padding-left: 52px;
+    }
+
+    /* Vertical line */
+    .v2-timeline::before {
+      content: '';
+      position: absolute;
+      left: 22px;
+      top: 4px;
+      bottom: 4px;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--b3), var(--b1));
+    }
+
+    .v2-event {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+    }
+
+    .v2-event:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .v2-event:active {
+      transform: scale(0.96);
+    }
+
+    /* Time on the left axis */
+    .v2-time {
+      position: absolute;
+      left: -52px;
+      top: 6px;
+      width: 40px;
+      text-align: right;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t4);
+      line-height: 1;
+    }
+
+    .v2-event.now .v2-time {
+      color: var(--c-accent);
+      font-weight: 600;
+    }
+
+    /* Node dot on timeline */
+    .v2-node {
+      position: absolute;
+      left: -34px;
+      top: 7px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 2px solid;
+    }
+
+    .v2-event.now .v2-node {
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    .v2-event-card {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+      transition: background var(--t-fast), border-color var(--t-fast);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .v2-event:hover .v2-event-card {
+      background: var(--s2);
+      border-color: var(--b2);
+    }
+
+    .v2-event-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .v2-event-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v2-event.now .v2-event-title {
+      color: var(--t1);
+    }
+
+    .v2-event-duration {
+      font-size: 9px;
+      font-weight: 400;
+      color: var(--t4);
+      line-height: 1.3;
+    }
+
+    .v2-event-badge {
+      font-size: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    /* ==================== V3 — AGENDA ULTRA-COMPACT ==================== */
+    .v3-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .v3-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .v3-icon svg {
+      width: 14px;
+      height: 14px;
+      color: var(--t3);
+    }
+
+    .v3-title {
+      flex: 1;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+    }
+
+    .v3-today-chip {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--t1);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      background: var(--s2);
+      border: 1px solid var(--b2);
+    }
+
+    .v3-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .v3-row {
+      display: grid;
+      grid-template-columns: 44px 3px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--b1);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+      transition: background var(--t-fast);
+    }
+
+    .v3-row:last-child {
+      border-bottom: none;
+    }
+
+    .v3-row:hover {
+      background: var(--s1);
+    }
+
+    .v3-row:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .v3-row:active {
+      transform: scale(0.96);
+    }
+
+    .v3-row-time {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t3);
+      text-align: right;
+      line-height: 1;
+    }
+
+    .v3-row.now .v3-row-time {
+      color: var(--c-accent);
+    }
+
+    .v3-row-bar {
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+    }
+
+    .v3-row-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1;
+    }
+
+    .v3-row.now .v3-row-title {
+      color: var(--t1);
+    }
+
+    .v3-row-meta {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t4);
+      flex-shrink: 0;
+    }
+
+    .v3-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    .v3-next-label {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t4);
+    }
+
+    .v3-next-event {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t3);
+    }
+
+    /* ==================== V4 — MONTH MINI-GRID ==================== */
+    .v4-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .v4-month-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -0.3px;
+    }
+
+    .v4-nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .v4-nav-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--t3);
+      transition: background var(--t-fast), border-color var(--t-fast);
+    }
+
+    .v4-nav-btn:hover {
+      background: var(--s3);
+      border-color: var(--b2);
+    }
+
+    .v4-nav-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+    }
+
+    .v4-nav-btn:active {
+      transform: scale(0.96);
+    }
+
+    .v4-nav-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .v4-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      margin-bottom: 10px;
+    }
+
+    .v4-grid-head {
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--t4);
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0 0 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .v4-grid-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 3px 0;
+      border-radius: 4px;
+      cursor: default;
+    }
+
+    .v4-grid-cell.other-month {
+      opacity: 0.3;
+    }
+
+    .v4-grid-num {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t3);
+      line-height: 1;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .v4-grid-cell.today .v4-grid-num {
+      background: rgba(129, 140, 248, 0.2);
+      color: var(--c-accent);
+      font-weight: 700;
+    }
+
+    .v4-grid-dots {
+      display: flex;
+      gap: 2px;
+      min-height: 3px;
+    }
+
+    .v4-grid-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+    }
+
+    .v4-separator {
+      height: 1px;
+      background: var(--b1);
+      margin-bottom: 8px;
+    }
+
+    .v4-upcoming-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 6px;
+    }
+
+    .v4-event-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+      transition: background var(--t-fast);
+    }
+
+    .v4-event-mini:hover {
+      background: var(--s2);
+    }
+
+    .v4-event-mini:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+    }
+
+    .v4-event-mini:active {
+      transform: scale(0.96);
+    }
+
+    .v4-event-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .v4-event-text {
+      flex: 1;
+      min-width: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v4-event-hour {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--t4);
+      flex-shrink: 0;
+    }
+
+    /* ==================== CONTROLS ==================== */
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 100;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 92vw;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .controls-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-right: 2px;
+    }
+
+    .control-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.6);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .control-btn:active {
+      transform: scale(0.96);
+    }
+
+    .control-btn.active {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body data-time="evening">
+
+  <div class="ambient-bg"></div>
+
+  <div class="dashboard-column">
+
+    <div class="glass calendar-card" id="card">
+      <div class="card-inner">
+
+        <!-- HEADER -->
+        <div class="cal-header">
+          <div class="cal-today">
+            <span class="cal-day-num" id="cal-day-num"></span>
+            <div class="cal-day-meta">
+              <span class="cal-day-name" id="cal-day-name"></span>
+              <span class="cal-month-year" id="cal-month-year"></span>
+            </div>
+          </div>
+          <span class="cal-event-count" id="cal-count"></span>
+        </div>
+
+        <!-- WEEK STRIP -->
+        <div class="week-strip" id="week-strip" role="group" aria-label="Semaine en cours"></div>
+
+        <!-- SEPARATOR -->
+        <div class="cal-separator"></div>
+
+        <!-- NOW INDICATOR -->
+        <div class="now-indicator" id="now-indicator">
+          <div class="now-dot"></div>
+          <div class="now-line"></div>
+          <span class="now-time" id="now-time"></span>
+        </div>
+
+        <!-- EVENT LIST -->
+        <div class="event-list" id="event-list"></div>
+
+        <!-- FOLD: MORE EVENTS -->
+        <div class="fold" id="more-fold">
+          <div class="fold-inner">
+            <div class="event-list" id="more-events"></div>
+            <div class="cal-legend" id="cal-legend"></div>
+          </div>
+        </div>
+
+        <button class="fold-toggle" id="fold-toggle"
+          aria-expanded="false" aria-controls="more-fold"
+          aria-label="Afficher plus d'événements" style="display:none;">
+          <span id="fold-toggle-text"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ============ V2 — TIMELINE ============ -->
+    <div class="variant-label">V2 — Timeline</div>
+    <div class="glass calendar-card" id="card-v2">
+      <div class="card-inner">
+        <div class="v2-header">
+          <div class="v2-date">
+            <div class="v2-day-pill">
+              <span class="v2-day-pill-num" id="v2-day-num"></span>
+              <span class="v2-day-pill-label" id="v2-day-label"></span>
+            </div>
+            <div class="v2-day-text">
+              <span class="v2-day-name" id="v2-day-name"></span>
+              <span class="v2-day-sub" id="v2-day-sub"></span>
+            </div>
+          </div>
+          <span class="v2-count" id="v2-count"></span>
+        </div>
+        <div class="v2-timeline" id="v2-timeline"></div>
+      </div>
+    </div>
+
+    <!-- ============ V3 — AGENDA COMPACT ============ -->
+    <div class="variant-label">V3 — Agenda compact</div>
+    <div class="glass calendar-card" id="card-v3">
+      <div class="card-inner">
+        <div class="v3-header">
+          <div class="v3-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <span class="v3-title">Aujourd'hui</span>
+          <span class="v3-today-chip" id="v3-date"></span>
+        </div>
+        <div class="v3-rows" id="v3-rows"></div>
+        <div class="v3-footer" id="v3-footer" style="display:none;">
+          <span class="v3-next-label">Prochain</span>
+          <span class="v3-next-event" id="v3-next"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ V4 — MONTH MINI-GRID ============ -->
+    <div class="variant-label">V4 — Mois + aperçu</div>
+    <div class="glass calendar-card" id="card-v4">
+      <div class="card-inner">
+        <div class="v4-header">
+          <span class="v4-month-label" id="v4-month"></span>
+          <div class="v4-nav">
+            <button class="v4-nav-btn" aria-label="Mois précédent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <button class="v4-nav-btn" aria-label="Mois suivant">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 6 15 12 9 18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="v4-grid" id="v4-grid"></div>
+        <div class="v4-separator"></div>
+        <div class="v4-upcoming-label">Prochains</div>
+        <div id="v4-upcoming"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <div class="controls-group">
+      <span class="controls-label">Ambiance</span>
+      <button class="control-btn" data-time="morning" onclick="setTime('morning', this)">Matin</button>
+      <button class="control-btn" data-time="day" onclick="setTime('day', this)">Jour</button>
+      <button class="control-btn active" data-time="evening" onclick="setTime('evening', this)">Soir</button>
+      <button class="control-btn" data-time="night" onclick="setTime('night', this)">Nuit</button>
+    </div>
+    <div class="controls-group">
+      <span class="controls-label">Vue</span>
+      <button class="control-btn active" data-view="busy" onclick="setView('busy', this)">Chargé</button>
+      <button class="control-btn" data-view="light" onclick="setView('light', this)">Léger</button>
+      <button class="control-btn" data-view="empty" onclick="setView('empty', this)">Vide</button>
+    </div>
+  </div>
+
+  <script>
+    /* ── CALENDAR COLORS (mapped to HA calendar entities) ── */
+    var CAL_COLORS = {
+      perso: { color: '#818cf8', label: 'Personnel' },
+      travail: { color: '#60a5fa', label: 'Travail' },
+      famille: { color: '#f472b6', label: 'Famille' },
+      taches: { color: '#fbbf24', label: 'Tâches' },
+      anniversaires: { color: '#4ade80', label: 'Anniversaires' }
+    };
+
+    /* ── MOCK DATA ── */
+    var EVENTS_BUSY = [
+      { title: 'Daily standup', time: '09:00 - 09:30', cal: 'travail', now: false },
+      { title: 'Dentiste Luca', time: '10:15 - 11:00', cal: 'famille', now: true },
+      { title: 'Revue sprint Q2', time: '14:00 - 15:30', cal: 'travail', now: false },
+      { title: 'Courses Migros', time: '17:00', cal: 'taches', now: false },
+      { title: 'Anniversaire Maman', time: null, cal: 'anniversaires', allday: true, now: false },
+      { title: 'Yoga', time: '18:30 - 19:30', cal: 'perso', now: false },
+      { title: 'Appel Marc', time: '20:00', cal: 'perso', now: false }
+    ];
+
+    var EVENTS_LIGHT = [
+      { title: 'Brunch dimanche', time: '11:00 - 13:00', cal: 'famille', now: false },
+      { title: 'Lessive', time: null, cal: 'taches', allday: true, now: false }
+    ];
+
+    var EVENTS_EMPTY = [];
+
+    /* Week dots per day (0=lun..6=dim), varies per scenario */
+    var WEEK_DOTS_BUSY = [
+      ['travail'],
+      ['travail', 'famille'],
+      ['travail', 'famille', 'anniversaires', 'taches', 'perso'],
+      ['travail'],
+      ['perso', 'travail'],
+      ['famille'],
+      []
+    ];
+    var WEEK_DOTS_LIGHT = [[], [], [], [], [], ['famille', 'taches'], []];
+    var WEEK_DOTS_EMPTY = [[], [], [], [], [], [], []];
+
+    var MAX_VISIBLE = 4;
+    var currentView = 'busy';
+
+    /* ── BUILD WEEK STRIP ── */
+    function buildWeekStrip(dotData) {
+      var strip = document.getElementById('week-strip');
+      while (strip.firstChild) strip.removeChild(strip.firstChild);
+
+      var now = new Date();
+      var dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+      var monday = new Date(now);
+      monday.setDate(now.getDate() - dayOfWeek);
+
+      var labels = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
+
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+
+        var btn = document.createElement('button');
+        btn.className = 'week-day';
+        if (i === dayOfWeek) btn.classList.add('today', 'selected');
+        btn.setAttribute('aria-label', labels[i] + ' ' + d.getDate());
+
+        var lbl = document.createElement('span');
+        lbl.className = 'week-day-label';
+        lbl.textContent = labels[i];
+
+        var num = document.createElement('span');
+        num.className = 'week-day-num';
+        num.textContent = d.getDate();
+
+        var dots = document.createElement('div');
+        dots.className = 'week-day-dots';
+
+        var dayDots = dotData[i] || [];
+        /* Max 3 dots per day */
+        var shown = dayDots.slice(0, 3);
+        for (var j = 0; j < shown.length; j++) {
+          var dot = document.createElement('span');
+          dot.className = 'week-dot';
+          dot.style.background = CAL_COLORS[shown[j]] ? CAL_COLORS[shown[j]].color : 'var(--t4)';
+          dots.appendChild(dot);
+        }
+
+        btn.appendChild(lbl);
+        btn.appendChild(num);
+        btn.appendChild(dots);
+        strip.appendChild(btn);
+      }
+    }
+
+    /* ── BUILD EVENT ROW ── */
+    function createEventRow(ev) {
+      var btn = document.createElement('button');
+      btn.className = 'event-row';
+      if (ev.now) btn.classList.add('now');
+      btn.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ', toute la journée'));
+
+      var bar = document.createElement('div');
+      bar.className = 'event-color-bar';
+      var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : 'var(--t4)';
+      bar.style.background = 'linear-gradient(to bottom, ' + calColor + ', ' + calColor + '66)';
+
+      var content = document.createElement('div');
+      content.className = 'event-content';
+
+      var title = document.createElement('span');
+      title.className = 'event-title';
+      title.textContent = ev.title;
+
+      content.appendChild(title);
+
+      if (ev.time) {
+        var time = document.createElement('span');
+        time.className = 'event-time';
+        time.textContent = ev.time;
+        content.appendChild(time);
+      }
+
+      btn.appendChild(bar);
+      btn.appendChild(content);
+
+      if (ev.allday) {
+        var badge = document.createElement('span');
+        badge.className = 'event-allday';
+        badge.textContent = 'Journée';
+        btn.appendChild(badge);
+      }
+
+      return btn;
+    }
+
+    /* ── BUILD LEGEND ── */
+    function buildLegend(events) {
+      var legend = document.getElementById('cal-legend');
+      while (legend.firstChild) legend.removeChild(legend.firstChild);
+
+      var seen = {};
+      for (var i = 0; i < events.length; i++) {
+        var cal = events[i].cal;
+        if (seen[cal]) continue;
+        seen[cal] = true;
+
+        var item = document.createElement('div');
+        item.className = 'cal-legend-item';
+
+        var dot = document.createElement('span');
+        dot.className = 'cal-legend-dot';
+        dot.style.background = CAL_COLORS[cal] ? CAL_COLORS[cal].color : 'var(--t4)';
+
+        var label = document.createElement('span');
+        label.className = 'cal-legend-label';
+        label.textContent = CAL_COLORS[cal] ? CAL_COLORS[cal].label : cal;
+
+        item.appendChild(dot);
+        item.appendChild(label);
+        legend.appendChild(item);
+      }
+    }
+
+    /* ── RENDER ── */
+    function render(events, dotData) {
+      /* Header */
+      var now = new Date();
+      var jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+      document.getElementById('cal-day-num').textContent = now.getDate();
+      document.getElementById('cal-day-name').textContent = jours[now.getDay()];
+      document.getElementById('cal-month-year').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
+      document.getElementById('cal-count').textContent = events.length;
+
+      /* Now indicator */
+      var h = now.getHours();
+      var m = now.getMinutes();
+      document.getElementById('now-time').textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+
+      /* Week */
+      buildWeekStrip(dotData);
+
+      /* Events */
+      var listEl = document.getElementById('event-list');
+      var moreEl = document.getElementById('more-events');
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+      while (moreEl.firstChild) moreEl.removeChild(moreEl.firstChild);
+
+      var fold = document.getElementById('more-fold');
+      var toggleBtn = document.getElementById('fold-toggle');
+
+      if (events.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'cal-empty';
+
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '1.5');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        path1.setAttribute('x', '3');
+        path1.setAttribute('y', '4');
+        path1.setAttribute('width', '18');
+        path1.setAttribute('height', '18');
+        path1.setAttribute('rx', '2');
+        var path2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        path2.setAttribute('x1', '16'); path2.setAttribute('y1', '2');
+        path2.setAttribute('x2', '16'); path2.setAttribute('y2', '6');
+        var path3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        path3.setAttribute('x1', '8'); path3.setAttribute('y1', '2');
+        path3.setAttribute('x2', '8'); path3.setAttribute('y2', '6');
+        var path4 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        path4.setAttribute('x1', '3'); path4.setAttribute('y1', '10');
+        path4.setAttribute('x2', '21'); path4.setAttribute('y2', '10');
+        svg.appendChild(path1);
+        svg.appendChild(path2);
+        svg.appendChild(path3);
+        svg.appendChild(path4);
+
+        var emptyTitle = document.createElement('span');
+        emptyTitle.className = 'cal-empty-title';
+        emptyTitle.textContent = 'Rien de prévu';
+
+        var emptySub = document.createElement('span');
+        emptySub.className = 'cal-empty-sub';
+        emptySub.textContent = 'Profitez de votre journée';
+
+        empty.appendChild(svg);
+        empty.appendChild(emptyTitle);
+        empty.appendChild(emptySub);
+        listEl.appendChild(empty);
+
+        toggleBtn.style.display = 'none';
+        fold.classList.remove('open');
+        document.getElementById('now-indicator').style.display = 'none';
+        buildLegend([]);
+        return;
+      }
+
+      document.getElementById('now-indicator').style.display = '';
+
+      var visible = events.slice(0, MAX_VISIBLE);
+      var hidden = events.slice(MAX_VISIBLE);
+
+      for (var i = 0; i < visible.length; i++) {
+        listEl.appendChild(createEventRow(visible[i]));
+      }
+
+      if (hidden.length > 0) {
+        for (var j = 0; j < hidden.length; j++) {
+          moreEl.appendChild(createEventRow(hidden[j]));
+        }
+        toggleBtn.style.display = '';
+        document.getElementById('fold-toggle-text').textContent = hidden.length + ' de plus';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        fold.classList.remove('open');
+        toggleBtn.classList.remove('open');
+      } else {
+        toggleBtn.style.display = 'none';
+        fold.classList.remove('open');
+      }
+
+      buildLegend(events);
+    }
+
+    /* ── FOLD TOGGLE ── */
+    document.getElementById('fold-toggle').addEventListener('click', function () {
+      var fold = document.getElementById('more-fold');
+      var isOpen = fold.classList.contains('open');
+      fold.classList.toggle('open');
+      this.classList.toggle('open');
+      this.setAttribute('aria-expanded', String(!isOpen));
+      document.getElementById('fold-toggle-text').textContent = isOpen
+        ? (document.getElementById('more-events').children.length + ' de plus')
+        : 'Réduire';
+    });
+
+    /* ── CONTROLS ── */
+    function setTime(t, btn) {
+      document.body.setAttribute('data-time', t);
+      document.querySelectorAll('.control-btn[data-time]').forEach(function (b) {
+        b.classList.toggle('active', b === btn);
+      });
+    }
+
+    function setView(view, btn) {
+      currentView = view;
+      document.querySelectorAll('.control-btn[data-view]').forEach(function (b) {
+        b.classList.toggle('active', b === btn);
+      });
+      if (view === 'busy') renderAll(EVENTS_BUSY, WEEK_DOTS_BUSY);
+      else if (view === 'light') renderAll(EVENTS_LIGHT, WEEK_DOTS_LIGHT);
+      else renderAll(EVENTS_EMPTY, WEEK_DOTS_EMPTY);
+    }
+
+    /* ══════════════════ V2 — TIMELINE ══════════════════ */
+    function renderV2(events) {
+      var now = new Date();
+      var jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+      var joursShort = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
+
+      document.getElementById('v2-day-num').textContent = now.getDate();
+      document.getElementById('v2-day-label').textContent = joursShort[now.getDay()];
+      document.getElementById('v2-day-name').textContent = jours[now.getDay()];
+      document.getElementById('v2-day-sub').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
+      document.getElementById('v2-count').textContent = events.length + ' événement' + (events.length > 1 ? 's' : '');
+
+      var tl = document.getElementById('v2-timeline');
+      while (tl.firstChild) tl.removeChild(tl.firstChild);
+
+      for (var i = 0; i < events.length; i++) {
+        var ev = events[i];
+        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
+
+        var row = document.createElement('button');
+        row.className = 'v2-event';
+        if (ev.now) row.classList.add('now');
+        row.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ''));
+
+        var timeEl = document.createElement('span');
+        timeEl.className = 'v2-time';
+        timeEl.textContent = ev.time ? ev.time.split(' - ')[0] : '';
+
+        var node = document.createElement('span');
+        node.className = 'v2-node';
+        node.style.borderColor = calColor;
+        node.style.background = ev.now ? calColor : 'transparent';
+        node.style.color = calColor;
+
+        var card = document.createElement('div');
+        card.className = 'v2-event-card';
+
+        var content = document.createElement('div');
+        content.className = 'v2-event-content';
+
+        var title = document.createElement('span');
+        title.className = 'v2-event-title';
+        title.textContent = ev.title;
+        content.appendChild(title);
+
+        if (ev.time && ev.time.indexOf('-') !== -1) {
+          var dur = document.createElement('span');
+          dur.className = 'v2-event-duration';
+          dur.textContent = ev.time;
+          content.appendChild(dur);
+        }
+
+        card.appendChild(content);
+
+        if (ev.allday) {
+          var badge = document.createElement('span');
+          badge.className = 'v2-event-badge';
+          badge.textContent = 'Journée';
+          badge.style.background = calColor + '1a';
+          badge.style.color = calColor;
+          card.appendChild(badge);
+        }
+
+        row.appendChild(timeEl);
+        row.appendChild(node);
+        row.appendChild(card);
+        tl.appendChild(row);
+      }
+    }
+
+    /* ══════════════════ V3 — AGENDA COMPACT ══════════════════ */
+    function renderV3(events) {
+      var now = new Date();
+      document.getElementById('v3-date').textContent = now.getDate() + '/' + (now.getMonth() + 1);
+
+      var rows = document.getElementById('v3-rows');
+      while (rows.firstChild) rows.removeChild(rows.firstChild);
+
+      var timed = events.filter(function(e) { return e.time; });
+      var shown = timed.slice(0, 5);
+
+      for (var i = 0; i < shown.length; i++) {
+        var ev = shown[i];
+        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
+
+        var row = document.createElement('button');
+        row.className = 'v3-row';
+        if (ev.now) row.classList.add('now');
+        row.setAttribute('aria-label', ev.title + ', ' + ev.time);
+
+        var time = document.createElement('span');
+        time.className = 'v3-row-time';
+        time.textContent = ev.time.split(' - ')[0];
+
+        var bar = document.createElement('span');
+        bar.className = 'v3-row-bar';
+        bar.style.background = calColor;
+
+        var title = document.createElement('span');
+        title.className = 'v3-row-title';
+        title.textContent = ev.title;
+
+        var meta = document.createElement('span');
+        meta.className = 'v3-row-meta';
+        if (ev.time.indexOf('-') !== -1) {
+          var parts = ev.time.split(' - ');
+          meta.textContent = parts[1];
+        }
+
+        row.appendChild(time);
+        row.appendChild(bar);
+        row.appendChild(title);
+        row.appendChild(meta);
+        rows.appendChild(row);
+      }
+
+      /* Footer: next event */
+      var footer = document.getElementById('v3-footer');
+      var allday = events.filter(function(e) { return e.allday; });
+      if (allday.length > 0) {
+        footer.style.display = '';
+        document.getElementById('v3-next').textContent = allday[0].title;
+      } else if (timed.length > 5) {
+        footer.style.display = '';
+        document.getElementById('v3-next').textContent = '+' + (timed.length - 5) + ' événements';
+      } else {
+        footer.style.display = 'none';
+      }
+    }
+
+    /* ══════════════════ V4 — MONTH MINI-GRID ══════════════════ */
+    function renderV4(events) {
+      var now = new Date();
+      var mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+      document.getElementById('v4-month').textContent = mois[now.getMonth()] + ' ' + now.getFullYear();
+
+      var grid = document.getElementById('v4-grid');
+      while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+      /* Day headers */
+      var heads = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+      for (var h = 0; h < 7; h++) {
+        var hd = document.createElement('span');
+        hd.className = 'v4-grid-head';
+        hd.textContent = heads[h];
+        grid.appendChild(hd);
+      }
+
+      /* Calendar math */
+      var year = now.getFullYear();
+      var month = now.getMonth();
+      var firstDay = new Date(year, month, 1);
+      var startIdx = (firstDay.getDay() + 6) % 7;
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var daysInPrev = new Date(year, month, 0).getDate();
+
+      /* Simulate some event dots on specific dates */
+      var today = now.getDate();
+      var eventDays = {};
+      eventDays[today] = events.map(function(e) { return e.cal; }).slice(0, 3);
+      if (today + 1 <= daysInMonth) eventDays[today + 1] = ['travail'];
+      if (today + 3 <= daysInMonth) eventDays[today + 3] = ['famille', 'perso'];
+      if (today + 7 <= daysInMonth) eventDays[today + 7] = ['anniversaires'];
+      if (today - 2 > 0) eventDays[today - 2] = ['travail', 'taches'];
+
+      var totalCells = Math.ceil((startIdx + daysInMonth) / 7) * 7;
+
+      for (var i = 0; i < totalCells; i++) {
+        var cell = document.createElement('div');
+        cell.className = 'v4-grid-cell';
+
+        var dayNum;
+        var isOther = false;
+
+        if (i < startIdx) {
+          dayNum = daysInPrev - startIdx + i + 1;
+          isOther = true;
+        } else if (i >= startIdx + daysInMonth) {
+          dayNum = i - startIdx - daysInMonth + 1;
+          isOther = true;
+        } else {
+          dayNum = i - startIdx + 1;
+        }
+
+        if (isOther) cell.classList.add('other-month');
+        if (!isOther && dayNum === today) cell.classList.add('today');
+
+        var num = document.createElement('span');
+        num.className = 'v4-grid-num';
+        num.textContent = dayNum;
+
+        var dots = document.createElement('div');
+        dots.className = 'v4-grid-dots';
+
+        if (!isOther && eventDays[dayNum]) {
+          var dayEvts = eventDays[dayNum].slice(0, 3);
+          for (var d = 0; d < dayEvts.length; d++) {
+            var dot = document.createElement('span');
+            dot.className = 'v4-grid-dot';
+            dot.style.background = CAL_COLORS[dayEvts[d]] ? CAL_COLORS[dayEvts[d]].color : 'var(--t4)';
+            dots.appendChild(dot);
+          }
+        }
+
+        cell.appendChild(num);
+        cell.appendChild(dots);
+        grid.appendChild(cell);
+      }
+
+      /* Upcoming events below grid */
+      var upcoming = document.getElementById('v4-upcoming');
+      while (upcoming.firstChild) upcoming.removeChild(upcoming.firstChild);
+
+      var shown = events.slice(0, 3);
+      for (var j = 0; j < shown.length; j++) {
+        var ev = shown[j];
+        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
+
+        var row = document.createElement('button');
+        row.className = 'v4-event-mini';
+        row.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ''));
+
+        var dot = document.createElement('span');
+        dot.className = 'v4-event-dot';
+        dot.style.background = calColor;
+
+        var text = document.createElement('span');
+        text.className = 'v4-event-text';
+        text.textContent = ev.title;
+
+        var hour = document.createElement('span');
+        hour.className = 'v4-event-hour';
+        hour.textContent = ev.time ? ev.time.split(' - ')[0] : 'Journée';
+
+        row.appendChild(dot);
+        row.appendChild(text);
+        row.appendChild(hour);
+        upcoming.appendChild(row);
+      }
+    }
+
+    /* ══════════════════ RENDER ALL ══════════════════ */
+    function renderAll(events, dotData) {
+      render(events, dotData);
+      renderV2(events);
+      renderV3(events);
+      renderV4(events);
+    }
+
+    /* ── INIT ── */
+    renderAll(EVENTS_BUSY, WEEK_DOTS_BUSY);
+  </script>
+
+</body>
+
+</html>

@@ -28,7 +28,8 @@ Thumbs.db
 *.md
 !README.md
 !CHANGELOG.md
-templates/
+templates/**/*.png
+templates/**/*.jpg
 
 # Python
 __pycache__/

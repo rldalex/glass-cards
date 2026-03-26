@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Light Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    /* ── Radius ── */
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    /* ── Easings ── */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Transitions ── */
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    /* ── Semantic Colors ── */
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+    --c-light-glow: #fbbf24;
+
+    /* ── Text (white opacity hierarchy) ── */
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    /* ── Surfaces ── */
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    /* ── Borders ── */
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #111827;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 120px;
+    gap: 12px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient BG ── */
+  .ambient-bg {
+    position: fixed; inset: 0; z-index: -1;
+    transition: all var(--t-slow);
+  }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Section Label ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--t4);
+    width: 500px;
+    max-width: 100%;
+    padding: 24px 6px 4px;
+  }
+
+  /* ================================================================
+     GLASS SURFACE (from UI Kit)
+     ================================================================ */
+  .glass {
+    position: relative;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2);
+    transition: border-color var(--t-fast);
+  }
+
+  /* ── Tint ── */
+  .tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+  }
+
+  /* ── Marquee ── */
+  .marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee-scroll 8s linear infinite;
+  }
+  @keyframes marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── Bounce ── */
+  @keyframes bounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.96); }
+    100% { transform: scale(1); }
+  }
+
+  /* ================================================================
+     LIGHT CARD
+     ================================================================ */
+  .light-card-wrap {
+    width: 500px; max-width: 100%;
+    display: flex; flex-direction: column;
+  }
+
+  .card {
+    width: 100%;
+    padding: 2px 14px;
+  }
+
+  .card-inner {
+    position: relative; z-index: 1;
+  }
+
+  /* ── Card Header (outside card) ── */
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+    padding: 0 6px;
+    min-height: 22px;
+  }
+  .card-header-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title {
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--t4);
+  }
+  .card-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 14px; height: 14px; padding: 0 4px;
+    border-radius: var(--radius-full);
+    font-size: 9px; font-weight: 600;
+    transition: all var(--t-med);
+  }
+  .card-count.some {
+    background: rgba(251,191,36,0.15); color: var(--c-light-glow);
+  }
+  .card-count.none {
+    background: var(--s2); color: var(--t3);
+  }
+  .card-count.all {
+    background: rgba(251,191,36,0.2); color: var(--c-light-glow);
+  }
+
+  /* Toggle all */
+  .toggle-all {
+    position: relative; width: 40px; height: 22px; border-radius: 11px;
+    background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
+    transition: all var(--t-fast); padding: 0; outline: none;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toggle-all::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--t3);
+    transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .toggle-all.on { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.3); }
+  .toggle-all.on::after {
+    transform: translateX(18px);
+    background: var(--c-light-glow);
+    box-shadow: 0 0 8px rgba(251,191,36,0.4);
+  }
+
+  /* ================================================================
+     LIGHTS GRID
+     ================================================================ */
+  .lights-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+
+  /* ── Light Row ── */
+  .light-row {
+    display: flex; align-items: center; gap: 10px;
+    grid-column: 1 / -1;
+    padding: 8px 4px;
+    position: relative;
+    transition: background var(--t-fast);
+    border-radius: var(--radius-md);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .light-row:hover { background: var(--s1); }
+  }
+  @media (pointer: coarse) {
+    .light-row:active { animation: bounce 0.3s ease; }
+  }
+
+  /* Compact (half width) */
+  .light-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
+
+  /* Vertical separator between compact pairs */
+  .light-row.compact-right { padding-left: 10px; position: relative; }
+  .light-row.compact-right::before {
+    content: ''; position: absolute; left: 0;
+    top: 20%; bottom: 20%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+  }
+
+  /* ── Icon Button ── */
+  .light-icon-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-md);
+    background: var(--s2); border: 1px solid var(--b1);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; color: var(--t3);
+    transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast), filter var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .light-icon-btn i {
+    font-size: 18px; display: flex; align-items: center; justify-content: center;
+    transition: all var(--t-fast);
+  }
+  .light-icon-btn.on {
+    background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.15);
+    color: var(--c-light-glow); filter: drop-shadow(0 0 6px rgba(251,191,36,0.4));
+  }
+  .light-icon-btn.on.rgb {
+    background: var(--light-rgb-bg);
+    border-color: var(--light-rgb-border);
+    color: var(--light-rgb);
+    filter: drop-shadow(0 0 6px var(--light-rgb-glow));
+  }
+  .light-icon-btn.on i { color: inherit; }
+
+  /* ── Expand Button ── */
+  .light-expand-btn {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 10px;
+    background: transparent; border: none; padding: 0;
+    font-family: inherit; outline: none; text-align: left;
+    color: inherit; cursor: pointer;
+  }
+
+  /* ── Light Info ── */
+  .light-info { flex: 1; min-width: 0; }
+  .light-name {
+    font-size: 13px; font-weight: 600; color: var(--t1);
+    line-height: 1.2;
+    white-space: nowrap; overflow: hidden;
+  }
+  .light-sub {
+    display: flex; align-items: center; gap: 5px; margin-top: 2px;
+  }
+  .light-brightness-text {
+    font-size: 10px; font-weight: 500; color: var(--t3);
+    transition: color var(--t-med);
+  }
+  .light-row[data-on="true"] .light-brightness-text {
+    color: rgba(251,191,36,0.55);
+  }
+  .light-row[data-on="true"][data-rgb] .light-brightness-text {
+    color: var(--light-rgb-sub, rgba(251,191,36,0.55));
+  }
+  .light-temp-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    transition: background var(--t-med);
+  }
+  .light-temp-text {
+    font-size: 10px; font-weight: 400; color: var(--t4);
+  }
+
+  /* ── Status Dot ── */
+  .light-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: var(--t4);
+    transition: all var(--t-med);
+  }
+  .light-row[data-on="true"] .light-dot {
+    background: var(--c-light-glow);
+    box-shadow: 0 0 8px rgba(251,191,36,0.5);
+  }
+  .light-row[data-on="true"][data-rgb] .light-dot {
+    background: var(--light-rgb);
+    box-shadow: 0 0 8px var(--light-rgb-glow);
+  }
+
+  /* ================================================================
+     FOLD SEPARATOR — permanent 1px, animate opacity only
+     ================================================================ */
+  .fold-sep {
+    height: 1px;
+    margin: 0 12px;
+    overflow: hidden;
+    background: linear-gradient(90deg, transparent, var(--fold-color, rgba(251,191,36,0.25)), transparent);
+    opacity: 0;
+    transition: opacity var(--t-layout);
+    grid-column: 1 / -1;
+  }
+  .fold-sep.visible { opacity: 1; }
+
+  /* ================================================================
+     CONTROLS PANEL (fold 0fr -> 1fr)
+     ================================================================ */
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+    grid-column: 1 / -1;
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden; opacity: 0;
+    transition: opacity var(--t-fast);
+  }
+  .ctrl-fold.open .ctrl-fold-inner {
+    opacity: 1;
+    transition-delay: 0.1s;
+  }
+
+  .ctrl-panel {
+    padding: 6px 0 4px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .ctrl-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    color: rgba(251,191,36,0.6);
+  }
+  .ctrl-panel[data-rgb] .ctrl-label { color: var(--light-rgb-sub, rgba(251,191,36,0.6)); }
+
+  /* ── Slider ── */
+  .slider {
+    position: relative; width: 100%; height: 36px;
+    border-radius: var(--radius-lg); background: var(--s1);
+    border: 1px solid var(--b1); overflow: visible;
+  }
+  .slider-fill {
+    position: absolute; top: 0; left: 0; height: 100%;
+    border-radius: inherit; pointer-events: none; overflow: hidden;
+  }
+  .slider-fill.warm { background: linear-gradient(90deg, rgba(251,191,36,0.15), rgba(251,191,36,0.3)); }
+  .slider-fill.dynamic {
+    background: linear-gradient(90deg,
+      var(--slider-fill-start, rgba(251,191,36,0.15)),
+      var(--slider-fill-end, rgba(251,191,36,0.3))
+    );
+  }
+
+  .slider-fill.temp-gradient {
+    width: 100% !important;
+    background: linear-gradient(90deg,
+      rgba(255,179,71,0.2) 0%,
+      rgba(255,245,230,0.15) 50%,
+      rgba(135,206,235,0.2) 100%
+    );
+    opacity: 0.7;
+  }
+
+  .slider-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 8px; height: 20px; border-radius: 4px;
+    background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+  .slider-lbl {
+    position: absolute; top: 50%; left: 12px; transform: translateY(-50%);
+    font-size: 11px; font-weight: 600; color: var(--t2);
+    pointer-events: none; display: flex; align-items: center; gap: 6px;
+  }
+  .slider-lbl i { font-size: 16px; opacity: 0.6; display: flex; align-items: center; justify-content: center; }
+  .slider-val {
+    position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
+    font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
+  }
+  .slider-native {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; margin: 0; padding: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+
+  /* ── Color Controls ── */
+  .color-row {
+    display: flex; gap: 8px; align-items: center; padding: 2px 0;
+  }
+  .cdot {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer;
+    transition: all var(--t-fast); padding: 0; outline: none;
+    background: none; position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cdot::before { content: ''; position: absolute; inset: 2px; border-radius: 50%; background: var(--cdot-color); }
+  @media (hover: hover) and (pointer: fine) {
+    .cdot:hover { transform: scale(1.15); }
+    .cdot:active { transform: scale(1.1); }
+  }
+  @media (pointer: coarse) {
+    .cdot:active { animation: bounce 0.3s ease; }
+  }
+  .cdot.active { border-color: rgba(255,255,255,0.6); }
+
+  /* ── Color Picker Button ── */
+  .color-picker-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer;
+    padding: 0; outline: none; background: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: all var(--t-fast); flex-shrink: 0; position: relative;
+  }
+  .color-picker-btn::before {
+    content: ''; position: absolute; inset: 2px; border-radius: 50%;
+    background: conic-gradient(
+      hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
+      hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
+    );
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .color-picker-btn:hover { transform: scale(1.15); }
+  }
+  @media (pointer: coarse) {
+    .color-picker-btn:active { animation: bounce 0.3s ease; }
+  }
+
+  /* ── Color Picker Popup ── */
+  .color-picker-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    animation: cpFadeIn 0.2s ease;
+  }
+  .color-picker-overlay.open { display: flex; }
+  @keyframes cpFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .color-picker-dialog {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    border: 1px solid var(--b2);
+    border-radius: var(--radius-xl);
+    padding: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.15);
+    max-width: 300px; width: 90vw;
+  }
+  .color-picker-dialog .cp-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--t3);
+  }
+  .cp-wheel-wrap {
+    position: relative; width: 220px; height: 220px;
+  }
+  .cp-wheel-wrap canvas {
+    width: 100%; height: 100%; border-radius: 50%; cursor: crosshair;
+  }
+  .cp-cursor {
+    position: absolute; width: 24px; height: 24px; border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 6px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.2);
+    pointer-events: none;
+    transform: translate(-50%, calc(-50% - 28px));
+    transition: left 0.05s, top 0.05s;
+  }
+  .cp-cursor::after {
+    content: ''; position: absolute; bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 2px; height: 10px;
+    background: rgba(255,255,255,0.5); border-radius: 1px;
+  }
+  .cp-preview {
+    width: 100%; height: 36px;
+    border-radius: var(--radius-md); border: 1px solid var(--b2);
+  }
+  .cp-hex {
+    font-size: 12px; font-weight: 600; color: var(--t2);
+    font-family: monospace; letter-spacing: 0.5px;
+  }
+  .cp-close {
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--t2); background: var(--s2);
+    border: 1px solid var(--b2); border-radius: var(--radius-md);
+    padding: 8px 24px; cursor: pointer; outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Effect Chips ── */
+  .effect-chip {
+    width: auto !important; height: auto !important;
+    border-radius: var(--radius-md) !important;
+    padding: 4px 8px !important;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--t3);
+    border: 1px solid var(--b2); background: var(--s1);
+    cursor: pointer; transition: all var(--t-fast);
+    outline: none; font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .effect-chip.active {
+    border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.08);
+    color: rgba(251,191,36,0.8);
+  }
+
+  /* ── Focus Visible ── */
+  .toggle-all:focus-visible,
+  .light-icon-btn:focus-visible,
+  .light-expand-btn:focus-visible,
+  .cdot:focus-visible,
+  .color-picker-btn:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+  }
+
+  /* ================================================================
+     DASHBOARD MODE
+     ================================================================ */
+  .dashboard-row {
+    display: contents;
+    animation: dashRowIn 0.4s var(--ease-std) both;
+  }
+  .dashboard-row:nth-child(1) { animation-delay: 0ms; }
+  .dashboard-row:nth-child(2) { animation-delay: 50ms; }
+  .dashboard-row:nth-child(3) { animation-delay: 100ms; }
+  @keyframes dashRowIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .dashboard-overflow {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--t3);
+    text-align: center;
+    padding: 6px 0 2px;
+    letter-spacing: 0.3px;
+    grid-column: 1 / -1;
+  }
+
+  /* ================================================================
+     DEMO CONTROLS
+     ================================================================ */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center;
+    max-width: 92vw;
+  }
+  .controls-group {
+    display: flex; gap: 5px; align-items: center;
+  }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md);
+    background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none;
+    white-space: nowrap;
+  }
+  .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<!-- ============================================================
+     ROOM MODE (popup context — all lights, expand to controls)
+     ============================================================ -->
+<span class="section-label">Mode Room (popup)</span>
+<div class="light-card-wrap" id="room-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title" id="card-title">Éclairage</span>
+      <span class="card-count" id="card-count">3/5</span>
+    </div>
+    <button class="toggle-all on" id="toggle-all" onclick="toggleAll()" role="switch" aria-checked="true" aria-label="Éteindre toutes les lumières"></button>
+  </div>
+  <div class="card glass" id="card">
+    <div class="tint" id="card-tint"></div>
+    <div class="card-inner">
+      <div class="lights-grid" id="lights-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DASHBOARD MODE (standalone — ON lights only, compact pairs, max 6)
+     ============================================================ -->
+<span class="section-label">Mode Dashboard (standalone)</span>
+<div class="light-card-wrap" id="dash-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title" id="dash-title">Lumières allumées</span>
+      <span class="card-count" id="dash-count">4/8</span>
+    </div>
+    <button class="toggle-all on" id="dash-toggle" onclick="dashTurnAllOff()" role="switch" aria-checked="true" aria-label="Tout éteindre"></button>
+  </div>
+  <div class="card glass" id="dash-card">
+    <div class="tint" id="dash-tint"></div>
+    <div class="card-inner">
+      <div class="lights-grid" id="dash-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Color Picker Overlay -->
+<div class="color-picker-overlay" id="cp-overlay" onclick="if(event.target===this)closeColorPicker()">
+  <div class="color-picker-dialog">
+    <span class="cp-title">Couleur personnalisée</span>
+    <div class="cp-wheel-wrap">
+      <canvas id="cp-canvas" width="440" height="440"></canvas>
+      <div class="cp-cursor" id="cp-cursor"></div>
+    </div>
+    <div class="cp-preview" id="cp-preview"></div>
+    <span class="cp-hex" id="cp-hex">#FFFFFF</span>
+    <button class="cp-close" onclick="closeColorPicker()">Fermer</button>
+  </div>
+</div>
+
+<!-- Demo Controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">État</span>
+    <button class="demo-btn" onclick="setGlobalState('all-on',this)">Tout On</button>
+    <button class="demo-btn active" onclick="setGlobalState('partial',this)">Partiel</button>
+    <button class="demo-btn" onclick="setGlobalState('all-off',this)">Tout Off</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Layout</span>
+    <button class="demo-btn active" onclick="setLayout('mixed',this)">Mixte</button>
+    <button class="demo-btn" onclick="setLayout('full',this)">Full</button>
+    <button class="demo-btn" onclick="setLayout('compact',this)">Compact</button>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// LIGHT ENTITY DEFINITIONS
+// ================================================================
+const lightDefs = {
+  salon:   { name: 'Salon',         icon: 'mdi-ceiling-light',    type: 'color_temp' },
+  cuisine: { name: 'Cuisine',       icon: 'mdi-ceiling-light',    type: 'color_temp' },
+  chambre: { name: 'Chambre',       icon: 'mdi-lamp',             type: 'rgb', effects: ['off','candle','fire'] },
+  bureau:  { name: 'Bureau',        icon: 'mdi-desk-lamp',        type: 'dimmable' },
+  sdb:     { name: 'Salle de bain', icon: 'mdi-wall-sconce-flat', type: 'simple' }
+};
+
+const lights = {
+  salon:   { on: true,  brightness: 80,  temp: 3200, rgb: null, minK: 2000, maxK: 6500 },
+  cuisine: { on: true,  brightness: 100, temp: 5500, rgb: null, minK: 2000, maxK: 6500 },
+  chambre: { on: false, brightness: 60,  temp: 3000, rgb: [167,139,250], minK: 2000, maxK: 6500, effect: null },
+  bureau:  { on: true,  brightness: 65,  temp: null, rgb: null, minK: 2000, maxK: 6500 },
+  sdb:     { on: false, brightness: 100, temp: null, rgb: null, minK: 2000, maxK: 6500 }
+};
+
+// Dashboard mock: more lights from multiple rooms, only ON ones shown
+const dashLightDefs = {
+  salon:     { name: 'Salon',            icon: 'mdi-ceiling-light',    type: 'color_temp' },
+  cuisine:   { name: 'Cuisine',          icon: 'mdi-ceiling-light',    type: 'color_temp' },
+  chambre:   { name: 'Chambre',          icon: 'mdi-lamp',             type: 'rgb' },
+  bureau:    { name: 'Bureau',           icon: 'mdi-desk-lamp',        type: 'dimmable' },
+  entree:    { name: 'Entrée',           icon: 'mdi-coach-lamp',       type: 'dimmable' },
+  couloir:   { name: 'Couloir',          icon: 'mdi-ceiling-light',    type: 'simple' },
+  terrasse:  { name: 'Terrasse',         icon: 'mdi-outdoor-lamp',     type: 'dimmable' },
+  sdb:       { name: 'Salle de bain',    icon: 'mdi-wall-sconce-flat', type: 'simple' }
+};
+
+const dashLights = {
+  salon:     { on: true,  brightness: 80,  temp: 3200, rgb: null, minK: 2000, maxK: 6500 },
+  cuisine:   { on: true,  brightness: 100, temp: 5500, rgb: null, minK: 2000, maxK: 6500 },
+  chambre:   { on: true,  brightness: 60,  temp: null, rgb: [167,139,250], minK: 2000, maxK: 6500 },
+  bureau:    { on: true,  brightness: 65,  temp: null, rgb: null, minK: 2000, maxK: 6500 },
+  entree:    { on: false, brightness: 50,  temp: null, rgb: null, minK: 2000, maxK: 6500 },
+  couloir:   { on: false, brightness: 100, temp: null, rgb: null, minK: 2000, maxK: 6500 },
+  terrasse:  { on: false, brightness: 40,  temp: null, rgb: null, minK: 2000, maxK: 6500 },
+  sdb:       { on: false, brightness: 100, temp: null, rgb: null, minK: 2000, maxK: 6500 }
+};
+
+let activeLight = null;
+let currentLayout = 'mixed';
+let cpEntityId = null;
+let cpMode = 'room'; // 'room' or 'dash'
+
+const layouts = {
+  full:    { salon: false, cuisine: false, chambre: false, bureau: false, sdb: false },
+  compact: { salon: true,  cuisine: true,  chambre: true,  bureau: true,  sdb: true },
+  mixed:   { salon: false, cuisine: false, chambre: true,  bureau: true,  sdb: false }
+};
+
+const COLOR_DOTS = [
+  [251,191,36], [248,113,113], [244,114,182], [167,139,250],
+  [129,140,248], [96,165,250], [74,222,128], [240,240,240]
+];
+
+const ALLOWED_EFFECTS = ['off', 'candle', 'fire'];
+
+const TEMP_LABELS = [
+  [3000, 'Chaud',  '#ffd4a3'],
+  [4000, 'Chaud',  '#ffedb3'],
+  [4800, 'Neutre', '#fff5e6'],
+  [9999, 'Froid',  '#e0ecf5']
+];
+
+const MARQUEE_FULL = 18;
+const MARQUEE_COMPACT = 10;
+
+// ================================================================
+// HELPERS
+// ================================================================
+function getTempInfo(t) {
+  for (const [max, label, color] of TEMP_LABELS) {
+    if (t < max) return { label, color };
+  }
+  return { label: 'Froid', color: '#e0ecf5' };
+}
+
+function rgbToHex(rgb) {
+  return '#' + rgb.map(c => c.toString(16).padStart(2, '0')).join('');
+}
+
+function rgbToRgba(rgb, a) {
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+}
+
+function hexToRgb(hex) {
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+}
+
+function marqueeText(text, maxChars) {
+  if (maxChars === undefined) maxChars = MARQUEE_FULL;
+  if (text.length <= maxChars) return document.createTextNode(text);
+  const span = document.createElement('span');
+  span.className = 'marquee';
+  span.textContent = text + '    ' + text + '    ';
+  return span;
+}
+
+function hasControls(id, defs) {
+  if (!defs) defs = lightDefs;
+  const def = defs[id];
+  if (def.type !== 'simple') return true;
+  if (def.effects && def.effects.length > 0) {
+    const available = ALLOWED_EFFECTS.filter(e => e === 'off' || def.effects.includes(e));
+    if (available.length > 1) return true;
+  }
+  return false;
+}
+
+function getBrightnessFill(id, lightsMap, defsMap) {
+  if (!lightsMap) lightsMap = lights;
+  if (!defsMap) defsMap = lightDefs;
+  const l = lightsMap[id], def = defsMap[id];
+  if (def.type === 'rgb' && l.rgb && l.on) {
+    return {
+      cls: 'dynamic',
+      style: `--slider-fill-start:${rgbToRgba(l.rgb, 0.15)};--slider-fill-end:${rgbToRgba(l.rgb, 0.35)}`
+    };
+  }
+  if (def.type === 'color_temp' && l.temp && l.on) {
+    const ti = getTempInfo(l.temp);
+    const rgb = hexToRgb(ti.color);
+    return {
+      cls: 'dynamic',
+      style: `--slider-fill-start:${rgbToRgba(rgb, 0.15)};--slider-fill-end:${rgbToRgba(rgb, 0.35)}`
+    };
+  }
+  return { cls: 'warm', style: '' };
+}
+
+function getFoldColor(id, lightsMap, defsMap) {
+  if (!lightsMap) lightsMap = lights;
+  if (!defsMap) defsMap = lightDefs;
+  const l = lightsMap[id], def = defsMap[id];
+  if (def.type === 'rgb' && l.rgb && l.on) return rgbToRgba(l.rgb, 0.3);
+  if (def.type === 'color_temp' && l.temp && l.on) {
+    const { color } = getTempInfo(l.temp);
+    const rgb = hexToRgb(color);
+    return rgbToRgba(rgb, 0.3);
+  }
+  return 'rgba(251,191,36,0.25)';
+}
+
+// ================================================================
+// DOM HELPERS
+// ================================================================
+function el(tag, cls, attrs) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'text') e.textContent = v;
+    else if (k.startsWith('data-') || k.startsWith('aria-') || k === 'role') e.setAttribute(k, v);
+    else e[k] = v;
+  });
+  return e;
+}
+
+function icon(name) {
+  const i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+// ================================================================
+// BUILD SUB INFO
+// ================================================================
+function buildSubNodes(id, l, def) {
+  const frag = document.createDocumentFragment();
+
+  if (!l.on) {
+    frag.appendChild(el('span', 'light-brightness-text', { text: 'Éteint' }));
+    return frag;
+  }
+
+  if (def.type === 'simple') {
+    frag.appendChild(el('span', 'light-brightness-text', { text: 'Allumé' }));
+  } else {
+    frag.appendChild(el('span', 'light-brightness-text', { text: l.brightness + '%' }));
+  }
+
+  if (def.type === 'color_temp' && l.temp) {
+    const ti = getTempInfo(l.temp);
+    const dot = el('span', 'light-temp-dot');
+    dot.style.background = ti.color;
+    frag.appendChild(dot);
+    frag.appendChild(el('span', 'light-temp-text', { text: ti.label }));
+  }
+
+  if (def.type === 'rgb' && l.rgb) {
+    const hex = rgbToHex(l.rgb);
+    const dot = el('span', 'light-temp-dot');
+    dot.style.background = hex;
+    frag.appendChild(dot);
+    frag.appendChild(el('span', 'light-temp-text', { text: 'Couleur' }));
+  }
+
+  return frag;
+}
+
+// ================================================================
+// RENDER ROOM GRID
+// ================================================================
+function renderGrid() {
+  const grid = document.getElementById('lights-grid');
+  const map = layouts[currentLayout];
+  grid.textContent = '';
+  activeLight = null;
+
+  const entries = Object.entries(lights);
+  let i = 0;
+
+  while (i < entries.length) {
+    const [id, l] = entries[i];
+    const def = lightDefs[id];
+    const compact = map[id];
+    const isLastEntry = (idx) => idx >= entries.length - 1;
+
+    if (!compact) {
+      grid.appendChild(buildLightRow(id, l, def, false, false));
+      // Check if this is the last layout item
+      const lastItem = isLayoutLast(i, entries, map);
+      grid.appendChild(buildFold(id, lastItem));
+      i++;
+    } else {
+      const left = { id, l, def };
+      const right = (i + 1 < entries.length && map[entries[i + 1][0]])
+        ? { id: entries[i + 1][0], l: entries[i + 1][1], def: lightDefs[entries[i + 1][0]] }
+        : null;
+
+      grid.appendChild(buildLightRow(left.id, left.l, left.def, true, false));
+      if (right) {
+        grid.appendChild(buildLightRow(right.id, right.l, right.def, true, true));
+      }
+
+      const lastItem = right
+        ? (i + 2 >= entries.length)
+        : isLayoutLast(i, entries, map);
+
+      grid.appendChild(buildFold(left.id, lastItem));
+      if (right) {
+        grid.appendChild(buildFold(right.id, lastItem));
+      }
+
+      i += right ? 2 : 1;
+    }
+  }
+
+  updateHeader();
+  updateCardTint();
+}
+
+/** Check if layout item at index i is the last one */
+function isLayoutLast(i, entries, map) {
+  // Look ahead: is there any remaining entry after this one (considering compact pairing)?
+  const remaining = entries.length - i - 1;
+  if (remaining <= 0) return true;
+  // If current is compact and next is also compact, we consume 2
+  if (map[entries[i][0]] && i + 1 < entries.length && map[entries[i + 1][0]]) {
+    return (i + 2 >= entries.length);
+  }
+  return false;
+}
+
+function buildLightRow(id, l, def, compact, isRight) {
+  const row = el('div', 'light-row' + (compact ? ' compact' : '') + (isRight ? ' compact-right' : ''));
+  row.setAttribute('data-on', l.on);
+  row.setAttribute('data-id', id);
+  applyRgbVars(row, id, l, def);
+
+  // Icon button (toggle)
+  const iconBtn = el('button', 'light-icon-btn' + (l.on ? ' on' : '') + (l.on && def.type === 'rgb' && l.rgb ? ' rgb' : ''));
+  iconBtn.setAttribute('aria-label', 'Basculer ' + def.name);
+  if (l.on && def.type === 'rgb' && l.rgb) {
+    iconBtn.style.cssText = `--light-rgb-bg:${rgbToRgba(l.rgb, 0.1)};--light-rgb-border:${rgbToRgba(l.rgb, 0.15)};--light-rgb:${rgbToHex(l.rgb)};--light-rgb-glow:${rgbToRgba(l.rgb, 0.4)}`;
+  }
+  iconBtn.appendChild(icon(def.icon));
+  iconBtn.addEventListener('click', e => { e.stopPropagation(); toggleLight(id); });
+
+  // Expand button (info + dot)
+  const expandBtn = el('button', 'light-expand-btn');
+  const expandLabel = l.on ? 'Développer ' + def.name : def.name;
+  expandBtn.setAttribute('aria-label', expandLabel);
+  if (l.on) expandBtn.setAttribute('aria-expanded', 'false');
+
+  const info = el('div', 'light-info');
+  const nameDiv = el('div', 'light-name');
+  nameDiv.appendChild(marqueeText(def.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL));
+  info.appendChild(nameDiv);
+  const sub = el('div', 'light-sub');
+  sub.appendChild(buildSubNodes(id, l, def));
+  info.appendChild(sub);
+
+  const dot = el('span', 'light-dot');
+
+  expandBtn.appendChild(info);
+  expandBtn.appendChild(dot);
+  expandBtn.addEventListener('click', () => togglePanel(id));
+
+  row.appendChild(iconBtn);
+  row.appendChild(expandBtn);
+
+  return row;
+}
+
+function buildFold(id, isLast) {
+  const foldColor = getFoldColor(id);
+  const frag = document.createDocumentFragment();
+
+  // Top separator
+  const sepTop = el('div', 'fold-sep');
+  sepTop.style.setProperty('--fold-color', foldColor);
+  frag.appendChild(sepTop);
+
+  // Fold
+  const fold = el('div', 'ctrl-fold');
+  fold.setAttribute('data-for', id);
+  const foldInner = el('div', 'ctrl-fold-inner');
+  const panel = el('div', 'ctrl-panel');
+  panel.setAttribute('data-id', id);
+  foldInner.appendChild(panel);
+  fold.appendChild(foldInner);
+  frag.appendChild(fold);
+
+  // Bottom separator — only if NOT last item (matches prod behavior)
+  if (!isLast) {
+    const sepBot = el('div', 'fold-sep');
+    sepBot.style.setProperty('--fold-color', foldColor);
+    frag.appendChild(sepBot);
+  }
+
+  return frag;
+}
+
+function applyRgbVars(row, id, l, def) {
+  if (def.type === 'rgb' && l.rgb && l.on) {
+    row.setAttribute('data-rgb', '');
+    row.style.setProperty('--light-rgb', rgbToHex(l.rgb));
+    row.style.setProperty('--light-rgb-bg', rgbToRgba(l.rgb, 0.1));
+    row.style.setProperty('--light-rgb-border', rgbToRgba(l.rgb, 0.15));
+    row.style.setProperty('--light-rgb-glow', rgbToRgba(l.rgb, 0.4));
+    row.style.setProperty('--light-rgb-sub', rgbToRgba(l.rgb, 0.55));
+  } else {
+    row.removeAttribute('data-rgb');
+  }
+}
+
+function updateSub(id) {
+  const row = document.querySelector('.light-row[data-id="' + id + '"]');
+  if (!row) return;
+  const l = lights[id], def = lightDefs[id];
+  row.setAttribute('data-on', l.on);
+  applyRgbVars(row, id, l, def);
+
+  // Update icon btn classes
+  const iconBtn = row.querySelector('.light-icon-btn');
+  if (iconBtn) {
+    iconBtn.className = 'light-icon-btn' + (l.on ? ' on' : '') + (l.on && def.type === 'rgb' && l.rgb ? ' rgb' : '');
+    if (l.on && def.type === 'rgb' && l.rgb) {
+      iconBtn.style.cssText = `--light-rgb-bg:${rgbToRgba(l.rgb, 0.1)};--light-rgb-border:${rgbToRgba(l.rgb, 0.15)};--light-rgb:${rgbToHex(l.rgb)};--light-rgb-glow:${rgbToRgba(l.rgb, 0.4)}`;
+    } else {
+      iconBtn.style.cssText = '';
+    }
+  }
+
+  const sub = row.querySelector('.light-sub');
+  sub.textContent = '';
+  sub.appendChild(buildSubNodes(id, l, def));
+}
+
+// ================================================================
+// TOGGLE LIGHT
+// ================================================================
+function toggleLight(id) {
+  lights[id].on = !lights[id].on;
+  if (!lights[id].on && activeLight === id) closePanel(id);
+  updateSub(id);
+  updateHeader();
+  updateCardTint();
+}
+
+function toggleAll() {
+  const anyOn = Object.values(lights).some(l => l.on);
+  Object.keys(lights).forEach(id => { lights[id].on = !anyOn; });
+  if (activeLight) { closePanel(activeLight); activeLight = null; }
+  Object.keys(lights).forEach(id => updateSub(id));
+  updateHeader();
+  updateCardTint();
+}
+
+// ================================================================
+// CONTROL PANEL
+// ================================================================
+function togglePanel(id) {
+  // Simple lights with no controls: toggle on/off
+  if (!hasControls(id)) {
+    toggleLight(id);
+    return;
+  }
+
+  if (!lights[id].on) return;
+
+  if (activeLight && activeLight !== id) closePanel(activeLight);
+
+  const fold = document.querySelector('.ctrl-fold[data-for="' + id + '"]');
+  if (activeLight === id) {
+    closePanel(id);
+    activeLight = null;
+    return;
+  }
+
+  activeLight = id;
+  buildPanelControls(id);
+  fold.classList.add('open');
+
+  // Show fold separators: get the fold's previous and next sibling .fold-sep
+  showFoldSeps(fold);
+
+  // Update aria-expanded
+  const row = document.querySelector('.light-row[data-id="' + id + '"]');
+  if (row) {
+    const btn = row.querySelector('.light-expand-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function showFoldSeps(fold) {
+  // Previous sibling = top sep, next sibling = bottom sep (if present)
+  if (fold.previousElementSibling && fold.previousElementSibling.classList.contains('fold-sep')) {
+    fold.previousElementSibling.classList.add('visible');
+  }
+  if (fold.nextElementSibling && fold.nextElementSibling.classList.contains('fold-sep')) {
+    fold.nextElementSibling.classList.add('visible');
+  }
+}
+
+function hideFoldSeps(fold) {
+  if (fold.previousElementSibling && fold.previousElementSibling.classList.contains('fold-sep')) {
+    fold.previousElementSibling.classList.remove('visible');
+  }
+  if (fold.nextElementSibling && fold.nextElementSibling.classList.contains('fold-sep')) {
+    fold.nextElementSibling.classList.remove('visible');
+  }
+}
+
+function closePanel(id) {
+  const fold = document.querySelector('.ctrl-fold[data-for="' + id + '"]');
+  if (fold) {
+    fold.classList.remove('open');
+    hideFoldSeps(fold);
+  }
+
+  // Update aria-expanded
+  const row = document.querySelector('.light-row[data-id="' + id + '"]');
+  if (row) {
+    const btn = row.querySelector('.light-expand-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  if (activeLight === id) activeLight = null;
+}
+
+function buildPanelControls(id) {
+  const l = lights[id], def = lightDefs[id];
+  const panel = document.querySelector('.ctrl-panel[data-id="' + id + '"]');
+  if (!panel) return;
+  panel.textContent = '';
+
+  if (def.type === 'rgb') panel.setAttribute('data-rgb', '');
+  else panel.removeAttribute('data-rgb');
+
+  // Update fold separator colors
+  const foldColor = getFoldColor(id);
+  const fold = panel.closest('.ctrl-fold');
+  if (fold) {
+    if (fold.previousElementSibling && fold.previousElementSibling.classList.contains('fold-sep')) {
+      fold.previousElementSibling.style.setProperty('--fold-color', foldColor);
+    }
+    if (fold.nextElementSibling && fold.nextElementSibling.classList.contains('fold-sep')) {
+      fold.nextElementSibling.style.setProperty('--fold-color', foldColor);
+    }
+  }
+
+  // Label
+  panel.appendChild(el('span', 'ctrl-label', { text: def.name }));
+
+  // Brightness slider (not for simple)
+  if (def.type !== 'simple') {
+    const fill = getBrightnessFill(id);
+    panel.appendChild(buildSlider('brightness', id, fill.cls, l.brightness, 'mdi-brightness-6', 'Intensité', l.brightness + '%', 1, 100, fill.style));
+  }
+
+  // Temp slider
+  if (def.type === 'color_temp') {
+    const tempPct = Math.min(Math.max(((l.temp - l.minK) / (l.maxK - l.minK)) * 100, 2), 98);
+    panel.appendChild(buildTempSlider(id, tempPct, l.temp, l.minK, l.maxK));
+  }
+
+  // Color dots + picker button
+  if (def.type === 'rgb') {
+    const row = el('div', 'color-row');
+    COLOR_DOTS.forEach(rgb => {
+      const hex = rgbToHex(rgb);
+      const isActive = l.rgb && hsClose(l.rgb, rgb);
+      const dot = el('button', 'cdot' + (isActive ? ' active' : ''));
+      dot.style.setProperty('--cdot-color', hex);
+      dot.setAttribute('aria-label', 'Couleur ' + hex);
+      dot.addEventListener('click', () => {
+        l.rgb = [...rgb];
+        updateSub(id);
+        updateCardTint();
+        buildPanelControls(id);
+        // Re-show separators
+        const parentFold = panel.closest('.ctrl-fold');
+        if (parentFold) showFoldSeps(parentFold);
+      });
+      row.appendChild(dot);
+    });
+
+    // Color picker button
+    const cpBtn = el('button', 'color-picker-btn');
+    cpBtn.setAttribute('aria-label', 'Ouvrir le sélecteur de couleur');
+    cpBtn.addEventListener('click', () => openColorPicker(id, 'room'));
+    row.appendChild(cpBtn);
+
+    panel.appendChild(row);
+  }
+
+  // Effect chips
+  if (def.effects && def.effects.length > 0) {
+    const available = ALLOWED_EFFECTS.filter(e => e === 'off' || def.effects.includes(e));
+    if (available.length > 1) {
+      const row = el('div', 'color-row');
+      row.style.flexWrap = 'wrap';
+      available.forEach(effect => {
+        const isActive = (l.effect === effect) || (!l.effect && effect === 'off');
+        const chip = el('button', 'effect-chip' + (isActive ? ' active' : ''));
+        const labels = { off: 'Off', candle: 'Bougie', fire: 'Feu' };
+        chip.textContent = labels[effect] || effect;
+        chip.setAttribute('aria-label', labels[effect] || effect);
+        chip.addEventListener('click', () => {
+          l.effect = effect === 'off' ? null : effect;
+          buildPanelControls(id);
+          // Re-show separators
+          const parentFold = panel.closest('.ctrl-fold');
+          if (parentFold) showFoldSeps(parentFold);
+        });
+        row.appendChild(chip);
+      });
+      panel.appendChild(row);
+    }
+  }
+}
+
+function buildSlider(type, lightId, fillClass, value, iconName, label, valText, min, max, fillStyle) {
+  const slider = el('div', 'slider');
+
+  const pct = ((value - min) / (max - min)) * 100;
+
+  const fill = el('div', 'slider-fill ' + fillClass);
+  const fillInline = fillStyle ? `width:${pct}%;${fillStyle}` : `width:${pct}%`;
+  fill.style.cssText = fillInline;
+
+  const thumb = el('div', 'slider-thumb');
+  thumb.style.left = pct + '%';
+
+  const lbl = el('div', 'slider-lbl');
+  lbl.appendChild(icon(iconName));
+  lbl.appendChild(document.createTextNode(' ' + label));
+
+  const val = el('div', 'slider-val', { text: valText });
+
+  // Hidden native input for accessibility
+  const native = document.createElement('input');
+  native.type = 'range';
+  native.className = 'slider-native';
+  native.min = min;
+  native.max = max;
+  native.value = value;
+  native.setAttribute('aria-label', label);
+
+  native.addEventListener('input', () => {
+    const v = Number(native.value);
+    const p = ((v - min) / (max - min)) * 100;
+    fill.style.cssText = fillStyle ? `width:${p}%;${fillStyle}` : `width:${p}%`;
+    thumb.style.left = p + '%';
+
+    if (type === 'brightness') {
+      lights[lightId].brightness = v;
+      val.textContent = v + '%';
+      updateSub(lightId);
+      updateCardTint();
+      // Update fill color dynamically
+      const newFill = getBrightnessFill(lightId);
+      fill.className = 'slider-fill ' + newFill.cls;
+      const newP = ((v - min) / (max - min)) * 100;
+      fill.style.cssText = newFill.style ? `width:${newP}%;${newFill.style}` : `width:${newP}%`;
+    }
+  });
+
+  slider.appendChild(fill);
+  slider.appendChild(thumb);
+  slider.appendChild(lbl);
+  slider.appendChild(val);
+  slider.appendChild(native);
+
+  return slider;
+}
+
+function buildTempSlider(lightId, pct, temp, minK, maxK) {
+  const slider = el('div', 'slider');
+
+  const fill = el('div', 'slider-fill temp-gradient');
+  const thumb = el('div', 'slider-thumb');
+  thumb.style.left = pct + '%';
+
+  const lbl = el('div', 'slider-lbl');
+  lbl.appendChild(icon('mdi-thermometer'));
+  lbl.appendChild(document.createTextNode(' Température'));
+
+  const val = el('div', 'slider-val', { text: temp + 'K' });
+
+  // Hidden native input
+  const native = document.createElement('input');
+  native.type = 'range';
+  native.className = 'slider-native';
+  native.min = minK;
+  native.max = maxK;
+  native.value = temp;
+  native.setAttribute('aria-label', 'Température de couleur');
+
+  native.addEventListener('input', () => {
+    const v = Number(native.value);
+    const p = Math.min(Math.max(((v - minK) / (maxK - minK)) * 100, 2), 98);
+    thumb.style.left = p + '%';
+    val.textContent = v + 'K';
+    lights[lightId].temp = v;
+    updateSub(lightId);
+    updateCardTint();
+  });
+
+  slider.appendChild(fill);
+  slider.appendChild(thumb);
+  slider.appendChild(lbl);
+  slider.appendChild(val);
+  slider.appendChild(native);
+
+  return slider;
+}
+
+// ================================================================
+// COLOR PICKER (HSL Wheel)
+// ================================================================
+function drawColorWheel(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2, radius = Math.min(cx, cy);
+  const img = ctx.createImageData(w, h);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const idx = (y * w + x) * 4;
+
+      if (dist <= radius) {
+        const hue = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+        const sat = dist / radius;
+        const [r, g, b] = hslToRgb(hue / 360, sat, 0.5);
+        img.data[idx] = r;
+        img.data[idx + 1] = g;
+        img.data[idx + 2] = b;
+        img.data[idx + 3] = 255;
+      } else {
+        img.data[idx + 3] = 0;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+function rgbToHs(rgb) {
+  const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const d = max - min;
+  s = max === 0 ? 0 : d / max;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h: h * 360, s };
+}
+
+function hsClose(a, b) {
+  const ha = rgbToHs(a), hb = rgbToHs(b);
+  const hueDiff = Math.abs(ha.h - hb.h);
+  const hueOk = hueDiff < 5 || hueDiff > 355;
+  return hueOk && Math.abs(ha.s - hb.s) < 0.08;
+}
+
+function openColorPicker(entityId, mode) {
+  cpEntityId = entityId;
+  cpMode = mode || 'room';
+  const overlay = document.getElementById('cp-overlay');
+  overlay.classList.add('open');
+
+  const canvas = document.getElementById('cp-canvas');
+  drawColorWheel(canvas);
+
+  // Set initial position from current color
+  const lightsMap = cpMode === 'dash' ? dashLights : lights;
+  const l = lightsMap[entityId];
+  if (l.rgb) {
+    updatePickerDisplay(l.rgb);
+    const hs = rgbToHs(l.rgb);
+    const pos = hsToWheelPos(hs.h, hs.s, canvas);
+    const cursor = document.getElementById('cp-cursor');
+    cursor.style.left = pos.x + '%';
+    cursor.style.top = pos.y + '%';
+    cursor.style.background = rgbToHex(l.rgb);
+  }
+
+  // Canvas interactions
+  canvas.onmousedown = (e) => {
+    handleWheelEvent(e, canvas);
+    const onMove = (me) => handleWheelEvent(me, canvas);
+    const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  canvas.ontouchstart = (e) => {
+    e.preventDefault();
+    handleWheelEvent(e.touches[0], canvas);
+    const onMove = (te) => { te.preventDefault(); handleWheelEvent(te.touches[0], canvas); };
+    const onEnd = () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+  };
+}
+
+function handleWheelEvent(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const dx = x - cx, dy = y - cy;
+  const radius = Math.min(cx, cy);
+  const dist = Math.min(Math.sqrt(dx * dx + dy * dy), radius);
+
+  const hue = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+  const sat = dist / radius;
+  const rgb = hslToRgb(hue / 360, sat, 0.5);
+
+  // Update cursor position
+  const px = 50 + (dx / radius) * (dist / radius) * 50;
+  const py = 50 + (dy / radius) * (dist / radius) * 50;
+  const cursor = document.getElementById('cp-cursor');
+  cursor.style.left = px + '%';
+  cursor.style.top = py + '%';
+  cursor.style.background = rgbToHex(rgb);
+
+  updatePickerDisplay(rgb);
+
+  // Apply to light
+  if (cpEntityId) {
+    const lightsMap = cpMode === 'dash' ? dashLights : lights;
+    lightsMap[cpEntityId].rgb = rgb;
+    if (cpMode === 'room') {
+      updateSub(cpEntityId);
+      updateCardTint();
+      if (activeLight === cpEntityId) {
+        buildPanelControls(cpEntityId);
+        const fold = document.querySelector('.ctrl-fold[data-for="' + cpEntityId + '"]');
+        if (fold) { fold.classList.add('open'); showFoldSeps(fold); }
+      }
+    } else {
+      renderDashboard();
+    }
+  }
+}
+
+function updatePickerDisplay(rgb) {
+  const hex = rgbToHex(rgb);
+  document.getElementById('cp-preview').style.background = hex;
+  document.getElementById('cp-hex').textContent = hex;
+}
+
+function hsToWheelPos(h, s, canvas) {
+  const angle = (h * Math.PI) / 180;
+  const x = 50 + Math.cos(angle) * s * 50;
+  const y = 50 + Math.sin(angle) * s * 50;
+  return { x, y };
+}
+
+function closeColorPicker() {
+  document.getElementById('cp-overlay').classList.remove('open');
+  cpEntityId = null;
+}
+
+// ================================================================
+// HEADER & TINT (Room Mode)
+// ================================================================
+function updateHeader() {
+  const onCount = Object.values(lights).filter(l => l.on).length;
+  const total = Object.keys(lights).length;
+
+  const countEl = document.getElementById('card-count');
+  countEl.textContent = onCount + '/' + total;
+  countEl.className = 'card-count ' + (onCount === 0 ? 'none' : onCount === total ? 'all' : 'some');
+
+  const toggleEl = document.getElementById('toggle-all');
+  if (onCount > 0) {
+    toggleEl.classList.add('on');
+    toggleEl.setAttribute('aria-checked', 'true');
+  } else {
+    toggleEl.classList.remove('on');
+    toggleEl.setAttribute('aria-checked', 'false');
+  }
+}
+
+function updateCardTint() {
+  const tint = document.getElementById('card-tint');
+  const card = document.getElementById('card');
+  const onLights = Object.entries(lights).filter(([,l]) => l.on);
+  const ratio = onLights.length / Object.keys(lights).length;
+
+  if (onLights.length === 0) {
+    tint.style.opacity = '0';
+    card.style.borderColor = '';
+    return;
+  }
+
+  let color = '#fbbf24';
+  const rgbLight = onLights.find(([id]) => lightDefs[id].type === 'rgb' && lights[id].rgb);
+  if (rgbLight) color = rgbToHex(rgbLight[1].rgb);
+
+  tint.style.background = 'radial-gradient(ellipse at 30% 30%, ' + color + ', transparent 70%)';
+  tint.style.opacity = (ratio * 0.18).toFixed(3);
+}
+
+// ================================================================
+// DASHBOARD MODE
+// ================================================================
+const DASH_MAX_VISIBLE = 6;
+
+function renderDashboard() {
+  const grid = document.getElementById('dash-grid');
+  grid.textContent = '';
+
+  // Filter to ON lights only, sort by name
+  const onEntries = Object.entries(dashLights)
+    .filter(([, l]) => l.on)
+    .sort(([aId], [bId]) => dashLightDefs[aId].name.localeCompare(dashLightDefs[bId].name));
+
+  const totalLights = Object.keys(dashLights).length;
+  const onCount = onEntries.length;
+  const visible = onEntries.slice(0, DASH_MAX_VISIBLE);
+  const overflow = onCount - DASH_MAX_VISIBLE;
+
+  // Header
+  const countEl = document.getElementById('dash-count');
+  countEl.textContent = onCount + '/' + totalLights;
+  countEl.className = 'card-count ' + (onCount === totalLights ? 'all' : 'some');
+
+  const toggleEl = document.getElementById('dash-toggle');
+  toggleEl.classList.toggle('on', onCount > 0);
+  toggleEl.setAttribute('aria-checked', onCount > 0 ? 'true' : 'false');
+
+  // Build compact pairs (always compact in dashboard mode)
+  let i = 0;
+  while (i < visible.length) {
+    const [leftId, leftL] = visible[i];
+    const leftDef = dashLightDefs[leftId];
+    const right = (i + 1 < visible.length) ? visible[i + 1] : null;
+
+    if (right) {
+      const [rightId, rightL] = right;
+      const rightDef = dashLightDefs[rightId];
+      const isLast = (i + 2 >= visible.length);
+
+      grid.appendChild(buildDashRow(leftId, leftL, leftDef, true, false));
+      grid.appendChild(buildDashRow(rightId, rightL, rightDef, true, true));
+      grid.appendChild(buildDashFold(leftId, isLast));
+      grid.appendChild(buildDashFold(rightId, isLast));
+      i += 2;
+    } else {
+      // Last odd light: full width
+      grid.appendChild(buildDashRow(leftId, leftL, leftDef, false, false));
+      grid.appendChild(buildDashFold(leftId, true));
+      i++;
+    }
+  }
+
+  // Overflow message
+  if (overflow > 0) {
+    const msg = el('div', 'dashboard-overflow', { text: '+' + overflow + ' autre' + (overflow > 1 ? 's' : '') + ' lumière' + (overflow > 1 ? 's' : '') + ' allumée' + (overflow > 1 ? 's' : '') });
+    grid.appendChild(msg);
+  }
+
+  // Tint
+  updateDashTint();
+}
+
+function buildDashRow(id, l, def, compact, isRight) {
+  const row = el('div', 'light-row' + (compact ? ' compact' : '') + (isRight ? ' compact-right' : ''));
+  row.setAttribute('data-on', l.on);
+  row.setAttribute('data-id', 'dash-' + id);
+  applyRgbVars(row, id, l, def);
+
+  // Icon button (toggle)
+  const iconBtn = el('button', 'light-icon-btn' + (l.on ? ' on' : '') + (l.on && def.type === 'rgb' && l.rgb ? ' rgb' : ''));
+  iconBtn.setAttribute('aria-label', 'Basculer ' + def.name);
+  if (l.on && def.type === 'rgb' && l.rgb) {
+    iconBtn.style.cssText = `--light-rgb-bg:${rgbToRgba(l.rgb, 0.1)};--light-rgb-border:${rgbToRgba(l.rgb, 0.15)};--light-rgb:${rgbToHex(l.rgb)};--light-rgb-glow:${rgbToRgba(l.rgb, 0.4)}`;
+  }
+  iconBtn.appendChild(icon(def.icon));
+  iconBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    dashLights[id].on = !dashLights[id].on;
+    renderDashboard();
+  });
+
+  // Expand button (info + dot)
+  const expandBtn = el('button', 'light-expand-btn');
+  expandBtn.setAttribute('aria-label', def.name);
+
+  const info = el('div', 'light-info');
+  const nameDiv = el('div', 'light-name');
+  nameDiv.appendChild(marqueeText(def.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL));
+  info.appendChild(nameDiv);
+  const sub = el('div', 'light-sub');
+  sub.appendChild(buildSubNodes(id, l, def));
+  info.appendChild(sub);
+
+  const dot = el('span', 'light-dot');
+
+  expandBtn.appendChild(info);
+  expandBtn.appendChild(dot);
+  // In dashboard mode, expand toggles the fold (same behavior as room mode)
+  expandBtn.addEventListener('click', () => toggleDashPanel(id));
+
+  row.appendChild(iconBtn);
+  row.appendChild(expandBtn);
+
+  return row;
+}
+
+let activeDashLight = null;
+
+function buildDashFold(id, isLast) {
+  const foldColor = getFoldColor(id, dashLights, dashLightDefs);
+  const frag = document.createDocumentFragment();
+
+  // Top separator
+  const sepTop = el('div', 'fold-sep');
+  sepTop.style.setProperty('--fold-color', foldColor);
+  frag.appendChild(sepTop);
+
+  // Fold
+  const fold = el('div', 'ctrl-fold');
+  fold.setAttribute('data-for', 'dash-' + id);
+  const foldInner = el('div', 'ctrl-fold-inner');
+  const panel = el('div', 'ctrl-panel');
+  panel.setAttribute('data-id', 'dash-' + id);
+  foldInner.appendChild(panel);
+  fold.appendChild(foldInner);
+  frag.appendChild(fold);
+
+  // Bottom separator — only if NOT last item
+  if (!isLast) {
+    const sepBot = el('div', 'fold-sep');
+    sepBot.style.setProperty('--fold-color', foldColor);
+    frag.appendChild(sepBot);
+  }
+
+  return frag;
+}
+
+function toggleDashPanel(id) {
+  if (!hasControls(id, dashLightDefs)) {
+    dashLights[id].on = !dashLights[id].on;
+    renderDashboard();
+    return;
+  }
+  if (!dashLights[id].on) return;
+
+  const foldId = 'dash-' + id;
+  if (activeDashLight && activeDashLight !== id) closeDashPanel(activeDashLight);
+
+  const fold = document.querySelector('.ctrl-fold[data-for="' + foldId + '"]');
+  if (!fold) return;
+
+  if (activeDashLight === id) {
+    closeDashPanel(id);
+    activeDashLight = null;
+    return;
+  }
+
+  activeDashLight = id;
+  buildDashPanelControls(id);
+  fold.classList.add('open');
+  showFoldSeps(fold);
+}
+
+function closeDashPanel(id) {
+  const foldId = 'dash-' + id;
+  const fold = document.querySelector('.ctrl-fold[data-for="' + foldId + '"]');
+  if (fold) {
+    fold.classList.remove('open');
+    hideFoldSeps(fold);
+  }
+  if (activeDashLight === id) activeDashLight = null;
+}
+
+function buildDashPanelControls(id) {
+  const l = dashLights[id], def = dashLightDefs[id];
+  const panel = document.querySelector('.ctrl-panel[data-id="dash-' + id + '"]');
+  if (!panel) return;
+  panel.textContent = '';
+
+  if (def.type === 'rgb') panel.setAttribute('data-rgb', '');
+  else panel.removeAttribute('data-rgb');
+
+  panel.appendChild(el('span', 'ctrl-label', { text: def.name }));
+
+  if (def.type !== 'simple') {
+    const fill = getBrightnessFill(id, dashLights, dashLightDefs);
+    panel.appendChild(buildDashSlider('brightness', id, fill.cls, l.brightness, 'mdi-brightness-6', 'Intensité', l.brightness + '%', 1, 100, fill.style));
+  }
+
+  if (def.type === 'color_temp') {
+    const tempPct = Math.min(Math.max(((l.temp - l.minK) / (l.maxK - l.minK)) * 100, 2), 98);
+    panel.appendChild(buildDashTempSlider(id, tempPct, l.temp, l.minK, l.maxK));
+  }
+
+  if (def.type === 'rgb') {
+    const row = el('div', 'color-row');
+    COLOR_DOTS.forEach(rgb => {
+      const hex = rgbToHex(rgb);
+      const isActive = l.rgb && hsClose(l.rgb, rgb);
+      const dot = el('button', 'cdot' + (isActive ? ' active' : ''));
+      dot.style.setProperty('--cdot-color', hex);
+      dot.setAttribute('aria-label', 'Couleur ' + hex);
+      dot.addEventListener('click', () => {
+        l.rgb = [...rgb];
+        renderDashboard();
+        // Re-open the fold
+        setTimeout(() => {
+          activeDashLight = id;
+          const fold = document.querySelector('.ctrl-fold[data-for="dash-' + id + '"]');
+          if (fold) { buildDashPanelControls(id); fold.classList.add('open'); showFoldSeps(fold); }
+        }, 0);
+      });
+      row.appendChild(dot);
+    });
+
+    const cpBtn = el('button', 'color-picker-btn');
+    cpBtn.setAttribute('aria-label', 'Ouvrir le sélecteur de couleur');
+    cpBtn.addEventListener('click', () => openColorPicker(id, 'dash'));
+    row.appendChild(cpBtn);
+
+    panel.appendChild(row);
+  }
+}
+
+function buildDashSlider(type, lightId, fillClass, value, iconName, label, valText, min, max, fillStyle) {
+  const slider = el('div', 'slider');
+  const pct = ((value - min) / (max - min)) * 100;
+  const fill = el('div', 'slider-fill ' + fillClass);
+  fill.style.cssText = fillStyle ? `width:${pct}%;${fillStyle}` : `width:${pct}%`;
+  const thumb = el('div', 'slider-thumb');
+  thumb.style.left = pct + '%';
+  const lbl = el('div', 'slider-lbl');
+  lbl.appendChild(icon(iconName));
+  lbl.appendChild(document.createTextNode(' ' + label));
+  const val = el('div', 'slider-val', { text: valText });
+  const native = document.createElement('input');
+  native.type = 'range'; native.className = 'slider-native';
+  native.min = min; native.max = max; native.value = value;
+  native.setAttribute('aria-label', label);
+  native.addEventListener('input', () => {
+    const v = Number(native.value);
+    const p = ((v - min) / (max - min)) * 100;
+    fill.style.cssText = fillStyle ? `width:${p}%;${fillStyle}` : `width:${p}%`;
+    thumb.style.left = p + '%';
+    if (type === 'brightness') { dashLights[lightId].brightness = v; val.textContent = v + '%'; }
+  });
+  slider.appendChild(fill); slider.appendChild(thumb);
+  slider.appendChild(lbl); slider.appendChild(val); slider.appendChild(native);
+  return slider;
+}
+
+function buildDashTempSlider(lightId, pct, temp, minK, maxK) {
+  const slider = el('div', 'slider');
+  const fill = el('div', 'slider-fill temp-gradient');
+  const thumb = el('div', 'slider-thumb');
+  thumb.style.left = pct + '%';
+  const lbl = el('div', 'slider-lbl');
+  lbl.appendChild(icon('mdi-thermometer'));
+  lbl.appendChild(document.createTextNode(' Température'));
+  const val = el('div', 'slider-val', { text: temp + 'K' });
+  const native = document.createElement('input');
+  native.type = 'range'; native.className = 'slider-native';
+  native.min = minK; native.max = maxK; native.value = temp;
+  native.setAttribute('aria-label', 'Température de couleur');
+  native.addEventListener('input', () => {
+    const v = Number(native.value);
+    const p = Math.min(Math.max(((v - minK) / (maxK - minK)) * 100, 2), 98);
+    thumb.style.left = p + '%';
+    val.textContent = v + 'K';
+    dashLights[lightId].temp = v;
+  });
+  slider.appendChild(fill); slider.appendChild(thumb);
+  slider.appendChild(lbl); slider.appendChild(val); slider.appendChild(native);
+  return slider;
+}
+
+function updateDashTint() {
+  const tint = document.getElementById('dash-tint');
+  const onEntries = Object.entries(dashLights).filter(([,l]) => l.on);
+  const total = Object.keys(dashLights).length;
+  const ratio = onEntries.length / total;
+
+  if (onEntries.length === 0) {
+    tint.style.opacity = '0';
+    return;
+  }
+
+  let color = '#fbbf24';
+  const rgbLight = onEntries.find(([id]) => dashLightDefs[id].type === 'rgb' && dashLights[id].rgb);
+  if (rgbLight) color = rgbToHex(rgbLight[1].rgb);
+
+  tint.style.background = 'radial-gradient(ellipse at 30% 30%, ' + color + ', transparent 70%)';
+  tint.style.opacity = (ratio * 0.18).toFixed(3);
+}
+
+function dashTurnAllOff() {
+  Object.keys(dashLights).forEach(id => { dashLights[id].on = false; });
+  activeDashLight = null;
+  renderDashboard();
+}
+
+// ================================================================
+// DEMO CONTROLS
+// ================================================================
+function setTime(time, btn) {
+  document.body.setAttribute('data-time', time);
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setGlobalState(state, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (state === 'all-on') Object.keys(lights).forEach(id => { lights[id].on = true; });
+  else if (state === 'all-off') Object.keys(lights).forEach(id => { lights[id].on = false; });
+  else {
+    const d = { salon: true, cuisine: true, chambre: false, bureau: true, sdb: false };
+    Object.entries(d).forEach(([id, on]) => { lights[id].on = on; });
+  }
+
+  renderGrid();
+}
+
+function setLayout(layout, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentLayout = layout;
+  renderGrid();
+}
+
+// ================================================================
+// INIT
+// ================================================================
+renderGrid();
+renderDashboard();
+</script>
+
+</body>
+</html>

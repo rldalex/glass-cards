@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Climate Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    /* Climate semantic colors */
+    --cl-heat: #f97316;
+    --cl-heat-bg: rgba(249,115,22,0.1);
+    --cl-heat-border: rgba(249,115,22,0.15);
+    --cl-heat-glow: rgba(249,115,22,0.4);
+    --cl-heat-sub: rgba(249,115,22,0.6);
+
+    --cl-cool: #38bdf8;
+    --cl-cool-bg: rgba(56,189,248,0.1);
+    --cl-cool-border: rgba(56,189,248,0.15);
+    --cl-cool-glow: rgba(56,189,248,0.4);
+    --cl-cool-sub: rgba(56,189,248,0.6);
+
+    --cl-off: var(--t4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #1a1118;
+    color: var(--t1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 120px;
+    gap: 12px;
+    transition: background var(--t-slow);
+  }
+
+  /* ── Ambient ── */
+  .ambient-bg { position: fixed; inset: 0; z-index: -1; transition: all var(--t-slow); }
+  .ambient-bg::before, .ambient-bg::after {
+    content: ''; position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4; transition: all var(--t-slow);
+  }
+  .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; }
+  .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; }
+
+  body[data-time="morning"] { background: #0f1923; }
+  body[data-time="morning"] .ambient-bg::before { background: #1a6b8a; }
+  body[data-time="morning"] .ambient-bg::after { background: #2d8a6e; }
+  body[data-time="day"] { background: #111827; }
+  body[data-time="day"] .ambient-bg::before { background: #3b6fa0; }
+  body[data-time="day"] .ambient-bg::after { background: #4a90a0; }
+  body[data-time="evening"] { background: #1a1118; }
+  body[data-time="evening"] .ambient-bg::before { background: #8a4a2d; }
+  body[data-time="evening"] .ambient-bg::after { background: #6b3a5a; }
+  body[data-time="night"] { background: #0a0e1a; }
+  body[data-time="night"] .ambient-bg::before { background: #1a2040; }
+  body[data-time="night"] .ambient-bg::after { background: #2a1a3a; }
+
+  /* ── Glass ── */
+  .glass {
+    position: relative; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--b2); transition: border-color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .glass:hover { border-color: rgba(255,255,255,0.13); }
+  }
+
+  /* ── Card layout ── */
+  .climate-card-wrap { width: 500px; max-width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .climate-card { width: 100%; padding: 2px 14px; overflow: hidden; }
+  .card-inner { position: relative; z-index: 1; }
+
+  .tint {
+    position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; z-index: 0;
+    transition: opacity var(--t-slow), background var(--t-slow);
+    opacity: 0;
+  }
+  .tint.heat {
+    opacity: 0.18;
+    background: radial-gradient(ellipse at 30% 30%, var(--cl-heat), transparent 70%);
+  }
+  .tint.cool {
+    opacity: 0.18;
+    background: radial-gradient(ellipse at 30% 30%, var(--cl-cool), transparent 70%);
+  }
+
+  /* ── Card header ── */
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 6px; margin-bottom: 6px; min-height: 22px;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-title {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--t4);
+  }
+  .card-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 14px; height: 14px; padding: 0 4px;
+    border-radius: var(--radius-full); font-size: 9px; font-weight: 600;
+    transition: all var(--t-med);
+  }
+  .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
+  .card-count.none { background: var(--s2); color: var(--t3); }
+  .card-count.all { background: rgba(249,115,22,0.2); color: var(--cl-heat); }
+
+  .card-header-right {
+    font-size: 10px; font-weight: 500; color: var(--t3);
+  }
+
+  /* ── Climate row ── */
+  .cl-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 4px; position: relative;
+    transition: background var(--t-fast); border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cl-row:hover { background: var(--s1); }
+  }
+  @media (pointer: coarse) {
+    .cl-row:active { animation: bounce 0.3s ease; }
+  }
+
+  .cl-icon-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-md);
+    background: var(--s2); border: 1px solid var(--b1);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all var(--t-fast); cursor: pointer; padding: 0; outline: none;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .cl-icon-btn i {
+    font-size: 18px; color: var(--t3);
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--t-fast), filter var(--t-fast);
+  }
+  .cl-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (hover: hover) and (pointer: fine) {
+    .cl-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
+    .cl-icon-btn:hover i { color: var(--t2); }
+  }
+  @media (hover: hover) {
+    .cl-icon-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .cl-icon-btn:active { animation: bounce 0.3s ease; }
+  }
+
+  /* ── Expand button (separate from icon-btn) ── */
+  .cl-expand-btn {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 10px;
+    background: none; border: none; padding: 0;
+    font-family: inherit; cursor: pointer; outline: none;
+    text-align: left; color: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cl-expand-btn:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Heating state */
+  .cl-row[data-action="heating"] .cl-icon-btn {
+    background: var(--cl-heat-bg); border-color: var(--cl-heat-border);
+  }
+  .cl-row[data-action="heating"] .cl-icon-btn i {
+    color: var(--cl-heat); filter: drop-shadow(0 0 6px var(--cl-heat-glow));
+  }
+  /* Cooling state */
+  .cl-row[data-action="cooling"] .cl-icon-btn {
+    background: var(--cl-cool-bg); border-color: var(--cl-cool-border);
+  }
+  .cl-row[data-action="cooling"] .cl-icon-btn i {
+    color: var(--cl-cool); filter: drop-shadow(0 0 6px var(--cl-cool-glow));
+  }
+  /* Idle state (mode on but not firing) */
+  .cl-row[data-action="idle"] .cl-icon-btn {
+    background: var(--s2); border-color: var(--b2);
+  }
+  .cl-row[data-action="idle"] .cl-icon-btn i { color: var(--t2); }
+
+  /* Heating pulse */
+  @keyframes pulse-heat {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
+    50%      { filter: drop-shadow(0 0 2px rgba(249,115,22,0.2)); }
+  }
+  .cl-row[data-action="heating"] .cl-icon-btn i {
+    animation: pulse-heat 2s ease-in-out infinite;
+  }
+  @keyframes pulse-cool {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.6)); }
+    50%      { filter: drop-shadow(0 0 2px rgba(56,189,248,0.2)); }
+  }
+  .cl-row[data-action="cooling"] .cl-icon-btn i {
+    animation: pulse-cool 2s ease-in-out infinite;
+  }
+
+  .cl-info { flex: 1; min-width: 0; }
+  .cl-name {
+    font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2;
+    white-space: nowrap; overflow: hidden;
+  }
+  .cl-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+  .cl-action-text {
+    font-size: 10px; font-weight: 500; color: var(--t3);
+    transition: color var(--t-med);
+  }
+  .cl-row[data-action="heating"] .cl-action-text { color: var(--cl-heat-sub); }
+  .cl-row[data-action="cooling"] .cl-action-text { color: var(--cl-cool-sub); }
+
+  .cl-mode-badge {
+    font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 1px 5px; border-radius: var(--radius-full);
+    background: var(--s2); color: var(--t4); flex-shrink: 0;
+  }
+  .cl-row[data-action="heating"] .cl-mode-badge {
+    background: var(--cl-heat-bg); color: var(--cl-heat-sub);
+  }
+  .cl-row[data-action="cooling"] .cl-mode-badge {
+    background: var(--cl-cool-bg); color: var(--cl-cool-sub);
+  }
+
+  /* Temps on the right */
+  .cl-temps {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 0;
+    flex-shrink: 0;
+  }
+  .cl-temp-current {
+    font-size: 18px; font-weight: 700; color: var(--t1);
+    line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .cl-temp-current .unit { font-size: 11px; font-weight: 500; color: var(--t3); }
+  .cl-temp-target {
+    font-size: 10px; font-weight: 600; color: var(--t3);
+    font-variant-numeric: tabular-nums; margin-top: 1px;
+  }
+  .cl-row[data-action="heating"] .cl-temp-target { color: var(--cl-heat-sub); }
+  .cl-row[data-action="cooling"] .cl-temp-target { color: var(--cl-cool-sub); }
+
+  .cl-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: var(--t4); transition: all var(--t-med);
+  }
+  .cl-row[data-action="heating"] .cl-dot {
+    background: var(--cl-heat); box-shadow: 0 0 8px var(--cl-heat-glow);
+  }
+  .cl-row[data-action="cooling"] .cl-dot {
+    background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
+  }
+
+  /* ── Fold separator ── */
+  .fold-sep {
+    height: 0; margin: 0 12px; overflow: hidden;
+    background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+    opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
+  }
+  .fold-sep.cool {
+    background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+  }
+  .fold-sep.visible { height: 1px; opacity: 1; }
+
+  /* ── Controls fold ── */
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden; opacity: 0;
+    transition: opacity 0.25s var(--ease-std);
+  }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+  .ctrl-panel {
+    padding: 6px 0 4px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .ctrl-sep { height: 1px; background: var(--b1); margin: 2px 0; }
+  .ctrl-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .ctrl-label.heat { color: var(--cl-heat-sub); }
+  .ctrl-label.cool { color: var(--cl-cool-sub); }
+  .ctrl-label.neutral { color: var(--t3); }
+
+  /* ── Temperature control — big display + stepper ── */
+  .temp-control {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 8px 0;
+  }
+  .temp-stepper-btn {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: var(--s2); border: 1px solid var(--b2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .temp-stepper-btn i {
+    font-size: 22px; color: var(--t2);
+    display: flex; align-items: center; justify-content: center;
+    transition: color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
+    .temp-stepper-btn:hover i { color: var(--t1); }
+  }
+  @media (hover: hover) {
+    .temp-stepper-btn:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .temp-stepper-btn:active { animation: bounce 0.3s ease; }
+  }
+  .temp-stepper-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  .temp-display {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 100px;
+  }
+  .temp-display-label {
+    font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--t4);
+  }
+  .temp-display-value {
+    font-size: 40px; font-weight: 700; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: color var(--t-fast);
+  }
+  .temp-display-value.heat { color: var(--cl-heat); }
+  .temp-display-value.cool { color: var(--cl-cool); }
+  .temp-display-value.off { color: var(--t3); }
+  .temp-display-value .unit {
+    font-size: 18px; font-weight: 500;
+  }
+  .temp-display-current {
+    font-size: 11px; font-weight: 500; color: var(--t3);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .temp-display-current i {
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── HVAC mode chips ── */
+  .mode-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  }
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (hover: hover) {
+    .chip:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) {
+    .chip:active { animation: bounce 0.3s ease; }
+  }
+  .chip i {
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .chip.active-heat {
+    border-color: var(--cl-heat-border); background: var(--cl-heat-bg);
+    color: var(--cl-heat);
+  }
+  .chip.active-cool {
+    border-color: var(--cl-cool-border); background: var(--cl-cool-bg);
+    color: var(--cl-cool);
+  }
+  .chip.active-auto {
+    border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.08);
+    color: rgba(129,140,248,0.8);
+  }
+  .chip.active-off {
+    border-color: var(--b3); background: var(--s3);
+    color: var(--t2);
+  }
+
+  /* ── Marquee ── */
+  .marquee {
+    display: inline-block; white-space: nowrap;
+    animation: marquee-scroll 6s linear infinite;
+  }
+  @keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── Bounce (touch feedback) ── */
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Demo controls ── */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<!-- Climate Card -->
+<div class="climate-card-wrap">
+  <div class="card-header">
+    <div class="card-header-left">
+      <span class="card-title" id="card-title">Climat</span>
+      <span class="card-count" id="card-count"></span>
+    </div>
+    <span class="card-header-right" id="card-header-right"></span>
+  </div>
+  <div class="glass climate-card" id="card">
+    <div class="tint" id="card-tint"></div>
+    <div class="card-inner" id="climate-list"></div>
+  </div>
+</div>
+
+<!-- Demo Controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Etat</span>
+    <button class="demo-btn" onclick="setGlobal('all-heat',this)">Tout Chauffe</button>
+    <button class="demo-btn active" onclick="setGlobal('partial',this)">Partiel</button>
+    <button class="demo-btn" onclick="setGlobal('all-off',this)">Tout Off</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Saison</span>
+    <button class="demo-btn active" onclick="setSeason('winter',this)">Hiver</button>
+    <button class="demo-btn" onclick="setSeason('summer',this)">Ete</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   DATA — Simulates HA climate entities
+   ================================================================ */
+
+var HVAC_ICONS = {
+  heat: 'mdi-fire',
+  cool: 'mdi-snowflake',
+  heat_cool: 'mdi-sun-snowflake-variant',
+  auto: 'mdi-thermostat-auto',
+  dry: 'mdi-water-percent',
+  fan_only: 'mdi-fan',
+  off: 'mdi-power'
+};
+
+var PRESET_ICONS = {
+  none: 'mdi-circle-outline',
+  eco: 'mdi-leaf',
+  comfort: 'mdi-sofa',
+  boost: 'mdi-rocket-launch',
+  away: 'mdi-home-export-outline',
+  sleep: 'mdi-sleep',
+  home: 'mdi-home'
+};
+
+var ACTION_LABELS = {
+  heating: 'Chauffe',
+  cooling: 'Refroidit',
+  idle: 'En attente',
+  off: 'Eteint',
+  drying: 'Deshumidifie'
+};
+
+var MARQUEE_MAX = 18;
+
+var climateDefs = {
+  nest: {
+    name: 'Thermostat Nest',
+    icon: 'mdi-thermostat',
+    type: 'thermostat',
+    hvac_modes: ['off', 'heat', 'cool', 'heat_cool'],
+    preset_modes: ['none', 'eco'],
+    min_temp: 9, max_temp: 32, step: 0.5
+  },
+  salon: {
+    name: 'Radiateur Salon',
+    icon: 'mdi-radiator',
+    type: 'trv',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5
+  },
+  chambre: {
+    name: 'Radiateur Chambre',
+    icon: 'mdi-radiator',
+    type: 'trv',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5
+  },
+  bureau: {
+    name: 'Radiateur Bureau Grande Piece',
+    icon: 'mdi-radiator',
+    type: 'trv',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5
+  },
+  cuisine: {
+    name: 'Radiateur Cuisine',
+    icon: 'mdi-radiator',
+    type: 'trv',
+    hvac_modes: ['off', 'heat', 'auto'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5
+  },
+  sdb: {
+    name: 'Seche-serviettes SdB',
+    icon: 'mdi-radiator',
+    type: 'trv',
+    hvac_modes: ['off', 'heat'],
+    preset_modes: [],
+    min_temp: 4, max_temp: 35, step: 0.5
+  }
+};
+
+var climates = {
+  nest:    { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: 'none', current_temp: 20.5, target_temp: 21.5 },
+  salon:   { hvac_mode: 'heat', hvac_action: 'heating', preset_mode: null,   current_temp: 19.8, target_temp: 21.0 },
+  chambre: { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 21.2, target_temp: 20.0 },
+  bureau:  { hvac_mode: 'auto', hvac_action: 'heating', preset_mode: null,   current_temp: 18.5, target_temp: 20.0 },
+  cuisine: { hvac_mode: 'off',  hvac_action: 'off',     preset_mode: null,   current_temp: 19.0, target_temp: 19.0 },
+  sdb:     { hvac_mode: 'heat', hvac_action: 'idle',    preset_mode: null,   current_temp: 22.0, target_temp: 22.0 }
+};
+
+var activeClimate = null;
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function mdi(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+/** DOM-safe marquee: returns text node or <span class="marquee"> */
+function marqueeEl(text) {
+  if (!text || text.length <= MARQUEE_MAX) {
+    return document.createTextNode(text || '');
+  }
+  var span = document.createElement('span');
+  span.className = 'marquee';
+  span.textContent = text + '\u00A0\u00A0\u00A0' + text + '\u00A0\u00A0\u00A0';
+  return span;
+}
+
+function getActionColor(action) {
+  if (action === 'heating') return 'heat';
+  if (action === 'cooling') return 'cool';
+  return 'neutral';
+}
+
+function getModeChipClass(mode) {
+  if (mode === 'heat') return 'active-heat';
+  if (mode === 'cool') return 'active-cool';
+  if (mode === 'heat_cool' || mode === 'auto') return 'active-auto';
+  if (mode === 'off') return 'active-off';
+  return 'active-auto';
+}
+
+function getFoldSepColor(action) {
+  return action === 'cooling' ? 'cool' : '';
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render() {
+  var list = document.getElementById('climate-list');
+  var wasActive = activeClimate;
+  while (list.firstChild) list.removeChild(list.firstChild);
+
+  /* Sort: heating > cooling > idle > off */
+  var actionOrder = { heating: 0, cooling: 1, idle: 2, off: 3 };
+  var ids = Object.keys(climateDefs);
+  ids.sort(function(a, b) {
+    return (actionOrder[climates[a].hvac_action] || 3) - (actionOrder[climates[b].hvac_action] || 3);
+  });
+
+  var total = ids.length;
+  var heatingCount = 0;
+
+  ids.forEach(function(id) {
+    var def = climateDefs[id];
+    var state = climates[id];
+    var isActive = state.hvac_action === 'heating' || state.hvac_action === 'cooling';
+    if (isActive) heatingCount++;
+
+    var isOpen = activeClimate === id;
+
+    /* ── Row ── */
+    var row = el('div', 'cl-row');
+    row.setAttribute('data-action', state.hvac_action);
+    row.setAttribute('data-id', id);
+
+    /* Icon */
+    var iconBtn = el('button', 'cl-icon-btn');
+    iconBtn.setAttribute('aria-label', 'Basculer ' + def.name);
+    iconBtn.appendChild(mdi(def.icon));
+    iconBtn.addEventListener('click', (function(cid) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        if (c.hvac_mode === 'off') {
+          c.hvac_mode = 'heat';
+          c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        } else {
+          c.hvac_mode = 'off';
+          c.hvac_action = 'off';
+        }
+        render();
+      };
+    })(id));
+    row.appendChild(iconBtn);
+
+    /* ── Expand button (separate from icon) ── */
+    var expandBtn = el('button', 'cl-expand-btn');
+    expandBtn.setAttribute('aria-expanded', String(isOpen));
+    expandBtn.setAttribute('aria-controls', 'fold-' + id);
+    expandBtn.setAttribute('aria-label', 'Controles ' + def.name);
+
+    /* Info */
+    var info = el('div', 'cl-info');
+    var nameEl = el('div', 'cl-name');
+    nameEl.appendChild(marqueeEl(def.name));
+    info.appendChild(nameEl);
+
+    var sub = el('div', 'cl-sub');
+    sub.appendChild(el('span', 'cl-action-text', { text: ACTION_LABELS[state.hvac_action] || 'Inconnu' }));
+
+    if (state.hvac_mode !== 'off') {
+      var modeBadge = el('span', 'cl-mode-badge');
+      modeBadge.textContent = state.preset_mode && state.preset_mode !== 'none' ? state.preset_mode : state.hvac_mode;
+      sub.appendChild(modeBadge);
+    }
+    info.appendChild(sub);
+    expandBtn.appendChild(info);
+
+    /* Temps */
+    var temps = el('div', 'cl-temps');
+    var currentTemp = el('div', 'cl-temp-current');
+    currentTemp.textContent = state.current_temp.toFixed(1);
+    var unit = document.createElement('span');
+    unit.className = 'unit';
+    unit.textContent = '°';
+    currentTemp.appendChild(unit);
+    temps.appendChild(currentTemp);
+
+    if (state.hvac_mode !== 'off') {
+      temps.appendChild(el('div', 'cl-temp-target', { text: '→ ' + state.target_temp.toFixed(1) + '°' }));
+    }
+    expandBtn.appendChild(temps);
+
+    /* Dot */
+    expandBtn.appendChild(el('div', 'cl-dot'));
+
+    /* Click to expand */
+    expandBtn.addEventListener('click', (function(cid) {
+      return function(e) {
+        e.stopPropagation();
+        activeClimate = activeClimate === cid ? null : cid;
+        render();
+      };
+    })(id));
+
+    row.appendChild(expandBtn);
+    list.appendChild(row);
+
+    /* ── Fold ── */
+    var fold = el('div', 'ctrl-fold');
+    fold.id = 'fold-' + id;
+    fold.setAttribute('role', 'region');
+    fold.setAttribute('aria-hidden', String(!isOpen));
+    var foldInner = el('div', 'ctrl-fold-inner');
+    var panel = el('div', 'ctrl-panel');
+
+    if (isOpen) {
+      renderTempControl(panel, id, def, state);
+      panel.appendChild(el('div', 'ctrl-sep'));
+      renderHvacModes(panel, id, def, state);
+
+      if (def.preset_modes && def.preset_modes.length > 0) {
+        panel.appendChild(el('div', 'ctrl-sep'));
+        renderPresets(panel, id, def, state);
+      }
+    }
+
+    foldInner.appendChild(panel);
+    fold.appendChild(foldInner);
+
+    if (isOpen) {
+      var sepClass = getFoldSepColor(state.hvac_action);
+      var sepTop = el('div', 'fold-sep' + (sepClass ? ' ' + sepClass : ''));
+      list.appendChild(sepTop);
+      list.appendChild(fold);
+      var sepBottom = el('div', 'fold-sep' + (sepClass ? ' ' + sepClass : ''));
+      list.appendChild(sepBottom);
+
+      if (wasActive === id) {
+        fold.classList.add('open');
+        sepTop.classList.add('visible');
+        sepBottom.classList.add('visible');
+      } else {
+        (function(f, st, sb) {
+          requestAnimationFrame(function() { requestAnimationFrame(function() {
+            f.classList.add('open');
+            st.classList.add('visible');
+            sb.classList.add('visible');
+          }); });
+        })(fold, sepTop, sepBottom);
+      }
+    } else {
+      list.appendChild(fold);
+    }
+  });
+
+  updateHeader(heatingCount, total);
+  updateTint();
+}
+
+/* ── Temperature control ── */
+function renderTempControl(panel, id, def, state) {
+  var colorClass = getActionColor(state.hvac_action);
+  var isOff = state.hvac_mode === 'off';
+
+  var control = el('div', 'temp-control');
+
+  /* Minus button */
+  var minusBtn = el('button', 'temp-stepper-btn');
+  minusBtn.setAttribute('aria-label', 'Baisser la temperature');
+  minusBtn.appendChild(mdi('mdi-minus'));
+  if (!isOff) {
+    minusBtn.addEventListener('click', (function(cid, step, min) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.target_temp = Math.max(min, +(c.target_temp - step).toFixed(1));
+        c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        render();
+      };
+    })(id, def.step, def.min_temp));
+  }
+  control.appendChild(minusBtn);
+
+  /* Display */
+  var display = el('div', 'temp-display');
+  display.appendChild(el('div', 'temp-display-label', { text: 'Cible' }));
+
+  var valueEl = el('div', 'temp-display-value ' + (isOff ? 'off' : colorClass));
+  valueEl.textContent = isOff ? '--' : state.target_temp.toFixed(1);
+  if (!isOff) {
+    var unitSpan = document.createElement('span');
+    unitSpan.className = 'unit';
+    unitSpan.textContent = '°C';
+    valueEl.appendChild(unitSpan);
+  }
+  display.appendChild(valueEl);
+
+  var currentLine = el('div', 'temp-display-current');
+  currentLine.appendChild(mdi('mdi-thermometer'));
+  var currentText = document.createElement('span');
+  currentText.textContent = 'Actuel ' + state.current_temp.toFixed(1) + '°C';
+  currentLine.appendChild(currentText);
+  display.appendChild(currentLine);
+
+  control.appendChild(display);
+
+  /* Plus button */
+  var plusBtn = el('button', 'temp-stepper-btn');
+  plusBtn.setAttribute('aria-label', 'Augmenter la temperature');
+  plusBtn.appendChild(mdi('mdi-plus'));
+  if (!isOff) {
+    plusBtn.addEventListener('click', (function(cid, step, max) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.target_temp = Math.min(max, +(c.target_temp + step).toFixed(1));
+        c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        render();
+      };
+    })(id, def.step, def.max_temp));
+  }
+  control.appendChild(plusBtn);
+
+  panel.appendChild(control);
+}
+
+/* ── HVAC modes ── */
+function renderHvacModes(panel, id, def, state) {
+  var label = el('div', 'ctrl-label ' + getActionColor(state.hvac_action));
+  label.textContent = 'Mode';
+  panel.appendChild(label);
+
+  var row = el('div', 'mode-row');
+  def.hvac_modes.forEach(function(mode) {
+    var isActive = state.hvac_mode === mode;
+    var chipClass = isActive ? getModeChipClass(mode) : '';
+    var chip = el('button', 'chip' + (chipClass ? ' ' + chipClass : ''));
+    chip.appendChild(mdi(HVAC_ICONS[mode] || 'mdi-help'));
+    var span = document.createElement('span');
+    span.textContent = mode === 'heat_cool' ? 'Auto' : (mode.charAt(0).toUpperCase() + mode.slice(1));
+    chip.appendChild(span);
+    chip.setAttribute('aria-label', 'Mode ' + mode);
+    chip.addEventListener('click', (function(cid, m) {
+      return function(e) {
+        e.stopPropagation();
+        var c = climates[cid];
+        c.hvac_mode = m;
+        if (m === 'off') {
+          c.hvac_action = 'off';
+        } else if (m === 'heat' || m === 'heat_cool' || m === 'auto') {
+          c.hvac_action = c.current_temp < c.target_temp ? 'heating' : 'idle';
+        } else if (m === 'cool') {
+          c.hvac_action = c.current_temp > c.target_temp ? 'cooling' : 'idle';
+        }
+        render();
+      };
+    })(id, mode));
+    row.appendChild(chip);
+  });
+  panel.appendChild(row);
+}
+
+/* ── Presets ── */
+function renderPresets(panel, id, def, state) {
+  var label = el('div', 'ctrl-label ' + getActionColor(state.hvac_action));
+  label.textContent = 'Preset';
+  panel.appendChild(label);
+
+  var row = el('div', 'mode-row');
+  def.preset_modes.forEach(function(preset) {
+    var isActive = state.preset_mode === preset;
+    var chipClass = isActive ? 'active-auto' : '';
+    var chip = el('button', 'chip' + (chipClass ? ' ' + chipClass : ''));
+    chip.appendChild(mdi(PRESET_ICONS[preset] || 'mdi-cog'));
+    var span = document.createElement('span');
+    span.textContent = preset === 'none' ? 'Normal' : (preset.charAt(0).toUpperCase() + preset.slice(1));
+    chip.appendChild(span);
+    chip.setAttribute('aria-label', 'Preset ' + preset);
+    chip.addEventListener('click', (function(cid, p) {
+      return function(e) {
+        e.stopPropagation();
+        climates[cid].preset_mode = p;
+        if (p === 'eco') {
+          climates[cid].target_temp = Math.max(climateDefs[cid].min_temp, climates[cid].target_temp - 2);
+        }
+        render();
+      };
+    })(id, preset));
+    row.appendChild(chip);
+  });
+  panel.appendChild(row);
+}
+
+/* ── Header ── */
+function updateHeader(heatingCount, total) {
+  var countEl = document.getElementById('card-count');
+  countEl.textContent = heatingCount + '/' + total;
+  countEl.className = 'card-count ' + (heatingCount === 0 ? 'none' : (heatingCount === total ? 'all' : 'some'));
+
+  /* Average current temp in header right */
+  var ids = Object.keys(climates);
+  var sum = 0;
+  ids.forEach(function(id) { sum += climates[id].current_temp; });
+  var avg = (sum / ids.length).toFixed(1);
+  document.getElementById('card-header-right').textContent = 'Moy. ' + avg + '°C';
+}
+
+function updateTint() {
+  var tint = document.getElementById('card-tint');
+  var anyHeating = Object.keys(climates).some(function(id) { return climates[id].hvac_action === 'heating'; });
+  var anyCooling = Object.keys(climates).some(function(id) { return climates[id].hvac_action === 'cooling'; });
+
+  if (activeClimate && climates[activeClimate]) {
+    var action = climates[activeClimate].hvac_action;
+    if (action === 'heating') { tint.className = 'tint heat'; return; }
+    if (action === 'cooling') { tint.className = 'tint cool'; return; }
+  }
+  if (anyHeating) { tint.className = 'tint heat'; }
+  else if (anyCooling) { tint.className = 'tint cool'; }
+  else { tint.className = 'tint'; }
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+function setTime(time, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.body.setAttribute('data-time', time);
+}
+
+function setGlobal(state, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (state === 'all-heat') {
+    Object.keys(climates).forEach(function(id) {
+      climates[id].hvac_mode = 'heat';
+      climates[id].hvac_action = 'heating';
+      climates[id].target_temp = climates[id].current_temp + 2;
+    });
+  } else if (state === 'all-off') {
+    Object.keys(climates).forEach(function(id) {
+      climates[id].hvac_mode = 'off';
+      climates[id].hvac_action = 'off';
+    });
+    activeClimate = null;
+  } else {
+    climates.nest.hvac_mode = 'heat'; climates.nest.hvac_action = 'heating'; climates.nest.preset_mode = 'none'; climates.nest.current_temp = 20.5; climates.nest.target_temp = 21.5;
+    climates.salon.hvac_mode = 'heat'; climates.salon.hvac_action = 'heating'; climates.salon.current_temp = 19.8; climates.salon.target_temp = 21.0;
+    climates.chambre.hvac_mode = 'heat'; climates.chambre.hvac_action = 'idle'; climates.chambre.current_temp = 21.2; climates.chambre.target_temp = 20.0;
+    climates.bureau.hvac_mode = 'auto'; climates.bureau.hvac_action = 'heating'; climates.bureau.current_temp = 18.5; climates.bureau.target_temp = 20.0;
+    climates.cuisine.hvac_mode = 'off'; climates.cuisine.hvac_action = 'off'; climates.cuisine.current_temp = 19.0; climates.cuisine.target_temp = 19.0;
+    climates.sdb.hvac_mode = 'heat'; climates.sdb.hvac_action = 'idle'; climates.sdb.current_temp = 22.0; climates.sdb.target_temp = 22.0;
+    activeClimate = null;
+  }
+  render();
+}
+
+function setSeason(season, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (season === 'summer') {
+    climateDefs.nest.hvac_modes = ['off', 'heat', 'cool', 'heat_cool'];
+    climates.nest.hvac_mode = 'cool';
+    climates.nest.hvac_action = 'cooling';
+    climates.nest.current_temp = 26.5;
+    climates.nest.target_temp = 24.0;
+    ['salon', 'chambre', 'bureau', 'cuisine', 'sdb'].forEach(function(id) {
+      climates[id].hvac_mode = 'off';
+      climates[id].hvac_action = 'off';
+      climates[id].current_temp = climates[id].current_temp + 4;
+    });
+  } else {
+    climateDefs.nest.hvac_modes = ['off', 'heat', 'cool', 'heat_cool'];
+    climates.nest.hvac_mode = 'heat'; climates.nest.hvac_action = 'heating'; climates.nest.current_temp = 20.5; climates.nest.target_temp = 21.5;
+    climates.salon.hvac_mode = 'heat'; climates.salon.hvac_action = 'heating'; climates.salon.current_temp = 19.8; climates.salon.target_temp = 21.0;
+    climates.chambre.hvac_mode = 'heat'; climates.chambre.hvac_action = 'idle'; climates.chambre.current_temp = 21.2; climates.chambre.target_temp = 20.0;
+    climates.bureau.hvac_mode = 'auto'; climates.bureau.hvac_action = 'heating'; climates.bureau.current_temp = 18.5; climates.bureau.target_temp = 20.0;
+    climates.cuisine.hvac_mode = 'off'; climates.cuisine.hvac_action = 'off'; climates.cuisine.current_temp = 19.0; climates.cuisine.target_temp = 19.0;
+    climates.sdb.hvac_mode = 'heat'; climates.sdb.hvac_action = 'idle'; climates.sdb.current_temp = 22.0; climates.sdb.target_temp = 22.0;
+  }
+  render();
+}
+
+/* ── Init ── */
+render();
+</script>
+</body>
+</html>

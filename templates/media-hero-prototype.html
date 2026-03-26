@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Media Hero Card — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --radius-xl: 22px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --t-slow: 1.2s var(--ease-std);
+    --t-med: 0.4s var(--ease-std);
+    --t-fast: 0.2s var(--ease-std);
+    --t-layout: 0.35s var(--ease-out);
+
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
+
+    --t1: rgba(255, 255, 255, 0.88);
+    --t2: rgba(255, 255, 255, 0.60);
+    --t3: rgba(255, 255, 255, 0.45);
+    --t4: rgba(255, 255, 255, 0.25);
+
+    --s1: rgba(255, 255, 255, 0.04);
+    --s2: rgba(255, 255, 255, 0.06);
+    --s3: rgba(255, 255, 255, 0.08);
+    --s4: rgba(255, 255, 255, 0.12);
+
+    --b1: rgba(255, 255, 255, 0.06);
+    --b2: rgba(255, 255, 255, 0.08);
+    --b3: rgba(255, 255, 255, 0.15);
+
+    --mp-color: #818cf8;
+    --mp-bg: rgba(129,140,248,0.1);
+    --mp-border: rgba(129,140,248,0.15);
+    --mp-glow: rgba(129,140,248,0.4);
+    --mp-sub: rgba(129,140,248,0.55);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 20px 8px 90px;
+    background: #0f1117; color: var(--t1); overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* -- Ambient background -- */
+  .ambient-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    transition: background var(--t-slow);
+  }
+  [data-time="morning"] .ambient-bg { background: radial-gradient(ellipse at 50% 0%, rgba(251,191,36,0.08), transparent 60%); }
+  [data-time="day"]     .ambient-bg { background: radial-gradient(ellipse at 50% 0%, rgba(96,165,250,0.06), transparent 60%); }
+  [data-time="evening"] .ambient-bg { background: radial-gradient(ellipse at 50% 0%, rgba(249,115,22,0.06), transparent 60%); }
+  [data-time="night"]   .ambient-bg { background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.05), transparent 60%); }
+
+  /* -- Marquee text -- */
+  .marquee {
+    overflow: hidden; white-space: nowrap; position: relative;
+  }
+  .marquee-inner {
+    display: inline-block;
+    animation: marquee-scroll 8s linear infinite;
+    padding-right: 40px;
+  }
+  @keyframes marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* -- Control fold (CSS Grid + opacity fade) -- */
+  .ctrl-fold {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--t-layout);
+  }
+  .ctrl-fold.open { grid-template-rows: 1fr; }
+  .ctrl-fold-inner {
+    overflow: hidden;
+    opacity: 0; transition: opacity 0.25s;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    border: 1px solid var(--b2);
+    border-top: none;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.3),
+      0 2px 8px rgba(0,0,0,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+  .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+  .ctrl-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--t4); margin-bottom: -4px;
+  }
+
+  /* -- Transport -- */
+  .transport-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-md);
+    background: transparent; border: 1px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+    font-size: 0; -webkit-tap-highlight-color: transparent;
+    color: rgba(255,255,255,0.7);
+  }
+  .transport-btn i { font-size: 18px; color: inherit; transition: color var(--t-fast); }
+  @media (hover: hover) and (pointer: fine) {
+    .transport-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  }
+  .transport-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
+  @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
+  .transport-btn.active { color: var(--c-accent-dynamic, var(--mp-color)); }
+
+  .transport-skip { width: 40px; height: 40px; color: rgba(255,255,255,0.85); }
+  .transport-skip i { font-size: 26px; }
+
+  .transport-main {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+  }
+  .transport-main i { font-size: 28px; color: inherit; }
+  @media (hover: hover) and (pointer: fine) {
+    .transport-main:hover {
+      background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.25);
+    }
+    .transport-main:active { transform: scale(0.96); }
+  }
+  @media (pointer: coarse) { .transport-main:active { animation: bounce 0.3s ease; } }
+
+  /* -- Bounce animation (mobile tap feedback) -- */
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  /* -- Volume row -- */
+  .volume-row { display: flex; align-items: center; gap: 8px; }
+  .volume-btn {
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    background: transparent; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all var(--t-fast); outline: none; padding: 0;
+    font-size: 0; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    color: var(--t3);
+  }
+  .volume-btn i { font-size: 18px; color: inherit; transition: color var(--t-fast); }
+  @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: var(--t2); } }
+  .volume-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
+  @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
+  .volume-btn.muted { color: var(--c-alert); }
+
+  /* -- Slider -- */
+  .slider {
+    position: relative; flex: 1; height: 36px;
+    border-radius: var(--radius-lg); background: var(--s1);
+    border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .slider-fill {
+    position: absolute; top: 0; left: 0; height: 100%;
+    border-radius: inherit; pointer-events: none;
+    transition: width var(--t-fast);
+  }
+  .slider-fill.accent { background: linear-gradient(90deg, rgba(129,140,248,0.15), rgba(129,140,248,0.25)); }
+  .slider-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 8px; height: 20px; border-radius: 4px;
+    background: rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+  .slider-val {
+    position: absolute; top: 50%; right: 12px; transform: translateY(-50%);
+    font-size: 11px; font-weight: 600; color: var(--t3); pointer-events: none;
+  }
+
+  /* -- Source & Sound Mode chips -- */
+  .chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: var(--radius-md);
+    border: 1px solid var(--b2); background: var(--s1);
+    font-family: inherit; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+  }
+  .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
+  @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
+  .chip.active {
+    border-color: rgba(129,140,248,0.2); background: rgba(129,140,248,0.08);
+    color: rgba(129,140,248,0.8);
+  }
+  .chip i { font-size: 14px; }
+
+  /* -- Multiroom section -- grid 2 columns -- */
+  .multiroom-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  }
+
+  .mr-cell {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 6px; border-radius: var(--radius-md);
+    background: var(--s1); border: 1px solid var(--b1);
+    transition: all var(--t-fast);
+  }
+  .mr-cell.joined {
+    background: rgba(129,140,248,0.06); border-color: var(--mp-border);
+  }
+
+  .mr-cell-top {
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .mr-icon-btn {
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    background: var(--s2); border: 1px solid var(--b1);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    cursor: pointer; padding: 0; outline: none; font-size: 0;
+    transition: all var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+    color: var(--t4);
+  }
+  .mr-icon-btn i { font-size: 14px; color: inherit; transition: all var(--t-fast); }
+  @media (hover: hover) and (pointer: fine) {
+    .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
+  }
+  @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
+  @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
+  .mr-icon-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+  .mr-cell.joined .mr-icon-btn {
+    background: var(--mp-bg); border-color: var(--mp-border); color: var(--mp-color);
+  }
+
+  .mr-info { flex: 1; min-width: 0; }
+  .mr-name {
+    font-size: 10px; font-weight: 600; color: var(--t3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mr-cell.joined .mr-name { color: var(--t2); }
+
+  /* Compact volume slider under each cell */
+  .mr-vol-slider {
+    position: relative; width: 100%; height: 20px;
+    border-radius: 6px; background: var(--s2);
+    border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .mr-vol-fill {
+    position: absolute; top: 0; left: 0; height: 100%;
+    border-radius: inherit; pointer-events: none;
+    background: linear-gradient(90deg, rgba(129,140,248,0.08), rgba(129,140,248,0.18));
+    transition: width var(--t-fast);
+  }
+  .mr-cell.joined .mr-vol-fill {
+    background: linear-gradient(90deg, rgba(129,140,248,0.12), rgba(129,140,248,0.25));
+  }
+  .mr-vol-val {
+    position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+    font-size: 8px; font-weight: 600; color: var(--t4); pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .mr-cell.joined .mr-vol-val { color: var(--mp-sub); }
+  .mr-vol-icon {
+    position: absolute; top: 0; bottom: 0; left: 6px;
+    display: flex; align-items: center;
+    pointer-events: none;
+  }
+  .mr-vol-icon i { font-size: 11px; color: var(--t4); }
+  .mr-cell.joined .mr-vol-icon i { color: var(--mp-sub); }
+
+  /* ================================================================
+     DASHBOARD VARIANT -- Artwork Hero Card
+     ================================================================ */
+
+  .dash-wrap {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 500px;
+    display: flex; flex-direction: column; gap: 0;
+  }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; max-width: 500px;
+    padding: 0 6px; min-height: 22px; margin-bottom: 6px;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 8px; }
+  .card-title {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--t4);
+  }
+
+  .card-source {
+    font-size: 10px; font-weight: 500; color: var(--t4);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 50%;
+    opacity: 0; transition: opacity var(--t-fast);
+  }
+  .card-source.active { opacity: 1; color: var(--mp-sub); }
+
+  /* -- Hero card (opaque bg for artwork) -- */
+  .dash-hero {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: #111;
+    border: 1px solid var(--b2);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.3),
+      0 2px 8px rgba(0,0,0,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+    touch-action: pan-y;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-radius var(--t-layout), border-color var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) { .dash-hero:hover { border-color: var(--b3); } }
+
+  /* Connected fold: hero loses bottom radius when fold is open */
+  .dash-wrap.fold-open .dash-hero {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+
+  /* -- Full-bleed artwork background -- */
+  .dash-art-bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; pointer-events: none; z-index: 0;
+    transition: opacity 0.8s;
+  }
+
+  /* -- Gradient overlay — minimal vignette to preserve artwork visibility -- */
+  .dash-gradient {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.08) 0%,
+      rgba(0,0,0,0) 25%,
+      rgba(0,0,0,0) 50%,
+      rgba(0,0,0,0.15) 75%,
+      rgba(0,0,0,0.4) 100%
+    );
+  }
+
+  /* -- Decorative background shapes (no-artwork fallback) -- */
+  .dash-deco {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    background: linear-gradient(135deg, rgba(30,30,50,1) 0%, rgba(15,15,30,1) 50%, rgba(25,20,40,1) 100%);
+  }
+  .dash-deco::before {
+    content: ''; position: absolute;
+    width: 280px; height: 280px; border-radius: 50%;
+    top: -80px; right: -60px;
+    background: radial-gradient(circle, rgba(129,140,248,0.08), transparent 70%);
+  }
+  .dash-deco::after {
+    content: ''; position: absolute;
+    width: 220px; height: 220px; border-radius: 50%;
+    bottom: -50px; left: -40px;
+    background: radial-gradient(circle, rgba(168,85,247,0.06), transparent 70%);
+  }
+
+  /* -- Placeholder icon (no-artwork fallback) -- */
+  .dash-placeholder {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dash-placeholder i {
+    font-size: 80px; color: rgba(255,255,255,0.06);
+  }
+
+  /* -- Content -- */
+  .dash-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column;
+    min-height: 340px;
+    padding: 14px;
+  }
+
+  /* -- Glass pill (shared for top badges) -- */
+  .glass-pill {
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  /* -- Glass panel (bottom info card) — frosted glass, artwork bleeds through -- */
+  .glass-panel {
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  /* -- Top bar -- */
+  .dash-top {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dash-speaker {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 6px;
+    border-radius: var(--radius-full);
+    font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9);
+    overflow: hidden; white-space: nowrap;
+  }
+  .dash-speaker i {
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* .badge pattern from UI Kit */
+  .dash-group-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 20px;
+    color: rgba(255,255,255,0.9);
+    font-size: 10px; font-weight: 600;
+  }
+  .dash-group-badge i {
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* -- Equalizer bars (hero speaker badge) -- */
+  .dash-eq {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 14px; margin-left: 6px;
+  }
+  .dash-eq-bar {
+    width: 3px; border-radius: 1.5px;
+    background: #fff;
+    box-shadow: 0 0 3px rgba(255,255,255,0.6);
+  }
+  .dash-eq.playing .dash-eq-bar:nth-child(1) {
+    height: 40%; animation: eq-lo 0.65s ease-in-out infinite alternate;
+  }
+  .dash-eq.playing .dash-eq-bar:nth-child(2) {
+    height: 80%; animation: eq-hi 0.52s ease-in-out infinite alternate;
+    animation-delay: 0.12s;
+  }
+  .dash-eq.playing .dash-eq-bar:nth-child(3) {
+    height: 55%; animation: eq-mid 0.78s ease-in-out infinite alternate;
+    animation-delay: 0.25s;
+  }
+  .dash-eq.playing .dash-eq-bar:nth-child(4) {
+    height: 70%; animation: eq-lo 0.6s ease-in-out infinite alternate;
+    animation-delay: 0.08s;
+  }
+  @keyframes eq-lo  { 0% { height: 15%; } 100% { height: 70%; } }
+  @keyframes eq-mid { 0% { height: 20%; } 100% { height: 90%; } }
+  @keyframes eq-hi  { 0% { height: 25%; } 100% { height: 100%; } }
+
+  /* -- Center zone (spacer) -- */
+  .dash-spacer { flex: 1; }
+
+  /* -- Bottom info panel -- */
+  .dash-info-panel {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 14px;
+  }
+
+  /* -- Track info -- */
+  .dash-track {
+    display: flex; flex-direction: column; gap: 2px;
+    min-width: 0;
+  }
+  .dash-track-title {
+    font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2;
+    overflow: hidden; white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.3);
+  }
+  .dash-track-artist {
+    font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75);
+    overflow: hidden; white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  /* -- Time row -- */
+  .dash-time-row {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .dash-track-time {
+    font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.4);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* -- Source row (centered under transport) -- */
+  .dash-source-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: -2px;
+  }
+  .dash-track-source {
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: rgba(255,255,255,0.3);
+    padding: 1px 6px; border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+  }
+  .dash-coordinator-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.5);
+  }
+  .dash-coordinator-badge i {
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* -- Progress bar -- */
+  .dash-progress-wrap {
+    margin-top: 0;
+  }
+  .dash-progress {
+    position: relative; width: 100%; height: 4px;
+    border-radius: 2px; background: var(--s2);
+    cursor: pointer; touch-action: none;
+    transition: height var(--t-fast);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .dash-progress:hover { height: 6px; }
+    .dash-progress:hover .dash-progress-thumb { opacity: 1; }
+  }
+  .dash-progress-fill {
+    position: absolute; top: 0; left: 0; height: 100%;
+    border-radius: inherit;
+    background: var(--c-accent-dynamic, var(--mp-color));
+    box-shadow: 0 0 8px var(--mp-glow);
+    transition: width 0.3s linear;
+    pointer-events: none;
+  }
+  .dash-progress-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    pointer-events: none; opacity: 0; transition: opacity var(--t-fast);
+  }
+
+  /* -- Transport (reuses .transport-btn / .transport-main) -- */
+  .dash-transport {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 2px;
+  }
+
+  /* -- Navigation arrows (hover on sides, multi-room) -- */
+  .dash-nav-arrow {
+    position: absolute; top: 0; bottom: 0; width: 40px; z-index: 8;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; padding: 0;
+    opacity: 0; transition: opacity var(--t-fast);
+    -webkit-tap-highlight-color: transparent; outline: none;
+  }
+  .dash-nav-arrow i {
+    font-size: 24px; color: rgba(255,255,255,0.7);
+    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.5));
+    transition: color var(--t-fast);
+  }
+  .dash-nav-left { left: 0; border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
+  .dash-nav-right { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
+  @media (hover: hover) and (pointer: fine) {
+    .dash-nav-left:hover, .dash-nav-right:hover {
+      background: linear-gradient(90deg, rgba(0,0,0,0.25), transparent);
+    }
+    .dash-nav-right:hover {
+      background: linear-gradient(270deg, rgba(0,0,0,0.25), transparent);
+    }
+    .dash-nav-arrow:hover i { color: #fff; }
+    .dash-hero:hover .dash-nav-arrow { opacity: 1; }
+  }
+  @media (pointer: coarse) { .dash-nav-arrow:active { animation: bounce 0.3s ease; } }
+  @media (hover: hover) and (pointer: fine) { .dash-nav-arrow:active { transform: scale(0.95); } }
+  .dash-nav-arrow:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  /* -- Room dots (dashboard swipe indicator) -- */
+  .dash-dots {
+    display: flex; justify-content: center; gap: 6px;
+    padding: 8px 0 2px;
+  }
+  .dash-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); border: none;
+    padding: 0; cursor: pointer; transition: all var(--t-fast);
+    outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  .dash-dot.active {
+    background: rgba(255,255,255,0.7);
+    transform: scale(1.3);
+  }
+  @media (hover: hover) and (pointer: fine) { .dash-dot:hover { background: rgba(255,255,255,0.5); } }
+  @media (pointer: coarse) { .dash-dot:active { animation: bounce 0.3s ease; } }
+  .dash-dot:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
+
+  /* ================================================================
+     SWIPE TRANSITION ANIMATIONS
+     ================================================================ */
+  @keyframes slide-exit-left {
+    0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+    100% { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+  }
+  @keyframes slide-enter-right {
+    0%   { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+    100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+  }
+  @keyframes slide-exit-right {
+    0%   { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+    100% { transform: translateX(40%) scale(0.92); opacity: 0; filter: blur(6px); }
+  }
+  @keyframes slide-enter-left {
+    0%   { transform: translateX(-40%) scale(0.92); opacity: 0; filter: blur(6px); }
+    100% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+  }
+
+  /* Gradient separator between hero and fold */
+  .dash-fold-sep-top {
+    height: 1px; margin: 0 12px;
+    background: linear-gradient(90deg, transparent, var(--mp-border), transparent);
+  }
+
+  .dash-fold-panel {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 12px 16px 14px;
+  }
+  /* Fold separator (fold-sep pattern) */
+  .dash-fold-sep {
+    height: 1px; margin: 2px 0;
+    background: linear-gradient(90deg, transparent, var(--mp-border), transparent);
+  }
+
+  /* -- Segmented control -- */
+  .segmented {
+    display: inline-flex; gap: 0;
+    border-radius: 12px; background: var(--s1);
+    border: 1px solid var(--b1); padding: 3px;
+    margin-bottom: 8px; width: 100%;
+  }
+  .seg-btn {
+    flex: 1;
+    padding: 7px 0; border-radius: 9px;
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    color: var(--t3); cursor: pointer; transition: all var(--t-fast);
+    border: none; background: transparent; outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .seg-btn.active {
+    background: var(--s4); color: var(--t1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .seg-btn:hover:not(.active) { color: var(--t2); }
+  }
+  .seg-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  /* -- Queue tab -- */
+  .queue-loading, .queue-empty {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 11px;
+    color: var(--t3);
+    font-weight: 500;
+  }
+  .queue-list {
+    max-height: 280px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .queue-list::-webkit-scrollbar { display: none; }
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+  }
+  .queue-item.now-playing {
+    background: rgba(129,140,248,0.08);
+    border-radius: var(--radius-sm);
+  }
+  .queue-art {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--s2);
+  }
+  .queue-art img { width: 100%; height: 100%; object-fit: cover; }
+  .queue-art i {
+    font-size: 16px; color: var(--t4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .queue-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .queue-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--t1);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .queue-artist {
+    font-size: 10px;
+    color: var(--t3);
+  }
+  .queue-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+    background: var(--s2);
+    color: var(--t2);
+    flex-shrink: 0;
+  }
+  .queue-item .btn-icon {
+    width: 24px; height: 24px;
+    border-radius: var(--radius-sm);
+    background: transparent; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; outline: none;
+    color: var(--t3); flex-shrink: 0;
+    transition: color var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+    font-size: 0;
+  }
+  .queue-item .btn-icon i { font-size: 16px; color: inherit; }
+  @media (hover: hover) and (pointer: fine) {
+    .queue-item .btn-icon:hover { color: var(--t1); }
+  }
+  .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+
+  /* -- EQ bars (queue now-playing indicator) -- */
+  .eq-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  .eq-bars span {
+    width: 2px;
+    border-radius: 1px;
+    background: var(--c-accent-dynamic, var(--c-accent));
+    transform-origin: bottom;
+    animation: eq-bar 0.8s ease-in-out infinite alternate;
+  }
+  .eq-bars span:nth-child(2) { animation-delay: 0.2s; }
+  .eq-bars span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes eq-bar {
+    from { transform: scaleY(0.25); }
+    to { transform: scaleY(1); }
+  }
+
+  /* -- Demo controls -- */
+  .controls {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 10px 16px;
+    border-radius: 20px; background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); border: 1px solid var(--b2);
+    z-index: 100; flex-wrap: wrap; justify-content: center; max-width: 92vw;
+  }
+  .controls-group { display: flex; gap: 5px; align-items: center; }
+  .controls-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--t4); margin-right: 2px;
+  }
+  .demo-btn {
+    padding: 6px 12px; border: 1px solid var(--b2);
+    border-radius: var(--radius-md); background: var(--s1); color: var(--t3);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--t-fast); outline: none; white-space: nowrap;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .demo-btn:hover { background: var(--s3); color: var(--t1); }
+  }
+  .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+</style>
+</head>
+<body data-time="evening">
+
+<div class="ambient-bg"></div>
+
+<div class="card-header" id="card-header">
+  <div class="card-header-left">
+    <span class="card-title">Media</span>
+  </div>
+  <span class="card-source" id="card-source"></span>
+</div>
+<div class="dash-wrap" id="dash-wrap">
+  <div class="dash-hero" id="dash-hero">
+    <img class="dash-art-bg" id="dash-art-bg" src="" alt="" loading="lazy" style="display:none;" />
+    <div class="dash-gradient"></div>
+    <div class="dash-deco" id="dash-deco"></div>
+    <div class="dash-content" id="dash-content"></div>
+    <!-- Navigation arrows (multi-room) -->
+    <button class="dash-nav-arrow dash-nav-left" id="dash-nav-left" aria-label="Salle precedente" style="display:none;">
+      <i class="mdi mdi-chevron-left"></i>
+    </button>
+    <button class="dash-nav-arrow dash-nav-right" id="dash-nav-right" aria-label="Salle suivante" style="display:none;">
+      <i class="mdi mdi-chevron-right"></i>
+    </button>
+  </div>
+  <!-- Fold (long press to open) -- connected to hero -->
+  <div class="ctrl-fold" id="dash-fold">
+    <div class="ctrl-fold-inner">
+      <div class="dash-fold-sep-top"></div>
+      <div class="dash-fold-panel" id="dash-fold-panel"></div>
+    </div>
+  </div>
+</div>
+<!-- Room dots -->
+<div class="dash-dots" id="dash-dots" style="display:none;"></div>
+
+<!-- Demo Controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Heure</span>
+    <button class="demo-btn" onclick="setTime('morning',this)">Matin</button>
+    <button class="demo-btn" onclick="setTime('day',this)">Jour</button>
+    <button class="demo-btn active" onclick="setTime('evening',this)">Soir</button>
+    <button class="demo-btn" onclick="setTime('night',this)">Nuit</button>
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Etat</span>
+    <button class="demo-btn" onclick="setGlobal('all-on',this)">Tout On</button>
+    <button class="demo-btn active" onclick="setGlobal('partial',this)">Partiel</button>
+    <button class="demo-btn" onclick="setGlobal('all-off',this)">Tout Off</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   HA media_player SUPPORTED FEATURES bitmask
+   ================================================================ */
+var F = {
+  PAUSE: 1, SEEK: 2, VOLUME_SET: 4, VOLUME_MUTE: 8,
+  PREVIOUS_TRACK: 16, NEXT_TRACK: 32,
+  TURN_ON: 128, TURN_OFF: 256,
+  PLAY_MEDIA: 512, VOLUME_STEP: 1024, SELECT_SOURCE: 2048, STOP: 4096,
+  CLEAR_PLAYLIST: 8192, PLAY: 16384, SHUFFLE_SET: 32768,
+  SELECT_SOUND_MODE: 65536, BROWSE_MEDIA: 131072,
+  REPEAT_SET: 262144, GROUPING: 524288
+};
+
+function hasFeature(id, flag) {
+  return (playerDefs[id].supported_features & flag) !== 0;
+}
+
+/* ================================================================
+   DATA -- Simulates HA media_player entities
+   ================================================================ */
+
+/* Artwork images (simulates entity_picture) */
+var ARTWORK = {
+  'after-hours':   'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36',
+  'opera':         'https://i.scdn.co/image/ab67616d0000b273ce4f1737bc8a646c8c4bd25a',
+  'lofi':          'https://i.scdn.co/image/ab67616d0000b273a8da4e39a1e77abdf8dcb71c',
+  'stranger':      'https://i.scdn.co/image/ab67616d0000b2734281439979a562e658b1c1af',
+  'daft':          'https://i.scdn.co/image/ab67616d0000b273b33d46dfa2f4264e0fd9c8d4',
+  'radio':         null,
+  'default':       null
+};
+
+var playerDefs = {
+  salon: {
+    name: 'Salon', icon: 'mdi-speaker', device_class: 'speaker',
+    supported_features: F.PAUSE | F.SEEK | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.PLAY | F.SHUFFLE_SET | F.REPEAT_SET | F.GROUPING | F.SELECT_SOURCE | F.PLAY_MEDIA | F.BROWSE_MEDIA,
+    source_list: ['Spotify', 'AirPlay', 'Line-In', 'TV']
+  },
+  cuisine: {
+    name: 'Cuisine', icon: 'mdi-speaker', device_class: 'speaker',
+    supported_features: F.PAUSE | F.SEEK | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.PLAY | F.SHUFFLE_SET | F.REPEAT_SET | F.GROUPING | F.SELECT_SOURCE | F.PLAY_MEDIA | F.BROWSE_MEDIA,
+    source_list: ['Spotify', 'AirPlay', 'Line-In']
+  },
+  chambre: {
+    name: 'Chambre', icon: 'mdi-speaker', device_class: 'speaker',
+    supported_features: F.PAUSE | F.SEEK | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.PLAY | F.SHUFFLE_SET | F.REPEAT_SET | F.GROUPING | F.SELECT_SOURCE | F.PLAY_MEDIA | F.BROWSE_MEDIA,
+    source_list: ['Spotify', 'AirPlay', 'Line-In']
+  },
+  bureau: {
+    name: 'Bureau', icon: 'mdi-speaker', device_class: 'speaker',
+    supported_features: F.PAUSE | F.SEEK | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.PLAY | F.SHUFFLE_SET | F.REPEAT_SET | F.GROUPING | F.SELECT_SOURCE | F.PLAY_MEDIA | F.BROWSE_MEDIA,
+    source_list: ['Spotify', 'AirPlay', 'Line-In']
+  },
+  sdb: {
+    name: 'Salle de bain', icon: 'mdi-speaker', device_class: 'speaker',
+    supported_features: F.PAUSE | F.SEEK | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.PLAY | F.SHUFFLE_SET | F.REPEAT_SET | F.GROUPING | F.SELECT_SOURCE | F.PLAY_MEDIA | F.BROWSE_MEDIA,
+    source_list: ['Spotify', 'AirPlay', 'Bluetooth']
+  },
+  tv_salon: {
+    name: 'TV Salon', icon: 'mdi-television', device_class: 'tv',
+    supported_features: F.PAUSE | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.TURN_ON | F.TURN_OFF | F.PLAY | F.SELECT_SOURCE | F.STOP,
+    source_list: ['HDMI 1', 'HDMI 2', 'HDMI 3', 'TV']
+  },
+  ampli_salon: {
+    name: 'Ampli Salon', icon: 'mdi-amplifier', device_class: 'receiver',
+    supported_features: F.PAUSE | F.VOLUME_SET | F.VOLUME_MUTE | F.TURN_ON | F.TURN_OFF | F.PLAY | F.SELECT_SOURCE | F.SELECT_SOUND_MODE | F.STOP,
+    source_list: ['TV', 'Bluetooth', 'Optical', 'HDMI ARC'],
+    sound_mode_list: ['Stereo', 'Surround', 'Night', 'Auto']
+  },
+  nest_cuisine: {
+    name: 'Nest Cuisine', icon: 'mdi-tablet', device_class: 'speaker',
+    supported_features: F.PAUSE | F.VOLUME_SET | F.VOLUME_MUTE | F.PREVIOUS_TRACK | F.NEXT_TRACK | F.TURN_ON | F.TURN_OFF | F.PLAY | F.STOP,
+    source_list: []
+  }
+};
+
+var players = {
+  salon: {
+    state: 'playing', volume: 45, muted: false, shuffle: false, repeat: 'off',
+    title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', art: 'after-hours',
+    source: 'Spotify', sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 67, duration: 200, elapsed: 134,
+    group_members: ['salon', 'cuisine']
+  },
+  cuisine: {
+    state: 'playing', volume: 30, muted: false, shuffle: false, repeat: 'off',
+    title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', art: 'after-hours',
+    source: 'Spotify', sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 67, duration: 200, elapsed: 134,
+    group_members: ['salon', 'cuisine']
+  },
+  chambre: {
+    state: 'playing', volume: 35, muted: false, shuffle: true, repeat: 'all',
+    title: 'Bohemian Rhapsody', artist: 'Queen', album: 'A Night at the Opera', art: 'opera',
+    source: 'Spotify', sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 23, duration: 355, elapsed: 82,
+    group_members: ['chambre']
+  },
+  bureau: {
+    state: 'paused', volume: 50, muted: false, shuffle: false, repeat: 'off',
+    title: 'Lo-fi Study Beats', artist: 'ChilledCow', album: null, art: 'lofi',
+    source: 'Spotify', sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 44, duration: 180, elapsed: 79,
+    group_members: ['bureau']
+  },
+  sdb: {
+    state: 'idle', volume: 20, muted: false, shuffle: false, repeat: 'off',
+    title: null, artist: null, album: null, art: null,
+    source: null, sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 0, duration: 0, elapsed: 0,
+    group_members: ['sdb']
+  },
+  tv_salon: {
+    state: 'playing', volume: 40, muted: false, shuffle: false, repeat: 'off',
+    title: 'Stranger Things', artist: null, album: null, art: 'stranger',
+    source: 'HDMI 1', sound_mode: null, app_name: 'Netflix',
+    media_series_title: 'Stranger Things', media_season: 4, media_episode: 7,
+    progress: 55, duration: 3600, elapsed: 1980,
+    group_members: ['tv_salon']
+  },
+  ampli_salon: {
+    state: 'off', volume: 35, muted: false, shuffle: false, repeat: 'off',
+    title: null, artist: null, album: null, art: null,
+    source: 'TV', sound_mode: 'Surround', app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 0, duration: 0, elapsed: 0,
+    group_members: ['ampli_salon']
+  },
+  nest_cuisine: {
+    state: 'buffering', volume: 25, muted: false, shuffle: false, repeat: 'off',
+    title: 'France Inter', artist: 'Radio', album: null, art: 'radio',
+    source: null, sound_mode: null, app_name: null,
+    media_series_title: null, media_season: null, media_episode: null,
+    progress: 0, duration: 0, elapsed: 0,
+    group_members: ['nest_cuisine']
+  }
+};
+
+/* Mock queue data */
+var MOCK_QUEUE = [
+  { title: 'Blinding Lights', artist: 'The Weeknd', art: 'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36' },
+  { title: 'Save Your Tears', artist: 'The Weeknd', art: 'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36' },
+  { title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', art: 'https://i.scdn.co/image/ab67616d0000b273b33d46dfa2f4264e0fd9c8d4' },
+  { title: 'I Feel It Coming', artist: 'The Weeknd ft. Daft Punk', art: 'https://i.scdn.co/image/ab67616d0000b273b33d46dfa2f4264e0fd9c8d4' }
+];
+
+/* ================================================================
+   DOM HELPERS
+   ================================================================ */
+function el(tag, cls, attrs) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (attrs) {
+    var keys = Object.keys(attrs);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key === 'text') e.textContent = attrs[key];
+      else e.setAttribute(key, attrs[key]);
+    }
+  }
+  return e;
+}
+
+function mdi(name) {
+  var i = document.createElement('i');
+  i.className = 'mdi ' + name;
+  return i;
+}
+
+function formatTime(seconds) {
+  if (!seconds || seconds <= 0) return '0:00';
+  var m = Math.floor(seconds / 60);
+  var s = Math.floor(seconds % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/**
+ * Marquee helper — returns a plain text node if short enough,
+ * or a .marquee wrapper with duplicated scrolling text if too long.
+ */
+function marqueeEl(text, maxChars) {
+  if (!maxChars) maxChars = 22;
+  if (!text || text.length <= maxChars) {
+    var sp = document.createElement('span');
+    sp.textContent = text || '';
+    return sp;
+  }
+  var wrap = el('div', 'marquee');
+  var inner = el('span', 'marquee-inner');
+  inner.textContent = text + ' \u00a0\u00a0\u00a0 ' + text + ' \u00a0\u00a0\u00a0 ';
+  wrap.appendChild(inner);
+  return wrap;
+}
+
+function isCoordinator(id) {
+  var p = players[id];
+  return p.group_members && p.group_members[0] === id;
+}
+
+function getCoordinator(id) {
+  var p = players[id];
+  return p.group_members ? p.group_members[0] : id;
+}
+
+function hasGrouping(id) { return hasFeature(id, F.GROUPING); }
+
+function getGroupableIds() {
+  return Object.keys(playerDefs).filter(function(id) { return hasFeature(id, F.GROUPING); });
+}
+
+/* State helpers */
+function isActiveState(state) { return state === 'playing' || state === 'paused' || state === 'buffering'; }
+
+/* Grouping helpers */
+function sonosJoin(coordinatorId, memberId) {
+  var coordPlayer = players[coordinatorId];
+  var memberPlayer = players[memberId];
+  sonosUnjoin(memberId);
+  coordPlayer.group_members.push(memberId);
+  memberPlayer.group_members = coordPlayer.group_members;
+  memberPlayer.state = coordPlayer.state;
+  memberPlayer.title = coordPlayer.title;
+  memberPlayer.artist = coordPlayer.artist;
+  memberPlayer.album = coordPlayer.album;
+  memberPlayer.art = coordPlayer.art;
+  memberPlayer.progress = coordPlayer.progress;
+  memberPlayer.duration = coordPlayer.duration;
+  memberPlayer.elapsed = coordPlayer.elapsed;
+  memberPlayer.shuffle = coordPlayer.shuffle;
+  memberPlayer.repeat = coordPlayer.repeat;
+  syncGroupRefs(coordinatorId);
+}
+
+function sonosUnjoin(memberId) {
+  var p = players[memberId];
+  var oldGroup = p.group_members;
+  if (!oldGroup || oldGroup.length <= 1) return;
+  var coordId = oldGroup[0];
+  if (memberId === coordId) {
+    oldGroup.forEach(function(mid) {
+      players[mid].group_members = [mid];
+      if (mid !== memberId) {
+        players[mid].state = 'idle';
+        players[mid].title = null; players[mid].artist = null;
+        players[mid].album = null; players[mid].art = null;
+        players[mid].progress = 0; players[mid].duration = 0; players[mid].elapsed = 0;
+      }
+    });
+    return;
+  }
+  var idx = oldGroup.indexOf(memberId);
+  if (idx > -1) oldGroup.splice(idx, 1);
+  p.group_members = [memberId];
+  p.state = 'idle';
+  p.title = null; p.artist = null; p.album = null; p.art = null;
+  p.progress = 0; p.duration = 0; p.elapsed = 0;
+  syncGroupRefs(coordId);
+}
+
+function syncGroupRefs(coordId) {
+  var g = players[coordId].group_members;
+  g.forEach(function(mid) { players[mid].group_members = g; });
+}
+
+/* ================================================================
+   SHARED BUILDERS
+   ================================================================ */
+function buildSlider(id, value, onChange) {
+  var slider = el('div', 'slider');
+  var fill = el('div', 'slider-fill accent');
+  fill.style.width = value + '%';
+  slider.appendChild(fill);
+
+  var thumb = el('div', 'slider-thumb');
+  thumb.style.left = value + '%';
+  slider.appendChild(thumb);
+
+  var val = el('div', 'slider-val');
+  val.textContent = value + '%';
+  slider.appendChild(val);
+
+  slider.addEventListener('pointerdown', (function(pid, sliderEl, fillEl, thumbEl, valEl, cb) {
+    return function(e) {
+      e.stopPropagation();
+      sliderEl.setPointerCapture(e.pointerId);
+      function update(evt) {
+        var rect = sliderEl.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(100, Math.round(((evt.clientX - rect.left) / rect.width) * 100)));
+        fillEl.style.width = pct + '%';
+        thumbEl.style.left = pct + '%';
+        valEl.textContent = pct + '%';
+        cb(pid, pct);
+      }
+      update(e);
+      sliderEl.addEventListener('pointermove', update);
+      sliderEl.addEventListener('pointerup', function end() {
+        sliderEl.removeEventListener('pointermove', update);
+        sliderEl.removeEventListener('pointerup', end);
+        renderDashboard();
+      });
+    };
+  })(id, slider, fill, thumb, val, onChange));
+
+  return slider;
+}
+
+function buildMrVolSlider(id, value) {
+  var slider = el('div', 'mr-vol-slider');
+
+  var fill = el('div', 'mr-vol-fill');
+  fill.style.width = value + '%';
+  slider.appendChild(fill);
+
+  var iconWrap = el('div', 'mr-vol-icon');
+  iconWrap.appendChild(mdi('mdi-volume-medium'));
+  slider.appendChild(iconWrap);
+
+  var val = el('div', 'mr-vol-val');
+  val.textContent = value + '%';
+  slider.appendChild(val);
+
+  slider.addEventListener('pointerdown', (function(pid, sliderEl, fillEl, valEl) {
+    return function(e) {
+      e.stopPropagation();
+      sliderEl.setPointerCapture(e.pointerId);
+      function update(evt) {
+        var rect = sliderEl.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(100, Math.round(((evt.clientX - rect.left) / rect.width) * 100)));
+        fillEl.style.width = pct + '%';
+        valEl.textContent = pct + '%';
+        players[pid].volume = pct;
+      }
+      update(e);
+      sliderEl.addEventListener('pointermove', update);
+      sliderEl.addEventListener('pointerup', function end() {
+        sliderEl.removeEventListener('pointermove', update);
+        sliderEl.removeEventListener('pointerup', end);
+      });
+    };
+  })(id, slider, fill, val));
+
+  return slider;
+}
+
+/* ================================================================
+   DASHBOARD VARIANT
+   ================================================================ */
+var dashFoldOpen = false;
+var _dashLPTimer = null;
+var _roomIndex = 0;
+var _swipeAnimating = false;
+var _foldTab = 'controls';
+
+/**
+ * Animate a room transition on the hero card.
+ * direction: 'left' (next) or 'right' (prev)
+ * newIndex: the target room index
+ * Uses slide animation only (matching production).
+ */
+function swipeRoom(direction, newIndex) {
+  if (_swipeAnimating) return;
+  _swipeAnimating = true;
+  var hero = document.getElementById('dash-hero');
+  var fold = document.getElementById('dash-fold');
+  var wrap = document.getElementById('dash-wrap');
+
+  var exitName = direction === 'left' ? 'slide-exit-left' : 'slide-exit-right';
+  var enterName = direction === 'left' ? 'slide-enter-right' : 'slide-enter-left';
+
+  /* Close fold during transition */
+  dashFoldOpen = false;
+  _foldTab = 'controls';
+  fold.classList.remove('open');
+  wrap.classList.remove('fold-open');
+
+  /* Phase 1: Exit animation */
+  hero.style.animation = exitName + ' 220ms cubic-bezier(0.4, 0, 0.7, 0.2) forwards';
+
+  setTimeout(function() {
+    /* Switch room and re-render */
+    _roomIndex = newIndex;
+    renderDashboard();
+
+    /* Phase 2: Enter animation */
+    hero.style.animation = enterName + ' 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+    setTimeout(function() {
+      hero.style.animation = '';
+      _swipeAnimating = false;
+    }, 280);
+  }, 220);
+}
+
+/**
+ * Get active rooms: unique coordinators that are currently active.
+ * Grouped speakers count as one room (the coordinator).
+ */
+function getActiveRooms() {
+  var allActive = [];
+  var ids = Object.keys(playerDefs);
+  for (var i = 0; i < ids.length; i++) {
+    if (isActiveState(players[ids[i]].state)) {
+      allActive.push(ids[i]);
+    }
+  }
+  /* Sort coordinators first */
+  allActive.sort(function(a, b) {
+    var aCoord = (players[a].group_members.length > 0 && players[a].group_members[0] === a) ? 0 : 1;
+    var bCoord = (players[b].group_members.length > 0 && players[b].group_members[0] === b) ? 0 : 1;
+    return aCoord - bCoord;
+  });
+  /* Deduplicate: if a speaker is a group member, only keep the coordinator */
+  var seen = {};
+  var rooms = [];
+  for (var j = 0; j < allActive.length; j++) {
+    var pid = allActive[j];
+    if (seen[pid]) continue;
+    var members = players[pid].group_members;
+    for (var k = 0; k < members.length; k++) seen[members[k]] = true;
+    seen[pid] = true;
+    rooms.push(pid);
+  }
+  return rooms;
+}
+
+function updateHeaderSource(source) {
+  var el = document.getElementById('card-source');
+  if (source) {
+    el.textContent = source;
+    el.className = 'card-source active';
+  } else {
+    el.textContent = '';
+    el.className = 'card-source';
+  }
+}
+
+function renderDashboard() {
+  var rooms = getActiveRooms();
+  var content = document.getElementById('dash-content');
+  var foldPanel = document.getElementById('dash-fold-panel');
+  while (content.firstChild) content.removeChild(content.firstChild);
+  while (foldPanel.firstChild) foldPanel.removeChild(foldPanel.firstChild);
+
+  /* No active rooms -> hide everything (real card returns nothing) */
+  if (rooms.length === 0) {
+    document.getElementById('dash-wrap').style.display = 'none';
+    document.getElementById('card-header').style.display = 'none';
+    document.getElementById('dash-dots').style.display = 'none';
+    dashFoldOpen = false;
+    _foldTab = 'controls';
+    return;
+  }
+
+  /* Show hero */
+  document.getElementById('dash-wrap').style.display = '';
+  document.getElementById('card-header').style.display = '';
+
+  /* Clamp room index */
+  if (_roomIndex >= rooms.length) _roomIndex = 0;
+  var mid = rooms[_roomIndex];
+  var m = players[mid], def = playerDefs[mid];
+  var playing = m.state === 'playing';
+  updateHeaderSource(m.source);
+
+  /* -- Artwork: <img> full-bleed or decorative fallback with placeholder icon -- */
+  var artImg = document.getElementById('dash-art-bg');
+  var deco = document.getElementById('dash-deco');
+  var artUrl = ARTWORK[m.art] || null;
+  /* Remove old placeholder if any */
+  var oldPh = document.querySelector('.dash-placeholder');
+  if (oldPh) oldPh.remove();
+  if (artUrl) {
+    artImg.src = artUrl;
+    artImg.style.display = '';
+    deco.style.display = 'none';
+  } else {
+    artImg.style.display = 'none';
+    deco.style.display = '';
+    /* Add context-aware placeholder icon (matches production) */
+    var ph = el('div', 'dash-placeholder');
+    var phIcon = 'mdi-speaker';
+    if (m.source && m.source.toLowerCase().includes('tv') || (def.icon && def.icon.includes('television'))) {
+      phIcon = 'mdi-television-classic';
+    } else if (m.app_name && m.app_name.toLowerCase().includes('spotify')) {
+      phIcon = 'mdi-spotify';
+    } else if (m.state === 'playing' || m.state === 'paused') {
+      phIcon = 'mdi-music-note';
+    } else if (def.icon) {
+      phIcon = def.icon;
+    }
+    ph.appendChild(mdi(phIcon));
+    document.getElementById('dash-hero').appendChild(ph);
+  }
+
+  /* -- Navigation arrows -- */
+  var navLeft = document.getElementById('dash-nav-left');
+  var navRight = document.getElementById('dash-nav-right');
+  if (rooms.length > 1) {
+    navLeft.style.display = '';
+    navRight.style.display = '';
+  } else {
+    navLeft.style.display = 'none';
+    navRight.style.display = 'none';
+  }
+
+  /* -- Top bar (glass pills) -- */
+  var top = el('div', 'dash-top');
+  var speaker = el('div', 'dash-speaker glass-pill');
+  speaker.appendChild(mdi(def.icon));
+  var nm = document.createElement('span'); nm.textContent = def.name;
+  speaker.appendChild(nm);
+
+  /* Equalizer animation */
+  if (playing) {
+    var eq = el('div', 'dash-eq playing');
+    for (var b = 0; b < 4; b++) eq.appendChild(el('div', 'dash-eq-bar'));
+    speaker.appendChild(eq);
+  }
+  top.appendChild(speaker);
+
+  if (m.group_members && m.group_members.length > 1) {
+    var badge = el('div', 'dash-group-badge glass-pill');
+    badge.appendChild(mdi('mdi-speaker-multiple'));
+    var cnt = document.createElement('span');
+    cnt.textContent = m.group_members.length + ' enceintes';
+    badge.appendChild(cnt);
+    top.appendChild(badge);
+  }
+  content.appendChild(top);
+
+  /* -- Spacer -- */
+  content.appendChild(el('div', 'dash-spacer'));
+
+  /* -- Bottom glass panel: track info + progress + transport + source -- */
+  var infoPanel = el('div', 'dash-info-panel glass-panel');
+
+  /* Track info */
+  var track = el('div', 'dash-track');
+  if (m.title) {
+    var ti = el('div', 'dash-track-title');
+    ti.appendChild(marqueeEl(m.title, 22));
+    track.appendChild(ti);
+  }
+  if (m.artist) {
+    var ar = el('div', 'dash-track-artist');
+    ar.appendChild(marqueeEl(m.artist, 28));
+    track.appendChild(ar);
+  }
+  infoPanel.appendChild(track);
+
+  /* Progress */
+  if (m.duration > 0) {
+    var pw = el('div', 'dash-progress-wrap');
+
+    /* Time row (elapsed / total) */
+    var timeRow = el('div', 'dash-time-row');
+    var tElapsed = el('span', 'dash-track-time'); tElapsed.textContent = formatTime(m.elapsed);
+    var tTotal = el('span', 'dash-track-time'); tTotal.textContent = formatTime(m.duration);
+    timeRow.appendChild(tElapsed);
+    timeRow.appendChild(tTotal);
+    pw.appendChild(timeRow);
+
+    /* Progress bar */
+    var pb = el('div', 'dash-progress');
+    pb.setAttribute('id', 'dash-pb');
+    var pf = el('div', 'dash-progress-fill');
+    pf.style.width = m.progress + '%';
+    pb.appendChild(pf);
+    var pt = el('div', 'dash-progress-thumb');
+    pt.style.left = m.progress + '%';
+    pb.appendChild(pt);
+    pw.appendChild(pb);
+    infoPanel.appendChild(pw);
+
+    /* Progress seek */
+    pb.addEventListener('pointerdown', (function(masterId, bar, fill, thumb) {
+      return function(e) {
+        e.stopPropagation();
+        bar.setPointerCapture(e.pointerId);
+        function upd(evt) {
+          var r = bar.getBoundingClientRect();
+          var pct = Math.max(0, Math.min(100, ((evt.clientX - r.left) / r.width) * 100));
+          fill.style.width = pct + '%'; fill.style.transition = 'none';
+          thumb.style.left = pct + '%'; thumb.style.opacity = '1';
+          players[masterId].progress = Math.round(pct);
+          players[masterId].elapsed = Math.round((pct / 100) * players[masterId].duration);
+        }
+        upd(e);
+        bar.addEventListener('pointermove', upd);
+        bar.addEventListener('pointerup', function end() {
+          bar.removeEventListener('pointermove', upd);
+          bar.removeEventListener('pointerup', end);
+          fill.style.transition = ''; thumb.style.opacity = '';
+          renderDashboard();
+        });
+      };
+    })(mid, pb, pf, pt));
+  }
+
+  /* Transport */
+  var tr = el('div', 'dash-transport');
+
+  if (hasFeature(mid, F.SHUFFLE_SET)) {
+    var sh = el('button', 'transport-btn' + (m.shuffle ? ' active' : ''));
+    sh.setAttribute('aria-label', 'Lecture aleatoire');
+    sh.appendChild(mdi('mdi-shuffle-variant'));
+    sh.addEventListener('click', (function(p) {
+      return function(e) { e.stopPropagation(); players[p].shuffle = !players[p].shuffle; renderDashboard(); };
+    })(mid));
+    tr.appendChild(sh);
+  }
+  if (hasFeature(mid, F.PREVIOUS_TRACK)) {
+    var pv = el('button', 'transport-btn transport-skip');
+    pv.setAttribute('aria-label', 'Precedent');
+    pv.appendChild(mdi('mdi-skip-previous'));
+    pv.addEventListener('click', function(e) { e.stopPropagation(); dashSkip('prev'); });
+    tr.appendChild(pv);
+  }
+  var pp = el('button', 'transport-btn transport-main');
+  pp.setAttribute('aria-label', playing ? 'Pause' : 'Lecture');
+  pp.appendChild(mdi(playing ? 'mdi-pause' : 'mdi-play'));
+  pp.addEventListener('click', function(e) { e.stopPropagation(); dashPlay(); });
+  tr.appendChild(pp);
+  if (hasFeature(mid, F.NEXT_TRACK)) {
+    var nx = el('button', 'transport-btn transport-skip');
+    nx.setAttribute('aria-label', 'Suivant');
+    nx.appendChild(mdi('mdi-skip-next'));
+    nx.addEventListener('click', function(e) { e.stopPropagation(); dashSkip('next'); });
+    tr.appendChild(nx);
+  }
+  if (hasFeature(mid, F.REPEAT_SET)) {
+    var ri = m.repeat === 'one' ? 'mdi-repeat-once' : 'mdi-repeat';
+    var rp = el('button', 'transport-btn' + (m.repeat !== 'off' ? ' active' : ''));
+    rp.setAttribute('aria-label', 'Repetition');
+    rp.appendChild(mdi(ri));
+    rp.addEventListener('click', (function(p) {
+      return function(e) {
+        e.stopPropagation();
+        var s = players[p];
+        s.repeat = s.repeat === 'off' ? 'all' : s.repeat === 'all' ? 'one' : 'off';
+        renderDashboard();
+      };
+    })(mid));
+    tr.appendChild(rp);
+  }
+  infoPanel.appendChild(tr);
+
+  /* Source row (centered under transport) */
+  var sourceRow = el('div', 'dash-source-row');
+  /* Coordinator badge (if coordinator differs from master, e.g. Spotify entity) */
+  var coordId = getCoordinator(mid);
+  if (coordId !== mid && isActiveState(players[coordId].state)) {
+    var coordBadge = el('span', 'dash-coordinator-badge');
+    coordBadge.appendChild(mdi(playerDefs[coordId].icon));
+    var coordName = document.createElement('span');
+    coordName.textContent = playerDefs[coordId].name;
+    coordBadge.appendChild(coordName);
+    sourceRow.appendChild(coordBadge);
+  }
+  if (m.source) {
+    var src = el('span', 'dash-track-source'); src.textContent = m.source;
+    sourceRow.appendChild(src);
+  }
+  if (sourceRow.childNodes.length) infoPanel.appendChild(sourceRow);
+
+  content.appendChild(infoPanel);
+
+  /* -- Room dots -- */
+  var dotsContainer = document.getElementById('dash-dots');
+  while (dotsContainer.firstChild) dotsContainer.removeChild(dotsContainer.firstChild);
+  if (rooms.length > 1) {
+    dotsContainer.style.display = '';
+    for (var di = 0; di < rooms.length; di++) {
+      var dot = el('button', 'dash-dot' + (di === _roomIndex ? ' active' : ''));
+      dot.setAttribute('aria-label', 'Salle ' + (di + 1));
+      dot.setAttribute('aria-current', di === _roomIndex ? 'true' : 'false');
+      dot.addEventListener('click', (function(idx) {
+        return function(e) {
+          e.stopPropagation();
+          if (idx === _roomIndex) return;
+          var dir = idx > _roomIndex ? 'left' : 'right';
+          swipeRoom(dir, idx);
+        };
+      })(di));
+      dotsContainer.appendChild(dot);
+    }
+  } else {
+    dotsContainer.style.display = 'none';
+  }
+
+  /* -- Fold content -- */
+  renderDashFold(foldPanel, mid);
+  var fold = document.getElementById('dash-fold');
+  var wrap = document.getElementById('dash-wrap');
+  if (dashFoldOpen) {
+    fold.classList.add('open');
+    wrap.classList.add('fold-open');
+  } else {
+    fold.classList.remove('open');
+    wrap.classList.remove('fold-open');
+  }
+}
+
+/* -- Fold panel -- */
+function renderDashFold(panel, mid) {
+  var m = players[mid], def = playerDefs[mid];
+
+  /* Segmented control (Controls | Queue) */
+  var segmented = el('div', 'segmented');
+  var segControls = el('button', 'seg-btn' + (_foldTab === 'controls' ? ' active' : ''));
+  segControls.textContent = 'Controles';
+  segControls.addEventListener('click', function(e) {
+    e.stopPropagation();
+    _foldTab = 'controls';
+    renderDashboard();
+  });
+  segmented.appendChild(segControls);
+
+  var segQueue = el('button', 'seg-btn' + (_foldTab === 'queue' ? ' active' : ''));
+  segQueue.textContent = "File d'attente";
+  segQueue.addEventListener('click', function(e) {
+    e.stopPropagation();
+    _foldTab = 'queue';
+    renderDashboard();
+  });
+  segmented.appendChild(segQueue);
+  panel.appendChild(segmented);
+
+  if (_foldTab === 'queue') {
+    renderQueueTab(panel, mid);
+    return;
+  }
+
+  /* -- Controls tab content -- */
+
+  /* Volume (.volume-row / .volume-btn / .slider) */
+  if (hasFeature(mid, F.VOLUME_SET)) {
+    var vl = el('div', 'ctrl-label'); vl.textContent = 'Volume';
+    panel.appendChild(vl);
+    var vr = el('div', 'volume-row');
+    if (hasFeature(mid, F.VOLUME_MUTE)) {
+      var mb = el('button', 'volume-btn' + (m.muted ? ' muted' : ''));
+      mb.setAttribute('aria-label', m.muted ? 'Reactiver' : 'Couper le son');
+      mb.appendChild(mdi(m.muted ? 'mdi-volume-off' : (m.volume > 50 ? 'mdi-volume-high' : 'mdi-volume-medium')));
+      mb.addEventListener('click', (function(p) {
+        return function(e) { e.stopPropagation(); players[p].muted = !players[p].muted; renderDashboard(); };
+      })(mid));
+      vr.appendChild(mb);
+    }
+    vr.appendChild(buildSlider(mid, m.muted ? 0 : m.volume, function(p, v) {
+      players[p].volume = v; players[p].muted = v === 0;
+    }));
+    panel.appendChild(vr);
+  }
+
+  /* Source (.chip) */
+  if (hasFeature(mid, F.SELECT_SOURCE) && def.source_list && def.source_list.length > 0) {
+    panel.appendChild(el('div', 'dash-fold-sep'));
+    var sl = el('div', 'ctrl-label'); sl.textContent = 'Source';
+    panel.appendChild(sl);
+    var sr = el('div', 'chips-row');
+    var si = { 'Spotify':'mdi-spotify','AirPlay':'mdi-apple','Bluetooth':'mdi-bluetooth','Line-In':'mdi-audio-input-stereo-minijack','TV':'mdi-television','HDMI':'mdi-hdmi-port','HDMI 1':'mdi-hdmi-port','HDMI 2':'mdi-hdmi-port','HDMI 3':'mdi-hdmi-port','HDMI ARC':'mdi-hdmi-port' };
+    def.source_list.forEach(function(s) {
+      var c = el('button', 'chip' + (m.source === s ? ' active' : ''));
+      c.appendChild(mdi(si[s] || 'mdi-import'));
+      var t = document.createElement('span'); t.textContent = s; c.appendChild(t);
+      c.addEventListener('click', (function(p, src) {
+        return function(e) { e.stopPropagation(); players[p].source = src; renderDashboard(); };
+      })(mid, s));
+      sr.appendChild(c);
+    });
+    panel.appendChild(sr);
+  }
+
+  /* Sound mode (.chip) */
+  if (hasFeature(mid, F.SELECT_SOUND_MODE) && def.sound_mode_list && def.sound_mode_list.length > 0) {
+    panel.appendChild(el('div', 'dash-fold-sep'));
+    var sml = el('div', 'ctrl-label'); sml.textContent = 'Mode audio';
+    panel.appendChild(sml);
+    var smr = el('div', 'chips-row');
+    def.sound_mode_list.forEach(function(mode) {
+      var c = el('button', 'chip' + (m.sound_mode === mode ? ' active' : ''));
+      c.appendChild(mdi('mdi-equalizer'));
+      var t = document.createElement('span'); t.textContent = mode; c.appendChild(t);
+      c.addEventListener('click', (function(p, md) {
+        return function(e) { e.stopPropagation(); players[p].sound_mode = md; renderDashboard(); };
+      })(mid, mode));
+      smr.appendChild(c);
+    });
+    panel.appendChild(smr);
+  }
+
+  /* Multiroom (.multiroom-grid -- exclude coordinator from grid) */
+  if (hasGrouping(mid)) {
+    var grp = m.group_members;
+    var gids = getGroupableIds();
+    /* Exclude coordinator from grid (shown in glass panel already) */
+    var otherIds = gids.filter(function(sid) { return sid !== mid; });
+    if (otherIds.length > 0) {
+      panel.appendChild(el('div', 'dash-fold-sep'));
+      var ml = el('div', 'ctrl-label'); ml.textContent = 'Enceintes';
+      panel.appendChild(ml);
+      var grid = el('div', 'multiroom-grid');
+      otherIds.forEach(function(sid) {
+        var sd = playerDefs[sid], inG = grp.indexOf(sid) > -1;
+        var cell = el('div', 'mr-cell' + (inG ? ' joined' : ''));
+
+        var topRow = el('div', 'mr-cell-top');
+        var iconBtn = el('button', 'mr-icon-btn');
+        iconBtn.appendChild(mdi(sd.icon));
+        iconBtn.setAttribute('aria-label', (inG ? 'Retirer ' : 'Ajouter ') + sd.name + ' du groupe');
+        iconBtn.addEventListener('click', (function(tid, cid, was) {
+          return function(e) {
+            e.stopPropagation();
+            if (was) sonosUnjoin(tid); else sonosJoin(cid, tid);
+            renderDashboard();
+          };
+        })(sid, mid, inG));
+        topRow.appendChild(iconBtn);
+
+        var info = el('div', 'mr-info');
+        var name = el('div', 'mr-name');
+        name.textContent = sd.name;
+        info.appendChild(name);
+        topRow.appendChild(info);
+        cell.appendChild(topRow);
+
+        if (inG) {
+          cell.appendChild(buildMrVolSlider(sid, players[sid].volume));
+        }
+
+        grid.appendChild(cell);
+      });
+      panel.appendChild(grid);
+    }
+  }
+}
+
+/* -- Queue tab -- */
+function renderQueueTab(panel, mid) {
+  var m = players[mid];
+  var playing = m.state === 'playing';
+
+  var list = el('div', 'queue-list');
+  MOCK_QUEUE.forEach(function(item, i) {
+    var row = el('div', 'queue-item' + (i === 0 ? ' now-playing' : ''));
+
+    /* Album art thumbnail */
+    var art = el('div', 'queue-art');
+    if (item.art) {
+      var img = document.createElement('img');
+      img.src = item.art;
+      img.alt = '';
+      img.loading = 'lazy';
+      art.appendChild(img);
+    } else {
+      art.appendChild(mdi('mdi-music-note'));
+    }
+    row.appendChild(art);
+
+    /* Track info */
+    var info = el('div', 'queue-info');
+    var title = el('span', 'queue-title');
+    title.appendChild(marqueeEl(item.title, 22));
+    info.appendChild(title);
+    var artist = el('span', 'queue-artist');
+    artist.textContent = item.artist;
+    info.appendChild(artist);
+    row.appendChild(info);
+
+    /* Now-playing: EQ bars + skip button */
+    if (i === 0) {
+      if (playing) {
+        var eqBars = el('div', 'eq-bars');
+        for (var b = 0; b < 3; b++) eqBars.appendChild(document.createElement('span'));
+        row.appendChild(eqBars);
+      }
+      var skipBtn = el('button', 'btn-icon xs');
+      skipBtn.setAttribute('aria-label', 'Passer');
+      skipBtn.appendChild(mdi('mdi-skip-next'));
+      skipBtn.addEventListener('click', function(e) { e.stopPropagation(); });
+      row.appendChild(skipBtn);
+    }
+
+    list.appendChild(row);
+  });
+  panel.appendChild(list);
+}
+
+/* -- Interactions -- */
+function dashPlay() {
+  var rooms = getActiveRooms();
+  if (rooms.length === 0) return;
+  if (_roomIndex >= rooms.length) _roomIndex = 0;
+  var mid = rooms[_roomIndex];
+  var m = players[mid];
+  if (m.state === 'playing') {
+    m.group_members.forEach(function(id) { players[id].state = 'paused'; });
+  } else if (m.state === 'paused' || m.state === 'buffering') {
+    m.group_members.forEach(function(id) { players[id].state = 'playing'; });
+  }
+  renderDashboard();
+}
+
+function dashSkip(dir) {
+  /* placeholder for skip prev/next */
+}
+
+/* Tap / long-press / swipe on hero card */
+function initDashGestures() {
+  var hero = document.getElementById('dash-hero');
+  var sx = 0, sy = 0, st = 0, lp = false, swipeFired = false;
+
+  hero.addEventListener('pointerdown', function(e) {
+    if (e.target.closest('button')) return;
+    sx = e.clientX; sy = e.clientY; st = Date.now();
+    lp = false; swipeFired = false;
+    _dashLPTimer = setTimeout(function() {
+      lp = true; dashFoldOpen = !dashFoldOpen;
+      if (!dashFoldOpen) _foldTab = 'controls';
+      renderDashboard();
+    }, 500);
+  });
+
+  hero.addEventListener('pointermove', function(e) {
+    if (lp || swipeFired) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) clearTimeout(_dashLPTimer);
+  });
+
+  hero.addEventListener('pointerup', function(e) {
+    clearTimeout(_dashLPTimer);
+    if (lp) return;
+    var dx = e.clientX - sx, elapsed = Date.now() - st;
+    var rooms = getActiveRooms();
+
+    /* Swipe detection (multi-room) — animated */
+    if (rooms.length > 1 && Math.abs(dx) > 50 && elapsed < 500) {
+      swipeFired = true;
+      var dir = dx < 0 ? 'left' : 'right';
+      var newIdx = dx < 0
+        ? (_roomIndex + 1) % rooms.length
+        : (_roomIndex - 1 + rooms.length) % rooms.length;
+      swipeRoom(dir, newIdx);
+      return;
+    }
+
+    /* Tap -> play/pause */
+    if (elapsed < 300 && Math.abs(dx) < 10 && !e.target.closest('button')) {
+      dashPlay();
+    }
+  });
+
+  hero.addEventListener('pointercancel', function() {
+    clearTimeout(_dashLPTimer);
+  });
+
+  /* Navigation arrows — animated */
+  document.getElementById('dash-nav-left').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var rooms = getActiveRooms();
+    if (rooms.length <= 1) return;
+    var newIdx = (_roomIndex - 1 + rooms.length) % rooms.length;
+    swipeRoom('right', newIdx);
+  });
+
+  document.getElementById('dash-nav-right').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var rooms = getActiveRooms();
+    if (rooms.length <= 1) return;
+    var newIdx = (_roomIndex + 1) % rooms.length;
+    swipeRoom('left', newIdx);
+  });
+}
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+
+function setTime(time, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.body.setAttribute('data-time', time);
+}
+
+function setGlobal(state, btn) {
+  btn.parentElement.querySelectorAll('.demo-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (state === 'all-on') {
+    Object.keys(players).forEach(function(id) {
+      players[id].state = 'playing';
+      if (!players[id].title) { players[id].title = 'En attente...'; players[id].artist = ''; players[id].album = ''; players[id].art = 'default'; }
+    });
+  } else if (state === 'all-off') {
+    Object.keys(players).forEach(function(id) {
+      players[id].state = 'idle';
+      players[id].title = null; players[id].artist = null; players[id].album = null; players[id].art = null;
+      players[id].progress = 0; players[id].duration = 0; players[id].elapsed = 0;
+      players[id].group_members = [id];
+    });
+  } else {
+    /* Reset to initial partial state */
+    players.salon = { state: 'playing', volume: 45, muted: false, shuffle: false, repeat: 'off', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', art: 'after-hours', source: 'Spotify', sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 67, duration: 200, elapsed: 134, group_members: ['salon', 'cuisine'] };
+    players.cuisine = { state: 'playing', volume: 30, muted: false, shuffle: false, repeat: 'off', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', art: 'after-hours', source: 'Spotify', sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 67, duration: 200, elapsed: 134, group_members: players.salon.group_members };
+    players.chambre = { state: 'playing', volume: 35, muted: false, shuffle: true, repeat: 'all', title: 'Bohemian Rhapsody', artist: 'Queen', album: 'A Night at the Opera', art: 'opera', source: 'Spotify', sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 23, duration: 355, elapsed: 82, group_members: ['chambre'] };
+    players.bureau = { state: 'paused', volume: 50, muted: false, shuffle: false, repeat: 'off', title: 'Lo-fi Study Beats', artist: 'ChilledCow', album: null, art: 'lofi', source: 'Spotify', sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 44, duration: 180, elapsed: 79, group_members: ['bureau'] };
+    players.sdb = { state: 'idle', volume: 20, muted: false, shuffle: false, repeat: 'off', title: null, artist: null, album: null, art: null, source: null, sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 0, duration: 0, elapsed: 0, group_members: ['sdb'] };
+    players.tv_salon = { state: 'playing', volume: 40, muted: false, shuffle: false, repeat: 'off', title: 'Stranger Things', artist: null, album: null, art: 'stranger', source: 'HDMI 1', sound_mode: null, app_name: 'Netflix', media_series_title: 'Stranger Things', media_season: 4, media_episode: 7, progress: 55, duration: 3600, elapsed: 1980, group_members: ['tv_salon'] };
+    players.ampli_salon = { state: 'off', volume: 35, muted: false, shuffle: false, repeat: 'off', title: null, artist: null, album: null, art: null, source: 'TV', sound_mode: 'Surround', app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 0, duration: 0, elapsed: 0, group_members: ['ampli_salon'] };
+    players.nest_cuisine = { state: 'buffering', volume: 25, muted: false, shuffle: false, repeat: 'off', title: 'France Inter', artist: 'Radio', album: null, art: 'radio', source: null, sound_mode: null, app_name: null, media_series_title: null, media_season: null, media_episode: null, progress: 0, duration: 0, elapsed: 0, group_members: ['nest_cuisine'] };
+  }
+  _roomIndex = 0;
+  _foldTab = 'controls';
+  renderDashboard();
+}
+
+/* -- Init -- */
+renderDashboard();
+initDashGestures();
+</script>
+</body>
+</html>

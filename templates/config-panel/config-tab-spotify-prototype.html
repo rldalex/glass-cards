@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Spotify — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+      --c-spotify: #1db954;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #1a5c36; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #1db954; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview Spotify card ── */
+    .preview-spotify {
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(29,185,84,0.12) 0%, rgba(0,0,0,0.4) 60%, rgba(29,185,84,0.06) 100%);
+      border: 1px solid rgba(29,185,84,0.15);
+      overflow: hidden;
+    }
+    .preview-sp-now {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+    .preview-sp-art {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, rgba(29,185,84,0.3), rgba(29,185,84,0.08));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(29,185,84,0.2);
+    }
+    .preview-sp-art i {
+      font-size: 20px;
+      color: var(--c-spotify);
+      opacity: 0.7;
+    }
+    .preview-sp-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .preview-sp-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t1);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .preview-sp-artist {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+    .preview-sp-progress {
+      padding: 0 12px 8px;
+    }
+    .preview-sp-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-sp-bar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 35%;
+      border-radius: 2px;
+      background: var(--c-spotify);
+    }
+    .preview-sp-speaker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px 8px;
+      border-top: 1px solid rgba(29,185,84,0.08);
+    }
+    .preview-sp-speaker i {
+      font-size: 12px;
+      color: var(--c-spotify);
+      opacity: 0.6;
+    }
+    .preview-sp-speaker span {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t3);
+    }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(29, 185, 84, 0.2);
+      border-color: rgba(29, 185, 84, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-spotify);
+      box-shadow: 0 0 8px rgba(29, 185, 84, 0.4);
+    }
+
+    /* ── Dropdown ── */
+    .dropdown {
+      position: relative;
+      padding: 0 4px;
+    }
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+    }
+    .dropdown-trigger:hover {
+      background: var(--s2);
+      border-color: var(--b3);
+    }
+    .dropdown-trigger i:first-child {
+      font-size: 16px;
+      color: var(--c-spotify);
+    }
+    .dropdown-trigger span {
+      flex: 1;
+      text-align: left;
+    }
+    .dropdown-trigger .arrow {
+      font-size: 18px;
+      color: var(--t4);
+      transition: transform 0.2s var(--ease-std);
+    }
+    .dropdown.open .dropdown-trigger .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 4px;
+      right: 4px;
+      margin-top: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+    }
+    .dropdown.open .dropdown-menu {
+      display: block;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.15s var(--ease-std);
+      text-align: left;
+    }
+    .dropdown-item:hover { background: var(--s2); }
+    .dropdown-item.active {
+      background: rgba(29, 185, 84, 0.08);
+      color: var(--c-spotify);
+    }
+    .dropdown-item i {
+      font-size: 14px;
+      color: var(--t4);
+    }
+    .dropdown-item.active i {
+      color: var(--c-spotify);
+    }
+
+    /* ── Segmented control ── */
+    .segmented {
+      display: flex;
+      gap: 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      overflow: hidden;
+      margin: 0 4px;
+    }
+    .seg-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 12px;
+      border: none;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+      position: relative;
+    }
+    .seg-btn:hover { color: var(--t2); background: var(--s2); }
+    .seg-btn.active {
+      background: rgba(29, 185, 84, 0.12);
+      color: var(--c-spotify);
+    }
+    .seg-btn + .seg-btn {
+      border-left: 1px solid var(--b2);
+    }
+    .seg-btn i { font-size: 14px; }
+
+    /* ── Range slider ── */
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 4px;
+    }
+    .range-input {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--s3);
+      outline: none;
+      cursor: pointer;
+    }
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--c-spotify);
+      box-shadow: 0 0 8px rgba(29, 185, 84, 0.3);
+      cursor: pointer;
+      transition: transform 0.15s var(--ease-std);
+    }
+    .range-input::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    .range-input::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--c-spotify);
+      box-shadow: 0 0 8px rgba(29, 185, 84, 0.3);
+      border: none;
+      cursor: pointer;
+    }
+    .range-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c-spotify);
+      min-width: 24px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Item list (drag-reorder rows) ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-card {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s var(--ease-std), background 0.2s var(--ease-std);
+    }
+    .item-card + .item-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-row.disabled { opacity: 0.45; cursor: default; }
+    .item-row.dragging { opacity: 0.4; }
+    .item-row.drop-target {
+      background: rgba(29, 185, 84, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-spotify);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-handle i {
+      font-size: 16px;
+      color: var(--t4);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-spacer {
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn active">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back" onclick="alert('Retour vers General')">General</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Spotify</span>
+      </div>
+
+      <!-- ── Content (no folds, directly after breadcrumb) ── -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- ═══════════════════════════════════════
+             PREVIEW ENCART
+             ═══════════════════════════════════════ -->
+        <div class="preview-encart">
+          <div class="preview-label">Apercu</div>
+          <div class="preview-spotify" id="preview-card">
+            <div class="preview-sp-now">
+              <div class="preview-sp-art">
+                <i class="mdi mdi-music-note"></i>
+              </div>
+              <div class="preview-sp-info">
+                <div class="preview-sp-title">Titre du morceau</div>
+                <div class="preview-sp-artist">Artiste</div>
+              </div>
+              <i class="mdi mdi-spotify" style="font-size:18px;color:var(--c-spotify);opacity:0.5;flex-shrink:0;"></i>
+            </div>
+            <div class="preview-sp-progress">
+              <div class="preview-sp-bar">
+                <div class="preview-sp-bar-fill"></div>
+              </div>
+            </div>
+            <div class="preview-sp-speaker">
+              <i class="mdi mdi-speaker"></i>
+              <span>Salon</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             SUB-SECTION: Comportement
+             ═══════════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Comportement</div>
+          <div class="feature-list">
+            <button class="feature-row" role="switch" aria-checked="true" id="toggle-header"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                var isOn = tog.classList.contains('on');
+                this.setAttribute('aria-checked', isOn);
+                document.getElementById('preview-card').style.display = isOn ? '' : 'block';
+              ">
+              <div class="feature-icon" style="background:rgba(29,185,84,0.08);border-color:rgba(29,185,84,0.12);">
+                <i class="mdi mdi-page-layout-header" style="color:var(--c-spotify);"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Afficher le header</div>
+                <div class="feature-desc">Titre et icone Spotify au-dessus de la carte</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             SUB-SECTION: Entite
+             ═══════════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Entite</div>
+          <div class="section-desc">Entite media_player Spotify a utiliser pour la carte.</div>
+          <div class="dropdown" id="entity-dropdown">
+            <button class="dropdown-trigger" onclick="
+              var dd = document.getElementById('entity-dropdown');
+              dd.classList.toggle('open');
+            " aria-expanded="false" aria-haspopup="listbox">
+              <i class="mdi mdi-spotify"></i>
+              <span id="entity-selected">media_player.spotify</span>
+              <i class="mdi mdi-chevron-down arrow"></i>
+            </button>
+            <div class="dropdown-menu" role="listbox">
+              <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                document.querySelectorAll('#entity-dropdown .dropdown-item').forEach(function(i){i.classList.remove('active');i.setAttribute('aria-selected','false');});
+                this.classList.add('active');
+                this.setAttribute('aria-selected','true');
+                document.getElementById('entity-selected').textContent = 'media_player.spotify';
+                document.getElementById('entity-dropdown').classList.remove('open');
+              ">
+                <i class="mdi mdi-spotify"></i>
+                media_player.spotify
+              </button>
+              <button class="dropdown-item" role="option" aria-selected="false" onclick="
+                document.querySelectorAll('#entity-dropdown .dropdown-item').forEach(function(i){i.classList.remove('active');i.setAttribute('aria-selected','false');});
+                this.classList.add('active');
+                this.setAttribute('aria-selected','true');
+                document.getElementById('entity-selected').textContent = 'media_player.spotify_2';
+                document.getElementById('entity-dropdown').classList.remove('open');
+              ">
+                <i class="mdi mdi-speaker"></i>
+                media_player.spotify_2
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             SUB-SECTION: Tri
+             ═══════════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Tri</div>
+          <div class="section-desc">Ordre de tri des elements dans la carte Spotify.</div>
+          <div class="segmented" id="sort-control">
+            <button class="seg-btn active" onclick="
+              document.querySelectorAll('#sort-control .seg-btn').forEach(function(b){b.classList.remove('active');});
+              this.classList.add('active');
+            ">
+              <i class="mdi mdi-sort-clock-descending-outline"></i>
+              Plus recents
+            </button>
+            <button class="seg-btn" onclick="
+              document.querySelectorAll('#sort-control .seg-btn').forEach(function(b){b.classList.remove('active');});
+              this.classList.add('active');
+            ">
+              <i class="mdi mdi-sort-clock-ascending-outline"></i>
+              Plus anciens
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             SUB-SECTION: Nombre maximum
+             ═══════════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Nombre maximum</div>
+          <div class="section-desc">Nombre maximum d'elements affiches par section dans la carte.</div>
+          <div class="range-row">
+            <input type="range" class="range-input" min="1" max="20" value="10"
+              oninput="document.getElementById('range-val').textContent = this.value;">
+            <span class="range-value" id="range-val">10</span>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             SUB-SECTION: Speakers
+             ═══════════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Speakers (3)</div>
+          <div class="section-desc">Ordre et visibilite des speakers disponibles pour le cast. Glissez pour reorganiser.</div>
+          <div style="margin-top:4px;">
+            <div class="item-list" id="speaker-list">
+
+              <!-- Speaker 1: Salon (visible) -->
+              <div class="item-card" draggable="true"
+                ondragstart="this.classList.add('dragging'); event.dataTransfer.setData('text/plain', '0');"
+                ondragend="this.classList.remove('dragging'); document.querySelectorAll('#speaker-list .item-card').forEach(function(c){c.classList.remove('drop-target');});"
+                ondragover="event.preventDefault(); this.classList.add('drop-target');"
+                ondragleave="this.classList.remove('drop-target');"
+                ondrop="event.preventDefault(); this.classList.remove('drop-target');">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="item-info">
+                    <span class="item-name">Salon</span>
+                    <span class="item-meta">media_player.salon</span>
+                  </div>
+                  <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-card').querySelector('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Salon" role="switch" aria-checked="true"></button>
+                </div>
+              </div>
+
+              <!-- Speaker 2: Cuisine (visible) -->
+              <div class="item-card" draggable="true"
+                ondragstart="this.classList.add('dragging'); event.dataTransfer.setData('text/plain', '1');"
+                ondragend="this.classList.remove('dragging'); document.querySelectorAll('#speaker-list .item-card').forEach(function(c){c.classList.remove('drop-target');});"
+                ondragover="event.preventDefault(); this.classList.add('drop-target');"
+                ondragleave="this.classList.remove('drop-target');"
+                ondrop="event.preventDefault(); this.classList.remove('drop-target');">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="item-info">
+                    <span class="item-name">Cuisine</span>
+                    <span class="item-meta">media_player.cuisine</span>
+                  </div>
+                  <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-card').querySelector('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Cuisine" role="switch" aria-checked="true"></button>
+                </div>
+              </div>
+
+              <!-- Speaker 3: Chambre (hidden/disabled) -->
+              <div class="item-card">
+                <div class="item-row disabled">
+                  <span class="item-spacer"></span>
+                  <div class="item-info">
+                    <span class="item-name">Chambre</span>
+                    <span class="item-meta">media_player.chambre</span>
+                  </div>
+                  <button class="toggle" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-card').querySelector('.item-row').classList.toggle('disabled', !this.classList.contains('on')); if(this.classList.contains('on')){this.closest('.item-row').querySelector('.item-spacer')?.outerHTML='<span class=\'drag-handle\'><i class=\'mdi mdi-drag\'></i></span>'; this.closest('.item-card').setAttribute('draggable','true');}" aria-label="Visibilite Chambre" role="switch" aria-checked="false"></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Save bar ── -->
+        <div class="save-bar">
+          <button class="btn btn-ghost btn-sm" onclick="alert('Configuration reintialisee')">
+            <i class="mdi mdi-restore" style="font-size:14px;"></i>
+            Reinitialiser
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Close dropdown on outside click -->
+  <script>
+    document.addEventListener('click', function(e) {
+      var dd = document.getElementById('entity-dropdown');
+      if (dd && !dd.contains(e.target)) {
+        dd.classList.remove('open');
+      }
+    });
+  </script>
+
+</body>
+
+</html>

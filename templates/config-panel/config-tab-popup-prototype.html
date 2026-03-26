@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Popup — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview popup ── */
+    .preview-popup {
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--b2);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .preview-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .preview-popup-room-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: rgba(129, 140, 248, 0.1);
+      border: 1px solid rgba(129, 140, 248, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .preview-popup-room-icon i {
+      font-size: 14px;
+      color: var(--c-accent);
+    }
+    .preview-popup-room-name {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+    .preview-popup-close {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--s2);
+      flex-shrink: 0;
+    }
+    .preview-popup-close i {
+      font-size: 12px;
+      color: var(--t4);
+    }
+
+    /* Preview card slots */
+    .preview-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .preview-card-slot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      transition: opacity 0.2s;
+    }
+    .preview-card-slot i {
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .preview-card-slot-name {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--t2);
+      flex: 1;
+    }
+
+    /* Preview scene chips */
+    .preview-scenes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--b1);
+    }
+    .preview-scene-chip {
+      font-size: 8px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      color: var(--t3);
+    }
+
+    /* ── Item list (drag-reorder rows) ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-card {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s var(--ease-std), background 0.2s var(--ease-std);
+    }
+    .item-card + .item-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-row.disabled { opacity: 0.45; }
+    .item-row.dragging { opacity: 0.4; }
+    .item-row.drop-target {
+      background: rgba(129, 140, 248, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-accent);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-handle i {
+      font-size: 16px;
+      color: var(--t4);
+    }
+    .card-icon-box {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-icon-box i {
+      font-size: 15px;
+      color: var(--t3);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Tab content area ── */
+    .tab-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn active">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back">Avance</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Popup</span>
+      </div>
+
+      <!-- ── Tab content (no section folds) ── -->
+      <div class="tab-content">
+
+        <!-- ══════════════════════════════════
+             1. PREVIEW ENCART
+             ══════════════════════════════════ -->
+        <div class="preview-encart">
+          <div class="preview-label">Apercu</div>
+          <div class="preview-popup" id="preview-popup">
+            <!-- Header -->
+            <div class="preview-popup-header">
+              <div class="preview-popup-room-icon">
+                <i class="mdi mdi-sofa"></i>
+              </div>
+              <span class="preview-popup-room-name">Salon</span>
+              <div class="preview-popup-close">
+                <i class="mdi mdi-close"></i>
+              </div>
+            </div>
+
+            <!-- Card slots (visible cards only) -->
+            <div class="preview-cards" id="preview-cards">
+              <div class="preview-card-slot" data-card="light" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.1);">
+                <i class="mdi mdi-lightbulb-group" style="color:#fbbf24;"></i>
+                <span class="preview-card-slot-name">Lumieres</span>
+              </div>
+              <div class="preview-card-slot" data-card="cover" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.1);">
+                <i class="mdi mdi-window-shutter" style="color:#a78bfa;"></i>
+                <span class="preview-card-slot-name">Volets</span>
+              </div>
+              <div class="preview-card-slot" data-card="climate" style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.1);">
+                <i class="mdi mdi-thermostat" style="color:#60a5fa;"></i>
+                <span class="preview-card-slot-name">Climat</span>
+              </div>
+              <div class="preview-card-slot" data-card="fan" style="background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.1);">
+                <i class="mdi mdi-fan" style="color:#2dd4bf;"></i>
+                <span class="preview-card-slot-name">Ventilateurs</span>
+              </div>
+              <div class="preview-card-slot" data-card="media" style="background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.1);">
+                <i class="mdi mdi-speaker" style="color:#818cf8;"></i>
+                <span class="preview-card-slot-name">Media</span>
+              </div>
+            </div>
+
+            <!-- Scene chips -->
+            <div class="preview-scenes" id="preview-scenes">
+              <span class="preview-scene-chip" data-scene="cinema">Soiree cinema</span>
+              <span class="preview-scene-chip" data-scene="travail">Mode travail</span>
+              <span class="preview-scene-chip" data-scene="zen">Ambiance zen</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+             2. ORDRE DES CARTES (9)
+             ══════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Ordre des cartes (9)</div>
+          <div class="section-desc">Glissez pour reorganiser les cartes internes du popup. Desactivez pour masquer une carte.</div>
+          <div style="margin-top:4px;">
+            <div class="item-list" id="card-list">
+
+              <!-- 1. Lumieres (visible) -->
+              <div class="item-card" data-card-id="light" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.12);">
+                    <i class="mdi mdi-lightbulb-group" style="color:#fbbf24;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Lumieres</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleCardVisibility(this)" aria-label="Visibilite Lumieres"></button>
+                </div>
+              </div>
+
+              <!-- 2. Volets (visible) -->
+              <div class="item-card" data-card-id="cover" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.12);">
+                    <i class="mdi mdi-window-shutter" style="color:#a78bfa;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Volets</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleCardVisibility(this)" aria-label="Visibilite Volets"></button>
+                </div>
+              </div>
+
+              <!-- 3. Climat (visible) -->
+              <div class="item-card" data-card-id="climate" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(96,165,250,0.08);border-color:rgba(96,165,250,0.12);">
+                    <i class="mdi mdi-thermostat" style="color:#60a5fa;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Climat</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleCardVisibility(this)" aria-label="Visibilite Climat"></button>
+                </div>
+              </div>
+
+              <!-- 4. Ventilateurs (visible) -->
+              <div class="item-card" data-card-id="fan" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(45,212,191,0.08);border-color:rgba(45,212,191,0.12);">
+                    <i class="mdi mdi-fan" style="color:#2dd4bf;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Ventilateurs</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleCardVisibility(this)" aria-label="Visibilite Ventilateurs"></button>
+                </div>
+              </div>
+
+              <!-- 5. Media (visible) -->
+              <div class="item-card" data-card-id="media" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+                    <i class="mdi mdi-speaker" style="color:#818cf8;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Media</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleCardVisibility(this)" aria-label="Visibilite Media"></button>
+                </div>
+              </div>
+
+              <!-- 6. Spotify (hidden) -->
+              <div class="item-card" data-card-id="spotify" draggable="true">
+                <div class="item-row disabled">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(30,215,96,0.08);border-color:rgba(30,215,96,0.12);">
+                    <i class="mdi mdi-spotify" style="color:#1ed760;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Spotify</span>
+                  </div>
+                  <button class="toggle" onclick="toggleCardVisibility(this)" aria-label="Visibilite Spotify"></button>
+                </div>
+              </div>
+
+              <!-- 7. Presence (hidden) -->
+              <div class="item-card" data-card-id="presence" draggable="true">
+                <div class="item-row disabled">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(251,146,60,0.08);border-color:rgba(251,146,60,0.12);">
+                    <i class="mdi mdi-account-group" style="color:#fb923c;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Presence</span>
+                  </div>
+                  <button class="toggle" onclick="toggleCardVisibility(this)" aria-label="Visibilite Presence"></button>
+                </div>
+              </div>
+
+              <!-- 8. Camera (hidden) -->
+              <div class="item-card" data-card-id="camera_carousel" draggable="true">
+                <div class="item-row disabled">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.12);">
+                    <i class="mdi mdi-cctv" style="color:#f87171;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Camera</span>
+                  </div>
+                  <button class="toggle" onclick="toggleCardVisibility(this)" aria-label="Visibilite Camera"></button>
+                </div>
+              </div>
+
+              <!-- 9. Meteo (hidden) -->
+              <div class="item-card" data-card-id="weather" draggable="true">
+                <div class="item-row disabled">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(56,189,248,0.08);border-color:rgba(56,189,248,0.12);">
+                    <i class="mdi mdi-weather-partly-cloudy" style="color:#38bdf8;"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Meteo</span>
+                  </div>
+                  <button class="toggle" onclick="toggleCardVisibility(this)" aria-label="Visibilite Meteo"></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+             3. SCENES (4)
+             ══════════════════════════════════ -->
+        <div class="sub-section">
+          <div class="section-label">Scenes (4)</div>
+          <div class="section-desc">Glissez pour reorganiser les scenes. Desactivez pour masquer une scene du popup.</div>
+          <div style="margin-top:4px;">
+            <div class="item-list" id="scene-list">
+
+              <!-- Scene 1: Soiree cinema (visible) -->
+              <div class="item-card" data-scene-id="cinema" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+                    <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Soiree cinema</span>
+                    <span class="item-meta">scene.soiree_cinema</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleSceneVisibility(this)" aria-label="Visibilite Soiree cinema"></button>
+                </div>
+              </div>
+
+              <!-- Scene 2: Mode travail (visible) -->
+              <div class="item-card" data-scene-id="travail" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+                    <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Mode travail</span>
+                    <span class="item-meta">scene.mode_travail</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleSceneVisibility(this)" aria-label="Visibilite Mode travail"></button>
+                </div>
+              </div>
+
+              <!-- Scene 3: Ambiance zen (visible) -->
+              <div class="item-card" data-scene-id="zen" draggable="true">
+                <div class="item-row">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+                    <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Ambiance zen</span>
+                    <span class="item-meta">scene.ambiance_zen</span>
+                  </div>
+                  <button class="toggle on" onclick="toggleSceneVisibility(this)" aria-label="Visibilite Ambiance zen"></button>
+                </div>
+              </div>
+
+              <!-- Scene 4: Nuit (hidden) -->
+              <div class="item-card" data-scene-id="nuit" draggable="true">
+                <div class="item-row disabled">
+                  <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+                  <div class="card-icon-box" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+                    <i class="mdi mdi-palette" style="color:var(--c-accent);"></i>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">Nuit</span>
+                    <span class="item-meta">scene.nuit</span>
+                  </div>
+                  <button class="toggle" onclick="toggleSceneVisibility(this)" aria-label="Visibilite Nuit"></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+             4. SAVE BAR
+             ══════════════════════════════════ -->
+        <div class="save-bar">
+          <button class="btn btn-ghost btn-sm">
+            <i class="mdi mdi-restore" style="font-size:14px;"></i>
+            Reinitialiser
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ── Card metadata for preview rebuild ── */
+    var CARD_META = {
+      light:           { icon: 'mdi-lightbulb-group',        name: 'Lumieres',      bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.1)',  color: '#fbbf24' },
+      cover:           { icon: 'mdi-window-shutter',         name: 'Volets',        bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.1)', color: '#a78bfa' },
+      climate:         { icon: 'mdi-thermostat',             name: 'Climat',        bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.1)',  color: '#60a5fa' },
+      fan:             { icon: 'mdi-fan',                    name: 'Ventilateurs',  bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.1)',  color: '#2dd4bf' },
+      media:           { icon: 'mdi-speaker',                name: 'Media',         bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.1)', color: '#818cf8' },
+      spotify:         { icon: 'mdi-spotify',                name: 'Spotify',       bg: 'rgba(30,215,96,0.08)',   border: 'rgba(30,215,96,0.1)',   color: '#1ed760' },
+      presence:        { icon: 'mdi-account-group',          name: 'Presence',      bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.1)',  color: '#fb923c' },
+      camera_carousel: { icon: 'mdi-cctv',                  name: 'Camera',        bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.1)', color: '#f87171' },
+      weather:         { icon: 'mdi-weather-partly-cloudy',  name: 'Meteo',         bg: 'rgba(56,189,248,0.08)',  border: 'rgba(56,189,248,0.1)',  color: '#38bdf8' },
+    };
+
+    var SCENE_META = {
+      cinema:  'Soiree cinema',
+      travail: 'Mode travail',
+      zen:     'Ambiance zen',
+      nuit:    'Nuit',
+    };
+
+    /* ── Toggle card visibility ── */
+    function toggleCardVisibility(toggleBtn) {
+      toggleBtn.classList.toggle('on');
+      var row = toggleBtn.closest('.item-row');
+      row.classList.toggle('disabled');
+      rebuildPreview();
+    }
+
+    /* ── Toggle scene visibility ── */
+    function toggleSceneVisibility(toggleBtn) {
+      toggleBtn.classList.toggle('on');
+      var row = toggleBtn.closest('.item-row');
+      row.classList.toggle('disabled');
+      rebuildPreview();
+    }
+
+    /* ── Rebuild preview from current DOM state ── */
+    function rebuildPreview() {
+      var previewCards = document.getElementById('preview-cards');
+      var previewScenes = document.getElementById('preview-scenes');
+
+      /* Cards */
+      while (previewCards.firstChild) previewCards.removeChild(previewCards.firstChild);
+
+      var cardItems = document.querySelectorAll('#card-list .item-card');
+      cardItems.forEach(function(item) {
+        var cardId = item.getAttribute('data-card-id');
+        var toggle = item.querySelector('.toggle');
+        if (toggle.classList.contains('on')) {
+          var m = CARD_META[cardId];
+          var slot = document.createElement('div');
+          slot.className = 'preview-card-slot';
+          slot.setAttribute('data-card', cardId);
+          slot.style.background = m.bg;
+          slot.style.border = '1px solid ' + m.border;
+
+          var icon = document.createElement('i');
+          icon.className = 'mdi ' + m.icon;
+          icon.style.color = m.color;
+
+          var nameSpan = document.createElement('span');
+          nameSpan.className = 'preview-card-slot-name';
+          nameSpan.textContent = m.name;
+
+          slot.appendChild(icon);
+          slot.appendChild(nameSpan);
+          previewCards.appendChild(slot);
+        }
+      });
+
+      /* Scenes */
+      while (previewScenes.firstChild) previewScenes.removeChild(previewScenes.firstChild);
+
+      var sceneItems = document.querySelectorAll('#scene-list .item-card');
+      var hasVisibleScene = false;
+      sceneItems.forEach(function(item) {
+        var sceneId = item.getAttribute('data-scene-id');
+        var toggle = item.querySelector('.toggle');
+        if (toggle.classList.contains('on')) {
+          hasVisibleScene = true;
+          var chip = document.createElement('span');
+          chip.className = 'preview-scene-chip';
+          chip.setAttribute('data-scene', sceneId);
+          chip.textContent = SCENE_META[sceneId];
+          previewScenes.appendChild(chip);
+        }
+      });
+
+      previewScenes.style.display = hasVisibleScene ? '' : 'none';
+    }
+
+    /* ── Drag & drop ── */
+    var dragSrcEl = null;
+    var dragContext = null;
+
+    function initDragDrop(listId) {
+      var list = document.getElementById(listId);
+      var items = list.querySelectorAll('.item-card');
+
+      items.forEach(function(item) {
+        item.addEventListener('dragstart', function(e) {
+          dragSrcEl = this;
+          dragContext = listId;
+          this.querySelector('.item-row').classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+        });
+
+        item.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (dragSrcEl !== this && dragContext === listId) {
+            this.querySelector('.item-row').classList.add('drop-target');
+          }
+        });
+
+        item.addEventListener('dragleave', function() {
+          this.querySelector('.item-row').classList.remove('drop-target');
+        });
+
+        item.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.querySelector('.item-row').classList.remove('drop-target');
+
+          if (dragSrcEl !== this && dragContext === listId) {
+            var parent = this.parentNode;
+            var allItems = Array.prototype.slice.call(parent.querySelectorAll('.item-card'));
+            var fromIdx = allItems.indexOf(dragSrcEl);
+            var toIdx = allItems.indexOf(this);
+
+            if (fromIdx < toIdx) {
+              parent.insertBefore(dragSrcEl, this.nextSibling);
+            } else {
+              parent.insertBefore(dragSrcEl, this);
+            }
+            rebuildPreview();
+          }
+        });
+
+        item.addEventListener('dragend', function() {
+          this.querySelector('.item-row').classList.remove('dragging');
+          document.querySelectorAll('.item-row').forEach(function(r) {
+            r.classList.remove('drop-target');
+          });
+          dragSrcEl = null;
+          dragContext = null;
+        });
+      });
+    }
+
+    /* Init drag & drop for both lists */
+    initDragDrop('card-list');
+    initDragDrop('scene-list');
+  </script>
+
+</body>
+
+</html>

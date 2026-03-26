@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Weather — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+      --c-sky: #38bdf8;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview weather card ── */
+    .preview-weather-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .pw-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 6px;
+    }
+    .pw-card-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+    .pw-card-location {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--t3);
+    }
+
+    .preview-weather {
+      position: relative;
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      overflow: hidden;
+    }
+    .pw-tint {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    .pw-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Header row: temp + condition */
+    .pw-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pw-temp-block {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+    .pw-temp {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--t1);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .pw-temp-unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--t3);
+    }
+    .pw-cond-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .pw-cond-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pw-cond-icon {
+      font-size: 18px;
+      color: var(--c-sky);
+      filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
+    }
+    .pw-cond-text {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Metrics row */
+    .pw-metrics {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pw-metric {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-xs);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+    }
+    .pw-metric i {
+      font-size: 11px;
+      color: var(--t3);
+    }
+    .pw-metric-val {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t2);
+      font-variant-numeric: tabular-nums;
+    }
+    .pw-metric-unit {
+      font-size: 8px;
+      font-weight: 500;
+      color: var(--t4);
+    }
+
+    /* Daily forecast row */
+    .pw-forecast {
+      display: flex;
+      gap: 0;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid var(--b1);
+    }
+    .pw-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+    }
+    .pw-day-name {
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pw-day-name.today {
+      color: var(--c-sky);
+    }
+    .pw-day-icon {
+      font-size: 16px;
+      color: var(--t3);
+    }
+    .pw-day-temps {
+      display: flex;
+      gap: 3px;
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+    }
+    .pw-day-high {
+      font-weight: 600;
+      color: var(--t1);
+    }
+    .pw-day-low {
+      font-weight: 500;
+      color: var(--t4);
+    }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Dropdown ── */
+    .dropdown {
+      position: relative;
+      padding: 0 4px;
+    }
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+    }
+    .dropdown-trigger:hover {
+      background: var(--s3);
+      border-color: var(--b3);
+    }
+    .dropdown-trigger i:first-child {
+      font-size: 16px;
+      color: var(--c-sky);
+    }
+    .dropdown-trigger span {
+      flex: 1;
+      text-align: left;
+    }
+    .dropdown-trigger .arrow {
+      font-size: 18px;
+      color: var(--t3);
+      transition: transform 0.2s var(--ease-std);
+    }
+    .dropdown.open .dropdown-trigger {
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.06);
+    }
+    .dropdown.open .dropdown-trigger .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .dropdown.open .dropdown-menu {
+      display: flex;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.15s;
+      text-align: left;
+      width: 100%;
+    }
+    .dropdown-item:hover {
+      background: var(--s3);
+    }
+    .dropdown-item.active {
+      background: rgba(56, 189, 248, 0.08);
+      color: var(--c-sky);
+    }
+    .dropdown-item i {
+      font-size: 14px;
+      color: var(--t3);
+    }
+    .dropdown-item.active i {
+      color: var(--c-sky);
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Tab panel content ── */
+    .tab-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn active" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back">General</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Weather</span>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           WEATHER TAB CONTENT (no section folds)
+           ═══════════════════════════════════════ -->
+
+      <!-- ── Preview encart ── -->
+      <div class="preview-encart">
+        <div class="preview-label">Apercu</div>
+        <div class="preview-weather-wrap">
+          <!-- Card header -->
+          <div class="pw-card-header" id="pw-header">
+            <span class="pw-card-title">Meteo</span>
+            <span class="pw-card-location">weather.maison</span>
+          </div>
+          <!-- Card body -->
+          <div class="preview-weather glass">
+            <div class="pw-tint" style="background: radial-gradient(80% 40% at 75% 15%, rgba(56,189,248,0.13) 0%, transparent 70%);"></div>
+            <div class="pw-content">
+              <!-- Main: temp + condition -->
+              <div class="pw-main">
+                <div class="pw-temp-block">
+                  <span class="pw-temp">18</span>
+                  <span class="pw-temp-unit">&deg;C</span>
+                </div>
+                <div class="pw-cond-block">
+                  <div class="pw-cond-row">
+                    <i class="mdi mdi-weather-partly-cloudy pw-cond-icon"></i>
+                    <span class="pw-cond-text">Partiellement nuageux</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metrics -->
+              <div class="pw-metrics" id="pw-metrics">
+                <div class="pw-metric" data-key="humidity">
+                  <i class="mdi mdi-water-percent"></i>
+                  <span class="pw-metric-val">65</span>
+                  <span class="pw-metric-unit">%</span>
+                </div>
+                <div class="pw-metric" data-key="wind">
+                  <i class="mdi mdi-weather-windy"></i>
+                  <span class="pw-metric-val">12</span>
+                  <span class="pw-metric-unit">km/h</span>
+                </div>
+                <div class="pw-metric" data-key="pressure">
+                  <i class="mdi mdi-gauge"></i>
+                  <span class="pw-metric-val">1013</span>
+                  <span class="pw-metric-unit">hPa</span>
+                </div>
+                <div class="pw-metric" data-key="uv">
+                  <i class="mdi mdi-white-balance-sunny"></i>
+                  <span class="pw-metric-val">4</span>
+                  <span class="pw-metric-unit">UV</span>
+                </div>
+                <div class="pw-metric" data-key="sunrise" style="display:flex;">
+                  <i class="mdi mdi-weather-sunset-up"></i>
+                  <span class="pw-metric-val">07:12</span>
+                </div>
+                <div class="pw-metric" data-key="sunset" style="display:flex;">
+                  <i class="mdi mdi-weather-sunset-down"></i>
+                  <span class="pw-metric-val">19:42</span>
+                </div>
+              </div>
+
+              <!-- Daily forecast -->
+              <div class="pw-forecast" id="pw-forecast">
+                <div class="pw-day">
+                  <span class="pw-day-name today">Auj</span>
+                  <i class="mdi mdi-weather-partly-cloudy pw-day-icon"></i>
+                  <div class="pw-day-temps">
+                    <span class="pw-day-high">20&deg;</span>
+                    <span class="pw-day-low">14&deg;</span>
+                  </div>
+                </div>
+                <div class="pw-day">
+                  <span class="pw-day-name">Mar</span>
+                  <i class="mdi mdi-weather-sunny pw-day-icon"></i>
+                  <div class="pw-day-temps">
+                    <span class="pw-day-high">19&deg;</span>
+                    <span class="pw-day-low">15&deg;</span>
+                  </div>
+                </div>
+                <div class="pw-day">
+                  <span class="pw-day-name">Mer</span>
+                  <i class="mdi mdi-weather-cloudy pw-day-icon"></i>
+                  <div class="pw-day-temps">
+                    <span class="pw-day-high">18&deg;</span>
+                    <span class="pw-day-low">13&deg;</span>
+                  </div>
+                </div>
+                <div class="pw-day">
+                  <span class="pw-day-name">Jeu</span>
+                  <i class="mdi mdi-weather-rainy pw-day-icon"></i>
+                  <div class="pw-day-temps">
+                    <span class="pw-day-high">17&deg;</span>
+                    <span class="pw-day-low">12&deg;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab panel content ── -->
+      <div class="tab-panel" id="panel-weather">
+
+        <!-- ── Sub-section: Comportement ── -->
+        <div class="sub-section">
+          <div class="section-label">Comportement</div>
+          <div class="feature-list">
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                var isOn = tog.classList.contains('on');
+                this.setAttribute('aria-checked', isOn);
+                document.getElementById('pw-header').style.display = isOn ? '' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-page-layout-header"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Afficher le header</div>
+                <div class="feature-desc">Titre et localisation au-dessus de la carte</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Sub-section: Entite meteo ── -->
+        <div class="sub-section">
+          <div class="section-label">Entite meteo</div>
+          <div class="section-desc">Selectionnez l'entite weather de Home Assistant a utiliser pour la carte meteo.</div>
+          <div class="dropdown" id="weather-dropdown">
+            <button class="dropdown-trigger" onclick="this.closest('.dropdown').classList.toggle('open');" aria-expanded="false" aria-haspopup="listbox">
+              <i class="mdi mdi-weather-partly-cloudy"></i>
+              <span>weather.maison</span>
+              <i class="mdi mdi-chevron-down arrow"></i>
+            </button>
+            <div class="dropdown-menu" role="listbox">
+              <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                var dd = this.closest('.dropdown');
+                dd.querySelectorAll('.dropdown-item').forEach(function(i){i.classList.remove('active');i.setAttribute('aria-selected','false');});
+                this.classList.add('active');
+                this.setAttribute('aria-selected','true');
+                dd.querySelector('.dropdown-trigger span').textContent = 'weather.maison';
+                dd.classList.remove('open');
+              ">
+                <i class="mdi mdi-weather-partly-cloudy"></i>
+                weather.maison
+              </button>
+              <button class="dropdown-item" role="option" aria-selected="false" onclick="
+                var dd = this.closest('.dropdown');
+                dd.querySelectorAll('.dropdown-item').forEach(function(i){i.classList.remove('active');i.setAttribute('aria-selected','false');});
+                this.classList.add('active');
+                this.setAttribute('aria-selected','true');
+                dd.querySelector('.dropdown-trigger span').textContent = 'weather.openweathermap';
+                dd.classList.remove('open');
+              ">
+                <i class="mdi mdi-weather-partly-cloudy"></i>
+                weather.openweathermap
+              </button>
+              <button class="dropdown-item" role="option" aria-selected="false" onclick="
+                var dd = this.closest('.dropdown');
+                dd.querySelectorAll('.dropdown-item').forEach(function(i){i.classList.remove('active');i.setAttribute('aria-selected','false');});
+                this.classList.add('active');
+                this.setAttribute('aria-selected','true');
+                dd.querySelector('.dropdown-trigger span').textContent = 'weather.meteo_france';
+                dd.classList.remove('open');
+              ">
+                <i class="mdi mdi-weather-partly-cloudy"></i>
+                weather.meteo_france
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Sub-section: Metriques visibles ── -->
+        <div class="sub-section">
+          <div class="section-label">Metriques visibles</div>
+          <div class="section-desc">Choisissez les metriques a afficher sur la carte meteo.</div>
+          <div class="feature-list">
+
+            <!-- Humidite -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=humidity]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-water-percent"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Humidite</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- Vent -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=wind]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-weather-windy"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Vent</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- Pression -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=pressure]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-gauge"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Pression</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- UV -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=uv]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-sun-wireless-outline"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">UV</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- Visibilite (off by default) -->
+            <button class="feature-row" role="switch" aria-checked="false"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-eye-outline"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Visibilite</div>
+              </div>
+              <span class="toggle"></span>
+            </button>
+
+            <!-- Lever du soleil -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=sunrise]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-weather-sunset-up"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Lever du soleil</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- Coucher du soleil -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                var m = document.querySelector('#pw-metrics [data-key=sunset]');
+                if(m) m.style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-weather-sunset-down"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Coucher du soleil</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- ── Sub-section: Previsions ── -->
+        <div class="sub-section">
+          <div class="section-label">Previsions</div>
+          <div class="feature-list">
+
+            <!-- Previsions journalieres -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+                document.getElementById('pw-forecast').style.display = tog.classList.contains('on') ? 'flex' : 'none';
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-calendar-week"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Previsions journalieres</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+            <!-- Previsions horaires -->
+            <button class="feature-row" role="switch" aria-checked="true"
+              onclick="
+                var tog = this.querySelector('.toggle');
+                tog.classList.toggle('on');
+                this.setAttribute('aria-checked', tog.classList.contains('on'));
+              ">
+              <div class="feature-icon">
+                <i class="mdi mdi-clock-outline"></i>
+              </div>
+              <div class="feature-text">
+                <div class="feature-name">Previsions horaires</div>
+              </div>
+              <span class="toggle on"></span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- ── Save bar ── -->
+        <div class="save-bar">
+          <button class="btn btn-ghost btn-sm" onclick="
+            /* Reset all toggles to default */
+            document.querySelectorAll('#panel-weather .toggle').forEach(function(t, i) {
+              if (i === 4) { t.classList.remove('on'); } else { t.classList.add('on'); }
+            });
+            document.querySelectorAll('#panel-weather .feature-row').forEach(function(r, i) {
+              r.setAttribute('aria-checked', i === 4 ? 'false' : 'true');
+            });
+            /* Reset preview */
+            document.getElementById('pw-header').style.display = '';
+            document.querySelectorAll('#pw-metrics .pw-metric').forEach(function(m) { m.style.display = 'flex'; });
+            document.getElementById('pw-forecast').style.display = 'flex';
+            /* Reset dropdown */
+            var dd = document.getElementById('weather-dropdown');
+            dd.classList.remove('open');
+            dd.querySelector('.dropdown-trigger span').textContent = 'weather.maison';
+            dd.querySelectorAll('.dropdown-item').forEach(function(item, i) {
+              item.classList.toggle('active', i === 0);
+              item.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+            });
+          ">
+            <i class="mdi mdi-restore" style="font-size:14px;"></i>
+            Reinitialiser
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</body>
+
+</html>

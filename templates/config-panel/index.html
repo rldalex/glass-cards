@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Panel — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-back {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      color: var(--t2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      font-size: 18px;
+    }
+    .page-header-back:hover { background: var(--s3); color: var(--t1); }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Room / card grid ── */
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .room-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 8px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      font-family: inherit;
+      position: relative;
+    }
+    .room-card:hover { background: var(--s3); border-color: var(--b2); }
+    .room-card-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .room-card-icon i { font-size: 20px; color: var(--t3); }
+    .room-card-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t2);
+      text-align: center;
+    }
+    .room-card.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .room-card .badge-soon {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      background: rgba(129, 140, 248, 0.15);
+      color: var(--c-accent);
+    }
+
+    /* ── Dashboard card grid (extends room-card) ── */
+    .dash-card {
+      position: relative;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .dash-card.off {
+      opacity: 0.35;
+      border-style: dashed;
+    }
+    .dash-card.off .room-card-icon {
+      border-style: dashed;
+    }
+    .dash-card.dragging {
+      opacity: 0.25;
+      transform: scale(0.95);
+    }
+    .dash-card.drop-target {
+      border-color: var(--c-accent);
+      background: rgba(129, 140, 248, 0.06);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.15);
+    }
+
+    /* Toggle overlay on dashboard cards */
+    .dash-toggle {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 32px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      z-index: 2;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dash-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--t4);
+      transition: all 0.2s var(--ease-std);
+    }
+    .dash-toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .dash-toggle.on::after {
+      transform: translateX(14px);
+      background: var(--c-success);
+      box-shadow: 0 0 6px rgba(74, 222, 128, 0.4);
+    }
+
+    /* Drag handle on dashboard cards */
+    .dash-drag-hint {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: var(--t4);
+      opacity: 0;
+      transition: opacity 0.2s var(--ease-std);
+      pointer-events: none;
+    }
+    .dash-card:hover .dash-drag-hint { opacity: 0.6; }
+
+    /* Order badge */
+    .dash-order {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--s3);
+      border: 1px solid var(--b1);
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--t3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .dash-card.off .dash-order { display: none; }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview dashboard mini ── */
+    .preview-dashboard {
+      border-radius: var(--radius-md);
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--b1);
+      overflow: hidden;
+    }
+    .preview-ha-header {
+      height: 22px;
+      border: 2px dashed rgba(129, 140, 248, 0.2);
+      border-radius: var(--radius-xs);
+      margin: 6px 6px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .preview-ha-header-label {
+      font-size: 7px;
+      font-weight: 600;
+      color: rgba(129, 140, 248, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .preview-ha-header-hidden {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .preview-ha-header-hidden i {
+      font-size: 10px;
+      color: rgba(129, 140, 248, 0.3);
+    }
+    .preview-dashboard-body {
+      display: flex;
+      gap: 0;
+    }
+    .preview-sidebar {
+      width: 24px;
+      border-right: 2px dashed rgba(129, 140, 248, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 0;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .preview-sidebar-hidden {
+      margin-top: auto;
+    }
+    .preview-sidebar-hidden i {
+      font-size: 9px;
+      color: rgba(129, 140, 248, 0.3);
+    }
+    .preview-sidebar-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(129, 140, 248, 0.15);
+    }
+    .preview-dashboard-cards {
+      flex: 1;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .preview-card-mini {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 6px;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      transition: all 0.25s var(--ease-std);
+    }
+    .preview-card-mini i {
+      font-size: 10px;
+    }
+    .preview-card-mini span {
+      font-size: 7px;
+      font-weight: 600;
+      color: var(--t3);
+    }
+    .preview-card-mini.hidden {
+      display: none;
+    }
+    .preview-dashboard-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 5px 0;
+      background: var(--s1);
+      border-top: 1px solid var(--b1);
+    }
+    .preview-dashboard-navbar i {
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 16px;
+    }
+    .sub-section:first-child,
+    .sub-section.no-border {
+      margin-top: 0;
+    }
+    .sub-section + .sub-section {
+      padding-top: 16px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+      color: inherit;
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Select field ── */
+    .field-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Glass dropdown ── */
+    .dropdown {
+      position: relative;
+      width: 100%;
+      padding: 0 4px;
+    }
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+    }
+    .dropdown-trigger:hover {
+      background: var(--s2);
+      border-color: var(--b3);
+    }
+    .dropdown-trigger i:first-child {
+      font-size: 16px;
+      color: var(--t3);
+    }
+    .dropdown-trigger .dd-label {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .dropdown-trigger .dd-arrow {
+      font-size: 18px;
+      color: var(--t4);
+      transition: transform 0.2s var(--ease-std);
+    }
+    .dropdown.open .dropdown-trigger .dd-arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown.open .dropdown-trigger {
+      border-color: var(--c-accent);
+      background: var(--s2);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 4px;
+      right: 4px;
+      margin-top: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .dropdown.open .dropdown-menu {
+      display: block;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.15s var(--ease-std);
+      text-align: left;
+    }
+    .dropdown-item + .dropdown-item {
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+    .dropdown-item:hover { background: var(--s2); }
+    .dropdown-item.active {
+      background: rgba(129, 140, 248, 0.08);
+      color: var(--c-accent);
+    }
+    .dropdown-item i {
+      font-size: 14px;
+      color: var(--t4);
+    }
+    .dropdown-item.active i {
+      color: var(--c-accent);
+    }
+
+    /* ── Color picker row ── */
+    .color-swatches {
+      display: flex;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      padding: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: var(--t1); box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Placeholder for missing prototypes ── */
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 48px 16px;
+      text-align: center;
+    }
+    .placeholder i {
+      font-size: 40px;
+      color: var(--t4);
+    }
+    .placeholder-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .placeholder-desc {
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    /* ── Entity list (drag-reorder rows) ── */
+    .entity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 6px;
+    }
+    .entity-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 8px;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .entity-item:hover { background: var(--s1); }
+    .entity-item + .entity-item { border-top: 1px solid rgba(255,255,255,0.03); }
+    .entity-item.dragging { opacity: 0.3; }
+    .entity-item.drop-target {
+      background: rgba(129, 140, 248, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-accent);
+    }
+    .entity-item.off { opacity: 0.4; }
+    .entity-drag { flex-shrink: 0; color: var(--t4); font-size: 16px; cursor: grab; }
+    .entity-icon {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .entity-icon i { font-size: 15px; color: var(--t3); }
+    .entity-info { flex: 1; min-width: 0; }
+    .entity-name {
+      font-size: 12px; font-weight: 600; color: var(--t2);
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .entity-meta {
+      font-size: 10px; color: var(--t4);
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .entity-layout-chip {
+      font-size: 8px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      color: var(--t3);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      flex-shrink: 0;
+    }
+    .entity-layout-chip:hover { background: var(--s3); color: var(--t1); }
+
+    /* ── Range slider ── */
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+    }
+    .range-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--s3);
+      outline: none;
+    }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--c-accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(129, 140, 248, 0.4);
+    }
+    .range-value {
+      font-size: 11px; font-weight: 700;
+      color: var(--t2);
+      min-width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Text input ── */
+    .text-input {
+      width: 100%;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      border-radius: var(--radius-sm);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.2s var(--ease-std);
+    }
+    .text-input:focus { border-color: var(--c-accent); }
+    .text-input::placeholder { color: var(--t4); }
+
+    /* ── Chip group / Segmented ── */
+    .chip-group {
+      display: flex;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .chip-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .chip-btn:hover { background: var(--s2); color: var(--t2); }
+    .chip-btn.active {
+      background: rgba(129, 140, 248, 0.12);
+      border-color: rgba(129, 140, 248, 0.25);
+      color: var(--c-accent);
+    }
+    .chip-btn i { font-size: 14px; }
+
+    .segmented-group {
+      display: flex;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      overflow: hidden;
+    }
+    .seg-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 7px 8px;
+      border: none;
+      background: var(--s1);
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .seg-btn + .seg-btn { border-left: 1px solid var(--b2); }
+    .seg-btn:hover { background: var(--s2); }
+    .seg-btn.active {
+      background: rgba(129, 140, 248, 0.12);
+      color: var(--c-accent);
+    }
+    .seg-btn i { font-size: 13px; }
+
+    /* ── Person list (expandable) ── */
+    .person-item {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: background 0.2s var(--ease-std);
+    }
+    .person-item + .person-item { border-top: 1px solid rgba(255,255,255,0.03); }
+    .person-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      outline: none;
+    }
+    .person-header:hover { background: var(--s1); }
+    .person-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(129, 140, 248, 0.15);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--c-accent);
+      flex-shrink: 0;
+    }
+    .person-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease-out);
+    }
+    .person-fold.open { grid-template-rows: 1fr; }
+    .person-fold-inner {
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s var(--ease-std), visibility 0.2s var(--ease-std);
+    }
+    .person-fold.open .person-fold-inner {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0.1s;
+    }
+    .person-fold-content {
+      padding: 4px 8px 10px 46px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .person-sensor-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .person-sensor-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t4);
+    }
+    .person-sensor-select {
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      border-radius: var(--radius-xs);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 5px 8px;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+    }
+    .person-sensor-select:hover { border-color: var(--b3); background: var(--s3); }
+
+    /* ── Fold separator (reuse) ── */
+    .fold-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--c-accent), transparent);
+      opacity: 0;
+      transition: opacity 0.35s var(--ease-out);
+      margin: 0 8px;
+    }
+    .fold-sep.visible { opacity: 0.3; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="page-header-back" aria-label="Retour">
+          <i class="mdi mdi-chevron-left"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- Glass panel -->
+    <div class="glass config-panel">
+      <div class="panel-layout">
+        <!-- Top nav -->
+        <div class="top-nav" id="top-nav"></div>
+
+        <!-- Breadcrumb (hidden when on grid) -->
+        <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
+
+        <!-- Content area -->
+        <div id="content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════
+    //  DATA
+    // ══════════════════════════════════════════════
+
+    var NAV = { section: 'rooms', subSection: null, roomId: null };
+
+    var ROOMS = [
+      { id: 'salon', name: 'Salon', icon: 'mdi:sofa' },
+      { id: 'cuisine', name: 'Cuisine', icon: 'mdi:silverware-fork-knife' },
+      { id: 'chambre', name: 'Chambre', icon: 'mdi:bed' },
+      { id: 'bureau', name: 'Bureau', icon: 'mdi:desk' },
+      { id: 'salle_de_bain', name: 'Salle de bain', icon: 'mdi:shower' }
+    ];
+
+    var ROOM_CARDS = [
+      { id: 'light', name: 'Lumieres', icon: 'mdi:lightbulb-group', color: 'var(--c-warning)' },
+      { id: 'media', name: 'Media', icon: 'mdi:speaker', color: 'var(--c-accent)' },
+      { id: 'climate', name: 'Climat', icon: 'mdi:thermostat', color: 'var(--c-info)' },
+      { id: 'fan', name: 'Ventilateurs', icon: 'mdi:fan', color: '#22d3ee' },
+      { id: 'cover', name: 'Volets', icon: 'mdi:window-shutter', color: 'var(--c-purple)' },
+      { id: 'vacuum', name: 'Aspirateur', icon: 'mdi:robot-vacuum', color: 'var(--c-success)', disabled: true }
+    ];
+
+    // Dashboard cards — order matters, toggled on/off
+    var DASHBOARD_CARDS = [
+      { id: 'title',    name: 'Titre',         icon: 'mdi:format-title',           color: 'var(--c-accent)',  enabled: true },
+      { id: 'navbar',   name: 'Navbar',         icon: 'mdi:dock-bottom',            color: 'var(--c-purple)',  enabled: true },
+      { id: 'light',    name: 'Lumieres',       icon: 'mdi:lightbulb-group',        color: 'var(--c-warning)', enabled: true },
+      { id: 'weather',  name: 'Meteo',          icon: 'mdi:weather-partly-cloudy',  color: 'var(--c-info)',    enabled: true },
+      { id: 'cover',    name: 'Volets',         icon: 'mdi:window-shutter',         color: 'var(--c-purple)',  enabled: true },
+      { id: 'climate',  name: 'Climat',         icon: 'mdi:thermostat',             color: 'var(--c-info)',    enabled: true },
+      { id: 'fan',      name: 'Ventilateurs',   icon: 'mdi:fan',                    color: '#22d3ee',          enabled: true },
+      { id: 'media',    name: 'Media',          icon: 'mdi:speaker',                color: 'var(--c-accent)',  enabled: true },
+      { id: 'spotify',  name: 'Spotify',        icon: 'mdi:spotify',                color: '#1db954',          enabled: true },
+      { id: 'presence', name: 'Presence',        icon: 'mdi:account-group',          color: 'var(--c-accent)',  enabled: false },
+      { id: 'camera',   name: 'Camera',         icon: 'mdi:cctv',                   color: 'var(--c-alert)',   enabled: false }
+    ];
+
+    var ADVANCED = [
+      { id: 'orphans',     name: 'Entit\u00e9s orphelines', icon: 'mdi:puzzle-outline' },
+      { id: 'popup',       name: 'Popup',                   icon: 'mdi:card-multiple-outline' },
+      { id: 'reconfigure', name: 'Reconfigurer',            icon: 'mdi:refresh', disabled: true },
+      { id: 'theme',       name: 'Theme',                   icon: 'mdi:palette', disabled: true }
+    ];
+
+    // Card configuration definitions — faithful to individual prototypes
+    var CARD_CONFIGS = {
+      title: {
+        label: 'Titre',
+        sections: [
+          { label: 'Titre', settings: [
+            { type: 'text', id: 'title_text', name: 'Titre principal', desc: 'Nom affiche sur la carte', value: 'Maison', placeholder: 'Nom de la maison...' }
+          ]},
+          { label: 'Sources', desc: 'Modes pilotes par des entites HA (input_select, scenes...)', settings: [
+            { type: 'entity_list', id: 'sources', items: [
+              { name: 'Mode maison', meta: 'input_select.house_mode', icon: 'mdi:home-variant', enabled: true, layout: 'full' },
+              { name: 'Scene salon', meta: 'scene.salon_ambiance', icon: 'mdi:lightbulb-group', enabled: true, layout: 'compact' }
+            ]}
+          ]}
+        ]
+      },
+      navbar: {
+        label: 'Navbar',
+        sections: [
+          { label: 'Indicateurs', settings: [
+            { type: 'toggle', id: 'show_lights', name: 'Afficher lumieres', desc: 'Indicateur lumineux sur les pieces allumees', value: true, icon: 'mdi:lightbulb-on-outline' },
+            { type: 'toggle', id: 'show_temp', name: 'Afficher temperature', desc: 'Badge de temperature sur chaque piece', value: true, icon: 'mdi:thermometer' },
+            { type: 'toggle', id: 'show_humidity', name: 'Afficher humidite', desc: 'Badge d\'humidite si seuil depasse', value: true, icon: 'mdi:water-percent' },
+            { type: 'toggle', id: 'show_media', name: 'Afficher media', desc: 'Indicateur de lecture multimedia en cours', value: false, icon: 'mdi:speaker' }
+          ]},
+          { label: 'Tri', settings: [
+            { type: 'toggle', id: 'auto_sort', name: 'Tri automatique', desc: 'Trie les pieces par activite', value: true, icon: 'mdi:sort-variant' }
+          ]},
+          { label: 'Seuils', settings: [
+            { type: 'range', id: 'temp_min', name: 'Temperature min', desc: 'Seuil bas pour alerte temperature', value: 18, min: 10, max: 25, unit: '\u00b0C' },
+            { type: 'range', id: 'temp_max', name: 'Temperature max', desc: 'Seuil haut pour alerte temperature', value: 26, min: 20, max: 35, unit: '\u00b0C' },
+            { type: 'range', id: 'humidity_max', name: 'Humidite max', desc: 'Seuil d\'alerte humidite', value: 65, min: 40, max: 90, unit: '%' }
+          ]},
+          { label: 'Pieces', desc: 'Ordre et visibilite des pieces dans la navbar. Glissez pour reorganiser.', settings: [
+            { type: 'entity_list', id: 'rooms', items: [
+              { name: 'Salon', meta: '16 entites', icon: 'mdi:sofa', enabled: true },
+              { name: 'Cuisine', meta: '8 entites', icon: 'mdi:silverware-fork-knife', enabled: true },
+              { name: 'Chambre', meta: '10 entites', icon: 'mdi:bed', enabled: true },
+              { name: 'Bureau', meta: '6 entites', icon: 'mdi:desk', enabled: true },
+              { name: 'Salle de bain', meta: '4 entites', icon: 'mdi:shower', enabled: true }
+            ]}
+          ]}
+        ]
+      },
+      light: {
+        label: 'Lumieres',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]}
+        ]
+      },
+      weather: {
+        label: 'Meteo',
+        sections: [
+          { label: 'Entite', settings: [
+            { type: 'select', id: 'entity', name: 'Entite meteo', desc: 'Source des donnees meteorologiques', value: 'weather.maison', options: [
+              { value: 'weather.maison', label: 'weather.maison' },
+              { value: 'weather.openweathermap', label: 'weather.openweathermap' },
+              { value: 'weather.meteo_france', label: 'weather.meteo_france' }
+            ]}
+          ]},
+          { label: 'Metriques visibles', settings: [
+            { type: 'toggle', id: 'show_humidity', name: 'Humidite', desc: 'Taux d\'humidite actuel', value: true, icon: 'mdi:water-percent' },
+            { type: 'toggle', id: 'show_wind', name: 'Vent', desc: 'Vitesse et direction du vent', value: true, icon: 'mdi:weather-windy' },
+            { type: 'toggle', id: 'show_pressure', name: 'Pression', desc: 'Pression atmospherique', value: true, icon: 'mdi:gauge' },
+            { type: 'toggle', id: 'show_uv', name: 'UV', desc: 'Indice UV', value: true, icon: 'mdi:sun-wireless-outline' },
+            { type: 'toggle', id: 'show_visibility', name: 'Visibilite', desc: 'Distance de visibilite', value: false, icon: 'mdi:eye-outline' },
+            { type: 'toggle', id: 'show_sunrise', name: 'Lever du soleil', desc: 'Heure de lever du soleil', value: true, icon: 'mdi:weather-sunset-up' },
+            { type: 'toggle', id: 'show_sunset', name: 'Coucher du soleil', desc: 'Heure de coucher du soleil', value: true, icon: 'mdi:weather-sunset-down' }
+          ]},
+          { label: 'Previsions', settings: [
+            { type: 'toggle', id: 'show_daily', name: 'Previsions journalieres', desc: 'Previsions sur les prochains jours', value: true, icon: 'mdi:calendar-week' },
+            { type: 'toggle', id: 'show_hourly', name: 'Previsions horaires', desc: 'Previsions heure par heure', value: true, icon: 'mdi:clock-outline' }
+          ]}
+        ]
+      },
+      cover: {
+        label: 'Volets',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]},
+          { label: 'Volets du dashboard', desc: 'Volets visibles sur la carte dashboard. Glissez pour reorganiser.', settings: [
+            { type: 'entity_list', id: 'dashboard_covers', items: [
+              { name: 'Volet salon fenetre', meta: 'cover.salon_fenetre', icon: 'mdi:window-shutter', enabled: true },
+              { name: 'Volet salon baie', meta: 'cover.salon_baie', icon: 'mdi:window-shutter-open', enabled: true },
+              { name: 'Volet cuisine', meta: 'cover.cuisine_fenetre', icon: 'mdi:window-shutter', enabled: true },
+              { name: 'Volet chambre', meta: 'cover.chambre_fenetre', icon: 'mdi:window-shutter', enabled: true },
+              { name: 'Volet bureau', meta: 'cover.bureau_fenetre', icon: 'mdi:window-shutter', enabled: false },
+              { name: 'Store terrasse', meta: 'cover.salon_store', icon: 'mdi:storefront-outline', enabled: false }
+            ]}
+          ]}
+        ]
+      },
+      climate: {
+        label: 'Climat',
+        sections: [
+          { label: 'Mode d\'affichage popup', settings: [
+            { type: 'chip_group', id: 'layout_mode', name: 'Layout', options: [
+              { value: 'vertical', label: 'Vertical', icon: 'mdi:view-sequential' },
+              { value: 'horizontal', label: 'Horizontal', icon: 'mdi:view-parallel' },
+              { value: 'compact', label: 'Compact', icon: 'mdi:view-comfy' }
+            ], value: 'vertical' }
+          ]},
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]}
+        ]
+      },
+      fan: {
+        label: 'Ventilateurs',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]}
+        ]
+      },
+      media: {
+        label: 'Media',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]}
+        ]
+      },
+      spotify: {
+        label: 'Spotify',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et icone Spotify au-dessus de la carte', value: true, icon: 'mdi:page-layout-header' }
+          ]},
+          { label: 'Entite', settings: [
+            { type: 'select', id: 'entity', name: 'Media player', desc: 'Entite Spotify Connect', value: 'media_player.spotify', options: [
+              { value: 'media_player.spotify', label: 'media_player.spotify' },
+              { value: 'media_player.spotify_2', label: 'media_player.spotify_2' }
+            ]}
+          ]},
+          { label: 'Tri', settings: [
+            { type: 'segmented', id: 'sort', name: 'Ordre', options: [
+              { value: 'recent', label: 'Plus recents', icon: 'mdi:sort-clock-descending-outline' },
+              { value: 'oldest', label: 'Plus anciens', icon: 'mdi:sort-clock-ascending-outline' }
+            ], value: 'recent' }
+          ]},
+          { label: 'Affichage', settings: [
+            { type: 'range', id: 'max_items', name: 'Nombre maximum', desc: 'Nombre d\'elements affiches', value: 10, min: 1, max: 20, unit: '' }
+          ]},
+          { label: 'Speakers', desc: 'Ordre et visibilite des enceintes Spotify Connect.', settings: [
+            { type: 'entity_list', id: 'speakers', items: [
+              { name: 'Salon', meta: 'media_player.sonos_salon', icon: 'mdi:speaker', enabled: true },
+              { name: 'Cuisine', meta: 'media_player.sonos_cuisine', icon: 'mdi:speaker', enabled: true },
+              { name: 'Chambre', meta: 'media_player.sonos_chambre', icon: 'mdi:speaker', enabled: true }
+            ]}
+          ]}
+        ]
+      },
+      presence: {
+        label: 'Presence',
+        sections: [
+          { label: 'Personnes', desc: 'Configurez les capteurs et notifications de chaque membre.', settings: [
+            { type: 'person_list', id: 'persons', items: [
+              { name: 'Alexandre', entity: 'person.alexandre', sensors: [
+                { label: 'Capteur smartphone', value: 'sensor.phone_alex_activity', options: ['Auto-detection', 'sensor.phone_alex_activity', 'sensor.phone_alex_wifi'] },
+                { label: 'Service notification', value: 'notify.mobile_app_alex', options: ['Auto-detection', 'notify.mobile_app_alex', 'notify.alexa_media'] },
+                { label: 'Capteur conduite', value: 'sensor.phone_alex_driving', options: ['Auto-detection', 'sensor.phone_alex_driving', 'sensor.phone_alex_bluetooth'] }
+              ]},
+              { name: 'Marie', entity: 'person.marie', sensors: [
+                { label: 'Capteur smartphone', value: 'sensor.phone_marie_activity', options: ['Auto-detection', 'sensor.phone_marie_activity'] },
+                { label: 'Service notification', value: 'notify.mobile_app_marie', options: ['Auto-detection', 'notify.mobile_app_marie'] },
+                { label: 'Capteur conduite', value: 'Auto-detection', options: ['Auto-detection', 'sensor.phone_marie_driving'] }
+              ]},
+              { name: 'Lucas', entity: 'person.lucas', sensors: [
+                { label: 'Capteur smartphone', value: 'Auto-detection', options: ['Auto-detection'] },
+                { label: 'Service notification', value: 'Auto-detection', options: ['Auto-detection'] },
+                { label: 'Capteur conduite', value: 'Auto-detection', options: ['Auto-detection'] }
+              ]}
+            ]}
+          ]}
+        ]
+      },
+      camera: {
+        label: 'Camera',
+        sections: [
+          { label: 'Comportement', settings: [
+            { type: 'toggle', id: 'show_header', name: 'Afficher le header', desc: 'Titre et compteur au-dessus du carousel', value: true, icon: 'mdi:page-layout-header' },
+            { type: 'toggle', id: 'auto_cycle', name: 'Cycle automatique', desc: 'Defilement automatique entre les cameras', value: true, icon: 'mdi:autorenew' }
+          ]},
+          { label: 'Intervalle', settings: [
+            { type: 'range', id: 'cycle_interval', name: 'Intervalle du cycle', desc: 'Duree entre chaque changement de camera', value: 10, min: 3, max: 60, unit: 's' }
+          ]},
+          { label: 'Cameras', desc: 'Ordre et visibilite des cameras.', settings: [
+            { type: 'entity_list', id: 'cameras', items: [
+              { name: 'Entree', meta: 'camera.entree', icon: 'mdi:cctv', enabled: true },
+              { name: 'Jardin', meta: 'camera.jardin', icon: 'mdi:cctv', enabled: true },
+              { name: 'Garage', meta: 'camera.garage', icon: 'mdi:cctv', enabled: true }
+            ]}
+          ]}
+        ]
+      },
+      // Advanced items
+      orphans: {
+        label: 'Entit\u00e9s orphelines',
+        sections: [
+          { label: 'Entites non assignees', desc: 'Entites detectees mais non rattachees a une piece.', settings: [
+            { type: 'entity_list', id: 'orphans', items: [
+              { name: 'Detecteur mouvement', meta: 'binary_sensor.motion_garage', icon: 'mdi:motion-sensor', enabled: true, room: 'Non assigne' },
+              { name: 'Prise connectee', meta: 'switch.prise_ext', icon: 'mdi:power-socket-fr', enabled: true, room: 'Non assigne' },
+              { name: 'Capteur porte', meta: 'binary_sensor.door_cave', icon: 'mdi:door-closed', enabled: true, room: 'Non assigne' },
+              { name: 'Sirene', meta: 'siren.alarme', icon: 'mdi:alarm-light', enabled: false, room: 'Non assigne' }
+            ]}
+          ]}
+        ]
+      },
+      popup: {
+        label: 'Popup',
+        sections: [
+          { label: 'Cards', desc: 'Ordre et visibilite des cartes dans le popup de piece.', settings: [
+            { type: 'entity_list', id: 'popup_cards', items: [
+              { name: 'Lumieres', meta: 'Controle des lumieres par piece', icon: 'mdi:lightbulb-group', enabled: true },
+              { name: 'Meteo', meta: 'Previsions et conditions actuelles', icon: 'mdi:weather-partly-cloudy', enabled: true },
+              { name: 'Volets', meta: 'Controle des volets et stores', icon: 'mdi:window-shutter', enabled: true },
+              { name: 'Climat', meta: 'Thermostats et climatisation', icon: 'mdi:thermostat', enabled: true },
+              { name: 'Ventilateurs', meta: 'Controle des ventilateurs', icon: 'mdi:fan', enabled: true },
+              { name: 'Media', meta: 'Lecteurs multimedia', icon: 'mdi:speaker', enabled: true },
+              { name: 'Spotify', meta: 'Lecteur Spotify Connect', icon: 'mdi:spotify', enabled: true },
+              { name: 'Presence', meta: 'Suivi de presence des membres', icon: 'mdi:account-group', enabled: false },
+              { name: 'Camera', meta: 'Carousel de cameras', icon: 'mdi:cctv', enabled: false }
+            ]}
+          ]}
+        ]
+      }
+    };
+
+    // Room-level card configs — entity lists per room per card type
+    var ROOM_CARD_CONFIGS = {
+      light: {
+        label: 'Lumieres',
+        sections: [
+          { label: 'Lumieres de la piece', desc: 'Ordre, disposition et visibilite des lumieres. Glissez pour reorganiser.', settings: [
+            { type: 'entity_list', id: 'lights', items: [
+              { name: 'Plafonnier', meta: 'light.salon_plafonnier', icon: 'mdi:ceiling-light', enabled: true, layout: 'full' },
+              { name: 'Lampe bureau', meta: 'light.salon_lampe', icon: 'mdi:desk-lamp', enabled: true, layout: 'full' },
+              { name: 'Ruban LED', meta: 'light.salon_led_strip', icon: 'mdi:led-strip-variant', enabled: true, layout: 'compact' },
+              { name: 'Lampe chevet', meta: 'light.salon_chevet', icon: 'mdi:lamp', enabled: false, layout: 'compact' },
+              { name: 'Spot exterieur', meta: 'light.salon_spot_ext', icon: 'mdi:wall-sconce-flat', enabled: false, layout: 'compact' }
+            ]}
+          ]}
+        ]
+      },
+      media: {
+        label: 'Media',
+        sections: [
+          { label: 'Players natifs', desc: 'Lecteurs multimedia detectes automatiquement dans cette piece.', settings: [
+            { type: 'entity_list', id: 'native_players', items: [
+              { name: 'Sonos Salon', meta: 'media_player.sonos_salon', icon: 'mdi:speaker', enabled: true },
+              { name: 'TV Samsung', meta: 'media_player.samsung_tv', icon: 'mdi:television', enabled: true }
+            ]}
+          ]},
+          { label: 'Entites extra', desc: 'Lecteurs assignes manuellement a cette piece.', settings: [
+            { type: 'entity_list', id: 'extra_players', items: [
+              { name: 'Chromecast', meta: 'media_player.chromecast_salon', icon: 'mdi:cast', enabled: true }
+            ]}
+          ]}
+        ]
+      },
+      climate: {
+        label: 'Climat',
+        sections: [
+          { label: 'Entites de la piece', desc: 'Thermostats et climatiseurs de cette piece.', settings: [
+            { type: 'entity_list', id: 'climate_entities', items: [
+              { name: 'Thermostat salon', meta: 'climate.salon_trv', icon: 'mdi:thermostat', enabled: true },
+              { name: 'Clim reversible', meta: 'climate.salon_ac', icon: 'mdi:air-conditioner', enabled: true }
+            ]}
+          ]}
+        ]
+      },
+      fan: {
+        label: 'Ventilateurs',
+        sections: [
+          { label: 'Ventilateurs de la piece', desc: 'Ordre, disposition et visibilite. Glissez pour reorganiser.', settings: [
+            { type: 'entity_list', id: 'fan_entities', items: [
+              { name: 'Ventilateur plafond', meta: 'fan.salon_ceiling', icon: 'mdi:ceiling-fan', enabled: true, layout: 'full' },
+              { name: 'Ventilateur colonne', meta: 'fan.salon_tower', icon: 'mdi:fan', enabled: true, layout: 'compact' }
+            ]}
+          ]}
+        ]
+      },
+      cover: {
+        label: 'Volets',
+        sections: [
+          { label: 'Volets de la piece', desc: 'Ordre, disposition et visibilite des volets. Glissez pour reorganiser.', settings: [
+            { type: 'entity_list', id: 'cover_entities', items: [
+              { name: 'Volet fenetre', meta: 'cover.salon_fenetre', icon: 'mdi:window-shutter', enabled: true, layout: 'full' },
+              { name: 'Volet baie vitree', meta: 'cover.salon_baie', icon: 'mdi:window-shutter-open', enabled: true, layout: 'full' },
+              { name: 'Store terrasse', meta: 'cover.salon_store', icon: 'mdi:storefront-outline', enabled: true, layout: 'compact' }
+            ]}
+          ]}
+        ]
+      }
+    };
+
+    var SECTION_LABELS = {
+      rooms: 'Pi\u00e8ces',
+      dashboard: 'Dashboard',
+      advanced: 'Avanc\u00e9'
+    };
+
+    var SECTION_ICONS = {
+      rooms: 'mdi-door-open',
+      dashboard: 'mdi-view-dashboard',
+      advanced: 'mdi-tune-vertical'
+    };
+
+    // ══════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════
+
+    function mdiClass(icon) {
+      return 'mdi mdi-' + icon.replace('mdi:', '');
+    }
+
+    function el(tag, cls, attrs) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (attrs) Object.keys(attrs).forEach(function(k) { e.setAttribute(k, attrs[k]); });
+      return e;
+    }
+
+    function txt(parent, text) {
+      parent.appendChild(document.createTextNode(text));
+      return parent;
+    }
+
+    function icon(name, style) {
+      var i = el('i', mdiClass(name));
+      if (style) i.style.cssText = style;
+      return i;
+    }
+
+    // ══════════════════════════════════════════════
+    //  TOP NAV
+    // ══════════════════════════════════════════════
+
+    function buildTopNav() {
+      var navEl = document.getElementById('top-nav');
+      ['rooms', 'dashboard', 'advanced'].forEach(function(s) {
+        var btn = el('button', 'nav-btn' + (s === NAV.section ? ' active' : ''), {
+          'data-section': s,
+          'aria-label': SECTION_LABELS[s]
+        });
+        btn.appendChild(el('i', 'mdi ' + SECTION_ICONS[s]));
+        txt(btn, ' ' + SECTION_LABELS[s]);
+        btn.addEventListener('click', function() { navigate(s); });
+        navEl.appendChild(btn);
+      });
+    }
+
+    function updateTopNav() {
+      document.querySelectorAll('.nav-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.section === NAV.section);
+      });
+    }
+
+    // ══════════════════════════════════════════════
+    //  NAVIGATION
+    // ══════════════════════════════════════════════
+
+    function navigate(section, subSection, roomId, pushState) {
+      section = section || NAV.section;
+      subSection = subSection || null;
+      roomId = roomId || null;
+
+      NAV.section = section;
+      NAV.subSection = subSection;
+      NAV.roomId = roomId;
+
+      if (pushState !== false) {
+        var url = new URL(window.location);
+        url.searchParams.set('s', section);
+        if (subSection) url.searchParams.set('sub', subSection); else url.searchParams.delete('sub');
+        if (roomId) url.searchParams.set('room', roomId); else url.searchParams.delete('room');
+        history.pushState({ section: section, subSection: subSection, roomId: roomId }, '', url);
+      }
+
+      updateTopNav();
+      render();
+    }
+
+    // ══════════════════════════════════════════════
+    //  RENDER ROUTER
+    // ══════════════════════════════════════════════
+
+    function render() {
+      var content = document.getElementById('content');
+      var breadcrumb = document.getElementById('breadcrumb');
+      content.textContent = '';
+
+      if (NAV.subSection !== null) {
+        renderSubView(content, breadcrumb);
+      } else {
+        breadcrumb.style.display = 'none';
+        if (NAV.section === 'dashboard') {
+          renderDashboard(content);
+        } else {
+          renderGrid(content);
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  GRID VIEW (Pieces / Advanced)
+    // ══════════════════════════════════════════════
+
+    function renderGrid(container) {
+      var items;
+      if (NAV.section === 'rooms') items = ROOMS;
+      else items = ADVANCED;
+
+      var grid = el('div', 'room-grid');
+
+      items.forEach(function(item) {
+        var btn = el('button', 'room-card' + (item.disabled ? ' disabled' : ''), { 'aria-label': item.name });
+
+        var iconWrap = el('div', 'room-card-icon');
+        iconWrap.appendChild(icon(item.icon));
+        btn.appendChild(iconWrap);
+
+        var nameSpan = el('span', 'room-card-name');
+        nameSpan.textContent = item.name;
+        btn.appendChild(nameSpan);
+
+        if (item.disabled) {
+          var badge = el('span', 'badge-soon');
+          badge.textContent = 'Bient\u00f4t';
+          btn.appendChild(badge);
+        }
+
+        if (!item.disabled) {
+          btn.addEventListener('click', function() {
+            if (NAV.section === 'rooms') {
+              navigate('rooms', item.id);
+            } else {
+              navigate('advanced', item.id);
+            }
+          });
+        }
+
+        grid.appendChild(btn);
+      });
+
+      container.appendChild(grid);
+    }
+
+    // ══════════════════════════════════════════════
+    //  DASHBOARD VIEW (Preview + Card Grid)
+    // ══════════════════════════════════════════════
+
+    function renderDashboard(container) {
+      // ── Preview encart ──
+      var preview = el('div', 'preview-encart');
+      var previewLabel = el('div', 'preview-label');
+      previewLabel.textContent = 'Apercu du dashboard';
+      preview.appendChild(previewLabel);
+
+      var previewDash = el('div', 'preview-dashboard');
+
+      // HA header
+      var haHeader = el('div', 'preview-ha-header');
+      var haLabel = el('span', 'preview-ha-header-label');
+      haLabel.textContent = 'Header HA masque';
+      haHeader.appendChild(haLabel);
+      var haHidden = el('span', 'preview-ha-header-hidden');
+      haHidden.appendChild(icon('mdi:eye-off'));
+      haHeader.appendChild(haHidden);
+      previewDash.appendChild(haHeader);
+
+      // Body
+      var body = el('div', 'preview-dashboard-body');
+
+      // Sidebar
+      var sidebar = el('div', 'preview-sidebar');
+      for (var d = 0; d < 3; d++) sidebar.appendChild(el('div', 'preview-sidebar-dot'));
+      var sideHide = el('span', 'preview-sidebar-hidden');
+      sideHide.appendChild(icon('mdi:eye-off'));
+      sidebar.appendChild(sideHide);
+      body.appendChild(sidebar);
+
+      // Cards area
+      var cardsArea = el('div', 'preview-dashboard-cards');
+      cardsArea.id = 'preview-cards';
+      DASHBOARD_CARDS.forEach(function(card) {
+        var mini = el('div', 'preview-card-mini' + (card.enabled ? '' : ' hidden'), { 'data-card': card.id });
+        mini.appendChild(icon(card.icon, 'color:' + card.color + ';'));
+        var sp = el('span');
+        sp.textContent = card.name;
+        mini.appendChild(sp);
+        cardsArea.appendChild(mini);
+      });
+      body.appendChild(cardsArea);
+      previewDash.appendChild(body);
+
+      // Navbar
+      var navbar = el('div', 'preview-dashboard-navbar');
+      ['mdi:sofa', 'mdi:silverware-fork-knife', 'mdi:bed'].forEach(function(ic) {
+        navbar.appendChild(icon(ic));
+      });
+      previewDash.appendChild(navbar);
+
+      preview.appendChild(previewDash);
+      container.appendChild(preview);
+
+      // ── Section label ──
+      var secLabel = el('div', 'section-label');
+      secLabel.textContent = 'Cartes du dashboard';
+      secLabel.style.marginTop = '4px';
+      container.appendChild(secLabel);
+
+      var secDesc = el('div', 'section-desc');
+      secDesc.textContent = 'Activez, desactivez et reorganisez les cartes. Cliquez pour configurer.';
+      secDesc.style.marginBottom = '8px';
+      container.appendChild(secDesc);
+
+      // ── Card grid ──
+      var grid = el('div', 'room-grid');
+      grid.id = 'dash-grid';
+
+      DASHBOARD_CARDS.forEach(function(card, idx) {
+        var btn = el('div', 'room-card dash-card' + (card.enabled ? '' : ' off'), {
+          'data-card-id': card.id,
+          'draggable': 'true'
+        });
+
+        // Order badge
+        var order = el('span', 'dash-order');
+        order.textContent = String(idx + 1);
+        btn.appendChild(order);
+
+        // Toggle
+        var toggle = el('button', 'dash-toggle' + (card.enabled ? ' on' : ''), {
+          'aria-label': 'Visibilite ' + card.name
+        });
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          card.enabled = !card.enabled;
+          toggle.classList.toggle('on', card.enabled);
+          btn.classList.toggle('off', !card.enabled);
+          updateDashPreview();
+          updateDashOrder();
+        });
+        btn.appendChild(toggle);
+
+        // Icon
+        var iconWrap = el('div', 'room-card-icon');
+        iconWrap.style.cssText = 'background:' + card.color.replace(')', ',0.08)').replace('var(', 'rgba(').replace('--c-accent', '129,140,248').replace('--c-warning', '251,191,36').replace('--c-info', '96,165,250').replace('--c-alert', '248,113,113').replace('--c-purple', '167,139,250').replace('--c-success', '74,222,128');
+        // Simple fallback: just use s2
+        iconWrap.style.background = 'var(--s2)';
+        iconWrap.style.borderColor = 'var(--b1)';
+        var ic = icon(card.icon, 'color:' + card.color + ';');
+        iconWrap.appendChild(ic);
+        btn.appendChild(iconWrap);
+
+        // Name
+        var nameSpan = el('span', 'room-card-name');
+        nameSpan.textContent = card.name;
+        btn.appendChild(nameSpan);
+
+        // Drag hint
+        var drag = el('span', 'dash-drag-hint');
+        drag.appendChild(icon('mdi:drag'));
+        btn.appendChild(drag);
+
+        // Click → navigate to card config
+        btn.addEventListener('click', function() {
+          navigate('dashboard', card.id);
+        });
+
+        grid.appendChild(btn);
+      });
+
+      container.appendChild(grid);
+
+      // ── Interface HA section ──
+      var haSection = el('div', 'sub-section');
+      haSection.style.marginTop = '16px';
+      var haLabel2 = el('div', 'section-label');
+      haLabel2.textContent = 'Interface Home Assistant';
+      haSection.appendChild(haLabel2);
+
+      var featureList = el('div', 'feature-list');
+
+      [
+        { icon: 'mdi:page-layout-header', name: 'Masquer le header HA', desc: 'Cache la barre de navigation HA', value: true },
+        { icon: 'mdi:page-layout-sidebar-left', name: 'Masquer la sidebar HA', desc: 'Cache le menu lateral HA', value: true },
+        { icon: 'mdi:weather-night', name: 'Fond dynamique Glass Cards', desc: 'Active le fond d\u2019ecran jour/nuit anime', value: true }
+      ].forEach(function(feat) {
+        var row = el('button', 'feature-row', { 'role': 'switch', 'aria-checked': String(feat.value) });
+        var fi = el('div', 'feature-icon');
+        fi.style.cssText = 'background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);';
+        fi.appendChild(icon(feat.icon, 'color:var(--c-accent);'));
+        row.appendChild(fi);
+        var ft = el('div', 'feature-text');
+        var fn = el('div', 'feature-name'); fn.textContent = feat.name;
+        var fd = el('div', 'feature-desc'); fd.textContent = feat.desc;
+        ft.appendChild(fn); ft.appendChild(fd);
+        row.appendChild(ft);
+        var tg = el('span', 'toggle' + (feat.value ? ' on' : ''));
+        row.appendChild(tg);
+        row.addEventListener('click', function() {
+          tg.classList.toggle('on');
+          row.setAttribute('aria-checked', tg.classList.contains('on'));
+        });
+        featureList.appendChild(row);
+      });
+
+      haSection.appendChild(featureList);
+      container.appendChild(haSection);
+
+      // ── Save bar ──
+      var saveBar = el('div', 'save-bar');
+      var resetBtn = el('button', 'btn btn-ghost btn-sm');
+      resetBtn.appendChild(icon('mdi:restore', 'font-size:14px;'));
+      txt(resetBtn, ' Reinitialiser');
+      saveBar.appendChild(resetBtn);
+      container.appendChild(saveBar);
+
+      // Init drag & drop
+      initDashDragDrop();
+    }
+
+    function updateDashPreview() {
+      var previewContainer = document.getElementById('preview-cards');
+      if (!previewContainer) return;
+
+      // Rebuild preview in current DASHBOARD_CARDS order
+      previewContainer.textContent = '';
+      DASHBOARD_CARDS.forEach(function(card) {
+        var mini = el('div', 'preview-card-mini' + (card.enabled ? '' : ' hidden'), { 'data-card': card.id });
+        mini.appendChild(icon(card.icon, 'color:' + card.color + ';'));
+        var sp = el('span');
+        sp.textContent = card.name;
+        mini.appendChild(sp);
+        previewContainer.appendChild(mini);
+      });
+    }
+
+    function updateDashOrder() {
+      var grid = document.getElementById('dash-grid');
+      if (!grid) return;
+      var enabledIdx = 0;
+      Array.from(grid.children).forEach(function(child) {
+        var orderBadge = child.querySelector('.dash-order');
+        if (orderBadge) {
+          var cardId = child.dataset.cardId;
+          var card = DASHBOARD_CARDS.find(function(c) { return c.id === cardId; });
+          if (card && card.enabled) {
+            enabledIdx++;
+            orderBadge.textContent = String(enabledIdx);
+            orderBadge.style.display = '';
+          } else {
+            orderBadge.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // ── Drag & Drop for dashboard grid ──
+    var dashDragSrc = null;
+
+    function initDashDragDrop() {
+      var grid = document.getElementById('dash-grid');
+      if (!grid) return;
+
+      Array.from(grid.children).forEach(function(item) {
+        item.addEventListener('dragstart', function(e) {
+          dashDragSrc = this;
+          this.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+        });
+
+        item.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (this !== dashDragSrc) {
+            this.classList.add('drop-target');
+          }
+        });
+
+        item.addEventListener('dragleave', function() {
+          this.classList.remove('drop-target');
+        });
+
+        item.addEventListener('drop', function(e) {
+          e.preventDefault();
+          this.classList.remove('drop-target');
+          if (dashDragSrc && dashDragSrc !== this) {
+            // Swap in DOM
+            var parent = this.parentNode;
+            var items = Array.from(parent.children);
+            var fromIdx = items.indexOf(dashDragSrc);
+            var toIdx = items.indexOf(this);
+
+            if (fromIdx < toIdx) {
+              parent.insertBefore(dashDragSrc, this.nextSibling);
+            } else {
+              parent.insertBefore(dashDragSrc, this);
+            }
+
+            // Sync DASHBOARD_CARDS order
+            var newOrder = Array.from(parent.children).map(function(child) {
+              return child.dataset.cardId;
+            });
+            DASHBOARD_CARDS.sort(function(a, b) {
+              return newOrder.indexOf(a.id) - newOrder.indexOf(b.id);
+            });
+
+            updateDashPreview();
+            updateDashOrder();
+          }
+        });
+
+        item.addEventListener('dragend', function() {
+          this.classList.remove('dragging');
+          grid.querySelectorAll('.drop-target').forEach(function(el) {
+            el.classList.remove('drop-target');
+          });
+          dashDragSrc = null;
+        });
+      });
+    }
+
+    // ══════════════════════════════════════════════
+    //  SUB-VIEW (Breadcrumb → Config inline)
+    // ══════════════════════════════════════════════
+
+    function renderSubView(container, breadcrumb) {
+      var sectionLabel = SECTION_LABELS[NAV.section];
+      var subLabel = NAV.subSection;
+      var config = null;
+
+      if (NAV.section === 'rooms' && !NAV.roomId) {
+        // Clicked a room → show room's card types
+        var room = ROOMS.find(function(r) { return r.id === NAV.subSection; });
+        if (room) subLabel = room.name;
+        renderRoomDetail(container, breadcrumb, room);
+        return;
+      }
+
+      if (NAV.section === 'rooms' && NAV.roomId) {
+        // Room → card type: merge global config + room entities
+        var room2 = ROOMS.find(function(r) { return r.id === NAV.subSection; });
+        var cardType = ROOM_CARDS.find(function(c) { return c.id === NAV.roomId; });
+        renderBreadcrumb2(breadcrumb, room2 ? room2.name : NAV.subSection, cardType ? cardType.name : NAV.roomId, function() { navigate('rooms', NAV.subSection); });
+        var globalCfg = CARD_CONFIGS[NAV.roomId];
+        var roomCfg = ROOM_CARD_CONFIGS[NAV.roomId];
+        // Build merged config: global sections first, then room entities
+        var mergedSections = [];
+        if (globalCfg) mergedSections = mergedSections.concat(globalCfg.sections);
+        if (roomCfg) mergedSections = mergedSections.concat(roomCfg.sections);
+        if (mergedSections.length > 0) {
+          renderConfig(container, { label: cardType ? cardType.name : NAV.roomId, sections: mergedSections });
+        } else {
+          renderPlaceholder(container, cardType ? cardType.name : NAV.roomId);
+        }
+        return;
+      }
+
+      if (NAV.section === 'dashboard') {
+        var dashCard = DASHBOARD_CARDS.find(function(c) { return c.id === NAV.subSection; });
+        if (dashCard) subLabel = dashCard.name;
+        config = CARD_CONFIGS[NAV.subSection];
+      } else if (NAV.section === 'advanced') {
+        var advItem = ADVANCED.find(function(a) { return a.id === NAV.subSection; });
+        if (advItem) subLabel = advItem.name;
+        config = CARD_CONFIGS[NAV.subSection];
+      }
+
+      // Breadcrumb
+      renderBreadcrumb1(breadcrumb, sectionLabel, subLabel);
+
+      if (config) {
+        renderConfig(container, config);
+      } else {
+        renderPlaceholder(container, subLabel);
+      }
+    }
+
+    function renderBreadcrumb1(breadcrumb, sectionLabel, subLabel) {
+      breadcrumb.style.display = 'flex';
+      breadcrumb.textContent = '';
+      var back = el('button', 'breadcrumb-back');
+      back.textContent = sectionLabel;
+      back.addEventListener('click', function() { navigate(NAV.section); });
+      breadcrumb.appendChild(back);
+      breadcrumb.appendChild(txt(el('span', 'breadcrumb-sep'), '/'));
+      breadcrumb.appendChild(txt(el('span', 'breadcrumb-current'), subLabel));
+    }
+
+    function renderBreadcrumb2(breadcrumb, parentLabel, childLabel, onBack) {
+      breadcrumb.style.display = 'flex';
+      breadcrumb.textContent = '';
+      var back1 = el('button', 'breadcrumb-back');
+      back1.textContent = SECTION_LABELS[NAV.section];
+      back1.addEventListener('click', function() { navigate(NAV.section); });
+      breadcrumb.appendChild(back1);
+      breadcrumb.appendChild(txt(el('span', 'breadcrumb-sep'), '/'));
+      var back2 = el('button', 'breadcrumb-back');
+      back2.textContent = parentLabel;
+      back2.addEventListener('click', onBack);
+      breadcrumb.appendChild(back2);
+      breadcrumb.appendChild(txt(el('span', 'breadcrumb-sep'), '/'));
+      breadcrumb.appendChild(txt(el('span', 'breadcrumb-current'), childLabel));
+    }
+
+    // ══════════════════════════════════════════════
+    //  ROOM DETAIL (card type grid)
+    // ══════════════════════════════════════════════
+
+    function renderRoomDetail(container, breadcrumb, room) {
+      renderBreadcrumb1(breadcrumb, SECTION_LABELS.rooms, room ? room.name : NAV.subSection);
+
+      var grid = el('div', 'room-grid');
+      ROOM_CARDS.forEach(function(card) {
+        var btn = el('button', 'room-card' + (card.disabled ? ' disabled' : ''), { 'aria-label': card.name });
+
+        var iconWrap = el('div', 'room-card-icon');
+        iconWrap.appendChild(icon(card.icon, 'color:' + card.color + ';'));
+        btn.appendChild(iconWrap);
+
+        var nameSpan = el('span', 'room-card-name');
+        nameSpan.textContent = card.name;
+        btn.appendChild(nameSpan);
+
+        if (card.disabled) {
+          var badge = el('span', 'badge-soon');
+          badge.textContent = 'Bient\u00f4t';
+          btn.appendChild(badge);
+        }
+
+        if (!card.disabled) {
+          btn.addEventListener('click', function() {
+            navigate('rooms', NAV.subSection, card.id);
+          });
+        }
+
+        grid.appendChild(btn);
+      });
+
+      container.appendChild(grid);
+    }
+
+    // ══════════════════════════════════════════════
+    //  CONFIG RENDERER (inline, data-driven)
+    // ══════════════════════════════════════════════
+
+    function renderConfig(container, config) {
+      config.sections.forEach(function(section, sIdx) {
+        var sub = el('div', 'sub-section' + (sIdx === 0 ? ' no-border' : ''));
+        var label = el('div', 'section-label');
+        label.textContent = section.label;
+        sub.appendChild(label);
+
+        if (section.desc) {
+          var desc = el('div', 'section-desc');
+          desc.textContent = section.desc;
+          sub.appendChild(desc);
+        }
+
+        var list = el('div', 'feature-list');
+
+        section.settings.forEach(function(setting) {
+          // ── Toggle ──
+          if (setting.type === 'toggle') {
+            var row = el('button', 'feature-row', { 'role': 'switch', 'aria-checked': String(setting.value) });
+            var fi = el('div', 'feature-icon');
+            fi.appendChild(icon(setting.icon || 'mdi:toggle-switch-outline'));
+            row.appendChild(fi);
+            var ft = el('div', 'feature-text');
+            var fn = el('div', 'feature-name'); fn.textContent = setting.name;
+            var fd = el('div', 'feature-desc'); fd.textContent = setting.desc;
+            ft.appendChild(fn); ft.appendChild(fd);
+            row.appendChild(ft);
+            var tg = el('span', 'toggle' + (setting.value ? ' on' : ''));
+            row.appendChild(tg);
+            row.addEventListener('click', function() {
+              setting.value = !setting.value;
+              tg.classList.toggle('on', setting.value);
+              row.setAttribute('aria-checked', String(setting.value));
+            });
+            list.appendChild(row);
+          }
+          // ── Select (glass dropdown) ──
+          else if (setting.type === 'select') {
+            var dd = el('div', 'dropdown');
+            var ddId = 'dd-' + setting.id + '-' + Math.random().toString(36).slice(2, 6);
+            dd.id = ddId;
+
+            // Trigger
+            var trigger = el('button', 'dropdown-trigger');
+            trigger.appendChild(icon(setting.icon || 'mdi:format-list-bulleted'));
+            var ddLabel = el('span', 'dd-label');
+            var currentOpt = setting.options.find(function(o) { return o.value === setting.value; });
+            ddLabel.textContent = currentOpt ? currentOpt.label : setting.value;
+            trigger.appendChild(ddLabel);
+            var arrow = el('i', 'mdi mdi-chevron-down dd-arrow');
+            trigger.appendChild(arrow);
+            trigger.addEventListener('click', function(e) {
+              e.stopPropagation();
+              // Close other open dropdowns
+              document.querySelectorAll('.dropdown.open').forEach(function(d) { if (d.id !== ddId) d.classList.remove('open'); });
+              dd.classList.toggle('open');
+            });
+            dd.appendChild(trigger);
+
+            // Menu
+            var menu = el('div', 'dropdown-menu', { role: 'listbox' });
+            setting.options.forEach(function(opt) {
+              var item = el('button', 'dropdown-item' + (opt.value === setting.value ? ' active' : ''), { role: 'option', 'aria-selected': String(opt.value === setting.value) });
+              item.appendChild(icon(opt.icon || 'mdi:circle-small'));
+              txt(item, opt.label);
+              item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                setting.value = opt.value;
+                ddLabel.textContent = opt.label;
+                menu.querySelectorAll('.dropdown-item').forEach(function(i) { i.classList.remove('active'); i.setAttribute('aria-selected', 'false'); });
+                item.classList.add('active');
+                item.setAttribute('aria-selected', 'true');
+                dd.classList.remove('open');
+              });
+              menu.appendChild(item);
+            });
+            dd.appendChild(menu);
+
+            list.appendChild(dd);
+          }
+          // ── Text input ──
+          else if (setting.type === 'text') {
+            var textWrap = el('div', 'field-select');
+            var fi3 = el('div', 'feature-icon');
+            fi3.appendChild(icon('mdi:form-textbox'));
+            textWrap.appendChild(fi3);
+            var ft3 = el('div', 'feature-text');
+            var fn3 = el('div', 'feature-name'); fn3.textContent = setting.name;
+            if (setting.desc) { var fd3 = el('div', 'feature-desc'); fd3.textContent = setting.desc; ft3.appendChild(fn3); ft3.appendChild(fd3); } else { ft3.appendChild(fn3); }
+            textWrap.appendChild(ft3);
+            var input = el('input', 'text-input', { type: 'text', placeholder: setting.placeholder || '', value: setting.value || '' });
+            input.style.maxWidth = '140px';
+            input.addEventListener('input', function() { setting.value = input.value; });
+            textWrap.appendChild(input);
+            list.appendChild(textWrap);
+          }
+          // ── Range slider ──
+          else if (setting.type === 'range') {
+            var rangeWrap = el('div', 'range-row');
+            var fi4 = el('div', 'feature-icon');
+            fi4.appendChild(icon('mdi:tune-variant'));
+            rangeWrap.appendChild(fi4);
+            var ft4 = el('div', 'feature-text');
+            ft4.style.flex = '0 0 auto';
+            ft4.style.minWidth = '0';
+            var fn4 = el('div', 'feature-name'); fn4.textContent = setting.name;
+            if (setting.desc) { var fd4 = el('div', 'feature-desc'); fd4.textContent = setting.desc; ft4.appendChild(fn4); ft4.appendChild(fd4); } else { ft4.appendChild(fn4); }
+            rangeWrap.appendChild(ft4);
+            var slider = el('input', 'range-slider', { type: 'range', min: String(setting.min), max: String(setting.max), value: String(setting.value) });
+            var valSpan = el('span', 'range-value');
+            valSpan.textContent = setting.value + (setting.unit || '');
+            slider.addEventListener('input', function() {
+              setting.value = parseInt(slider.value);
+              valSpan.textContent = slider.value + (setting.unit || '');
+            });
+            rangeWrap.appendChild(slider);
+            rangeWrap.appendChild(valSpan);
+            list.appendChild(rangeWrap);
+          }
+          // ── Chip group (radio) ──
+          else if (setting.type === 'chip_group') {
+            var chipWrap = el('div', 'chip-group');
+            setting.options.forEach(function(opt) {
+              var chip = el('button', 'chip-btn' + (opt.value === setting.value ? ' active' : ''));
+              if (opt.icon) chip.appendChild(icon(opt.icon));
+              txt(chip, ' ' + opt.label);
+              chip.addEventListener('click', function() {
+                setting.value = opt.value;
+                chipWrap.querySelectorAll('.chip-btn').forEach(function(c) { c.classList.remove('active'); });
+                chip.classList.add('active');
+              });
+              chipWrap.appendChild(chip);
+            });
+            list.appendChild(chipWrap);
+          }
+          // ── Segmented control ──
+          else if (setting.type === 'segmented') {
+            var segWrap = el('div', 'segmented-group');
+            setting.options.forEach(function(opt) {
+              var seg = el('button', 'seg-btn' + (opt.value === setting.value ? ' active' : ''));
+              if (opt.icon) seg.appendChild(icon(opt.icon));
+              txt(seg, ' ' + opt.label);
+              seg.addEventListener('click', function() {
+                setting.value = opt.value;
+                segWrap.querySelectorAll('.seg-btn').forEach(function(s) { s.classList.remove('active'); });
+                seg.classList.add('active');
+              });
+              segWrap.appendChild(seg);
+            });
+            list.appendChild(segWrap);
+          }
+          // ── Entity list (drag-reorder + toggle) ──
+          else if (setting.type === 'entity_list') {
+            var eList = el('div', 'entity-list');
+            eList.dataset.listId = setting.id;
+            setting.items.forEach(function(item, idx) {
+              var row = el('div', 'entity-item' + (item.enabled === false ? ' off' : ''), { draggable: 'true' });
+
+              var drag = el('span', 'entity-drag');
+              drag.appendChild(icon('mdi:drag'));
+              row.appendChild(drag);
+
+              var eIcon = el('div', 'entity-icon');
+              eIcon.appendChild(icon(item.icon || 'mdi:puzzle-outline'));
+              row.appendChild(eIcon);
+
+              var eInfo = el('div', 'entity-info');
+              var eName = el('div', 'entity-name'); eName.textContent = item.name;
+              var eMeta = el('div', 'entity-meta'); eMeta.textContent = item.meta || '';
+              eInfo.appendChild(eName); eInfo.appendChild(eMeta);
+              row.appendChild(eInfo);
+
+              // Layout chip (if applicable)
+              if (item.layout) {
+                var layoutChip = el('button', 'entity-layout-chip');
+                layoutChip.textContent = item.layout === 'full' ? 'FULL' : 'COMPACT';
+                layoutChip.addEventListener('click', function(e) {
+                  e.stopPropagation();
+                  item.layout = item.layout === 'full' ? 'compact' : 'full';
+                  layoutChip.textContent = item.layout === 'full' ? 'FULL' : 'COMPACT';
+                });
+                row.appendChild(layoutChip);
+              }
+
+              // Toggle
+              var etg = el('button', 'dash-toggle' + (item.enabled !== false ? ' on' : ''), { 'aria-label': 'Visibilite ' + item.name });
+              etg.style.position = 'relative';
+              etg.style.top = '0';
+              etg.style.right = '0';
+              etg.addEventListener('click', function(e) {
+                e.stopPropagation();
+                item.enabled = !(item.enabled !== false);
+                etg.classList.toggle('on', item.enabled);
+                row.classList.toggle('off', !item.enabled);
+              });
+              row.appendChild(etg);
+
+              // Drag events
+              row.addEventListener('dragstart', function(e) {
+                row._dragSrc = true;
+                row.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', '');
+              });
+              row.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (!row._dragSrc) row.classList.add('drop-target');
+              });
+              row.addEventListener('dragleave', function() { row.classList.remove('drop-target'); });
+              row.addEventListener('drop', function(e) {
+                e.preventDefault();
+                row.classList.remove('drop-target');
+                var src = eList.querySelector('.dragging');
+                if (src && src !== row) {
+                  var items = Array.from(eList.children);
+                  var fromIdx = items.indexOf(src);
+                  var toIdx = items.indexOf(row);
+                  if (fromIdx < toIdx) eList.insertBefore(src, row.nextSibling);
+                  else eList.insertBefore(src, row);
+                }
+              });
+              row.addEventListener('dragend', function() {
+                row.classList.remove('dragging');
+                row._dragSrc = false;
+                eList.querySelectorAll('.drop-target').forEach(function(e) { e.classList.remove('drop-target'); });
+              });
+
+              eList.appendChild(row);
+            });
+            list.appendChild(eList);
+          }
+          // ── Person list (expandable with sensor dropdowns) ──
+          else if (setting.type === 'person_list') {
+            setting.items.forEach(function(person) {
+              var pItem = el('div', 'person-item');
+              var pId = 'person-' + person.entity.replace(/\./g, '-');
+
+              // Header
+              var pHeader = el('button', 'person-header');
+              var avatar = el('div', 'person-avatar');
+              avatar.textContent = person.name.charAt(0).toUpperCase();
+              pHeader.appendChild(avatar);
+              var pInfo = el('div', 'feature-text');
+              var pName = el('div', 'feature-name'); pName.textContent = person.name;
+              var pMeta = el('div', 'feature-desc'); pMeta.textContent = person.entity;
+              pInfo.appendChild(pName); pInfo.appendChild(pMeta);
+              pHeader.appendChild(pInfo);
+              var chevron = el('i', 'mdi mdi-chevron-down');
+              chevron.style.cssText = 'font-size:18px;color:var(--t3);transition:transform 0.2s var(--ease-std);';
+              pHeader.appendChild(chevron);
+
+              // Fold
+              var fold = el('div', 'person-fold');
+              var foldInner = el('div', 'person-fold-inner');
+              var foldContent = el('div', 'person-fold-content');
+
+              person.sensors.forEach(function(sensor) {
+                var sRow = el('div', 'person-sensor-row');
+                var sLabel = el('div', 'person-sensor-label');
+                sLabel.textContent = sensor.label;
+                sRow.appendChild(sLabel);
+                var sSelect = el('select', 'person-sensor-select');
+                sensor.options.forEach(function(opt) {
+                  var option = el('option');
+                  option.value = opt;
+                  option.textContent = opt;
+                  if (opt === sensor.value) option.selected = true;
+                  sSelect.appendChild(option);
+                });
+                sSelect.addEventListener('change', function() { sensor.value = sSelect.value; });
+                sRow.appendChild(sSelect);
+                foldContent.appendChild(sRow);
+              });
+
+              foldInner.appendChild(foldContent);
+              fold.appendChild(foldInner);
+
+              // Sep
+              var sep = el('div', 'fold-sep');
+
+              pHeader.addEventListener('click', function() {
+                var isOpen = fold.classList.contains('open');
+                fold.classList.toggle('open');
+                sep.classList.toggle('visible');
+                chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+              });
+
+              pItem.appendChild(pHeader);
+              pItem.appendChild(sep);
+              pItem.appendChild(fold);
+              list.appendChild(pItem);
+            });
+          }
+        });
+
+        sub.appendChild(list);
+        container.appendChild(sub);
+      });
+
+      // Save bar
+      var saveBar = el('div', 'save-bar');
+      var resetBtn = el('button', 'btn btn-ghost btn-sm');
+      resetBtn.appendChild(icon('mdi:restore', 'font-size:14px;'));
+      txt(resetBtn, ' Reinitialiser');
+      saveBar.appendChild(resetBtn);
+      container.appendChild(saveBar);
+    }
+
+    function renderPlaceholder(container, label) {
+      var ph = el('div', 'placeholder');
+      ph.appendChild(icon('mdi:hammer-wrench'));
+      var t = el('div', 'placeholder-title'); t.textContent = label;
+      ph.appendChild(t);
+      var d = el('div', 'placeholder-desc'); d.textContent = 'Configuration pas encore disponible';
+      ph.appendChild(d);
+      container.appendChild(ph);
+    }
+
+    // ══════════════════════════════════════════════
+    //  HISTORY & INIT
+    // ══════════════════════════════════════════════
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.dropdown.open').forEach(function(d) { d.classList.remove('open'); });
+    });
+
+    window.addEventListener('popstate', function(e) {
+      if (e.state) {
+        navigate(e.state.section, e.state.subSection, e.state.roomId, false);
+      } else {
+        navigate('rooms', null, null, false);
+      }
+    });
+
+    (function init() {
+      buildTopNav();
+      var params = new URLSearchParams(window.location.search);
+      var section = params.get('s') || 'rooms';
+      var sub = params.get('sub') || null;
+      var room = params.get('room') || null;
+      NAV.section = section;
+      NAV.subSection = sub;
+      NAV.roomId = room;
+      updateTopNav();
+      render();
+      history.replaceState({ section: section, subSection: sub, roomId: room }, '', window.location);
+    })();
+  </script>
+</body>
+
+</html>

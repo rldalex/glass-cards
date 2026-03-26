@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Presence — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview presence card ── */
+    .preview-presence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 8px;
+    }
+    .preview-presence-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+    .preview-presence-pill {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+    .preview-presence-pill.all-home {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+    .preview-presence-pill.mixed {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+    .preview-presence-pill.all-away {
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+    }
+    .preview-presence-card {
+      border-radius: var(--radius-lg);
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .preview-person-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 4px;
+      border-radius: var(--radius-sm);
+    }
+    .avatar-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--s3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--t1);
+      flex-shrink: 0;
+    }
+    .preview-person-name {
+      flex: 1;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+    .preview-person-badge {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+    .preview-person-badge.home {
+      background: rgba(74, 222, 128, 0.12);
+      color: #4ade80;
+    }
+    .preview-person-badge.away {
+      background: rgba(248, 113, 113, 0.12);
+      color: #f87171;
+    }
+    .preview-person-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .preview-person-dot.home {
+      background: #4ade80;
+      box-shadow: 0 0 6px rgba(74, 222, 128, 0.4);
+    }
+    .preview-person-dot.away {
+      background: #f87171;
+      box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+    }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Item list ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-card {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow 0.2s var(--ease-std), background 0.2s var(--ease-std);
+    }
+    .item-card + .item-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      outline: none;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Person expand chevron ── */
+    .expand-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--t3);
+      transition: all 0.2s var(--ease-std);
+      flex-shrink: 0;
+      outline: none;
+    }
+    .expand-btn:hover { background: var(--s2); color: var(--t1); }
+    .expand-btn i {
+      font-size: 16px;
+      transition: transform 0.35s var(--ease-out);
+    }
+    .expand-btn.open i {
+      transform: rotate(180deg);
+    }
+
+    /* ── Person fold (grid 0fr/1fr) ── */
+    .person-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease-out);
+    }
+    .person-fold.open {
+      grid-template-rows: 1fr;
+    }
+    .person-fold-inner {
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s var(--ease-std), visibility 0.2s var(--ease-std);
+    }
+    .person-fold.open .person-fold-inner {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0.1s;
+    }
+    .person-fold-content {
+      padding: 4px 8px 12px 44px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Fold separator (inside person card) ── */
+    .person-fold-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(74, 222, 128, 0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.35s var(--ease-out);
+      margin: 0 8px;
+    }
+    .person-fold-sep.visible { opacity: 0.3; }
+
+    /* ── Dropdown select ── */
+    .dropdown-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .dropdown-field-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+    }
+    .dropdown {
+      position: relative;
+    }
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s var(--ease-std);
+      text-align: left;
+    }
+    .dropdown-trigger:hover {
+      border-color: var(--b3);
+      background: var(--s2);
+    }
+    .dropdown-trigger i { font-size: 14px; color: var(--t3); flex-shrink: 0; }
+    .dropdown-trigger span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .dropdown-trigger .arrow {
+      font-size: 14px;
+      color: var(--t4);
+      transition: transform 0.2s var(--ease-std);
+    }
+    .dropdown.open .dropdown-trigger {
+      border-color: rgba(74, 222, 128, 0.3);
+      background: var(--s2);
+    }
+    .dropdown.open .dropdown-trigger .arrow {
+      transform: rotate(180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 100;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--b2);
+      background: #1f2937;
+      backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+    }
+    .dropdown.open .dropdown-menu {
+      display: flex;
+    }
+    .dropdown-search {
+      padding: 8px 10px;
+      border: none;
+      border-bottom: 1px solid var(--b1);
+      background: transparent;
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 11px;
+      outline: none;
+    }
+    .dropdown-search::placeholder { color: var(--t4); }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      outline: none;
+      transition: background 0.15s var(--ease-std);
+    }
+    .dropdown-item:hover { background: var(--s2); }
+    .dropdown-item.active {
+      background: rgba(74, 222, 128, 0.08);
+      color: #4ade80;
+    }
+    .dropdown-item i { font-size: 14px; color: var(--t3); flex-shrink: 0; }
+    .dropdown-item.active i { color: #4ade80; }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Add person button ── */
+    .btn-add {
+      margin-top: 4px;
+      align-self: flex-start;
+      margin-left: 8px;
+      border-color: rgba(74, 222, 128, 0.15);
+      color: rgba(74, 222, 128, 0.7);
+    }
+    .btn-add:hover {
+      background: rgba(74, 222, 128, 0.08);
+      border-color: rgba(74, 222, 128, 0.25);
+      color: #4ade80;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn" onclick="
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        ">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn active" onclick="
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        ">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn" onclick="
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        ">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back" onclick="alert('Navigate back to General')">General</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Presence</span>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           CONTENT — No section folds, direct layout
+           ═══════════════════════════════════════ -->
+
+      <!-- ── Preview encart ── -->
+      <div class="preview-encart" id="preview-encart">
+        <div class="preview-label">Apercu</div>
+        <div id="preview-header">
+          <div class="preview-presence-header">
+            <span class="preview-presence-title">Presence</span>
+            <span class="preview-presence-pill mixed">2/3</span>
+          </div>
+        </div>
+        <div class="preview-presence-card glass">
+          <!-- Person 1: Alexandre (home) -->
+          <div class="preview-person-row">
+            <div class="avatar-circle" style="background:rgba(74,222,128,0.15); color:#4ade80;">A</div>
+            <span class="preview-person-name">Alexandre</span>
+            <span class="preview-person-badge home">Maison</span>
+            <div class="preview-person-dot home"></div>
+          </div>
+          <!-- Person 2: Marie (home) -->
+          <div class="preview-person-row">
+            <div class="avatar-circle" style="background:rgba(96,165,250,0.15); color:#60a5fa;">M</div>
+            <span class="preview-person-name">Marie</span>
+            <span class="preview-person-badge home">Maison</span>
+            <div class="preview-person-dot home"></div>
+          </div>
+          <!-- Person 3: Lucas (away) -->
+          <div class="preview-person-row">
+            <div class="avatar-circle" style="background:rgba(248,113,113,0.15); color:#f87171;">L</div>
+            <span class="preview-person-name">Lucas</span>
+            <span class="preview-person-badge away">Absent</span>
+            <div class="preview-person-dot away"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Sub-section: Comportement ── -->
+      <div class="sub-section">
+        <div class="section-label">Comportement</div>
+        <div class="feature-list">
+          <button class="feature-row" role="switch" aria-checked="true"
+            onclick="
+              const toggle = this.querySelector('.toggle');
+              toggle.classList.toggle('on');
+              const isOn = toggle.classList.contains('on');
+              this.setAttribute('aria-checked', isOn);
+              document.getElementById('preview-header').style.display = isOn ? 'block' : 'none';
+            ">
+            <div class="feature-icon">
+              <i class="mdi mdi-page-layout-header"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Afficher le header</div>
+              <div class="feature-desc">Titre et compteur au-dessus de la carte</div>
+            </div>
+            <span class="toggle on"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Sub-section: Personnes ── -->
+      <div class="sub-section">
+        <div class="section-label">Personnes</div>
+        <div class="section-desc">Gerez les personnes suivies et associez leurs capteurs smartphone, services de notification et capteurs de conduite.</div>
+        <div style="margin-top:4px;">
+          <div class="item-list">
+
+            <!-- ═══════════════════════════════════
+                 Person 1: Alexandre (EXPANDED)
+                 ═══════════════════════════════════ -->
+            <div class="item-card" id="person-alex">
+              <button class="item-row" onclick="
+                const card = document.getElementById('person-alex');
+                const fold = card.querySelector('.person-fold');
+                const sep = card.querySelector('.person-fold-sep');
+                const chevron = card.querySelector('.expand-btn');
+                const isOpen = fold.classList.contains('open');
+                fold.classList.toggle('open');
+                chevron.classList.toggle('open');
+                if (sep) sep.classList.toggle('visible');
+              ">
+                <div class="avatar-circle" style="background:rgba(74,222,128,0.15); color:#4ade80;">A</div>
+                <div class="item-info">
+                  <span class="item-name">Alexandre</span>
+                  <span class="item-meta">person.alexandre</span>
+                </div>
+                <span class="expand-btn open" aria-label="Expand">
+                  <i class="mdi mdi-chevron-down"></i>
+                </span>
+              </button>
+
+              <div class="person-fold-sep visible"></div>
+
+              <div class="person-fold open">
+                <div class="person-fold-inner">
+                  <div class="person-fold-content">
+
+                    <!-- Dropdown: Capteur smartphone -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur smartphone</span>
+                      <div class="dropdown" id="dd-alex-smartphone">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-alex-smartphone').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-cellphone"></i>
+                          <span>Phone Alex Activity</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-smartphone', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-alex-smartphone', 'Phone Alex Activity', 'mdi-cellphone');
+                          ">
+                            <i class="mdi mdi-cellphone"></i>
+                            Phone Alex Activity
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-smartphone', 'Phone Alex Battery', 'mdi-cellphone');
+                          ">
+                            <i class="mdi mdi-cellphone"></i>
+                            Phone Alex Battery
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-smartphone', 'Phone Alex WiFi', 'mdi-cellphone');
+                          ">
+                            <i class="mdi mdi-cellphone"></i>
+                            Phone Alex WiFi
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Service notification -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Service notification</span>
+                      <div class="dropdown" id="dd-alex-notify">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-alex-notify').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-bell"></i>
+                          <span>notify.mobile_app_alex</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher un service..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-notify', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-alex-notify', 'notify.mobile_app_alex', 'mdi-bell');
+                          ">
+                            <i class="mdi mdi-bell"></i>
+                            notify.mobile_app_alex
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-notify', 'notify.mobile_app_marie', 'mdi-bell');
+                          ">
+                            <i class="mdi mdi-bell"></i>
+                            notify.mobile_app_marie
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-notify', 'notify.alexa_media', 'mdi-bell');
+                          ">
+                            <i class="mdi mdi-bell"></i>
+                            notify.alexa_media
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Capteur conduite -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur conduite</span>
+                      <div class="dropdown" id="dd-alex-driving">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-alex-driving').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-car"></i>
+                          <span>Phone Alex Driving</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-driving', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-alex-driving', 'Phone Alex Driving', 'mdi-car');
+                          ">
+                            <i class="mdi mdi-car"></i>
+                            Phone Alex Driving
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-alex-driving', 'Phone Alex Bluetooth', 'mdi-car');
+                          ">
+                            <i class="mdi mdi-car"></i>
+                            Phone Alex Bluetooth
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════════════════════════════
+                 Person 2: Marie (COLLAPSED)
+                 ═══════════════════════════════════ -->
+            <div class="item-card" id="person-marie">
+              <button class="item-row" onclick="
+                const card = document.getElementById('person-marie');
+                const fold = card.querySelector('.person-fold');
+                const sep = card.querySelector('.person-fold-sep');
+                const chevron = card.querySelector('.expand-btn');
+                fold.classList.toggle('open');
+                chevron.classList.toggle('open');
+                if (sep) sep.classList.toggle('visible');
+              ">
+                <div class="avatar-circle" style="background:rgba(96,165,250,0.15); color:#60a5fa;">M</div>
+                <div class="item-info">
+                  <span class="item-name">Marie</span>
+                  <span class="item-meta">person.marie</span>
+                </div>
+                <span class="expand-btn" aria-label="Expand">
+                  <i class="mdi mdi-chevron-down"></i>
+                </span>
+              </button>
+
+              <div class="person-fold-sep"></div>
+
+              <div class="person-fold">
+                <div class="person-fold-inner">
+                  <div class="person-fold-content">
+
+                    <!-- Dropdown: Capteur smartphone -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur smartphone</span>
+                      <div class="dropdown" id="dd-marie-smartphone">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-marie-smartphone').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-cellphone"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-marie-smartphone', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-marie-smartphone', 'Phone Marie Activity', 'mdi-cellphone');
+                          ">
+                            <i class="mdi mdi-cellphone"></i>
+                            Phone Marie Activity
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Service notification -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Service notification</span>
+                      <div class="dropdown" id="dd-marie-notify">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-marie-notify').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-bell"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher un service..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-marie-notify', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-marie-notify', 'notify.mobile_app_marie', 'mdi-bell');
+                          ">
+                            <i class="mdi mdi-bell"></i>
+                            notify.mobile_app_marie
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Capteur conduite -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur conduite</span>
+                      <div class="dropdown" id="dd-marie-driving">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-marie-driving').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-car"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-marie-driving', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                          <button class="dropdown-item" role="option" onclick="
+                            selectDropdown('dd-marie-driving', 'Phone Marie Driving', 'mdi-car');
+                          ">
+                            <i class="mdi mdi-car"></i>
+                            Phone Marie Driving
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════════════════════════════
+                 Person 3: Lucas (COLLAPSED)
+                 ═══════════════════════════════════ -->
+            <div class="item-card" id="person-lucas">
+              <button class="item-row" onclick="
+                const card = document.getElementById('person-lucas');
+                const fold = card.querySelector('.person-fold');
+                const sep = card.querySelector('.person-fold-sep');
+                const chevron = card.querySelector('.expand-btn');
+                fold.classList.toggle('open');
+                chevron.classList.toggle('open');
+                if (sep) sep.classList.toggle('visible');
+              ">
+                <div class="avatar-circle" style="background:rgba(248,113,113,0.15); color:#f87171;">L</div>
+                <div class="item-info">
+                  <span class="item-name">Lucas</span>
+                  <span class="item-meta">person.lucas</span>
+                </div>
+                <span class="expand-btn" aria-label="Expand">
+                  <i class="mdi mdi-chevron-down"></i>
+                </span>
+              </button>
+
+              <div class="person-fold-sep"></div>
+
+              <div class="person-fold">
+                <div class="person-fold-inner">
+                  <div class="person-fold-content">
+
+                    <!-- Dropdown: Capteur smartphone -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur smartphone</span>
+                      <div class="dropdown" id="dd-lucas-smartphone">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-lucas-smartphone').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-cellphone"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-lucas-smartphone', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Service notification -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Service notification</span>
+                      <div class="dropdown" id="dd-lucas-notify">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-lucas-notify').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-bell"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher un service..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-lucas-notify', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dropdown: Capteur conduite -->
+                    <div class="dropdown-field">
+                      <span class="dropdown-field-label">Capteur conduite</span>
+                      <div class="dropdown" id="dd-lucas-driving">
+                        <button class="dropdown-trigger" onclick="
+                          event.stopPropagation();
+                          closeAllDropdowns();
+                          document.getElementById('dd-lucas-driving').classList.toggle('open');
+                        " aria-haspopup="listbox">
+                          <i class="mdi mdi-car"></i>
+                          <span>Auto-detection</span>
+                          <i class="mdi mdi-chevron-down arrow"></i>
+                        </button>
+                        <div class="dropdown-menu" role="listbox">
+                          <input class="dropdown-search" type="text" placeholder="Rechercher une entite..." onclick="event.stopPropagation();">
+                          <button class="dropdown-item active" role="option" aria-selected="true" onclick="
+                            selectDropdown('dd-lucas-driving', 'Auto-detection', 'mdi-auto-fix');
+                          ">
+                            <i class="mdi mdi-auto-fix"></i>
+                            Auto-detection
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Add person button -->
+          <button class="btn btn-sm btn-add" onclick="alert('Ajouter une personne')">
+            <i class="mdi mdi-plus" style="font-size:14px;"></i>
+            Ajouter une personne
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Save bar ── -->
+      <div class="save-bar">
+        <button class="btn btn-ghost btn-sm" onclick="alert('Reinitialiser')">
+          <i class="mdi mdi-restore" style="font-size:14px;"></i>
+          Reinitialiser
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Close all dropdowns
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown.open').forEach(dd => dd.classList.remove('open'));
+    }
+
+    // Select a dropdown item and update trigger text
+    function selectDropdown(dropdownId, text, iconClass) {
+      const dd = document.getElementById(dropdownId);
+      if (!dd) return;
+
+      // Update trigger text
+      const triggerSpan = dd.querySelector('.dropdown-trigger span');
+      if (triggerSpan) triggerSpan.textContent = text;
+
+      // Update trigger icon
+      const triggerIcon = dd.querySelector('.dropdown-trigger > i:first-child');
+      if (triggerIcon) {
+        triggerIcon.className = 'mdi ' + iconClass;
+      }
+
+      // Update active states
+      dd.querySelectorAll('.dropdown-item').forEach(item => {
+        item.classList.remove('active');
+        item.setAttribute('aria-selected', 'false');
+      });
+      event.currentTarget.classList.add('active');
+      event.currentTarget.setAttribute('aria-selected', 'true');
+
+      // Close dropdown
+      dd.classList.remove('open');
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', function(e) {
+      const isInDropdown = e.target.closest('.dropdown');
+      if (!isInDropdown) {
+        closeAllDropdowns();
+      }
+    });
+
+    // Filter dropdown items on search input
+    document.querySelectorAll('.dropdown-search').forEach(input => {
+      input.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const menu = this.closest('.dropdown-menu');
+        menu.querySelectorAll('.dropdown-item').forEach(item => {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(query) ? 'flex' : 'none';
+        });
+      });
+    });
+  </script>
+
+</body>
+
+</html>

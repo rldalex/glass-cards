@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Config Tab Navbar — Glass Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius-xl: 22px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --radius-full: 9999px;
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+      --t-slow: 1.2s var(--ease-std);
+      --t-med: 0.4s var(--ease-std);
+      --t-fast: 0.2s var(--ease-std);
+      --t-layout: 0.35s var(--ease-out);
+
+      --c-success: #4ade80;
+      --c-alert: #f87171;
+      --c-warning: #fbbf24;
+      --c-info: #60a5fa;
+      --c-accent: #818cf8;
+      --c-purple: #a78bfa;
+
+      --t1: rgba(255, 255, 255, 0.88);
+      --t2: rgba(255, 255, 255, 0.60);
+      --t3: rgba(255, 255, 255, 0.45);
+      --t4: rgba(255, 255, 255, 0.25);
+
+      --s1: rgba(255, 255, 255, 0.04);
+      --s2: rgba(255, 255, 255, 0.06);
+      --s3: rgba(255, 255, 255, 0.08);
+      --s4: rgba(255, 255, 255, 0.12);
+
+      --b1: rgba(255, 255, 255, 0.06);
+      --b2: rgba(255, 255, 255, 0.08);
+      --b3: rgba(255, 255, 255, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #111827;
+      color: var(--t1);
+      min-height: 100vh;
+    }
+
+    /* ── Ambient BG ── */
+    .ambient-bg { position: fixed; inset: 0; z-index: -1; }
+    .ambient-bg::before, .ambient-bg::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4;
+    }
+    .ambient-bg::before { width: 600px; height: 600px; top: -200px; right: -100px; background: #3b6fa0; }
+    .ambient-bg::after { width: 500px; height: 500px; bottom: -150px; left: -100px; background: #4a90a0; }
+
+    /* ── Page layout ── */
+    .page-wrap {
+      max-width: 27.5rem;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .page-header-brand {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--t4);
+    }
+
+    /* ── Glass surface ── */
+    .glass {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--b2);
+    }
+
+    /* ── Config panel ── */
+    .config-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Top nav ── */
+    .top-nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--b1);
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+    }
+    .nav-btn:hover { color: var(--t2); background: var(--s1); }
+    .nav-btn.active {
+      background: var(--s3);
+      color: var(--t1);
+      border-color: var(--b2);
+    }
+    .nav-btn i { font-size: 15px; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .breadcrumb-back {
+      color: var(--t3);
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s var(--ease-std);
+    }
+    .breadcrumb-back:hover { color: var(--t1); background: var(--s2); }
+    .breadcrumb-sep { color: var(--t4); font-size: 14px; }
+    .breadcrumb-current { color: var(--t1); font-weight: 600; }
+
+    /* ── Sub-section group ── */
+    .sub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sub-section + .sub-section {
+      padding-top: 12px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Section label / desc ── */
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--t4);
+      padding: 0 4px;
+    }
+    .section-desc {
+      font-size: 10px;
+      color: var(--t3);
+      padding: 0 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Preview encart ── */
+    .preview-encart {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .preview-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    /* ── Preview navbar ── */
+    .preview-navbar {
+      display: flex;
+      gap: 2px;
+      padding: 8px 10px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.05) 100%);
+      border: 1px solid var(--b1);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .preview-navbar::-webkit-scrollbar { display: none; }
+    .preview-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+      min-width: 52px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+    }
+    .preview-nav-item:hover { background: var(--s2); }
+    .preview-nav-item.active-preview {
+      background: var(--s3);
+    }
+    .preview-nav-item i.room-icon {
+      font-size: 18px;
+      color: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .preview-nav-item.has-light i.room-icon {
+      color: var(--c-warning);
+      filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+    }
+    .preview-nav-label {
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--t3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 56px;
+      text-align: center;
+    }
+    .preview-nav-item.active-preview .preview-nav-label {
+      color: var(--t1);
+    }
+    .preview-temp-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 7px;
+      font-weight: 700;
+      color: var(--t3);
+      background: var(--s3);
+      padding: 1px 3px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .preview-nav-item.has-temp-hot .preview-temp-badge {
+      color: #f97316;
+      background: rgba(249, 115, 22, 0.15);
+    }
+    .preview-nav-item.has-temp-cold .preview-temp-badge {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .preview-nav-item.has-temp-hot .preview-temp-badge i,
+    .preview-nav-item.has-temp-cold .preview-temp-badge i {
+      font-size: 10px;
+    }
+
+    /* ── Feature list (toggle rows) ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .feature-row:hover { background: var(--s1); }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon i { font-size: 15px; color: var(--t3); }
+    .feature-text { flex: 1; min-width: 0; }
+    .feature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .feature-desc {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      padding: 0;
+      outline: none;
+      font-size: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--t3);
+      transition: all 0.2s var(--ease-std);
+    }
+    .toggle.on {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+    .toggle.on::after {
+      transform: translateX(20px);
+      background: var(--c-success);
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+
+    /* ── Threshold rows ── */
+    .threshold-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .threshold-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s var(--ease-std);
+    }
+    .threshold-row:hover { background: var(--s1); }
+    .threshold-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--b1);
+    }
+    .threshold-icon i { font-size: 15px; }
+    .threshold-icon.hot {
+      background: rgba(249, 115, 22, 0.08);
+      border-color: rgba(249, 115, 22, 0.12);
+    }
+    .threshold-icon.hot i { color: #f97316; }
+    .threshold-icon.cold {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.12);
+    }
+    .threshold-icon.cold i { color: #38bdf8; }
+    .threshold-icon.humidity {
+      background: rgba(96, 165, 250, 0.08);
+      border-color: rgba(96, 165, 250, 0.12);
+    }
+    .threshold-icon.humidity i { color: var(--c-info); }
+    .threshold-label {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+    }
+    .threshold-input-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .threshold-input {
+      width: 56px;
+      text-align: center;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b2);
+      background: var(--s1);
+      color: var(--t1);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s var(--ease-std);
+    }
+    .threshold-input:focus { border-color: var(--b3); }
+    .threshold-unit {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 600;
+      min-width: 18px;
+    }
+
+    /* ── Item list (drag-reorder rows) ── */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      transition: all 0.2s var(--ease-std);
+      cursor: grab;
+    }
+    .item-row:hover { background: var(--s1); }
+    .item-row.disabled { opacity: 0.45; }
+    .item-row.dragging { opacity: 0.4; }
+    .item-row.drop-target {
+      background: rgba(129, 140, 248, 0.06);
+      box-shadow: inset 0 -2px 0 var(--c-accent);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-handle i {
+      font-size: 16px;
+      color: var(--t4);
+    }
+    .room-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      background: var(--s2);
+      border: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      font-family: inherit;
+      padding: 0;
+    }
+    .room-icon-btn:hover {
+      background: var(--s4);
+      border-color: var(--b3);
+    }
+    .room-icon-btn i {
+      font-size: 15px;
+      color: var(--t3);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t2);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: var(--t4);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Icon picker grid ── */
+    .icon-picker-fold {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease-out);
+    }
+    .icon-picker-fold.open {
+      grid-template-rows: 1fr;
+    }
+    .icon-picker-inner {
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s var(--ease-std), visibility 0.2s var(--ease-std);
+    }
+    .icon-picker-fold.open .icon-picker-inner {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0.1s;
+    }
+    .icon-picker-content {
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .icon-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+      gap: 4px;
+    }
+    .icon-pick {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--b1);
+      background: var(--s1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+    }
+    .icon-pick i { font-size: 18px; color: var(--t3); }
+    .icon-pick:hover {
+      background: var(--s3);
+      border-color: var(--b3);
+    }
+    .icon-pick:hover i { color: var(--t1); }
+    .icon-pick.selected {
+      background: rgba(129, 140, 248, 0.12);
+      border-color: rgba(129, 140, 248, 0.3);
+    }
+    .icon-pick.selected i {
+      color: var(--c-accent);
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--b1);
+    }
+
+    /* ── Button base ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--b2);
+      background: var(--s2);
+      color: var(--t2);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-std);
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:hover { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-ghost:hover { background: var(--s2); border-color: transparent; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .nav-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+      }
+      .nav-btn i { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" aria-label="Retour" style="width:28px;padding:0;">
+          <i class="mdi mdi-arrow-left" style="font-size:16px;"></i>
+        </button>
+        <span class="page-header-title">Configuration</span>
+      </div>
+      <span class="page-header-brand">Glass Cards</span>
+    </div>
+
+    <!-- ── Config panel ── -->
+    <div class="glass config-panel">
+
+      <!-- Top nav -->
+      <div class="top-nav">
+        <button class="nav-btn" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-home-group"></i>
+          <span>Pieces</span>
+        </button>
+        <button class="nav-btn active" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-cog"></i>
+          <span>General</span>
+        </button>
+        <button class="nav-btn" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+          <i class="mdi mdi-tune-variant"></i>
+          <span>Avance</span>
+        </button>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <button class="breadcrumb-back" onclick="alert('Retour vers General')">General</button>
+        <span class="breadcrumb-sep">&rsaquo;</span>
+        <span class="breadcrumb-current">Navbar</span>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           CONTENT: Navbar config (no section folds)
+           ═══════════════════════════════════════ -->
+
+      <!-- ── 1. Preview encart ── -->
+      <div class="preview-encart">
+        <div class="preview-label">Apercu</div>
+        <div class="preview-navbar" id="preview-navbar">
+          <!-- Salon: light on + temp 21° -->
+          <div class="preview-nav-item active-preview has-light" onclick="document.querySelectorAll('.preview-nav-item').forEach(i=>i.classList.remove('active-preview'));this.classList.add('active-preview');">
+            <span class="preview-temp-badge">21&deg;</span>
+            <i class="mdi mdi-sofa room-icon"></i>
+            <div class="preview-nav-label"><span>Salon</span></div>
+          </div>
+          <!-- Cuisine -->
+          <div class="preview-nav-item" onclick="document.querySelectorAll('.preview-nav-item').forEach(i=>i.classList.remove('active-preview'));this.classList.add('active-preview');">
+            <i class="mdi mdi-silverware-fork-knife room-icon"></i>
+            <div class="preview-nav-label"><span>Cuisine</span></div>
+          </div>
+          <!-- Chambre: light on -->
+          <div class="preview-nav-item has-light" onclick="document.querySelectorAll('.preview-nav-item').forEach(i=>i.classList.remove('active-preview'));this.classList.add('active-preview');">
+            <i class="mdi mdi-bed room-icon"></i>
+            <div class="preview-nav-label"><span>Chambre</span></div>
+          </div>
+          <!-- Bureau: temp hot badge -->
+          <div class="preview-nav-item has-temp-hot" onclick="document.querySelectorAll('.preview-nav-item').forEach(i=>i.classList.remove('active-preview'));this.classList.add('active-preview');">
+            <span class="preview-temp-badge">26&deg;</span>
+            <i class="mdi mdi-desk room-icon"></i>
+            <div class="preview-nav-label"><span>Bureau</span></div>
+          </div>
+          <!-- Jardin -->
+          <div class="preview-nav-item" onclick="document.querySelectorAll('.preview-nav-item').forEach(i=>i.classList.remove('active-preview'));this.classList.add('active-preview');">
+            <i class="mdi mdi-tree room-icon"></i>
+            <div class="preview-nav-label"><span>Jardin</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 2. Sub-section: Indicateurs ── -->
+      <div class="sub-section">
+        <div class="section-label">Indicateurs</div>
+        <div class="section-desc">Informations affichees sur chaque piece dans la barre de navigation.</div>
+        <div class="feature-list">
+          <!-- Afficher lumieres -->
+          <button class="feature-row" role="switch" aria-checked="true"
+            onclick="this.querySelector('.toggle').classList.toggle('on'); this.setAttribute('aria-checked', this.querySelector('.toggle').classList.contains('on'))">
+            <div class="feature-icon" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.12);">
+              <i class="mdi mdi-lightbulb-group" style="color:var(--c-warning);"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Afficher lumieres</div>
+              <div class="feature-desc">Indicateur lumineux sur les pieces allumees</div>
+            </div>
+            <span class="toggle on"></span>
+          </button>
+          <!-- Afficher temperature -->
+          <button class="feature-row" role="switch" aria-checked="true"
+            onclick="this.querySelector('.toggle').classList.toggle('on'); this.setAttribute('aria-checked', this.querySelector('.toggle').classList.contains('on'))">
+            <div class="feature-icon" style="background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.12);">
+              <i class="mdi mdi-thermometer" style="color:#f97316;"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Afficher temperature</div>
+              <div class="feature-desc">Badge de temperature sur chaque piece</div>
+            </div>
+            <span class="toggle on"></span>
+          </button>
+          <!-- Afficher humidite -->
+          <button class="feature-row" role="switch" aria-checked="true"
+            onclick="this.querySelector('.toggle').classList.toggle('on'); this.setAttribute('aria-checked', this.querySelector('.toggle').classList.contains('on'))">
+            <div class="feature-icon" style="background:rgba(96,165,250,0.08);border-color:rgba(96,165,250,0.12);">
+              <i class="mdi mdi-water-percent" style="color:var(--c-info);"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Afficher humidite</div>
+              <div class="feature-desc">Badge d'humidite si seuil depasse</div>
+            </div>
+            <span class="toggle on"></span>
+          </button>
+          <!-- Afficher media -->
+          <button class="feature-row" role="switch" aria-checked="false"
+            onclick="this.querySelector('.toggle').classList.toggle('on'); this.setAttribute('aria-checked', this.querySelector('.toggle').classList.contains('on'))">
+            <div class="feature-icon" style="background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.12);">
+              <i class="mdi mdi-music" style="color:var(--c-purple);"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Afficher media</div>
+              <div class="feature-desc">Indicateur de lecture multimedia en cours</div>
+            </div>
+            <span class="toggle"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 3. Sub-section: Tri ── -->
+      <div class="sub-section">
+        <div class="section-label">Tri</div>
+        <div class="feature-list">
+          <button class="feature-row" role="switch" aria-checked="true"
+            onclick="this.querySelector('.toggle').classList.toggle('on'); this.setAttribute('aria-checked', this.querySelector('.toggle').classList.contains('on'))">
+            <div class="feature-icon" style="background:rgba(129,140,248,0.08);border-color:rgba(129,140,248,0.12);">
+              <i class="mdi mdi-sort-variant" style="color:var(--c-accent);"></i>
+            </div>
+            <div class="feature-text">
+              <div class="feature-name">Tri automatique</div>
+              <div class="feature-desc">Trie les pieces par activite</div>
+            </div>
+            <span class="toggle on"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 4. Sub-section: Seuils ── -->
+      <div class="sub-section">
+        <div class="section-label">Seuils</div>
+        <div class="section-desc">Valeurs a partir desquelles les indicateurs s'activent dans la navbar.</div>
+        <div class="threshold-list">
+          <!-- Temperature haute -->
+          <div class="threshold-row">
+            <div class="threshold-icon hot">
+              <i class="mdi mdi-thermometer-high"></i>
+            </div>
+            <span class="threshold-label">Temperature haute</span>
+            <div class="threshold-input-group">
+              <input class="threshold-input" type="number" step="0.5" value="24"
+                aria-label="Temperature haute" onclick="this.select()" onchange="console.log('temp_high:', this.value)">
+              <span class="threshold-unit">&deg;C</span>
+            </div>
+          </div>
+          <!-- Temperature basse -->
+          <div class="threshold-row">
+            <div class="threshold-icon cold">
+              <i class="mdi mdi-snowflake"></i>
+            </div>
+            <span class="threshold-label">Temperature basse</span>
+            <div class="threshold-input-group">
+              <input class="threshold-input" type="number" step="0.5" value="17"
+                aria-label="Temperature basse" onclick="this.select()" onchange="console.log('temp_low:', this.value)">
+              <span class="threshold-unit">&deg;C</span>
+            </div>
+          </div>
+          <!-- Humidite -->
+          <div class="threshold-row">
+            <div class="threshold-icon humidity">
+              <i class="mdi mdi-water-percent"></i>
+            </div>
+            <span class="threshold-label">Humidite</span>
+            <div class="threshold-input-group">
+              <input class="threshold-input" type="number" step="1" value="65"
+                aria-label="Seuil humidite" onclick="this.select()" onchange="console.log('humidity_threshold:', this.value)">
+              <span class="threshold-unit">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 5. Sub-section: Pieces ── -->
+      <div class="sub-section">
+        <div class="section-label">Pieces (5)</div>
+        <div class="section-desc">Ordre et visibilite des pieces dans la barre de navigation. Glissez pour reorganiser.</div>
+        <div class="item-list" id="room-list">
+
+          <!-- Salon -->
+          <div class="item-row" draggable="true"
+            ondragstart="this.classList.add('dragging'); window._dragIdx=Array.from(this.parentElement.children).indexOf(this);"
+            ondragend="this.classList.remove('dragging'); document.querySelectorAll('#room-list .item-row').forEach(r=>r.classList.remove('drop-target'));"
+            ondragover="event.preventDefault(); this.classList.add('drop-target');"
+            ondragleave="this.classList.remove('drop-target');"
+            ondrop="event.preventDefault(); this.classList.remove('drop-target'); var list=this.parentElement; var items=Array.from(list.children); var dropIdx=items.indexOf(this); if(window._dragIdx!==dropIdx){var el=items[window._dragIdx]; list.removeChild(el); list.insertBefore(el, dropIdx>window._dragIdx?this.nextSibling:this);}">
+            <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+            <button class="room-icon-btn" aria-label="Changer icone Salon" onclick="event.stopPropagation(); toggleIconPicker('salon', this);">
+              <i class="mdi mdi-sofa"></i>
+            </button>
+            <div class="item-info">
+              <span class="item-name">Salon</span>
+              <span class="item-meta">12 entites</span>
+            </div>
+            <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Salon"></button>
+          </div>
+
+          <!-- Cuisine -->
+          <div class="item-row" draggable="true"
+            ondragstart="this.classList.add('dragging'); window._dragIdx=Array.from(this.parentElement.children).indexOf(this);"
+            ondragend="this.classList.remove('dragging'); document.querySelectorAll('#room-list .item-row').forEach(r=>r.classList.remove('drop-target'));"
+            ondragover="event.preventDefault(); this.classList.add('drop-target');"
+            ondragleave="this.classList.remove('drop-target');"
+            ondrop="event.preventDefault(); this.classList.remove('drop-target'); var list=this.parentElement; var items=Array.from(list.children); var dropIdx=items.indexOf(this); if(window._dragIdx!==dropIdx){var el=items[window._dragIdx]; list.removeChild(el); list.insertBefore(el, dropIdx>window._dragIdx?this.nextSibling:this);}">
+            <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+            <button class="room-icon-btn" aria-label="Changer icone Cuisine" onclick="event.stopPropagation(); toggleIconPicker('cuisine', this);">
+              <i class="mdi mdi-silverware-fork-knife"></i>
+            </button>
+            <div class="item-info">
+              <span class="item-name">Cuisine</span>
+              <span class="item-meta">8 entites</span>
+            </div>
+            <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Cuisine"></button>
+          </div>
+
+          <!-- Chambre -->
+          <div class="item-row" draggable="true"
+            ondragstart="this.classList.add('dragging'); window._dragIdx=Array.from(this.parentElement.children).indexOf(this);"
+            ondragend="this.classList.remove('dragging'); document.querySelectorAll('#room-list .item-row').forEach(r=>r.classList.remove('drop-target'));"
+            ondragover="event.preventDefault(); this.classList.add('drop-target');"
+            ondragleave="this.classList.remove('drop-target');"
+            ondrop="event.preventDefault(); this.classList.remove('drop-target'); var list=this.parentElement; var items=Array.from(list.children); var dropIdx=items.indexOf(this); if(window._dragIdx!==dropIdx){var el=items[window._dragIdx]; list.removeChild(el); list.insertBefore(el, dropIdx>window._dragIdx?this.nextSibling:this);}">
+            <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+            <button class="room-icon-btn" aria-label="Changer icone Chambre" onclick="event.stopPropagation(); toggleIconPicker('chambre', this);">
+              <i class="mdi mdi-bed"></i>
+            </button>
+            <div class="item-info">
+              <span class="item-name">Chambre</span>
+              <span class="item-meta">6 entites</span>
+            </div>
+            <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Chambre"></button>
+          </div>
+
+          <!-- Bureau -->
+          <div class="item-row" draggable="true"
+            ondragstart="this.classList.add('dragging'); window._dragIdx=Array.from(this.parentElement.children).indexOf(this);"
+            ondragend="this.classList.remove('dragging'); document.querySelectorAll('#room-list .item-row').forEach(r=>r.classList.remove('drop-target'));"
+            ondragover="event.preventDefault(); this.classList.add('drop-target');"
+            ondragleave="this.classList.remove('drop-target');"
+            ondrop="event.preventDefault(); this.classList.remove('drop-target'); var list=this.parentElement; var items=Array.from(list.children); var dropIdx=items.indexOf(this); if(window._dragIdx!==dropIdx){var el=items[window._dragIdx]; list.removeChild(el); list.insertBefore(el, dropIdx>window._dragIdx?this.nextSibling:this);}">
+            <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+            <button class="room-icon-btn" aria-label="Changer icone Bureau" onclick="event.stopPropagation(); toggleIconPicker('bureau', this);">
+              <i class="mdi mdi-desk"></i>
+            </button>
+            <div class="item-info">
+              <span class="item-name">Bureau</span>
+              <span class="item-meta">5 entites</span>
+            </div>
+            <button class="toggle on" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Bureau"></button>
+          </div>
+
+          <!-- Jardin (hidden) -->
+          <div class="item-row disabled" draggable="true"
+            ondragstart="this.classList.add('dragging'); window._dragIdx=Array.from(this.parentElement.children).indexOf(this);"
+            ondragend="this.classList.remove('dragging'); document.querySelectorAll('#room-list .item-row').forEach(r=>r.classList.remove('drop-target'));"
+            ondragover="event.preventDefault(); this.classList.add('drop-target');"
+            ondragleave="this.classList.remove('drop-target');"
+            ondrop="event.preventDefault(); this.classList.remove('drop-target'); var list=this.parentElement; var items=Array.from(list.children); var dropIdx=items.indexOf(this); if(window._dragIdx!==dropIdx){var el=items[window._dragIdx]; list.removeChild(el); list.insertBefore(el, dropIdx>window._dragIdx?this.nextSibling:this);}">
+            <span class="drag-handle"><i class="mdi mdi-drag"></i></span>
+            <button class="room-icon-btn" aria-label="Changer icone Jardin" onclick="event.stopPropagation(); toggleIconPicker('jardin', this);">
+              <i class="mdi mdi-tree"></i>
+            </button>
+            <div class="item-info">
+              <span class="item-name">Jardin</span>
+              <span class="item-meta">3 entites</span>
+            </div>
+            <button class="toggle" onclick="event.stopPropagation(); this.classList.toggle('on'); this.closest('.item-row').classList.toggle('disabled', !this.classList.contains('on'));" aria-label="Visibilite Jardin"></button>
+          </div>
+
+        </div>
+
+        <!-- Icon picker fold -->
+        <div class="icon-picker-fold" id="icon-picker-fold">
+          <div class="icon-picker-inner">
+            <div class="icon-picker-content">
+              <div class="section-label" id="icon-picker-label">Icone pour Salon</div>
+              <div class="icon-picker-grid" id="icon-picker-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 6. Save bar ── -->
+      <div class="save-bar">
+        <button class="btn btn-ghost btn-sm" onclick="alert('Reinitialiser la configuration navbar')">
+          <i class="mdi mdi-restore" style="font-size:14px;"></i>
+          Reinitialiser
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ── Icon picker logic ──
+    var ROOM_ICONS = [
+      'mdi-sofa', 'mdi-bed', 'mdi-silverware-fork-knife', 'mdi-desk',
+      'mdi-tree', 'mdi-shower', 'mdi-garage', 'mdi-stairs',
+      'mdi-door', 'mdi-baby-carriage', 'mdi-washing-machine', 'mdi-television',
+      'mdi-gamepad-variant', 'mdi-dumbbell', 'mdi-book-open-variant', 'mdi-home',
+      'mdi-home-outline', 'mdi-floor-plan', 'mdi-balcony', 'mdi-grill',
+      'mdi-pool', 'mdi-spa', 'mdi-car-side', 'mdi-toolbox',
+    ];
+
+    var currentPickerRoom = null;
+    var currentPickerBtn = null;
+
+    function toggleIconPicker(roomId, btnEl) {
+      var fold = document.getElementById('icon-picker-fold');
+      var label = document.getElementById('icon-picker-label');
+      var grid = document.getElementById('icon-picker-grid');
+
+      if (currentPickerRoom === roomId) {
+        fold.classList.remove('open');
+        currentPickerRoom = null;
+        currentPickerBtn = null;
+        return;
+      }
+
+      currentPickerRoom = roomId;
+      currentPickerBtn = btnEl;
+
+      var currentIcon = btnEl.querySelector('i').className.replace('mdi ', '');
+
+      var roomNames = { salon: 'Salon', cuisine: 'Cuisine', chambre: 'Chambre', bureau: 'Bureau', jardin: 'Jardin' };
+      label.textContent = 'Icone pour ' + (roomNames[roomId] || roomId);
+
+      // Build grid using DOM methods
+      while (grid.firstChild) { grid.removeChild(grid.firstChild); }
+
+      ROOM_ICONS.forEach(function(icon) {
+        var btn = document.createElement('button');
+        btn.className = 'icon-pick' + (icon === currentIcon ? ' selected' : '');
+        btn.setAttribute('aria-label', 'Choisir ' + icon);
+
+        var iconEl = document.createElement('i');
+        iconEl.className = 'mdi ' + icon;
+        btn.appendChild(iconEl);
+
+        btn.addEventListener('click', function() {
+          currentPickerBtn.querySelector('i').className = 'mdi ' + icon;
+          grid.querySelectorAll('.icon-pick').forEach(function(p) { p.classList.remove('selected'); });
+          btn.classList.add('selected');
+          fold.classList.remove('open');
+          currentPickerRoom = null;
+          currentPickerBtn = null;
+        });
+        grid.appendChild(btn);
+      });
+
+      // Open fold with double rAF
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          fold.classList.add('open');
+        });
+      });
+    }
+  </script>
+
+</body>
+
+</html>
