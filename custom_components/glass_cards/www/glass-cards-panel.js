@@ -8624,7 +8624,6 @@
         position: relative;
         border-radius: var(--radius-xl);
         overflow: hidden;
-        aspect-ratio: 16 / 9;
         background: #111;
         border: 1px solid var(--b2);
         box-shadow:
@@ -8698,7 +8697,7 @@
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        flex: 1;
+        min-height: 21.25rem;
         padding: 0.875rem;
       }
 
