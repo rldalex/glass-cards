@@ -875,6 +875,14 @@ export class GlassClimateCard extends BaseCard {
           card.addEventListener('animationend', () => card.classList.remove('lp-pulse'), { once: true });
         }
       },
+      onSwipe: (dir) => {
+        if (sorted.length <= 1) return;
+        const curIdx = sorted.findIndex((c) => c.entity_id === selectedId);
+        const nextIdx = dir === 'left'
+          ? (curIdx + 1) % sorted.length
+          : (curIdx - 1 + sorted.length) % sorted.length;
+        this._selectedEntity = sorted[nextIdx].entity_id;
+      },
       exclude: 'button, .entity-tab, .temp-stepper-btn, .chip',
     });
 
