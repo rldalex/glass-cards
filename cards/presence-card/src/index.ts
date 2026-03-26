@@ -322,7 +322,7 @@ export class GlassPresenceCard extends BaseCard {
       this._notifSentTimer = window.setTimeout(() => {
         this._notifSent = false;
         this._activePerson = null;
-      }, 2000);
+      }, 4000);
     } catch {
       // silent
     }
