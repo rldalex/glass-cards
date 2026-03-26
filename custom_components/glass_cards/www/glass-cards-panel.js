@@ -6651,6 +6651,8 @@
       touch-action: pan-y; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent; cursor: default;
       transition: border-color var(--t-fast), border-radius var(--t-layout);
+      aspect-ratio: 4 / 3;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .card-inner { position: relative; z-index: 1; }
     .normal-mode .card-inner { display: flex; flex-direction: column; gap: 0; }
@@ -8623,6 +8625,7 @@
         position: relative;
         border-radius: var(--radius-xl);
         overflow: hidden;
+        aspect-ratio: 16 / 9;
         background: #111;
         border: 1px solid var(--b2);
         box-shadow:
@@ -8696,7 +8699,7 @@
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        min-height: 21.25rem;
+        flex: 1;
         padding: 0.875rem;
       }
 
@@ -9274,6 +9277,8 @@
       position: relative;
       width: 100%; padding: 0.875rem 0.875rem 0.375rem;
       box-sizing: border-box;
+      aspect-ratio: 4 / 3;
+      display: flex; flex-direction: column; justify-content: center;
     }
 
     .card-inner {

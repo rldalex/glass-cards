@@ -1372,6 +1372,7 @@ export class GlassMediaCard extends BaseCard {
         position: relative;
         border-radius: var(--radius-xl);
         overflow: hidden;
+        aspect-ratio: 16 / 9;
         background: #111;
         border: 1px solid var(--b2);
         box-shadow:
@@ -1445,7 +1446,7 @@ export class GlassMediaCard extends BaseCard {
       .dash-content {
         position: relative; z-index: 2;
         display: flex; flex-direction: column;
-        min-height: 21.25rem;
+        flex: 1;
         padding: 0.875rem;
       }
 

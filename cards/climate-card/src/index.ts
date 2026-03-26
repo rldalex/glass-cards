@@ -1048,6 +1048,8 @@ export class GlassClimateCard extends BaseCard {
       touch-action: pan-y; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent; cursor: default;
       transition: border-color var(--t-fast), border-radius var(--t-layout);
+      aspect-ratio: 4 / 3;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .card-inner { position: relative; z-index: 1; }
     .normal-mode .card-inner { display: flex; flex-direction: column; gap: 0; }
