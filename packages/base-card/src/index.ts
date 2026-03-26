@@ -261,9 +261,13 @@ export abstract class BaseCard extends LitElement {
     if (this._gestureFired || !this._gestureStart) return;
     const dx = Math.abs(e.clientX - this._gestureStart.x);
     const dy = Math.abs(e.clientY - this._gestureStart.y);
+    // Cancel long-press if finger moved, but keep _gestureStart for swipe detection
     if (dx > 15 || dy > 15) {
       clearTimeout(this._gestureTimer);
-      this._gestureStart = null;
+      // Only cancel gesture entirely on vertical movement (scroll intent)
+      if (dy > dx) {
+        this._gestureStart = null;
+      }
     }
   }
 
