@@ -654,7 +654,7 @@ class GlassCoverCard extends BaseCard {
   private _setPreset(cv: CoverInfo, position: number, e: Event) {
     e.stopPropagation();
     if (!this.hass) return;
-    fireHaptic(this, 'selection');
+    fireHaptic(this, 'light');
     if (cv.features & F.SET_POSITION) {
       this._safeCallService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
     } else if (position > 0) {

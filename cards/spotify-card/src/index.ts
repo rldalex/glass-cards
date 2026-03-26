@@ -1136,7 +1136,7 @@ class GlassSpotifyCard extends BaseCard {
 
   private async _toggleSaved(trackId: string): Promise<void> {
     if (!this._backend) return;
-    fireHaptic(this, 'success');
+    fireHaptic(this, 'light');
     const isSaved = this._savedMap.get(trackId) ?? false;
     // Optimistic update
     const newMap = new Map(this._savedMap);

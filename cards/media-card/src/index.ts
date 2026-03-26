@@ -712,7 +712,7 @@ export class GlassMediaCard extends BaseCard {
 
     const onMove = (evt: PointerEvent) => update(evt);
     const cleanup = () => {
-      fireHaptic(this, 'selection');
+      fireHaptic(this, 'light');
       bar.removeEventListener('pointermove', onMove);
       bar.removeEventListener('pointerup', cleanup);
       bar.removeEventListener('pointercancel', cleanup);

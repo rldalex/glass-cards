@@ -215,7 +215,7 @@ export abstract class BaseCard extends LitElement {
     if (cb.onLongPress) {
       this._gestureTimer = window.setTimeout(() => {
         this._gestureFired = true;
-        fireHaptic(this, 'medium');
+        fireHaptic(this, 'light');
         cb.onLongPress!();
       }, 500);
     }

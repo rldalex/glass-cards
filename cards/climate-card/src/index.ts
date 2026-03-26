@@ -417,13 +417,13 @@ export class GlassClimateCard extends BaseCard {
 
   private _setHvacMode(entityId: string, mode: string): void {
     if (!this.hass) return;
-    fireHaptic(this, 'selection');
+    fireHaptic(this, 'light');
     this._safeCallService('climate', 'set_hvac_mode', { hvac_mode: mode }, { entity_id: entityId });
   }
 
   private _setPreset(entityId: string, preset: string): void {
     if (!this.hass) return;
-    fireHaptic(this, 'selection');
+    fireHaptic(this, 'light');
     this._safeCallService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: entityId });
   }
 

@@ -74,13 +74,9 @@ export const formStyles = css`
         transform: translateY(-4px);
         pointer-events: none;
         transition: opacity var(--t-fast), transform var(--t-fast);
-        scrollbar-width: thin;
-        scrollbar-color: rgba(var(--rgb-white),0.1) transparent;
+        scrollbar-width: none;
       }
-      .dropdown-menu::-webkit-scrollbar { width: 0.25rem; }
-      .dropdown-menu::-webkit-scrollbar-track { background: transparent; }
-      .dropdown-menu::-webkit-scrollbar-thumb { background: rgba(var(--rgb-white),0.1); border-radius: 2px; }
-      .dropdown-menu::-webkit-scrollbar-thumb:hover { background: rgba(var(--rgb-white),0.2); }
+      .dropdown-menu::-webkit-scrollbar { display: none; }
       .dropdown-search {
         width: calc(100% - 0.5rem); margin: 0.25rem; padding: 0.4375rem 0.625rem;
         border-radius: var(--radius-sm); border: 1px solid var(--b1);
@@ -399,9 +395,9 @@ export const formStyles = css`
       .icon-popup-search::placeholder { color: var(--t4); }
       .icon-popup-grid-wrap {
         flex: 1; overflow-y: auto; padding: 0.5rem;
-        scrollbar-width: thin;
-        scrollbar-color: var(--s3) transparent;
+        scrollbar-width: none;
       }
+      .icon-popup-grid-wrap::-webkit-scrollbar { display: none; }
       .icon-popup-grid {
         display: grid; grid-template-columns: repeat(6, 1fr);
         gap: 0.25rem;

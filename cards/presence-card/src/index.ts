@@ -298,7 +298,7 @@ export class GlassPresenceCard extends BaseCard {
 
   private async _sendNotification(person: PersonData): Promise<void> {
     if (!this.hass || !person.notifyService || !this._notifText.trim()) return;
-    fireHaptic(this, 'success');
+    fireHaptic(this, 'light');
     try {
       // Support both "mobile_app_xxx" and "notify.mobile_app_xxx" formats
       let domain = 'notify';

@@ -246,7 +246,7 @@ export class GlassNavbarCard extends BaseCard {
       }
 
       .nav-item ha-icon {
-        --mdc-icon-size: var(--icon-lg);
+        --mdc-icon-size: 1.5rem;
         flex-shrink: 0;
         transition: color 0.6s ease;
         display: flex; align-items: center; justify-content: center;
@@ -430,7 +430,7 @@ export class GlassNavbarCard extends BaseCard {
         margin-left: auto;
       }
       .nav-settings ha-icon {
-        --mdc-icon-size: 1.25rem;
+        --mdc-icon-size: 1.375rem;
         color: rgba(var(--rgb-white),0.45);
         opacity: 0.65;
         transition: color 0.6s ease, opacity var(--t-fast);

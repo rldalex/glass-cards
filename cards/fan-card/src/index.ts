@@ -951,7 +951,7 @@ class GlassFanCard extends BaseCard {
 
   private _setSpeed(fan: FanInfo, pct: number): void {
     if (!this.hass) return;
-    fireHaptic(this, 'selection');
+    fireHaptic(this, 'light');
     if (pct === 0) {
       this._safeCallService('fan', 'turn_off', {}, { entity_id: fan.entityId });
       return;
@@ -982,7 +982,7 @@ class GlassFanCard extends BaseCard {
   private _setDirection(fan: FanInfo, dir: string, e: Event): void {
     e.stopPropagation();
     if (!this.hass) return;
-    fireHaptic(this, 'selection');
+    fireHaptic(this, 'light');
     this._safeCallService('fan', 'set_direction', { direction: dir }, { entity_id: fan.entityId });
   }
 
@@ -1192,10 +1192,7 @@ class GlassFanCard extends BaseCard {
     if (!hasControls) {
       speedText = fan.isOn ? t('common.on') : t('fan.off');
     } else if (fan.isOn || speedDrag !== undefined) {
-      const step = pctToStep(displayPct, fan.speedCount);
-      speedText = fan.isSimple
-        ? t('fan.speed_step_short', { step: String(step), total: String(fan.speedCount) })
-        : `${displayPct}% · ${t('fan.speed_step', { step: String(step), total: String(fan.speedCount) })}`;
+      speedText = `${displayPct}%`;
     } else {
       speedText = t('fan.off');
     }

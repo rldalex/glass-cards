@@ -441,7 +441,7 @@ export class ConfigTabTitle extends BaseConfigTab {
     popup.appendChild(header);
 
     const gridWrap = document.createElement('div');
-    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem' });
+    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem', scrollbarWidth: 'none' });
     const grid = document.createElement('div');
     Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' });
 
