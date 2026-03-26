@@ -587,7 +587,7 @@ class GlassCameraCarouselCard extends BaseCard {
 
     const heroGesture = this._bindGesture({
       onTap: () => { /* tap on hero = no-op (swipe handles navigation) */ },
-      onLongPress: () => { this._foldOpen = !this._foldOpen; },
+      onLongPress: () => { this._isSwiping = false; this._trackEl = null; this._foldOpen = !this._foldOpen; },
       exclude: '.carousel-nav, .stream-placeholder',
     });
 
