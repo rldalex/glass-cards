@@ -273,6 +273,9 @@ export const formStyles = css`
         background: var(--s3); border-radius: var(--radius-full);
         padding: 0.0625rem 0.375rem;
       }
+      .title-source-actions-first {
+        margin-left: auto;
+      }
       .title-source-body {
         padding: 0 0.75rem 0.75rem;
         display: flex; flex-direction: column; gap: 0.5rem;

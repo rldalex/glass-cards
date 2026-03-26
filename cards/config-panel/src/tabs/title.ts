@@ -521,9 +521,8 @@ export class ConfigTabTitle extends BaseConfigTab {
           <ha-icon .icon=${srcDef?.icon || 'mdi:help'}></ha-icon>
           <span class="title-source-type">${sourceLabel}</span>
           <span class="title-source-badge">${src.modes.length}</span>
-          <div class="pw-tt-spacer"></div>
           <button
-            class="btn-icon xs"
+            class="btn-icon xs title-source-actions-first"
             @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; this._titleAddEntityDropdownOpen = false; }}
             aria-label=${isEditing ? t('common.collapse') : t('common.expand')}
           >

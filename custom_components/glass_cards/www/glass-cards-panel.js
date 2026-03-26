@@ -1834,6 +1834,9 @@
         background: var(--s3); border-radius: var(--radius-full);
         padding: 0.0625rem 0.375rem;
       }
+      .title-source-actions-first {
+        margin-left: auto;
+      }
       .title-source-body {
         padding: 0 0.75rem 0.75rem;
         display: flex; flex-direction: column; gap: 0.5rem;
@@ -4189,9 +4192,8 @@
           <ha-icon .icon=${a?.icon||"mdi:help"}></ha-icon>
           <span class="title-source-type">${r}</span>
           <span class="title-source-badge">${e.modes.length}</span>
-          <div class="pw-tt-spacer"></div>
           <button
-            class="btn-icon xs"
+            class="btn-icon xs title-source-actions-first"
             @click=${()=>{this._titleEditingSourceIdx=i?null:t,this._titleAddEntityDropdownOpen=!1}}
             aria-label=${Ne(i?"common.collapse":"common.expand")}
           >
