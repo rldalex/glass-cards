@@ -6704,7 +6704,7 @@
         .avatar-wrapper:active,
         .notif-send:active { animation: bounce 0.3s ease; }
       }
-    `]}}ta([be()],ra.prototype,"_presenceConfig"),ta([be()],ra.prototype,"_activePerson"),ta([be()],ra.prototype,"_notifText");try{customElements.define("glass-presence-card",ra)}catch{}Ye("glass-camera-carousel-card-editor");var sa=Object.defineProperty,oa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&sa(t,i,s),s};const na=1,la="mdi:cctv",ca="mdi:webcam",da="mdi:doorbell-video",ha={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},pa={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},ua=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],ga=new Map;function ma(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const c of Object.keys(i))i[c].device_id===r&&c.startsWith("binary_sensor.")&&t[c]&&(s+=`:${c}=${t[c].state}`);const o=ga.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[c,d]of Object.entries(i))d.device_id===r&&n.push(c);const l={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const c of n){const e=t[c];if(e&&(c.startsWith("binary_sensor.")&&pa.motion.test(c)&&(l.motionSensorId=c),c.startsWith("switch.")&&pa.record.test(c)&&(l.recordSwitchId=c),pa.siren.test(c)&&(l.sirenId=c),c.startsWith("light.")&&pa.floodlight.test(c)&&(l.floodlightId=c),c.startsWith("switch.")&&pa.auto_tracking.test(c)&&(l.autoTrackId=c),c.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of ua)t.test(c)&&!l.aiDetected.includes(i)&&l.aiDetected.push(i)}return ga.set(e,{key:s,result:l}),l}function _a(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?da:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?ca:la}class fa extends et{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._camConfig=null,this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav, .stream-placeholder"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),ga.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=ma(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new ot(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?at(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(t===this._cachedCamerasKey)return this._cachedCameraIds;const i=this._camConfig?.entity_order??[];if(i.length){const t=i.filter(t=>e.includes(t)),a=e.filter(e=>!t.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...t,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}return this._cachedCamerasKey=t,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!ua.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=ma(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:_a(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return J;const e=this._getCameraIds();if(!e.length)return J;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]);return X`
+    `]}}ta([be()],ra.prototype,"_presenceConfig"),ta([be()],ra.prototype,"_activePerson"),ta([be()],ra.prototype,"_notifText");try{customElements.define("glass-presence-card",ra)}catch{}Ye("glass-camera-carousel-card-editor");var sa=Object.defineProperty,oa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&sa(t,i,s),s};const na=1,la="mdi:cctv",ca="mdi:webcam",da="mdi:doorbell-video",ha={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},pa={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},ua=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],ga=new Map;function ma(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const c of Object.keys(i))i[c].device_id===r&&c.startsWith("binary_sensor.")&&t[c]&&(s+=`:${c}=${t[c].state}`);const o=ga.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[c,d]of Object.entries(i))d.device_id===r&&n.push(c);const l={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const c of n){const e=t[c];if(e&&(c.startsWith("binary_sensor.")&&pa.motion.test(c)&&(l.motionSensorId=c),c.startsWith("switch.")&&pa.record.test(c)&&(l.recordSwitchId=c),pa.siren.test(c)&&(l.sirenId=c),c.startsWith("light.")&&pa.floodlight.test(c)&&(l.floodlightId=c),c.startsWith("switch.")&&pa.auto_tracking.test(c)&&(l.autoTrackId=c),c.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of ua)t.test(c)&&!l.aiDetected.includes(i)&&l.aiDetected.push(i)}return ga.set(e,{key:s,result:l}),l}function _a(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?da:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?ca:la}class fa extends et{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._foldOpen=!1,this._camConfig=null,this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav, .stream-placeholder"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),ga.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=ma(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new ot(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?at(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(t===this._cachedCamerasKey)return this._cachedCameraIds;const i=this._camConfig?.entity_order??[];if(i.length){const t=i.filter(t=>e.includes(t)),a=e.filter(e=>!t.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...t,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}return this._cachedCamerasKey=t,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!ua.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=ma(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:_a(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._foldOpen=!1,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return J;const e=this._getCameraIds();if(!e.length)return J;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]),a=this._bindGesture({onTap:()=>{},onLongPress:()=>{this._foldOpen=!this._foldOpen},exclude:".carousel-nav, .stream-placeholder"});return X`
       ${t?X`
         <div class="card-header">
           <div class="card-header-left">
@@ -6712,34 +6712,42 @@
           </div>
         </div>
       `:J}
-      <div class="glass carousel-card">
-        <div class="tint" style="${this._tintStyle(i)}"></div>
-        <div class="carousel-inner">
-          <div class="carousel-viewport"
-            @pointerdown=${this._onPointerDown}
-            @pointermove=${this._onPointerMove}
-            @pointerup=${this._onPointerUp}
-            @pointercancel=${this._onPointerCancel}
-          >
-            <div class="carousel-track" style="transform:translateX(-${100*this._carouselIndex}%)">
-              ${e.map((e,t)=>this._renderSlide(e,t===this._carouselIndex))}
-            </div>
-            ${e.length>1?X`
-              <button class="carousel-nav prev" aria-label="${Be("camera.prev_aria")}" @click=${this._prev}>
-                <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
-              </button>
-              <button class="carousel-nav next" aria-label="${Be("camera.next_aria")}" @click=${this._next}>
-                <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
-              </button>
-            `:J}
+      <div class="cam-wrap ${this._foldOpen?"fold-open":""}">
+        <div class="carousel-hero"
+          @pointerdown=${e=>{a.pointerdown(e),this._onPointerDown(e)}}
+          @pointermove=${e=>{a.pointermove(e),this._onPointerMove(e)}}
+          @pointerup=${e=>{a.pointerup(e),this._onPointerUp(e)}}
+          @pointercancel=${()=>{a.pointercancel(),this._onPointerCancel()}}
+          @contextmenu=${a.contextmenu}
+        >
+          <div class="tint" style="${this._tintStyle(i)}"></div>
+          <div class="carousel-track" style="transform:translateX(-${100*this._carouselIndex}%)">
+            ${e.map((e,t)=>this._renderSlide(e,t===this._carouselIndex))}
           </div>
+          ${e.length>1?X`
+            <button class="carousel-nav prev" aria-label="${Be("camera.prev_aria")}" @click=${this._prev}>
+              <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
+            </button>
+            <button class="carousel-nav next" aria-label="${Be("camera.next_aria")}" @click=${this._next}>
+              <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
+            </button>
+          `:J}
           ${e.length>1?X`
             <div class="carousel-dots">
               ${e.map((e,t)=>this._renderDot(e,t))}
             </div>
           `:J}
-          ${i?this._renderInfoBar(i):J}
-          ${i?this._renderActions(i):J}
+        </div>
+
+        <!-- Connected fold -->
+        <div class="ctrl-fold ${this._foldOpen?"open":""}">
+          <div class="ctrl-fold-inner">
+            <div class="fold-sep-top"></div>
+            <div class="fold-panel">
+              ${i?this._renderInfoBar(i):J}
+              ${i?this._renderActions(i):J}
+            </div>
+          </div>
         </div>
       </div>
     `}_tintStyle(e){if(!e||!e.isOn||"idle"===e.state)return"opacity:0";return`background:radial-gradient(ellipse at 50% 50%,${e.aiDetected.length>0?"var(--c-warning)":"var(--cam-color)"},transparent 70%);opacity:0.12`}_renderSlide(e,t){const i=this._getCameraInfo(e);if(!i)return X`<div class="carousel-slide"><div class="carousel-slide-inner off-feed"></div></div>`;const a=this._liveIds.has(e)||"streaming"===i.state||"recording"===i.state,r=i.isOn&&a&&t,s=i.isOn?a?"active-feed":"idle-feed":"off-feed";return X`
@@ -6872,7 +6880,7 @@
           </button>
         `:J}
       </div>
-    `}static{this.styles=[xe,ke,$e,Ce,Te,h`
+    `}static{this.styles=[xe,ke,$e,Ee,Ce,Te,h`
       :host {
         width: 100%;
         max-width: 31.25rem;
@@ -6897,10 +6905,35 @@
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 0.875rem; position: relative; box-sizing: border-box; }
-      .carousel-inner {
+      /* — Wrap — */
+      .cam-wrap {
         position: relative; z-index: 1;
-        display: flex; flex-direction: column; gap: 0.625rem;
+        display: flex; flex-direction: column; gap: 0;
+      }
+
+      /* — Hero — */
+      .carousel-hero {
+        position: relative; width: 100%; aspect-ratio: 16 / 9;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background: #0a0f18;
+        border: 1px solid var(--b2);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+        touch-action: pan-y;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-radius var(--t-layout), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) { .carousel-hero:hover { border-color: var(--b3); } }
+
+      /* Connected fold: hero loses bottom radius when fold is open */
+      .cam-wrap.fold-open .carousel-hero {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
       }
 
       .tint {
@@ -6909,14 +6942,8 @@
         transition: opacity 1.2s cubic-bezier(0.4,0,0.2,1), background 1.2s cubic-bezier(0.4,0,0.2,1);
       }
 
-      /* — Viewport — */
-      .carousel-viewport {
-        position: relative; width: 100%; aspect-ratio: 16 / 9;
-        border-radius: var(--radius-lg); overflow: hidden;
-        background: #0a0f18; border: 1px solid var(--b1);
-        touch-action: pan-y;
-      }
       .carousel-track {
+        position: absolute; inset: 0;
         display: flex; width: 100%; height: 100%;
         transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
       }
@@ -7035,8 +7062,9 @@
         .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
       }
 
-      /* — Dots — */
+      /* — Dots (overlay inside hero) — */
       .carousel-dots {
+        position: absolute; bottom: 0.5rem; left: 0; right: 0; z-index: 5;
         display: flex; align-items: center; justify-content: center; gap: 0.375rem;
       }
       .carousel-dot-btn {
@@ -7063,6 +7091,37 @@
 
       @media (hover: hover) and (pointer: fine) {
         .carousel-dot-btn:hover { background: var(--t3); }
+      }
+
+      /* — Connected Fold — */
+      .ctrl-fold {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0; transition: opacity 0.25s;
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
+        backdrop-filter: var(--blur-lg);
+        -webkit-backdrop-filter: var(--blur-lg);
+        border: 1px solid var(--b2);
+        border-top: none;
+        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+      }
+      .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+      .fold-sep-top {
+        height: 0.0625rem; margin: 0 0.75rem;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
+      }
+      .fold-panel {
+        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 0.875rem 0.875rem;
       }
 
       /* — Info bar — */
@@ -7125,4 +7184,4 @@
       @media (pointer: coarse) {
         .action-btn:active { animation: bounce 0.15s ease-out; }
       }
-    `]}}oa([fe()],fa.prototype,"areaId"),oa([be()],fa.prototype,"_carouselIndex"),oa([be()],fa.prototype,"_liveIds");try{customElements.define("glass-camera-carousel-card",fa)}catch{}function ba(){window.dispatchEvent(new Event("ll-rebuild"))}!function(){if(a)return;a=!0;const e=history.pushState,t=history.replaceState;history.pushState=function(t,a,s){if(e.call(this,t,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},history.replaceState=function(e,a,s){if(t.call(this,e,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},window.addEventListener("popstate",s)}(),Re||(Re=new Me),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>requestAnimationFrame(ba)):requestAnimationFrame(ba),window.addEventListener("connection-status",e=>{"connected"===e.detail&&setTimeout(ba,500)})}();
+    `]}}oa([fe()],fa.prototype,"areaId"),oa([be()],fa.prototype,"_carouselIndex"),oa([be()],fa.prototype,"_liveIds"),oa([be()],fa.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",fa)}catch{}function ba(){window.dispatchEvent(new Event("ll-rebuild"))}!function(){if(a)return;a=!0;const e=history.pushState,t=history.replaceState;history.pushState=function(t,a,s){if(e.call(this,t,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},history.replaceState=function(e,a,s){if(t.call(this,e,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},window.addEventListener("popstate",s)}(),Re||(Re=new Me),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>requestAnimationFrame(ba)):requestAnimationFrame(ba),window.addEventListener("connection-status",e=>{"connected"===e.detail&&setTimeout(ba,500)})}();

@@ -10886,7 +10886,7 @@
           </div>
         </div>
       </div>
-    `}}rr([ue()],cr.prototype,"_view"),rr([ue()],cr.prototype,"_tab"),rr([ue()],cr.prototype,"_searchQuery"),rr([ue()],cr.prototype,"_playlists"),rr([ue()],cr.prototype,"_recentlyPlayed"),rr([ue()],cr.prototype,"_savedTracks"),rr([ue()],cr.prototype,"_savedShows"),rr([ue()],cr.prototype,"_searchResults"),rr([ue()],cr.prototype,"_searchLoading"),rr([ue()],cr.prototype,"_searchOffset"),rr([ue()],cr.prototype,"_searchHasMore"),rr([ue()],cr.prototype,"_drilldown"),rr([ue()],cr.prototype,"_speakers"),rr([ue()],cr.prototype,"_pickerItem"),rr([ue()],cr.prototype,"_selectedSpeakers"),rr([ue()],cr.prototype,"_error"),rr([ue()],cr.prototype,"_libraryLoading"),rr([ue()],cr.prototype,"_spotifyConfigured"),rr([ue()],cr.prototype,"_foldOpen"),rr([ue()],cr.prototype,"_savedMap"),rr([ue()],cr.prototype,"_sectionTotals"),rr([ue()],cr.prototype,"_loadingMore");try{customElements.define("glass-spotify-card",cr)}catch{}Ue("glass-camera-carousel-card-editor");var dr=Object.defineProperty,lr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&dr(t,i,s),s};const hr=1,pr="mdi:cctv",ur="mdi:webcam",gr="mdi:doorbell-video",_r={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},mr={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},fr=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],vr=new Map;function br(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const d of Object.keys(i))i[d].device_id===r&&d.startsWith("binary_sensor.")&&t[d]&&(s+=`:${d}=${t[d].state}`);const o=vr.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[d,l]of Object.entries(i))l.device_id===r&&n.push(d);const c={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const d of n){const e=t[d];if(e&&(d.startsWith("binary_sensor.")&&mr.motion.test(d)&&(c.motionSensorId=d),d.startsWith("switch.")&&mr.record.test(d)&&(c.recordSwitchId=d),mr.siren.test(d)&&(c.sirenId=d),d.startsWith("light.")&&mr.floodlight.test(d)&&(c.floodlightId=d),d.startsWith("switch.")&&mr.auto_tracking.test(d)&&(c.autoTrackId=d),d.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of fr)t.test(d)&&!c.aiDetected.includes(i)&&c.aiDetected.push(i)}return vr.set(e,{key:s,result:c}),c}function yr(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?gr:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?ur:pr}class wr extends Ke{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._camConfig=null,this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav, .stream-placeholder"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),vr.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=br(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new Ze(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?Xe(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(t===this._cachedCamerasKey)return this._cachedCameraIds;const i=this._camConfig?.entity_order??[];if(i.length){const t=i.filter(t=>e.includes(t)),a=e.filter(e=>!t.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...t,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}return this._cachedCamerasKey=t,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!fr.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=br(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:yr(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return B;const e=this._getCameraIds();if(!e.length)return B;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]);return N`
+    `}}rr([ue()],cr.prototype,"_view"),rr([ue()],cr.prototype,"_tab"),rr([ue()],cr.prototype,"_searchQuery"),rr([ue()],cr.prototype,"_playlists"),rr([ue()],cr.prototype,"_recentlyPlayed"),rr([ue()],cr.prototype,"_savedTracks"),rr([ue()],cr.prototype,"_savedShows"),rr([ue()],cr.prototype,"_searchResults"),rr([ue()],cr.prototype,"_searchLoading"),rr([ue()],cr.prototype,"_searchOffset"),rr([ue()],cr.prototype,"_searchHasMore"),rr([ue()],cr.prototype,"_drilldown"),rr([ue()],cr.prototype,"_speakers"),rr([ue()],cr.prototype,"_pickerItem"),rr([ue()],cr.prototype,"_selectedSpeakers"),rr([ue()],cr.prototype,"_error"),rr([ue()],cr.prototype,"_libraryLoading"),rr([ue()],cr.prototype,"_spotifyConfigured"),rr([ue()],cr.prototype,"_foldOpen"),rr([ue()],cr.prototype,"_savedMap"),rr([ue()],cr.prototype,"_sectionTotals"),rr([ue()],cr.prototype,"_loadingMore");try{customElements.define("glass-spotify-card",cr)}catch{}Ue("glass-camera-carousel-card-editor");var dr=Object.defineProperty,lr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&dr(t,i,s),s};const hr=1,pr="mdi:cctv",ur="mdi:webcam",gr="mdi:doorbell-video",_r={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},mr={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},fr=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],vr=new Map;function br(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const d of Object.keys(i))i[d].device_id===r&&d.startsWith("binary_sensor.")&&t[d]&&(s+=`:${d}=${t[d].state}`);const o=vr.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[d,l]of Object.entries(i))l.device_id===r&&n.push(d);const c={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const d of n){const e=t[d];if(e&&(d.startsWith("binary_sensor.")&&mr.motion.test(d)&&(c.motionSensorId=d),d.startsWith("switch.")&&mr.record.test(d)&&(c.recordSwitchId=d),mr.siren.test(d)&&(c.sirenId=d),d.startsWith("light.")&&mr.floodlight.test(d)&&(c.floodlightId=d),d.startsWith("switch.")&&mr.auto_tracking.test(d)&&(c.autoTrackId=d),d.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of fr)t.test(d)&&!c.aiDetected.includes(i)&&c.aiDetected.push(i)}return vr.set(e,{key:s,result:c}),c}function yr(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?gr:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?ur:pr}class wr extends Ke{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._foldOpen=!1,this._camConfig=null,this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav, .stream-placeholder"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._loadConfig()}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),vr.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=br(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new Ze(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?Xe(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(t===this._cachedCamerasKey)return this._cachedCameraIds;const i=this._camConfig?.entity_order??[];if(i.length){const t=i.filter(t=>e.includes(t)),a=e.filter(e=>!t.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...t,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}return this._cachedCamerasKey=t,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!fr.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=br(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:yr(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._foldOpen=!1,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return B;const e=this._getCameraIds();if(!e.length)return B;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]),a=this._bindGesture({onTap:()=>{},onLongPress:()=>{this._foldOpen=!this._foldOpen},exclude:".carousel-nav, .stream-placeholder"});return N`
       ${t?N`
         <div class="card-header">
           <div class="card-header-left">
@@ -10894,34 +10894,42 @@
           </div>
         </div>
       `:B}
-      <div class="glass carousel-card">
-        <div class="tint" style="${this._tintStyle(i)}"></div>
-        <div class="carousel-inner">
-          <div class="carousel-viewport"
-            @pointerdown=${this._onPointerDown}
-            @pointermove=${this._onPointerMove}
-            @pointerup=${this._onPointerUp}
-            @pointercancel=${this._onPointerCancel}
-          >
-            <div class="carousel-track" style="transform:translateX(-${100*this._carouselIndex}%)">
-              ${e.map((e,t)=>this._renderSlide(e,t===this._carouselIndex))}
-            </div>
-            ${e.length>1?N`
-              <button class="carousel-nav prev" aria-label="${He("camera.prev_aria")}" @click=${this._prev}>
-                <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
-              </button>
-              <button class="carousel-nav next" aria-label="${He("camera.next_aria")}" @click=${this._next}>
-                <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
-              </button>
-            `:B}
+      <div class="cam-wrap ${this._foldOpen?"fold-open":""}">
+        <div class="carousel-hero"
+          @pointerdown=${e=>{a.pointerdown(e),this._onPointerDown(e)}}
+          @pointermove=${e=>{a.pointermove(e),this._onPointerMove(e)}}
+          @pointerup=${e=>{a.pointerup(e),this._onPointerUp(e)}}
+          @pointercancel=${()=>{a.pointercancel(),this._onPointerCancel()}}
+          @contextmenu=${a.contextmenu}
+        >
+          <div class="tint" style="${this._tintStyle(i)}"></div>
+          <div class="carousel-track" style="transform:translateX(-${100*this._carouselIndex}%)">
+            ${e.map((e,t)=>this._renderSlide(e,t===this._carouselIndex))}
           </div>
+          ${e.length>1?N`
+            <button class="carousel-nav prev" aria-label="${He("camera.prev_aria")}" @click=${this._prev}>
+              <ha-icon .icon=${"mdi:chevron-left"}></ha-icon>
+            </button>
+            <button class="carousel-nav next" aria-label="${He("camera.next_aria")}" @click=${this._next}>
+              <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
+            </button>
+          `:B}
           ${e.length>1?N`
             <div class="carousel-dots">
               ${e.map((e,t)=>this._renderDot(e,t))}
             </div>
           `:B}
-          ${i?this._renderInfoBar(i):B}
-          ${i?this._renderActions(i):B}
+        </div>
+
+        <!-- Connected fold -->
+        <div class="ctrl-fold ${this._foldOpen?"open":""}">
+          <div class="ctrl-fold-inner">
+            <div class="fold-sep-top"></div>
+            <div class="fold-panel">
+              ${i?this._renderInfoBar(i):B}
+              ${i?this._renderActions(i):B}
+            </div>
+          </div>
         </div>
       </div>
     `}_tintStyle(e){if(!e||!e.isOn||"idle"===e.state)return"opacity:0";return`background:radial-gradient(ellipse at 50% 50%,${e.aiDetected.length>0?"var(--c-warning)":"var(--cam-color)"},transparent 70%);opacity:0.12`}_renderSlide(e,t){const i=this._getCameraInfo(e);if(!i)return N`<div class="carousel-slide"><div class="carousel-slide-inner off-feed"></div></div>`;const a=this._liveIds.has(e)||"streaming"===i.state||"recording"===i.state,r=i.isOn&&a&&t,s=i.isOn?a?"active-feed":"idle-feed":"off-feed";return N`
@@ -11054,7 +11062,7 @@
           </button>
         `:B}
       </div>
-    `}static{this.styles=[ye,we,xe,ke,Ce,s`
+    `}static{this.styles=[ye,we,xe,Ee,ke,Ce,s`
       :host {
         width: 100%;
         max-width: 31.25rem;
@@ -11079,10 +11087,35 @@
         letter-spacing: 1.5px; color: var(--t4);
       }
 
-      .carousel-card { width: 100%; padding: 0.875rem; position: relative; box-sizing: border-box; }
-      .carousel-inner {
+      /* — Wrap — */
+      .cam-wrap {
         position: relative; z-index: 1;
-        display: flex; flex-direction: column; gap: 0.625rem;
+        display: flex; flex-direction: column; gap: 0;
+      }
+
+      /* — Hero — */
+      .carousel-hero {
+        position: relative; width: 100%; aspect-ratio: 16 / 9;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background: #0a0f18;
+        border: 1px solid var(--b2);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+        touch-action: pan-y;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-radius var(--t-layout), border-color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) { .carousel-hero:hover { border-color: var(--b3); } }
+
+      /* Connected fold: hero loses bottom radius when fold is open */
+      .cam-wrap.fold-open .carousel-hero {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
       }
 
       .tint {
@@ -11091,14 +11124,8 @@
         transition: opacity 1.2s cubic-bezier(0.4,0,0.2,1), background 1.2s cubic-bezier(0.4,0,0.2,1);
       }
 
-      /* — Viewport — */
-      .carousel-viewport {
-        position: relative; width: 100%; aspect-ratio: 16 / 9;
-        border-radius: var(--radius-lg); overflow: hidden;
-        background: #0a0f18; border: 1px solid var(--b1);
-        touch-action: pan-y;
-      }
       .carousel-track {
+        position: absolute; inset: 0;
         display: flex; width: 100%; height: 100%;
         transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
       }
@@ -11217,8 +11244,9 @@
         .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
       }
 
-      /* — Dots — */
+      /* — Dots (overlay inside hero) — */
       .carousel-dots {
+        position: absolute; bottom: 0.5rem; left: 0; right: 0; z-index: 5;
         display: flex; align-items: center; justify-content: center; gap: 0.375rem;
       }
       .carousel-dot-btn {
@@ -11245,6 +11273,37 @@
 
       @media (hover: hover) and (pointer: fine) {
         .carousel-dot-btn:hover { background: var(--t3); }
+      }
+
+      /* — Connected Fold — */
+      .ctrl-fold {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold-inner {
+        overflow: hidden;
+        opacity: 0; transition: opacity 0.25s;
+        background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
+        backdrop-filter: var(--blur-lg);
+        -webkit-backdrop-filter: var(--blur-lg);
+        border: 1px solid var(--b2);
+        border-top: none;
+        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+      }
+      .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
+
+      .fold-sep-top {
+        height: 0.0625rem; margin: 0 0.75rem;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
+      }
+      .fold-panel {
+        display: flex; flex-direction: column; gap: 0.625rem;
+        padding: 0.75rem 0.875rem 0.875rem;
       }
 
       /* — Info bar — */
@@ -11307,7 +11366,7 @@
       @media (pointer: coarse) {
         .action-btn:active { animation: bounce 0.15s ease-out; }
       }
-    `]}}lr([pe()],wr.prototype,"areaId"),lr([ue()],wr.prototype,"_carouselIndex"),lr([ue()],wr.prototype,"_liveIds");try{customElements.define("glass-camera-carousel-card",wr)}catch{}Ue("glass-title-card-editor");var xr=Object.defineProperty,kr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&xr(t,i,s),s};const $r={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},Sr={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function Cr(e){if($r[e])return $r[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return $r.neutral}const Ir={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Er={icon:"mdi:clock-outline",color:"var(--t3)"};class Dr extends Ke{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=Ir[e]||Er,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[ye,we,Ce,s`
+    `]}}lr([pe()],wr.prototype,"areaId"),lr([ue()],wr.prototype,"_carouselIndex"),lr([ue()],wr.prototype,"_liveIds"),lr([ue()],wr.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",wr)}catch{}Ue("glass-title-card-editor");var xr=Object.defineProperty,kr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&xr(t,i,s),s};const $r={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},Sr={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function Cr(e){if($r[e])return $r[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return $r.neutral}const Ir={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Er={icon:"mdi:clock-outline",color:"var(--t3)"};class Dr extends Ke{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=Ir[e]||Er,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[ye,we,Ce,s`
     :host {
       width: 100%;
       max-width: 31.25rem;
