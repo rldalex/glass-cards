@@ -462,9 +462,23 @@ export class GlassNavbarCard extends BaseCard {
       this._popup = existing;
       this._ownsPopup = false;
     } else {
-      this._popup = document.createElement('glass-room-popup');
-      document.body.appendChild(this._popup);
-      this._ownsPopup = true;
+      // Wait for custom element to be defined before creating
+      customElements.whenDefined('glass-room-popup').then(() => {
+        if (!this.isConnected) return;
+        const el = document.querySelector('glass-room-popup') as HTMLElement | null;
+        if (el) { this._popup = el; this._ownsPopup = false; return; }
+        this._popup = document.createElement('glass-room-popup');
+        document.body.appendChild(this._popup);
+        this._ownsPopup = true;
+        // Propagate hass immediately if already available
+        if (this.hass && this._popup) {
+          (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
+        }
+      });
+    }
+    // Propagate hass to existing popup
+    if (this.hass && this._popup) {
+      (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
     }
 
     this._listen('popup-close', () => {
@@ -631,6 +645,8 @@ export class GlassNavbarCard extends BaseCard {
         (card as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
     }
+    // Always allow updates while config is loading (items empty)
+    if (!this._configReady) return true;
     return super.shouldUpdate(changedProps);
   }
 
