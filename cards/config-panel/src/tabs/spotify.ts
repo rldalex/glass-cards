@@ -77,8 +77,15 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   // — Spotify status check —
 
+  private _spotifyStatusRetry?: ReturnType<typeof setTimeout>;
+
   private async _checkSpotifyStatus(): Promise<void> {
-    if (!this.backend) return;
+    if (!this.backend) {
+      // Backend not ready yet — retry shortly
+      if (this._spotifyStatusRetry) clearTimeout(this._spotifyStatusRetry);
+      this._spotifyStatusRetry = setTimeout(() => this._checkSpotifyStatus(), 500);
+      return;
+    }
     try {
       const result = await this.backend.send<{ configured: boolean }>('spotify_status');
       this._spotifyConfigured = result?.configured ?? false;
