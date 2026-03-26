@@ -5248,15 +5248,14 @@
         >
           <!-- Full-bleed artwork background -->
           ${e.albumArt?X`
-            <img class="dash-art-bg" src=${e.albumArt} alt="" loading="lazy" />
+            <img class="dash-art-bg" src=${e.albumArt} alt="" loading="lazy"
+              @error=${e=>{e.target.style.display="none";const t=e.target.parentElement?.querySelector(".dash-deco");t&&(t.style.display="");const i=e.target.parentElement?.querySelector(".dash-placeholder");i&&(i.style.display="")}} />
           `:J}
           <div class="dash-gradient"></div>
-          ${e.albumArt?J:X`
-            <div class="dash-deco"></div>
-            <div class="dash-placeholder">
-              <ha-icon .icon=${e.source?.toLowerCase().includes("tv")||e.icon?.includes("tv")||e.icon?.includes("television")?"mdi:television-classic":e.appName?.toLowerCase().includes("spotify")?"mdi:spotify":"playing"===e.state||"paused"===e.state?"mdi:music-note":e.icon||"mdi:speaker"}></ha-icon>
-            </div>
-          `}
+          <div class="dash-deco" style="${e.albumArt?"display:none":""}"></div>
+          <div class="dash-placeholder" style="${e.albumArt?"display:none":""}">
+            <ha-icon .icon=${e.source?.toLowerCase().includes("tv")||e.icon?.includes("tv")||e.icon?.includes("television")?"mdi:television-classic":e.appName?.toLowerCase().includes("spotify")?"mdi:spotify":"playing"===e.state||"paused"===e.state?"mdi:music-note":e.icon||"mdi:speaker"}></ha-icon>
+          </div>
 
           <div class="dash-content">
             <!-- Top bar: speaker badge + group badge (glass pills) -->
@@ -5692,8 +5691,9 @@
       }
       .dash-placeholder ha-icon {
         --mdc-icon-size: 5rem;
-        color: rgba(var(--rgb-white),0.06);
+        color: rgba(var(--rgb-white),0.12);
         display: flex; align-items: center; justify-content: center;
+        filter: drop-shadow(0 0 20px rgba(var(--rgb-accent),0.15));
       }
 
       /* ── Content ── */

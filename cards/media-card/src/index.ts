@@ -783,21 +783,20 @@ export class GlassMediaCard extends BaseCard {
         >
           <!-- Full-bleed artwork background -->
           ${master.albumArt ? html`
-            <img class="dash-art-bg" src=${master.albumArt} alt="" loading="lazy" />
+            <img class="dash-art-bg" src=${master.albumArt} alt="" loading="lazy"
+              @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; const deco = (e.target as HTMLElement).parentElement?.querySelector('.dash-deco') as HTMLElement; if (deco) deco.style.display = ''; const ph = (e.target as HTMLElement).parentElement?.querySelector('.dash-placeholder') as HTMLElement; if (ph) ph.style.display = ''; }} />
           ` : nothing}
           <div class="dash-gradient"></div>
-          ${!master.albumArt ? html`
-            <div class="dash-deco"></div>
-            <div class="dash-placeholder">
-              <ha-icon .icon=${master.source?.toLowerCase().includes('tv') || master.icon?.includes('tv') || master.icon?.includes('television')
-                ? 'mdi:television-classic'
-                : master.appName?.toLowerCase().includes('spotify')
-                  ? 'mdi:spotify'
-                  : master.state === 'playing' || master.state === 'paused'
-                    ? 'mdi:music-note'
-                    : master.icon || 'mdi:speaker'}></ha-icon>
-            </div>
-          ` : nothing}
+          <div class="dash-deco" style="${master.albumArt ? 'display:none' : ''}"></div>
+          <div class="dash-placeholder" style="${master.albumArt ? 'display:none' : ''}">
+            <ha-icon .icon=${master.source?.toLowerCase().includes('tv') || master.icon?.includes('tv') || master.icon?.includes('television')
+              ? 'mdi:television-classic'
+              : master.appName?.toLowerCase().includes('spotify')
+                ? 'mdi:spotify'
+                : master.state === 'playing' || master.state === 'paused'
+                  ? 'mdi:music-note'
+                  : master.icon || 'mdi:speaker'}></ha-icon>
+          </div>
 
           <div class="dash-content">
             <!-- Top bar: speaker badge + group badge (glass pills) -->
@@ -1437,8 +1436,9 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-placeholder ha-icon {
         --mdc-icon-size: 5rem;
-        color: rgba(var(--rgb-white),0.06);
+        color: rgba(var(--rgb-white),0.12);
         display: flex; align-items: center; justify-content: center;
+        filter: drop-shadow(0 0 20px rgba(var(--rgb-accent),0.15));
       }
 
       /* ── Content ── */
