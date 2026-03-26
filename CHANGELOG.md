@@ -2,6 +2,27 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.158 (2026-03-26)
+
+### Responsive Design System
+- feat: suppression du max-width 31.25rem hardcode sur les 11 cartes — les cartes remplissent 100% du conteneur HA (Masonry, Sections, layouts custom)
+- feat: design system responsive — ResizeObserver dans BaseCard, attribut `size` (xs/sm/md/lg/xl) sur toutes les cartes
+- feat: spacing tokens `--sp-1` a `--sp-10` dans glassTokens
+- feat: breakpoints, resize-mixin et base-styles exportes depuis ui-core
+
+### Config Panel
+- feat: breakpoints responsive pour le config panel — page-wrap adaptatif (40rem tablette, 56rem desktop, 72rem ultrawide)
+- feat: grille des pieces et icon picker adaptent le nombre de colonnes selon la taille d'ecran
+- fix: contenu des tabs limite a 40rem pour la lisibilite des formulaires sur grand ecran
+
+### Corrections
+- fix: detection de swipe preservee lors du mouvement horizontal du doigt (le mouvement vertical annule le geste, pas l'horizontal)
+- fix: fond focus-within persistant sur la cover card apres ouverture du fold
+- fix: fallback placeholder quand l'artwork media echoue (Sonos Bluetooth — proxy HA retourne HTTP 500)
+- fix: swipe fonctionne sur le placeholder de la camera carousel meme quand le stream n'est pas live
+- fix: revert de l'override responsive sur light/cover/fan qui cassait le mode compact 2 colonnes sur mobile
+- fix: race condition navbar au premier chargement — attente du custom element popup + updates autorisees pendant le chargement config
+
 ## v0.0.147 (2026-03-26)
 
 ### Mobile UX
