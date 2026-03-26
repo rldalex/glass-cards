@@ -182,10 +182,6 @@ class GlassWeatherCard extends BaseCard {
       box-sizing: border-box;
       display: flex; flex-direction: column; justify-content: center;
     }
-    :host([size="lg"]) .weather-card,
-    :host([size="xl"]) .weather-card {
-      aspect-ratio: 21 / 9;
-    }
 
     .card-inner {
       position: relative; z-index: 1;
