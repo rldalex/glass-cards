@@ -7347,7 +7347,7 @@
     @media (pointer: coarse) {
       .cv-row:active { animation: bounce 0.3s ease; }
     }
-    .cv-row:focus-within { background: var(--s1); }
+
 
     .cv-expand-btn {
       flex: 1; min-width: 0;
