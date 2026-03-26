@@ -256,10 +256,6 @@ export class GlassLightCard extends BaseCard {
         grid-template-columns: 1fr 1fr;
         gap: 0;
       }
-      :host([size="xs"]) .lights-grid,
-      :host([size="sm"]) .lights-grid {
-        grid-template-columns: 1fr;
-      }
 
       /* ── Light Row ── */
       .light-row {

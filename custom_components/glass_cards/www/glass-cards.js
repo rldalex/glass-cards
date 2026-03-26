@@ -472,10 +472,6 @@
         grid-template-columns: 1fr 1fr;
         gap: 0;
       }
-      :host([size="xs"]) .lights-grid,
-      :host([size="sm"]) .lights-grid {
-        grid-template-columns: 1fr;
-      }
 
       /* ── Light Row ── */
       .light-row {
@@ -2348,10 +2344,6 @@
       position: relative; z-index: 1;
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
     }
-    :host([size="xs"]) .card-inner,
-    :host([size="sm"]) .card-inner {
-      grid-template-columns: 1fr;
-    }
 
     /* Tint */
     .tint {
@@ -3753,10 +3745,6 @@
     .card-inner {
       position: relative; z-index: 1;
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    }
-    :host([size="xs"]) .card-inner,
-    :host([size="sm"]) .card-inner {
-      grid-template-columns: 1fr;
     }
 
     .tint {
