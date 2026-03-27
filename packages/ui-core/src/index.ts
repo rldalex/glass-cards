@@ -101,6 +101,7 @@ export const hostMixin: CSSResult = css`
     display: block;
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 `;
 

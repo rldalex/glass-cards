@@ -95,6 +95,7 @@ export class GlassRoomPopup extends LitElement {
       :host([open]) .overlay {
         opacity: 1;
         pointer-events: auto;
+        touch-action: none;
       }
 
       .dialog {
@@ -311,6 +312,7 @@ export class GlassRoomPopup extends LitElement {
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows 0.6s var(--ease-std);
+        contain: layout style;
       }
       .scenes-wrapper.open {
         grid-template-rows: 1fr;
@@ -562,6 +564,7 @@ export class GlassRoomPopup extends LitElement {
       this._pendingRaf = undefined;
       this._open = true;
       this.setAttribute('open', '');
+      this._lockScroll(true);
     });
   }
 
@@ -607,6 +610,7 @@ export class GlassRoomPopup extends LitElement {
     this._currentRoomIndex = undefined;
     this._open = false;
     this.removeAttribute('open');
+    this._lockScroll(false);
     this._closeTimeout = setTimeout(() => {
       this._areaId = null;
       this._closeTimeout = undefined;
@@ -617,6 +621,17 @@ export class GlassRoomPopup extends LitElement {
     if (e.key === 'Escape' && this._open) {
       bus.emit('popup-close', undefined);
     }
+  }
+
+  private _lockScroll(lock: boolean) {
+    document.body.style.overflow = lock ? 'hidden' : '';
+    // HA uses a scrollable container inside shadow DOM — find and lock it too
+    const haMain = document.querySelector('home-assistant')
+      ?.shadowRoot?.querySelector('home-assistant-main')
+      ?.shadowRoot?.querySelector('ha-panel-lovelace')
+      ?.shadowRoot?.querySelector('hui-root')
+      ?.shadowRoot?.querySelector('.container') as HTMLElement | null;
+    if (haMain) haMain.style.overflow = lock ? 'hidden' : '';
   }
 
   private async _loadGlobalConfig() {

@@ -2873,6 +2873,7 @@
         touch-action: none;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
         outline: none;
       }
       .track:focus-visible {
@@ -3032,6 +3033,7 @@
     display: block;
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 `,Ce=s`
   .glass {
@@ -7699,21 +7701,41 @@
 
     /* ── Toggle All ── */
     .toggle-all {
-      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast); padding: 0; outline: none;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
+      position: relative;
+      width: 2.5rem;
+      height: 1.375rem;
+      border-radius: var(--radius-md);
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: background var(--t-fast), border-color var(--t-fast);
+      padding: 0;
+      outline: none;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
     }
     .toggle-all::after {
-      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
-      width: 0.875rem; height: 0.875rem; border-radius: 50%;
+      content: '';
+      position: absolute;
+      top: 0.1875rem;
+      left: 0.1875rem;
+      width: 0.875rem;
+      height: 0.875rem;
+      border-radius: 50%;
       background: var(--t3);
-      transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+      transition:
+        transform var(--t-fast),
+        background var(--t-fast),
+        box-shadow var(--t-fast);
     }
-    .toggle-all.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
+    .toggle-all.on {
+      background: rgba(var(--rgb-accent), 0.2);
+      border-color: rgba(var(--rgb-accent), 0.3);
+    }
     .toggle-all.on::after {
-      transform: translateX(18px); background: var(--c-accent);
-      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
+      transform: translateX(1.125rem);
+      background: var(--c-accent);
+      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.4);
     }
     .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 

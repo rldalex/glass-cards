@@ -40,6 +40,7 @@ export class GlassSlider extends LitElement {
         touch-action: none;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
         outline: none;
       }
       .track:focus-visible {
