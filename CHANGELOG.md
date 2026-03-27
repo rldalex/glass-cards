@@ -2,6 +2,17 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.174 (2026-03-27)
+
+### UI Consistency
+- fix: toggle switch du header cover et fan aligne sur le style standard de la light card (pill avec knob glissant)
+- chore: `.claude/` exclu du lint ESLint, correction erreur `no-explicit-any` dans resize-mixin
+
+### Mobile UX
+- fix: le dashboard ne defile plus derriere le popup room ouvert (scroll lock body + touch-action overlay)
+- fix: suppression du rectangle bleu au tap sur les sliders (`-webkit-tap-highlight-color` sur glass-slider + hostMixin global)
+- fix: le peek animation des scenes ne fait plus scintiller le backdrop du popup (`contain: layout style`)
+
 ## v0.0.158 (2026-03-26)
 
 ### Responsive Design System
