@@ -182,30 +182,45 @@ class GlassCoverCard extends BaseCard {
     .cover-count.none { background: var(--s2); color: var(--t3); }
     .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
 
-    .cover-header-actions { display: flex; gap: 0.25rem; }
-    .header-btn {
-      width: 1.375rem; height: 1.375rem; border-radius: var(--radius-sm);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); -webkit-tap-highlight-color: transparent;
+    /* ── Toggle All ── */
+    .toggle-all {
+      position: relative;
+      width: 2.5rem;
+      height: 1.375rem;
+      border-radius: var(--radius-md);
+      background: var(--s2);
+      border: 1px solid var(--b2);
+      cursor: pointer;
+      transition: background var(--t-fast), border-color var(--t-fast);
+      padding: 0;
+      outline: none;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
     }
-    .header-btn ha-icon {
-      --mdc-icon-size: var(--icon-sm);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3); transition: color var(--t-fast);
+    .toggle-all::after {
+      content: '';
+      position: absolute;
+      top: 0.1875rem;
+      left: 0.1875rem;
+      width: 0.875rem;
+      height: 0.875rem;
+      border-radius: 50%;
+      background: var(--t3);
+      transition:
+        transform var(--t-fast),
+        background var(--t-fast),
+        box-shadow var(--t-fast);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .header-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .header-btn:hover ha-icon { color: var(--t1); }
+    .toggle-all.on {
+      background: rgba(var(--rgb-purple),0.2);
+      border-color: rgba(var(--rgb-purple),0.3);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .header-btn:active { transform: scale(0.96); }
+    .toggle-all.on::after {
+      transform: translateX(1.125rem);
+      background: var(--cv-color, #a78bfa);
+      box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
     }
-    @media (pointer: coarse) {
-      .header-btn:active { animation: bounce 0.3s ease; }
-    }
-    .header-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     .cover-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
@@ -688,14 +703,13 @@ class GlassCoverCard extends BaseCard {
             <span class="cover-title">${t('cover.title')}</span>
             <span class="cover-count ${openCount === 0 ? 'none' : openCount === total ? 'all' : 'some'}">${openCount}/${total}</span>
           </div>
-          <div class="cover-header-actions">
-            <button class="header-btn" @click=${() => this._openAll()} aria-label=${t('cover.open_all_aria')}>
-              <ha-icon .icon=${'mdi:arrow-up'}></ha-icon>
-            </button>
-            <button class="header-btn" @click=${() => this._closeAll()} aria-label=${t('cover.close_all_aria')}>
-              <ha-icon .icon=${'mdi:arrow-down'}></ha-icon>
-            </button>
-          </div>
+          <button
+            class="toggle-all ${openCount > 0 ? 'on' : ''}"
+            @click=${() => openCount > 0 ? this._closeAll() : this._openAll()}
+            role="switch"
+            aria-checked=${openCount > 0 ? 'true' : 'false'}
+            aria-label=${openCount > 0 ? t('cover.close_all_aria') : t('cover.open_all_aria')}
+          ></button>
         </div>
       ` : nothing}
       <div class="glass cover-card">

@@ -1,6 +1,7 @@
 import { LitElement } from 'lit';
 import { BREAKPOINTS, type CardSize } from './breakpoints.js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = LitElement> = abstract new (...args: any[]) => T;
 
 /**
