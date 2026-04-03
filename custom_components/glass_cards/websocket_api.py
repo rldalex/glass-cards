@@ -186,6 +186,9 @@ async def ws_get_room(
         vol.Optional("show_lights"): bool,
         vol.Optional("show_temperature"): bool,
         vol.Optional("show_humidity"): bool,
+        vol.Optional("presence_entity"): vol.Any(str, None),
+        vol.Optional("show_presence"): bool,
+        vol.Optional("sort_by_lights"): bool,
     }
 )
 @websocket_api.async_response
@@ -240,6 +243,12 @@ async def ws_set_room(
         room.show_temperature = msg["show_temperature"]
     if "show_humidity" in msg:
         room.show_humidity = msg["show_humidity"]
+    if "presence_entity" in msg:
+        room.presence_entity = msg["presence_entity"]
+    if "show_presence" in msg:
+        room.show_presence = msg["show_presence"]
+    if "sort_by_lights" in msg:
+        room.sort_by_lights = msg["sort_by_lights"]
 
     try:
         await store.async_save()
@@ -612,6 +621,9 @@ async def ws_set_title_config(
         vol.Optional("extra_entities"): {
             str: [vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))],
         },
+        vol.Optional("hidden_entities"): [
+            vol.All(str, vol.Match(r"^media_player\.[\w-]+$"))
+        ],
         vol.Optional("show_header"): bool,
     }
 )
@@ -640,6 +652,8 @@ async def ws_set_media_config(
             if deduped:
                 ep[area_id] = deduped
         store.data.media_card.extra_entities = ep
+    if "hidden_entities" in msg:
+        store.data.media_card.hidden_entities = list(set(msg["hidden_entities"]))
     if "show_header" in msg:
         store.data.media_card.show_header = msg["show_header"]
 
@@ -752,6 +766,9 @@ async def ws_set_presence_config(
         vol.Optional("entity_order"): [
             vol.All(str, vol.Match(r"^camera\.[\w-]+$"))
         ],
+        vol.Optional("hidden_entities"): [
+            vol.All(str, vol.Match(r"^camera\.[\w-]+$"))
+        ],
         vol.Optional("auto_cycle"): bool,
         vol.Optional("cycle_interval"): vol.All(
             _strict_int, vol.Range(min=3, max=60)
@@ -774,6 +791,8 @@ async def ws_set_camera_carousel_config(
         store.data.camera_carousel.show_header = msg["show_header"]
     if "entity_order" in msg:
         store.data.camera_carousel.entity_order = _dedupe_ordered(msg["entity_order"])
+    if "hidden_entities" in msg:
+        store.data.camera_carousel.hidden_entities = _dedupe_ordered(msg["hidden_entities"])
     if "auto_cycle" in msg:
         store.data.camera_carousel.auto_cycle = msg["auto_cycle"]
     if "cycle_interval" in msg:

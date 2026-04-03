@@ -107,6 +107,9 @@ class RoomConfig:
     show_lights: bool = True
     show_temperature: bool = True
     show_humidity: bool = True
+    presence_entity: str | None = None
+    show_presence: bool = False
+    sort_by_lights: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -129,6 +132,9 @@ class RoomConfig:
             "show_lights": self.show_lights,
             "show_temperature": self.show_temperature,
             "show_humidity": self.show_humidity,
+            "presence_entity": self.presence_entity,
+            "show_presence": self.show_presence,
+            "sort_by_lights": self.sort_by_lights,
         }
 
     @classmethod
@@ -164,6 +170,9 @@ class RoomConfig:
             show_lights=bool(data.get("show_lights", True)),
             show_temperature=bool(data.get("show_temperature", True)),
             show_humidity=bool(data.get("show_humidity", True)),
+            presence_entity=data.get("presence_entity") if isinstance(data.get("presence_entity"), str) else None,
+            show_presence=bool(data.get("show_presence", False)),
+            sort_by_lights=bool(data.get("sort_by_lights", True)),
         )
 
 
@@ -512,6 +521,7 @@ class CameraCarouselConfig:
 
     show_header: bool = True
     entity_order: list[str] = field(default_factory=list)
+    hidden_entities: list[str] = field(default_factory=list)
     auto_cycle: bool = False
     cycle_interval: int = DEFAULT_CAMERA_CYCLE_INTERVAL
 
@@ -520,6 +530,7 @@ class CameraCarouselConfig:
         return {
             "show_header": self.show_header,
             "entity_order": self.entity_order,
+            "hidden_entities": self.hidden_entities,
             "auto_cycle": self.auto_cycle,
             "cycle_interval": self.cycle_interval,
         }
@@ -528,6 +539,7 @@ class CameraCarouselConfig:
     def from_dict(cls, data: dict[str, Any]) -> CameraCarouselConfig:
         """Deserialize from dict."""
         raw_order = data.get("entity_order", [])
+        raw_hidden = data.get("hidden_entities", [])
         raw_interval = data.get("cycle_interval", DEFAULT_CAMERA_CYCLE_INTERVAL)
         interval = DEFAULT_CAMERA_CYCLE_INTERVAL
         if isinstance(raw_interval, int) and not isinstance(raw_interval, bool):
@@ -535,6 +547,7 @@ class CameraCarouselConfig:
         return cls(
             show_header=bool(data.get("show_header", True)),
             entity_order=[str(x) for x in raw_order if isinstance(x, str)],
+            hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
             auto_cycle=bool(data.get("auto_cycle", False)),
             cycle_interval=interval,
         )
@@ -585,6 +598,7 @@ class MediaCardConfig:
     dashboard_variant: str = "list"
     room_variants: dict[str, str] = field(default_factory=dict)
     extra_entities: dict[str, list[str]] = field(default_factory=dict)
+    hidden_entities: list[str] = field(default_factory=list)
     show_header: bool = True
 
     def to_dict(self) -> dict[str, Any]:
@@ -594,6 +608,7 @@ class MediaCardConfig:
             "dashboard_variant": self.dashboard_variant,
             "room_variants": self.room_variants,
             "extra_entities": self.extra_entities,
+            "hidden_entities": self.hidden_entities,
             "show_header": self.show_header,
         }
 
@@ -619,11 +634,14 @@ class MediaCardConfig:
                     if valid:
                         extra_entities[k] = valid
 
+        raw_hidden = data.get("hidden_entities", [])
+
         return cls(
             variant=raw_variant if raw_variant in VALID_MEDIA_VARIANTS else "list",
             dashboard_variant=raw_dash_variant if raw_dash_variant in VALID_MEDIA_VARIANTS else "list",
             room_variants=room_variants,
             extra_entities=extra_entities,
+            hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)] if isinstance(raw_hidden, list) else [],
             show_header=bool(data.get("show_header", True)),
         )
 

@@ -429,6 +429,9 @@
     "room_show_lights": "Afficher les lumières",
     "room_show_temperature": "Afficher la température",
     "room_show_humidity": "Afficher l'humidité",
+    "room_sort_by_lights": "Tri auto par lumières",
+    "room_sort_by_presence": "Tri auto par présence",
+    "room_presence_entity": "Capteur de présence",
     "hide_room": "Masquer de la navbar",
     "show_room": "Afficher dans la navbar",
     "popup_scenes": "Scènes",
@@ -579,6 +582,8 @@
     "media_native_players_desc": "Lecteurs médias assignés à cette zone dans Home Assistant.",
     "media_no_extra": "Aucun lecteur supplémentaire ajouté.",
     "media_add_extra": "Ajouter un lecteur",
+    "media_dashboard_players": "Lecteurs médias",
+    "media_dashboard_players_desc": "Activez ou désactivez les lecteurs médias visibles sur le tableau de bord.",
     "media_dashboard_variant": "Variante dashboard",
     "media_dashboard_variant_desc": "Variante utilisée pour la carte média sur le tableau de bord.",
 
@@ -693,7 +698,7 @@
     "spotify_open_settings": "Ouvrir les paramètres",
 
     "tab_unassigned": "Entités orphelines",
-    "unassigned_desc": "Assignez ou réassignez vos entités à une pièce pour qu'elles apparaissent dans les popups correspondants.",
+    "unassigned_desc": "Assignez ou réassignez vos entités à une pièce pour qu'elles apparaissent dans les popups correspondants. Vous pouvez également renommer vos entités directement depuis cet onglet.",
     "unassigned_none": "Toutes les entités sont assignées à une pièce.",
     "unassigned_no_entities": "Aucune entité détectée.",
     "unassigned_select_area": "Non assignée",

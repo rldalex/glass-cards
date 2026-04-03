@@ -56,6 +56,7 @@ interface MediaPlayerInfo {
 
 interface MediaBackendConfig {
   extra_entities: Record<string, string[]>;
+  hidden_entities: string[];
   show_header: boolean;
 }
 
@@ -133,6 +134,7 @@ export class GlassMediaCard extends BaseCard {
   @state() private _foldOpen = false;
   @state() private _mediaConfig: MediaBackendConfig = {
     extra_entities: {},
+    hidden_entities: [],
     show_header: true,
   };
   @state() private _configLoaded = false;
@@ -399,6 +401,7 @@ export class GlassMediaCard extends BaseCard {
       if (result?.media_card) {
         this._mediaConfig = {
           extra_entities: result.media_card.extra_entities ?? {},
+          hidden_entities: result.media_card.hidden_entities ?? [],
           show_header: result.media_card.show_header ?? true,
         };
       }
@@ -413,8 +416,9 @@ export class GlassMediaCard extends BaseCard {
     if (!this.hass) return [];
 
     if (this.isDashboard) {
+      const hiddenSet = new Set(this._mediaConfig.hidden_entities);
       return Object.values(this.hass.states)
-        .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state))
+        .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id))
         .map(getMediaInfo)
         .sort((a, b) => {
           const priority = (s: string) => (s === 'playing' ? 0 : s === 'buffering' ? 1 : 2);
@@ -473,8 +477,9 @@ export class GlassMediaCard extends BaseCard {
    */
   private _getActiveRooms(): MediaPlayerInfo[] {
     if (!this.hass) return [];
+    const hiddenSet = new Set(this._mediaConfig.hidden_entities);
     const allPlaying = Object.values(this.hass.states)
-      .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state))
+      .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id))
       .map(getMediaInfo);
 
     // Sort: coordinators first, then by most recently updated

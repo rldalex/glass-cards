@@ -4,6 +4,7 @@ import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
 import { getAreaEntities } from '@glass-cards/base-card';
+import { DOMAIN_COLORS } from '@glass-cards/ui-core';
 import type { SceneEntry } from '../types';
 import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS } from '../types';
 import { createSaveScheduler } from '../utils/save-scheduler';
@@ -19,11 +20,11 @@ interface SectionDef {
 }
 
 const SECTION_DEFS: Omit<SectionDef, 'visible' | 'count'>[] = [
-  { id: 'light', label: 'Lumières', icon: 'mdi:lightbulb-group', domains: ['light'], color: '251,191,36' },
-  { id: 'cover', label: 'Volets', icon: 'mdi:window-shutter', domains: ['cover'], color: '167,139,250' },
-  { id: 'climate', label: 'Climat', icon: 'mdi:thermostat', domains: ['climate'], color: '96,165,250' },
-  { id: 'media', label: 'Media', icon: 'mdi:speaker', domains: ['media_player'], color: '129,140,248' },
-  { id: 'fan', label: 'Ventilateurs', icon: 'mdi:fan', domains: ['fan'], color: '45,212,191' },
+  { id: 'light', label: 'Lumières', icon: 'mdi:lightbulb-group', domains: ['light'], color: DOMAIN_COLORS.light.rgb },
+  { id: 'cover', label: 'Volets', icon: 'mdi:window-shutter', domains: ['cover'], color: DOMAIN_COLORS.cover.rgb },
+  { id: 'climate', label: 'Climat', icon: 'mdi:thermostat', domains: ['climate'], color: DOMAIN_COLORS.climate.rgb },
+  { id: 'media', label: 'Media', icon: 'mdi:speaker', domains: ['media_player'], color: DOMAIN_COLORS.media.rgb },
+  { id: 'fan', label: 'Ventilateurs', icon: 'mdi:fan', domains: ['fan'], color: DOMAIN_COLORS.fan.rgb },
 ];
 
 export class ConfigRoomDetail extends LitElement {
@@ -46,10 +47,15 @@ export class ConfigRoomDetail extends LitElement {
   @state() private _showLights = true;
   @state() private _showTemperature = true;
   @state() private _showHumidity = true;
+  @state() private _presenceEntity = '';
+  @state() private _showPresence = false;
+  @state() private _sortByLights = true;
   private _availableTempEntities: { id: string; name: string }[] = [];
   private _availableHumidityEntities: { id: string; name: string }[] = [];
+  private _availablePresenceEntities: { id: string; name: string }[] = [];
   @state() private _tempDropdownOpen = false;
   @state() private _humidityDropdownOpen = false;
+  @state() private _presenceDropdownOpen = false;
 
   // Drag state for section reorder
   @state() private _dragIdx: number | null = null;
@@ -109,6 +115,9 @@ export class ConfigRoomDetail extends LitElement {
         show_lights?: boolean;
         show_temperature?: boolean;
         show_humidity?: boolean;
+        presence_entity?: string | null;
+        show_presence?: boolean;
+        sort_by_lights?: boolean;
       } | null>('get_room', { area_id: this.areaId });
       if (result) {
         storedOrder = result.card_order.length > 0 ? result.card_order : null;
@@ -122,6 +131,9 @@ export class ConfigRoomDetail extends LitElement {
         this._showLights = result.show_lights ?? true;
         this._showTemperature = result.show_temperature ?? true;
         this._showHumidity = result.show_humidity ?? true;
+        this._presenceEntity = result.presence_entity ?? '';
+        this._showPresence = result.show_presence ?? false;
+        this._sortByLights = result.sort_by_lights ?? true;
       }
     } catch { /* backend not available */ }
 
@@ -129,13 +141,17 @@ export class ConfigRoomDetail extends LitElement {
     const hass = this.hass;
     this._availableTempEntities = [];
     this._availableHumidityEntities = [];
+    this._availablePresenceEntities = [];
     for (const e of entities) {
+      const state = hass.states[e.entity_id];
+      const dc = state?.attributes?.device_class;
+      const name = (state?.attributes?.friendly_name as string) || e.entity_id.split('.')[1];
       if (e.entity_id.startsWith('sensor.')) {
-        const state = hass.states[e.entity_id];
-        const dc = state?.attributes?.device_class;
-        const name = (state?.attributes?.friendly_name as string) || e.entity_id.split('.')[1];
         if (dc === 'temperature') this._availableTempEntities.push({ id: e.entity_id, name });
         if (dc === 'humidity') this._availableHumidityEntities.push({ id: e.entity_id, name });
+      }
+      if (e.entity_id.startsWith('binary_sensor.') && (dc === 'presence' || dc === 'occupancy' || dc === 'motion')) {
+        this._availablePresenceEntities.push({ id: e.entity_id, name });
       }
     }
 
@@ -213,6 +229,9 @@ export class ConfigRoomDetail extends LitElement {
         show_lights: this._showLights,
         show_temperature: this._showTemperature,
         show_humidity: this._showHumidity,
+        presence_entity: this._presenceEntity || null,
+        show_presence: this._showPresence,
+        sort_by_lights: this._sortByLights,
       });
       bus.emit('room-config-changed', { areaId: this.areaId });
       this.dispatchEvent(new CustomEvent('tab-toast', { detail: { success: true }, bubbles: true, composed: true }));
@@ -376,6 +395,12 @@ export class ConfigRoomDetail extends LitElement {
     this._scheduleSave();
   }
 
+  private _selectPresenceEntity(id: string): void {
+    this._presenceEntity = id;
+    this._presenceDropdownOpen = false;
+    this._scheduleSave();
+  }
+
   private _renderIndicators(): TemplateResult {
     return html`
       <div class="section-label">${t('config.room_indicators')}</div>
@@ -402,6 +427,20 @@ export class ConfigRoomDetail extends LitElement {
           </div>
           <span class="toggle ${this._showHumidity ? 'on' : ''}" role="switch" aria-checked=${this._showHumidity ? 'true' : 'false'} aria-label=${t('config.room_show_humidity')}></span>
         </button>
+        <button class="feature-row" @click=${() => { this._sortByLights = !this._sortByLights; this._scheduleSave(); }}>
+          <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb-auto'}></ha-icon></div>
+          <div class="feature-text">
+            <div class="feature-name">${t('config.room_sort_by_lights')}</div>
+          </div>
+          <span class="toggle ${this._sortByLights ? 'on' : ''}" role="switch" aria-checked=${this._sortByLights ? 'true' : 'false'} aria-label=${t('config.room_sort_by_lights')}></span>
+        </button>
+        <button class="feature-row" @click=${() => { this._showPresence = !this._showPresence; this._scheduleSave(); }}>
+          <div class="feature-icon"><ha-icon .icon=${'mdi:motion-sensor'}></ha-icon></div>
+          <div class="feature-text">
+            <div class="feature-name">${t('config.room_sort_by_presence')}</div>
+          </div>
+          <span class="toggle ${this._showPresence ? 'on' : ''}" role="switch" aria-checked=${this._showPresence ? 'true' : 'false'} aria-label=${t('config.room_sort_by_presence')}></span>
+        </button>
       </div>
     `;
   }
@@ -420,6 +459,12 @@ export class ConfigRoomDetail extends LitElement {
         ? this._availableHumidityEntities.find(s => s.id === this._humidityEntity)?.name ?? this._humidityEntity
         : t('config.room_auto_detect');
 
+    const presenceLabel = this._presenceEntity === '__none__'
+      ? t('config.room_no_sensor')
+      : this._presenceEntity
+        ? this._availablePresenceEntities.find(s => s.id === this._presenceEntity)?.name ?? this._presenceEntity
+        : t('config.room_auto_detect');
+
     return html`
       <div class="section-label">${t('config.room_sensors')}</div>
       <div class="section-desc">${t('config.room_sensors_desc')}</div>
@@ -428,7 +473,7 @@ export class ConfigRoomDetail extends LitElement {
       <div class="dropdown ${this._tempDropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
-          @click=${() => { this._tempDropdownOpen = !this._tempDropdownOpen; this._humidityDropdownOpen = false; }}
+          @click=${() => { this._tempDropdownOpen = !this._tempDropdownOpen; this._humidityDropdownOpen = false; this._presenceDropdownOpen = false; }}
           aria-expanded=${this._tempDropdownOpen ? 'true' : 'false'}
           aria-haspopup="listbox"
         >
@@ -473,7 +518,7 @@ export class ConfigRoomDetail extends LitElement {
       <div class="dropdown ${this._humidityDropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
-          @click=${() => { this._humidityDropdownOpen = !this._humidityDropdownOpen; this._tempDropdownOpen = false; }}
+          @click=${() => { this._humidityDropdownOpen = !this._humidityDropdownOpen; this._tempDropdownOpen = false; this._presenceDropdownOpen = false; }}
           aria-expanded=${this._humidityDropdownOpen ? 'true' : 'false'}
           aria-haspopup="listbox"
         >
@@ -507,6 +552,51 @@ export class ConfigRoomDetail extends LitElement {
             role="option"
             aria-selected=${this._humidityEntity === '__none__' ? 'true' : 'false'}
             @click=${() => this._selectHumidityEntity('__none__')}
+          >
+            <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
+            ${t('config.room_no_sensor')}
+          </button>
+        </div>
+      </div>
+
+      <div class="feature-name pw-rd-sensor-label">${t('config.room_presence_entity')}</div>
+      <div class="dropdown ${this._presenceDropdownOpen ? 'open' : ''}">
+        <button
+          class="dropdown-trigger"
+          @click=${() => { this._presenceDropdownOpen = !this._presenceDropdownOpen; this._tempDropdownOpen = false; this._humidityDropdownOpen = false; }}
+          aria-expanded=${this._presenceDropdownOpen ? 'true' : 'false'}
+          aria-haspopup="listbox"
+        >
+          <ha-icon .icon=${'mdi:motion-sensor'}></ha-icon>
+          <span>${presenceLabel}</span>
+          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+        </button>
+        <div class="dropdown-menu" role="listbox">
+          <button
+            class="dropdown-item ${!this._presenceEntity ? 'active' : ''}"
+            role="option"
+            aria-selected=${!this._presenceEntity ? 'true' : 'false'}
+            @click=${() => this._selectPresenceEntity('')}
+          >
+            <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
+            ${t('config.room_auto_detect')}
+          </button>
+          ${this._availablePresenceEntities.map(s => html`
+            <button
+              class="dropdown-item ${this._presenceEntity === s.id ? 'active' : ''}"
+              role="option"
+              aria-selected=${this._presenceEntity === s.id ? 'true' : 'false'}
+              @click=${() => this._selectPresenceEntity(s.id)}
+            >
+              <ha-icon .icon=${'mdi:motion-sensor'}></ha-icon>
+              ${s.name}
+            </button>
+          `)}
+          <button
+            class="dropdown-item ${this._presenceEntity === '__none__' ? 'active' : ''}"
+            role="option"
+            aria-selected=${this._presenceEntity === '__none__' ? 'true' : 'false'}
+            @click=${() => this._selectPresenceEntity('__none__')}
           >
             <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
             ${t('config.room_no_sensor')}

@@ -43,6 +43,7 @@ interface ClimateBackendConfig {
   display_mode: 'list' | 'normal';
   dashboard_display_mode: 'list' | 'normal';
   dashboard_entities: string[];
+  hidden_entities: string[];
 }
 
 interface RoomClimateConfig {
@@ -111,6 +112,8 @@ export class GlassClimateCard extends BaseCard {
     super.connectedCallback();
     this._listen('climate-config-changed', () => {
       this._climateConfigLoaded = false;
+      this._dashboardHiddenEntities = new Set<string>();
+      this._dashboardHiddenLoaded = false;
       this._cachedClimateIds = undefined;
       this._cachedClimatesFingerprint = '';
       this._loadConfig();
@@ -236,10 +239,13 @@ export class GlassClimateCard extends BaseCard {
           ? (result.climate_card.display_mode ?? 'list')
           : (result.climate_card.dashboard_display_mode ?? 'list');
         this._dashboardEntities = result.climate_card.dashboard_entities ?? [];
+        const configHidden = result.climate_card.hidden_entities ?? [];
+        for (const id of configHidden) this._dashboardHiddenEntities.add(id);
         this._cachedClimateIds = undefined;
         this._cachedClimatesFingerprint = '';
       }
       this._configReady = true;
+      this.requestUpdate();
     } catch {
       this._configReady = true;
     }
@@ -354,7 +360,7 @@ export class GlassClimateCard extends BaseCard {
     }
     if (this._isDashboardMode) {
       if (this._dashboardEntities.length > 0) {
-        return this._dashboardEntities.filter((id) => this.hass?.states[id] && isEntityVisibleNow(id, this._schedules));
+        return this._dashboardEntities.filter((id) => this.hass?.states[id] && !this._dashboardHiddenEntities.has(id) && isEntityVisibleNow(id, this._schedules));
       }
       const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
       if (areas.length === 0 || !this.hass.entities || !this.hass.devices) return [];
@@ -847,11 +853,14 @@ export class GlassClimateCard extends BaseCard {
   // ════════════════════════════════════════════════════════════════
 
   private _renderNormalMode(climates: HassEntity[]): TemplateResult {
-    const sorted = [...climates].sort((a, b) => {
-      const aAction = this._getHvacAction(a);
-      const bAction = this._getHvacAction(b);
-      return (ACTION_ORDER[aAction] ?? 3) - (ACTION_ORDER[bAction] ?? 3);
-    });
+    // Respect user-defined order when dashboard_entities is set; otherwise sort by hvac action
+    const sorted = this._dashboardEntities.length > 0 || (this._roomConfig?.entity_order?.length ?? 0) > 0
+      ? climates
+      : [...climates].sort((a, b) => {
+          const aAction = this._getHvacAction(a);
+          const bAction = this._getHvacAction(b);
+          return (ACTION_ORDER[aAction] ?? 3) - (ACTION_ORDER[bAction] ?? 3);
+        });
     const selectedId = this._selectedEntity || sorted[0]?.entity_id;
     const entity = sorted.find((c) => c.entity_id === selectedId) || sorted[0];
     if (!entity) return html``;

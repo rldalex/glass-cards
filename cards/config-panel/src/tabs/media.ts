@@ -10,13 +10,17 @@ import { BaseConfigTab } from '../base-tab';
 export class ConfigTabMedia extends BaseConfigTab {
   @state() _mediaShowHeader = true;
   @state() _mediaExtraEntities: Record<string, string[]> = {};
+  @state() _mediaHiddenEntities: string[] = [];
   @state() _mediaRoom = '';
   @state() _mediaRoomNativePlayers: string[] = [];
   @state() _mediaAddDropdownOpen = false;
   @state() _mediaEntitySearch = '';
+  @state() _mediaDashboardPlayers: { entityId: string; name: string; visible: boolean }[] = [];
+
+  private _dashboardLoaded = false;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
-    '_mediaShowHeader', '_mediaExtraEntities',
+    '_mediaShowHeader', '_mediaExtraEntities', '_mediaHiddenEntities',
   ]);
 
   // — Lifecycle —
@@ -27,26 +31,36 @@ export class ConfigTabMedia extends BaseConfigTab {
       this._mediaRoom = this.areaId;
       this._loadRoomMediaPlayers();
     }
+    if (!this.areaId && !this._dashboardLoaded && this.hass && this.backend) {
+      this._dashboardLoaded = true;
+      this._loadDashboardMediaPlayers();
+    }
     this._checkAutoSave(changedProps);
   }
 
   // — Persistence —
 
   loadFromConfig(config: Record<string, unknown>): void {
-    const c = config as { show_header?: boolean; extra_entities?: Record<string, string[]> };
+    const c = config as { show_header?: boolean; extra_entities?: Record<string, string[]>; hidden_entities?: string[] };
     this._mediaShowHeader = c.show_header ?? true;
     this._mediaExtraEntities = c.extra_entities ?? {};
+    this._mediaHiddenEntities = c.hidden_entities ?? [];
   }
 
   collectSaveData(): Record<string, unknown> {
     return {
       show_header: this._mediaShowHeader,
       extra_entities: this._mediaExtraEntities,
+      hidden_entities: this._mediaHiddenEntities,
     };
   }
 
   protected override async _performSave(): Promise<void> {
-    await this.backend!.send('set_media_config', this.collectSaveData());
+    const saveData = this.collectSaveData();
+    if (!this.areaId && this._mediaDashboardPlayers.length > 0) {
+      saveData.hidden_entities = this._mediaDashboardPlayers.filter((e) => !e.visible).map((e) => e.entityId);
+    }
+    await this.backend!.send('set_media_config', saveData);
     bus.emit('media-config-changed', undefined);
   }
 
@@ -54,10 +68,36 @@ export class ConfigTabMedia extends BaseConfigTab {
     if (!this.backend) return;
     try {
       const result = await this.backend.send<{
-        media_card: { show_header: boolean; extra_entities: Record<string, string[]> };
+        media_card: { show_header: boolean; extra_entities: Record<string, string[]>; hidden_entities: string[] };
       }>('get_config');
       if (result?.media_card) this.loadFromConfig(result.media_card);
     } catch { /* ignore */ }
+    if (!this.areaId) {
+      this._dashboardLoaded = false;
+      this._loadDashboardMediaPlayers();
+    }
+  }
+
+  // — Dashboard media players —
+
+  private _loadDashboardMediaPlayers(): void {
+    if (!this.hass) return;
+    const hiddenSet = new Set(this._mediaHiddenEntities);
+    const allMediaPlayers = Object.keys(this.hass.states)
+      .filter((id) => id.startsWith('media_player.'))
+      .sort();
+    this._mediaDashboardPlayers = allMediaPlayers.map((id) => {
+      const entity = this.hass?.states[id];
+      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      return { entityId: id, name, visible: !hiddenSet.has(id) };
+    });
+  }
+
+  private _toggleMediaVisible(entityId: string): void {
+    this._mediaDashboardPlayers = this._mediaDashboardPlayers.map((e) =>
+      e.entityId === entityId ? { ...e, visible: !e.visible } : e,
+    );
+    this._mediaHiddenEntities = this._mediaDashboardPlayers.filter((e) => !e.visible).map((e) => e.entityId);
   }
 
   // — Actions —
@@ -177,6 +217,33 @@ export class ConfigTabMedia extends BaseConfigTab {
             ></span>
           </button>
         </div>
+
+        ${!this.areaId && this._mediaDashboardPlayers.length > 0 ? html`
+          <div class="section-label">${t('config.media_dashboard_players')} (${this._mediaDashboardPlayers.length})</div>
+          <div class="section-desc">${t('config.media_dashboard_players_desc')}</div>
+          <div class="item-list">
+            ${this._mediaDashboardPlayers.map((e) => {
+              const entity = this.hass?.states[e.entityId];
+              const isPlaying = entity?.state === 'playing';
+              return html`
+                <div class="item-card">
+                  <div class="item-row ${!e.visible ? 'disabled' : ''}">
+                    <div class="item-info">
+                      <span class="item-name">${e.name}</span>
+                      <span class="item-meta">${e.entityId}${isPlaying ? ' — playing' : ''}</span>
+                    </div>
+                    <button
+                      class="toggle ${e.visible ? 'on' : ''}"
+                      @click=${() => this._toggleMediaVisible(e.entityId)}
+                      role="switch"
+                      aria-checked=${e.visible ? 'true' : 'false'}
+                    ></button>
+                  </div>
+                </div>
+              `;
+            })}
+          </div>
+        ` : nothing}
 
         <!-- Per-room extra entities -->
         <div class="section-label">${t('config.media_room')}</div>

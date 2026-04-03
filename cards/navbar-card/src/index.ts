@@ -72,6 +72,7 @@ interface NavItem {
   name: string;
   icon: string;
   lightsOn: number;
+  presence: boolean;
   temperature: string | null;
   tempValue: number | null;
   humidity: string | null;
@@ -110,7 +111,7 @@ export class GlassNavbarCard extends BaseCard {
   private _configLoaded = false;
   private _configLoading = false;
   private _dashboardLoading = false;
-  private _roomConfigs: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean }> = {};
+  private _roomConfigs: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean; presence_entity?: string | null; show_presence?: boolean; sort_by_lights?: boolean }> = {};
   private _flipPositions = new Map<string, number>();
   private _litTimestamps = new Map<string, number>();
   private _backend?: BackendService;
@@ -695,7 +696,7 @@ export class GlassNavbarCard extends BaseCard {
           temp_low?: number;
           humidity_threshold?: number;
         };
-        rooms: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean }>;
+        rooms: Record<string, { icon?: string | null; show_lights?: boolean; show_temperature?: boolean; show_humidity?: boolean; presence_entity?: string | null; show_presence?: boolean; sort_by_lights?: boolean }>;
         dashboard: { enabled_cards: string[]; card_order?: string[]; hide_header?: boolean; hide_sidebar?: boolean };
       }>('get_config');
       this._navbarConfig = result.navbar;
@@ -976,11 +977,21 @@ export class GlassNavbarCard extends BaseCard {
     if (!this.hass) return;
     const items: NavItem[] = this._areaStructure.map((area) => {
       let lightsOn = 0;
+      let presence = false;
       let temperature: string | null = null;
       let tempValue: number | null = null;
       let humidity: string | null = null;
       let humidityValue: number | null = null;
       let mediaPlaying = false;
+
+      // Check configured presence entity
+      const roomCfg = this._roomConfigs[area.areaId];
+      const showPresence = roomCfg?.show_presence === true;
+      const presenceEntityId = (roomCfg as Record<string, unknown>)?.presence_entity as string | undefined;
+      if (showPresence && presenceEntityId) {
+        const pe = this.hass?.states[presenceEntityId];
+        if (pe && (pe.state === 'on' || pe.state === 'home')) presence = true;
+      }
 
       // Use area-designated temp/humidity sensors (HA area registry fields)
       const haArea = this.hass?.areas?.[area.areaId] as { temperature_entity_id?: string | null; humidity_entity_id?: string | null } | undefined;
@@ -1020,15 +1031,26 @@ export class GlassNavbarCard extends BaseCard {
           }
         }
         if (domain === 'media_player' && entity.state === 'playing') mediaPlaying = true;
+        // Auto-detect presence if no explicit entity configured
+        if (showPresence && !presenceEntityId && !presence && domain === 'binary_sensor') {
+          const dc = entity.attributes.device_class;
+          if ((dc === 'presence' || dc === 'occupancy' || dc === 'motion') && entity.state === 'on') {
+            presence = true;
+          }
+        }
       }
 
-      return { ...area, lightsOn, temperature, tempValue, humidity, humidityValue, mediaPlaying };
+      return { ...area, lightsOn, presence, temperature, tempValue, humidity, humidityValue, mediaPlaying };
     });
 
-    // Track when each room was last lit (most recent first)
+    // Track when each room was last active (lit or occupied)
     const now = Date.now();
     for (const item of items) {
-      if (item.lightsOn > 0) {
+      const cfg = this._roomConfigs[item.areaId];
+      const sortLights = cfg?.sort_by_lights !== false;
+      const sortPresence = cfg?.show_presence === true;
+      const isActive = (sortLights && item.lightsOn > 0) || (sortPresence && item.presence);
+      if (isActive) {
         if (!this._litTimestamps.has(item.areaId)) {
           this._litTimestamps.set(item.areaId, now);
         }
@@ -1037,15 +1059,16 @@ export class GlassNavbarCard extends BaseCard {
       }
     }
 
-    // Stable sort: lit rooms first, most recently lit leftmost
+    // Stable sort: active rooms first, most recently active leftmost
     const autoSort = this._navbarConfig?.auto_sort !== false;
     if (autoSort) {
       items.sort((a, b) => {
-        const aLit = a.lightsOn > 0 ? 0 : 1;
-        const bLit = b.lightsOn > 0 ? 0 : 1;
-        if (aLit !== bLit) return aLit - bLit;
-        if (aLit === 0) {
-          // Both lit: most recently lit first
+        const cfgA = this._roomConfigs[a.areaId];
+        const cfgB = this._roomConfigs[b.areaId];
+        const aActive = ((cfgA?.sort_by_lights !== false && a.lightsOn > 0) || (cfgA?.show_presence === true && a.presence)) ? 0 : 1;
+        const bActive = ((cfgB?.sort_by_lights !== false && b.lightsOn > 0) || (cfgB?.show_presence === true && b.presence)) ? 0 : 1;
+        if (aActive !== bActive) return aActive - bActive;
+        if (aActive === 0) {
           const aTs = this._litTimestamps.get(a.areaId) ?? 0;
           const bTs = this._litTimestamps.get(b.areaId) ?? 0;
           return bTs - aTs;
@@ -1055,8 +1078,8 @@ export class GlassNavbarCard extends BaseCard {
     }
 
     // Only update if order or data changed
-    const itemKey = items.map((i) => `${i.areaId}:${i.lightsOn}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
-    const oldKey = this._items.map((i) => `${i.areaId}:${i.lightsOn}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
+    const itemKey = items.map((i) => `${i.areaId}:${i.lightsOn}:${i.presence}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
+    const oldKey = this._items.map((i) => `${i.areaId}:${i.lightsOn}:${i.presence}:${i.temperature}:${i.humidity}:${i.mediaPlaying}`).join('|');
     if (itemKey === oldKey) return;
 
     // FLIP: capture current positions before DOM update

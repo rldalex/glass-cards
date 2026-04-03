@@ -91,6 +91,7 @@ interface CameraInfo {
 interface CameraBackendConfig {
   show_header: boolean;
   entity_order: string[];
+  hidden_entities: string[];
   auto_cycle: boolean;
   cycle_interval: number;
 }
@@ -312,7 +313,7 @@ class GlassCameraCarouselCard extends BaseCard {
     try {
       const resp = await this._backend.send<{ camera_carousel: CameraBackendConfig }>('get_config');
       if (version !== this._loadVersion) return;
-      this._camConfig = resp.camera_carousel || { show_header: true, entity_order: [], auto_cycle: false, cycle_interval: 10 };
+      this._camConfig = resp.camera_carousel || { show_header: true, entity_order: [], hidden_entities: [], auto_cycle: false, cycle_interval: 10 };
       this._configLoaded = true;
       this._setupCycleTimer();
       this.requestUpdate();
@@ -337,6 +338,10 @@ class GlassCameraCarouselCard extends BaseCard {
     } else {
       ids = Object.keys(this.hass.states).filter((eid) => eid.startsWith('camera.'));
     }
+
+    // Filter out hidden entities
+    const hiddenSet = new Set(this._camConfig?.hidden_entities ?? []);
+    if (hiddenSet.size) ids = ids.filter((eid) => !hiddenSet.has(eid));
 
     // Cheap fingerprint: skip expensive sort if camera set + alert states unchanged
     const cheapKey = ids.length + ':' + ids.map((eid) => {
@@ -586,7 +591,10 @@ class GlassCameraCarouselCard extends BaseCard {
     const currentCam = this._getCameraInfo(ids[this._carouselIndex]);
 
     const heroGesture = this._bindGesture({
-      onTap: () => { /* tap on hero = no-op (swipe handles navigation) */ },
+      onTap: () => {
+        const eid = ids[this._carouselIndex];
+        if (eid && !this._liveIds.has(eid)) this._startStream(eid);
+      },
       onLongPress: () => { this._isSwiping = false; this._trackEl = null; this._foldOpen = !this._foldOpen; },
       exclude: '.carousel-nav',
     });
@@ -673,7 +681,7 @@ class GlassCameraCarouselCard extends BaseCard {
               <div class="stream-cam-name">
                 <ha-icon .icon=${cam.icon} style="--mdc-icon-size:12px"></ha-icon>
                 <span>${cam.name}</span>
-                ${cam.isRecording ? html`
+                ${isLive && cam.isRecording ? html`
                   <span class="rec-indicator">
                     <span class="rec-circle"></span> REC
                   </span>

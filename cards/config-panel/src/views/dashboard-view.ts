@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
+import { DOMAIN_COLORS } from '@glass-cards/ui-core';
 import type { RoomEntry } from '../types';
 import { createSaveScheduler } from '../utils/save-scheduler';
 
@@ -15,16 +16,16 @@ interface DashCardMeta {
 }
 
 const DASH_CARD_META: DashCardMeta[] = [
-  { id: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', color: 'var(--c-accent)' },
-  { id: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', color: 'var(--c-light-glow)' },
-  { id: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', color: 'var(--c-info)' },
-  { id: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', color: 'var(--c-purple)' },
-  { id: 'climate', icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', color: 'var(--c-purple)' },
-  { id: 'fan', icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', color: 'var(--c-accent)' },
-  { id: 'media', icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', color: 'var(--c-accent)' },
-  { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: 'var(--c-spotify)' },
-  { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: 'var(--c-accent)' },
-  { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: 'var(--c-alert)' },
+  { id: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', color: DOMAIN_COLORS.title.cssVar },
+  { id: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', color: DOMAIN_COLORS.light.cssVar },
+  { id: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', color: DOMAIN_COLORS.weather.cssVar },
+  { id: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', color: DOMAIN_COLORS.cover.cssVar },
+  { id: 'climate', icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', color: DOMAIN_COLORS.climate.cssVar },
+  { id: 'fan', icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', color: DOMAIN_COLORS.fan.cssVar },
+  { id: 'media', icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', color: DOMAIN_COLORS.media.cssVar },
+  { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: DOMAIN_COLORS.spotify.cssVar },
+  { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.cssVar },
+  { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.cssVar },
 ];
 
 // Map card IDs to sub-section IDs used by tabs

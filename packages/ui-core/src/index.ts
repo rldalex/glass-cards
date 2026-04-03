@@ -63,6 +63,7 @@ export const glassTokens: CSSResult = css`
     --c-info: var(--info-color, #60a5fa);
     --c-accent: var(--accent-color, #818cf8);
     --c-purple: #a78bfa;
+    --c-teal: #2dd4bf;
     --c-light-glow: #fbbf24;
     --c-spotify: #1DB954;
     --c-spotify-hover: #1ed760;
@@ -609,6 +610,28 @@ export const unavailableMixin: CSSResult = css`
 export function isEntityUnavailable(state: string | undefined): boolean {
   return !state || state === 'unavailable' || state === 'unknown';
 }
+
+// — Domain colors —
+
+export interface DomainColor {
+  /** CSS variable reference, e.g. 'var(--c-info)' */
+  cssVar: string;
+  /** RGB triplet string, e.g. '96,165,250' */
+  rgb: string;
+}
+
+export const DOMAIN_COLORS: Record<string, DomainColor> = {
+  light:    { cssVar: '#fbbf24',  rgb: '251,191,36' },
+  cover:    { cssVar: '#a78bfa',  rgb: '167,139,250' },
+  climate:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
+  media:    { cssVar: '#818cf8',  rgb: '129,140,248' },
+  fan:      { cssVar: '#2dd4bf',  rgb: '45,212,191' },
+  spotify:  { cssVar: '#1DB954', rgb: '29,185,84' },
+  camera:   { cssVar: '#f87171',  rgb: '248,113,113' },
+  presence: { cssVar: '#818cf8',  rgb: '129,140,248' },
+  title:    { cssVar: '#818cf8',  rgb: '129,140,248' },
+  weather:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
+};
 
 // — Responsive system —
 export { BREAKPOINTS, type CardSize } from './breakpoints';

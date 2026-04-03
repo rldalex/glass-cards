@@ -11,13 +11,14 @@ export class ConfigTabCamera extends BaseConfigTab {
   @state() _cameraAutoCycle = false;
   @state() _cameraCycleInterval = 10;
   @state() _cameraEntityOrder: string[] = [];
+  @state() _cameraHiddenEntities: string[] = [];
 
   // Internal drag state for entity reorder
   @state() protected override _localDragIdx: number | null = null;
   @state() protected override _localDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
-    '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder',
+    '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder', '_cameraHiddenEntities',
   ]);
 
   // — Lifecycle —
@@ -33,11 +34,13 @@ export class ConfigTabCamera extends BaseConfigTab {
     const c = config as {
       show_header?: boolean;
       entity_order?: string[];
+      hidden_entities?: string[];
       auto_cycle?: boolean;
       cycle_interval?: number;
     };
     this._cameraShowHeader = c.show_header ?? true;
     this._cameraEntityOrder = c.entity_order ?? [];
+    this._cameraHiddenEntities = c.hidden_entities ?? [];
     this._cameraAutoCycle = c.auto_cycle ?? false;
     this._cameraCycleInterval = c.cycle_interval ?? 10;
   }
@@ -46,6 +49,7 @@ export class ConfigTabCamera extends BaseConfigTab {
     return {
       show_header: this._cameraShowHeader,
       entity_order: this._cameraEntityOrder,
+      hidden_entities: this._cameraHiddenEntities,
       auto_cycle: this._cameraAutoCycle,
       cycle_interval: this._cameraCycleInterval,
     };
@@ -63,6 +67,7 @@ export class ConfigTabCamera extends BaseConfigTab {
         camera_carousel?: {
           show_header?: boolean;
           entity_order?: string[];
+          hidden_entities?: string[];
           auto_cycle?: boolean;
           cycle_interval?: number;
         };
@@ -104,6 +109,16 @@ export class ConfigTabCamera extends BaseConfigTab {
   private _localDragEnd(): void {
     this._localDragIdx = null;
     this._localDropIdx = null;
+  }
+
+  private _toggleCameraVisible(entityId: string): void {
+    const hiddenSet = new Set(this._cameraHiddenEntities);
+    if (hiddenSet.has(entityId)) {
+      hiddenSet.delete(entityId);
+    } else {
+      hiddenSet.add(entityId);
+    }
+    this._cameraHiddenEntities = [...hiddenSet];
   }
 
   private _onDropCameraEntity(idx: number, e: DragEvent): void {
@@ -197,12 +212,14 @@ export class ConfigTabCamera extends BaseConfigTab {
             ${this._cameraEntityOrder.map((entityId, idx) => {
               const isDragging = this._localDragIdx === idx;
               const isDropTarget = this._localDropIdx === idx;
+              const isVisible = !this._cameraHiddenEntities.includes(entityId);
               const entity = this.hass?.states[entityId];
               const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
               const rowClasses = [
                 'item-row',
                 isDragging ? 'dragging' : '',
                 isDropTarget ? 'drop-target' : '',
+                !isVisible ? 'disabled' : '',
               ].filter(Boolean).join(' ');
               return html`
                 <div class="item-card">
@@ -222,6 +239,12 @@ export class ConfigTabCamera extends BaseConfigTab {
                       <span class="item-name">${name}</span>
                       <span class="item-meta">${entityId}</span>
                     </div>
+                    <button
+                      class="toggle ${isVisible ? 'on' : ''}"
+                      @click=${() => this._toggleCameraVisible(entityId)}
+                      role="switch"
+                      aria-checked=${isVisible ? 'true' : 'false'}
+                    ></button>
                   </div>
                 </div>
               `;

@@ -28,11 +28,17 @@ export class ConfigTabClimate extends BaseConfigTab {
 
   // — Lifecycle —
 
+  private _dashboardLoaded = false;
+
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._climateRoom = this.areaId;
       void this._loadRoomClimates();
+    }
+    if (!this.areaId && !this._dashboardLoaded && this.hass && this.backend) {
+      this._dashboardLoaded = true;
+      void this._loadDashboardClimates();
     }
     this._checkAutoSave(changedProps);
   }
@@ -68,7 +74,15 @@ export class ConfigTabClimate extends BaseConfigTab {
   protected override async _performSave(): Promise<void> {
     this._saving = true;
     try {
-      await this.backend!.send('set_climate_config', this.collectSaveData());
+      const saveData = this.collectSaveData();
+
+      if (!this.areaId && this._climateRoomEntities.length > 0) {
+        // Dashboard mode: persist order + hidden in climate config
+        saveData.dashboard_entities = this._climateRoomEntities.map((e) => e.entityId);
+        saveData.hidden_entities = this._climateRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+      }
+
+      await this.backend!.send('set_climate_config', saveData);
 
       if (this._climateRoom && this._climateRoomEntities.length > 0) {
         const cardIds = new Set(this._climateRoomEntities.map((e) => e.entityId));
@@ -91,7 +105,60 @@ export class ConfigTabClimate extends BaseConfigTab {
       }>('get_config');
       if (result?.climate_card) this.loadFromConfig(result.climate_card);
     } catch { /* ignore */ }
-    if (this._climateRoom) await this._loadRoomClimates();
+    if (this._climateRoom) {
+      await this._loadRoomClimates();
+    } else {
+      this._dashboardLoaded = false;
+      await this._loadDashboardClimates();
+    }
+  }
+
+  // — Dashboard climate loading —
+
+  private async _loadDashboardClimates(): Promise<void> {
+    if (!this.hass || !this.backend) return;
+
+    // Discover all climate entities across all areas
+    const allAreas = Object.keys(this.hass.areas ?? {});
+    const allClimateIds: string[] = [];
+    for (const aId of allAreas) {
+      for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
+        if (e.entity_id.startsWith('climate.')) allClimateIds.push(e.entity_id);
+      }
+    }
+    // Also include any orphan climate entities not in areas
+    for (const eid of Object.keys(this.hass.states)) {
+      if (eid.startsWith('climate.') && !allClimateIds.includes(eid)) allClimateIds.push(eid);
+    }
+
+    // Use saved dashboard_entities order + hidden_entities from climate config
+    const savedOrder = this._climateDashboardEntities;
+    const hiddenSet = new Set<string>();
+
+    // Load hidden from climate config
+    try {
+      const result = await this.backend.send<{
+        climate_card?: { hidden_entities?: string[]; dashboard_entities?: string[] };
+      }>('get_config');
+      if (result?.climate_card?.hidden_entities) {
+        for (const id of result.climate_card.hidden_entities) hiddenSet.add(id);
+      }
+    } catch { /* ignore */ }
+
+    // Sort: saved order first, then remaining alphabetically
+    const orderMap = new Map(savedOrder.map((id, i) => [id, i]));
+    const sorted = [...allClimateIds].sort((a, b) => {
+      const oa = orderMap.get(a) ?? 999;
+      const ob = orderMap.get(b) ?? 999;
+      if (oa !== ob) return oa - ob;
+      return a.localeCompare(b);
+    });
+
+    this._climateRoomEntities = sorted.map((id) => {
+      const stateObj = this.hass?.states[id];
+      const name = (stateObj?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      return { entityId: id, name, visible: !hiddenSet.has(id) };
+    });
   }
 
   // — Room climate loading —
@@ -239,7 +306,7 @@ export class ConfigTabClimate extends BaseConfigTab {
               <span>${t('config.climate_no_entities')}</span>
             </div>
           ` : html`
-            <div class="section-label">${t('config.climate_room_entities')} (${entities.length})</div>
+            <div class="section-label">${t(this.areaId ? 'config.climate_room_entities' : 'config.climate_dashboard_entities')} (${entities.length})</div>
             <div class="section-desc">${t('config.climate_room_entities_desc')}</div>
             <div class="item-list">
               ${entities.map((e, idx) => {
