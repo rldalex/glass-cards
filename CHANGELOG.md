@@ -2,6 +2,27 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.175 (2026-04-04)
+
+### Config Panel — Visibilité des entités
+- feat(camera): toggle par caméra pour masquer/afficher sur le dashboard, avec auto-save
+- feat(climate): réordonnement et toggle de visibilité des thermostats en mode dashboard
+- feat(media): toggle par lecteur média pour masquer/afficher sur le dashboard
+- fix(climate): le mode normal respecte l'ordre utilisateur au lieu de trier par action HVAC
+
+### Navbar — Tri par présence
+- feat: toggle "Tri auto par lumières" et "Tri auto par présence" par pièce
+- feat: sélection du capteur de présence par pièce (auto-détection ou choix manuel)
+- feat: les pièces occupées remontent dans la navbar comme les pièces éclairées
+
+### Design System
+- feat: couleurs de domaine centralisées dans `DOMAIN_COLORS` (ui-core), valeurs hex fixes indépendantes du thème
+- fix: alignement des couleurs d'icônes entre le dashboard et les vues room du config panel
+
+### Camera Carousel
+- fix: le clic/tap sur la caméra lance le stream live (gesture handler corrigé)
+- fix: l'indicateur REC ne s'affiche que lorsque le stream est en live
+
 ## v0.0.174 (2026-03-27)
 
 ### UI Consistency
