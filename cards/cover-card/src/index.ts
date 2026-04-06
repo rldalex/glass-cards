@@ -143,7 +143,7 @@ class GlassCoverCard extends BaseCard {
 
   @state() private _expanded: string | null = null;
 
-  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], entity_presets: {} };
+  @state() private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
