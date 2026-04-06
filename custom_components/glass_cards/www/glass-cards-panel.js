@@ -11608,7 +11608,7 @@
 
     .title-card {
       display: flex; flex-direction: column; align-items: center;
-      gap: 0; padding: 0.125rem 1rem 0;
+      gap: 0.25rem; padding: 0.25rem 1rem 0;
       text-align: center;
     }
 
@@ -11630,12 +11630,14 @@
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
       min-height: 1.25rem;
-      padding: 0.125rem 1rem;
+      padding: 0.25rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
       transition: background var(--t-fast);
+      position: relative;
     }
+    .dash-trigger::before { content: ''; position: absolute; inset: -10px -8px; }
     @media (hover: hover) and (pointer: fine) {
       .dash-trigger:hover { background: var(--s1); }
     }
@@ -11645,7 +11647,7 @@
     }
 
     .dash-line {
-      width: 1.25rem; height: 0.125rem; border-radius: 1px;
+      width: 1.25rem; height: 0.1875rem; border-radius: 1.5px;
       background: var(--t4);
       transition: background var(--t-med), width var(--t-med), box-shadow var(--t-med);
     }
@@ -11699,7 +11701,9 @@
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
+      position: relative;
     }
+    .chip::before { content: ''; position: absolute; inset: -6px -4px; }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
@@ -11709,7 +11713,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     @media (pointer: coarse) {
-      .chip:active { transform: scale(0.94); }
+      .chip:active { transform: scale(0.98); }
     }
 
     @keyframes chip-pulse {
@@ -11719,16 +11723,15 @@
     }
     .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
 
-    /* ── Period indicator ── */
+    /* ── Period indicator (crossfade) ── */
     .period-indicator {
       position: relative;
-      height: 0.75rem;
-      overflow: hidden;
+      height: 0.875rem;
       width: 100%;
     }
     .period-item {
-      width: 100%;
-      height: 0.75rem;
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -11740,9 +11743,13 @@
       white-space: nowrap;
       user-select: none;
       -webkit-user-select: none;
-      position: absolute;
-      top: 0;
-      transition: transform var(--t-layout), opacity var(--t-layout);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s var(--ease-std);
+    }
+    .period-item.active {
+      opacity: 1;
+      pointer-events: auto;
     }
     .period-item ha-icon {
       margin-right: 0.25rem;
@@ -11752,12 +11759,14 @@
       display: inline-block;
       width: calc(9px + 0.25rem);
     }
-    .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
-    .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
-    .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
-    .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
-    .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
-  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++,this._sceneTimeout&&(clearTimeout(this._sceneTimeout),this._sceneTimeout=0)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new ut(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=[this._periodEntityId];for(const t of this._titleConfig.sources)if("input_select"===t.source_type&&t.entity)e.push(t.entity);else for(const i of t.modes)i.id.includes(".")&&e.push(i.id);return e}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_dashStyle(e){if(0===e.length)return"";const t=e.map(e=>Fr(e)),i="width:"+Math.min(20+4*e.length,36)+"px";if(1===t.length)return`background:${t[0].dot};box-shadow:0 0 8px ${t[0].glow};${i}`;const a=t.length,r=t.flatMap((e,t)=>[`${e.dot} ${Math.round(t/a*100)}%`,`${e.dot} ${Math.round((t+1)/a*100)}%`]).join(", "),s=t.filter(e=>"none"!==e.glow);return`background:linear-gradient(90deg, ${r});box-shadow:${s.length>0?s.map(e=>`0 0 6px ${e.glow}`).join(", "):"none"};${i}`}_getActiveColors(e){if("input_select"===e.source_type){if(!e.entity||!this.hass)return[];const t=this.hass.states[e.entity];if(!t)return[];const i=e.modes.find(e=>e.id===t.state),a=i?.color||"neutral";return"neutral"!==a?[a]:[]}if("booleans"===e.source_type){if(!this.hass)return[];const t=[];for(const i of e.modes)if("on"===this.hass.states[i.id]?.state){const e=i.color||"success";"neutral"!==e&&t.push(e)}return t}if(this._activatingSceneId){const t=e.modes.find(e=>e.id===this._activatingSceneId);if(t)return[t.color||"accent"]}return[]}_isChipActive(e,t,i){return"input_select"===e.source_type?!(!e.entity||!this.hass)&&this.hass.states[e.entity]?.state===t.id:"booleans"===e.source_type?"on"===this.hass?.states[t.id]?.state:"scenes"===e.source_type&&this._activatingSceneId===t.id}_selectOption(e,t){e.entity&&this.hass&&this._safeCallService("input_select","select_option",{option:t},{entity_id:e.entity})}_activateScene(e){this.hass&&(ct(this,"light"),this._safeCallService("scene","turn_on",{},{entity_id:e}),this._activatingSceneId=e,this._sceneTimeout&&clearTimeout(this._sceneTimeout),this._sceneTimeout=window.setTimeout(()=>{this._activatingSceneId=null,this._sceneTimeout=0},2e3),this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))}))}_toggleBoolean(e){this.hass&&this._safeCallService("input_boolean","toggle",{},{entity_id:e})}_toggleFold(){this._foldOpen=!this._foldOpen}_onClickOutside(e){if(!this._foldOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelector(".dash-trigger"),r=i.querySelector(".fold-section");a&&r&&!t.includes(a)&&!t.includes(r)&&(this._foldOpen=!1)}render(){this._lang;const e=this._titleConfig.title||(this.configPreview?Ze("config.title_title_placeholder"):"");if(!e)return this.style.display="none",B;this.style.display="";const t=this._titleConfig.sources,i=t.length>0&&t.some(e=>e.modes.length>0),a=[];if(i)for(const s of t)a.push(...this._getActiveColors(s));const r=a.length>0?this._dashStyle(a):"";return N`
+
+    @media (prefers-reduced-motion: reduce) {
+      .period-item, .chip, .dash-trigger, .fold-section, .fold-section-inner, .dash-line {
+        transition-duration: 0.01ms !important;
+      }
+      .chip.pulsing { animation: none; }
+    }
+  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++,this._sceneTimeout&&(clearTimeout(this._sceneTimeout),this._sceneTimeout=0)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new ut(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=[this._periodEntityId];for(const t of this._titleConfig.sources)if("input_select"===t.source_type&&t.entity)e.push(t.entity);else for(const i of t.modes)i.id.includes(".")&&e.push(i.id);return e}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_dashStyle(e){if(0===e.length)return"";const t=e.map(e=>Fr(e)),i="width:"+Math.min(20+4*e.length,36)+"px";if(1===t.length)return`background:${t[0].dot};box-shadow:0 0 8px ${t[0].glow};${i}`;const a=t.length,r=t.flatMap((e,t)=>[`${e.dot} ${Math.round(t/a*100)}%`,`${e.dot} ${Math.round((t+1)/a*100)}%`]).join(", "),s=t.filter(e=>"none"!==e.glow);return`background:linear-gradient(90deg, ${r});box-shadow:${s.length>0?s.map(e=>`0 0 6px ${e.glow}`).join(", "):"none"};${i}`}_getActiveColors(e){if("input_select"===e.source_type){if(!e.entity||!this.hass)return[];const t=this.hass.states[e.entity];if(!t)return[];const i=e.modes.find(e=>e.id===t.state),a=i?.color||"neutral";return"neutral"!==a?[a]:[]}if("booleans"===e.source_type){if(!this.hass)return[];const t=[];for(const i of e.modes)if("on"===this.hass.states[i.id]?.state){const e=i.color||"success";"neutral"!==e&&t.push(e)}return t}if(this._activatingSceneId){const t=e.modes.find(e=>e.id===this._activatingSceneId);if(t)return[t.color||"accent"]}return[]}_isChipActive(e,t,i){return"input_select"===e.source_type?!(!e.entity||!this.hass)&&this.hass.states[e.entity]?.state===t.id:"booleans"===e.source_type?"on"===this.hass?.states[t.id]?.state:"scenes"===e.source_type&&this._activatingSceneId===t.id}_pulseChip(e){this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))})}_selectOption(e,t){e.entity&&this.hass&&(this._safeCallService("input_select","select_option",{option:t},{entity_id:e.entity}),this._pulseChip(t))}_activateScene(e){this.hass&&(ct(this,"light"),this._safeCallService("scene","turn_on",{},{entity_id:e}),this._activatingSceneId=e,this._sceneTimeout&&clearTimeout(this._sceneTimeout),this._sceneTimeout=window.setTimeout(()=>{this._activatingSceneId=null,this._sceneTimeout=0},2e3),this._pulseChip(e))}_toggleBoolean(e){this.hass&&(this._safeCallService("input_boolean","toggle",{},{entity_id:e}),this._pulseChip(e))}_toggleFold(){this._foldOpen=!this._foldOpen}_onClickOutside(e){if(!this._foldOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelector(".dash-trigger"),r=i.querySelector(".fold-section");a&&r&&!t.includes(a)&&!t.includes(r)&&(this._foldOpen=!1)}render(){this._lang;const e=this._titleConfig.title||(this.configPreview?Ze("config.title_title_placeholder"):"");if(!e)return this.style.display="none",B;this.style.display="";const t=this._titleConfig.sources,i=t.length>0&&t.some(e=>e.modes.length>0),a=[];if(i)for(const s of t)a.push(...this._getActiveColors(s));const r=a.length>0?this._dashStyle(a):"";return N`
       <div class="title-card">
         <div class="title-text">${e}</div>
         ${this._renderPeriodIndicator()}
@@ -11783,15 +11792,15 @@
       </div>
     `}_renderPeriodIndicator(){if(!this.hass)return B;const e=this.hass.states[this._periodEntityId];if(!e)return B;const t=e.attributes?.options??[];if(0===t.length)return B;const i=e.state,a=t.indexOf(i);if(-1===a)return N`<div class="period-indicator"></div>`;const r=Fr(this._getPeriodVisual(i).color);return N`
       <div class="period-indicator" aria-live="polite" aria-label="${i}">
-        ${t.map((e,t)=>{const i=this._getPeriodPos(t,a),s=this._getPeriodVisual(e);return N`
-            <div class="period-item ${i}"
-              style="${"pos-center"===i?`color:${r.text}`:""}">
+        ${t.map((e,t)=>{const i=t===a,s=this._getPeriodVisual(e);return N`
+            <div class="period-item ${i?"active":""}"
+              style="${i?`color:${r.text}`:""}">
               <ha-icon .icon=${s.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;"></ha-icon>
               ${e}
             </div>
           `})}
       </div>
-    `}_getPeriodPos(e,t){const i=e-t;return i<=-2?"pos-far-left":-1===i?"pos-left":0===i?"pos-center":1===i?"pos-right":"pos-far-right"}_renderSourceGroup(e,t,i){if(0===e.modes.length)return B;const a=Hr[e.source_type],r=e.label||(a?Ze(a):e.source_type);return N`
+    `}_renderSourceGroup(e,t,i){if(0===e.modes.length)return B;const a=Hr[e.source_type],r=e.label||(a?Ze(a):e.source_type);return N`
       <div class="chips-group">
         ${i?N`<div class="chips-group-label">${r}</div>`:B}
         <div class="chips-row">

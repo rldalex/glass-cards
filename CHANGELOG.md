@@ -2,6 +2,23 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.177 (2026-04-06)
+
+### Calendar Card — Audit UX
+- refactor: suppression de la mini-grille mois dans le fold (simplification)
+- feat: week strip forward-looking (aujourd'hui + 6 prochains jours au lieu de la semaine calendaire)
+- feat: liste d'evenements avec filtrage des passes, etat "En cours" avec glow accent, empty state
+- fix: touch targets 44px sur barre compacte, toggle, jours et evenements
+- fix: contraste texte rehausse (labels --t3 au lieu de --t4, tailles min 10px)
+- a11y: prefers-reduced-motion respecte (CSS + arret du ticker), aria-live sur le ticker
+
+### Title Card — Audit UX
+- fix: touch targets 44px via hit area invisible (dash trigger + chips) sans changer la taille visuelle
+- fix: period indicator crossfade au lieu de slide horizontal (supprime la fausse affordance de swipe)
+- fix: pulse de confirmation uniforme sur input_select, scenes et booleans
+- fix: contraste labels, chip scale 0.98, dash line 3px, alignement espacements prod/prototype
+- a11y: prefers-reduced-motion, aria-live sur le period indicator
+
 ## v0.0.176 (2026-04-06)
 
 ### Config Panel — Cover Dashboard Layout
