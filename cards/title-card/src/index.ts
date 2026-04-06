@@ -124,7 +124,7 @@ class GlassTitleCard extends BaseCard {
 
     .title-card {
       display: flex; flex-direction: column; align-items: center;
-      gap: 0; padding: 0.125rem 1rem 0;
+      gap: 0.25rem; padding: 0.25rem 1rem 0;
       text-align: center;
     }
 
@@ -146,7 +146,7 @@ class GlassTitleCard extends BaseCard {
     .dash-trigger {
       display: flex; align-items: center; justify-content: center;
       min-height: 1.25rem;
-      padding: 0.125rem 1rem;
+      padding: 0.25rem 1rem;
       cursor: pointer; border: none; background: none; outline: none;
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
@@ -242,7 +242,7 @@ class GlassTitleCard extends BaseCard {
     /* ── Period indicator (crossfade) ── */
     .period-indicator {
       position: relative;
-      height: 0.75rem;
+      height: 0.875rem;
       width: 100%;
     }
     .period-item {
