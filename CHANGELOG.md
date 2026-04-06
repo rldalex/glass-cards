@@ -2,6 +2,16 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.176 (2026-04-06)
+
+### Config Panel — Cover Dashboard Layout
+- feat(cover): choix compact/full par entité dans l'onglet dashboard, identique au fonctionnement des pièces
+- migration automatique de l'ancien booléen global `dashboard_compact` vers les layouts par entité
+
+### Persistance
+- fix: suppression des auto-saves parasites déclenchés lors du chargement de la config (flag `_loading` dans BaseConfigTab)
+- fix: les édits en cours ne sont plus écrasés quand le parent recharge la config
+
 ## v0.0.175 (2026-04-04)
 
 ### Config Panel — Visibilité des entités
