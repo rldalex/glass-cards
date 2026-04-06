@@ -151,7 +151,9 @@ class GlassTitleCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
       border-radius: var(--radius-full);
       transition: background var(--t-fast);
+      position: relative;
     }
+    .dash-trigger::before { content: ''; position: absolute; inset: -10px -8px; }
     @media (hover: hover) and (pointer: fine) {
       .dash-trigger:hover { background: var(--s1); }
     }
@@ -161,7 +163,7 @@ class GlassTitleCard extends BaseCard {
     }
 
     .dash-line {
-      width: 1.25rem; height: 0.125rem; border-radius: 1px;
+      width: 1.25rem; height: 0.1875rem; border-radius: 1.5px;
       background: var(--t4);
       transition: background var(--t-med), width var(--t-med), box-shadow var(--t-med);
     }
@@ -215,7 +217,9 @@ class GlassTitleCard extends BaseCard {
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
       color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
       outline: none; -webkit-tap-highlight-color: transparent;
+      position: relative;
     }
+    .chip::before { content: ''; position: absolute; inset: -6px -4px; }
     @media (hover: hover) and (pointer: fine) {
       .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
     }
@@ -225,7 +229,7 @@ class GlassTitleCard extends BaseCard {
       display: flex; align-items: center; justify-content: center;
     }
     @media (pointer: coarse) {
-      .chip:active { transform: scale(0.94); }
+      .chip:active { transform: scale(0.98); }
     }
 
     @keyframes chip-pulse {
@@ -235,16 +239,15 @@ class GlassTitleCard extends BaseCard {
     }
     .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
 
-    /* ── Period indicator ── */
+    /* ── Period indicator (crossfade) ── */
     .period-indicator {
       position: relative;
       height: 0.75rem;
-      overflow: hidden;
       width: 100%;
     }
     .period-item {
-      width: 100%;
-      height: 0.75rem;
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -256,9 +259,13 @@ class GlassTitleCard extends BaseCard {
       white-space: nowrap;
       user-select: none;
       -webkit-user-select: none;
-      position: absolute;
-      top: 0;
-      transition: transform var(--t-layout), opacity var(--t-layout);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s var(--ease-std);
+    }
+    .period-item.active {
+      opacity: 1;
+      pointer-events: auto;
     }
     .period-item ha-icon {
       margin-right: 0.25rem;
@@ -268,11 +275,13 @@ class GlassTitleCard extends BaseCard {
       display: inline-block;
       width: calc(9px + 0.25rem);
     }
-    .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
-    .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
-    .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
-    .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
-    .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .period-item, .chip, .dash-trigger, .fold-section, .fold-section-inner, .dash-line {
+        transition-duration: 0.01ms !important;
+      }
+      .chip.pulsing { animation: none; }
+    }
   `];
 
   connectedCallback(): void {
@@ -407,9 +416,20 @@ class GlassTitleCard extends BaseCard {
 
   // — Actions —
 
+  private _pulseChip(dataId: string) {
+    this.updateComplete.then(() => {
+      const chip = this.shadowRoot?.querySelector(`.chip[data-id="${dataId}"]`) as HTMLElement | null;
+      if (chip) {
+        chip.classList.add('pulsing');
+        setTimeout(() => chip.classList.remove('pulsing'), 600);
+      }
+    });
+  }
+
   private _selectOption(src: TitleSourceEntry, optionId: string) {
     if (!src.entity || !this.hass) return;
     this._safeCallService('input_select', 'select_option', { option: optionId }, { entity_id: src.entity });
+    this._pulseChip(optionId);
   }
 
   private _activateScene(sceneEntityId: string) {
@@ -426,18 +446,13 @@ class GlassTitleCard extends BaseCard {
     }, SCENE_HIGHLIGHT_MS);
 
     // Pulse animation
-    this.updateComplete.then(() => {
-      const chip = this.shadowRoot?.querySelector(`.chip[data-id="${sceneEntityId}"]`) as HTMLElement | null;
-      if (chip) {
-        chip.classList.add('pulsing');
-        setTimeout(() => chip.classList.remove('pulsing'), 600);
-      }
-    });
+    this._pulseChip(sceneEntityId);
   }
 
   private _toggleBoolean(boolEntityId: string) {
     if (!this.hass) return;
     this._safeCallService('input_boolean', 'toggle', {}, { entity_id: boolEntityId });
+    this._pulseChip(boolEntityId);
   }
 
   private _toggleFold() {
@@ -531,11 +546,11 @@ class GlassTitleCard extends BaseCard {
     return html`
       <div class="period-indicator" aria-live="polite" aria-label="${currentValue}">
         ${options.map((opt, i) => {
-          const pos = this._getPeriodPos(i, currentIdx);
+          const isActive = i === currentIdx;
           const visual = this._getPeriodVisual(opt);
           return html`
-            <div class="period-item ${pos}"
-              style="${pos === 'pos-center' ? `color:${activeColor.text}` : ''}">
+            <div class="period-item ${isActive ? 'active' : ''}"
+              style="${isActive ? `color:${activeColor.text}` : ''}">
               <ha-icon .icon=${visual.icon} style="--mdc-icon-size:9px;display:flex;align-items:center;justify-content:center;"></ha-icon>
               ${opt}
             </div>
@@ -543,15 +558,6 @@ class GlassTitleCard extends BaseCard {
         })}
       </div>
     `;
-  }
-
-  private _getPeriodPos(itemIdx: number, activeIdx: number): string {
-    const diff = itemIdx - activeIdx;
-    if (diff <= -2) return 'pos-far-left';
-    if (diff === -1) return 'pos-left';
-    if (diff === 0) return 'pos-center';
-    if (diff === 1) return 'pos-right';
-    return 'pos-far-right';
   }
 
   // — Render a single source group —
