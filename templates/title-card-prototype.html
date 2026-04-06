@@ -266,6 +266,13 @@
   }
   .demo-btn:hover { background: var(--s3); color: var(--t1); }
   .demo-btn.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.05ms !important;
+    }
+  }
 </style>
 </head>
 <body data-time="evening">
@@ -481,22 +488,26 @@ function isChipActive(src, mode, idx) {
 /* ================================================================
    ACTIONS
    ================================================================ */
-function selectOption(optionIndex) {
-  MODE_SOURCES.input_select.activeIndex = optionIndex;
-  render();
-}
-
-function activateScene(sceneId) {
-  MODE_SOURCES.scenes.lastActivatedId = sceneId;
-  render();
-
+function pulseChip(selector) {
   setTimeout(function() {
-    var chip = document.querySelector('.chip[data-id="' + sceneId + '"]');
+    var chip = document.querySelector(selector);
     if (chip) {
       chip.classList.add('pulsing');
       setTimeout(function() { chip.classList.remove('pulsing'); }, 600);
     }
   }, 20);
+}
+
+function selectOption(optionIndex) {
+  MODE_SOURCES.input_select.activeIndex = optionIndex;
+  render();
+  pulseChip('.chip[data-id="' + MODE_SOURCES.input_select.modes[optionIndex].id + '"]');
+}
+
+function activateScene(sceneId) {
+  MODE_SOURCES.scenes.lastActivatedId = sceneId;
+  render();
+  pulseChip('.chip[data-id="' + sceneId + '"]');
 
   if (sceneTimeout) clearTimeout(sceneTimeout);
   sceneTimeout = setTimeout(function() {
@@ -515,6 +526,7 @@ function toggleBoolean(boolId) {
     }
   }
   render();
+  pulseChip('.chip[data-id="' + boolId + '"]');
 }
 
 function toggleFold() {
