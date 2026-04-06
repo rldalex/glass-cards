@@ -101,25 +101,16 @@
     background: linear-gradient(90deg, var(--b3), transparent);
   }
 
-  /* ── Period indicator (text-only horizontal slide) ── */
+  /* ── Period indicator (crossfade) ── */
   .period-indicator {
     position: relative;
     height: 14px;
-    overflow: hidden;
     width: 100%;
-  }
-
-  .period-slide {
-    display: flex;
-    position: absolute;
-    top: 0;
-    height: 100%;
-    transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
   }
 
   .period-item {
-    width: 100%;
-    height: 14px;
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,10 +122,14 @@
     color: var(--t4);
     white-space: nowrap;
     user-select: none;
-    flex-shrink: 0;
-    position: absolute;
-    top: 0;
-    transition: all 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease-std);
+  }
+
+  .period-item.active {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .period-item i {
@@ -148,19 +143,12 @@
     width: 16px; /* same as icon width + margin */
   }
 
-  /* Positions: prev = left faded, active = center, next = right faded */
-  .period-item.pos-far-left  { transform: translateX(-200%); opacity: 0; }
-  .period-item.pos-left      { transform: translateX(-100%); opacity: 0.2; }
-  .period-item.pos-center    { transform: translateX(0);     opacity: 1; }
-  .period-item.pos-right     { transform: translateX(100%);  opacity: 0.2; }
-  .period-item.pos-far-right { transform: translateX(200%);  opacity: 0; }
-
   /* Active color per period */
-  .period-item.pos-center { color: var(--t3); }
-  body[data-time="morning"] .period-item.pos-center { color: #f0a050; }
-  body[data-time="day"]     .period-item.pos-center { color: #7db8e0; }
-  body[data-time="evening"] .period-item.pos-center { color: #e08040; }
-  body[data-time="night"]   .period-item.pos-center { color: #8b8ff0; }
+  .period-item.active { color: var(--t3); }
+  body[data-time="morning"] .period-item.active { color: #f0a050; }
+  body[data-time="day"]     .period-item.active { color: #7db8e0; }
+  body[data-time="evening"] .period-item.active { color: #e08040; }
+  body[data-time="night"]   .period-item.active { color: #8b8ff0; }
 
   /* ── Dash trigger ── */
   .dash-trigger {
@@ -545,20 +533,12 @@ document.addEventListener('click', function(e) {
 /* ================================================================
    PERIOD WHEEL — build the drum
    ================================================================ */
-function getPeriodPosition(i) {
-  var diff = i - currentPeriodIndex;
-  if (diff <= -2) return 'pos-far-left';
-  if (diff === -1) return 'pos-left';
-  if (diff === 0) return 'pos-center';
-  if (diff === 1) return 'pos-right';
-  return 'pos-far-right';
-}
-
 function buildPeriodIndicator() {
   var container = el('div', 'period-indicator');
+  container.setAttribute('aria-live', 'polite');
 
   for (var i = 0; i < PERIODS.length; i++) {
-    var item = el('div', 'period-item ' + getPeriodPosition(i));
+    var item = el('div', 'period-item' + (i === currentPeriodIndex ? ' active' : ''));
     item.setAttribute('data-period-index', i);
     item.appendChild(mdi(PERIODS[i].icon));
     item.appendChild(document.createTextNode(PERIODS[i].label));
@@ -690,11 +670,11 @@ function animatePeriodTo(newIndex) {
   timeBtns.forEach(function(b) { b.classList.remove('active'); });
   if (timeBtns[currentPeriodIndex]) timeBtns[currentPeriodIndex].classList.add('active');
 
-  // Animate items by updating position classes
+  // Toggle active class for crossfade
   var items = document.querySelectorAll('.period-item');
   items.forEach(function(item) {
     var idx = parseInt(item.getAttribute('data-period-index'));
-    item.className = 'period-item ' + getPeriodPosition(idx);
+    item.classList.toggle('active', idx === currentPeriodIndex);
   });
 }
 
