@@ -116,7 +116,8 @@ function buildCoverInfo(entityId: string, entity: HassEntity): CoverInfo {
 interface CoverBackendConfig {
   show_header: boolean;
   dashboard_entities: string[];
-  dashboard_compact: boolean;
+  dashboard_compact?: boolean;
+  dashboard_entity_layouts?: Record<string, string>;
   presets?: number[];
   entity_presets: Record<string, number[]>;
 }
@@ -142,7 +143,7 @@ class GlassCoverCard extends BaseCard {
 
   @state() private _expanded: string | null = null;
 
-  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], dashboard_compact: true, entity_presets: {} };
+  private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
@@ -764,29 +765,37 @@ class GlassCoverCard extends BaseCard {
     return results;
   }
 
+  private _getDashboardLayout(entityId: string): 'full' | 'compact' {
+    const layouts = this._coverConfig.dashboard_entity_layouts;
+    if (layouts && layouts[entityId]) return layouts[entityId] as 'full' | 'compact';
+    // Legacy fallback: global dashboard_compact boolean
+    return this._coverConfig.dashboard_compact !== false ? 'compact' : 'full';
+  }
+
   private _renderDashboardGrid(covers: CoverInfo[]) {
-    const compact = this._coverConfig.dashboard_compact !== false;
-    if (!compact) {
-      return covers.map((cv, i) => {
-        const last = i + 1 >= covers.length;
-        return [this._renderCoverRow(cv, false, false), this._renderControlFold(cv, last)];
-      }).flat();
-    }
     const results: unknown[] = [];
     let i = 0;
     while (i < covers.length) {
-      const left = covers[i];
-      const right = i + 1 < covers.length ? covers[i + 1] : null;
-      if (right) {
-        const last = i + 2 >= covers.length;
-        results.push(this._renderCoverRow(left, true, false));
-        results.push(this._renderCoverRow(right, true, true));
-        results.push(this._renderControlFold(left, last));
-        results.push(this._renderControlFold(right, last));
-        i += 2;
+      const cv = covers[i];
+      if (this._getDashboardLayout(cv.entityId) === 'compact') {
+        const next = i + 1 < covers.length && this._getDashboardLayout(covers[i + 1].entityId) === 'compact' ? covers[i + 1] : null;
+        if (next) {
+          const last = i + 2 >= covers.length;
+          results.push(this._renderCoverRow(cv, true, false));
+          results.push(this._renderCoverRow(next, true, true));
+          results.push(this._renderControlFold(cv, last));
+          results.push(this._renderControlFold(next, last));
+          i += 2;
+        } else {
+          const last = i + 1 >= covers.length;
+          results.push(this._renderCoverRow(cv, false, false));
+          results.push(this._renderControlFold(cv, last));
+          i++;
+        }
       } else {
-        results.push(this._renderCoverRow(left, false, false));
-        results.push(this._renderControlFold(left, true));
+        const last = i + 1 >= covers.length;
+        results.push(this._renderCoverRow(cv, false, false));
+        results.push(this._renderControlFold(cv, last));
         i++;
       }
     }

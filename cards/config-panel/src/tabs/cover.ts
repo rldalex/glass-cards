@@ -16,9 +16,9 @@ interface CoverRoomEntity {
 export class ConfigTabCover extends BaseConfigTab {
 
   @state() _coverShowHeader = true;
-  @state() _coverDashboardCompact = true;
   @state() _coverDashboardEntities: string[] = [];
   @state() _coverDashboardOrder: string[] = [];
+  @state() _coverDashboardLayouts: Record<string, string> = {};
   @state() _coverEntityPresets: Record<string, number[]> = {};
   @state() _coverRoom = '';
   @state() _coverRoomEntities: CoverRoomEntity[] = [];
@@ -31,7 +31,7 @@ export class ConfigTabCover extends BaseConfigTab {
   @state() _dragContext = '';
 
   protected static override _AUTO_SAVE_KEYS = new Set([
-    '_coverShowHeader', '_coverDashboardCompact', '_coverDashboardEntities', '_coverDashboardOrder',
+    '_coverShowHeader', '_coverDashboardEntities', '_coverDashboardOrder', '_coverDashboardLayouts',
     '_coverEntityPresets', '_coverRoomEntities',
   ]);
 
@@ -53,12 +53,21 @@ export class ConfigTabCover extends BaseConfigTab {
       show_header?: boolean;
       dashboard_compact?: boolean;
       dashboard_entities?: string[];
+      dashboard_entity_layouts?: Record<string, string>;
       presets?: number[];
       entity_presets?: Record<string, number[]>;
     };
     this._coverShowHeader = c.show_header ?? true;
-    this._coverDashboardCompact = c.dashboard_compact ?? true;
     this._coverDashboardEntities = c.dashboard_entities ?? [];
+    // Migrate legacy dashboard_compact boolean → per-entity layouts
+    if (c.dashboard_entity_layouts) {
+      this._coverDashboardLayouts = c.dashboard_entity_layouts;
+    } else {
+      const fallback = (c.dashboard_compact ?? true) ? 'compact' : 'full';
+      const layouts: Record<string, string> = {};
+      for (const id of this._coverDashboardEntities) layouts[id] = fallback;
+      this._coverDashboardLayouts = layouts;
+    }
     this._coverEntityPresets = c.entity_presets ?? {};
     this._initDashboardOrder();
   }
@@ -69,8 +78,8 @@ export class ConfigTabCover extends BaseConfigTab {
     );
     return {
       show_header: this._coverShowHeader,
-      dashboard_compact: this._coverDashboardCompact,
       dashboard_entities: orderedDashboardEntities,
+      dashboard_entity_layouts: this._coverDashboardLayouts,
       entity_presets: this._coverEntityPresets,
     };
   }
@@ -96,7 +105,7 @@ export class ConfigTabCover extends BaseConfigTab {
     if (!this.backend) return;
     try {
       const result = await this.backend.send<{
-        cover_card?: { show_header: boolean; dashboard_entities: string[]; dashboard_compact?: boolean; presets: number[]; entity_presets?: Record<string, number[]> };
+        cover_card?: { show_header: boolean; dashboard_entities: string[]; dashboard_compact?: boolean; dashboard_entity_layouts?: Record<string, string>; presets: number[]; entity_presets?: Record<string, number[]> };
       }>('get_config');
       if (result?.cover_card) this.loadFromConfig(result.cover_card);
     } catch { /* ignore */ }
@@ -186,13 +195,21 @@ export class ConfigTabCover extends BaseConfigTab {
     if (set.has(entityId)) {
       set.delete(entityId);
       this._coverDashboardOrder = this._coverDashboardOrder.filter((id) => id !== entityId);
+      const { [entityId]: _, ...rest } = this._coverDashboardLayouts;
+      this._coverDashboardLayouts = rest;
     } else {
       set.add(entityId);
       if (!this._coverDashboardOrder.includes(entityId)) {
         this._coverDashboardOrder = [...this._coverDashboardOrder, entityId];
       }
+      this._coverDashboardLayouts = { ...this._coverDashboardLayouts, [entityId]: 'compact' };
     }
     this._coverDashboardEntities = [...set];
+  }
+
+  private _cycleDashboardLayout(entityId: string): void {
+    const current = this._coverDashboardLayouts[entityId] ?? 'compact';
+    this._coverDashboardLayouts = { ...this._coverDashboardLayouts, [entityId]: current === 'full' ? 'compact' : 'full' };
   }
 
   private _onDropDashboardCover(idx: number, e: DragEvent): void {
@@ -339,6 +356,16 @@ export class ConfigTabCover extends BaseConfigTab {
                     <span class="item-name">${entity.name}</span>
                     <span class="item-meta">${entity.entityId}</span>
                   </div>
+                  ${enabled ? html`
+                    <button
+                      class="layout-btn"
+                      @click=${() => this._cycleDashboardLayout(id)}
+                      aria-label="${t('config.light_change_layout_aria')}"
+                      title="${t((this._coverDashboardLayouts[id] ?? 'compact') === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                    >
+                      ${t((this._coverDashboardLayouts[id] ?? 'compact') === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                    </button>
+                  ` : nothing}
                   <button
                     class="toggle ${enabled ? 'on' : ''}"
                     @click=${() => this._toggleDashboardEntity(id)}

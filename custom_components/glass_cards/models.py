@@ -464,6 +464,7 @@ class CoverCardConfig:
     show_header: bool = True
     dashboard_entities: list[str] = field(default_factory=list)
     dashboard_compact: bool = True
+    dashboard_entity_layouts: dict[str, str] = field(default_factory=dict)
     presets: list[int] = field(default_factory=lambda: list(DEFAULT_COVER_PRESETS))
     entity_presets: dict[str, list[int]] = field(default_factory=dict)
 
@@ -473,6 +474,7 @@ class CoverCardConfig:
             "show_header": self.show_header,
             "dashboard_entities": self.dashboard_entities,
             "dashboard_compact": self.dashboard_compact,
+            "dashboard_entity_layouts": self.dashboard_entity_layouts,
             "presets": self.presets,
             "entity_presets": self.entity_presets,
         }
@@ -504,12 +506,20 @@ class CoverCardConfig:
                 if valid:
                     entity_presets[eid] = sorted(set(valid))
 
+        raw_layouts = data.get("dashboard_entity_layouts")
+        dashboard_entity_layouts: dict[str, str] = {}
+        if isinstance(raw_layouts, dict):
+            for eid, layout in raw_layouts.items():
+                if isinstance(eid, str) and layout in ("full", "compact"):
+                    dashboard_entity_layouts[eid] = layout
+
         return cls(
             show_header=bool(data.get("show_header", True)),
             dashboard_entities=[
                 str(x) for x in raw_entities if isinstance(x, str)
             ],
             dashboard_compact=bool(data.get("dashboard_compact", True)),
+            dashboard_entity_layouts=dashboard_entity_layouts,
             presets=presets,
             entity_presets=entity_presets,
         )

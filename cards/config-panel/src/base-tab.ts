@@ -25,12 +25,18 @@ export abstract class BaseConfigTab extends LitElement {
   set configData(val: Record<string, unknown>) {
     const old = this._configData;
     this._configData = val;
-    if (val && val !== old) this.loadFromConfig(val);
+    if (val && val !== old) {
+      this._loading = true;
+      this.loadFromConfig(val);
+      // Reset after Lit's microtask update cycle so _checkAutoSave sees the flag
+      this.updateComplete.then(() => { this._loading = false; });
+    }
   }
   get configData(): Record<string, unknown> { return this._configData; }
   private _configData: Record<string, unknown> = {};
 
   protected _initializedForArea: string | null = null;
+  protected _loading = false;
 
   private _saveScheduler = createSaveScheduler();
 
@@ -105,6 +111,7 @@ export abstract class BaseConfigTab extends LitElement {
   protected static _AUTO_SAVE_KEYS: Set<string> = new Set();
 
   protected _checkAutoSave(changedProps: PropertyValues): void {
+    if (this._loading) return;
     const keys = (this.constructor as typeof BaseConfigTab)._AUTO_SAVE_KEYS;
     if (keys.size === 0) return;
     for (const key of changedProps.keys()) {
