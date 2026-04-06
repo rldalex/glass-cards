@@ -760,7 +760,8 @@
       var current = 0;
       items[0].className = items[0].className.replace('hidden', 'active');
 
-      if (tickerEvents.length === 1) return;
+      var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (tickerEvents.length === 1 || prefersReduced) return;
 
       /* Roll-up cycle: every 3.5s, exit current upward + enter next from below */
       window._tickerTimer = setInterval(function() {
