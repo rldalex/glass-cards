@@ -153,8 +153,8 @@
   /* ── Dash trigger ── */
   .dash-trigger {
     display: flex; align-items: center; justify-content: center;
-    padding: 12px 16px;
-    min-height: 2.75rem;
+    padding: 4px 16px;
+    position: relative;
     cursor: pointer; border: none; background: none; outline: none;
     -webkit-tap-highlight-color: transparent;
     border-radius: var(--radius-full);
@@ -163,6 +163,7 @@
   @media (hover: hover) and (pointer: fine) {
     .dash-trigger:hover { background: var(--s1); }
   }
+  .dash-trigger::before { content: ''; position: absolute; inset: -10px -8px; }
   .dash-trigger:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
   @media (pointer: coarse) {
     .dash-trigger:active { transform: scale(0.96); }
@@ -218,7 +219,7 @@
   /* ── Chip ── */
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 8px 12px; min-height: 2.75rem; border-radius: var(--radius-md);
+    padding: 5px 12px; position: relative; border-radius: var(--radius-md);
     border: 1px solid var(--b2); background: var(--s1);
     font-family: inherit; font-size: 11px; font-weight: 600;
     color: var(--t3); cursor: pointer; transition: all var(--t-fast);
@@ -227,6 +228,7 @@
   @media (hover: hover) and (pointer: fine) {
     .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
   }
+  .chip::before { content: ''; position: absolute; inset: -6px -4px; }
   .chip:focus-visible { outline: 2px solid rgba(255,255,255,0.25); outline-offset: 2px; }
   .chip i { font-size: 14px; }
   @media (pointer: coarse) {
