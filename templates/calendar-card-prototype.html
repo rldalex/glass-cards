@@ -772,6 +772,161 @@
       padding: 0 0.875rem 0.875rem;
     }
 
+    /* ── Week strip (forward-looking) ── */
+    .v4-week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 0.75rem;
+      padding: 0.375rem 0.25rem;
+      border-radius: var(--radius-md);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+    }
+
+    .v4-week-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 0.375rem 0;
+      min-height: 2.75rem;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      transition: background var(--t-fast);
+    }
+
+    .v4-week-day:hover { background: var(--s3); }
+
+    .v4-week-day:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.25);
+      outline-offset: -2px;
+    }
+
+    .v4-week-day-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+
+    .v4-week-day-num {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--t2);
+      line-height: 1;
+      width: 1.625rem;
+      height: 1.625rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+
+    .v4-week-day.today .v4-week-day-num {
+      background: rgba(129, 140, 248, 0.2);
+      color: var(--c-accent);
+      font-weight: 700;
+    }
+
+    .v4-week-day-dots { display: flex; gap: 3px; min-height: 4px; }
+    .v4-week-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+    .v4-fold-separator {
+      height: 0.0625rem;
+      background: var(--b1);
+      margin-bottom: 0.5rem;
+    }
+
+    .v4-cal-legend {
+      display: flex;
+      gap: 0.625rem;
+      padding: 0.5rem 0 0;
+      flex-wrap: wrap;
+    }
+
+    .v4-cal-legend-item { display: flex; align-items: center; gap: 5px; }
+    .v4-cal-legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .v4-cal-legend-label { font-size: 0.625rem; font-weight: 500; color: var(--t3); }
+
+    /* ── Event list (in fold) ── */
+    .v4-event-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.5rem; }
+
+    .v4-event-row {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.625rem;
+      min-height: 2.75rem;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+      transition: background var(--t-fast);
+    }
+
+    .v4-event-row:hover { background: var(--s2); }
+    .v4-event-row:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.25); outline-offset: -2px; }
+    .v4-event-row:active { transform: scale(0.98); }
+
+    .v4-event-color-bar {
+      width: 3px;
+      height: 1.75rem;
+      border-radius: 2px;
+      flex-shrink: 0;
+      transition: box-shadow var(--t-fast);
+    }
+
+    .v4-event-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+    .v4-event-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--t2);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v4-event-time { font-size: 0.6875rem; font-weight: 400; color: var(--t3); line-height: 1.2; }
+
+    .v4-event-allday {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t3);
+      padding: 2px 0.5rem;
+      border-radius: var(--radius-full);
+      background: var(--s1);
+      border: 1px solid var(--b1);
+      flex-shrink: 0;
+    }
+
+    /* Now event */
+    .v4-event-row.now { background: rgba(129, 140, 248, 0.04); border-color: rgba(129, 140, 248, 0.08); }
+    .v4-event-row.now .v4-event-title { color: var(--t1); }
+    .v4-event-row.now .v4-event-time { color: var(--c-accent); font-weight: 500; }
+    .v4-event-row.now .v4-event-color-bar { box-shadow: 0 0 8px currentColor; }
+
+    /* Empty state */
+    .v4-event-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0 0.5rem; }
+    .v4-event-empty-icon { width: 1.5rem; height: 1.5rem; color: var(--t4); margin-bottom: 2px; }
+    .v4-event-empty-title { font-size: 0.75rem; font-weight: 600; color: var(--t3); }
+    .v4-event-empty-sub { font-size: 0.625rem; font-weight: 400; color: var(--t4); }
+
     /* ── Empty ticker ── */
     .v4-ticker-empty {
       font-size: var(--fz-base, 11px);
@@ -868,7 +1023,7 @@
         </div>
         <div class="v4-compact-sep"></div>
         <div class="v4-ticker-wrap">
-          <div class="v4-ticker" id="v4-ticker"></div>
+          <div class="v4-ticker" id="v4-ticker" aria-live="polite"></div>
         </div>
         <button class="v4-compact-toggle" id="v4-toggle-btn" aria-label="Ouvrir le calendrier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -882,7 +1037,10 @@
         <div class="v4-fold-inner">
           <div class="v4-fold-sep"></div>
           <div class="card-inner">
-            <!-- Week strip + event list: upcoming tasks -->
+            <div class="v4-week-strip" id="v4-week-strip"></div>
+            <div class="v4-fold-separator"></div>
+            <div class="v4-event-list" id="v4-event-list"></div>
+            <div class="v4-cal-legend" id="v4-legend"></div>
           </div>
         </div>
       </div>
@@ -936,13 +1094,23 @@
 
     var currentView = 'busy';
 
+    /* ══════════════════ HELPERS ══════════════════ */
+    function isUpcoming(timeStr) {
+      var parts = timeStr.split(' - ');
+      var endTime = parts.length > 1 ? parts[1] : parts[0];
+      var hm = endTime.split(':');
+      var now = new Date();
+      var eventEnd = new Date();
+      eventEnd.setHours(parseInt(hm[0], 10), parseInt(hm[1], 10), 0);
+      return eventEnd > now;
+    }
+
     /* ══════════════════ V4 — COMPACT BAR + TICKER ══════════════════ */
     function renderV4Compact(events) {
       var now = new Date();
       var jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
       var mois = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
       document.getElementById('v4-compact-date').textContent = jours[now.getDay()] + ' ' + now.getDate() + ' ' + mois[now.getMonth()];
-      document.getElementById('v4-compact-count').textContent = events.length;
 
       var ticker = document.getElementById('v4-ticker');
       while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
@@ -950,7 +1118,14 @@
       /* Stop previous timer */
       if (window._tickerTimer) clearInterval(window._tickerTimer);
 
-      if (events.length === 0) {
+      /* Filter past events from ticker */
+      var tickerEvents = events.filter(function(e) {
+        return e.now || e.allday || !e.time || isUpcoming(e.time);
+      });
+
+      document.getElementById('v4-compact-count').textContent = tickerEvents.length;
+
+      if (tickerEvents.length === 0) {
         var empty = document.createElement('span');
         empty.className = 'v4-ticker-empty';
         empty.style.cssText = 'position:relative;height:1.125rem;display:flex;align-items:center;';
@@ -961,8 +1136,8 @@
 
       /* Build all items */
       var items = [];
-      for (var i = 0; i < events.length; i++) {
-        var ev = events[i];
+      for (var i = 0; i < tickerEvents.length; i++) {
+        var ev = tickerEvents[i];
         var item = document.createElement('div');
         item.className = 'v4-ticker-item hidden';
         if (ev.now) item.classList.add('now');
@@ -990,7 +1165,7 @@
       var current = 0;
       items[0].className = items[0].className.replace('hidden', 'active');
 
-      if (events.length === 1) return;
+      if (tickerEvents.length === 1) return;
 
       /* Roll-up cycle: every 3.5s, exit current upward + enter next from below */
       window._tickerTimer = setInterval(function() {
@@ -1017,6 +1192,173 @@
       }, 3500);
     }
 
+    /* ══════════════════ V4 — WEEK STRIP ══════════════════ */
+    function renderWeekStrip(events) {
+      var strip = document.getElementById('v4-week-strip');
+      while (strip.firstChild) strip.removeChild(strip.firstChild);
+
+      var now = new Date();
+      var jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+      var dotsByOffset = {};
+      dotsByOffset[0] = events.map(function(e) { return e.cal; }).slice(0, 3);
+      dotsByOffset[1] = ['travail'];
+      dotsByOffset[3] = ['famille', 'perso'];
+
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(now);
+        d.setDate(now.getDate() + i);
+
+        var btn = document.createElement('button');
+        btn.className = 'v4-week-day';
+        if (i === 0) btn.classList.add('today');
+
+        var label = document.createElement('span');
+        label.className = 'v4-week-day-label';
+        label.textContent = jours[d.getDay()];
+
+        var num = document.createElement('span');
+        num.className = 'v4-week-day-num';
+        num.textContent = d.getDate();
+
+        var dots = document.createElement('div');
+        dots.className = 'v4-week-day-dots';
+
+        if (dotsByOffset[i]) {
+          var dayDots = dotsByOffset[i].slice(0, 3);
+          for (var j = 0; j < dayDots.length; j++) {
+            var dot = document.createElement('span');
+            dot.className = 'v4-week-dot';
+            dot.style.background = CAL_COLORS[dayDots[j]] ? CAL_COLORS[dayDots[j]].color : 'var(--t4)';
+            dots.appendChild(dot);
+          }
+        }
+
+        btn.appendChild(label);
+        btn.appendChild(num);
+        btn.appendChild(dots);
+        strip.appendChild(btn);
+      }
+    }
+
+    /* ══════════════════ V4 — EVENT LIST ══════════════════ */
+    function renderEventList(events) {
+      var list = document.getElementById('v4-event-list');
+      while (list.firstChild) list.removeChild(list.firstChild);
+
+      var upcoming = events.filter(function(e) {
+        return e.now || e.allday || !e.time || isUpcoming(e.time);
+      });
+
+      if (upcoming.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'v4-event-empty';
+
+        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('class', 'v4-event-empty-icon');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '1.5');
+        icon.setAttribute('stroke-linecap', 'round');
+        icon.setAttribute('stroke-linejoin', 'round');
+        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', '3'); rect.setAttribute('y', '4');
+        rect.setAttribute('width', '18'); rect.setAttribute('height', '18');
+        rect.setAttribute('rx', '2');
+        var l1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        l1.setAttribute('x1', '16'); l1.setAttribute('y1', '2');
+        l1.setAttribute('x2', '16'); l1.setAttribute('y2', '6');
+        var l2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        l2.setAttribute('x1', '8'); l2.setAttribute('y1', '2');
+        l2.setAttribute('x2', '8'); l2.setAttribute('y2', '6');
+        var l3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        l3.setAttribute('x1', '3'); l3.setAttribute('y1', '10');
+        l3.setAttribute('x2', '21'); l3.setAttribute('y2', '10');
+        icon.appendChild(rect); icon.appendChild(l1); icon.appendChild(l2); icon.appendChild(l3);
+
+        var title = document.createElement('span');
+        title.className = 'v4-event-empty-title';
+        title.textContent = 'Rien de pr\u00e9vu';
+
+        var sub = document.createElement('span');
+        sub.className = 'v4-event-empty-sub';
+        sub.textContent = 'Profitez de votre journ\u00e9e';
+
+        empty.appendChild(icon); empty.appendChild(title); empty.appendChild(sub);
+        list.appendChild(empty);
+        return;
+      }
+
+      for (var i = 0; i < upcoming.length; i++) {
+        var ev = upcoming[i];
+        var calColor = CAL_COLORS[ev.cal] ? CAL_COLORS[ev.cal].color : '#818cf8';
+
+        var row = document.createElement('button');
+        row.className = 'v4-event-row';
+        if (ev.now) row.classList.add('now');
+        row.setAttribute('aria-label', ev.title + (ev.time ? ', ' + ev.time : ', toute la journ\u00e9e') + (ev.now ? ', en cours' : ''));
+
+        var bar = document.createElement('div');
+        bar.className = 'v4-event-color-bar';
+        bar.style.background = calColor;
+        if (ev.now) bar.style.color = calColor;
+
+        var content = document.createElement('div');
+        content.className = 'v4-event-content';
+
+        var titleEl = document.createElement('span');
+        titleEl.className = 'v4-event-title';
+        titleEl.textContent = ev.title;
+
+        var timeEl = document.createElement('span');
+        timeEl.className = 'v4-event-time';
+        if (ev.now && ev.time) {
+          timeEl.textContent = ev.time + ' \u00b7 En cours';
+        } else if (ev.time) {
+          timeEl.textContent = ev.time;
+        } else {
+          timeEl.textContent = 'Toute la journ\u00e9e';
+        }
+
+        content.appendChild(titleEl); content.appendChild(timeEl);
+        row.appendChild(bar); row.appendChild(content);
+
+        if (ev.allday) {
+          var badge = document.createElement('span');
+          badge.className = 'v4-event-allday';
+          badge.textContent = 'Journ\u00e9e';
+          row.appendChild(badge);
+        }
+
+        list.appendChild(row);
+      }
+    }
+
+    /* ══════════════════ V4 — LEGEND ══════════════════ */
+    function renderLegend() {
+      var legend = document.getElementById('v4-legend');
+      while (legend.firstChild) legend.removeChild(legend.firstChild);
+
+      var keys = Object.keys(CAL_COLORS);
+      for (var i = 0; i < keys.length; i++) {
+        var cal = CAL_COLORS[keys[i]];
+        var item = document.createElement('div');
+        item.className = 'v4-cal-legend-item';
+
+        var dot = document.createElement('span');
+        dot.className = 'v4-cal-legend-dot';
+        dot.style.background = cal.color;
+
+        var label = document.createElement('span');
+        label.className = 'v4-cal-legend-label';
+        label.textContent = cal.label;
+
+        item.appendChild(dot); item.appendChild(label);
+        legend.appendChild(item);
+      }
+    }
+
     /* ══════════════════ V4 — TOGGLE ══════════════════ */
     var v4Open = false;
     function toggleV4() {
@@ -1034,6 +1376,9 @@
     /* ══════════════════ RENDER ALL ══════════════════ */
     function renderAll(events) {
       renderV4Compact(events);
+      renderWeekStrip(events);
+      renderEventList(events);
+      renderLegend();
     }
 
     /* ── CONTROLS ── */
