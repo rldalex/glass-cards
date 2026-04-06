@@ -396,6 +396,7 @@
     }
 
     .v4-week-day:hover { background: var(--s3); }
+    .v4-week-day:active { transform: scale(0.98); }
 
     .v4-week-day:focus-visible {
       outline: 2px solid rgba(255, 255, 255, 0.25);
@@ -524,6 +525,10 @@
 
     /* ── Empty ticker ── */
     .v4-ticker-empty {
+      position: relative;
+      height: 1.125rem;
+      display: flex;
+      align-items: center;
       font-size: var(--fz-base, 11px);
       font-weight: 500;
       color: var(--t4);
@@ -723,7 +728,6 @@
       if (tickerEvents.length === 0) {
         var empty = document.createElement('span');
         empty.className = 'v4-ticker-empty';
-        empty.style.cssText = 'position:relative;height:1.125rem;display:flex;align-items:center;';
         empty.textContent = 'Aucun événement';
         ticker.appendChild(empty);
         return;
