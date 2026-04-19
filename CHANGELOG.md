@@ -2,6 +2,13 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.178 (2026-04-19)
+
+### Config Panel — Caméras par pièce
+- fix: la section Caméras est désormais visible dans l'onglet pièce (était absente de `SECTION_DEFS`)
+- feat: liste des caméras de la pièce avec toggle de visibilité et réordonnancement par drag-and-drop
+- feat: la `camera-carousel` scopée à une pièce respecte `hidden_entities` et `entity_order` de la config de pièce (en plus du filtre global)
+
 ## v0.0.177 (2026-04-06)
 
 ### Calendar Card — Audit UX

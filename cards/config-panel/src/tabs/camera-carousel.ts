@@ -2,7 +2,16 @@ import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
+import { getAreaEntities } from '@glass-cards/base-card';
 import { BaseConfigTab } from '../base-tab';
+
+// — Types —
+
+interface CameraRoomEntity {
+  entityId: string;
+  name: string;
+  visible: boolean;
+}
 
 // — Component —
 
@@ -13,18 +22,28 @@ export class ConfigTabCamera extends BaseConfigTab {
   @state() _cameraEntityOrder: string[] = [];
   @state() _cameraHiddenEntities: string[] = [];
 
+  // Room-mode state
+  @state() _cameraRoom = '';
+  @state() _cameraRoomEntities: CameraRoomEntity[] = [];
+
   // Internal drag state for entity reorder
   @state() protected override _localDragIdx: number | null = null;
   @state() protected override _localDropIdx: number | null = null;
+  @state() _dragContext = '';
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder', '_cameraHiddenEntities',
+    '_cameraRoomEntities',
   ]);
 
   // — Lifecycle —
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
+    if (changedProps.has('areaId') && this.areaId) {
+      this._cameraRoom = this.areaId;
+      void this._loadRoomCameras();
+    }
     this._checkAutoSave(changedProps);
   }
 
@@ -57,6 +76,14 @@ export class ConfigTabCamera extends BaseConfigTab {
 
   protected override async _performSave(): Promise<void> {
     await this.backend!.send('set_camera_carousel_config', this.collectSaveData());
+
+    if (this._cameraRoom && this._cameraRoomEntities.length > 0) {
+      const cardIds = new Set(this._cameraRoomEntities.map((e) => e.entityId));
+      const hiddenIds = this._cameraRoomEntities.filter((e) => !e.visible).map((e) => e.entityId);
+      const orderedIds = this._cameraRoomEntities.map((e) => e.entityId);
+      await this._saveRoomEntities(this._cameraRoom, cardIds, hiddenIds, orderedIds);
+    }
+
     bus.emit('camera-carousel-config-changed', undefined);
   }
 
@@ -74,6 +101,80 @@ export class ConfigTabCamera extends BaseConfigTab {
       }>('get_config');
       if (result?.camera_carousel) this.loadFromConfig(result.camera_carousel);
     } catch { /* ignore */ }
+    await this._loadRoomCameras();
+  }
+
+  // — Room loading —
+
+  private async _loadRoomCameras(): Promise<void> {
+    if (!this.backend || !this._cameraRoom || !this.hass) return;
+    const targetRoom = this._cameraRoom;
+    const areaEntities = getAreaEntities(targetRoom, this.hass.entities, this.hass.devices);
+    const cameraIds = areaEntities
+      .filter((e) => e.entity_id.startsWith('camera.'))
+      .map((e) => e.entity_id);
+
+    let roomConfig: { hidden_entities?: string[]; entity_order?: string[] } | null = null;
+    try {
+      roomConfig = await this.backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>('get_room', { area_id: targetRoom });
+    } catch { /* ignore */ }
+
+    if (this._cameraRoom !== targetRoom) return;
+
+    const hiddenSet = new Set(roomConfig?.hidden_entities ?? []);
+    const order = roomConfig?.entity_order ?? [];
+
+    const sorted = [...cameraIds].sort((a, b) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return 0;
+    });
+
+    this._cameraRoomEntities = sorted.map((id) => {
+      const entity = this.hass?.states[id];
+      const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+      return { entityId: id, name, visible: !hiddenSet.has(id) };
+    });
+  }
+
+  // — Room actions —
+
+  private _toggleRoomCameraVisibility(entityId: string): void {
+    this._cameraRoomEntities = this._cameraRoomEntities.map((e) =>
+      e.entityId === entityId ? { ...e, visible: !e.visible } : e,
+    );
+  }
+
+  private _onRoomCameraDragStart(idx: number): void {
+    this._localDragIdx = idx;
+    this._dragContext = 'room_cameras';
+  }
+
+  private _onRoomCameraDragOver(idx: number, e: DragEvent): void {
+    e.preventDefault();
+    if (this._localDragIdx !== null && this._localDragIdx !== idx) this._localDropIdx = idx;
+  }
+
+  private _onRoomCameraDragEnd(): void {
+    this._localDragIdx = null;
+    this._localDropIdx = null;
+    this._dragContext = '';
+  }
+
+  private _onRoomCameraDrop(idx: number, e: DragEvent): void {
+    e.preventDefault();
+    if (this._localDragIdx === null || this._localDragIdx === idx || this._dragContext !== 'room_cameras') {
+      this._onRoomCameraDragEnd();
+      return;
+    }
+    const arr = [...this._cameraRoomEntities];
+    const [moved] = arr.splice(this._localDragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._cameraRoomEntities = arr;
+    this._onRoomCameraDragEnd();
   }
 
   // — Helpers —
@@ -138,6 +239,8 @@ export class ConfigTabCamera extends BaseConfigTab {
 
   renderTab(): TemplateResult {
     void this._lang;
+
+    if (this.areaId) return this._renderRoomTab();
 
     // Ensure entity order is initialized
     if (this.hass && this._cameraEntityOrder.length === 0) {
@@ -256,6 +359,65 @@ export class ConfigTabCamera extends BaseConfigTab {
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
         </div>
+      </div>
+    `;
+  }
+
+  // — Room render —
+
+  private _renderRoomTab(): TemplateResult {
+    const entities = this._cameraRoomEntities;
+    return html`
+      <div class="tab-panel" id="panel-camera_carousel-room">
+        <glass-camera-carousel-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-camera-carousel-card>
+
+        ${entities.length > 0 ? html`
+          <div class="section-label">${t('config.camera_list_title')} (${entities.length})</div>
+          <div class="section-desc">${t('config.camera_list_banner')}</div>
+          <div class="item-list">
+            ${entities.map((e, idx) => {
+              const isDragging = this._localDragIdx === idx && this._dragContext === 'room_cameras';
+              const isDropTarget = this._localDropIdx === idx && this._dragContext === 'room_cameras';
+              const rowClasses = [
+                'item-row',
+                !e.visible ? 'disabled' : '',
+                isDragging ? 'dragging' : '',
+                isDropTarget ? 'drop-target' : '',
+              ].filter(Boolean).join(' ');
+              return html`
+                <div class="item-card">
+                  <div
+                    class=${rowClasses}
+                    draggable="true"
+                    @dragstart=${() => this._onRoomCameraDragStart(idx)}
+                    @dragover=${(ev: DragEvent) => this._onRoomCameraDragOver(idx, ev)}
+                    @dragleave=${() => { this._localDropIdx = null; }}
+                    @drop=${(ev: DragEvent) => this._onRoomCameraDrop(idx, ev)}
+                    @dragend=${() => this._onRoomCameraDragEnd()}
+                  >
+                    <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+                    <div class="item-info">
+                      <span class="item-name">${e.name}</span>
+                      <span class="item-meta">${e.entityId}</span>
+                    </div>
+                    <button
+                      class="toggle ${e.visible ? 'on' : ''}"
+                      @click=${() => this._toggleRoomCameraVisibility(e.entityId)}
+                      role="switch"
+                      aria-checked=${e.visible ? 'true' : 'false'}
+                      aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                    ></button>
+                  </div>
+                </div>
+              `;
+            })}
+          </div>
+        ` : html`
+          <div class="banner">
+            <ha-icon .icon=${'mdi:cctv'}></ha-icon>
+            <span>${t('config.camera_no_cameras')}</span>
+          </div>
+        `}
       </div>
     `;
   }

@@ -96,6 +96,11 @@ interface CameraBackendConfig {
   cycle_interval: number;
 }
 
+interface CameraRoomConfig {
+  hidden_entities: string[];
+  entity_order: string[];
+}
+
 // — Helper: discover companion entities for a camera (memoized) —
 
 type CompanionResult = {
@@ -228,8 +233,10 @@ class GlassCameraCarouselCard extends BaseCard {
 
   private _backend: BackendService | undefined;
   private _camConfig: CameraBackendConfig | null = null;
+  private _roomConfig: CameraRoomConfig | null = null;
   private _configLoaded = false;
   private _configLoading = false;
+  private _roomConfigLoading = false;
   private _loadVersion = 0;
   private _lastAreaId: string | undefined;
 
@@ -252,7 +259,15 @@ class GlassCameraCarouselCard extends BaseCard {
     super.connectedCallback();
     this._listen('camera-carousel-config-changed', () => {
       this._configLoaded = false;
+      this._cachedCamerasKey = '';
       this._loadConfig();
+    });
+    this._listen('room-config-changed', (payload) => {
+      if (this.areaId && payload.areaId === this.areaId) {
+        this._roomConfig = null;
+        this._cachedCamerasKey = '';
+        this._loadRoomConfig();
+      }
     });
     this._listen('dashboard-config-changed', () => this.requestUpdate());
     // Refresh stream overlay timestamp every 60s
@@ -298,11 +313,15 @@ class GlassCameraCarouselCard extends BaseCard {
       this._carouselIndex = 0;
       this._cachedCamerasKey = '';
       this._configLoaded = false;
+      this._roomConfig = null;
       this._liveIds = new Set();
     }
 
     if (!this._configLoaded && !this._configLoading) {
       this._loadConfig();
+    }
+    if (this.areaId && !this._roomConfig && !this._roomConfigLoading) {
+      this._loadRoomConfig();
     }
   }
 
@@ -324,6 +343,28 @@ class GlassCameraCarouselCard extends BaseCard {
     }
   }
 
+  private async _loadRoomConfig() {
+    if (!this._backend || !this.areaId || this._roomConfigLoading) return;
+    this._roomConfigLoading = true;
+    const targetArea = this.areaId;
+    try {
+      const resp = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>(
+        'get_room', { area_id: targetArea },
+      );
+      if (this.areaId !== targetArea) return;
+      this._roomConfig = {
+        hidden_entities: resp?.hidden_entities ?? [],
+        entity_order: resp?.entity_order ?? [],
+      };
+      this._cachedCamerasKey = '';
+      this.requestUpdate();
+    } catch {
+      // silent
+    } finally {
+      this._roomConfigLoading = false;
+    }
+  }
+
   // — Camera discovery —
 
   private _getCameraIds(): string[] {
@@ -339,8 +380,11 @@ class GlassCameraCarouselCard extends BaseCard {
       ids = Object.keys(this.hass.states).filter((eid) => eid.startsWith('camera.'));
     }
 
-    // Filter out hidden entities
+    // Filter out hidden entities (global + per-room)
     const hiddenSet = new Set(this._camConfig?.hidden_entities ?? []);
+    if (this.areaId && this._roomConfig) {
+      for (const id of this._roomConfig.hidden_entities) hiddenSet.add(id);
+    }
     if (hiddenSet.size) ids = ids.filter((eid) => !hiddenSet.has(eid));
 
     // Cheap fingerprint: skip expensive sort if camera set + alert states unchanged
@@ -350,21 +394,28 @@ class GlassCameraCarouselCard extends BaseCard {
     }).join(',');
     if (cheapKey === this._cachedCamerasKey) return this._cachedCameraIds;
 
-    // Apply entity_order from config + dashboard alert sort
-    const configOrder = this._camConfig?.entity_order ?? [];
-    if (configOrder.length) {
-      const ordered = configOrder.filter((eid) => ids.includes(eid));
+    // Order: per-room order wins in room mode, otherwise global order + alert sort
+    const roomOrder = this.areaId ? (this._roomConfig?.entity_order ?? []) : [];
+    if (this.areaId && roomOrder.length) {
+      const ordered = roomOrder.filter((eid) => ids.includes(eid));
       const remaining = ids.filter((eid) => !ordered.includes(eid));
-      if (!this.areaId) {
+      ids = [...ordered, ...remaining];
+    } else {
+      const configOrder = this._camConfig?.entity_order ?? [];
+      if (configOrder.length) {
+        const ordered = configOrder.filter((eid) => ids.includes(eid));
+        const remaining = ids.filter((eid) => !ordered.includes(eid));
+        if (!this.areaId) {
+          const states = this.hass.states;
+          const entities = this.hass.entities;
+          remaining.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
+        }
+        ids = [...ordered, ...remaining];
+      } else if (!this.areaId) {
         const states = this.hass.states;
         const entities = this.hass.entities;
-        remaining.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
+        ids.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
       }
-      ids = [...ordered, ...remaining];
-    } else if (!this.areaId) {
-      const states = this.hass.states;
-      const entities = this.hass.entities;
-      ids.sort((a, b) => this._latestAlertTimestamp(b, states, entities) - this._latestAlertTimestamp(a, states, entities));
     }
 
     this._cachedCamerasKey = cheapKey;

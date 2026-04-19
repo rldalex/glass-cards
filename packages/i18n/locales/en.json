@@ -670,6 +670,8 @@
     "camera_entity_order": "Camera order",
     "camera_entity_order_desc": "Drag to reorder cameras.",
     "camera_no_cameras": "No cameras detected.",
+    "camera_list_title": "Cameras",
+    "camera_list_banner": "Drag to reorder. Disable those to hide.",
     "dashboard_card_camera_carousel": "Camera Card",
     "dashboard_card_camera_carousel_desc": "Surveillance carousel with quick actions",
 

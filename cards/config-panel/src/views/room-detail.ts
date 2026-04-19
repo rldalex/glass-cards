@@ -25,6 +25,7 @@ const SECTION_DEFS: Omit<SectionDef, 'visible' | 'count'>[] = [
   { id: 'climate', label: 'Climat', icon: 'mdi:thermostat', domains: ['climate'], color: DOMAIN_COLORS.climate.rgb },
   { id: 'media', label: 'Media', icon: 'mdi:speaker', domains: ['media_player'], color: DOMAIN_COLORS.media.rgb },
   { id: 'fan', label: 'Ventilateurs', icon: 'mdi:fan', domains: ['fan'], color: DOMAIN_COLORS.fan.rgb },
+  { id: 'camera', label: 'Caméras', icon: 'mdi:cctv', domains: ['camera'], color: DOMAIN_COLORS.camera.rgb },
 ];
 
 export class ConfigRoomDetail extends LitElement {
@@ -653,6 +654,7 @@ export class ConfigRoomDetail extends LitElement {
       case 'climate': return html`<config-tab-climate .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-climate>`;
       case 'media': return html`<config-tab-media .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-media>`;
       case 'fan': return html`<config-tab-fan .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-fan>`;
+      case 'camera': return html`<config-tab-camera .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-camera>`;
       default: return html``;
     }
   }

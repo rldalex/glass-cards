@@ -670,6 +670,8 @@
     "camera_entity_order": "Ordre des caméras",
     "camera_entity_order_desc": "Glissez pour réordonner les caméras.",
     "camera_no_cameras": "Aucune caméra détectée.",
+    "camera_list_title": "Caméras",
+    "camera_list_banner": "Glissez pour réordonner. Désactivez celles à masquer.",
     "dashboard_card_camera_carousel": "Carte Caméras",
     "dashboard_card_camera_carousel_desc": "Carrousel de surveillance avec actions rapides",
 
