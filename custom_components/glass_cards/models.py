@@ -757,6 +757,9 @@ class DashboardConfig:
         )
 
 
+_CALENDAR_ENTITY_RE = re.compile(r"^calendar\.\w+$")
+
+
 @dataclass
 class CalendarCardConfig:
     """Configuration for the calendar card (dashboard only)."""
@@ -775,12 +778,15 @@ class CalendarCardConfig:
     def from_dict(cls, data: dict[str, Any]) -> CalendarCardConfig:
         """Deserialize from dict."""
         raw_hidden = data.get("hidden_entities", [])
+        # Same shape as the WS handler validation, plus dedup (frontend stores
+        # an array, not a Set, so duplicates would otherwise round-trip).
+        cleaned = [
+            str(x) for x in raw_hidden
+            if isinstance(x, str) and _CALENDAR_ENTITY_RE.match(x)
+        ]
         return cls(
             show_header=bool(data.get("show_header", True)),
-            hidden_entities=[
-                str(x) for x in raw_hidden
-                if isinstance(x, str) and x.startswith("calendar.")
-            ],
+            hidden_entities=list(dict.fromkeys(cleaned)),
         )
 
 
