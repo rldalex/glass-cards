@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel", "climate"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel", "climate", "calendar"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -26,7 +26,7 @@ VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "climate", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "climate", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence", "calendar"]
 
 
 @dataclass
@@ -758,6 +758,33 @@ class DashboardConfig:
 
 
 @dataclass
+class CalendarCardConfig:
+    """Configuration for the calendar card (dashboard only)."""
+
+    show_header: bool = True
+    hidden_entities: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "hidden_entities": self.hidden_entities,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CalendarCardConfig:
+        """Deserialize from dict."""
+        raw_hidden = data.get("hidden_entities", [])
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            hidden_entities=[
+                str(x) for x in raw_hidden
+                if isinstance(x, str) and x.startswith("calendar.")
+            ],
+        )
+
+
+@dataclass
 class GlassCardsData:
     """Top-level data structure for Glass Cards."""
 
@@ -773,6 +800,7 @@ class GlassCardsData:
     spotify_card: SpotifyCardConfig = field(default_factory=SpotifyCardConfig)
     media_card: MediaCardConfig = field(default_factory=MediaCardConfig)
     presence_card: PresenceCardConfig = field(default_factory=PresenceCardConfig)
+    calendar_card: CalendarCardConfig = field(default_factory=CalendarCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
     wizard_completed: bool = False
@@ -792,6 +820,7 @@ class GlassCardsData:
             "spotify_card": self.spotify_card.to_dict(),
             "media_card": self.media_card.to_dict(),
             "presence_card": self.presence_card.to_dict(),
+            "calendar_card": self.calendar_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -819,6 +848,7 @@ class GlassCardsData:
             spotify_card=SpotifyCardConfig.from_dict(data.get("spotify_card", {})),
             media_card=MediaCardConfig.from_dict(data.get("media_card", {})),
             presence_card=PresenceCardConfig.from_dict(data.get("presence_card", {})),
+            calendar_card=CalendarCardConfig.from_dict(data.get("calendar_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})
