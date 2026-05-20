@@ -95,128 +95,117 @@ export class ConfigTabWeather extends BaseConfigTab {
       ? Object.keys(this.hass.states).filter((id) => id.startsWith('weather.')).sort()
       : [];
     const selectedEntity = weatherEntities.find((id) => id === this._weatherEntity);
-
     const hiddenSet = new Set(this._weatherHiddenMetrics);
+    const visibleCount = METRICS.length - hiddenSet.size;
 
     return html`
-      <div class="tab-panel" id="panel-weather">
+      <div class="tab-panel weather-tab" id="panel-weather">
         <glass-weather-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-weather-card>
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._weatherShowHeader ? 'true' : 'false'}
-            @click=${() => { this._weatherShowHeader = !this._weatherShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.weather_show_header')}</div>
-              <div class="feature-desc">${t('config.weather_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._weatherShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
-        </div>
 
-        <div class="section-label">${t('config.weather_entity')}</div>
-        <div class="section-desc">${t('config.weather_entity_desc')}</div>
-        <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => (this._weatherDropdownOpen = !this._weatherDropdownOpen)}
-            aria-expanded=${this._weatherDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-            <span>${selectedEntity || t('common.select')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${weatherEntities.map(
-              (id) => html`
-                <button
-                  class="dropdown-item ${id === this._weatherEntity ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${id === this._weatherEntity ? 'true' : 'false'}
-                  @click=${() => this._selectEntity(id)}
-                >
-                  <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-                  ${id}
-                </button>
-              `,
-            )}
-          </div>
-        </div>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.weather_entity')}</span>
+              <span class="section-desc">${t('config.weather_entity_desc')}</span>
+            </div>
+          </header>
 
-        <div class="section-label">${t('config.weather_metrics')}</div>
-        <div class="section-desc">${t('config.weather_metrics_desc')}</div>
-        <div class="feature-list">
-          ${METRICS.map((m) => {
-            const visible = !hiddenSet.has(m.key);
-            return html`
+          ${weatherEntities.length === 0 ? html`
+            <div class="cfg-empty">
+              <ha-icon .icon=${'mdi:weather-cloudy-alert'}></ha-icon>
+              <span>${t('config.weather_no_entity')}</span>
+            </div>
+          ` : html`
+            <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
               <button
-                class="feature-row"
-                role="switch"
-                aria-checked=${visible ? 'true' : 'false'}
-                aria-label="${visible ? t('common.hide') : t('common.show')} ${t(m.nameKey)}"
-                @click=${() => this._toggleMetric(m.key)}
+                class="dropdown-trigger"
+                @click=${() => (this._weatherDropdownOpen = !this._weatherDropdownOpen)}
+                aria-expanded=${this._weatherDropdownOpen ? 'true' : 'false'}
+                aria-haspopup="listbox"
               >
-                <div class="feature-icon">
-                  <ha-icon .icon=${m.icon}></ha-icon>
-                </div>
-                <div class="feature-text">
-                  <div class="feature-name">${t(m.nameKey)}</div>
-                </div>
-                <span
-                  class="toggle ${visible ? 'on' : ''}"
-                ></span>
+                <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+                <span>${selectedEntity || t('common.select')}</span>
+                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
               </button>
-            `;
-          })}
-        </div>
+              <div class="dropdown-menu" role="listbox">
+                ${weatherEntities.map(
+                  (id) => html`
+                    <button
+                      class="dropdown-item ${id === this._weatherEntity ? 'active' : ''}"
+                      role="option"
+                      aria-selected=${id === this._weatherEntity ? 'true' : 'false'}
+                      @click=${() => this._selectEntity(id)}
+                    >
+                      <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
+                      ${id}
+                    </button>
+                  `,
+                )}
+              </div>
+            </div>
+          `}
+        </section>
 
-        <div class="section-label">${t('config.weather_forecasts')}</div>
-        <div class="section-desc">${t('config.weather_forecasts_desc')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._weatherShowDaily ? 'true' : 'false'}
-            aria-label="${this._weatherShowDaily ? t('common.hide') : t('common.show')} ${t('config.weather_daily')}"
-            @click=${() => { this._weatherShowDaily = !this._weatherShowDaily; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:calendar-week'}></ha-icon>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.weather_display')}</span>
+              <span class="section-desc">${t('config.weather_display_desc')}</span>
             </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.weather_daily')}</div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.weather_show_header',
+              descKey: 'config.weather_show_header_desc',
+              on: this._weatherShowHeader,
+              onToggle: () => { this._weatherShowHeader = !this._weatherShowHeader; },
+            })}
+            ${this._renderFeatureRow({
+              icon: 'mdi:calendar-week',
+              nameKey: 'config.weather_daily',
+              descKey: 'config.weather_daily_desc',
+              on: this._weatherShowDaily,
+              ariaLabel: `${this._weatherShowDaily ? t('common.hide') : t('common.show')} ${t('config.weather_daily')}`,
+              onToggle: () => { this._weatherShowDaily = !this._weatherShowDaily; },
+            })}
+            ${this._renderFeatureRow({
+              icon: 'mdi:clock-outline',
+              nameKey: 'config.weather_hourly',
+              descKey: 'config.weather_hourly_desc',
+              on: this._weatherShowHourly,
+              ariaLabel: `${this._weatherShowHourly ? t('common.hide') : t('common.show')} ${t('config.weather_hourly')}`,
+              onToggle: () => { this._weatherShowHourly = !this._weatherShowHourly; },
+            })}
+          </div>
+        </section>
+
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">3</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.weather_metrics')}</span>
+              <span class="section-desc">${t('config.weather_metrics_desc')}</span>
             </div>
-            <span
-              class="toggle ${this._weatherShowDaily ? 'on' : ''}"
-            ></span>
-          </button>
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._weatherShowHourly ? 'true' : 'false'}
-            aria-label="${this._weatherShowHourly ? t('common.hide') : t('common.show')} ${t('config.weather_hourly')}"
-            @click=${() => { this._weatherShowHourly = !this._weatherShowHourly; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.weather_hourly')}</div>
-            </div>
-            <span
-              class="toggle ${this._weatherShowHourly ? 'on' : ''}"
-            ></span>
-          </button>
-        </div>
+            <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: METRICS.length })}">
+              ${visibleCount}/${METRICS.length}
+            </span>
+          </header>
+          <div class="feature-list">
+            ${METRICS.map((m) => {
+              const visible = !hiddenSet.has(m.key);
+              return this._renderFeatureRow({
+                icon: m.icon,
+                nameKey: m.nameKey,
+                on: visible,
+                ariaLabel: `${visible ? t('common.hide') : t('common.show')} ${t(m.nameKey)}`,
+                onToggle: () => this._toggleMetric(m.key),
+              });
+            })}
+          </div>
+        </section>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>

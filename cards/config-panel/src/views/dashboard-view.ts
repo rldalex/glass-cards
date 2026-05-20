@@ -28,6 +28,7 @@ const DASH_CARD_META: DashCardMeta[] = [
   { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: DOMAIN_COLORS.spotify.rgb },
   { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.rgb },
   { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.rgb },
+  { id: 'calendar', icon: 'mdi:calendar-month', nameKey: 'config.dashboard_card_calendar', color: DOMAIN_COLORS.calendar.rgb },
 ];
 
 // Map card IDs to sub-section IDs used by tabs
@@ -35,6 +36,7 @@ const SUB_MAP: Record<string, string> = {
   title: 'title', light: 'light', weather: 'weather',
   cover: 'cover', climate: 'climate', fan: 'fan', media: 'media',
   spotify: 'spotify', presence: 'presence', camera_carousel: 'camera',
+  calendar: 'calendar',
 };
 
 // Map sub-section IDs to backend config keys (used by _sliceFor)
@@ -42,6 +44,7 @@ const CONFIG_KEYS: Record<string, string> = {
   title: 'title_card', weather: 'weather', light: 'light_card', cover: 'cover_card',
   climate: 'climate_card', fan: 'fan_card', media: 'media_card',
   spotify: 'spotify_card', presence: 'presence_card', camera: 'camera_carousel',
+  calendar: 'calendar_card',
 };
 
 export class ConfigDashboardView extends LitElement {
@@ -190,131 +193,142 @@ export class ConfigDashboardView extends LitElement {
       });
 
     return html`
-      <div class="dash-head">
-        <div class="dash-head-text">
-          <div class="section-label">${t('config.dashboard_title')}</div>
-          <div class="section-desc">${t('config.dashboard_desc')}</div>
-        </div>
-        <div class="dash-count" aria-label="${activeIds.length} ${t('common.enabled')}">
-          <span class="dash-count-num">${activeIds.length}</span>
-          <span class="dash-count-sep">/</span>
-          <span class="dash-count-total">${ordered.length}</span>
-        </div>
+      <div class="cfg-info">
+        <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+        <span>${t('config.dashboard_info')}</span>
       </div>
 
-      ${activeIds.length === 0 ? html`
-        <div class="dash-empty">
-          <ha-icon .icon=${'mdi:view-dashboard-outline'}></ha-icon>
-          <span>${t('config.dashboard_desc')}</span>
-        </div>
-      ` : html`
-        <ol class="dash-active-list" role="list" aria-label="${t('config.dashboard_title')}">
-          ${activeIds.map((cardId, listIdx) => {
-            const meta = DASH_CARD_META.find((c) => c.id === cardId);
-            if (!meta) return nothing;
-            // Find global idx in `ordered` for drag bookkeeping
-            const idx = ordered.indexOf(cardId);
-            const isDragging = this._dragIdx === idx;
-            const isDropTarget = this._dropIdx === idx && this._dragIdx !== null && this._dragIdx !== idx;
-            return html`
-              <li
-                class="dash-row ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
-                draggable="true"
-                @dragstart=${() => this._onDragStart(idx)}
-                @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
-                @dragleave=${() => this._onDragLeave()}
-                @drop=${(e: DragEvent) => this._onDrop(idx, e)}
-                @dragend=${() => this._onDragEnd()}
-              >
-                <span class="dash-row-grip" aria-hidden="true">
-                  <ha-icon .icon=${'mdi:drag-vertical'}></ha-icon>
-                </span>
-                <span class="dash-row-pos" aria-hidden="true">${listIdx + 1}</span>
-                <button
-                  class="dash-row-main"
-                  type="button"
-                  @click=${() => this._navigateToCard(cardId)}
-                  aria-label="${t('config.dashboard_title')} ${t(meta.nameKey)}"
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">1</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.dashboard_title')}</span>
+            <span class="section-desc">${t('config.dashboard_desc')}</span>
+          </div>
+          <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: activeIds.length, total: ordered.length })}">
+            ${activeIds.length}/${ordered.length}
+          </span>
+        </header>
+
+        ${activeIds.length === 0 ? html`
+          <div class="cfg-empty">
+            <ha-icon .icon=${'mdi:view-dashboard-outline'}></ha-icon>
+            <span>${t('config.dashboard_desc')}</span>
+          </div>
+        ` : html`
+          <ol class="dash-active-list" role="list" aria-label="${t('config.dashboard_title')}">
+            ${activeIds.map((cardId, listIdx) => {
+              const meta = DASH_CARD_META.find((c) => c.id === cardId);
+              if (!meta) return nothing;
+              const idx = ordered.indexOf(cardId);
+              const isDragging = this._dragIdx === idx;
+              const isDropTarget = this._dropIdx === idx && this._dragIdx !== null && this._dragIdx !== idx;
+              return html`
+                <li
+                  class="dash-row ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+                  draggable="true"
+                  @dragstart=${() => this._onDragStart(idx)}
+                  @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
+                  @dragleave=${() => this._onDragLeave()}
+                  @drop=${(e: DragEvent) => this._onDrop(idx, e)}
+                  @dragend=${() => this._onDragEnd()}
                 >
-                  <span class="dash-row-icon" style="--icon-color:${meta.color};">
+                  <span class="dash-row-grip" aria-hidden="true">
+                    <ha-icon .icon=${'mdi:drag-vertical'}></ha-icon>
+                  </span>
+                  <span class="dash-row-pos" aria-hidden="true">${listIdx + 1}</span>
+                  <button
+                    class="dash-row-main"
+                    type="button"
+                    @click=${() => this._navigateToCard(cardId)}
+                    aria-label="${t('config.dashboard_title')} ${t(meta.nameKey)}"
+                  >
+                    <span class="dash-row-icon" style="--icon-color:${meta.color};">
+                      <ha-icon .icon=${meta.icon}></ha-icon>
+                    </span>
+                    <span class="dash-row-name">${t(meta.nameKey)}</span>
+                    <ha-icon class="dash-row-chev" .icon=${'mdi:chevron-right'}></ha-icon>
+                  </button>
+                  <button
+                    class="dash-row-hide"
+                    type="button"
+                    @click=${() => this._toggleCard(cardId)}
+                    aria-label="${t('common.hide')} ${t(meta.nameKey)}"
+                  >
+                    <ha-icon .icon=${'mdi:close'}></ha-icon>
+                  </button>
+                </li>
+              `;
+            })}
+          </ol>
+        `}
+
+        ${disabledIds.length === 0 ? nothing : html`
+          <div class="dash-divider"></div>
+          <div class="cfg-sublabel dash-section-disabled">${t('common.disabled')} <span class="dash-section-count">${disabledIds.length}</span></div>
+          <div class="dash-chip-grid">
+            ${disabledIds.map((cardId) => {
+              const meta = DASH_CARD_META.find((c) => c.id === cardId);
+              if (!meta) return nothing;
+              return html`
+                <button
+                  class="dash-chip"
+                  type="button"
+                  @click=${() => { this._toggleCard(cardId); this._navigateToCard(cardId); }}
+                  aria-label="${t('common.show')} ${t(meta.nameKey)}"
+                >
+                  <span class="dash-chip-icon" style="--icon-color:${meta.color};">
                     <ha-icon .icon=${meta.icon}></ha-icon>
                   </span>
-                  <span class="dash-row-name">${t(meta.nameKey)}</span>
-                  <ha-icon class="dash-row-chev" .icon=${'mdi:chevron-right'}></ha-icon>
+                  <span class="dash-chip-name">${t(meta.nameKey)}</span>
+                  <ha-icon class="dash-chip-plus" .icon=${'mdi:plus'}></ha-icon>
                 </button>
-                <button
-                  class="dash-row-hide"
-                  type="button"
-                  @click=${() => this._toggleCard(cardId)}
-                  aria-label="${t('common.hide')} ${t(meta.nameKey)}"
-                >
-                  <ha-icon .icon=${'mdi:close'}></ha-icon>
-                </button>
-              </li>
-            `;
-          })}
-        </ol>
-      `}
+              `;
+            })}
+          </div>
+        `}
+      </section>
 
-      ${disabledIds.length === 0 ? nothing : html`
-        <div class="dash-divider"></div>
-        <div class="section-label dash-section-disabled">${t('common.disabled')} <span class="dash-section-count">${disabledIds.length}</span></div>
-        <div class="dash-chip-grid">
-          ${disabledIds.map((cardId) => {
-            const meta = DASH_CARD_META.find((c) => c.id === cardId);
-            if (!meta) return nothing;
-            return html`
-              <button
-                class="dash-chip"
-                type="button"
-                @click=${() => { this._toggleCard(cardId); this._navigateToCard(cardId); }}
-                aria-label="${t('common.show')} ${t(meta.nameKey)}"
-              >
-                <span class="dash-chip-icon" style="--icon-color:${meta.color};">
-                  <ha-icon .icon=${meta.icon}></ha-icon>
-                </span>
-                <span class="dash-chip-name">${t(meta.nameKey)}</span>
-                <ha-icon class="dash-chip-plus" .icon=${'mdi:plus'}></ha-icon>
-              </button>
-            `;
-          })}
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">2</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.dashboard_display')}</span>
+            <span class="section-desc">${t('config.dashboard_display_desc')}</span>
+          </div>
+        </header>
+        <div class="feature-list">
+          <button class="feature-row" role="switch" aria-checked=${this._hideHeader ? 'true' : 'false'}
+            @click=${() => this._toggleHideHeader()}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:page-layout-header'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.dashboard_hide_header')}</div>
+              <div class="feature-desc">${t('config.dashboard_hide_header_desc')}</div>
+            </div>
+            <span class="toggle ${this._hideHeader ? 'on' : ''}"></span>
+          </button>
+
+          <button class="feature-row" role="switch" aria-checked=${this._hideSidebar ? 'true' : 'false'}
+            @click=${() => this._toggleHideSidebar()}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:page-layout-sidebar-left'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.dashboard_hide_sidebar')}</div>
+              <div class="feature-desc">${t('config.dashboard_hide_sidebar_desc')}</div>
+            </div>
+            <span class="toggle ${this._hideSidebar ? 'on' : ''}"></span>
+          </button>
+
+          <button class="feature-row" role="switch" aria-checked=${this._dynamicBackground ? 'true' : 'false'}
+            @click=${() => this._toggleDynamicBg()}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:weather-night'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.dashboard_dynamic_bg')}</div>
+              <div class="feature-desc">${t('config.dashboard_dynamic_bg_desc')}</div>
+            </div>
+            <span class="toggle ${this._dynamicBackground ? 'on' : ''}"></span>
+          </button>
         </div>
-      `}
-
-      <div class="section-label mt-lg">${t('config.dashboard_display')}</div>
-      <div class="section-desc">${t('config.dashboard_display_desc')}</div>
-
-      <div class="feature-list">
-        <button class="feature-row" role="switch" aria-checked=${this._hideHeader ? 'true' : 'false'}
-          @click=${() => this._toggleHideHeader()}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:page-layout-header'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.dashboard_hide_header')}</div>
-            <div class="feature-desc">${t('config.dashboard_hide_header_desc')}</div>
-          </div>
-          <span class="toggle ${this._hideHeader ? 'on' : ''}"></span>
-        </button>
-
-        <button class="feature-row" role="switch" aria-checked=${this._hideSidebar ? 'true' : 'false'}
-          @click=${() => this._toggleHideSidebar()}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:page-layout-sidebar-left'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.dashboard_hide_sidebar')}</div>
-            <div class="feature-desc">${t('config.dashboard_hide_sidebar_desc')}</div>
-          </div>
-          <span class="toggle ${this._hideSidebar ? 'on' : ''}"></span>
-        </button>
-
-        <button class="feature-row" role="switch" aria-checked=${this._dynamicBackground ? 'true' : 'false'}
-          @click=${() => this._toggleDynamicBg()}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:weather-night'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.dashboard_dynamic_bg')}</div>
-            <div class="feature-desc">${t('config.dashboard_dynamic_bg_desc')}</div>
-          </div>
-          <span class="toggle ${this._dynamicBackground ? 'on' : ''}"></span>
-        </button>
-      </div>
+      </section>
     `;
   }
 
@@ -347,6 +361,8 @@ export class ConfigDashboardView extends LitElement {
         return html`<config-tab-fan .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-fan>`;
       case 'media':
         return html`<config-tab-media .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-media>`;
+      case 'calendar':
+        return html`<config-tab-calendar .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-calendar>`;
       default:
         return html`<div class="placeholder"><ha-icon .icon=${'mdi:hammer-wrench'}></ha-icon><span>${id}</span></div>`;
     }

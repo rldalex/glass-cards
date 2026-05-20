@@ -753,61 +753,64 @@ export class ConfigTabLight extends BaseConfigTab {
 
   renderTab(): TemplateResult {
     void this._lang;
+    const hasRoom = !!this._lightRoom;
+    const hasLights = this._lights.length > 0;
 
     return html`
-      <div class="tab-panel" id="panel-light">
+      <div class="tab-panel light-tab" id="panel-light">
         <glass-light-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-light-card>
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._lightShowHeader ? 'true' : 'false'}
-            @click=${() => { this._lightShowHeader = !this._lightShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.light_show_header')}</div>
-              <div class="feature-desc">${t('config.light_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._lightShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
+        <div class="cfg-info">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          <span>${t('config.light_dashboard_vs_room')}</span>
         </div>
 
-        ${this._lights.length > 0
-          ? html`
-              <div class="section-label">${t('config.light_list_title')} (${this._lights.length})</div>
-              <div class="section-desc">
-                ${t('config.light_list_banner')}
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
+            </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.light_show_header',
+              descKey: 'config.light_show_header_desc',
+              on: this._lightShowHeader,
+              onToggle: () => { this._lightShowHeader = !this._lightShowHeader; },
+            })}
+          </div>
+        </section>
+
+        ${hasRoom ? html`
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">2</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.light_list_title')}</span>
+                <span class="section-desc">${t('config.light_list_banner')}</span>
               </div>
+              ${hasLights ? html`<span class="cfg-section-count">${this._lights.length}</span>` : nothing}
+            </header>
+
+            ${hasLights ? html`
               <div class="item-list">
                 ${this._lights.map((light, idx) => this._renderLightRow(light, idx))}
               </div>
-            `
-          : this._lightRoom
-            ? html`<div class="banner">
+              <div class="section-desc schedule-hint">
+                <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+                ${t('config.light_schedule_hint')}
+              </div>
+            ` : html`
+              <div class="cfg-empty">
                 <ha-icon .icon=${'mdi:lightbulb-off-outline'}></ha-icon>
                 <span>${t('config.light_no_lights')}</span>
-              </div>`
-            : nothing}
-
-        ${this._lights.length > 0 ? html`
-          <div class="section-desc schedule-hint">
-            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
-            ${t('config.light_schedule_hint')}
-          </div>
+              </div>
+            `}
+          </section>
         ` : nothing}
 
-        <div class="section-desc dashboard-vs-room">
-          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
-          ${t('config.light_dashboard_vs_room')}
-        </div>
-
-        ${this._lightRoom ? html`
+        ${hasRoom ? html`
           <div class="save-bar">
             <button class="btn btn-ghost" @click=${() => this._loadRoomLights()}>${t('common.reset')}</button>
           </div>

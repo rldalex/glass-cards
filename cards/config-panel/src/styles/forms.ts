@@ -130,6 +130,12 @@ export const formStyles = css`
         --mdc-icon-size: 1rem;
         display: flex; align-items: center; justify-content: center;
       }
+      .dropdown-empty {
+        padding: 0.5rem 0.75rem;
+        font-size: var(--fz-sm);
+        color: var(--t4);
+        text-align: center;
+      }
 
       /* ── Icon picker ── */
       .icon-picker-fold {
@@ -227,9 +233,6 @@ export const formStyles = css`
       }
 
       /* ── Title config styles ── */
-      .title-section-gap {
-        height: 0.75rem;
-      }
       .title-modes-list {
         display: flex; flex-direction: column; gap: 0.5rem;
       }
@@ -629,6 +632,10 @@ export const formStyles = css`
       }
       .input:focus { border-color: var(--b3); }
       .input::placeholder { color: var(--t4); }
+      .cycle-interval-input {
+        width: 3.75rem;
+        text-align: center;
+      }
       /* schedule-input removed — replaced by .datetime-display */
 
       /* ── Check item (from kit) ── */
@@ -1140,6 +1147,11 @@ export const formStyles = css`
       .preset-add-btn ha-icon { --mdc-icon-size: 14px; display: flex; align-items: center; justify-content: center; }
       .preset-add-btn.small { font-size: 10px; padding: 0.125rem 0.375rem; }
       .preset-add-btn.small ha-icon { --mdc-icon-size: 12px; }
+      .preset-add-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
       .preset-reset-btn {
         display: inline-flex;
         align-items: center;
@@ -1209,23 +1221,6 @@ export const formStyles = css`
       }
 
       /* ── Unassigned / Orphan entities ── */
-      .pw-ua-icon-btn {
-        flex-shrink: 0;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--b2);
-        background: var(--s1);
-        padding: 0;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background var(--t-fast), border-color var(--t-fast);
-      }
-      .pw-ua-icon-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .pw-ua-icon-btn ha-icon { --mdc-icon-size: 14px; color: var(--t3); }
-
       .pw-ua-name {
         cursor: pointer;
         background: none; border: none; padding: 0;
@@ -1255,15 +1250,16 @@ export const formStyles = css`
       }
       .pw-ua-area-trigger .pw-ua-area-icon {
         --mdc-icon-size: 14px;
-        opacity: 0.5;
+        --mdc-icon-color: var(--t3);
+        opacity: 0.7;
       }
       .pw-ua-area-trigger.pw-ua-unassigned {
         color: var(--c-warning);
         border-color: rgba(var(--rgb-warning), 0.2);
       }
       .pw-ua-area-trigger.pw-ua-unassigned .pw-ua-area-icon {
-        color: var(--c-warning);
-        opacity: 0.7;
+        --mdc-icon-color: var(--c-warning);
+        opacity: 1;
       }
 
       /* ── Responsive breakpoints ── */
@@ -1279,60 +1275,9 @@ export const formStyles = css`
       }
 
       /* ═══════════════════════════════════════════════
-         TITLE TAB — redesign 2026-05
-         Three numbered sections + period chip-row + inline editor
+         TITLE TAB — specific styles
+         (generic .cfg-section* layout lives in styles/sections.ts)
          ═══════════════════════════════════════════════ */
-
-      .title-tab .title-section {
-        position: relative;
-        padding-top: 1.5rem;
-        margin-top: 1rem;
-      }
-      .title-tab .title-section:first-of-type {
-        margin-top: 0.75rem;
-        padding-top: 0;
-      }
-      .title-tab .title-section:not(:first-of-type)::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white), 0.06), transparent);
-      }
-
-      .title-section-head {
-        display: grid;
-        grid-template-columns: 1.5rem 1fr auto;
-        align-items: center;
-        gap: 0.625rem;
-        margin-bottom: 0.625rem;
-      }
-      .title-section-num {
-        width: 1.5rem; height: 1.5rem;
-        display: inline-flex; align-items: center; justify-content: center;
-        border-radius: 50%;
-        background: rgba(var(--rgb-accent), 0.12);
-        border: 1px solid rgba(var(--rgb-accent), 0.22);
-        color: var(--c-accent);
-        font-size: var(--fz-xs);
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-      }
-      .title-section-text {
-        display: flex; flex-direction: column; gap: 0.0625rem;
-        min-width: 0;
-      }
-      .title-section-text .section-label { margin: 0; padding: 0; }
-      .title-section-text .section-desc { margin: 0; padding: 0; }
-      .title-section-count {
-        font-size: var(--fz-xxs);
-        font-weight: 700;
-        color: var(--t4);
-        background: var(--s2);
-        padding: 0.0625rem 0.375rem;
-        border-radius: var(--radius-full);
-        letter-spacing: 0.5px;
-      }
 
       /* ── Title text input + char counter ── */
       .title-text-field {
@@ -1352,30 +1297,6 @@ export const formStyles = css`
         letter-spacing: 0.5px;
       }
       .title-text-count.warn { color: var(--c-warning); }
-
-      /* ── Sources empty state ── */
-      .title-sources-empty {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        padding: 0.875rem 1rem;
-        border: 1px dashed var(--b2);
-        border-radius: var(--radius-md);
-        color: var(--t3);
-        font-size: var(--fz-sm);
-      }
-      .title-sources-empty ha-icon {
-        --mdc-icon-size: 1.25rem;
-        --mdc-icon-color: var(--t4);
-        flex-shrink: 0;
-      }
-
-      .title-add-source-wrap {
-        margin-top: 0.5rem;
-      }
-      .title-add-source-btn {
-        border-style: dashed !important;
-      }
 
       /* ─────────────────────────────────────────────
          PERIOD — chip row + inline editor

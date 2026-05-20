@@ -193,166 +193,206 @@ export class ConfigTabMedia extends BaseConfigTab {
       return id.toLowerCase().includes(search) || name.includes(search);
     });
 
-    return html`
-      <div class="tab-panel" id="panel-media">
-        <glass-media-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-media-card>
-        <!-- Show header toggle -->
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._mediaShowHeader ? 'true' : 'false'}
-            @click=${() => { this._mediaShowHeader = !this._mediaShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.media_show_header')}</div>
-              <div class="feature-desc">${t('config.media_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._mediaShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
-        </div>
+    const isDashboard = !this.areaId;
+    const dashPlayers = this._mediaDashboardPlayers;
+    const dashVisible = dashPlayers.filter((p) => p.visible).length;
+    const natives = this._mediaRoomNativePlayers;
 
-        ${!this.areaId && this._mediaDashboardPlayers.length > 0 ? html`
-          <div class="section-label">${t('config.media_dashboard_players')} (${this._mediaDashboardPlayers.length})</div>
-          <div class="section-desc">${t('config.media_dashboard_players_desc')}</div>
-          <div class="item-list">
-            ${this._mediaDashboardPlayers.map((e) => {
-              const entity = this.hass?.states[e.entityId];
-              const isPlaying = entity?.state === 'playing';
-              return html`
-                <div class="item-card">
-                  <div class="item-row ${!e.visible ? 'disabled' : ''}">
-                    <div class="item-info">
-                      <span class="item-name">${e.name}</span>
-                      <span class="item-meta">${e.entityId}${isPlaying ? ' — playing' : ''}</span>
-                    </div>
-                    <button
-                      class="toggle ${e.visible ? 'on' : ''}"
-                      @click=${() => this._toggleMediaVisible(e.entityId)}
-                      role="switch"
-                      aria-checked=${e.visible ? 'true' : 'false'}
-                    ></button>
-                  </div>
-                </div>
-              `;
-            })}
+    return html`
+      <div class="tab-panel media-tab" id="panel-media">
+        <glass-media-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-media-card>
+        ${isDashboard ? html`
+          <div class="cfg-info">
+            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+            <span>${t('config.media_dashboard_info')}</span>
           </div>
         ` : nothing}
 
-        <!-- Per-room extra entities -->
-        <div class="section-label">${t('config.media_room')}</div>
-        <div class="section-desc">${t('config.media_room_desc')}</div>
-
-        ${roomId ? html`
-          <!-- Native players (read-only) -->
-          <div class="section-label">${t('config.media_native_players')} (${this._mediaRoomNativePlayers.length})</div>
-          <div class="section-desc">${t('config.media_native_players_desc')}</div>
-          ${this._mediaRoomNativePlayers.length > 0 ? html`
-            <div class="item-list">
-              ${this._mediaRoomNativePlayers.map((id) => {
-                const entity = this.hass?.states[id];
-                const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-                const isPlaying = entity?.state === 'playing';
-                return html`
-                  <div class="item-card">
-                    <div class="item-row">
-                      <div class="item-info pw-mp-item-info">
-                        <span class="item-name">${name}</span>
-                        <span class="item-meta">${id}</span>
-                      </div>
-                      <div class="dot" style="background:${isPlaying ? '#60a5fa' : 'var(--t4)'};${isPlaying ? 'box-shadow:0 0 6px rgba(96,165,250,0.4);' : ''}"></div>
-                    </div>
-                  </div>
-                `;
-              })}
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
             </div>
-          ` : html`
-            <div class="banner">
-              <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-              <span>${t('media.no_players')}</span>
-            </div>
-          `}
-
-          <!-- Extra entities -->
-          <div class="section-label">${t('config.media_extra_entities')} (${extraEntities.length})</div>
-          <div class="section-desc">${t('config.media_extra_entities_desc')}</div>
-          ${extraEntities.length > 0 ? html`
-            <div class="item-list">
-              ${extraEntities.map((id) => {
-                const entity = this.hass?.states[id];
-                const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-                return html`
-                  <div class="item-card">
-                    <div class="item-row">
-                      <div class="item-info pw-mp-item-info">
-                        <span class="item-name">${name}</span>
-                        <span class="item-meta">${id}</span>
-                      </div>
-                      <button
-                        class="btn-icon xs"
-                        @click=${() => this._removeMediaExtraEntity(id)}
-                        aria-label="${t('common.hide')} ${name}"
-                      >
-                        <ha-icon .icon=${'mdi:close'}></ha-icon>
-                      </button>
-                    </div>
-                  </div>
-                `;
-              })}
-            </div>
-          ` : html`
-            <div class="banner">
-              <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
-              <span>${t('config.media_no_extra')}</span>
-            </div>
-          `}
-
-          <!-- Add extra entity dropdown -->
-          <div class="dropdown ${this._mediaAddDropdownOpen ? 'open' : ''}">
-            <button
-              class="dropdown-trigger"
-              @click=${() => { this._mediaAddDropdownOpen = !this._mediaAddDropdownOpen; this._mediaEntitySearch = ''; }}
-              aria-expanded=${this._mediaAddDropdownOpen ? 'true' : 'false'}
-              aria-haspopup="listbox"
-            >
-              <ha-icon .icon=${'mdi:plus'}></ha-icon>
-              <span>${t('config.media_add_extra')}</span>
-              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-            </button>
-            <div class="dropdown-menu" role="listbox">
-              <input
-                type="text"
-                class="dropdown-search"
-                placeholder="${t('config.search_entity')}"
-                .value=${this._mediaEntitySearch ?? ''}
-                @input=${(e: Event) => { this._mediaEntitySearch = (e.target as HTMLInputElement).value; }}
-                @click=${(e: Event) => e.stopPropagation()}
-              />
-              ${available.slice(0, 20).map((id) => {
-                const entity = this.hass?.states[id];
-                const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-                return html`
-                  <button
-                    class="dropdown-item"
-                    role="option"
-                    @click=${() => { this._addMediaExtraEntity(id); this._mediaAddDropdownOpen = false; }}
-                  >
-                    <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-                    ${name}
-                  </button>
-                `;
-              })}
-              ${available.length === 0 ? html`
-                <div class="pw-mp-empty-msg">—</div>
-              ` : nothing}
-            </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.media_show_header',
+              descKey: 'config.media_show_header_desc',
+              on: this._mediaShowHeader,
+              onToggle: () => { this._mediaShowHeader = !this._mediaShowHeader; },
+            })}
           </div>
+        </section>
+
+        ${isDashboard ? html`
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">2</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.media_dashboard_players')}</span>
+                <span class="section-desc">${t('config.media_dashboard_players_desc')}</span>
+              </div>
+              ${dashPlayers.length > 0 ? html`
+                <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: dashVisible, total: dashPlayers.length })}">
+                  ${dashVisible}/${dashPlayers.length}
+                </span>
+              ` : nothing}
+            </header>
+
+            ${dashPlayers.length === 0 ? html`
+              <div class="cfg-empty">
+                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
+                <span>${t('media.no_players')}</span>
+              </div>
+            ` : html`
+              <div class="item-list">
+                ${dashPlayers.map((e) => {
+                  const entity = this.hass?.states[e.entityId];
+                  const isPlaying = entity?.state === 'playing';
+                  return html`
+                    <div class="item-card">
+                      <div class="item-row ${!e.visible ? 'disabled' : ''}">
+                        <div class="item-info">
+                          <span class="item-name">${e.name}</span>
+                          <span class="item-meta">${e.entityId}${isPlaying ? ` · ${t('media.now_playing')}` : ''}</span>
+                        </div>
+                        <button
+                          class="toggle ${e.visible ? 'on' : ''}"
+                          @click=${() => this._toggleMediaVisible(e.entityId)}
+                          role="switch"
+                          aria-checked=${e.visible ? 'true' : 'false'}
+                          aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                        ></button>
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
+            `}
+          </section>
+        ` : roomId ? html`
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">2</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.media_native_players')}</span>
+                <span class="section-desc">${t('config.media_native_players_desc')}</span>
+              </div>
+              ${natives.length > 0 ? html`<span class="cfg-section-count">${natives.length}</span>` : nothing}
+            </header>
+
+            ${natives.length === 0 ? html`
+              <div class="cfg-empty">
+                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
+                <span>${t('media.no_players')}</span>
+              </div>
+            ` : html`
+              <div class="item-list">
+                ${natives.map((id) => {
+                  const entity = this.hass?.states[id];
+                  const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+                  const isPlaying = entity?.state === 'playing';
+                  return html`
+                    <div class="item-card">
+                      <div class="item-row">
+                        <div class="item-info">
+                          <span class="item-name">${name}</span>
+                          <span class="item-meta">${id}</span>
+                        </div>
+                        <div class="dot ${isPlaying ? 'playing' : ''}"></div>
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
+            `}
+          </section>
+
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">3</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.media_extra_entities')}</span>
+                <span class="section-desc">${t('config.media_extra_entities_desc')}</span>
+              </div>
+              ${extraEntities.length > 0 ? html`<span class="cfg-section-count">${extraEntities.length}</span>` : nothing}
+            </header>
+
+            ${extraEntities.length === 0 ? html`
+              <div class="cfg-empty">
+                <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
+                <span>${t('config.media_no_extra')}</span>
+              </div>
+            ` : html`
+              <div class="item-list">
+                ${extraEntities.map((id) => {
+                  const entity = this.hass?.states[id];
+                  const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+                  return html`
+                    <div class="item-card">
+                      <div class="item-row">
+                        <div class="item-info">
+                          <span class="item-name">${name}</span>
+                          <span class="item-meta">${id}</span>
+                        </div>
+                        <button
+                          class="btn-icon xs"
+                          @click=${() => this._removeMediaExtraEntity(id)}
+                          aria-label="${t('common.hide')} ${name}"
+                        >
+                          <ha-icon .icon=${'mdi:close'}></ha-icon>
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
+            `}
+
+            <div class="cfg-add-wrap">
+              <div class="dropdown ${this._mediaAddDropdownOpen ? 'open' : ''}">
+                <button
+                  class="dropdown-trigger cfg-add-btn"
+                  @click=${() => { this._mediaAddDropdownOpen = !this._mediaAddDropdownOpen; this._mediaEntitySearch = ''; }}
+                  aria-expanded=${this._mediaAddDropdownOpen ? 'true' : 'false'}
+                  aria-haspopup="listbox"
+                >
+                  <ha-icon .icon=${'mdi:plus'}></ha-icon>
+                  <span>${t('config.media_add_extra')}</span>
+                  <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+                </button>
+                <div class="dropdown-menu" role="listbox">
+                  <input
+                    type="text"
+                    class="dropdown-search"
+                    placeholder="${t('config.search_entity')}"
+                    .value=${this._mediaEntitySearch ?? ''}
+                    @input=${(e: Event) => { this._mediaEntitySearch = (e.target as HTMLInputElement).value; }}
+                    @click=${(e: Event) => e.stopPropagation()}
+                  />
+                  ${available.slice(0, 20).map((id) => {
+                    const entity = this.hass?.states[id];
+                    const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+                    return html`
+                      <button
+                        class="dropdown-item"
+                        role="option"
+                        @click=${() => { this._addMediaExtraEntity(id); this._mediaAddDropdownOpen = false; }}
+                      >
+                        <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+                        ${name}
+                      </button>
+                    `;
+                  })}
+                  ${available.length === 0 ? html`
+                    <div class="dropdown-empty">${t('config.unassigned_no_results')}</div>
+                  ` : nothing}
+                </div>
+              </div>
+            </div>
+          </section>
         ` : nothing}
 
         <div class="save-bar">

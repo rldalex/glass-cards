@@ -867,7 +867,7 @@ export class ConfigTabTitle extends BaseConfigTab {
             >
               <span class="title-period-chip-icon"><ha-icon .icon=${icon}></ha-icon></span>
               <span class="title-period-chip-name">${optionId}</span>
-              ${isLive ? html`<span class="title-period-chip-live-dot" aria-label="actif"></span>` : nothing}
+              ${isLive ? html`<span class="title-period-chip-live-dot" aria-label="${t('common.active')}"></span>` : nothing}
             </button>
           `;
         })}
@@ -927,10 +927,10 @@ export class ConfigTabTitle extends BaseConfigTab {
           <div class="title-period-editor-nav">
             <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx - 1 + haOptions.length) % haOptions.length; }}>
               <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
-              <span>Précédent</span>
+              <span>${t('common.previous')}</span>
             </button>
             <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx + 1) % haOptions.length; }}>
-              <span>Suivant</span>
+              <span>${t('common.next')}</span>
               <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </button>
           </div>
@@ -952,11 +952,10 @@ export class ConfigTabTitle extends BaseConfigTab {
       <div class="tab-panel title-tab" id="panel-title">
         <glass-title-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-title-card>
 
-        <!-- ─── Section 1 — Titre ─── -->
-        <section class="title-section">
-          <header class="title-section-head">
-            <span class="title-section-num">1</span>
-            <div class="title-section-text">
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
               <span class="section-label">${t('config.title_title')}</span>
               <span class="section-desc">${t('config.title_title_desc')}</span>
             </div>
@@ -976,28 +975,27 @@ export class ConfigTabTitle extends BaseConfigTab {
           </div>
         </section>
 
-        <!-- ─── Section 2 — Sources ─── -->
-        <section class="title-section">
-          <header class="title-section-head">
-            <span class="title-section-num">2</span>
-            <div class="title-section-text">
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
               <span class="section-label">${t('config.title_mode_source')}</span>
               <span class="section-desc">${t('config.title_mode_source_desc')}</span>
             </div>
-            ${!sourcesEmpty ? html`<span class="title-section-count">${sources.length}</span>` : nothing}
+            ${!sourcesEmpty ? html`<span class="cfg-section-count">${sources.length}</span>` : nothing}
           </header>
 
           ${sourcesEmpty ? html`
-            <div class="title-sources-empty">
+            <div class="cfg-empty">
               <ha-icon .icon=${'mdi:cursor-default-click-outline'}></ha-icon>
-              <span>Aucune source. Ajoute un mode pour afficher des boutons interactifs sous le titre.</span>
+              <span>${t('config.title_sources_empty')}</span>
             </div>
           ` : sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
 
-          <div class="title-add-source-wrap">
+          <div class="cfg-add-wrap">
             <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
               <button
-                class="dropdown-trigger title-add-source-btn"
+                class="dropdown-trigger cfg-add-btn"
                 @click=${() => { this._titleAddSourceDropdownOpen = !this._titleAddSourceDropdownOpen; }}
                 aria-expanded=${this._titleAddSourceDropdownOpen ? 'true' : 'false'}
                 aria-haspopup="listbox"
@@ -1022,11 +1020,10 @@ export class ConfigTabTitle extends BaseConfigTab {
           </div>
         </section>
 
-        <!-- ─── Section 3 — Période ─── -->
-        <section class="title-section">
-          <header class="title-section-head">
-            <span class="title-section-num">3</span>
-            <div class="title-section-text">
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">3</span>
+            <div class="cfg-section-text">
               <span class="section-label">${t('config.title_period_entity')}</span>
               <span class="section-desc">${t('config.title_period_entity_desc')}</span>
             </div>

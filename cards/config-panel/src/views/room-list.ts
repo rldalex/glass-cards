@@ -1,4 +1,4 @@
-import { LitElement, html, nothing, type TemplateResult, type PropertyValues } from 'lit';
+import { LitElement, html, type TemplateResult, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
@@ -93,66 +93,107 @@ export class ConfigRoomList extends LitElement {
 
   protected render(): TemplateResult {
     if (!this.rooms.length) {
-      return html`<div class="empty-state">${t('config.no_rooms')}</div>`;
+      return html`
+        <div class="cfg-empty">
+          <ha-icon .icon=${'mdi:home-search-outline'}></ha-icon>
+          <span>${t('config.no_rooms')}</span>
+        </div>
+      `;
     }
 
+    const visibleCount = this.rooms.filter((r) => r.visible).length;
     let visibleIdx = 0;
 
     return html`
-      <div class="section-label">${t('config.popup_auto_close')}</div>
-      <div class="section-desc">${t('config.popup_auto_close_desc')}</div>
-      <div class="feature-list">
-        <div class="range-row" style="padding:0.375rem 0.75rem;">
-          <div class="feature-icon" style="background:rgba(var(--rgb-accent),0.08);border-color:rgba(var(--rgb-accent),0.12);">
-            <ha-icon .icon=${'mdi:timer-outline'} style="color:var(--c-accent);"></ha-icon>
-          </div>
-          <input
-            type="range"
-            class="range-input"
-            min="0"
-            max="120"
-            step="1"
-            .value=${String(this._popupAutoClose)}
-            @input=${(e: Event) => this._onAutoCloseChange(e)}
-          />
-          <span class="range-value" style="min-width:3.5rem;font-size:var(--fz-sm);font-weight:500;color:var(--t3);">${this._popupAutoClose === 0 ? t('config.popup_auto_close_off') : `${this._popupAutoClose}s`}</span>
-        </div>
+      <div class="cfg-info">
+        <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+        <span>${t('config.rooms_dashboard_info')}</span>
       </div>
 
-      <div class="room-grid">
-        ${this.rooms.map((room, i) => {
-          const isDragging = this._dragIdx === i;
-          const isDropTarget = this._dropIdx === i && this._dragIdx !== null && this._dragIdx !== i;
-          if (room.visible) visibleIdx++;
-          const order = room.visible ? visibleIdx : 0;
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">1</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.rooms_list_title')}</span>
+            <span class="section-desc">${t('config.rooms_list_desc')}</span>
+          </div>
+          <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: this.rooms.length })}">
+            ${visibleCount}/${this.rooms.length}
+          </span>
+        </header>
 
-          return html`
-            <div
-              class="room-card dash-card ${!room.visible ? 'off' : ''} ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
-              draggable="true"
-              @dragstart=${() => this._onDragStart(i)}
-              @dragover=${(e: DragEvent) => this._onDragOver(i, e)}
-              @dragleave=${() => this._onDragLeave()}
-              @drop=${(e: DragEvent) => this._onDrop(i, e)}
-              @dragend=${() => this._onDragEnd()}
-              @click=${() => this.dispatchEvent(new CustomEvent('room-select', { detail: room.areaId, bubbles: true, composed: true }))}
-            >
-              ${room.visible ? html`<span class="dash-order">${order}</span>` : nothing}
-              <ha-icon .icon=${room.icon || 'mdi:home'}></ha-icon>
-              <span class="room-name">${room.name}</span>
-              <div class="dash-toggle-row">
-                <span class="dash-toggle-label">${room.visible ? t('common.enabled') : t('common.disabled')}</span>
+        <ol class="room-list" role="list">
+          ${this.rooms.map((room, i) => {
+            const isDragging = this._dragIdx === i;
+            const isDropTarget = this._dropIdx === i && this._dragIdx !== null && this._dragIdx !== i;
+            if (room.visible) visibleIdx++;
+            const order = room.visible ? visibleIdx : 0;
+
+            return html`
+              <li
+                class="room-row ${!room.visible ? 'off' : ''} ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+                draggable="true"
+                @dragstart=${() => this._onDragStart(i)}
+                @dragover=${(e: DragEvent) => this._onDragOver(i, e)}
+                @dragleave=${() => this._onDragLeave()}
+                @drop=${(e: DragEvent) => this._onDrop(i, e)}
+                @dragend=${() => this._onDragEnd()}
+              >
+                <span class="room-row-grip" aria-hidden="true">
+                  <ha-icon .icon=${'mdi:drag-vertical'}></ha-icon>
+                </span>
+                <span class="room-row-num" aria-hidden="true">${room.visible ? order : '·'}</span>
                 <button
-                  class="dash-toggle ${room.visible ? 'on' : ''}"
+                  class="room-row-main"
+                  type="button"
+                  @click=${() => this.dispatchEvent(new CustomEvent('room-select', { detail: room.areaId, bubbles: true, composed: true }))}
+                  aria-label="${t('config.room_open_aria', { name: room.name })}"
+                >
+                  <span class="room-row-icon">
+                    <ha-icon .icon=${room.icon || 'mdi:home'}></ha-icon>
+                  </span>
+                  <span class="room-row-name">${room.name}</span>
+                  <ha-icon class="room-row-chev" .icon=${'mdi:chevron-right'}></ha-icon>
+                </button>
+                <button
+                  class="room-row-toggle ${room.visible ? 'on' : ''}"
                   @click=${(e: Event) => this._toggleVisibility(room, e)}
+                  role="switch"
+                  aria-checked=${room.visible ? 'true' : 'false'}
                   aria-label=${room.visible ? t('config.hide_room') : t('config.show_room')}
                 ></button>
-              </div>
-              <span class="dash-drag-hint"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+              </li>
+            `;
+          })}
+        </ol>
+      </section>
+
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">2</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.popup_auto_close')}</span>
+            <span class="section-desc">${t('config.popup_auto_close_desc')}</span>
+          </div>
+        </header>
+        <div class="feature-list">
+          <div class="range-row autoclose-row">
+            <div class="feature-icon autoclose-icon">
+              <ha-icon .icon=${'mdi:timer-outline'}></ha-icon>
             </div>
-          `;
-        })}
-      </div>
+            <input
+              type="range"
+              class="range-input"
+              min="0"
+              max="120"
+              step="1"
+              .value=${String(this._popupAutoClose)}
+              @input=${(e: Event) => this._onAutoCloseChange(e)}
+            />
+            <span class="range-value autoclose-value">${this._popupAutoClose === 0 ? t('config.popup_auto_close_off') : `${this._popupAutoClose}s`}</span>
+          </div>
+        </div>
+      </section>
     `;
   }
 }
