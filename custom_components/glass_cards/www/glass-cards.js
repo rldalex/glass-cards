@@ -3022,13 +3022,12 @@
       </div>
     `}_renderEntityTabs(e){if(e.length<=1)return J;const t=this._selectedEntity||e[0]?.entity_id;return X`
       <div class="entity-tabs">
-        ${e.map(e=>{const i=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),r=e.entity_id===t,s="heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"",o=this.hass?.entities[e.entity_id],n=o?ot(o,this.hass?.devices):null,l=n?this.hass?.areas[n]:null,c=l?.icon||"mdi:home",d=l?.name||i.split(" ")[0];return X`
+        ${e.map(e=>{const i=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),r=e.entity_id===t,s="heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"",o=this.hass?.entities[e.entity_id],n=o?ot(o,this.hass?.devices):null,l=n?this.hass?.areas[n]:null;return X`
             <button class="entity-tab ${r?"active":""} ${s}"
               @click=${()=>{this._selectedEntity=e.entity_id}}
               aria-label=${i}
               aria-pressed=${r?"true":"false"}>
-              <ha-icon .icon=${c} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-              ${r?X`<span class="tab-label">${d}</span>`:J}
+              <ha-icon .icon=${l?.icon||"mdi:home"} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             </button>
           `})}
       </div>
@@ -3488,14 +3487,6 @@
     .entity-tab.active.cool {
       background: var(--cl-cool-bg); color: var(--cl-cool);
       box-shadow: 0 1px 6px rgba(56,189,248,0.15);
-    }
-    .tab-label {
-      font-size: var(--fz-xs, 12px);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 5rem;
     }
 
     /* ── Arc gauge ── */

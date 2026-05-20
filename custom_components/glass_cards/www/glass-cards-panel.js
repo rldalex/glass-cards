@@ -7266,7 +7266,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${et("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${et("config.title")}</span>
-          <span class="page-subtitle">${et("config.brand")} <span class="page-version">v${"0.0.191"}</span></span>
+          <span class="page-subtitle">${et("config.brand")} <span class="page-version">v${"0.0.192"}</span></span>
         </div>
 
         <div class="glass config-panel">
@@ -8345,13 +8345,12 @@
       </div>
     `}_renderEntityTabs(e){if(e.length<=1)return B;const t=this._selectedEntity||e[0]?.entity_id;return N`
       <div class="entity-tabs">
-        ${e.map(e=>{const i=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),r=e.entity_id===t,s="heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"",o=this.hass?.entities[e.entity_id],n=o?dt(o,this.hass?.devices):null,c=n?this.hass?.areas[n]:null,l=c?.icon||"mdi:home",d=c?.name||i.split(" ")[0];return N`
+        ${e.map(e=>{const i=e.attributes.friendly_name||e.entity_id,a=this._getHvacAction(e),r=e.entity_id===t,s="heating"===a||"preheating"===a?"heat":"cooling"===a?"cool":"",o=this.hass?.entities[e.entity_id],n=o?dt(o,this.hass?.devices):null,c=n?this.hass?.areas[n]:null;return N`
             <button class="entity-tab ${r?"active":""} ${s}"
               @click=${()=>{this._selectedEntity=e.entity_id}}
               aria-label=${i}
               aria-pressed=${r?"true":"false"}>
-              <ha-icon .icon=${l} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-              ${r?N`<span class="tab-label">${d}</span>`:B}
+              <ha-icon .icon=${c?.icon||"mdi:home"} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
             </button>
           `})}
       </div>
@@ -8811,14 +8810,6 @@
     .entity-tab.active.cool {
       background: var(--cl-cool-bg); color: var(--cl-cool);
       box-shadow: 0 1px 6px rgba(56,189,248,0.15);
-    }
-    .tab-label {
-      font-size: var(--fz-xs, 12px);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 5rem;
     }
 
     /* ── Arc gauge ── */

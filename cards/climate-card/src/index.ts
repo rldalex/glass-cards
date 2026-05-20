@@ -945,15 +945,12 @@ export class GlassClimateCard extends BaseCard {
           const area = areaId ? this.hass?.areas[areaId] : null;
           const roomIcon = area?.icon || 'mdi:home';
 
-          const roomName = area?.name || friendlyName.split(' ')[0];
-
           return html`
             <button class="entity-tab ${isSelected ? 'active' : ''} ${colorClass}"
               @click=${() => { this._selectedEntity = entity.entity_id; }}
               aria-label=${friendlyName}
               aria-pressed=${isSelected ? 'true' : 'false'}>
               <ha-icon .icon=${roomIcon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-              ${isSelected ? html`<span class="tab-label">${roomName}</span>` : nothing}
             </button>
           `;
         })}
@@ -1442,14 +1439,6 @@ export class GlassClimateCard extends BaseCard {
     .entity-tab.active.cool {
       background: var(--cl-cool-bg); color: var(--cl-cool);
       box-shadow: 0 1px 6px rgba(56,189,248,0.15);
-    }
-    .tab-label {
-      font-size: var(--fz-xs, 12px);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 5rem;
     }
 
     /* ── Arc gauge ── */
