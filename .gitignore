@@ -41,6 +41,7 @@ ha-test-config/
 # Temporary screenshots & logs
 tmp-*.png
 .playwright-mcp/
+.scratch/
 
 # Dev harness screenshots (local debug artifacts)
 dev/*.png

@@ -173,92 +173,102 @@ export class ConfigTabFan extends BaseConfigTab {
     void this._lang;
     if (!this.hass) return html``;
 
+    const hasRoom = !!this._fanRoom;
+    const fans = this._fanRoomEntities;
+
     return html`
-      <div class="tab-panel" id="panel-fan">
+      <div class="tab-panel fan-tab" id="panel-fan">
         <glass-fan-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-fan-card>
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._fanShowHeader ? 'true' : 'false'}
-            @click=${() => { this._fanShowHeader = !this._fanShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.fan_show_header')}</div>
-              <div class="feature-desc">${t('config.fan_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._fanShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
+        <div class="cfg-info">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          <span>${t('config.fan_dashboard_info')}</span>
         </div>
 
-        <!-- Per-room fan config -->
-        <div class="section-label">${t('config.fan_room')}</div>
-        <div class="section-desc">${t('config.fan_room_desc')}</div>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
+            </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.fan_show_header',
+              descKey: 'config.fan_show_header_desc',
+              on: this._fanShowHeader,
+              onToggle: () => { this._fanShowHeader = !this._fanShowHeader; },
+            })}
+          </div>
+        </section>
 
-        ${this._fanRoom ? html`
-          ${this._fanRoomEntities.length > 0 ? html`
-            <div class="section-label">${t('config.fan_list_title')} (${this._fanRoomEntities.length})</div>
-            <div class="section-desc">${t('config.fan_list_banner')}</div>
-            <div class="item-list">
-              ${this._fanRoomEntities.map((e, idx) => {
-                const isDragging = this._dragIdx === idx && this._dragContext === 'fans';
-                const isDropTarget = this._dropIdx === idx && this._dragContext === 'fans';
-                const rowClasses = [
-                  'item-row',
-                  !e.visible ? 'disabled' : '',
-                  isDragging ? 'dragging' : '',
-                  isDropTarget ? 'drop-target' : '',
-                ].filter(Boolean).join(' ');
-                return html`
-                  <div class="item-card">
-                    <div
-                      class=${rowClasses}
-                      draggable="true"
-                      @dragstart=${() => this._onLocalDragStart(idx)}
-                      @dragover=${(ev: DragEvent) => this._onLocalDragOver(idx, ev)}
-                      @dragleave=${() => this._onLocalDragLeave()}
-                      @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
-                      @dragend=${() => this._onLocalDragEnd()}
-                    >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                      </span>
-                      <div class="item-info">
-                        <span class="item-name">${e.name}</span>
-                        <span class="item-meta">${e.entityId}</span>
-                      </div>
-                      <button
-                        class="layout-btn"
-                        @click=${() => this._cycleLayout(e.entityId)}
-                        aria-label="${t('config.light_change_layout_aria')}"
-                        title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+        ${hasRoom ? html`
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">2</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.fan_list_title')}</span>
+                <span class="section-desc">${t('config.fan_list_banner')}</span>
+              </div>
+              ${fans.length > 0 ? html`<span class="cfg-section-count">${fans.length}</span>` : nothing}
+            </header>
+
+            ${fans.length === 0 ? html`
+              <div class="cfg-empty">
+                <ha-icon .icon=${'mdi:fan-off'}></ha-icon>
+                <span>${t('config.fan_no_fans')}</span>
+              </div>
+            ` : html`
+              <div class="item-list">
+                ${fans.map((e, idx) => {
+                  const isDragging = this._dragIdx === idx && this._dragContext === 'fans';
+                  const isDropTarget = this._dropIdx === idx && this._dragContext === 'fans';
+                  const rowClasses = [
+                    'item-row',
+                    !e.visible ? 'disabled' : '',
+                    isDragging ? 'dragging' : '',
+                    isDropTarget ? 'drop-target' : '',
+                  ].filter(Boolean).join(' ');
+                  return html`
+                    <div class="item-card">
+                      <div
+                        class=${rowClasses}
+                        draggable="true"
+                        @dragstart=${() => this._onLocalDragStart(idx)}
+                        @dragover=${(ev: DragEvent) => this._onLocalDragOver(idx, ev)}
+                        @dragleave=${() => this._onLocalDragLeave()}
+                        @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
+                        @dragend=${() => this._onLocalDragEnd()}
                       >
-                        ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
-                      </button>
-                      <button
-                        class="toggle ${e.visible ? 'on' : ''}"
-                        @click=${() => this._toggleEntityVisibility(e.entityId)}
-                        role="switch"
-                        aria-checked=${e.visible ? 'true' : 'false'}
-                        aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                      ></button>
+                        <span class="drag-handle">
+                          <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                        </span>
+                        <div class="item-info">
+                          <span class="item-name">${e.name}</span>
+                          <span class="item-meta">${e.entityId}</span>
+                        </div>
+                        <button
+                          class="layout-btn"
+                          @click=${() => this._cycleLayout(e.entityId)}
+                          aria-label="${t('config.light_change_layout_aria')}"
+                          title="${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}"
+                        >
+                          ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
+                        </button>
+                        <button
+                          class="toggle ${e.visible ? 'on' : ''}"
+                          @click=${() => this._toggleEntityVisibility(e.entityId)}
+                          role="switch"
+                          aria-checked=${e.visible ? 'true' : 'false'}
+                          aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
+                        ></button>
+                      </div>
                     </div>
-                  </div>
-                `;
-              })}
-            </div>
-          ` : html`
-            <div class="banner">
-              <ha-icon .icon=${'mdi:fan-off'}></ha-icon>
-              <span>${t('config.fan_no_fans')}</span>
-            </div>
-          `}
+                  `;
+                })}
+              </div>
+            `}
+          </section>
         ` : nothing}
 
         <div class="save-bar">

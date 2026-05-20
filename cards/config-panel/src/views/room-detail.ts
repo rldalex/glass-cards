@@ -9,6 +9,9 @@ import type { SceneEntry } from '../types';
 import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS } from '../types';
 import { createSaveScheduler } from '../utils/save-scheduler';
 
+/** Explicit "no sensor" sentinel — distinguishes user choice from undecided auto-detect. */
+const NONE_SENTINEL = '__none__';
+
 interface SectionDef {
   id: string;
   label: string;
@@ -74,6 +77,7 @@ export class ConfigRoomDetail extends LitElement {
     if (changedProps.has('areaId') || changedProps.has('hass')) {
       this._loaded = false;
       this._autoOpenDone = false;
+      this._openSections = new Set();
     }
     if (!this._loaded && this.hass && this.areaId) {
       this._loaded = true;
@@ -81,7 +85,6 @@ export class ConfigRoomDetail extends LitElement {
     }
     if (!this._autoOpenDone && this._sections.length > 0) {
       this._autoOpenDone = true;
-      // All folds closed by default
     }
   }
 
@@ -246,7 +249,9 @@ export class ConfigRoomDetail extends LitElement {
   private _toggleSectionVisible(id: string): void {
     this._sections = this._sections.map(s => s.id === id ? { ...s, visible: !s.visible } : s);
     if (!this._sections.find(s => s.id === id)?.visible) {
-      this._openSections.delete(id);
+      const next = new Set(this._openSections);
+      next.delete(id);
+      this._openSections = next;
     }
     this._scheduleSave();
   }
@@ -257,9 +262,10 @@ export class ConfigRoomDetail extends LitElement {
   }
 
   private _toggleSection(sectionId: string): void {
-    if (this._openSections.has(sectionId)) this._openSections.delete(sectionId);
-    else this._openSections.add(sectionId);
-    this.requestUpdate();
+    const next = new Set(this._openSections);
+    if (next.has(sectionId)) next.delete(sectionId);
+    else next.add(sectionId);
+    this._openSections = next;
   }
 
   // ── Drag & drop ──
@@ -300,86 +306,120 @@ export class ConfigRoomDetail extends LitElement {
   // ── Render ──
 
   protected render(): TemplateResult {
-    if (!this._sections.length) return html`<div class="empty-state">Aucune entité dans cette pièce</div>`;
+    if (!this._sections.length) {
+      return html`
+        <div class="cfg-empty">
+          <ha-icon .icon=${'mdi:home-search-outline'}></ha-icon>
+          <span>${t('config.room_no_entities')}</span>
+        </div>
+      `;
+    }
+
+    const visibleCount = this._sections.filter(s => s.visible).length;
 
     return html`
+      <div class="cfg-info">
+        <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+        <span>${t('config.room_detail_info')}</span>
+      </div>
+
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">1</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.room_cards_title')}</span>
+            <span class="section-desc">${t('config.room_cards_desc')}</span>
+          </div>
+          <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: this._sections.length })}">
+            ${visibleCount}/${this._sections.length}
+          </span>
+        </header>
+        <div class="room-sections">
+          ${this._sections.map((sec, idx) => this._renderSectionRow(sec, idx))}
+        </div>
+      </section>
+
       ${this._renderIndicators()}
       ${this._renderSensors()}
 
       ${this._scenes.length > 0 ? html`
-        <div class="section-label">${t('config.popup_scenes')}</div>
-        <div class="scene-chips">
-          ${this._scenes.map((scene, idx) => html`
-            <button
-              class="scene-chip ${scene.visible ? 'on' : ''} ${this._dragIdx === idx && this._dragContext === 'scenes' ? 'dragging' : ''} ${this._dropIdx === idx && this._dragContext === 'scenes' ? 'drop-target' : ''}"
-              draggable="true"
-              @click=${() => this._toggleSceneVisible(scene.entityId)}
-              @dragstart=${(e: DragEvent) => { e.stopPropagation(); this._onDragStart(idx, 'scenes'); }}
-              @dragover=${(e: DragEvent) => { e.preventDefault(); e.stopPropagation(); if (this._dragIdx !== null && this._dragIdx !== idx) this._dropIdx = idx; }}
-              @dragleave=${() => { this._dropIdx = null; }}
-              @drop=${(e: DragEvent) => { e.preventDefault(); e.stopPropagation(); this._onDrop(idx, e); }}
-              @dragend=${() => this._onDragEnd()}
-              aria-label="${scene.visible ? t('common.hide') : t('common.show')} ${scene.name}"
-            >
-              <ha-icon class="chip-drag" .icon=${'mdi:drag'}></ha-icon>
-              <ha-icon .icon=${'mdi:palette'}></ha-icon>
-              <span>${scene.name}</span>
-            </button>
-          `)}
-        </div>
-      ` : nothing}
-
-      <div class="section-label pw-rd-cards-label">${t('config.popup_internal_cards')}</div>
-      <div class="room-sections">
-        ${this._sections.map((sec, idx) => {
-          const isOpen = this._openSections.has(sec.id) && sec.visible;
-          const isDragging = this._dragIdx === idx && this._dragContext === 'sections';
-          const isDropTarget = this._dropIdx === idx && this._dragContext === 'sections';
-
-          return html`
-            <div
-              class="${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
-              draggable="true"
-              @dragstart=${() => this._onDragStart(idx, 'sections')}
-              @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
-              @dragleave=${() => this._onDragLeave()}
-              @drop=${(e: DragEvent) => this._onDrop(idx, e)}
-              @dragend=${() => this._onDragEnd()}
-            >
-              <div class="section-header-wrap ${sec.visible ? '' : 'off'}">
-                <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
-                <button class="section-header" @click=${() => { if (sec.visible) this._toggleSection(sec.id); }}
-                  aria-expanded=${isOpen ? 'true' : 'false'}>
-                  <div class="section-header-icon" style="background:rgba(${sec.color},0.08);border:1px solid rgba(${sec.color},0.12);">
-                    <ha-icon .icon=${sec.icon} style="color:rgb(${sec.color});"></ha-icon>
-                  </div>
-                  <span class="section-title">${sec.label}</span>
-                </button>
-                <button
-                  class="toggle ${sec.visible ? 'on' : ''}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._toggleSectionVisible(sec.id); }}
-                  role="switch"
-                  aria-checked=${sec.visible ? 'true' : 'false'}
-                  aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
-                ></button>
-                ${sec.visible ? html`
-                  <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
-                    @click=${() => this._toggleSection(sec.id)}></ha-icon>
-                ` : nothing}
-              </div>
-              ${sec.visible ? html`
-                <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
-                <div class="section-fold ${isOpen ? 'open' : ''}">
-                  <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
-                    <div class="section-content">
-                      ${isOpen ? this._renderSection(sec) : nothing}
-                    </div>
-                  </div>
-                </div>
-              ` : nothing}
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">5</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.popup_scenes')}</span>
             </div>
-          `;
-        })}
+          </header>
+          <div class="scene-chips">
+            ${this._scenes.map((scene, idx) => html`
+              <button
+                class="scene-chip ${scene.visible ? 'on' : ''} ${this._dragIdx === idx && this._dragContext === 'scenes' ? 'dragging' : ''} ${this._dropIdx === idx && this._dragContext === 'scenes' ? 'drop-target' : ''}"
+                draggable="true"
+                @click=${() => this._toggleSceneVisible(scene.entityId)}
+                @dragstart=${(e: DragEvent) => { e.stopPropagation(); this._onDragStart(idx, 'scenes'); }}
+                @dragover=${(e: DragEvent) => { e.preventDefault(); e.stopPropagation(); if (this._dragIdx !== null && this._dragIdx !== idx) this._dropIdx = idx; }}
+                @dragleave=${() => { this._dropIdx = null; }}
+                @drop=${(e: DragEvent) => { e.preventDefault(); e.stopPropagation(); this._onDrop(idx, e); }}
+                @dragend=${() => this._onDragEnd()}
+                aria-label="${scene.visible ? t('common.hide') : t('common.show')} ${scene.name}"
+              >
+                <ha-icon class="chip-drag" .icon=${'mdi:drag'}></ha-icon>
+                <ha-icon .icon=${'mdi:palette'}></ha-icon>
+                <span>${scene.name}</span>
+              </button>
+            `)}
+          </div>
+        </section>
+      ` : nothing}
+    `;
+  }
+
+  private _renderSectionRow(sec: SectionDef, idx: number): TemplateResult {
+    const isOpen = this._openSections.has(sec.id) && sec.visible;
+    const isDragging = this._dragIdx === idx && this._dragContext === 'sections';
+    const isDropTarget = this._dropIdx === idx && this._dragContext === 'sections';
+
+    return html`
+      <div
+        class="${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+        draggable="true"
+        @dragstart=${() => this._onDragStart(idx, 'sections')}
+        @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
+        @dragleave=${() => this._onDragLeave()}
+        @drop=${(e: DragEvent) => this._onDrop(idx, e)}
+        @dragend=${() => this._onDragEnd()}
+      >
+        <div class="section-header-wrap ${sec.visible ? '' : 'off'}">
+          <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+          <button class="section-header" @click=${() => { if (sec.visible) this._toggleSection(sec.id); }}
+            aria-expanded=${isOpen ? 'true' : 'false'}>
+            <div class="section-header-icon" style="--icon-color:${sec.color};">
+              <ha-icon .icon=${sec.icon}></ha-icon>
+            </div>
+            <span class="section-title">${sec.label}</span>
+          </button>
+          <button
+            class="toggle ${sec.visible ? 'on' : ''}"
+            @click=${(e: Event) => { e.stopPropagation(); this._toggleSectionVisible(sec.id); }}
+            role="switch"
+            aria-checked=${sec.visible ? 'true' : 'false'}
+            aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
+          ></button>
+          ${sec.visible ? html`
+            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
+              @click=${() => this._toggleSection(sec.id)}></ha-icon>
+          ` : nothing}
+        </div>
+        ${sec.visible ? html`
+          <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
+          <div class="section-fold ${isOpen ? 'open' : ''}">
+            <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
+              <div class="section-content">
+                ${isOpen ? this._renderSection(sec) : nothing}
+              </div>
+            </div>
+          </div>
+        ` : nothing}
       </div>
     `;
   }
@@ -404,73 +444,86 @@ export class ConfigRoomDetail extends LitElement {
 
   private _renderIndicators(): TemplateResult {
     return html`
-      <div class="section-label">${t('config.room_indicators')}</div>
-      <div class="section-desc">${t('config.room_indicators_desc')}</div>
-      <div class="feature-list">
-        <button class="feature-row" @click=${() => { this._showLights = !this._showLights; this._scheduleSave(); }}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.room_show_lights')}</div>
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">2</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.room_indicators')}</span>
+            <span class="section-desc">${t('config.room_indicators_desc')}</span>
           </div>
-          <span class="toggle ${this._showLights ? 'on' : ''}" role="switch" aria-checked=${this._showLights ? 'true' : 'false'} aria-label=${t('config.room_show_lights')}></span>
-        </button>
-        <button class="feature-row" @click=${() => { this._showTemperature = !this._showTemperature; this._scheduleSave(); }}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.room_show_temperature')}</div>
-          </div>
-          <span class="toggle ${this._showTemperature ? 'on' : ''}" role="switch" aria-checked=${this._showTemperature ? 'true' : 'false'} aria-label=${t('config.room_show_temperature')}></span>
-        </button>
-        <button class="feature-row" @click=${() => { this._showHumidity = !this._showHumidity; this._scheduleSave(); }}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.room_show_humidity')}</div>
-          </div>
-          <span class="toggle ${this._showHumidity ? 'on' : ''}" role="switch" aria-checked=${this._showHumidity ? 'true' : 'false'} aria-label=${t('config.room_show_humidity')}></span>
-        </button>
-        <button class="feature-row" @click=${() => { this._sortByLights = !this._sortByLights; this._scheduleSave(); }}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb-auto'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.room_sort_by_lights')}</div>
-          </div>
-          <span class="toggle ${this._sortByLights ? 'on' : ''}" role="switch" aria-checked=${this._sortByLights ? 'true' : 'false'} aria-label=${t('config.room_sort_by_lights')}></span>
-        </button>
-        <button class="feature-row" @click=${() => { this._showPresence = !this._showPresence; this._scheduleSave(); }}>
-          <div class="feature-icon"><ha-icon .icon=${'mdi:motion-sensor'}></ha-icon></div>
-          <div class="feature-text">
-            <div class="feature-name">${t('config.room_sort_by_presence')}</div>
-          </div>
-          <span class="toggle ${this._showPresence ? 'on' : ''}" role="switch" aria-checked=${this._showPresence ? 'true' : 'false'} aria-label=${t('config.room_sort_by_presence')}></span>
-        </button>
-      </div>
+        </header>
+        <div class="feature-list">
+          <button class="feature-row" role="switch" aria-checked=${this._showLights ? 'true' : 'false'} @click=${() => { this._showLights = !this._showLights; this._scheduleSave(); }}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.room_show_lights')}</div>
+            </div>
+            <span class="toggle ${this._showLights ? 'on' : ''}"></span>
+          </button>
+          <button class="feature-row" role="switch" aria-checked=${this._showTemperature ? 'true' : 'false'} @click=${() => { this._showTemperature = !this._showTemperature; this._scheduleSave(); }}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.room_show_temperature')}</div>
+            </div>
+            <span class="toggle ${this._showTemperature ? 'on' : ''}"></span>
+          </button>
+          <button class="feature-row" role="switch" aria-checked=${this._showHumidity ? 'true' : 'false'} @click=${() => { this._showHumidity = !this._showHumidity; this._scheduleSave(); }}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.room_show_humidity')}</div>
+            </div>
+            <span class="toggle ${this._showHumidity ? 'on' : ''}"></span>
+          </button>
+          <button class="feature-row" role="switch" aria-checked=${this._sortByLights ? 'true' : 'false'} @click=${() => { this._sortByLights = !this._sortByLights; this._scheduleSave(); }}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb-auto'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.room_sort_by_lights')}</div>
+            </div>
+            <span class="toggle ${this._sortByLights ? 'on' : ''}"></span>
+          </button>
+          <button class="feature-row" role="switch" aria-checked=${this._showPresence ? 'true' : 'false'} @click=${() => { this._showPresence = !this._showPresence; this._scheduleSave(); }}>
+            <div class="feature-icon"><ha-icon .icon=${'mdi:motion-sensor'}></ha-icon></div>
+            <div class="feature-text">
+              <div class="feature-name">${t('config.room_sort_by_presence')}</div>
+            </div>
+            <span class="toggle ${this._showPresence ? 'on' : ''}"></span>
+          </button>
+        </div>
+      </section>
     `;
   }
 
   private _renderSensors(): TemplateResult {
     // Always show — user can choose "none" even if sensors exist
-    const tempLabel = this._tempEntity === '__none__'
+    const tempLabel = this._tempEntity === NONE_SENTINEL
       ? t('config.room_no_sensor')
       : this._tempEntity
         ? this._availableTempEntities.find(s => s.id === this._tempEntity)?.name ?? this._tempEntity
         : t('config.room_auto_detect');
 
-    const humidityLabel = this._humidityEntity === '__none__'
+    const humidityLabel = this._humidityEntity === NONE_SENTINEL
       ? t('config.room_no_sensor')
       : this._humidityEntity
         ? this._availableHumidityEntities.find(s => s.id === this._humidityEntity)?.name ?? this._humidityEntity
         : t('config.room_auto_detect');
 
-    const presenceLabel = this._presenceEntity === '__none__'
+    const presenceLabel = this._presenceEntity === NONE_SENTINEL
       ? t('config.room_no_sensor')
       : this._presenceEntity
         ? this._availablePresenceEntities.find(s => s.id === this._presenceEntity)?.name ?? this._presenceEntity
         : t('config.room_auto_detect');
 
     return html`
-      <div class="section-label">${t('config.room_sensors')}</div>
-      <div class="section-desc">${t('config.room_sensors_desc')}</div>
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">3</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.room_sensors')}</span>
+            <span class="section-desc">${t('config.room_sensors_desc')}</span>
+          </div>
+        </header>
 
-      <div class="feature-name pw-rd-sensor-label">${t('config.room_temp_entity')}</div>
+      <div class="cfg-sublabel">${t('config.room_temp_entity')}</div>
       <div class="dropdown ${this._tempDropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
@@ -504,10 +557,10 @@ export class ConfigRoomDetail extends LitElement {
             </button>
           `)}
           <button
-            class="dropdown-item ${this._tempEntity === '__none__' ? 'active' : ''}"
+            class="dropdown-item ${this._tempEntity === NONE_SENTINEL ? 'active' : ''}"
             role="option"
-            aria-selected=${this._tempEntity === '__none__' ? 'true' : 'false'}
-            @click=${() => this._selectTempEntity('__none__')}
+            aria-selected=${this._tempEntity === NONE_SENTINEL ? 'true' : 'false'}
+            @click=${() => this._selectTempEntity(NONE_SENTINEL)}
           >
             <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
             ${t('config.room_no_sensor')}
@@ -515,7 +568,7 @@ export class ConfigRoomDetail extends LitElement {
         </div>
       </div>
 
-      <div class="feature-name pw-rd-sensor-label">${t('config.room_humidity_entity')}</div>
+      <div class="cfg-sublabel">${t('config.room_humidity_entity')}</div>
       <div class="dropdown ${this._humidityDropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
@@ -549,10 +602,10 @@ export class ConfigRoomDetail extends LitElement {
             </button>
           `)}
           <button
-            class="dropdown-item ${this._humidityEntity === '__none__' ? 'active' : ''}"
+            class="dropdown-item ${this._humidityEntity === NONE_SENTINEL ? 'active' : ''}"
             role="option"
-            aria-selected=${this._humidityEntity === '__none__' ? 'true' : 'false'}
-            @click=${() => this._selectHumidityEntity('__none__')}
+            aria-selected=${this._humidityEntity === NONE_SENTINEL ? 'true' : 'false'}
+            @click=${() => this._selectHumidityEntity(NONE_SENTINEL)}
           >
             <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
             ${t('config.room_no_sensor')}
@@ -560,7 +613,7 @@ export class ConfigRoomDetail extends LitElement {
         </div>
       </div>
 
-      <div class="feature-name pw-rd-sensor-label">${t('config.room_presence_entity')}</div>
+      <div class="cfg-sublabel">${t('config.room_presence_entity')}</div>
       <div class="dropdown ${this._presenceDropdownOpen ? 'open' : ''}">
         <button
           class="dropdown-trigger"
@@ -594,10 +647,10 @@ export class ConfigRoomDetail extends LitElement {
             </button>
           `)}
           <button
-            class="dropdown-item ${this._presenceEntity === '__none__' ? 'active' : ''}"
+            class="dropdown-item ${this._presenceEntity === NONE_SENTINEL ? 'active' : ''}"
             role="option"
-            aria-selected=${this._presenceEntity === '__none__' ? 'true' : 'false'}
-            @click=${() => this._selectPresenceEntity('__none__')}
+            aria-selected=${this._presenceEntity === NONE_SENTINEL ? 'true' : 'false'}
+            @click=${() => this._selectPresenceEntity(NONE_SENTINEL)}
           >
             <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
             ${t('config.room_no_sensor')}
@@ -605,7 +658,16 @@ export class ConfigRoomDetail extends LitElement {
         </div>
       </div>
 
-      <div class="feature-name pw-rd-threshold-label">${t('config.room_thresholds')}</div>
+      </section>
+
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">4</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.room_thresholds_title')}</span>
+            <span class="section-desc">${t('config.room_thresholds_desc')}</span>
+          </div>
+        </header>
       <div class="feature-list">
         <div class="range-row">
           <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer-high'}></ha-icon></div>
@@ -643,7 +705,7 @@ export class ConfigRoomDetail extends LitElement {
           <span class="range-value">${this._humidityThreshold ?? 65}%</span>
         </div>
       </div>
-
+      </section>
     `;
   }
 

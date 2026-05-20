@@ -40,6 +40,8 @@ export class ConfigTabUnassigned extends BaseConfigTab {
   @state() _unassignedEditingEntity: string | null = null;
   @state() _iconPopupEntity: string | null = null;
   @state() _iconSearch = '';
+  @state() _filter: 'all' | 'orphans' = 'all';
+  @state() _collapsedDomains = new Set<string>();
   _iconList: string[] = [];
   _iconLoading = false;
 
@@ -330,13 +332,17 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     const entitySearch = this._unassignedEntitySearch.toLowerCase();
     const areaSearch = this._unassignedAreaSearch.toLowerCase();
 
-    // Filter entities by search
+    const unassignedCount = entities.filter((e) => !e.areaId).length;
+    const totalCount = entities.length;
+
+    // Apply filter (all vs orphans) then search
+    const filterPool = this._filter === 'orphans' ? entities.filter((e) => !e.areaId) : entities;
     const filtered = entitySearch
-      ? entities.filter((e) =>
+      ? filterPool.filter((e) =>
           e.name.toLowerCase().includes(entitySearch) ||
           e.entityId.toLowerCase().includes(entitySearch),
         )
-      : entities;
+      : filterPool;
 
     // Group by domain
     const grouped = new Map<string, EntityAreaEntry[]>();
@@ -346,55 +352,103 @@ export class ConfigTabUnassigned extends BaseConfigTab {
       grouped.set(e.domain, list);
     }
 
-    const unassignedCount = entities.filter((e) => !e.areaId).length;
-
     // Filter areas by search in dropdown
     const filteredAreas = areaSearch
       ? areas.filter((a) => a.name.toLowerCase().includes(areaSearch))
       : areas;
 
-    return html`
-      <div class="tab-panel" id="panel-unassigned">
-        <div class="section-label">${t('config.tab_unassigned')}</div>
-        <div class="section-desc">${t('config.unassigned_desc')}</div>
+    const hasWarn = unassignedCount > 0;
 
-        ${unassignedCount > 0 ? html`
-          <div class="banner pw-ua-banner-warn">
-            <ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon>
-            <span>${t('config.unassigned_count', { count: String(unassignedCount) })}</span>
-          </div>
-        ` : nothing}
+    return html`
+      <div class="tab-panel unassigned-tab" id="panel-unassigned">
+        <div class="cfg-info ${hasWarn ? 'warn' : ''}">
+          <ha-icon .icon=${hasWarn ? 'mdi:alert-circle-outline' : 'mdi:information-outline'}></ha-icon>
+          <span>${hasWarn
+            ? t('config.unassigned_info_warn', { count: String(unassignedCount) })
+            : t('config.unassigned_info_ok')}</span>
+        </div>
 
         ${entities.length === 0 ? html`
-          <div class="banner">
+          <div class="cfg-empty">
             <ha-icon .icon=${'mdi:help-circle-outline'}></ha-icon>
             <span>${t('config.unassigned_no_entities')}</span>
           </div>
         ` : html`
-          <!-- Entity search -->
-          <input
-            type="text"
-            class="dropdown-search pw-ua-search"
-            placeholder="${t('config.search_entity')}"
-            aria-label="${t('config.search_entity')}"
-            .value=${this._unassignedEntitySearch}
-            @input=${(e: InputEvent) => { this._unassignedEntitySearch = (e.target as HTMLInputElement).value; }}
-          />
+          <section class="cfg-section">
+            <header class="cfg-section-head">
+              <span class="cfg-section-num">1</span>
+              <div class="cfg-section-text">
+                <span class="section-label">${t('config.unassigned_list_title')}</span>
+                <span class="section-desc">${t('config.unassigned_list_desc')}</span>
+              </div>
+              ${unassignedCount > 0 ? html`
+                <span class="cfg-section-count" aria-label="${t('config.unassigned_orphan_count_aria', { count: unassignedCount })}">
+                  ${unassignedCount}
+                </span>
+              ` : nothing}
+            </header>
+
+          <div class="ua-toolbar">
+            <input
+              type="text"
+              class="ua-search-input"
+              placeholder="${t('config.search_entity')}"
+              aria-label="${t('config.search_entity')}"
+              .value=${this._unassignedEntitySearch}
+              @input=${(e: InputEvent) => { this._unassignedEntitySearch = (e.target as HTMLInputElement).value; }}
+            />
+            <div class="chip-group ua-filter-chips" role="tablist">
+              <button
+                class="chip ${this._filter === 'all' ? 'active' : ''}"
+                role="tab"
+                aria-selected=${this._filter === 'all' ? 'true' : 'false'}
+                @click=${() => { this._filter = 'all'; }}
+              >
+                ${t('config.unassigned_filter_all')}
+                <span class="chip-count">${totalCount}</span>
+              </button>
+              <button
+                class="chip ${this._filter === 'orphans' ? 'active' : ''} ${unassignedCount > 0 ? 'has-warn' : ''}"
+                role="tab"
+                aria-selected=${this._filter === 'orphans' ? 'true' : 'false'}
+                @click=${() => { this._filter = 'orphans'; }}
+              >
+                ${t('config.unassigned_filter_orphans')}
+                <span class="chip-count">${unassignedCount}</span>
+              </button>
+            </div>
+          </div>
 
           ${filtered.length === 0 ? html`
-            <div class="banner">
-              <ha-icon .icon=${'mdi:magnify'}></ha-icon>
-              <span>${t('config.unassigned_no_results')}</span>
+            <div class="cfg-empty">
+              <ha-icon .icon=${this._filter === 'orphans' && !entitySearch ? 'mdi:check-circle-outline' : 'mdi:magnify'}></ha-icon>
+              <span>${this._filter === 'orphans' && !entitySearch
+                ? t('config.unassigned_all_assigned')
+                : t('config.unassigned_no_results')}</span>
             </div>
           ` : nothing}
 
-          ${[...grouped.entries()].map(([domain, items]) => html`
-            <div class="section-label pw-ua-domain-group">
-              <ha-icon .icon=${domainIcon(domain)} class="pw-ua-domain-icon"></ha-icon>
-              ${domainLabel(domain)}
-              <span class="pw-ua-domain-count">(${items.length})</span>
-            </div>
-            <div class="item-list">
+          ${[...grouped.entries()].map(([domain, items]) => {
+            const isCollapsed = this._collapsedDomains.has(domain);
+            return html`
+            <button
+              class="ua-domain-head ${isCollapsed ? 'collapsed' : ''}"
+              type="button"
+              aria-expanded=${isCollapsed ? 'false' : 'true'}
+              @click=${() => {
+                const next = new Set(this._collapsedDomains);
+                if (next.has(domain)) next.delete(domain);
+                else next.add(domain);
+                this._collapsedDomains = next;
+              }}
+            >
+              <ha-icon class="ua-domain-chev" .icon=${'mdi:chevron-down'}></ha-icon>
+              <ha-icon class="ua-domain-icon" .icon=${domainIcon(domain)}></ha-icon>
+              <span class="ua-domain-label">${domainLabel(domain)}</span>
+              <span class="ua-domain-count">${items.length}</span>
+            </button>
+            <div class="ua-list ${isCollapsed ? 'collapsed' : ''}">
+              <div class="ua-list-inner">
               ${items.map((e) => {
                 const isOpen = this._unassignedDropdownEntity === e.entityId;
                 const isEditing = this._unassignedEditingEntity === e.entityId;
@@ -402,7 +456,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                   <div class="item-card pw-ua-card">
                     <div class="item-row">
                       <button
-                        class="pw-ua-icon-btn"
+                        class="btn-icon xs"
                         title="${t('config.unassigned_change_icon')}"
                         aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
                         @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
@@ -486,8 +540,10 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                   </div>
                 `;
               })}
+              </div>
             </div>
-          `)}
+          `;})}
+          </section>
         `}
 
         <div class="save-bar">

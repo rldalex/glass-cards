@@ -247,115 +247,135 @@ export class ConfigTabCamera extends BaseConfigTab {
       this._initCameraEntityOrder();
     }
 
+    const entityIds = this._cameraEntityOrder;
+    const hiddenSet = new Set(this._cameraHiddenEntities);
+    const visibleCount = entityIds.length - entityIds.filter((id) => hiddenSet.has(id)).length;
+
     return html`
-      <div class="tab-panel" id="panel-camera_carousel">
+      <div class="tab-panel camera-tab" id="panel-camera_carousel">
         <glass-camera-carousel-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-camera-carousel-card>
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._cameraShowHeader ? 'true' : 'false'}
-            @click=${() => { this._cameraShowHeader = !this._cameraShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.camera_show_header')}</div>
-              <div class="feature-desc">${t('config.camera_show_header_desc')}</div>
-            </div>
-            <span class="toggle ${this._cameraShowHeader ? 'on' : ''}"></span>
-          </button>
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._cameraAutoCycle ? 'true' : 'false'}
-            @click=${() => { this._cameraAutoCycle = !this._cameraAutoCycle; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:autorenew'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.camera_auto_cycle')}</div>
-              <div class="feature-desc">${t('config.camera_auto_cycle_desc')}</div>
-            </div>
-            <span class="toggle ${this._cameraAutoCycle ? 'on' : ''}"></span>
-          </button>
+        <div class="cfg-info">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          <span>${t('config.camera_dashboard_info')}</span>
         </div>
 
-        ${this._cameraAutoCycle ? html`
-          <div class="feature-list">
-            <div class="feature-row" style="pointer-events:none;">
-              <div class="feature-icon">
-                <ha-icon .icon=${'mdi:timer-outline'}></ha-icon>
-              </div>
-              <div class="feature-text">
-                <div class="feature-name">${t('config.camera_cycle_interval')}</div>
-                <div class="feature-desc">${t('config.camera_cycle_interval_desc')}</div>
-              </div>
-              <input class="input" type="number" min="3" max="60" style="width:60px;pointer-events:auto;text-align:center;"
-                .value=${String(this._cameraCycleInterval)}
-                @change=${(e: Event) => {
-                  const val = parseInt((e.target as HTMLInputElement).value, 10);
-                  if (!isNaN(val) && val >= 3 && val <= 60) {
-                    this._cameraCycleInterval = val;
-                  }
-                }}
-              />
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
             </div>
-          </div>
-        ` : nothing}
-
-        <!-- Camera entity order -->
-        ${this._cameraEntityOrder.length > 0 ? html`
-          <div class="section-label">${t('config.camera_entity_order')} (${this._cameraEntityOrder.length})</div>
-          <div class="section-desc">${t('config.camera_entity_order_desc')}</div>
-          <div class="item-list">
-            ${this._cameraEntityOrder.map((entityId, idx) => {
-              const isDragging = this._localDragIdx === idx;
-              const isDropTarget = this._localDropIdx === idx;
-              const isVisible = !this._cameraHiddenEntities.includes(entityId);
-              const entity = this.hass?.states[entityId];
-              const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
-              const rowClasses = [
-                'item-row',
-                isDragging ? 'dragging' : '',
-                isDropTarget ? 'drop-target' : '',
-                !isVisible ? 'disabled' : '',
-              ].filter(Boolean).join(' ');
-              return html`
-                <div class="item-card">
-                  <div
-                    class=${rowClasses}
-                    draggable="true"
-                    @dragstart=${() => this._localDragStart(idx)}
-                    @dragover=${(ev: DragEvent) => this._localDragOver(idx, ev)}
-                    @dragleave=${() => this._localDragLeave()}
-                    @drop=${(ev: DragEvent) => this._onDropCameraEntity(idx, ev)}
-                    @dragend=${() => this._localDragEnd()}
-                  >
-                    <span class="drag-handle">
-                      <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                    </span>
-                    <div class="item-info">
-                      <span class="item-name">${name}</span>
-                      <span class="item-meta">${entityId}</span>
-                    </div>
-                    <button
-                      class="toggle ${isVisible ? 'on' : ''}"
-                      @click=${() => this._toggleCameraVisible(entityId)}
-                      role="switch"
-                      aria-checked=${isVisible ? 'true' : 'false'}
-                    ></button>
-                  </div>
-                </div>
-              `;
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.camera_show_header',
+              descKey: 'config.camera_show_header_desc',
+              on: this._cameraShowHeader,
+              onToggle: () => { this._cameraShowHeader = !this._cameraShowHeader; },
+            })}
+            ${this._renderFeatureRow({
+              icon: 'mdi:autorenew',
+              nameKey: 'config.camera_auto_cycle',
+              descKey: 'config.camera_auto_cycle_desc',
+              on: this._cameraAutoCycle,
+              onToggle: () => { this._cameraAutoCycle = !this._cameraAutoCycle; },
             })}
           </div>
-        ` : nothing}
+          ${this._cameraAutoCycle ? html`
+            <div class="feature-list">
+              <div class="feature-row static-row">
+                <div class="feature-icon">
+                  <ha-icon .icon=${'mdi:timer-outline'}></ha-icon>
+                </div>
+                <div class="feature-text">
+                  <div class="feature-name">${t('config.camera_cycle_interval')}</div>
+                  <div class="feature-desc">${t('config.camera_cycle_interval_desc')}</div>
+                </div>
+                <input
+                  class="input cycle-interval-input"
+                  type="number"
+                  min="3"
+                  max="60"
+                  .value=${String(this._cameraCycleInterval)}
+                  @change=${(e: Event) => {
+                    const val = parseInt((e.target as HTMLInputElement).value, 10);
+                    if (!isNaN(val) && val >= 3 && val <= 60) {
+                      this._cameraCycleInterval = val;
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          ` : nothing}
+        </section>
 
-        <!-- Save / Reset -->
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.camera_entity_order')}</span>
+              <span class="section-desc">${t('config.camera_entity_order_desc')}</span>
+            </div>
+            ${entityIds.length > 0 ? html`
+              <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: entityIds.length })}">
+                ${visibleCount}/${entityIds.length}
+              </span>
+            ` : nothing}
+          </header>
+
+          ${entityIds.length === 0 ? html`
+            <div class="cfg-empty">
+              <ha-icon .icon=${'mdi:cctv'}></ha-icon>
+              <span>${t('config.camera_no_cameras')}</span>
+            </div>
+          ` : html`
+            <div class="item-list">
+              ${entityIds.map((entityId, idx) => {
+                const isDragging = this._localDragIdx === idx;
+                const isDropTarget = this._localDropIdx === idx;
+                const isVisible = !hiddenSet.has(entityId);
+                const entity = this.hass?.states[entityId];
+                const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
+                const rowClasses = [
+                  'item-row',
+                  isDragging ? 'dragging' : '',
+                  isDropTarget ? 'drop-target' : '',
+                  !isVisible ? 'disabled' : '',
+                ].filter(Boolean).join(' ');
+                return html`
+                  <div class="item-card">
+                    <div
+                      class=${rowClasses}
+                      draggable="true"
+                      @dragstart=${() => this._localDragStart(idx)}
+                      @dragover=${(ev: DragEvent) => this._localDragOver(idx, ev)}
+                      @dragleave=${() => this._localDragLeave()}
+                      @drop=${(ev: DragEvent) => this._onDropCameraEntity(idx, ev)}
+                      @dragend=${() => this._localDragEnd()}
+                    >
+                      <span class="drag-handle">
+                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
+                      </span>
+                      <div class="item-info">
+                        <span class="item-name">${name}</span>
+                        <span class="item-meta">${entityId}</span>
+                      </div>
+                      <button
+                        class="toggle ${isVisible ? 'on' : ''}"
+                        @click=${() => this._toggleCameraVisible(entityId)}
+                        role="switch"
+                        aria-checked=${isVisible ? 'true' : 'false'}
+                        aria-label="${isVisible ? t('common.hide') : t('common.show')} ${name}"
+                      ></button>
+                    </div>
+                  </div>
+                `;
+              })}
+            </div>
+          `}
+        </section>
+
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
         </div>

@@ -18,6 +18,7 @@ export interface GlassEventMap {
   'media-config-changed': undefined;
   'presence-config-changed': undefined;
   'camera-carousel-config-changed': undefined;
+  'calendar-config-changed': undefined;
   'schedule-changed': { entityId: string };
   // Radio queue feedback events (spotify → media card)
   'radio-queue-started': { count: number };

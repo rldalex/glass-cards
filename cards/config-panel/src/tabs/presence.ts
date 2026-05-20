@@ -216,42 +216,58 @@ export class ConfigTabPresence extends BaseConfigTab {
     const drivingSensors = this._getAvailableDrivingSensors();
     const notifyServices = this._getAvailableNotifyServices();
 
+    const autoMode = this._presencePersonEntities.length === 0;
+    const selectedCount = autoMode ? persons.length : this._presencePersonEntities.length;
+
     return html`
-      <div class="tab-panel" id="panel-presence">
+      <div class="tab-panel presence-tab" id="panel-presence">
         <glass-presence-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-presence-card>
-        <!-- Behaviour -->
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._presenceShowHeader ? 'true' : 'false'}
-            @click=${() => { this._presenceShowHeader = !this._presenceShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.presence_show_header')}</div>
-              <div class="feature-desc">${t('config.presence_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._presenceShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
+        <div class="cfg-info">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          <span>${t('config.presence_dashboard_info')}</span>
         </div>
 
-        <!-- Person entities -->
-        <div class="section-label">${t('config.presence_persons')}</div>
-        <div class="section-desc">${t('config.presence_persons_desc')}</div>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
+            </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.presence_show_header',
+              descKey: 'config.presence_show_header_desc',
+              on: this._presenceShowHeader,
+              onToggle: () => { this._presenceShowHeader = !this._presenceShowHeader; },
+            })}
+          </div>
+        </section>
+
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.presence_persons')}</span>
+              <span class="section-desc">${t('config.presence_persons_desc')}</span>
+            </div>
+            ${persons.length > 0 ? html`
+              <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: selectedCount, total: persons.length })}">
+                ${selectedCount}/${persons.length}
+              </span>
+            ` : nothing}
+          </header>
 
         ${persons.length === 0 ? html`
-          <div class="preview-empty">${t('config.presence_no_persons')}</div>
+          <div class="cfg-empty">
+            <ha-icon .icon=${'mdi:account-off-outline'}></ha-icon>
+            <span>${t('config.presence_no_persons')}</span>
+          </div>
         ` : html`
           <div class="item-list">
             ${this._getOrderedPersons(persons).map((p, idx) => {
               const selected = this._presencePersonEntities.includes(p.entityId);
-              const autoMode = this._presencePersonEntities.length === 0;
               const isDragging = this._personDragIdx === idx;
               const isDropTarget = this._personDropIdx === idx && this._personDragIdx !== null && this._personDragIdx !== idx;
               return html`
@@ -285,10 +301,23 @@ export class ConfigTabPresence extends BaseConfigTab {
             })}
           </div>
         `}
+        </section>
 
-        <!-- Per-person sensor mapping -->
-        <div class="section-label">${t('config.presence_smartphone')}</div>
-        <div class="section-desc">${t('config.presence_smartphone_desc')}</div>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">3</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.presence_per_person')}</span>
+              <span class="section-desc">${t('config.presence_per_person_desc')}</span>
+            </div>
+          </header>
+
+        ${selectedPersons.length === 0 ? html`
+          <div class="cfg-empty">
+            <ha-icon .icon=${'mdi:cellphone-off'}></ha-icon>
+            <span>${t('config.presence_no_persons')}</span>
+          </div>
+        ` : nothing}
 
         ${selectedPersons.map((personId) => {
           const person = persons.find((p) => p.entityId === personId);
@@ -478,6 +507,7 @@ export class ConfigTabPresence extends BaseConfigTab {
             </div>
           `;
         })}
+        </section>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>

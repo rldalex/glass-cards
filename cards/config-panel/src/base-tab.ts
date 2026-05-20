@@ -1,7 +1,7 @@
-import { css, LitElement, type PropertyValues, type TemplateResult } from 'lit';
+import { css, html, nothing, LitElement, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
-import { setLanguage, getLanguage } from '@glass-cards/i18n';
+import { setLanguage, getLanguage, t, type TranslationKey } from '@glass-cards/i18n';
 import { BackendService, type HomeAssistant } from '@glass-cards/base-card';
 import { bus } from '@glass-cards/event-bus';
 import { configPanelStyles } from './styles';
@@ -232,5 +232,37 @@ export abstract class BaseConfigTab extends LitElement {
       entity_layouts: mergedLayouts,
     });
     bus.emit('room-config-changed', { areaId });
+  }
+
+  /**
+   * Render a toggleable feature row (icon + name + optional desc + switch).
+   * Shared markup used across tabs to keep the dashboard config visually consistent.
+   */
+  protected _renderFeatureRow(args: {
+    icon: string;
+    nameKey: TranslationKey;
+    descKey?: TranslationKey;
+    on: boolean;
+    ariaLabel?: string;
+    onToggle: () => void;
+  }): TemplateResult {
+    return html`
+      <button
+        class="feature-row"
+        role="switch"
+        aria-checked=${args.on ? 'true' : 'false'}
+        aria-label=${args.ariaLabel ?? ''}
+        @click=${args.onToggle}
+      >
+        <div class="feature-icon">
+          <ha-icon .icon=${args.icon}></ha-icon>
+        </div>
+        <div class="feature-text">
+          <div class="feature-name">${t(args.nameKey)}</div>
+          ${args.descKey ? html`<div class="feature-desc">${t(args.descKey)}</div>` : nothing}
+        </div>
+        <span class="toggle ${args.on ? 'on' : ''}"></span>
+      </button>
+    `;
   }
 }

@@ -246,68 +246,80 @@ export class ConfigTabClimate extends BaseConfigTab {
     if (!this.hass) return html`${nothing}`;
 
     const entities = this._climateRoomEntities;
+    const visibleCount = entities.filter((e) => e.visible).length;
+    const currentMode = this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode;
+    const setMode = (m: 'list' | 'normal') => {
+      if (this.areaId) this._climateDisplayMode = m;
+      else this._climateDashboardDisplayMode = m;
+    };
 
     return html`
-      <div class="tab-panel" id="panel-climate">
+      <div class="tab-panel climate-tab" id="panel-climate">
         <glass-climate-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-climate-card>
-        <!-- Description -->
-        <div class="sub-section">
-          <div class="section-label">${t('config.tab_climate')}</div>
-          <div class="section-desc">${t('config.climate_desc')}</div>
-        </div>
+        ${!this.areaId ? html`
+          <div class="cfg-info">
+            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+            <span>${t('config.climate_dashboard_info')}</span>
+          </div>
+        ` : nothing}
 
-        <!-- Display mode -->
-        <div class="sub-section">
-          <div class="section-label">${this.areaId ? t('config.climate_display_mode_popup') : t('config.climate_display_mode_dashboard')}</div>
-          <div class="section-desc">${this.areaId ? t('config.climate_display_mode_popup_desc') : t('config.climate_display_mode_dashboard_desc')}</div>
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.climate_display_mode')}</span>
+              <span class="section-desc">${this.areaId ? t('config.climate_display_mode_popup_desc') : t('config.climate_display_mode_dashboard_desc')}</span>
+            </div>
+          </header>
           <div class="chip-group">
-            <button class="chip ${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'list' ? 'active' : ''}"
-              @click=${() => { if (this.areaId) this._climateDisplayMode = 'list'; else this._climateDashboardDisplayMode = 'list'; }}
-              aria-pressed=${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'list' ? 'true' : 'false'}>
+            <button
+              class="chip ${currentMode === 'list' ? 'active' : ''}"
+              @click=${() => setMode('list')}
+              aria-pressed=${currentMode === 'list' ? 'true' : 'false'}
+            >
               <ha-icon .icon=${'mdi:format-list-bulleted'}></ha-icon>
               ${t('config.climate_mode_list')}
             </button>
-            <button class="chip ${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'normal' ? 'active' : ''}"
-              @click=${() => { if (this.areaId) this._climateDisplayMode = 'normal'; else this._climateDashboardDisplayMode = 'normal'; }}
-              aria-pressed=${(this.areaId ? this._climateDisplayMode : this._climateDashboardDisplayMode) === 'normal' ? 'true' : 'false'}>
+            <button
+              class="chip ${currentMode === 'normal' ? 'active' : ''}"
+              @click=${() => setMode('normal')}
+              aria-pressed=${currentMode === 'normal' ? 'true' : 'false'}
+            >
               <ha-icon .icon=${'mdi:gauge'}></ha-icon>
               ${t('config.climate_mode_normal')}
             </button>
           </div>
-        </div>
-
-        <!-- Behaviour -->
-        <div class="sub-section">
-          <div class="section-label">${t('config.behavior')}</div>
           <div class="feature-list">
-            <button
-              class="feature-row"
-              role="switch"
-              aria-checked=${this._climateShowHeader ? 'true' : 'false'}
-              @click=${() => { this._climateShowHeader = !this._climateShowHeader; }}
-            >
-              <div class="feature-icon">
-                <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-              </div>
-              <div class="feature-text">
-                <div class="feature-name">${t('config.climate_show_header')}</div>
-                <div class="feature-desc">${t('config.climate_show_header_desc')}</div>
-              </div>
-              <span class="toggle ${this._climateShowHeader ? 'on' : ''}"></span>
-            </button>
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.climate_show_header',
+              descKey: 'config.climate_show_header_desc',
+              on: this._climateShowHeader,
+              onToggle: () => { this._climateShowHeader = !this._climateShowHeader; },
+            })}
           </div>
-        </div>
+        </section>
 
-        <!-- Room entities -->
-        <div class="sub-section">
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t(this.areaId ? 'config.climate_room_entities' : 'config.climate_dashboard_entities')}</span>
+              <span class="section-desc">${t(this.areaId ? 'config.climate_room_entities_desc' : 'config.climate_dashboard_entities_desc')}</span>
+            </div>
+            ${entities.length > 0 ? html`
+              <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: entities.length })}">
+                ${visibleCount}/${entities.length}
+              </span>
+            ` : nothing}
+          </header>
+
           ${entities.length === 0 ? html`
-            <div class="banner">
+            <div class="cfg-empty">
               <ha-icon .icon=${'mdi:thermostat'}></ha-icon>
               <span>${t('config.climate_no_entities')}</span>
             </div>
           ` : html`
-            <div class="section-label">${t(this.areaId ? 'config.climate_room_entities' : 'config.climate_dashboard_entities')} (${entities.length})</div>
-            <div class="section-desc">${t('config.climate_room_entities_desc')}</div>
             <div class="item-list">
               ${entities.map((e, idx) => {
                 const isDragging = this._localDragIdx === idx;
@@ -349,7 +361,7 @@ export class ConfigTabClimate extends BaseConfigTab {
               })}
             </div>
           `}
-        </div>
+        </section>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>

@@ -29,6 +29,7 @@ import './tabs/weather';
 import './tabs/camera-carousel';
 import './tabs/climate';
 import './tabs/unassigned';
+import './tabs/calendar';
 
 // View components
 import './views/room-list.js';

@@ -195,7 +195,8 @@ export class ConfigTabCover extends BaseConfigTab {
     if (set.has(entityId)) {
       set.delete(entityId);
       this._coverDashboardOrder = this._coverDashboardOrder.filter((id) => id !== entityId);
-      const { [entityId]: _, ...rest } = this._coverDashboardLayouts;
+      const rest = { ...this._coverDashboardLayouts };
+      delete rest[entityId];
       this._coverDashboardLayouts = rest;
     } else {
       set.add(entityId);
@@ -324,9 +325,19 @@ export class ConfigTabCover extends BaseConfigTab {
     const sortedIds = [...ordered, ...remaining];
 
     return html`
-      <div class="sub-section">
-        <div class="section-label">${t('config.cover_dashboard_entities')} (${enabledSet.size}/${all.length})</div>
-        <div class="section-desc">${t('config.cover_dashboard_entities_desc')}</div>
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">2</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.cover_dashboard_entities')}</span>
+            <span class="section-desc">${t('config.cover_dashboard_entities_desc')}</span>
+          </div>
+          ${all.length > 0 ? html`
+            <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: enabledSet.size, total: all.length })}">
+              ${enabledSet.size}/${all.length}
+            </span>
+          ` : nothing}
+        </header>
         <div class="item-list">
           ${sortedIds.map((id, idx) => {
             const entity = all.find((c) => c.entityId === id);
@@ -378,7 +389,7 @@ export class ConfigTabCover extends BaseConfigTab {
             `;
           })}
         </div>
-      </div>
+      </section>
     `;
   }
 
@@ -389,35 +400,46 @@ export class ConfigTabCover extends BaseConfigTab {
     if (!this.hass) return html``;
 
     return html`
-      <div class="tab-panel" id="panel-cover">
+      <div class="tab-panel cover-tab" id="panel-cover">
         <glass-cover-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-cover-card>
-        <div class="section-label">${t('config.behavior')}</div>
-        <div class="feature-list">
-          <button
-            class="feature-row"
-            role="switch"
-            aria-checked=${this._coverShowHeader ? 'true' : 'false'}
-            @click=${() => { this._coverShowHeader = !this._coverShowHeader; }}
-          >
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
+        ${!this._coverRoom ? html`
+          <div class="cfg-info">
+            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+            <span>${t('config.cover_dashboard_info')}</span>
+          </div>
+        ` : nothing}
+
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
             </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.cover_show_header')}</div>
-              <div class="feature-desc">${t('config.cover_show_header_desc')}</div>
-            </div>
-            <span
-              class="toggle ${this._coverShowHeader ? 'on' : ''}"
-            ></span>
-          </button>
-        </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.cover_show_header',
+              descKey: 'config.cover_show_header_desc',
+              on: this._coverShowHeader,
+              onToggle: () => { this._coverShowHeader = !this._coverShowHeader; },
+            })}
+          </div>
+        </section>
 
         ${!this._coverRoom ? this._renderDashboardEntities() : nothing}
         ${this._coverRoom ? html`
           ${this._coverRoomEntities.length > 0 ? html`
-            <div class="section-label">${t('config.cover_list_title')} (${this._coverRoomEntities.length})</div>
-            <div class="section-desc">${t('config.cover_list_banner')}</div>
-            <div class="item-list">
+            <section class="cfg-section">
+              <header class="cfg-section-head">
+                <span class="cfg-section-num">2</span>
+                <div class="cfg-section-text">
+                  <span class="section-label">${t('config.cover_list_title')}</span>
+                  <span class="section-desc">${t('config.cover_list_banner')}</span>
+                </div>
+                <span class="cfg-section-count">${this._coverRoomEntities.length}</span>
+              </header>
+              <div class="item-list">
               ${this._coverRoomEntities.map((e, idx) => {
                 const isDragging = this._dragIdx === idx && this._dragContext === 'covers';
                 const isDropTarget = this._dropIdx === idx && this._dragContext === 'covers';
@@ -512,7 +534,7 @@ export class ConfigTabCover extends BaseConfigTab {
                             />
                             <button
                               class="preset-add-btn small"
-                              style="opacity:${this._coverEntityPresetInput[e.entityId] ? '1' : '0.4'};pointer-events:${this._coverEntityPresetInput[e.entityId] ? 'auto' : 'none'};"
+                              ?disabled=${!this._coverEntityPresetInput[e.entityId]}
                               @click=${() => this._addEntityPreset(e.entityId)}
                               aria-label="${t('config.cover_preset_add')}"
                             >
@@ -536,11 +558,20 @@ export class ConfigTabCover extends BaseConfigTab {
                 `;
               })}
             </div>
+            </section>
           ` : html`
-            <div class="banner">
-              <ha-icon .icon=${'mdi:blinds-open'}></ha-icon>
-              <span>${t('config.cover_no_covers')}</span>
-            </div>
+            <section class="cfg-section">
+              <header class="cfg-section-head">
+                <span class="cfg-section-num">2</span>
+                <div class="cfg-section-text">
+                  <span class="section-label">${t('config.cover_list_title')}</span>
+                </div>
+              </header>
+              <div class="cfg-empty">
+                <ha-icon .icon=${'mdi:blinds-open'}></ha-icon>
+                <span>${t('config.cover_no_covers')}</span>
+              </div>
+            </section>
           `}
         ` : nothing}
 

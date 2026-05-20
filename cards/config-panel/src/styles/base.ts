@@ -877,12 +877,30 @@ export const baseStyles = css`
         font-size: var(--fz-md); font-weight: 600; color: var(--t1);
         min-width: 1.75rem; text-align: center;
       }
+      /* Auto-close timer row variants */
+      .autoclose-row { padding: 0.375rem 0.75rem; }
+      .autoclose-icon {
+        background: rgba(var(--rgb-accent), 0.08);
+        border-color: rgba(var(--rgb-accent), 0.12);
+      }
+      .autoclose-icon ha-icon { color: var(--c-accent); }
+      .autoclose-value {
+        min-width: 3.5rem;
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+      }
 
       /* ── Dot (status indicator) ── */
       .dot {
         width: 0.375rem; height: 0.375rem;
         border-radius: 50%;
         flex-shrink: 0;
+        background: var(--t4);
+      }
+      .dot.playing {
+        background: var(--c-info);
+        box-shadow: 0 0 6px rgba(var(--rgb-info), 0.4);
       }
 
       /* ── Utility spacing ── */
@@ -1032,7 +1050,417 @@ export const baseStyles = css`
         font-weight: 600;
       }
 
-      /* ── Room grid ── */
+      /* ── Unassigned tab — toolbar + filter chips + domain folds ── */
+      .ua-toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 0.5rem 0 0.5rem;
+      }
+      .ua-search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--b2);
+        background: var(--s1);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: var(--fz-md);
+        outline: none;
+        transition: border-color var(--t-fast);
+        box-sizing: border-box;
+      }
+      .ua-search-input::placeholder { color: var(--t4); }
+      .ua-search-input:focus { border-color: var(--b3); }
+
+      .ua-filter-chips {
+        display: flex;
+        gap: 0.375rem;
+      }
+      .ua-filter-chips .chip {
+        flex: 1;
+        justify-content: center;
+        gap: 0.375rem;
+      }
+      .ua-filter-chips .chip-count {
+        font-size: var(--fz-xxs);
+        font-weight: 700;
+        padding: 0.0625rem 0.375rem;
+        border-radius: var(--radius-full);
+        background: var(--s3);
+        color: var(--t3);
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+      }
+      .ua-filter-chips .chip.active .chip-count {
+        background: rgba(var(--rgb-accent), 0.2);
+        color: var(--c-accent);
+      }
+      .ua-filter-chips .chip.has-warn .chip-count {
+        background: rgba(var(--rgb-warning), 0.15);
+        color: var(--c-warning);
+      }
+
+      /* Domain head — collapsible group header */
+      .ua-domain-head {
+        display: grid;
+        grid-template-columns: 1.125rem 1.25rem 1fr auto;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.5rem 0.5rem 0.5rem 0.25rem;
+        margin-top: 0.5rem;
+        background: transparent;
+        border: none;
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .ua-domain-head:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .ua-domain-head:hover .ua-domain-chev,
+        .ua-domain-head:hover .ua-domain-icon { --mdc-icon-color: var(--t2); }
+        .ua-domain-head:hover .ua-domain-label { color: var(--t3); }
+      }
+      .ua-domain-chev {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: var(--t4);
+        transition: transform var(--t-fast);
+      }
+      .ua-domain-head.collapsed .ua-domain-chev { transform: rotate(-90deg); }
+      .ua-domain-icon {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: var(--t3);
+      }
+      .ua-domain-label {
+        font-size: var(--fz-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--t4);
+      }
+      .ua-domain-count {
+        font-size: var(--fz-xxs);
+        font-weight: 700;
+        color: var(--t4);
+        background: var(--s2);
+        padding: 0.0625rem 0.375rem;
+        border-radius: var(--radius-full);
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .ua-list {
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .ua-list-inner {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .ua-list.collapsed { grid-template-rows: 0fr; }
+
+      /* ── Room list (config-panel rooms tab) ─────────────────────────
+         Vertical list of room rows: drag-handle + order badge + main
+         button (icon + name + chevron) + visibility toggle.
+         Mobile-first, 56px row height, large tap targets. */
+      .room-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .room-row {
+        display: grid;
+        grid-template-columns: 1.25rem 1.5rem 1fr 2.25rem;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.5rem 0.375rem 0.25rem;
+        border-radius: var(--radius-md);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        min-height: 3rem;
+        transition: background var(--t-fast), border-color var(--t-fast), opacity var(--t-fast), transform var(--t-fast);
+        cursor: grab;
+      }
+      .room-row:active { cursor: grabbing; }
+      .room-row.dragging { opacity: 0.35; }
+      .room-row.drop-target {
+        border-color: var(--c-accent);
+        background: rgba(var(--rgb-accent), 0.08);
+      }
+      .room-row.off { opacity: 0.55; }
+
+      .room-row-grip {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t4);
+        cursor: grab;
+        --mdc-icon-size: 1rem;
+        line-height: 0;
+        transition: color var(--t-fast);
+      }
+      .room-row-grip::before {
+        content: '';
+        position: absolute;
+        inset: -0.625rem;
+      }
+      .room-row-grip:active { cursor: grabbing; }
+      .room-row:hover .room-row-grip { color: var(--t3); }
+
+      .room-row-num {
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        color: var(--t4);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+      .room-row.off .room-row-num { color: var(--t4); opacity: 0.5; }
+
+      .room-row-main {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.125rem 0;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        text-align: left;
+        outline: none;
+        color: var(--t1);
+        -webkit-tap-highlight-color: transparent;
+        min-width: 0;
+        transition: transform var(--t-fast);
+      }
+      .room-row-main:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+      @media (pointer: coarse) {
+        .room-row-main:active { transform: scale(0.98); }
+      }
+
+      .room-row-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: var(--radius-sm);
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        flex-shrink: 0;
+      }
+      .room-row-icon ha-icon {
+        --mdc-icon-size: 1rem;
+        color: var(--t2);
+      }
+
+      .room-row-name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .room-row-chev {
+        --mdc-icon-size: 1rem;
+        color: var(--t4);
+        flex-shrink: 0;
+        transition: transform var(--t-fast), color var(--t-fast);
+      }
+      .room-row-main:hover .room-row-chev,
+      .room-row-main:focus-visible .room-row-chev {
+        color: var(--t2);
+        transform: translateX(2px);
+      }
+
+      .room-row-toggle {
+        width: 2.25rem;
+        height: 1.25rem;
+        border-radius: var(--radius-full);
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        position: relative;
+        cursor: pointer;
+        outline: none;
+        flex-shrink: 0;
+        transition: background var(--t-fast), border-color var(--t-fast);
+      }
+      /* 44px touch hit-area centred on the toggle for mobile */
+      .room-row-toggle::before {
+        content: '';
+        position: absolute;
+        inset: -0.75rem -0.625rem;
+      }
+      .room-row-toggle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0.125rem;
+        width: 0.875rem;
+        height: 0.875rem;
+        border-radius: 50%;
+        background: var(--t2);
+        transform: translateY(-50%);
+        transition: left var(--t-fast), background var(--t-fast);
+      }
+      .room-row-toggle.on {
+        background: var(--c-accent);
+        border-color: transparent;
+      }
+      .room-row-toggle.on::after {
+        left: calc(100% - 1rem);
+        background: rgba(var(--rgb-white), 0.95);
+      }
+      .room-row-toggle:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .room-row:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+      }
+
+      /* Reconfig loading state — spinning icon */
+      .reconfig-loading ha-icon {
+        animation: reconfig-spin 1s linear infinite;
+        --mdc-icon-color: var(--c-accent);
+      }
+      @keyframes reconfig-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .reconfig-loading ha-icon { animation: none; }
+      }
+
+      /* ── Preference list (advanced sub-section selector) ─────────
+         Each row: large icon (in tinted square) + name/desc stack + chevron.
+         Danger variant tints icon + name with alert color. */
+      .pref-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .pref-row {
+        display: grid;
+        grid-template-columns: 1.75rem 1fr 1rem;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.375rem 0.5rem 0.375rem 0.25rem;
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        color: var(--t1);
+        min-height: 3rem;
+        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+      }
+      .pref-row:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .pref-row:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+        .pref-row:hover .pref-row-chev {
+          color: var(--t2);
+          transform: translateX(2px);
+        }
+      }
+      @media (pointer: coarse) {
+        .pref-row:active { transform: scale(0.99); }
+      }
+
+      .pref-row-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: var(--radius-sm);
+        background: var(--s2);
+        border: 1px solid var(--b1);
+      }
+      .pref-row-icon ha-icon {
+        --mdc-icon-size: 1rem;
+        color: var(--t2);
+      }
+
+      .pref-row-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        min-width: 0;
+      }
+      .pref-row-name {
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+        line-height: 1.2;
+      }
+      .pref-row-desc {
+        font-size: var(--fz-sm);
+        color: var(--t3);
+        line-height: 1.35;
+      }
+      .pref-row-chev {
+        --mdc-icon-size: 1rem;
+        color: var(--t4);
+        transition: transform var(--t-fast), color var(--t-fast);
+      }
+
+      /* Danger variant — destructive action */
+      .pref-row.danger {
+        background: rgba(var(--rgb-alert), 0.06);
+        border-color: rgba(var(--rgb-alert), 0.25);
+      }
+      .pref-row.danger .pref-row-icon {
+        background: rgba(var(--rgb-alert), 0.12);
+        border-color: rgba(var(--rgb-alert), 0.25);
+      }
+      .pref-row.danger .pref-row-icon ha-icon { color: var(--c-alert); }
+      .pref-row.danger .pref-row-name { color: var(--c-alert); }
+      @media (hover: hover) and (pointer: fine) {
+        .pref-row.danger:hover {
+          background: rgba(var(--rgb-alert), 0.10);
+          border-color: rgba(var(--rgb-alert), 0.35);
+        }
+      }
+
+      /* ── Room grid (legacy, still used elsewhere) ── */
       .room-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
@@ -1165,7 +1593,28 @@ export const baseStyles = css`
       .room-sections {
         display: flex;
         flex-direction: column;
-        gap: 0.375rem;
+        gap: 0.25rem;
+      }
+      /* Wrap each section row (incl. its fold) so the bordered card hugs both. */
+      .room-sections > div {
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        transition: background var(--t-fast), border-color var(--t-fast), opacity var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .room-sections > div:hover {
+          background: var(--s2);
+          border-color: var(--b2);
+        }
+      }
+      .room-sections > div.dragging {
+        opacity: 0.35;
+      }
+      .room-sections > div.drop-target {
+        border-color: var(--c-accent);
+        background: rgba(var(--rgb-accent), 0.08);
       }
 
       /* ── Section header (fold trigger) ── */
@@ -1207,8 +1656,8 @@ export const baseStyles = css`
         margin-left: -0.125rem;
       }
       .scene-chip.on {
-        background: rgba(129, 140, 248, 0.1);
-        border-color: rgba(129, 140, 248, 0.2);
+        background: rgba(var(--rgb-accent), 0.1);
+        border-color: rgba(var(--rgb-accent), 0.2);
         color: var(--c-accent);
       }
       .scene-chip.on ha-icon {
@@ -1218,7 +1667,7 @@ export const baseStyles = css`
       .scene-chip.dragging { opacity: 0.3; }
       .scene-chip.drop-target {
         border-color: var(--c-accent);
-        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.2);
+        box-shadow: 0 0 0 1px rgba(var(--rgb-accent), 0.2);
       }
       @media (hover: hover) and (pointer: fine) {
         .scene-chip:hover {
@@ -1227,7 +1676,7 @@ export const baseStyles = css`
           color: var(--t2);
         }
         .scene-chip.on:hover {
-          background: rgba(129, 140, 248, 0.15);
+          background: rgba(var(--rgb-accent), 0.15);
         }
       }
 
@@ -1235,6 +1684,8 @@ export const baseStyles = css`
         display: flex;
         align-items: center;
         gap: 0;
+        min-height: 3rem;
+        padding: 0.375rem 0.5rem 0.375rem 0.25rem;
       }
       .section-header-wrap .drag-handle {
         flex-shrink: 0;
@@ -1259,11 +1710,7 @@ export const baseStyles = css`
       }
       .section-header-wrap.off { opacity: 0.35; }
       .section-header-wrap.off .section-header { pointer-events: none; }
-      .dragging > .section-header-wrap { opacity: 0.25; }
-      .drop-target > .section-header-wrap {
-        background: rgba(129, 140, 248, 0.06);
-        border-radius: var(--radius-sm);
-      }
+      /* Drag/drop visuals live on the outer wrapper now (.room-sections > div). */
 
       /* Chevron in header-wrap */
       .section-header-wrap > .section-chevron {
@@ -1301,6 +1748,8 @@ export const baseStyles = css`
         -webkit-tap-highlight-color: transparent;
         font-family: inherit;
       }
+      /* Section icon takes its color from the inline --icon-color custom prop
+         (RGB triplet, e.g. 129,140,248). Falls back to accent if unset. */
       .section-header-icon {
         width: 1.75rem;
         height: 1.75rem;
@@ -1309,9 +1758,13 @@ export const baseStyles = css`
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        background: rgba(var(--icon-color, var(--rgb-accent)), 0.08);
+        border: 1px solid rgba(var(--icon-color, var(--rgb-accent)), 0.12);
+        color: rgb(var(--icon-color, var(--rgb-accent)));
       }
       .section-header-icon ha-icon {
         --mdc-icon-size: 0.9375rem;
+        --mdc-icon-color: currentColor;
         display: flex;
         align-items: center;
         justify-content: center;

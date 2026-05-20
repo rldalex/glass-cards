@@ -1,4 +1,4 @@
-import { html, type PropertyValues, type TemplateResult } from 'lit';
+import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
@@ -213,84 +213,122 @@ export class ConfigTabSpotify extends BaseConfigTab {
       ? Object.keys(this.hass.states).filter((id) => id.startsWith('media_player.')).sort()
       : [];
     const selectedEntity = mediaPlayerEntities.find((id) => id === this._spotifyEntity);
+    const speakersTotal = mediaPlayerEntities.length;
+    const speakersVisible = this._spotifyVisibleSpeakers.filter((id) => mediaPlayerEntities.includes(id)).length;
 
     return html`
-      <div class="tab-panel" id="panel-spotify">
+      <div class="tab-panel spotify-tab" id="panel-spotify">
         <glass-spotify-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-spotify-card>
-        <div class="feature-list">
-          <button class="feature-row" role="switch" aria-checked="${this._spotifyShowHeader ? 'true' : 'false'}"
-            @click=${() => { this._spotifyShowHeader = !this._spotifyShowHeader; }}>
-            <div class="feature-icon">
-              <ha-icon .icon=${'mdi:page-layout-header'}></ha-icon>
-            </div>
-            <div class="feature-text">
-              <div class="feature-name">${t('config.spotify_show_header')}</div>
-              <div class="feature-desc">${t('config.spotify_show_header_desc')}</div>
-            </div>
-            <span class="toggle ${this._spotifyShowHeader ? 'on' : ''}"></span>
-          </button>
+        <div class="cfg-info">
+          <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+          <span>${t('config.spotify_dashboard_info')}</span>
         </div>
 
-        <div class="section-label">${t('config.spotify_entity')}</div>
-        <div class="section-desc">${t('config.spotify_entity_desc')}</div>
-        <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => (this._spotifyDropdownOpen = !this._spotifyDropdownOpen)}
-            aria-expanded=${this._spotifyDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${'mdi:spotify'} class="pw-sp-entity-icon"></ha-icon>
-            <span>${selectedEntity || t('common.select')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            ${mediaPlayerEntities.map(
-              (id) => html`
-                <button
-                  class="dropdown-item ${id === this._spotifyEntity ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${id === this._spotifyEntity ? 'true' : 'false'}
-                  @click=${() => this._selectEntity(id)}
-                >
-                  <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-                  ${id}
-                </button>
-              `,
-            )}
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">1</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.spotify_entity')}</span>
+              <span class="section-desc">${t('config.spotify_entity_desc')}</span>
+            </div>
+          </header>
+
+          ${mediaPlayerEntities.length === 0 ? html`
+            <div class="cfg-empty">
+              <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
+              <span>${t('media.no_players')}</span>
+            </div>
+          ` : html`
+            <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
+              <button
+                class="dropdown-trigger"
+                @click=${() => (this._spotifyDropdownOpen = !this._spotifyDropdownOpen)}
+                aria-expanded=${this._spotifyDropdownOpen ? 'true' : 'false'}
+                aria-haspopup="listbox"
+              >
+                <ha-icon .icon=${'mdi:spotify'} class="pw-sp-entity-icon"></ha-icon>
+                <span>${selectedEntity || t('common.select')}</span>
+                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+              </button>
+              <div class="dropdown-menu" role="listbox">
+                ${mediaPlayerEntities.map(
+                  (id) => html`
+                    <button
+                      class="dropdown-item ${id === this._spotifyEntity ? 'active' : ''}"
+                      role="option"
+                      aria-selected=${id === this._spotifyEntity ? 'true' : 'false'}
+                      @click=${() => this._selectEntity(id)}
+                    >
+                      <ha-icon .icon=${'mdi:speaker'}></ha-icon>
+                      ${id}
+                    </button>
+                  `,
+                )}
+              </div>
+            </div>
+          `}
+        </section>
+
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">2</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.display')}</span>
+            </div>
+          </header>
+          <div class="feature-list">
+            ${this._renderFeatureRow({
+              icon: 'mdi:page-layout-header',
+              nameKey: 'config.spotify_show_header',
+              descKey: 'config.spotify_show_header_desc',
+              on: this._spotifyShowHeader,
+              onToggle: () => { this._spotifyShowHeader = !this._spotifyShowHeader; },
+            })}
           </div>
-        </div>
 
-        <div class="section-label">${t('config.spotify_sort_order')}</div>
-        <div class="section-desc">${t('config.spotify_sort_order_desc')}</div>
-        <div class="segmented">
-          <button class="seg-btn ${this._spotifySortOrder === 'recent_first' ? 'active' : ''}"
-            @click=${() => { this._spotifySortOrder = 'recent_first'; }}>
-            ${t('config.spotify_sort_recent')}
-          </button>
-          <button class="seg-btn ${this._spotifySortOrder === 'oldest_first' ? 'active' : ''}"
-            @click=${() => { this._spotifySortOrder = 'oldest_first'; }}>
-            ${t('config.spotify_sort_oldest')}
-          </button>
-        </div>
+          <div class="cfg-sublabel">${t('config.spotify_sort_order')}</div>
+          <div class="cfg-subdesc">${t('config.spotify_sort_order_desc')}</div>
+          <div class="segmented">
+            <button class="seg-btn ${this._spotifySortOrder === 'recent_first' ? 'active' : ''}"
+              @click=${() => { this._spotifySortOrder = 'recent_first'; }}>
+              ${t('config.spotify_sort_recent')}
+            </button>
+            <button class="seg-btn ${this._spotifySortOrder === 'oldest_first' ? 'active' : ''}"
+              @click=${() => { this._spotifySortOrder = 'oldest_first'; }}>
+              ${t('config.spotify_sort_oldest')}
+            </button>
+          </div>
 
-        <div class="section-label">${t('config.spotify_max_items')}</div>
-        <div class="section-desc">${t('config.spotify_max_items_desc')}</div>
-        <div class="range-row">
-          <input
-            type="range"
-            class="range-input"
-            min="1"
-            max="20"
-            .value=${String(this._spotifyMaxItems)}
-            @input=${(e: Event) => { this._spotifyMaxItems = parseInt((e.target as HTMLInputElement).value, 10); }}
-          />
-          <span class="range-value">${this._spotifyMaxItems}</span>
-        </div>
+          <div class="cfg-sublabel">${t('config.spotify_max_items')}</div>
+          <div class="cfg-subdesc">${t('config.spotify_max_items_desc')}</div>
+          <div class="range-row">
+            <input
+              type="range"
+              class="range-input"
+              min="1"
+              max="20"
+              .value=${String(this._spotifyMaxItems)}
+              @input=${(e: Event) => { this._spotifyMaxItems = parseInt((e.target as HTMLInputElement).value, 10); }}
+            />
+            <span class="range-value">${this._spotifyMaxItems}</span>
+          </div>
+        </section>
 
-        <div class="section-label">${t('config.spotify_speakers')}</div>
-        <div class="section-desc">${t('config.spotify_speakers_desc')}</div>
-        ${this._renderSpeakerList()}
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">3</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.spotify_speakers')}</span>
+              <span class="section-desc">${t('config.spotify_speakers_desc')}</span>
+            </div>
+            ${speakersTotal > 0 ? html`
+              <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: speakersVisible, total: speakersTotal })}">
+                ${speakersVisible}/${speakersTotal}
+              </span>
+            ` : nothing}
+          </header>
+          ${this._renderSpeakerList()}
+        </section>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>

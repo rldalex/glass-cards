@@ -631,6 +631,7 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
   presence: { cssVar: '#818cf8',  rgb: '129,140,248' },
   title:    { cssVar: '#818cf8',  rgb: '129,140,248' },
   weather:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
+  calendar: { cssVar: '#4ade80',  rgb: '74,222,128' },
 };
 
 // — Responsive system —
