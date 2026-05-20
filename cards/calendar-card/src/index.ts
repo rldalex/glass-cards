@@ -1,7 +1,17 @@
 import { html, svg, css, nothing, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { BaseCard } from '@glass-cards/base-card';
+import { BaseCard, BackendService } from '@glass-cards/base-card';
 import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT } from '@glass-cards/ui-core';
+
+interface HaCalendarEvent {
+  summary: string;
+  start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
+  description?: string;
+  location?: string;
+}
+
+const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -55,6 +65,8 @@ function prefersReducedMotion(): boolean {
 export class GlassCalendarCard extends BaseCard {
   getCardSize() { return 1; }
 
+  /** Events. When externally provided (e.g. configPreview), the card uses
+   *  them as-is. Otherwise the card fetches them from HA Calendar API. */
   @property({ attribute: false }) events: CalendarEvent[] = [];
   @property({ type: Boolean, attribute: 'show-header' }) showHeader = true;
 
@@ -64,24 +76,137 @@ export class GlassCalendarCard extends BaseCard {
   /** Index of the item that is currently sliding out (above). null when no transition in flight. */
   @state() private _tickerLeavingIdx: number | null = null;
 
+  /** Backend-loaded list of calendar.* entities the user has chosen to hide. */
+  @state() private _hiddenEntities: string[] = [];
+  /** Events fetched from HA Calendar API when no external events are supplied. */
+  @state() private _fetchedEvents: CalendarEvent[] = [];
+
   private _tickerTimer?: ReturnType<typeof setInterval>;
   private _leaveTimer?: ReturnType<typeof setTimeout>;
+  private _refreshTimer?: ReturnType<typeof setInterval>;
+  private _backend?: BackendService;
+  private _configLoaded = false;
+  private _fetchInFlight = false;
   /** Stable id so multiple instances can coexist with aria-controls. */
   private readonly _foldId = `cal-fold-${Math.random().toString(36).slice(2, 9)}`;
 
   connectedCallback(): void {
     super.connectedCallback();
     this._startTicker();
+    this._listen('calendar-config-changed', () => {
+      this._configLoaded = false;
+      this._loadConfigAndFetch();
+    });
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this._stopTicker();
+    this._stopRefreshTimer();
+    this._backend = undefined;
+    this._configLoaded = false;
+  }
+
+  protected willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps as never);
+    if (changedProps.has('hass') && this.hass && !this.configPreview) {
+      if (!this._configLoaded) this._loadConfigAndFetch();
+    }
+  }
+
+  private async _loadConfigAndFetch(): Promise<void> {
+    if (!this.hass) return;
+    if (!this._backend) this._backend = new BackendService(this.hass);
+    try {
+      const result = await this._backend.send<{
+        calendar_card?: { show_header?: boolean; hidden_entities?: string[] };
+      }>('get_config');
+      this._hiddenEntities = result?.calendar_card?.hidden_entities ?? [];
+      if (result?.calendar_card?.show_header !== undefined) {
+        this.showHeader = result.calendar_card.show_header;
+      }
+      this._configLoaded = true;
+    } catch {
+      // Backend unavailable — proceed with defaults
+      this._configLoaded = true;
+    }
+    await this._fetchEvents();
+    this._startRefreshTimer();
+  }
+
+  private _startRefreshTimer(): void {
+    this._stopRefreshTimer();
+    this._refreshTimer = setInterval(() => { void this._fetchEvents(); }, REFRESH_INTERVAL_MS);
+  }
+
+  private _stopRefreshTimer(): void {
+    if (this._refreshTimer) {
+      clearInterval(this._refreshTimer);
+      this._refreshTimer = undefined;
+    }
+  }
+
+  private async _fetchEvents(): Promise<void> {
+    if (!this.hass || this.configPreview || this._fetchInFlight) return;
+    this._fetchInFlight = true;
+    try {
+      const hidden = new Set(this._hiddenEntities);
+      const calendarIds = Object.keys(this.hass.states)
+        .filter((id) => id.startsWith('calendar.') && !hidden.has(id));
+      if (calendarIds.length === 0) {
+        this._fetchedEvents = [];
+        return;
+      }
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      const lists = await Promise.all(
+        calendarIds.map(async (id) => {
+          try {
+            const result = await this.hass!.connection.sendMessagePromise<{ events: HaCalendarEvent[] }>({
+              type: 'calendar/list_events',
+              entity_id: id,
+              start_date_time: startIso,
+              end_date_time: endIso,
+            });
+            return (result?.events ?? []).map((ev) => this._toCardEvent(ev, id));
+          } catch {
+            return [];
+          }
+        }),
+      );
+      const flat = lists.flat();
+      flat.sort((a: CalendarEvent, b: CalendarEvent) => (a.allday ? 0 : 1) - (b.allday ? 0 : 1)
+        || (a.time ?? '').localeCompare(b.time ?? ''));
+      this._fetchedEvents = flat;
+    } finally {
+      this._fetchInFlight = false;
+    }
+  }
+
+  private _toCardEvent(ev: HaCalendarEvent, entityId: string): CalendarEvent {
+    const cal = entityId.split('.')[1] || 'perso';
+    if (ev.start.date && !ev.start.dateTime) {
+      return { title: ev.summary, time: null, cal, allday: true };
+    }
+    const startIso = ev.start.dateTime ?? '';
+    const endIso = ev.end.dateTime ?? '';
+    const startHM = startIso ? startIso.slice(11, 16) : '';
+    const endHM = endIso ? endIso.slice(11, 16) : '';
+    const time = endHM && endHM !== startHM ? `${startHM} - ${endHM}` : startHM || null;
+    const now = new Date();
+    const startDate = startIso ? new Date(startIso) : null;
+    const endDate = endIso ? new Date(endIso) : null;
+    const isNow = !!(startDate && endDate && startDate <= now && endDate >= now);
+    return { title: ev.summary, time, cal, now: isNow };
   }
 
   protected updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps as never);
-    if (changedProps.has('events')) {
+    if (changedProps.has('events') || changedProps.has('_fetchedEvents')) {
       this._stopTicker();
       this._tickerIdx = 0;
       this._tickerLeavingIdx = null;
@@ -91,12 +216,16 @@ export class GlassCalendarCard extends BaseCard {
     }
   }
 
+  private _allEvents(): CalendarEvent[] {
+    return this.events.length > 0 ? this.events : this._fetchedEvents;
+  }
+
   protected _collapseExpanded(): void {
     if (this._open) this._open = false;
   }
 
   private _tickerEvents(): CalendarEvent[] {
-    return this.events.filter(visibleInTicker);
+    return this._allEvents().filter(visibleInTicker);
   }
 
   private _startTicker(): void {
@@ -211,7 +340,7 @@ export class GlassCalendarCard extends BaseCard {
     const now = new Date();
     // Placeholder distribution — when wired to backend, this becomes per-day event counts.
     const dotsByOffset: Record<number, string[]> = {
-      0: this.events.map((e) => e.cal).slice(0, 3),
+      0: this._allEvents().map((e) => e.cal).slice(0, 3),
       1: ['travail'],
       3: ['famille', 'perso'],
     };
@@ -236,7 +365,7 @@ export class GlassCalendarCard extends BaseCard {
   }
 
   private _renderEventList(): TemplateResult {
-    const upcoming = this.events.filter(visibleInTicker);
+    const upcoming = this._allEvents().filter(visibleInTicker);
     if (upcoming.length === 0) {
       return html`
         <div class="v4-event-list">
