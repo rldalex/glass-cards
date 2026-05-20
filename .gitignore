@@ -42,6 +42,10 @@ ha-test-config/
 tmp-*.png
 .playwright-mcp/
 
+# Dev harness screenshots (local debug artifacts)
+dev/*.png
+dev/*.jpg
+
 # Claude Code
 .claude/
 .mcp.json

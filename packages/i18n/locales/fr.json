@@ -540,7 +540,7 @@
     "title_no_icons_found": "Aucune icône trouvée",
     "title_no_icon": "Aucune",
 
-    "dashboard_card_title": "Carte Titre",
+    "dashboard_card_title": "Titre",
     "dashboard_card_title_desc": "Texte titre avec sélecteur de mode optionnel",
 
     "tab_dashboard": "Tableau de bord",
@@ -554,14 +554,14 @@
     "dashboard_dynamic_bg_desc": "Active le fond d'écran jour/nuit animé de Glass Cards.",
     "dashboard_title": "Cartes du tableau de bord",
     "dashboard_desc": "Réorganisez, activez ou désactivez les cartes du tableau de bord. Glissez pour changer l'ordre.",
-    "dashboard_card_weather": "Carte Météo",
+    "dashboard_card_weather": "Météo",
     "dashboard_card_weather_desc": "Affiche la météo actuelle, prévisions et animations",
-    "dashboard_card_light": "Carte Lumières",
+    "dashboard_card_light": "Lumières",
     "dashboard_card_light_desc": "Affiche les lumières allumées avec contrôle rapide",
     "dashboard_light_auto": "Les lumières allumées s'affichent automatiquement sur le tableau de bord.",
-    "dashboard_card_cover": "Carte Volets",
+    "dashboard_card_cover": "Volets",
     "dashboard_card_cover_desc": "Affiche les volets sélectionnés avec contrôle de position",
-    "dashboard_card_spotify": "Carte Spotify",
+    "dashboard_card_spotify": "Spotify",
     "dashboard_card_spotify_desc": "Bibliothèque musicale, recherche et lecture Spotify",
 
     "tab_media": "Carte Média",
@@ -587,7 +587,7 @@
     "media_dashboard_variant": "Variante dashboard",
     "media_dashboard_variant_desc": "Variante utilisée pour la carte média sur le tableau de bord.",
 
-    "dashboard_card_media": "Carte Média",
+    "dashboard_card_media": "Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
 
     "tab_climate": "Thermostat",
@@ -610,9 +610,9 @@
     "dashboard_card_climate": "Thermostat",
     "dashboard_card_climate_desc": "Thermostats et climatiseurs",
 
-    "dashboard_card_fan": "Carte Ventilation",
+    "dashboard_card_fan": "Ventilation",
     "dashboard_card_fan_desc": "Affiche les ventilateurs avec contrôle de vitesse",
-    "dashboard_card_presence": "Carte Présence",
+    "dashboard_card_presence": "Présence",
     "dashboard_card_presence_desc": "Affiche la présence des membres du foyer",
 
     "tab_presence": "Carte Présence",
@@ -672,7 +672,7 @@
     "camera_no_cameras": "Aucune caméra détectée.",
     "camera_list_title": "Caméras",
     "camera_list_banner": "Glissez pour réordonner. Désactivez celles à masquer.",
-    "dashboard_card_camera_carousel": "Carte Caméras",
+    "dashboard_card_camera_carousel": "Caméras",
     "dashboard_card_camera_carousel_desc": "Carrousel de surveillance avec actions rapides",
 
     "tab_spotify": "Carte Spotify",

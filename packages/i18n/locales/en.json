@@ -540,7 +540,7 @@
     "title_no_icons_found": "No icons found",
     "title_no_icon": "None",
 
-    "dashboard_card_title": "Title Card",
+    "dashboard_card_title": "Title",
     "dashboard_card_title_desc": "Title text with optional mode selector",
 
     "tab_dashboard": "Dashboard",
@@ -554,14 +554,14 @@
     "dashboard_dynamic_bg_desc": "Enables the Glass Cards animated day/night background cycle.",
     "dashboard_title": "Dashboard cards",
     "dashboard_desc": "Reorder, enable or disable dashboard cards. Drag to change the order.",
-    "dashboard_card_weather": "Weather Card",
+    "dashboard_card_weather": "Weather",
     "dashboard_card_weather_desc": "Current weather, forecasts and animations",
-    "dashboard_card_light": "Light Card",
+    "dashboard_card_light": "Lights",
     "dashboard_card_light_desc": "Shows active lights with quick controls",
     "dashboard_light_auto": "Active lights are automatically displayed on the dashboard.",
-    "dashboard_card_cover": "Cover Card",
+    "dashboard_card_cover": "Covers",
     "dashboard_card_cover_desc": "Shows selected covers with position controls",
-    "dashboard_card_spotify": "Spotify Card",
+    "dashboard_card_spotify": "Spotify",
     "dashboard_card_spotify_desc": "Music library, search and Spotify playback",
 
     "tab_media": "Media Card",
@@ -587,7 +587,7 @@
     "media_dashboard_variant": "Dashboard variant",
     "media_dashboard_variant_desc": "Variant used for the media card on the dashboard.",
 
-    "dashboard_card_media": "Media Card",
+    "dashboard_card_media": "Media",
     "dashboard_card_media_desc": "Shows media players with transport controls",
 
     "tab_climate": "Climate",
@@ -610,9 +610,9 @@
     "dashboard_card_climate": "Climate",
     "dashboard_card_climate_desc": "Thermostats and HVAC",
 
-    "dashboard_card_fan": "Fan Card",
+    "dashboard_card_fan": "Fans",
     "dashboard_card_fan_desc": "Shows fans with speed controls",
-    "dashboard_card_presence": "Presence Card",
+    "dashboard_card_presence": "Presence",
     "dashboard_card_presence_desc": "Shows household members presence",
 
     "tab_presence": "Presence Card",
@@ -672,7 +672,7 @@
     "camera_no_cameras": "No cameras detected.",
     "camera_list_title": "Cameras",
     "camera_list_banner": "Drag to reorder. Disable those to hide.",
-    "dashboard_card_camera_carousel": "Camera Card",
+    "dashboard_card_camera_carousel": "Cameras",
     "dashboard_card_camera_carousel_desc": "Surveillance carousel with quick actions",
 
     "tab_spotify": "Spotify Card",

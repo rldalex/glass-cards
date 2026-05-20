@@ -1498,65 +1498,348 @@ export const baseStyles = css`
         margin-bottom: 0.25rem;
       }
 
-      /* ── Dashboard card grid ── */
-      .dash-card { position: relative; cursor: grab; user-select: none; -webkit-user-select: none; }
-      .dash-card.off { opacity: 0.5; border-style: dashed; }
-      .dash-card.off .room-card-icon { border-style: dashed; }
-      .dash-card.dragging { opacity: 0.25; transform: scale(0.95); }
-      .dash-card.drop-target { border-color: var(--c-accent); background: rgba(129, 140, 248, 0.06); }
+      /* ═══════════════════════════════════════════════
+         DASHBOARD VIEW — redesign 2026-05
+         "What's on the dashboard, in order" + "What's available"
+         ═══════════════════════════════════════════════ */
 
-      .dash-toggle-row {
+      /* ── Head: title + active count ── */
+      .dash-head {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
-        width: 100%;
-        padding: 0.375rem 0.25rem 0;
-        margin-top: 0.25rem;
-        border-top: 1px solid var(--b1);
+        gap: 1rem;
+        margin-bottom: 0.75rem;
       }
-      .dash-toggle-label {
-        font-size: 7px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        color: var(--t4);
+      .dash-head-text {
+        flex: 1;
+        min-width: 0;
       }
-      .dash-toggle {
+      .dash-head-text .section-label { margin-bottom: 0.125rem; }
+      .dash-count {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.1875rem;
+        padding: 0.375rem 0.625rem;
+        border-radius: var(--radius-md);
+        background: rgba(var(--rgb-accent), 0.1);
+        border: 1px solid rgba(var(--rgb-accent), 0.2);
+        flex-shrink: 0;
+      }
+      .dash-count-num {
+        font-size: var(--fz-lg);
+        font-weight: 700;
+        color: var(--c-accent);
+        font-variant-numeric: tabular-nums;
+      }
+      .dash-count-sep { font-size: var(--fz-sm); color: var(--t4); }
+      .dash-count-total {
+        font-size: var(--fz-sm);
+        color: var(--t3);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ── Active list (vertical, ordered, mirrors dashboard) ── */
+      .dash-active-list {
+        list-style: none;
+        margin: 0; padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .dash-row {
         position: relative;
-        width: 32px; height: 18px; border-radius: 9px;
-        background: var(--s2); border: 1px solid var(--b2);
-        cursor: pointer; transition: background 0.2s var(--ease-std), border-color 0.2s var(--ease-std);
-        padding: 0; outline: none; flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
+        display: grid;
+        grid-template-columns: 1.25rem 1.5rem 1fr 2rem;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.5rem 0.375rem 0.25rem;
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        min-height: 3rem;
+        transition:
+          background var(--t-fast),
+          border-color var(--t-fast),
+          transform var(--t-fast),
+          opacity var(--t-fast);
       }
-      .dash-toggle::before {
+      .dash-row.dragging {
+        opacity: 0.35;
+        transform: scale(0.99);
+      }
+      .dash-row.drop-target {
+        border-color: var(--c-accent);
+        background: rgba(var(--rgb-accent), 0.08);
+      }
+      .dash-row::before {
+        /* Subtle accent rail on the left, only on hover, signals interactivity */
         content: '';
         position: absolute;
-        inset: -0.75rem -0.375rem;
+        left: 0; top: 50%;
+        width: 0.125rem; height: 0;
+        background: var(--c-accent);
+        border-radius: var(--radius-full);
+        transform: translateY(-50%);
+        transition: height var(--t-fast);
+        pointer-events: none;
       }
-      .dash-toggle::after {
-        content: ''; position: absolute; top: 2px; left: 2px;
-        width: 12px; height: 12px; border-radius: 50%;
-        background: var(--t4); transition: transform 0.2s var(--ease-std), background 0.2s var(--ease-std), box-shadow 0.2s var(--ease-std);
-      }
-      .dash-toggle.on { background: rgba(74, 222, 128, 0.2); border-color: rgba(74, 222, 128, 0.3); }
-      .dash-toggle.on::after { transform: translateX(14px); background: var(--c-success); box-shadow: 0 0 6px rgba(74, 222, 128, 0.4); }
-
-      .dash-order {
-        position: absolute; top: 6px; left: 6px;
-        width: 16px; height: 16px; border-radius: 50%;
-        background: var(--s3); border: 1px solid var(--b1);
-        font-size: 8px; font-weight: 700; color: var(--t3);
-        display: flex; align-items: center; justify-content: center; z-index: 2;
+      @media (hover: hover) and (pointer: fine) {
+        .dash-row:hover { background: var(--s2); border-color: var(--b2); }
+        .dash-row:hover::before { height: 60%; }
       }
 
-      .dash-drag-hint {
-        position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
-        color: var(--t4); opacity: 0; transition: opacity 0.2s var(--ease-std); pointer-events: none;
+      /* Grip (drag handle) */
+      .dash-row-grip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t4);
+        cursor: grab;
+        line-height: 0;
+        transition: color var(--t-fast);
       }
-      .dash-drag-hint ha-icon {
-        --mdc-icon-size: 0.75rem;
+      .dash-row-grip:active { cursor: grabbing; }
+      .dash-row:hover .dash-row-grip { color: var(--t3); }
+      .dash-row-grip ha-icon { --mdc-icon-size: 1rem; --mdc-icon-color: currentColor; }
+
+      /* Position number — tabular, dimmed, neutral */
+      .dash-row-pos {
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        color: var(--t4);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+
+      /* Main clickable area: icon + name + chevron */
+      .dash-row-main {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        min-width: 0;
+        padding: 0.25rem 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        color: var(--t1);
+        outline: none;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dash-row-main:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+      .dash-row-icon {
+        flex-shrink: 0;
+        width: 1.75rem; height: 1.75rem;
+        border-radius: var(--radius-sm);
+        background: rgba(var(--icon-color, 129, 140, 248), 0.12);
+        border: 1px solid rgba(var(--icon-color, 129, 140, 248), 0.18);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: rgb(var(--icon-color, 129, 140, 248));
+      }
+      .dash-row-icon ha-icon {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: currentColor;
+        color: currentColor;
+      }
+      .dash-row-name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dash-row-chev {
+        --mdc-icon-size: 1rem;
         --mdc-icon-color: var(--t4);
+        color: var(--t4);
+        opacity: 0;
+        transform: translateX(-0.25rem);
+        transition: opacity var(--t-fast), transform var(--t-fast);
       }
-      .dash-card:hover .dash-drag-hint { opacity: 0.6; }
+      .dash-row:hover .dash-row-chev,
+      .dash-row-main:focus-visible .dash-row-chev {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Hide button (×) — always visible, clear affordance, expands on interaction */
+      .dash-row-hide {
+        width: 2rem; height: 2rem;
+        border-radius: var(--radius-sm);
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t3);
+        padding: 0;
+        outline: none;
+        transition:
+          background var(--t-fast),
+          border-color var(--t-fast),
+          color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dash-row-hide ha-icon {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: currentColor;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .dash-row-hide:hover {
+          background: rgba(var(--rgb-alert), 0.15);
+          border-color: rgba(var(--rgb-alert), 0.35);
+          color: var(--c-alert);
+        }
+      }
+      .dash-row-hide:active {
+        background: rgba(var(--rgb-alert), 0.2);
+        border-color: rgba(var(--rgb-alert), 0.45);
+        color: var(--c-alert);
+      }
+      .dash-row-hide:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+      }
+
+      /* Empty state when no card is active */
+      .dash-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.75rem 1rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-lg);
+        color: var(--t4);
+      }
+      .dash-empty ha-icon { --mdc-icon-size: 1.5rem; --mdc-icon-color: var(--t4); }
+      .dash-empty span {
+        font-size: var(--fz-sm);
+        color: var(--t3);
+        text-align: center;
+        max-width: 24rem;
+      }
+
+      /* ── Divider between active list and disabled chips ── */
+      .dash-divider {
+        height: 1px;
+        margin: 1.25rem 0 1rem;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(var(--rgb-white), 0.08),
+          transparent
+        );
+      }
+      .dash-section-disabled {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.5rem;
+      }
+      .dash-section-count {
+        font-size: var(--fz-xxs);
+        font-weight: 700;
+        color: var(--t4);
+        background: var(--s2);
+        padding: 0.0625rem 0.375rem;
+        border-radius: var(--radius-full);
+        letter-spacing: 0.5px;
+      }
+
+      /* ── Disabled chip grid ── */
+      .dash-chip-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+        gap: 0.375rem;
+      }
+      .dash-chip {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.625rem;
+        background: var(--s1);
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-family: inherit;
+        text-align: left;
+        color: var(--t3);
+        outline: none;
+        opacity: 0.75;
+        transition:
+          background var(--t-fast),
+          border-color var(--t-fast),
+          color var(--t-fast),
+          opacity var(--t-fast),
+          border-style var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dash-chip:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+      }
+      .dash-chip-icon {
+        flex-shrink: 0;
+        width: 1.25rem; height: 1.25rem;
+        border-radius: var(--radius-sm);
+        background: rgba(var(--icon-color, 129, 140, 248), 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: rgb(var(--icon-color, 129, 140, 248));
+      }
+      .dash-chip-icon ha-icon {
+        --mdc-icon-size: 0.875rem;
+        --mdc-icon-color: currentColor;
+        color: currentColor;
+      }
+      .dash-chip-name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--fz-base);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dash-chip-plus {
+        --mdc-icon-size: 0.875rem;
+        --mdc-icon-color: var(--t4);
+        color: var(--t4);
+        opacity: 0;
+        transform: scale(0.85);
+        transition: opacity var(--t-fast), transform var(--t-fast), color var(--t-fast);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .dash-chip:hover {
+          background: rgba(var(--rgb-success), 0.05);
+          border-color: rgba(var(--rgb-success), 0.3);
+          border-style: solid;
+          color: var(--t1);
+          opacity: 1;
+        }
+        .dash-chip:hover .dash-chip-plus {
+          opacity: 1;
+          transform: scale(1);
+          color: var(--c-success);
+        }
+      }
+
+      /* DOMAIN_COLORS pass --icon-color as an RGB triplet "R, G, B"
+         consumed via rgb() / rgba(). Falls back to accent 129,140,248. */
 `;

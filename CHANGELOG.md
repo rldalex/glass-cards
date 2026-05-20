@@ -2,6 +2,50 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.179 (2026-05-20)
+
+### Config Panel — Refonte onglet Dashboard
+- redesign: liste verticale ordonnée pour les cards actives (mirror de l'ordre réel du dashboard) + chip grid pour les cards désactivées
+- feat: badge compteur "actives/total" en accent, position numbered (1, 2, 3...) sur chaque ligne
+- feat: bouton × clairement visible pour désactiver, hover en alert rouge
+- feat: clic sur chip désactivée = active + navigate vers son tab (one-shot workflow)
+- a11y: rail accent gauche au hover, focus-visible, aria-label dynamique selon état
+- fix: hit-area étendue (44px+) sur tous les boutons, tokens couleur via `--rgb-success/accent`
+- i18n: suppression du préfixe "Carte"/"Card" sur tous les libellés du dashboard
+
+### Config Panel — Refonte onglet Titre
+- redesign: 3 sections numérotées (Titre / Sources / Période) avec séparateurs gradient
+- feat: char counter live sur l'input titre (40 chars max, warning à 85%)
+- feat: période en chip-row horizontale (Matin · Après-midi · Soir · Nuit) au lieu de 4 rows verticales
+- feat: éditeur inline qui slide sous la chip sélectionnée avec navigation Précédent/Suivant
+- feat: dot live sur la période active (synchronisé avec l'état de l'entité)
+- feat: color swatches plus grands (1.625rem) avec check icon sur l'actif
+- feat: empty states pour sources et période avec call-to-action
+- feat: dropdown "+ Ajouter une source" avec icônes type-colorées
+
+### Calendar Card — Scaffold MVP
+- feat: nouvelle card `glass-calendar-card` (compact bar + fold)
+- feat: ticker animé 3-state (rolling) avec respect de `prefers-reduced-motion`
+- feat: week-strip forward-looking, event list avec marqueeText sur titres longs
+- feat: légende des 5 calendriers (perso, travail, famille, tâches, anniversaires)
+- a11y: bouton compact avec `aria-expanded` + `aria-controls`, hit-area chevron étendue
+
+### Calendar Card — Fixes session
+- fix: ticker rotation cassée quand `items.length` change (normalisation `activeIdx`)
+- fix: `updated()` ne reset le ticker que si `events` change (au lieu d'à chaque update)
+- fix: marqueeText retiré du ticker (mute textContent casse les ChildParts Lit lors de la rotation classes)
+
+### Climate Card — Fix mode normal
+- fix(climate): boutons stepper +/- en mode normal invisibles sur sub-panel sombre — override `background` et `border-color` plus contrastés
+
+### Dev harness complet
+- feat: harness Vite (`pnpm dev`) avec router `?card=<id>` (landing page + 14 setups)
+- feat: setups pour toutes les cards de prod : climate, config-panel, calendar, light, cover, fan, presence, weather, media, title, spotify, camera-carousel, navbar, popup
+- feat: mock HASS générique (`mock-card-hass.ts`) + mock house complet (`full-house.ts`) avec 50+ entités, callService réactif, mock backend stateful
+- feat: stub `<ha-icon>` (MDI paths embarqués) pour rendu hors HA
+- feat: intégration agentation widget (devDep React) pour annotations visuelles
+- chore: agentation, react, react-dom ajoutés en devDependencies (zéro impact bundle prod)
+
 ## v0.0.178 (2026-04-19)
 
 ### Config Panel — Caméras par pièce

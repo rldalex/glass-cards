@@ -1277,4 +1277,346 @@ export const formStyles = css`
           grid-template-columns: repeat(12, 1fr);
         }
       }
+
+      /* ═══════════════════════════════════════════════
+         TITLE TAB — redesign 2026-05
+         Three numbered sections + period chip-row + inline editor
+         ═══════════════════════════════════════════════ */
+
+      .title-tab .title-section {
+        position: relative;
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+      }
+      .title-tab .title-section:first-of-type {
+        margin-top: 0.75rem;
+        padding-top: 0;
+      }
+      .title-tab .title-section:not(:first-of-type)::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-white), 0.06), transparent);
+      }
+
+      .title-section-head {
+        display: grid;
+        grid-template-columns: 1.5rem 1fr auto;
+        align-items: center;
+        gap: 0.625rem;
+        margin-bottom: 0.625rem;
+      }
+      .title-section-num {
+        width: 1.5rem; height: 1.5rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 50%;
+        background: rgba(var(--rgb-accent), 0.12);
+        border: 1px solid rgba(var(--rgb-accent), 0.22);
+        color: var(--c-accent);
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .title-section-text {
+        display: flex; flex-direction: column; gap: 0.0625rem;
+        min-width: 0;
+      }
+      .title-section-text .section-label { margin: 0; padding: 0; }
+      .title-section-text .section-desc { margin: 0; padding: 0; }
+      .title-section-count {
+        font-size: var(--fz-xxs);
+        font-weight: 700;
+        color: var(--t4);
+        background: var(--s2);
+        padding: 0.0625rem 0.375rem;
+        border-radius: var(--radius-full);
+        letter-spacing: 0.5px;
+      }
+
+      /* ── Title text input + char counter ── */
+      .title-text-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .title-text-field .input { padding-right: 3.5rem; }
+      .title-text-count {
+        position: absolute;
+        right: 0.75rem;
+        font-size: var(--fz-xxs);
+        font-weight: 600;
+        color: var(--t4);
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+        letter-spacing: 0.5px;
+      }
+      .title-text-count.warn { color: var(--c-warning); }
+
+      /* ── Sources empty state ── */
+      .title-sources-empty {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+        font-size: var(--fz-sm);
+      }
+      .title-sources-empty ha-icon {
+        --mdc-icon-size: 1.25rem;
+        --mdc-icon-color: var(--t4);
+        flex-shrink: 0;
+      }
+
+      .title-add-source-wrap {
+        margin-top: 0.5rem;
+      }
+      .title-add-source-btn {
+        border-style: dashed !important;
+      }
+
+      /* ─────────────────────────────────────────────
+         PERIOD — chip row + inline editor
+         ───────────────────────────────────────────── */
+
+      .title-period-head {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        margin-top: 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+      .title-period-head-label {
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--t4);
+      }
+      .title-period-head-desc {
+        font-size: var(--fz-sm);
+        color: var(--t3);
+      }
+
+      .title-period-empty {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        margin-top: 0.875rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+      }
+      .title-period-empty ha-icon {
+        --mdc-icon-size: 1.25rem;
+        --mdc-icon-color: var(--t4);
+        flex-shrink: 0;
+      }
+      .title-period-empty-text {
+        display: flex; flex-direction: column; gap: 0.125rem;
+      }
+      .title-period-empty-text strong {
+        font-size: var(--fz-sm);
+        color: var(--t2);
+        font-weight: 600;
+      }
+      .title-period-empty-text span {
+        font-size: var(--fz-xs);
+        color: var(--t4);
+      }
+
+      /* Horizontal chip row */
+      .title-period-chips-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+      }
+      .title-period-chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4375rem;
+        padding: 0.4375rem 0.75rem 0.4375rem 0.5rem;
+        background: var(--s1);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: var(--fz-base);
+        font-weight: 600;
+        color: var(--t2);
+        outline: none;
+        transition:
+          background var(--t-fast),
+          border-color var(--t-fast),
+          color var(--t-fast),
+          box-shadow var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .title-period-chip:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+      }
+      .title-period-chip-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.25rem; height: 1.25rem;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--chip-tint, var(--t4)) 14%, transparent);
+        color: var(--chip-tint, var(--t3));
+        flex-shrink: 0;
+      }
+      .title-period-chip-icon ha-icon {
+        --mdc-icon-size: 0.875rem;
+        --mdc-icon-color: currentColor;
+        color: currentColor;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .title-period-chip:hover {
+          background: var(--s2);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
+      .title-period-chip.editing {
+        background: color-mix(in srgb, var(--chip-tint, var(--c-accent)) 12%, var(--s2));
+        border-color: var(--chip-tint, var(--c-accent));
+        color: var(--t1);
+        box-shadow: 0 0 0 1px var(--chip-tint, var(--c-accent));
+      }
+      .title-period-chip.live .title-period-chip-live-dot {
+        position: absolute;
+        top: 0.1875rem; right: 0.1875rem;
+        width: 0.375rem; height: 0.375rem;
+        border-radius: 50%;
+        background: var(--c-success);
+        box-shadow: 0 0 0.25rem rgba(var(--rgb-success), 0.6);
+      }
+
+      /* Inline period editor (slides under the chip row) */
+      .title-period-editor {
+        margin-top: 0.625rem;
+        padding: 0.875rem;
+        background: rgba(var(--rgb-black), 0.18);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .title-period-editor-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .title-period-editor-icon {
+        --mdc-icon-size: 1.125rem;
+        flex-shrink: 0;
+      }
+      .title-period-editor-name {
+        flex: 1; min-width: 0;
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+      }
+      .title-period-editor-field {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+      }
+      .title-period-editor-field-label {
+        font-size: var(--fz-xxs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--t4);
+        width: 3rem;
+        flex-shrink: 0;
+      }
+      .title-period-editor-nav {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.25rem;
+        border-top: 1px solid var(--b1);
+      }
+      .title-period-editor-nav .btn-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: none;
+        border: none;
+        color: var(--t3);
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.375rem 0.5rem;
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: background var(--t-fast), color var(--t-fast);
+      }
+      .title-period-editor-nav .btn-link ha-icon {
+        --mdc-icon-size: 1rem;
+        --mdc-icon-color: currentColor;
+      }
+      .title-period-editor-nav .btn-link:hover {
+        background: var(--s2);
+        color: var(--t1);
+      }
+
+      /* ─────────────────────────────────────────────
+         COLOR SWATCHES — larger, labelled, clear selected
+         ───────────────────────────────────────────── */
+
+      .title-color-swatches {
+        display: inline-flex;
+        gap: 0.3125rem;
+        flex-wrap: wrap;
+      }
+      .title-color-swatch {
+        position: relative;
+        width: 1.625rem; height: 1.625rem;
+        border-radius: 50%;
+        border: 1px solid rgba(var(--rgb-white), 0.1);
+        cursor: pointer;
+        outline: none;
+        padding: 0;
+        transition: transform var(--t-fast), box-shadow var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .title-color-swatch::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
+      }
+      .title-color-swatch:hover { transform: scale(1.1); }
+      .title-color-swatch:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: 2px;
+      }
+      .title-color-swatch.neutral { background: var(--t4); }
+      .title-color-swatch.success { background: var(--c-success); }
+      .title-color-swatch.warning { background: var(--c-warning); }
+      .title-color-swatch.info    { background: var(--c-info); }
+      .title-color-swatch.accent  { background: var(--c-accent); }
+      .title-color-swatch.alert   { background: var(--c-alert); }
+      .title-color-swatch .check {
+        --mdc-icon-size: 0.875rem;
+        color: rgba(var(--rgb-white), 0.95);
+        opacity: 0;
+        transition: opacity var(--t-fast);
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; height: 100%;
+      }
+      .title-color-swatch.active {
+        box-shadow:
+          0 0 0 2px rgba(var(--rgb-white), 0.18),
+          0 0 0.5rem rgba(var(--rgb-white), 0.08);
+        transform: scale(1.05);
+      }
+      .title-color-swatch.active .check { opacity: 1; }
 `;

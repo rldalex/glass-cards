@@ -15,17 +15,19 @@ interface DashCardMeta {
   color: string;
 }
 
+/** `color` is an RGB triplet string ("251,191,36") used as `rgb(var(--icon-color))`
+ *  and `rgba(var(--icon-color), x)` for tints. Falls back to accent in the CSS. */
 const DASH_CARD_META: DashCardMeta[] = [
-  { id: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', color: DOMAIN_COLORS.title.cssVar },
-  { id: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', color: DOMAIN_COLORS.light.cssVar },
-  { id: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', color: DOMAIN_COLORS.weather.cssVar },
-  { id: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', color: DOMAIN_COLORS.cover.cssVar },
-  { id: 'climate', icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', color: DOMAIN_COLORS.climate.cssVar },
-  { id: 'fan', icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', color: DOMAIN_COLORS.fan.cssVar },
-  { id: 'media', icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', color: DOMAIN_COLORS.media.cssVar },
-  { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: DOMAIN_COLORS.spotify.cssVar },
-  { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.cssVar },
-  { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.cssVar },
+  { id: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', color: DOMAIN_COLORS.title.rgb },
+  { id: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', color: DOMAIN_COLORS.light.rgb },
+  { id: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', color: DOMAIN_COLORS.weather.rgb },
+  { id: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', color: DOMAIN_COLORS.cover.rgb },
+  { id: 'climate', icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', color: DOMAIN_COLORS.climate.rgb },
+  { id: 'fan', icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', color: DOMAIN_COLORS.fan.rgb },
+  { id: 'media', icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', color: DOMAIN_COLORS.media.rgb },
+  { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: DOMAIN_COLORS.spotify.rgb },
+  { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.rgb },
+  { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.rgb },
 ];
 
 // Map card IDs to sub-section IDs used by tabs
@@ -177,51 +179,107 @@ export class ConfigDashboardView extends LitElement {
       if (!ordered.includes(c.id)) ordered.push(c.id);
     }
 
-    let enabledIdx = 0;
+    // Split into active (in display order) and disabled (alphabetical)
+    const activeIds = ordered.filter((id) => enabledSet.has(id));
+    const disabledIds = ordered
+      .filter((id) => !enabledSet.has(id))
+      .sort((a, b) => {
+        const labelA = t((DASH_CARD_META.find((c) => c.id === a)?.nameKey ?? 'config.dashboard_title') as Parameters<typeof t>[0]);
+        const labelB = t((DASH_CARD_META.find((c) => c.id === b)?.nameKey ?? 'config.dashboard_title') as Parameters<typeof t>[0]);
+        return labelA.localeCompare(labelB);
+      });
 
     return html`
-      <div class="section-label">${t('config.dashboard_title')}</div>
-      <div class="section-desc">${t('config.dashboard_desc')}</div>
-
-      <div class="room-grid pw-db-grid-mt">
-        ${ordered.map((cardId, idx) => {
-          const meta = DASH_CARD_META.find(c => c.id === cardId);
-          if (!meta) return nothing;
-          const enabled = enabledSet.has(cardId);
-          if (enabled) enabledIdx++;
-          const currentOrder = enabled ? enabledIdx : 0;
-          const isDragging = this._dragIdx === idx;
-          const isDropTarget = this._dropIdx === idx && this._dragIdx !== null && this._dragIdx !== idx;
-
-          return html`
-            <div
-              class="room-card dash-card ${enabled ? '' : 'off'} ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
-              draggable="true"
-              @dragstart=${() => this._onDragStart(idx)}
-              @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
-              @dragleave=${() => this._onDragLeave()}
-              @drop=${(e: DragEvent) => this._onDrop(idx, e)}
-              @dragend=${() => this._onDragEnd()}
-              @click=${() => this._navigateToCard(cardId)}
-            >
-              ${enabled ? html`<span class="dash-order">${currentOrder}</span>` : nothing}
-              <div class="room-card-icon" style="--icon-color:${meta.color};">
-                <ha-icon .icon=${meta.icon}></ha-icon>
-              </div>
-              <span class="room-name">${t(meta.nameKey)}</span>
-              <div class="dash-toggle-row">
-                <span class="dash-toggle-label">${enabled ? t('common.enabled') : t('common.disabled')}</span>
-                <button
-                  class="dash-toggle ${enabled ? 'on' : ''}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._toggleCard(cardId); }}
-                  aria-label="${t('common.show')} ${t(meta.nameKey)}"
-                ></button>
-              </div>
-              <span class="dash-drag-hint"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
-            </div>
-          `;
-        })}
+      <div class="dash-head">
+        <div class="dash-head-text">
+          <div class="section-label">${t('config.dashboard_title')}</div>
+          <div class="section-desc">${t('config.dashboard_desc')}</div>
+        </div>
+        <div class="dash-count" aria-label="${activeIds.length} ${t('common.enabled')}">
+          <span class="dash-count-num">${activeIds.length}</span>
+          <span class="dash-count-sep">/</span>
+          <span class="dash-count-total">${ordered.length}</span>
+        </div>
       </div>
+
+      ${activeIds.length === 0 ? html`
+        <div class="dash-empty">
+          <ha-icon .icon=${'mdi:view-dashboard-outline'}></ha-icon>
+          <span>${t('config.dashboard_desc')}</span>
+        </div>
+      ` : html`
+        <ol class="dash-active-list" role="list" aria-label="${t('config.dashboard_title')}">
+          ${activeIds.map((cardId, listIdx) => {
+            const meta = DASH_CARD_META.find((c) => c.id === cardId);
+            if (!meta) return nothing;
+            // Find global idx in `ordered` for drag bookkeeping
+            const idx = ordered.indexOf(cardId);
+            const isDragging = this._dragIdx === idx;
+            const isDropTarget = this._dropIdx === idx && this._dragIdx !== null && this._dragIdx !== idx;
+            return html`
+              <li
+                class="dash-row ${isDragging ? 'dragging' : ''} ${isDropTarget ? 'drop-target' : ''}"
+                draggable="true"
+                @dragstart=${() => this._onDragStart(idx)}
+                @dragover=${(e: DragEvent) => this._onDragOver(idx, e)}
+                @dragleave=${() => this._onDragLeave()}
+                @drop=${(e: DragEvent) => this._onDrop(idx, e)}
+                @dragend=${() => this._onDragEnd()}
+              >
+                <span class="dash-row-grip" aria-hidden="true">
+                  <ha-icon .icon=${'mdi:drag-vertical'}></ha-icon>
+                </span>
+                <span class="dash-row-pos" aria-hidden="true">${listIdx + 1}</span>
+                <button
+                  class="dash-row-main"
+                  type="button"
+                  @click=${() => this._navigateToCard(cardId)}
+                  aria-label="${t('config.dashboard_title')} ${t(meta.nameKey)}"
+                >
+                  <span class="dash-row-icon" style="--icon-color:${meta.color};">
+                    <ha-icon .icon=${meta.icon}></ha-icon>
+                  </span>
+                  <span class="dash-row-name">${t(meta.nameKey)}</span>
+                  <ha-icon class="dash-row-chev" .icon=${'mdi:chevron-right'}></ha-icon>
+                </button>
+                <button
+                  class="dash-row-hide"
+                  type="button"
+                  @click=${() => this._toggleCard(cardId)}
+                  aria-label="${t('common.hide')} ${t(meta.nameKey)}"
+                >
+                  <ha-icon .icon=${'mdi:close'}></ha-icon>
+                </button>
+              </li>
+            `;
+          })}
+        </ol>
+      `}
+
+      ${disabledIds.length === 0 ? nothing : html`
+        <div class="dash-divider"></div>
+        <div class="section-label dash-section-disabled">${t('common.disabled')} <span class="dash-section-count">${disabledIds.length}</span></div>
+        <div class="dash-chip-grid">
+          ${disabledIds.map((cardId) => {
+            const meta = DASH_CARD_META.find((c) => c.id === cardId);
+            if (!meta) return nothing;
+            return html`
+              <button
+                class="dash-chip"
+                type="button"
+                @click=${() => { this._toggleCard(cardId); this._navigateToCard(cardId); }}
+                aria-label="${t('common.show')} ${t(meta.nameKey)}"
+              >
+                <span class="dash-chip-icon" style="--icon-color:${meta.color};">
+                  <ha-icon .icon=${meta.icon}></ha-icon>
+                </span>
+                <span class="dash-chip-name">${t(meta.nameKey)}</span>
+                <ha-icon class="dash-chip-plus" .icon=${'mdi:plus'}></ha-icon>
+              </button>
+            `;
+          })}
+        </div>
+      `}
 
       <div class="section-label mt-lg">${t('config.dashboard_display')}</div>
       <div class="section-desc">${t('config.dashboard_display_desc')}</div>

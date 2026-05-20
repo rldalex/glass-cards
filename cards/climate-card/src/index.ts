@@ -1528,6 +1528,12 @@ export class GlassClimateCard extends BaseCard {
     }
     .normal-stepper {
       width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
+      background: rgba(var(--rgb-white), 0.1);
+      border-color: rgba(var(--rgb-white), 0.18);
+    }
+    .normal-stepper ha-icon { color: var(--t1); }
+    @media (hover: hover) and (pointer: fine) {
+      .normal-stepper:hover { background: rgba(var(--rgb-white), 0.16); border-color: rgba(var(--rgb-white), 0.28); }
     }
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;

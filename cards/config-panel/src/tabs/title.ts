@@ -9,13 +9,17 @@ import { BaseConfigTab } from '../base-tab';
 type SourceType = 'input_select' | 'scenes' | 'booleans';
 type TitleSource = { source_type: SourceType; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] };
 
-const SOURCE_DEFS: { key: SourceType; i18nKey: TranslationKey; icon: string }[] = [
-  { key: 'input_select', i18nKey: 'config.title_source_input_select', icon: 'mdi:form-select' },
-  { key: 'scenes', i18nKey: 'config.title_source_scenes', icon: 'mdi:palette' },
-  { key: 'booleans', i18nKey: 'config.title_source_booleans', icon: 'mdi:toggle-switch' },
+const SOURCE_DEFS: { key: SourceType; i18nKey: TranslationKey; icon: string; tone: string }[] = [
+  { key: 'input_select', i18nKey: 'config.title_source_input_select', icon: 'mdi:form-select', tone: 'info' },
+  { key: 'scenes', i18nKey: 'config.title_source_scenes', icon: 'mdi:palette', tone: 'accent' },
+  { key: 'booleans', i18nKey: 'config.title_source_booleans', icon: 'mdi:toggle-switch', tone: 'success' },
 ];
 
 const COLORS = ['neutral', 'success', 'warning', 'info', 'accent', 'alert'];
+
+const COLOR_LABEL: Record<string, string> = {
+  neutral: 'Neutre', success: 'Vert', warning: 'Orange', info: 'Bleu', accent: 'Violet', alert: 'Rouge',
+};
 
 const DOT_MAP: Record<string, string> = {
   success: 'var(--c-success)', warning: 'var(--c-warning)',
@@ -48,6 +52,8 @@ export class ConfigTabTitle extends BaseConfigTab {
   @state() _periodIconPopupIdx: number | null = null;
   @state() _iconPopupModeIdx: number | null = null;
   @state() _iconSearch = '';
+  /** Index of the period option currently being edited inline (under the chip row). */
+  @state() _periodEditingIdx: number | null = null;
 
   // Non-reactive state
   _titleAddEntitySearch = '';
@@ -802,64 +808,133 @@ export class ConfigTabTitle extends BaseConfigTab {
     `;
   }
 
-  // — Render: Period options editor —
+  // — Render: Period options as horizontal chip-row + inline editor —
 
   private _renderPeriodOptionsEditor(): TemplateResult | typeof nothing {
     const periodEntityId = this._titlePeriodEntity || DEFAULT_PERIOD_ENTITY_ID;
     const periodEntity = this.hass?.states[periodEntityId];
     const haOptions = (periodEntity?.attributes?.options as string[] | undefined) ?? [];
 
-    if (haOptions.length === 0) return nothing;
+    if (haOptions.length === 0) {
+      return html`
+        <div class="title-period-empty">
+          <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
+          <div class="title-period-empty-text">
+            <strong>${t('config.title_period_options')}</strong>
+            <span>${t('config.title_period_options_desc')}</span>
+          </div>
+        </div>
+      `;
+    }
 
+    // Ensure every HA option has an entry in _titlePeriodOptions (one-time bootstrap)
     const optionsMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
+    const missing = haOptions.filter((id) => !optionsMap.has(id));
+    if (missing.length > 0) {
+      this._titlePeriodOptions = [
+        ...this._titlePeriodOptions,
+        ...missing.map((id) => ({ id, label: id, icon: '', color: '' })),
+      ];
+    }
+
+    const currentState = periodEntity?.state ?? '';
 
     return html`
-      <div class="section-label mt-md">${t('config.title_period_options')}</div>
-      <div class="section-desc">${t('config.title_period_options_desc')}</div>
-      <div class="title-modes-list">
-        ${haOptions.map((optionId) => {
-          const configured = optionsMap.get(optionId);
-          const idx = this._titlePeriodOptions.findIndex((o) => o.id === optionId);
-          const icon = configured?.icon || '';
-          const color = configured?.color || '';
-          const defaultVisual = DEFAULT_PERIOD_VISUALS[optionId] || PERIOD_DEFAULT_VISUAL;
+      <div class="title-period-head">
+        <span class="title-period-head-label">${t('config.title_period_options')}</span>
+        <span class="title-period-head-desc">${t('config.title_period_options_desc')}</span>
+      </div>
 
-          // Ensure this option exists in the array
-          if (idx === -1) {
-            this._titlePeriodOptions = [...this._titlePeriodOptions, { id: optionId, label: optionId, icon: '', color: '' }];
-            return nothing;
-          }
+      <div class="title-period-chips-row" role="listbox" aria-label="${t('config.title_period_options')}">
+        ${haOptions.map((optionId) => {
+          const idx = this._titlePeriodOptions.findIndex((o) => o.id === optionId);
+          if (idx === -1) return nothing;
+          const opt = this._titlePeriodOptions[idx];
+          const defaultVisual = DEFAULT_PERIOD_VISUALS[optionId] ?? PERIOD_DEFAULT_VISUAL;
+          const icon = opt.icon || defaultVisual.icon;
+          const colorKey = opt.color || (DEFAULT_PERIOD_VISUALS[optionId]?.color ?? 'neutral');
+          const tint = resolveD(colorKey);
+          const isEditing = this._periodEditingIdx === idx;
+          const isLive = currentState === optionId;
 
           return html`
-            <div class="title-mode-row">
-              <div class="title-mode-header">
-                <ha-icon .icon=${icon || defaultVisual.icon} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;color:${resolveD(color || (DEFAULT_PERIOD_VISUALS[optionId]?.color || 'neutral'))}"></ha-icon>
-                <span class="title-mode-id">${optionId}</span>
-              </div>
-              <div class="title-mode-fields-row">
-                <button
-                  class="title-icon-btn ${icon ? 'has-icon' : ''}"
-                  @click=${() => this._openPeriodIconPopup(idx)}
-                  aria-label="${t('config.title_mode_icon')}"
-                >
-                  <ha-icon .icon=${icon || 'mdi:emoticon-outline'}></ha-icon>
-                </button>
-              </div>
-              <div class="title-color-row">
-                <span class="title-color-label">${t('config.title_mode_color')}</span>
-                <div class="title-color-chips">
-                  ${COLORS.map((c) => html`
-                    <button
-                      class="title-color-chip ${c} ${color === c ? 'active' : ''}"
-                      @click=${() => this._updateTitlePeriodOption(idx, 'color', c)}
-                      aria-label="${t('config.title_mode_color')}: ${c}"
-                    ></button>
-                  `)}
-                </div>
-              </div>
-            </div>
+            <button
+              class="title-period-chip ${isEditing ? 'editing' : ''} ${isLive ? 'live' : ''}"
+              style="--chip-tint:${tint};"
+              role="option"
+              aria-selected=${isEditing ? 'true' : 'false'}
+              @click=${() => { this._periodEditingIdx = isEditing ? null : idx; }}
+            >
+              <span class="title-period-chip-icon"><ha-icon .icon=${icon}></ha-icon></span>
+              <span class="title-period-chip-name">${optionId}</span>
+              ${isLive ? html`<span class="title-period-chip-live-dot" aria-label="actif"></span>` : nothing}
+            </button>
           `;
         })}
+      </div>
+
+      ${this._periodEditingIdx !== null && this._periodEditingIdx < this._titlePeriodOptions.length ? html`
+        ${this._renderPeriodChipEditor(this._periodEditingIdx, haOptions)}
+      ` : nothing}
+    `;
+  }
+
+  private _renderPeriodChipEditor(idx: number, haOptions: string[]): TemplateResult {
+    const opt = this._titlePeriodOptions[idx];
+    const optionId = opt.id;
+    const defaultVisual = DEFAULT_PERIOD_VISUALS[optionId] ?? PERIOD_DEFAULT_VISUAL;
+    const icon = opt.icon || defaultVisual.icon;
+    const colorKey = opt.color || (DEFAULT_PERIOD_VISUALS[optionId]?.color ?? 'neutral');
+
+    return html`
+      <div class="title-period-editor" role="region" aria-label="${optionId}">
+        <div class="title-period-editor-head">
+          <ha-icon class="title-period-editor-icon" .icon=${icon} style="color:${resolveD(colorKey)};"></ha-icon>
+          <span class="title-period-editor-name">${optionId}</span>
+          <button class="btn-icon xs" @click=${() => { this._periodEditingIdx = null; }} aria-label="${t('common.close')}">
+            <ha-icon .icon=${'mdi:close'}></ha-icon>
+          </button>
+        </div>
+
+        <div class="title-period-editor-field">
+          <span class="title-period-editor-field-label">${t('config.title_mode_icon')}</span>
+          <button
+            class="title-icon-btn ${opt.icon ? 'has-icon' : ''}"
+            @click=${() => this._openPeriodIconPopup(idx)}
+            aria-label="${t('config.title_mode_icon')}"
+          >
+            <ha-icon .icon=${icon}></ha-icon>
+          </button>
+        </div>
+
+        <div class="title-period-editor-field">
+          <span class="title-period-editor-field-label">${t('config.title_mode_color')}</span>
+          <div class="title-color-swatches">
+            ${COLORS.map((c) => html`
+              <button
+                class="title-color-swatch ${c} ${colorKey === c ? 'active' : ''}"
+                @click=${() => this._updateTitlePeriodOption(idx, 'color', c)}
+                aria-label="${COLOR_LABEL[c] ?? c}"
+                title="${COLOR_LABEL[c] ?? c}"
+              >
+                <ha-icon class="check" .icon=${'mdi:check'}></ha-icon>
+              </button>
+            `)}
+          </div>
+        </div>
+
+        ${haOptions.length > 1 ? html`
+          <div class="title-period-editor-nav">
+            <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx - 1 + haOptions.length) % haOptions.length; }}>
+              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
+              <span>Précédent</span>
+            </button>
+            <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx + 1) % haOptions.length; }}>
+              <span>Suivant</span>
+              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
+            </button>
+          </div>
+        ` : nothing}
       </div>
     `;
   }
@@ -869,60 +944,96 @@ export class ConfigTabTitle extends BaseConfigTab {
   renderTab(): TemplateResult {
     void this._lang;
     const sources = this._titleSources;
+    const titleChars = this._titleText.length;
+    const titleMax = 40;
+    const sourcesEmpty = sources.length === 0;
 
     return html`
-      <div class="tab-panel" id="panel-title">
+      <div class="tab-panel title-tab" id="panel-title">
         <glass-title-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-title-card>
-        <div class="section-label">${t('config.title_title')}</div>
-        <div class="section-desc">${t('config.title_title_desc')}</div>
-        <input
-          class="input"
-          type="text"
-          .value=${this._titleText}
-          placeholder=${t('config.title_title_placeholder')}
-          @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
-        />
 
-        <div class="section-label mt-md">${t('config.title_mode_source')}</div>
-        <div class="section-desc">${t('config.title_mode_source_desc')}</div>
+        <!-- ─── Section 1 — Titre ─── -->
+        <section class="title-section">
+          <header class="title-section-head">
+            <span class="title-section-num">1</span>
+            <div class="title-section-text">
+              <span class="section-label">${t('config.title_title')}</span>
+              <span class="section-desc">${t('config.title_title_desc')}</span>
+            </div>
+          </header>
+          <div class="title-text-field">
+            <input
+              class="input"
+              type="text"
+              .value=${this._titleText}
+              placeholder=${t('config.title_title_placeholder')}
+              maxlength=${titleMax}
+              @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
+            />
+            <span class="title-text-count ${titleChars > titleMax * 0.85 ? 'warn' : ''}">
+              ${titleChars}/${titleMax}
+            </span>
+          </div>
+        </section>
 
-        <!-- Existing sources -->
-        ${sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
+        <!-- ─── Section 2 — Sources ─── -->
+        <section class="title-section">
+          <header class="title-section-head">
+            <span class="title-section-num">2</span>
+            <div class="title-section-text">
+              <span class="section-label">${t('config.title_mode_source')}</span>
+              <span class="section-desc">${t('config.title_mode_source_desc')}</span>
+            </div>
+            ${!sourcesEmpty ? html`<span class="title-section-count">${sources.length}</span>` : nothing}
+          </header>
 
-        <!-- Add source button -->
-        <div class="mt-md">
-          <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
-            <button
-              class="dropdown-trigger"
-              @click=${() => { this._titleAddSourceDropdownOpen = !this._titleAddSourceDropdownOpen; }}
-              aria-expanded=${this._titleAddSourceDropdownOpen ? 'true' : 'false'}
-              aria-haspopup="listbox"
-            >
-              <ha-icon .icon=${'mdi:plus'}></ha-icon>
-              <span>${t('config.title_add_source')}</span>
-              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-            </button>
-            <div class="dropdown-menu" role="listbox">
-              ${SOURCE_DEFS.map((s) => html`
-                <button
-                  class="dropdown-item"
-                  role="option"
-                  @click=${() => this._addTitleSource(s.key)}
-                >
-                  <ha-icon .icon=${s.icon}></ha-icon>
-                  ${t(s.i18nKey)}
-                </button>
-              `)}
+          ${sourcesEmpty ? html`
+            <div class="title-sources-empty">
+              <ha-icon .icon=${'mdi:cursor-default-click-outline'}></ha-icon>
+              <span>Aucune source. Ajoute un mode pour afficher des boutons interactifs sous le titre.</span>
+            </div>
+          ` : sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
+
+          <div class="title-add-source-wrap">
+            <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
+              <button
+                class="dropdown-trigger title-add-source-btn"
+                @click=${() => { this._titleAddSourceDropdownOpen = !this._titleAddSourceDropdownOpen; }}
+                aria-expanded=${this._titleAddSourceDropdownOpen ? 'true' : 'false'}
+                aria-haspopup="listbox"
+              >
+                <ha-icon .icon=${'mdi:plus'}></ha-icon>
+                <span>${t('config.title_add_source')}</span>
+                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+              </button>
+              <div class="dropdown-menu" role="listbox">
+                ${SOURCE_DEFS.map((s) => html`
+                  <button
+                    class="dropdown-item"
+                    role="option"
+                    @click=${() => this._addTitleSource(s.key)}
+                  >
+                    <ha-icon .icon=${s.icon} style="color:${resolveD(s.tone)};"></ha-icon>
+                    ${t(s.i18nKey)}
+                  </button>
+                `)}
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Period indicator -->
-        <div class="section-label mt-lg">${t('config.title_period_entity')}</div>
-        <div class="section-desc">${t('config.title_period_entity_desc')}</div>
-        ${this._renderPeriodEntityPicker()}
-
-        ${this._renderPeriodOptionsEditor()}
+        <!-- ─── Section 3 — Période ─── -->
+        <section class="title-section">
+          <header class="title-section-head">
+            <span class="title-section-num">3</span>
+            <div class="title-section-text">
+              <span class="section-label">${t('config.title_period_entity')}</span>
+              <span class="section-desc">${t('config.title_period_entity_desc')}</span>
+            </div>
+          </header>
+          ${this._renderPeriodEntityPicker()}
+          ${this._renderPeriodOptionsEditor()}
+        </section>
 
         <div class="save-bar">
           <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
