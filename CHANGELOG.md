@@ -2,6 +2,11 @@
 
 All notable changes to Glass Cards are documented here.
 
+## v0.0.180 (2026-05-20)
+
+### Fixes
+- fix(title): erreur de sauvegarde quand on change l'entité période — `color: ''` était rejeté par la validation backend (regex exige `neutral`/`success`/`warning`/`info`/`accent`/`alert` ou hex `#RRGGBB`). Default désormais à `'neutral'` lors du peuplement automatique des options.
+
 ## v0.0.179 (2026-05-20)
 
 ### Config Panel — Refonte onglet Dashboard

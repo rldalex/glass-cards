@@ -95,7 +95,7 @@ export class ConfigTabTitle extends BaseConfigTab {
     this._titleText = c.title ?? '';
     this._titlePeriodEntity = c.period_entity ?? '';
     this._titlePeriodOptions = (c.period_options ?? []).map((o) => ({
-      id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || '',
+      id: o.id || '', label: o.label || '', icon: o.icon || '', color: o.color || 'neutral',
     }));
     this._titleSources = (c.sources ?? []).map((s) => ({
       source_type: (s.source_type || '') as SourceType,
@@ -312,7 +312,7 @@ export class ConfigTabTitle extends BaseConfigTab {
       if (entity) {
         const options = (entity.attributes.options as string[] | undefined) ?? [];
         const existingMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
-        this._titlePeriodOptions = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: '' });
+        this._titlePeriodOptions = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
       }
     } else if (!entityId) {
       this._titlePeriodOptions = [];
@@ -833,7 +833,7 @@ export class ConfigTabTitle extends BaseConfigTab {
     if (missing.length > 0) {
       this._titlePeriodOptions = [
         ...this._titlePeriodOptions,
-        ...missing.map((id) => ({ id, label: id, icon: '', color: '' })),
+        ...missing.map((id) => ({ id, label: id, icon: '', color: 'neutral' })),
       ];
     }
 
