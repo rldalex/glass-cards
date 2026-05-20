@@ -22,6 +22,9 @@ export interface CalendarEvent {
   cal: string;
   allday?: boolean;
   now?: boolean;
+  /** Days from today: 0 = today, 1 = tomorrow, etc. Undefined for the
+   *  externally-provided preview events (treated as today). */
+  dayOffset?: number;
 }
 
 interface CalDef { color: string; label: string }
@@ -71,6 +74,8 @@ export class GlassCalendarCard extends BaseCard {
   @property({ type: Boolean, attribute: 'show-header' }) showHeader = true;
 
   @state() private _open = false;
+  /** Day selected in the week strip (0 = today, 1 = tomorrow, ..., 6 = +6d). */
+  @state() private _selectedDayOffset = 0;
   /** Current index of the active ticker item. */
   @state() private _tickerIdx = 0;
   /** Index of the item that is currently sliding out (above). null when no transition in flight. */
@@ -189,19 +194,29 @@ export class GlassCalendarCard extends BaseCard {
 
   private _toCardEvent(ev: HaCalendarEvent, entityId: string): CalendarEvent {
     const cal = entityId.split('.')[1] || 'perso';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     if (ev.start.date && !ev.start.dateTime) {
-      return { title: ev.summary, time: null, cal, allday: true };
+      const startDay = new Date(ev.start.date + 'T00:00:00');
+      const dayOffset = Math.round((startDay.getTime() - today.getTime()) / 86400000);
+      return { title: ev.summary, time: null, cal, allday: true, dayOffset };
     }
     const startIso = ev.start.dateTime ?? '';
     const endIso = ev.end.dateTime ?? '';
     const startHM = startIso ? startIso.slice(11, 16) : '';
     const endHM = endIso ? endIso.slice(11, 16) : '';
     const time = endHM && endHM !== startHM ? `${startHM} - ${endHM}` : startHM || null;
-    const now = new Date();
     const startDate = startIso ? new Date(startIso) : null;
     const endDate = endIso ? new Date(endIso) : null;
+    const now = new Date();
     const isNow = !!(startDate && endDate && startDate <= now && endDate >= now);
-    return { title: ev.summary, time, cal, now: isNow };
+    let dayOffset = 0;
+    if (startDate) {
+      const startDay = new Date(startDate);
+      startDay.setHours(0, 0, 0, 0);
+      dayOffset = Math.round((startDay.getTime() - today.getTime()) / 86400000);
+    }
+    return { title: ev.summary, time, cal, now: isNow, dayOffset };
   }
 
   protected updated(changedProps: Map<string, unknown>): void {
@@ -336,23 +351,47 @@ export class GlassCalendarCard extends BaseCard {
     })}`;
   }
 
+  private _eventsForOffset(offset: number): CalendarEvent[] {
+    const all = this._allEvents();
+    if (offset === 0) {
+      // Today: include events explicitly tagged today, plus untagged preview
+      // events (which the card represents as "today" by convention).
+      return all.filter((e) => (e.dayOffset ?? 0) === 0);
+    }
+    return all.filter((e) => e.dayOffset === offset);
+  }
+
+  private _selectDay(offset: number): void {
+    this._selectedDayOffset = offset;
+    if (!this._open) this._open = true;
+  }
+
   private _renderWeekStrip(): TemplateResult {
     const now = new Date();
-    // Placeholder distribution — when wired to backend, this becomes per-day event counts.
-    const dotsByOffset: Record<number, string[]> = {
-      0: this._allEvents().map((e) => e.cal).slice(0, 3),
-      1: ['travail'],
-      3: ['famille', 'perso'],
-    };
+    const all = this._allEvents();
+    const dotsByOffset = new Map<number, string[]>();
+    for (const e of all) {
+      const off = e.dayOffset ?? 0;
+      if (off < 0 || off > 6) continue;
+      const arr = dotsByOffset.get(off) ?? [];
+      arr.push(e.cal);
+      dotsByOffset.set(off, arr);
+    }
     const days: TemplateResult[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(now);
       d.setDate(now.getDate() + i);
       const isToday = i === 0;
-      const dots = (dotsByOffset[i] ?? []).slice(0, 3);
+      const isSelected = i === this._selectedDayOffset;
+      const dots = (dotsByOffset.get(i) ?? []).slice(0, 3);
       days.push(html`
-        <button class="v4-week-day ${isToday ? 'today' : ''}" type="button"
-          aria-label="${DAYS_FR[d.getDay()]} ${d.getDate()}${isToday ? ', aujourd\'hui' : ''}, ${dots.length} événement${dots.length > 1 ? 's' : ''}">
+        <button
+          class="v4-week-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}"
+          type="button"
+          aria-pressed=${isSelected ? 'true' : 'false'}
+          aria-label="${DAYS_FR[d.getDay()]} ${d.getDate()}${isToday ? ', aujourd\'hui' : ''}, ${dots.length} évènement${dots.length > 1 ? 's' : ''}"
+          @click=${(e: Event) => { e.stopPropagation(); this._selectDay(i); }}
+        >
           <span class="v4-week-day-label">${DAYS_FR[d.getDay()]}</span>
           <span class="v4-week-day-num">${d.getDate()}</span>
           <span class="v4-week-day-dots">
@@ -365,21 +404,22 @@ export class GlassCalendarCard extends BaseCard {
   }
 
   private _renderEventList(): TemplateResult {
-    const upcoming = this._allEvents().filter(visibleInTicker);
-    if (upcoming.length === 0) {
+    const events = this._eventsForOffset(this._selectedDayOffset);
+    const isToday = this._selectedDayOffset === 0;
+    if (events.length === 0) {
       return html`
         <div class="v4-event-list">
           <div class="v4-event-empty">
             ${this._calendarIcon('v4-event-empty-icon')}
             <span class="v4-event-empty-title">Rien de prévu</span>
-            <span class="v4-event-empty-sub">Profitez de votre journée</span>
+            <span class="v4-event-empty-sub">${isToday ? 'Profitez de votre journée' : 'Aucun évènement ce jour-là'}</span>
           </div>
         </div>
       `;
     }
     return html`
       <div class="v4-event-list">
-        ${upcoming.map((ev) => {
+        ${events.map((ev) => {
           const color = CAL_COLORS[ev.cal]?.color ?? 'var(--c-accent)';
           const timeLabel = ev.now && ev.time ? `${ev.time} · En cours` : ev.time ?? 'Toute la journée';
           return html`
@@ -567,6 +607,12 @@ export class GlassCalendarCard extends BaseCard {
       transition: background var(--t-fast), color var(--t-fast);
     }
     .v4-week-day.today .v4-week-day-num { background: rgba(var(--rgb-accent), 0.2); color: var(--c-accent); font-weight: 700; }
+    .v4-week-day.selected .v4-week-day-num {
+      background: var(--c-accent);
+      color: rgba(var(--rgb-white), 0.95);
+      font-weight: 700;
+    }
+    .v4-week-day.selected.today .v4-week-day-num { background: var(--c-accent); color: rgba(var(--rgb-white), 0.95); }
     .v4-week-day-dots { display: inline-flex; gap: 0.1875rem; min-height: 0.25rem; }
     .v4-week-dot { width: 0.25rem; height: 0.25rem; border-radius: 50%; }
 
