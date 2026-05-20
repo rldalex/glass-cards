@@ -221,6 +221,7 @@ export function makeMockHass(
 
   const hass: HomeAssistant = {
     states,
+    callApi: async () => [] as never,
     callService: async (domain, service, data, target) => {
       applyService(
         { scenario, displayMode: getDisplayMode(), areaId: null, hass: ctx.hass, onUpdate: onMutate },

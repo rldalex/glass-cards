@@ -168,17 +168,14 @@ export class GlassCalendarCard extends BaseCard {
       end.setDate(end.getDate() + 7);
       const startIso = start.toISOString();
       const endIso = end.toISOString();
+      const qs = `start=${encodeURIComponent(startIso)}&end=${encodeURIComponent(endIso)}`;
       const lists = await Promise.all(
         calendarIds.map(async (id) => {
           try {
-            const result = await this.hass!.connection.sendMessagePromise<{ events: HaCalendarEvent[] }>({
-              type: 'calendar/list_events',
-              entity_id: id,
-              start_date_time: startIso,
-              end_date_time: endIso,
-            });
-            return (result?.events ?? []).map((ev) => this._toCardEvent(ev, id));
-          } catch {
+            const raw = await this.hass!.callApi<HaCalendarEvent[]>('GET', `calendars/${id}?${qs}`);
+            return (Array.isArray(raw) ? raw : []).map((ev) => this._toCardEvent(ev, id));
+          } catch (err) {
+            console.warn(`[glass-calendar-card] failed to fetch events for ${id}`, err);
             return [];
           }
         }),

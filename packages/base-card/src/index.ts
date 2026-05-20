@@ -42,6 +42,11 @@ export interface HomeAssistant {
     data?: Record<string, unknown>,
     target?: { entity_id?: string | string[] },
   ): Promise<void>;
+  callApi<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    parameters?: Record<string, unknown>,
+  ): Promise<T>;
   connection: HassConnection;
   localize(key: string, ...args: unknown[]): string;
   language: string;

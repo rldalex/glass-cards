@@ -477,6 +477,7 @@ export function makeFullHouseHass(onMutate: (h: HomeAssistant) => void): HomeAss
 
   const hass: HomeAssistant = {
     states,
+    callApi: async () => [] as never,
     callService: async (domain, service, data, target) => {
       const next = { ...ctx.hass.states };
       handleService(next, domain, service, data, target);

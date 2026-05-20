@@ -170,6 +170,7 @@ export function makeCardHass(opts: MockHassOpts, onMutate: (h: HomeAssistant) =>
 
   const hass: HomeAssistant = {
     states,
+    callApi: async () => [] as never,
     callService: async (domain, service, data, target) => {
       if (opts.serviceHandler) {
         const next = { ...ctx.hass.states };
