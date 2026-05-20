@@ -4,6 +4,14 @@ import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import { BaseConfigTab } from '../base-tab';
 
+/** Static sample events for the preview card so users see realistic content
+ *  instead of an empty shell while configuring. */
+const PREVIEW_EVENTS = [
+  { title: 'Réunion équipe', time: '14:00 - 15:00', cal: 'travail', now: true },
+  { title: 'RDV médecin', time: '16:30', cal: 'perso' },
+  { title: 'Anniversaire Léa', time: null, cal: 'anniversaires', allday: true },
+];
+
 export class ConfigTabCalendar extends BaseConfigTab {
   @state() _calendarShowHeader = true;
   @state() _calendarHiddenEntities: string[] = [];
@@ -71,7 +79,7 @@ export class ConfigTabCalendar extends BaseConfigTab {
 
     return html`
       <div class="tab-panel calendar-tab" id="panel-calendar">
-        <glass-calendar-card .hass=${this.hass} config-preview></glass-calendar-card>
+        <glass-calendar-card .hass=${this.hass} .events=${PREVIEW_EVENTS} config-preview></glass-calendar-card>
         <div class="cfg-info">
           <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
           <span>${t('config.calendar_dashboard_info')}</span>
