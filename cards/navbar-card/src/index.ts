@@ -58,10 +58,11 @@ const DASHBOARD_CARD_MAP: Record<string, string> = {
   presence: 'glass-presence-card',
   climate: 'glass-climate-card',
   camera_carousel: 'glass-camera-carousel-card',
+  calendar: 'glass-calendar-card',
 };
 
 /** Default render order for dashboard cards */
-const DEFAULT_CARD_ORDER = ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence', 'camera_carousel'];
+const DEFAULT_CARD_ORDER = ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence', 'camera_carousel', 'calendar'];
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
