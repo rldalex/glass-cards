@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as { version: string };
 
 export default defineConfig(({ command }) => ({
   root: command === 'serve' ? 'dev' : undefined,
+  define: {
+    __GLASS_CARDS_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       '@glass-cards/event-bus': resolve(__dirname, 'packages/event-bus/src'),

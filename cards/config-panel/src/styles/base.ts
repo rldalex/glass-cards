@@ -119,6 +119,18 @@ export const baseStyles = css`
         margin-left: auto;
         text-transform: uppercase;
         letter-spacing: 0.8px;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.375rem;
+      }
+      .page-version {
+        font-size: var(--fz-xs);
+        font-weight: 400;
+        color: var(--t4);
+        opacity: 0.65;
+        letter-spacing: 0.4px;
+        font-variant-numeric: tabular-nums;
+        text-transform: none;
       }
 
       /* ── Panel ── */

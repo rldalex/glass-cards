@@ -393,7 +393,7 @@ export class GlassConfigPanel extends LitElement {
         <div class="page-header">
           <button class="page-back" @click=${() => this._goBack()} aria-label="${t('common.back')}"><ha-icon .icon=${'mdi:chevron-left'}></ha-icon></button>
           <span class="page-title">${t('config.title')}</span>
-          <span class="page-subtitle">${t('config.brand')}</span>
+          <span class="page-subtitle">${t('config.brand')} <span class="page-version">v${__GLASS_CARDS_VERSION__}</span></span>
         </div>
 
         <div class="glass config-panel">

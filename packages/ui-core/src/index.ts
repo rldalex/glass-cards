@@ -57,11 +57,14 @@ export const glassTokens: CSSResult = css`
     --b2: rgba(var(--rgb-white), 0.08);
     --b3: rgba(var(--rgb-white), 0.15);
 
-    --c-success: var(--success-color, #4ade80);
-    --c-alert: var(--error-color, #f87171);
-    --c-warning: var(--warning-color, #fbbf24);
-    --c-info: var(--info-color, #60a5fa);
-    --c-accent: var(--accent-color, #818cf8);
+    /* Glass Cards identity — hardcoded so HA themes cannot override them.
+       The framework owns its semantic palette; users theme HA itself for
+       the rest of the dashboard. */
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
     --c-purple: #a78bfa;
     --c-teal: #2dd4bf;
     --c-light-glow: #fbbf24;

@@ -110,6 +110,18 @@
         margin-left: auto;
         text-transform: uppercase;
         letter-spacing: 0.8px;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.375rem;
+      }
+      .page-version {
+        font-size: var(--fz-xs);
+        font-weight: 400;
+        color: var(--t4);
+        opacity: 0.65;
+        letter-spacing: 0.4px;
+        font-variant-numeric: tabular-nums;
+        text-transform: none;
       }
 
       /* ── Panel ── */
@@ -4148,11 +4160,14 @@
     --b2: rgba(var(--rgb-white), 0.08);
     --b3: rgba(var(--rgb-white), 0.15);
 
-    --c-success: var(--success-color, #4ade80);
-    --c-alert: var(--error-color, #f87171);
-    --c-warning: var(--warning-color, #fbbf24);
-    --c-info: var(--info-color, #60a5fa);
-    --c-accent: var(--accent-color, #818cf8);
+    /* Glass Cards identity — hardcoded so HA themes cannot override them.
+       The framework owns its semantic palette; users theme HA itself for
+       the rest of the dashboard. */
+    --c-success: #4ade80;
+    --c-alert: #f87171;
+    --c-warning: #fbbf24;
+    --c-info: #60a5fa;
+    --c-accent: #818cf8;
     --c-purple: #a78bfa;
     --c-teal: #2dd4bf;
     --c-light-glow: #fbbf24;
@@ -7251,7 +7266,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${et("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${et("config.title")}</span>
-          <span class="page-subtitle">${et("config.brand")}</span>
+          <span class="page-subtitle">${et("config.brand")} <span class="page-version">v${"0.0.191"}</span></span>
         </div>
 
         <div class="glass config-panel">

@@ -417,7 +417,7 @@ export class GlassCalendarCard extends BaseCard {
     return html`
       <div class="v4-event-list">
         ${events.map((ev) => {
-          const color = CAL_COLORS[ev.cal]?.color ?? 'var(--c-accent)';
+          const color = CAL_COLORS[ev.cal]?.color ?? 'rgb(var(--rgb-accent))';
           const timeLabel = ev.now && ev.time ? `${ev.time} · En cours` : ev.time ?? 'Toute la journée';
           return html`
             <button class="v4-event-row ${ev.now ? 'now' : ''}" type="button"
@@ -489,7 +489,7 @@ export class GlassCalendarCard extends BaseCard {
       transition: background var(--t-med), color var(--t-med);
     }
     .card-count.some { background: var(--s2); color: var(--t3); }
-    .card-count.now  { background: rgba(var(--rgb-accent), 0.18); color: var(--c-accent); }
+    .card-count.now  { background: rgba(var(--rgb-accent), 0.18); color: rgb(var(--rgb-accent)); }
     .card-count.none { background: var(--s1); color: var(--t4); }
 
     /* ── Compact bar (matches presence-card height ~52px) ── */
@@ -509,10 +509,10 @@ export class GlassCalendarCard extends BaseCard {
     .v4-compact:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
 
     .v4-compact-left { display: inline-flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-    .v4-compact-icon { width: 0.875rem; height: 0.875rem; color: var(--c-accent); flex-shrink: 0; }
+    .v4-compact-icon { width: 0.875rem; height: 0.875rem; color: rgb(var(--rgb-accent)); flex-shrink: 0; }
     .v4-compact-date { font-size: var(--fz-base); font-weight: 700; color: var(--t1); white-space: nowrap; line-height: 1rem; }
     .v4-compact-count {
-      font-size: var(--fz-sm); font-weight: 700; color: var(--c-accent);
+      font-size: var(--fz-sm); font-weight: 700; color: rgb(var(--rgb-accent));
       background: rgba(var(--rgb-accent), 0.12);
       border: 0.0625rem solid rgba(var(--rgb-accent), 0.2);
       border-radius: var(--radius-full); padding: 0 0.375rem;
@@ -554,7 +554,7 @@ export class GlassCalendarCard extends BaseCard {
     }
     .v4-ticker-time { font-size: var(--fz-base); font-weight: 500; color: var(--t3); flex-shrink: 0; line-height: 1rem; }
     .v4-ticker-item.now .v4-ticker-text { color: var(--t1); font-weight: 600; }
-    .v4-ticker-item.now .v4-ticker-time { color: var(--c-accent); }
+    .v4-ticker-item.now .v4-ticker-time { color: rgb(var(--rgb-accent)); }
     .v4-ticker-empty {
       position: relative; height: 1rem; display: inline-flex; align-items: center;
       font-size: var(--fz-base); font-weight: 500; color: var(--t4); font-style: italic;
@@ -603,13 +603,13 @@ export class GlassCalendarCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; border-radius: 50%;
       transition: background var(--t-fast), color var(--t-fast);
     }
-    .v4-week-day.today .v4-week-day-num { background: rgba(var(--rgb-accent), 0.2); color: var(--c-accent); font-weight: 700; }
+    .v4-week-day.today .v4-week-day-num { background: rgba(var(--rgb-accent), 0.2); color: rgb(var(--rgb-accent)); font-weight: 700; }
     .v4-week-day.selected .v4-week-day-num {
-      background: var(--c-accent);
+      background: rgb(var(--rgb-accent));
       color: rgba(var(--rgb-white), 0.95);
       font-weight: 700;
     }
-    .v4-week-day.selected.today .v4-week-day-num { background: var(--c-accent); color: rgba(var(--rgb-white), 0.95); }
+    .v4-week-day.selected.today .v4-week-day-num { background: rgb(var(--rgb-accent)); color: rgba(var(--rgb-white), 0.95); }
     .v4-week-day-dots { display: inline-flex; gap: 0.1875rem; min-height: 0.25rem; }
     .v4-week-dot { width: 0.25rem; height: 0.25rem; border-radius: 50%; }
 
@@ -637,7 +637,7 @@ export class GlassCalendarCard extends BaseCard {
     }
     .v4-event-row.now { background: rgba(var(--rgb-accent), 0.04); border-color: rgba(var(--rgb-accent), 0.08); }
     .v4-event-row.now .v4-event-title { color: var(--t1); }
-    .v4-event-row.now .v4-event-time { color: var(--c-accent); font-weight: 500; }
+    .v4-event-row.now .v4-event-time { color: rgb(var(--rgb-accent)); font-weight: 500; }
     .v4-event-row.now .v4-event-color-bar { box-shadow: 0 0 0.5rem currentColor; }
 
     /* ── Empty state ── */
