@@ -121,6 +121,17 @@ export class GlassNavbarCard extends BaseCard {
   @state() private _editMode = false;
   @state() private _enabledCards: string[] = ['weather'];
   private _cardOrder: string[] = DEFAULT_CARD_ORDER;
+  /** Merge a stored card_order with DEFAULT_CARD_ORDER so cards added in
+   *  newer releases (calendar, etc.) still appear when the user's stored
+   *  order predates them. Unknown ids are dropped. */
+  private _mergeCardOrder(stored?: string[]): string[] {
+    const knownSet = new Set(Object.keys(DASHBOARD_CARD_MAP));
+    const list = stored ?? [];
+    const kept = list.filter((id) => knownSet.has(id));
+    const keptSet = new Set(kept);
+    const missing = DEFAULT_CARD_ORDER.filter((id) => !keptSet.has(id));
+    return [...kept, ...missing];
+  }
   private _dashboardCards = new Map<string, HTMLElement>();
   private _hideHeader = false;
   private _hideSidebar = false;
@@ -704,7 +715,7 @@ export class GlassNavbarCard extends BaseCard {
       this._roomConfigs = result.rooms ?? {};
       if (result.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
-        this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
+        this._cardOrder = this._mergeCardOrder(result.dashboard.card_order);
         this._hideHeader = result.dashboard.hide_header ?? false;
         this._hideSidebar = result.dashboard.hide_sidebar ?? false;
         this._applyHideHeader();
@@ -745,7 +756,7 @@ export class GlassNavbarCard extends BaseCard {
       }>('get_config');
       if (result?.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
-        this._cardOrder = result.dashboard.card_order ?? DEFAULT_CARD_ORDER;
+        this._cardOrder = this._mergeCardOrder(result.dashboard.card_order);
         const hideHeader = result.dashboard.hide_header ?? false;
         const hideSidebar = result.dashboard.hide_sidebar ?? false;
         if (hideHeader !== this._hideHeader) {

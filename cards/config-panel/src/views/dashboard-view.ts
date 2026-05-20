@@ -93,7 +93,14 @@ export class ConfigDashboardView extends LitElement {
 
     if (dash) {
       this._enabledCards = dash.enabled_cards ?? ['weather'];
-      this._cardOrder = dash.card_order ?? DASH_CARD_META.map(c => c.id);
+      const stored = dash.card_order ?? [];
+      const knownIds = new Set(DASH_CARD_META.map(c => c.id));
+      // Drop unknown ids, then append any DASH_CARD_META entries missing from
+      // the stored order (e.g. cards added in newer releases like calendar).
+      const filtered = stored.filter(id => knownIds.has(id));
+      const filteredSet = new Set(filtered);
+      const missing = DASH_CARD_META.filter(c => !filteredSet.has(c.id)).map(c => c.id);
+      this._cardOrder = [...filtered, ...missing];
       this._hideHeader = dash.hide_header ?? false;
       this._hideSidebar = dash.hide_sidebar ?? false;
       this._dynamicBackground = dash.dynamic_background ?? true;
