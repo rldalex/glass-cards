@@ -619,10 +619,12 @@ export class GlassCalendarCard extends BaseCard {
       color: var(--t3); flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
     }
-    .v4-compact:hover .v4-compact-chevron {
-      background: var(--s3);
-      border-color: rgba(var(--rgb-accent), 0.35);
-      color: rgb(var(--rgb-accent));
+    @media (hover: hover) and (pointer: fine) {
+      .v4-compact:hover .v4-compact-chevron {
+        background: var(--s3);
+        border-color: rgba(var(--rgb-accent), 0.35);
+        color: rgb(var(--rgb-accent));
+      }
     }
     .v4-compact-chevron svg { width: 0.75rem; height: 0.75rem; transition: transform var(--t-fast); }
     .calendar-card.open .v4-compact-chevron svg { transform: rotate(180deg); }
@@ -692,7 +694,9 @@ export class GlassCalendarCard extends BaseCard {
       transition: background var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
-    .v4-week-day:hover { background: var(--s3); }
+    @media (hover: hover) and (pointer: fine) {
+      .v4-week-day:hover { background: var(--s3); }
+    }
     .v4-week-day:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
     .v4-week-day-label { font-size: var(--fz-xs); font-weight: 600; color: var(--t3); text-transform: uppercase; letter-spacing: 0.3px; line-height: 1; }
     .v4-week-day-num {
