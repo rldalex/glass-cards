@@ -687,7 +687,7 @@ class TestSetCalendarCard:
 
     @pytest.mark.asyncio
     async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
-        """Should update show_header."""
+        """Should update show_header AND broadcast the change on the HA bus."""
         await ws_set_calendar_card(
             hass_with_store, mock_connection,
             {"id": 160, "type": "glass_cards/set_calendar_card", "show_header": False},
@@ -695,6 +695,10 @@ class TestSetCalendarCard:
         result = mock_connection.send_result.call_args[0][1]
         assert result["show_header"] is False
         mock_store._store.async_save.assert_called()
+        # Regression guard: server-side broadcast must fire so other tabs reload
+        hass_with_store.bus.async_fire.assert_called_with(
+            "glass_cards_config_changed", {"section": "calendar_card"}
+        )
 
     @pytest.mark.asyncio
     async def test_set_hidden_entities(self, hass_with_store, mock_connection, mock_store):

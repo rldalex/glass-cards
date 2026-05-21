@@ -11,7 +11,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.exceptions import HomeAssistantError, Unauthorized
 
-from .const import DOMAIN
+from .const import DOMAIN, EVENT_CONFIG_CHANGED
 
 
 def _strict_int(value: Any) -> int:
@@ -25,6 +25,11 @@ def _dedupe_ordered(items: list[str]) -> list[str]:
     """Deduplicate a list while preserving order."""
     seen: set[str] = set()
     return [x for x in items if not (x in seen or seen.add(x))]  # type: ignore[func-returns-value]
+
+
+def _broadcast(hass: HomeAssistant, section: str, **extra: Any) -> None:
+    """Fire EVENT_CONFIG_CHANGED so other tabs / devices reload the section."""
+    hass.bus.async_fire(EVENT_CONFIG_CHANGED, {"section": section, **extra})
 from .permissions import can_edit, can_read
 from .models import (
     DEFAULT_COVER_PRESETS,
@@ -256,6 +261,7 @@ async def ws_set_room(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "rooms", area_id=area_id)
     connection.send_result(msg["id"], room.to_dict())
 
 
@@ -294,6 +300,7 @@ async def ws_set_navbar(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "navbar")
     connection.send_result(msg["id"], store.data.navbar.to_dict())
 
 
@@ -327,6 +334,7 @@ async def ws_delete_room(
         store.data.rooms[area_id] = room
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "rooms", area_id=area_id, deleted=True)
     connection.send_result(msg["id"], {"deleted": area_id})
 
 
@@ -368,6 +376,7 @@ async def ws_set_weather(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "weather")
     connection.send_result(msg["id"], store.data.weather.to_dict())
 
 
@@ -400,6 +409,7 @@ async def ws_set_calendar_card(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "calendar_card")
     connection.send_result(msg["id"], store.data.calendar_card.to_dict())
 
 
@@ -429,6 +439,7 @@ async def ws_set_light_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "light_card")
     connection.send_result(msg["id"], store.data.light_card.to_dict())
 
 
@@ -458,6 +469,7 @@ async def ws_set_fan_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "fan_card")
     connection.send_result(msg["id"], store.data.fan_card.to_dict())
 
 
@@ -520,6 +532,7 @@ async def ws_set_cover_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "cover_card")
     connection.send_result(msg["id"], store.data.cover_card.to_dict())
 
 
@@ -570,6 +583,7 @@ async def ws_set_climate_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "climate_card")
     connection.send_result(msg["id"], store.data.climate_card.to_dict())
 
 
@@ -645,6 +659,7 @@ async def ws_set_title_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "title_card")
     connection.send_result(msg["id"], store.data.title_card.to_dict())
 
 
@@ -700,6 +715,7 @@ async def ws_set_media_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "media_card")
     connection.send_result(msg["id"], store.data.media_card.to_dict())
 
 
@@ -741,6 +757,7 @@ async def ws_set_dashboard(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "dashboard")
     connection.send_result(msg["id"], store.data.dashboard.to_dict())
 
 
@@ -794,6 +811,7 @@ async def ws_set_presence_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "presence_card")
     connection.send_result(msg["id"], store.data.presence_card.to_dict())
 
 
@@ -841,6 +859,7 @@ async def ws_set_camera_carousel_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "camera_carousel")
     connection.send_result(msg["id"], store.data.camera_carousel.to_dict())
 
 
@@ -944,6 +963,7 @@ async def ws_set_spotify_config(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "spotify_card")
     connection.send_result(msg["id"], store.data.spotify_card.to_dict())
 
 
@@ -1330,6 +1350,7 @@ async def ws_set_schedule(
             except HomeAssistantError as exc:
                 connection.send_error(msg["id"], "storage_error", str(exc))
                 return
+            _broadcast(hass, "entity_schedules", entity_id=entity_id)
         connection.send_result(
             msg["id"], {"entity_id": entity_id, "periods": []}
         )
@@ -1360,6 +1381,7 @@ async def ws_set_schedule(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "entity_schedules", entity_id=entity_id)
     schedule = store.data.entity_schedules.get(entity_id)
     connection.send_result(
         msg["id"], schedule.to_dict() if schedule else {"entity_id": entity_id, "periods": []}

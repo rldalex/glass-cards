@@ -1,7 +1,7 @@
 export { GlassCardEditor, defineEditor } from './editor';
 import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { bus, type GlassEventMap } from '@glass-cards/event-bus';
+import { bus, attachHass, type GlassEventMap } from '@glass-cards/event-bus';
 import { setLanguage, getLanguage } from '@glass-cards/i18n';
 import { initMarqueeObserver, BREAKPOINTS, type CardSize } from '@glass-cards/ui-core';
 
@@ -135,6 +135,10 @@ export abstract class BaseCard extends LitElement {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass?.language && setLanguage(this.hass.language)) {
       this._lang = getLanguage();
+    }
+    if (changedProps.has('hass') && this.hass) {
+      // Subscribe (or re-subscribe on HA reconnect) to the server-side config-changed event
+      attachHass(this.hass as unknown as Parameters<typeof attachHass>[0]);
     }
   }
 

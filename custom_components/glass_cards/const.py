@@ -6,6 +6,10 @@ import os
 DOMAIN = "glass_cards"
 VERSION = "0.0.175"
 
+# Server-side bus event fired after any WS config save, so other tabs / devices
+# can reload the affected section. Frontend bridges this to the local event bus.
+EVENT_CONFIG_CHANGED = f"{DOMAIN}_config_changed"
+
 JS_PATH = "/glass_cards/glass-cards.js"
 PANEL_JS_PATH = "/glass_cards/glass-cards-panel.js"
 HUE_ICONS_PATH = "/glass_cards/hass-hue-icons.js"

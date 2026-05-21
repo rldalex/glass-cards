@@ -116,3 +116,81 @@ export function removeHistoryIntercept(): void {
   origPush = null;
   origReplace = null;
 }
+
+// ─────────── HA event bus bridge ───────────
+//
+// The backend fires "glass_cards_config_changed" on the HA bus after every
+// config save, so other tabs / devices receive the change. attachHass()
+// subscribes to that event once per HA connection and dispatches the matching
+// local bus event the cards already listen to.
+
+const HA_EVENT = 'glass_cards_config_changed';
+
+const SECTION_TO_EVENT: Partial<Record<string, keyof GlassEventMap>> = {
+  navbar: 'navbar-config-changed',
+  weather: 'weather-config-changed',
+  light_card: 'light-config-changed',
+  fan_card: 'fan-config-changed',
+  cover_card: 'cover-config-changed',
+  climate_card: 'climate-config-changed',
+  camera_carousel: 'camera-carousel-config-changed',
+  title_card: 'title-config-changed',
+  spotify_card: 'spotify-config-changed',
+  media_card: 'media-config-changed',
+  presence_card: 'presence-config-changed',
+  calendar_card: 'calendar-config-changed',
+  dashboard: 'dashboard-config-changed',
+};
+
+interface HassLike {
+  connection: {
+    subscribeEvents: (
+      callback: (ev: { data?: { section?: string; area_id?: string; entity_id?: string } }) => void,
+      eventType: string,
+    ) => Promise<() => void>;
+  };
+}
+
+let attachedConnection: HassLike['connection'] | null = null;
+let unsubscribe: (() => void) | null = null;
+let pending: Promise<void> | null = null;
+
+export function attachHass(hass: HassLike | undefined | null): void {
+  if (!hass || !hass.connection) return;
+  if (hass.connection === attachedConnection) return;
+  if (pending) return;
+
+  // Tear down any previous subscription (HA reconnect rebuilds the connection).
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  attachedConnection = hass.connection;
+
+  pending = (async () => {
+    try {
+      unsubscribe = await hass.connection.subscribeEvents((ev) => {
+        const data = ev.data ?? {};
+        const section = data.section;
+        if (!section) return;
+        if (section === 'rooms' && data.area_id) {
+          bus.emit('room-config-changed', { areaId: data.area_id });
+          return;
+        }
+        if (section === 'entity_schedules' && data.entity_id) {
+          bus.emit('schedule-changed', { entityId: data.entity_id });
+          return;
+        }
+        const localEvent = SECTION_TO_EVENT[section];
+        if (localEvent) bus.emit(localEvent, undefined as never);
+      }, HA_EVENT);
+    } catch (err) {
+      console.warn('[glass-cards] HA event bridge failed to subscribe', err);
+      attachedConnection = null;
+    } finally {
+      pending = null;
+    }
+  })();
+}
+
+export function detachHass(): void {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  attachedConnection = null;
+}
