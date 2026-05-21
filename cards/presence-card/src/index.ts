@@ -2,7 +2,7 @@ import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateR
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService, fireHaptic } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -187,7 +187,16 @@ export class GlassPresenceCard extends BaseCard {
         presence_card: PresenceBackendConfig;
       }>('get_config');
       if (result?.presence_card) {
-        this._presenceConfig = result.presence_card;
+        // Backend may send a partial payload (missing smartphone_sensors etc.).
+        // Fill in defaults so downstream lookups never hit `undefined[key]`.
+        const cfg = result.presence_card;
+        this._presenceConfig = {
+          show_header: cfg.show_header ?? true,
+          person_entities: cfg.person_entities ?? [],
+          smartphone_sensors: cfg.smartphone_sensors ?? {},
+          notify_services: cfg.notify_services ?? {},
+          driving_sensors: cfg.driving_sensors ?? {},
+        };
       }
       this._configLoaded = true;
       this._configLoadingInProgress = false;
@@ -452,7 +461,7 @@ export class GlassPresenceCard extends BaseCard {
           <div class="person-sub">
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
-              <span class="person-location">${marqueeText(stateText(p.state), MARQUEE_FULL)}</span>
+              <span class="person-location">${stateText(p.state)}</span>
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
@@ -762,7 +771,7 @@ export class GlassPresenceCard extends BaseCard {
 
       .person-location {
         font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
-        white-space: nowrap; overflow: hidden; min-width: 0;
+        white-space: nowrap; overflow: hidden; min-width: 0; text-overflow: ellipsis;
       }
       .source-icon { display: flex; align-items: center; flex-shrink: 0; }
       .source-icon ha-icon {

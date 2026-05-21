@@ -310,37 +310,45 @@ class GlassWeatherCard extends BaseCard {
     }
 
     /* ── Metrics Grid ── */
+    /* Metric row: compact icon + value on a single line, no label text */
     .wc-metrics {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 0.0625rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.3125rem 0.5rem;
       border-radius: var(--radius-sm);
-      background: var(--b1);
-      overflow: hidden;
-    }
-    :host([size="xs"]) .wc-metrics {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .wc-metric {
-      display: flex; align-items: center; justify-content: center; gap: 0.1875rem;
-      padding: 0.3125rem 0.25rem;
       background: var(--s1);
+      border: 1px solid var(--b1);
+      margin-bottom: 0.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .wc-metrics::-webkit-scrollbar { display: none; }
+    .wc-metric {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
     }
     .wc-metric ha-icon {
-      --mdc-icon-size: 0.6875rem;
-      width: 0.6875rem; height: 0.6875rem;
+      --mdc-icon-size: 0.8125rem;
+      width: 0.8125rem; height: 0.8125rem;
       display: flex; align-items: center; justify-content: center;
       color: var(--t4);
+      flex-shrink: 0;
     }
-    .wc-metric.humidity ha-icon { color: rgba(var(--rgb-info),0.5); }
-    .wc-metric.pressure ha-icon { color: rgba(148,163,184,0.5); }
-    .wc-metric.wind ha-icon { color: rgba(110,231,183,0.5); }
-    .wc-metric.uv ha-icon { color: rgba(var(--rgb-warning),0.5); }
-    .wc-metric.visibility ha-icon { color: rgba(148,163,184,0.4); }
-    .wc-metric.sunrise ha-icon { color: rgba(var(--rgb-warning),0.4); }
-    .wc-metric.sunset ha-icon { color: rgba(251,146,60,0.5); }
-    .wc-metric-val { font-size: var(--fz-sm); font-weight: 600; color: var(--t2); }
+    .wc-metric.humidity ha-icon { color: rgb(var(--rgb-info)); }
+    .wc-metric.pressure ha-icon { color: rgba(148,163,184,0.85); }
+    .wc-metric.wind ha-icon { color: rgba(110,231,183,0.85); }
+    .wc-metric.uv ha-icon { color: rgb(var(--rgb-warning)); }
+    .wc-metric.visibility ha-icon { color: rgba(148,163,184,0.7); }
+    .wc-metric.sunrise ha-icon { color: rgb(var(--rgb-warning)); }
+    .wc-metric.sunset ha-icon { color: rgba(251,146,60,0.95); }
+    .wc-metric-val {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t2);
+      line-height: 1;
+      display: inline-flex; align-items: baseline; gap: 0.125rem;
+    }
     .wc-metric-unit { font-size: var(--fz-xxs); font-weight: 400; color: var(--t4); }
-    .wc-metric-dir { font-size: var(--fz-xxs); font-weight: 600; color: var(--t4); margin-left: 0.0625rem; }
+    .wc-metric-dir { font-size: var(--fz-xxs); font-weight: 600; color: var(--t3); margin-left: 0.0625rem; }
 
     /* ── Forecast tabs ── */
     /* ── Fold separator ── */
@@ -633,7 +641,14 @@ class GlassWeatherCard extends BaseCard {
       }
       // Cache condition for animation loop (avoid Object.keys scan at 60fps)
       const ws = this._getWeatherState();
-      this._cachedCond = ws ? this._mapCondition(ws.state) : '';
+      const nextCond = ws ? this._mapCondition(ws.state) : '';
+      if (nextCond !== this._cachedCond) {
+        this._cachedCond = nextCond;
+        // Re-spawn particles so the canvas animation reflects the new condition
+        if (this._canvasReady && this._cW && this._cH) {
+          this._spawnParticles(this._cachedCond || 'cloudy');
+        }
+      }
       if (this._configLoaded) this._subscribeForecasts();
     }
     // Re-init canvas after reconnect (shadow DOM is available in updated, not in connectedCallback)
@@ -1236,61 +1251,64 @@ class GlassWeatherCard extends BaseCard {
     sunrise: string,
     sunset: string,
   ): TemplateResult | typeof nothing {
-    const metrics: TemplateResult[] = [];
+    type Cell = { cls: string; icon: string; label: string; val: TemplateResult };
+    const cells: Cell[] = [];
 
     if (!hidden.has('humidity') && humidity != null) {
-      metrics.push(html`<div class="wc-metric humidity">
-        <ha-icon icon="mdi:water-percent"></ha-icon>
-        <span class="wc-metric-val">${humidity}%</span>
-      </div>`);
+      cells.push({
+        cls: 'humidity', icon: 'mdi:water-percent', label: t('weather.metric_humidity'),
+        val: html`<span class="wc-metric-val">${humidity}<span class="wc-metric-unit">%</span></span>`,
+      });
     }
     if (!hidden.has('wind') && windSpeed != null) {
-      metrics.push(html`<div class="wc-metric wind">
-        <ha-icon icon="mdi:weather-windy"></ha-icon>
-        <span class="wc-metric-val">${Math.round(windSpeed)}</span>
-        <span class="wc-metric-unit">${windSpeedUnit}</span>
-        <span class="wc-metric-dir">${bearingToDir(windBearing)}</span>
-      </div>`);
+      cells.push({
+        cls: 'wind', icon: 'mdi:weather-windy', label: t('weather.metric_wind'),
+        val: html`<span class="wc-metric-val">${Math.round(windSpeed)}<span class="wc-metric-unit">${windSpeedUnit}</span><span class="wc-metric-dir">${bearingToDir(windBearing)}</span></span>`,
+      });
     }
     if (!hidden.has('pressure') && pressure != null) {
-      metrics.push(html`<div class="wc-metric pressure">
-        <ha-icon icon="mdi:gauge"></ha-icon>
-        <span class="wc-metric-val">${Math.round(pressure)}</span>
-        <span class="wc-metric-unit">hPa</span>
-      </div>`);
+      cells.push({
+        cls: 'pressure', icon: 'mdi:gauge', label: t('weather.metric_pressure'),
+        val: html`<span class="wc-metric-val">${Math.round(pressure)}<span class="wc-metric-unit">hPa</span></span>`,
+      });
     }
     if (!hidden.has('uv') && uvIndex != null) {
-      metrics.push(html`<div class="wc-metric uv">
-        <ha-icon icon="mdi:sun-wireless"></ha-icon>
-        <span class="wc-metric-val">${Math.round(uvIndex)}</span>
-        <span class="wc-metric-unit">UV</span>
-      </div>`);
+      cells.push({
+        cls: 'uv', icon: 'mdi:sun-wireless', label: t('weather.metric_uv'),
+        val: html`<span class="wc-metric-val">${Math.round(uvIndex)}<span class="wc-metric-unit">UV</span></span>`,
+      });
     }
     if (!hidden.has('visibility') && visibility != null) {
-      metrics.push(html`<div class="wc-metric visibility">
-        <ha-icon icon="mdi:eye-outline"></ha-icon>
-        <span class="wc-metric-val">${visibility}</span>
-        <span class="wc-metric-unit">km</span>
-      </div>`);
+      cells.push({
+        cls: 'visibility', icon: 'mdi:eye-outline', label: t('weather.metric_visibility'),
+        val: html`<span class="wc-metric-val">${visibility}<span class="wc-metric-unit">km</span></span>`,
+      });
     }
     if (!hidden.has('sunrise') && sunrise) {
-      metrics.push(html`<div class="wc-metric sunrise">
-        <ha-icon icon="mdi:weather-sunset-up"></ha-icon>
-        <span class="wc-metric-val">${sunrise}</span>
-      </div>`);
+      cells.push({
+        cls: 'sunrise', icon: 'mdi:weather-sunset-up', label: t('weather.sunrise'),
+        val: html`<span class="wc-metric-val">${sunrise}</span>`,
+      });
     }
     if (!hidden.has('sunset') && sunset) {
-      metrics.push(html`<div class="wc-metric sunset">
-        <ha-icon icon="mdi:weather-sunset-down"></ha-icon>
-        <span class="wc-metric-val">${sunset}</span>
-      </div>`);
+      cells.push({
+        cls: 'sunset', icon: 'mdi:weather-sunset-down', label: t('weather.sunset'),
+        val: html`<span class="wc-metric-val">${sunset}</span>`,
+      });
     }
 
-    if (metrics.length === 0) return nothing;
+    if (cells.length === 0) return nothing;
 
-    return html`<div class="wc-metrics">
-      ${metrics}
-    </div>`;
+    return html`
+      <div class="wc-metrics" role="list">
+        ${cells.map((c) => html`
+          <div class="wc-metric ${c.cls}" role="listitem" aria-label="${c.label}" title="${c.label}">
+            <ha-icon icon="${c.icon}" aria-hidden="true"></ha-icon>
+            ${c.val}
+          </div>
+        `)}
+      </div>
+    `;
   }
 
   private _renderForecasts(tempUnit: string): TemplateResult | typeof nothing {

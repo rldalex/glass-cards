@@ -8,7 +8,7 @@ import {
   type EntityRegistryEntry,
 } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CameraEntityFeature) —
@@ -794,7 +794,7 @@ class GlassCameraCarouselCard extends BaseCard {
           <ha-icon .icon=${cam.icon} style="--mdc-icon-size:16px"></ha-icon>
         </div>
         <div class="carousel-info-text">
-          <div class="carousel-cam-name">${marqueeText(cam.name, MARQUEE_FULL)}</div>
+          <div class="carousel-cam-name">${cam.name}</div>
           <div class="carousel-cam-sub">
             <span class="carousel-state ${isLive ? 'live' : ''}">${cameraStateText(cam.state, cam.isOn)}</span>
             ${cam.aiDetected.length > 0 && cam.isOn ? html`
@@ -1144,7 +1144,7 @@ class GlassCameraCarouselCard extends BaseCard {
       .carousel-info-text { flex: 1; min-width: 0; }
       .carousel-cam-name {
         font-size: var(--fz-md); font-weight: 600; color: var(--t1);
-        overflow: hidden; white-space: nowrap;
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
       }
       .carousel-cam-sub {
         display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.0625rem;

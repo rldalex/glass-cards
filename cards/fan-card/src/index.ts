@@ -10,7 +10,7 @@ import {
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -348,7 +348,7 @@ class GlassFanCard extends BaseCard {
     .fan-info { flex: 1; min-width: 0; }
     .fan-name {
       font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
-      white-space: nowrap; overflow: hidden;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .fan-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .fan-speed-text {
@@ -1251,7 +1251,7 @@ class GlassFanCard extends BaseCard {
           aria-label=${hasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
         >
           <div class="fan-info">
-            <div class="fan-name">${marqueeText(fan.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
+            <div class="fan-name">${fan.name}</div>
             <div class="fan-sub">
               <span class="fan-speed-text">${speedText}</span>
               ${fan.isOn && fan.direction !== null ? html`

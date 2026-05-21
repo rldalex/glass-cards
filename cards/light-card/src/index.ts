@@ -12,7 +12,7 @@ import {
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
 import {
-  glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin,
+  glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin,
   unavailableMixin, isEntityUnavailable,
   rgbToHs, rgbToHex, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
 } from '@glass-cards/ui-core';
@@ -373,6 +373,7 @@ export class GlassLightCard extends BaseCard {
         line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
       }
       .light-sub {
         display: flex;
@@ -1394,7 +1395,7 @@ export class GlassLightCard extends BaseCard {
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
         >
           <div class="light-info">
-            <div class="light-name">${marqueeText(info.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
+            <div class="light-name">${info.name}</div>
             <div class="light-sub">${this._renderSubText(info)}</div>
           </div>
           ${unavailable

@@ -11,7 +11,7 @@ import {
   type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import {
   renderRangeSlider,
@@ -723,7 +723,7 @@ export class GlassClimateCard extends BaseCard {
         </button>
         <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'}>
           <div class="cl-info">
-            <div class="cl-name">${marqueeText(name, MARQUEE_COMPACT)}</div>
+            <div class="cl-name">${name}</div>
             <div class="cl-sub">
               <span class="cl-action-text">${t(actionKey as Parameters<typeof t>[0])}</span>
               ${!isOff ? html`<span class="cl-mode-badge">${modeBadgeText}</span>` : nothing}
@@ -1234,7 +1234,7 @@ export class GlassClimateCard extends BaseCard {
     .cl-info { flex: 1; min-width: 0; }
     .cl-name {
       font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
-      white-space: nowrap; overflow: hidden;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .cl-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .cl-action-text {

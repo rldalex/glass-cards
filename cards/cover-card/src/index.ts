@@ -8,7 +8,7 @@ import {
   type HassEntity,
 } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, marqueeText, MARQUEE_FULL, MARQUEE_COMPACT, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CoverEntityFeature) —
@@ -299,7 +299,7 @@ class GlassCoverCard extends BaseCard {
     .cv-info { flex: 1; min-width: 0; }
     .cv-name {
       font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
-      overflow: hidden; white-space: nowrap;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
     }
     .cv-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
     .cv-state-text {
@@ -834,7 +834,7 @@ class GlassCoverCard extends BaseCard {
           aria-label=${t('cover.expand_aria', { name: cv.name })}
         >
           <div class="cv-info">
-            <div class="cv-name">${marqueeText(cv.name, compact ? MARQUEE_COMPACT : MARQUEE_FULL)}</div>
+            <div class="cv-name">${cv.name}</div>
             <div class="cv-sub">
               <span class="cv-state-text">${stateText(cv.entity.state)}</span>
             </div>

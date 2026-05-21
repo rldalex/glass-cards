@@ -8,7 +8,7 @@ import {
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
-import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_FULL, bounceMixin, eqMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, marqueeMixin, bounceMixin, eqMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 import './editor';
 
@@ -808,7 +808,7 @@ export class GlassMediaCard extends BaseCard {
             <div class="dash-top">
               <div class="dash-speaker glass-pill">
                 <ha-icon .icon=${master.icon || 'mdi:speaker'}></ha-icon>
-                <span>${marqueeText(master.name, MARQUEE_FULL)}</span>
+                <span>${master.name}</span>
                 ${playing ? html`
                   <div class="dash-eq playing">
                     <div class="dash-eq-bar"></div>
@@ -833,10 +833,10 @@ export class GlassMediaCard extends BaseCard {
             <div class="dash-info-panel glass-panel">
               <div class="dash-track">
                 ${master.title ? html`
-                  <div class="dash-track-title">${marqueeText(master.title, 22)}</div>
+                  <div class="dash-track-title">${master.title}</div>
                 ` : nothing}
                 ${master.artist ? html`
-                  <div class="dash-track-artist">${marqueeText(master.artist, 28)}</div>
+                  <div class="dash-track-artist">${master.artist}</div>
                 ` : nothing}
               </div>
 
@@ -1074,7 +1074,7 @@ export class GlassMediaCard extends BaseCard {
             <div class="queue-item">
               <div class="queue-num">${i + 1}</div>
               <div class="queue-info">
-                <span class="queue-title">${marqueeText(name, MARQUEE_FULL)}</span>
+                <span class="queue-title">${name}</span>
                 <span class="queue-artist">${artist}</span>
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
@@ -1483,7 +1483,11 @@ export class GlassMediaCard extends BaseCard {
         padding: 0.25rem 0.625rem 0.25rem 0.375rem;
         border-radius: var(--radius-full, 9999px);
         font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.9);
-        overflow: hidden; white-space: nowrap;
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .dash-speaker > span {
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
       .dash-speaker ha-icon {
         display: flex; align-items: center; justify-content: center;
@@ -1546,12 +1550,12 @@ export class GlassMediaCard extends BaseCard {
       }
       .dash-track-title {
         font-size: var(--fz-lg); font-weight: 700; color: #fff; line-height: 1.2;
-        overflow: hidden; white-space: nowrap;
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
         text-shadow: 0 1px 4px rgba(var(--rgb-black),0.5), 0 0 12px rgba(var(--rgb-black),0.3);
       }
       .dash-track-artist {
         font-size: var(--fz-base); font-weight: 500; color: rgba(var(--rgb-white),0.75);
-        overflow: hidden; white-space: nowrap;
+        overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
         text-shadow: 0 1px 3px rgba(var(--rgb-black),0.5);
       }
 
@@ -1962,6 +1966,7 @@ export class GlassMediaCard extends BaseCard {
         color: #fff;
         overflow: hidden;
         white-space: nowrap;
+        text-overflow: ellipsis;
       }
       .queue-artist {
         font-size: var(--fz-sm);
