@@ -2196,7 +2196,10 @@
       background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-accent), 0.08), transparent 70%);
       transition: opacity var(--t-slow);
     }
-    .weather-card > * { position: relative; z-index: 1; }
+    /* Only card-inner sits above the halo. Tint and canvas keep their own
+       absolute positioning so they don't enter the flow and explode the
+       card height. */
+    .weather-card .card-inner { position: relative; z-index: 1; }
     @media (prefers-reduced-motion: reduce) {
       .weather-card::after { transition: none; }
     }
