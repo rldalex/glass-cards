@@ -48,7 +48,59 @@ const SAVED_SHOWS: SpotifyItem[] = [
   { id: 'sh2', name: '', type: 'show', added_at: '2025-11-01', show: { id: 'sh11', name: 'Huberman Lab', type: 'show', images: [img('huberman')], description: 'Science-based tools for everyday life.' } },
 ];
 
+const PLAYLIST_TRACKS_BY_ID: Record<string, SpotifyItem[]> = {
+  pl1: [
+    { id: 'lf1', name: 'Morning Coffee', type: 'track', artists: [{ name: 'Jinsang' }], album: { name: 'Solitude', images: [img('jinsang')] }, uri: 'spotify:track:lf1' },
+    { id: 'lf2', name: 'Rainy Window', type: 'track', artists: [{ name: 'Idealism' }], album: { name: 'Through Tokyo', images: [img('idealism')] }, uri: 'spotify:track:lf2' },
+    { id: 'lf3', name: 'Late Night Drive', type: 'track', artists: [{ name: 'Tomppabeats' }], album: { name: 'Harbor', images: [img('tomppa')] }, uri: 'spotify:track:lf3' },
+    { id: 'lf4', name: 'Slow Burn', type: 'track', artists: [{ name: 'Bsd.u' }], album: { name: 'Embers', images: [img('bsdu')] }, uri: 'spotify:track:lf4' },
+    { id: 'lf5', name: 'Snowfall', type: 'track', artists: [{ name: 'Saib' }], album: { name: 'Sailing', images: [img('saib')] }, uri: 'spotify:track:lf5' },
+    { id: 'lf6', name: 'Memories', type: 'track', artists: [{ name: 'Aso' }], album: { name: 'Distant', images: [img('aso')] }, uri: 'spotify:track:lf6' },
+  ],
+};
+
 interface Scenario { id: string; label: string; description: string; configured: boolean; entity_state: string; entity_attrs: Record<string, unknown> }
+
+interface SpeakerMock {
+  entity_id: string;
+  state: 'playing' | 'paused' | 'idle' | 'off';
+  attributes: Record<string, unknown>;
+}
+
+const SPEAKERS: SpeakerMock[] = [
+  {
+    entity_id: 'media_player.sonos_salon',
+    state: 'playing',
+    attributes: {
+      friendly_name: 'Sonos Salon',
+      media_title: 'So What',
+      media_artist: 'Miles Davis',
+      volume_level: 0.42,
+      device_class: 'speaker',
+      supported_features: 524288 | 1,
+    },
+  },
+  {
+    entity_id: 'media_player.sonos_cuisine',
+    state: 'idle',
+    attributes: { friendly_name: 'Sonos Cuisine', device_class: 'speaker', supported_features: 524288 },
+  },
+  {
+    entity_id: 'media_player.sonos_sdb',
+    state: 'paused',
+    attributes: { friendly_name: 'Sonos Salle de Bain', media_title: 'Yacht Rock', device_class: 'speaker', supported_features: 524288 },
+  },
+  {
+    entity_id: 'media_player.tv_salon',
+    state: 'idle',
+    attributes: { friendly_name: 'TV Salon', device_class: 'tv' },
+  },
+  {
+    entity_id: 'media_player.echo_show_chambre',
+    state: 'off',
+    attributes: { friendly_name: 'Echo Show Chambre' },
+  },
+];
 
 const SCENARIOS: Scenario[] = [
   {
@@ -74,6 +126,52 @@ const SCENARIOS: Scenario[] = [
     },
   },
   {
+    id: 'paused',
+    label: 'Paused',
+    description: 'Now-playing bar avec icône play (au lieu de pause)',
+    configured: true,
+    entity_state: 'paused',
+    entity_attrs: {
+      friendly_name: 'Spotify',
+      media_title: 'Blue in Green', media_artist: 'Miles Davis', media_album_name: 'Kind of Blue',
+      entity_picture: 'https://picsum.photos/seed/blue/300/300',
+      volume_level: 0.32, media_duration: 337, media_position: 120,
+      source: 'Sonos Cuisine',
+    },
+  },
+  {
+    id: 'no_results',
+    label: 'Recherche vide',
+    description: 'Query qui retourne 0 résultats (empty state search)',
+    configured: true,
+    entity_state: 'idle',
+    entity_attrs: { friendly_name: 'Spotify' },
+  },
+  {
+    id: 'picker',
+    label: 'Picker ouvert',
+    description: '5 enceintes mockées, picker auto-ouvert sur Take Five',
+    configured: true,
+    entity_state: 'idle',
+    entity_attrs: { friendly_name: 'Spotify', source_list: ['Sonos Salon', 'Sonos Cuisine', 'Sonos SDB'] },
+  },
+  {
+    id: 'drilldown',
+    label: 'Drilldown ouvert',
+    description: 'Playlist Lofi Beats ouverte avec tracks mockés',
+    configured: true,
+    entity_state: 'idle',
+    entity_attrs: { friendly_name: 'Spotify' },
+  },
+  {
+    id: 'search',
+    label: 'Recherche en cours',
+    description: 'Query "Lofi" pré-fill, fold ouvert, résultats mockés',
+    configured: true,
+    entity_state: 'idle',
+    entity_attrs: { friendly_name: 'Spotify' },
+  },
+  {
     id: 'not_configured',
     label: 'Non configuré',
     description: 'Aucune intégration Spotify détectée',
@@ -83,12 +181,17 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
-function browseHandler(category: string, limit: number, offset: number): { items: SpotifyItem[]; total: number } {
+function browseHandler(category: string, limit: number, offset: number, contentId?: string): { items: SpotifyItem[]; total: number } {
   switch (category) {
     case 'playlists': return { items: PLAYLISTS.slice(offset, offset + limit), total: PLAYLISTS.length };
     case 'recently_played': return { items: RECENT.slice(offset, offset + limit), total: RECENT.length };
     case 'saved_tracks': return { items: SAVED_TRACKS.slice(offset, offset + limit), total: SAVED_TRACKS.length };
     case 'saved_shows': return { items: SAVED_SHOWS.slice(offset, offset + limit), total: SAVED_SHOWS.length };
+    case 'playlist_tracks':
+    case 'album_tracks': {
+      const tracks = (contentId && PLAYLIST_TRACKS_BY_ID[contentId]) || PLAYLIST_TRACKS_BY_ID.pl1;
+      return { items: tracks.slice(offset, offset + limit), total: tracks.length };
+    }
     default: return { items: [], total: 0 };
   }
 }
@@ -132,13 +235,22 @@ export async function setupSpotify(): Promise<void> {
   }
 
   function rebuild(): void {
+    const speakerEntities = SPEAKERS.map((sp) => ({
+      entity_id: sp.entity_id,
+      state: sp.state,
+      area_id: 'salon',
+      attributes: sp.attributes,
+    }));
     const hass = makeCardHass({
-      entities: [{
-        entity_id: 'media_player.spotify',
-        state: current.entity_state,
-        area_id: 'salon',
-        attributes: current.entity_attrs,
-      }],
+      entities: [
+        {
+          entity_id: 'media_player.spotify',
+          state: current.entity_state,
+          area_id: 'salon',
+          attributes: current.entity_attrs,
+        },
+        ...speakerEntities,
+      ],
       cardConfig: { spotify_card: { show_header: true, entity_id: 'media_player.spotify', sort_order: 'recent_first', max_items_per_section: 6, visible_speakers: [] } },
       serviceHandler: (states, _d, service, data) => {
         console.debug('[spotify] service', service, data);
@@ -160,7 +272,7 @@ export async function setupSpotify(): Promise<void> {
     (hass.connection as { sendMessagePromise: HassConnection['sendMessagePromise'] }).sendMessagePromise = async <T,>(msg: Record<string, unknown>): Promise<T> => {
       const type = msg.type as string;
       if (type === 'glass_cards/spotify_status') return { configured: current.configured } as unknown as T;
-      if (type === 'glass_cards/spotify_browse') return browseHandler(msg.category as string, msg.limit as number, msg.offset as number) as unknown as T;
+      if (type === 'glass_cards/spotify_browse') return browseHandler(msg.category as string, msg.limit as number, msg.offset as number, msg.content_id as string | undefined) as unknown as T;
       if (type === 'glass_cards/spotify_search') return searchHandler(msg.query as string) as unknown as T;
       if (type === 'glass_cards/spotify_check_saved') {
         const ids = (msg.track_ids as string[]) ?? [];
@@ -173,6 +285,66 @@ export async function setupSpotify(): Promise<void> {
     };
 
     card.hass = hass;
+
+    if (current.id === 'picker') {
+      // Auto-open the speaker picker on a sample track once config is loaded
+      const sample = RECENT[0].track;
+      if (!sample) return;
+      const openOnReady = (): void => {
+        const pickerOpener = (card as unknown as { _openPicker?: (item: unknown) => void })._openPicker;
+        if (pickerOpener) {
+          pickerOpener.call(card, sample);
+        } else {
+          window.setTimeout(openOnReady, 100);
+        }
+      };
+      window.setTimeout(openOnReady, 250);
+    }
+
+    if (current.id === 'drilldown') {
+      // Auto-open the drilldown on the first playlist once config is loaded
+      const pl = PLAYLISTS[0];
+      const openOnReady = (): void => {
+        const opener = (card as unknown as { _openDrilldown?: (type: string, id: string, title: string, image?: string, subtitle?: string) => void })._openDrilldown;
+        if (opener) {
+          const imgUrl = pl.images?.[0]?.url;
+          opener.call(card, 'playlist', pl.id, pl.name, imgUrl, pl.owner?.display_name);
+        } else {
+          window.setTimeout(openOnReady, 100);
+        }
+      };
+      window.setTimeout(openOnReady, 250);
+    }
+
+    if (current.id === 'search') {
+      // Auto-fill the search input and fire input event so the card runs its real search flow
+      const triggerSearch = (attempt = 0): void => {
+        const input = card.shadowRoot?.querySelector('input.search-input') as HTMLInputElement | null;
+        if (input) {
+          input.focus();
+          input.value = 'Lofi';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        } else if (attempt < 20) {
+          window.setTimeout(() => triggerSearch(attempt + 1), 100);
+        }
+      };
+      window.setTimeout(triggerSearch, 250);
+    }
+
+    if (current.id === 'no_results') {
+      // Query that returns 0 results -> empty search state
+      const triggerEmpty = (attempt = 0): void => {
+        const input = card.shadowRoot?.querySelector('input.search-input') as HTMLInputElement | null;
+        if (input) {
+          input.focus();
+          input.value = 'zzzzzz_no_match_zzzzzz';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        } else if (attempt < 20) {
+          window.setTimeout(() => triggerEmpty(attempt + 1), 100);
+        }
+      };
+      window.setTimeout(triggerEmpty, 250);
+    }
   }
 
   renderToolbar();

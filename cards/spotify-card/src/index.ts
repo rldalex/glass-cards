@@ -56,6 +56,8 @@ interface DrilldownState {
   title: string;
   type: 'playlist' | 'album';
   id: string;
+  image?: string;
+  subtitle?: string;
   items: SpotifyItem[];
   total: number;
   offset: number;
@@ -151,7 +153,11 @@ class GlassSpotifyCard extends BaseCard {
   // — Styles —
 
   static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin, css`
-    :host { width: 100%; user-select: none; -webkit-user-select: none; }
+    :host {
+      width: 100%; user-select: none; -webkit-user-select: none;
+      /* "On Spotify" — dark near-black tinted toward spotify green, used for text/icons over the saturated spotify background */
+      --c-spotify-on: var(--c-spotify-on);
+    }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
 
@@ -195,12 +201,99 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent; box-sizing: border-box;
     }
     .search-input::placeholder { color: var(--t4); }
-    .search-input:focus { border-color: rgba(var(--rgb-spotify),0.3); background: var(--s3); box-shadow: 0 0 0 2px rgba(var(--rgb-spotify),0.1); }
+    .search-input:focus {
+      border-color: rgba(var(--rgb-spotify), 0.5);
+      background: var(--s3);
+      box-shadow:
+        0 0 0 3px rgba(var(--rgb-spotify), 0.12),
+        0 4px 14px rgba(var(--rgb-spotify), 0.18);
+    }
     .search-icon {
       position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
       pointer-events: none; display: flex; align-items: center; justify-content: center;
     }
-    .search-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
+    .search-icon ha-icon {
+      --mdc-icon-size: 1rem; color: var(--t4);
+      display: flex; align-items: center; justify-content: center;
+      transition: color var(--t-fast);
+    }
+    .search-input-wrap:has(.search-input:focus) .search-icon ha-icon { color: var(--c-spotify); }
+
+    /* — Now-playing bar (replaces search bar when something is playing and fold is closed) — */
+    .np-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      min-height: 2.75rem;
+    }
+    .np-art {
+      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm);
+      flex-shrink: 0; overflow: hidden;
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(var(--rgb-black), 0.3), 0 0 12px rgba(var(--rgb-spotify), 0.18);
+    }
+    .np-art img { width: 100%; height: 100%; object-fit: cover; }
+    .np-art ha-icon {
+      --mdc-icon-size: 1.125rem;
+      color: color-mix(in srgb, var(--c-spotify) 60%, var(--t4));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .np-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.0625rem; }
+    .np-title {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .np-artist {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .np-transport {
+      display: inline-flex; align-items: center; gap: 0.0625rem;
+      flex-shrink: 0;
+    }
+    .np-btn {
+      position: relative;
+      width: 1.875rem; height: 1.875rem; border-radius: 50%;
+      background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      color: var(--t2);
+      transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .np-btn ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) { .np-btn:hover { background: var(--s2); color: var(--t1); } }
+    @media (hover: hover) { .np-btn:active { transform: scale(0.92); } }
+    @media (pointer: coarse) { .np-btn:active { animation: bounce 0.3s ease; } }
+    .np-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
+    @media (pointer: coarse) {
+      .np-btn::after { content: ''; position: absolute; inset: -0.4375rem; }
+    }
+    .np-btn-play {
+      width: 2.125rem; height: 2.125rem;
+      background: var(--c-spotify); color: var(--c-spotify-on);
+      box-shadow: 0 4px 14px rgba(var(--rgb-spotify), 0.35);
+    }
+    .np-btn-play ha-icon { --mdc-icon-size: 1.25rem; }
+    @media (hover: hover) and (pointer: fine) {
+      .np-btn-play:hover {
+        background: var(--c-spotify-hover);
+        color: var(--c-spotify-on);
+        box-shadow: 0 6px 18px rgba(var(--rgb-spotify), 0.5);
+      }
+    }
+
+    /* Search-from-now-playing affordance — divider + magnify */
+    .np-btn-search {
+      margin-left: 0.25rem;
+      border-left: none;
+      position: relative;
+    }
+    .np-btn-search::before {
+      content: ''; position: absolute;
+      left: -0.1875rem; top: 25%; bottom: 25%;
+      width: 1px; background: var(--b1);
+      pointer-events: none;
+    }
     .search-clear {
       position: absolute; top: 50%; right: 1.875rem; transform: translateY(-50%);
       width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
@@ -332,6 +425,13 @@ class GlassSpotifyCard extends BaseCard {
     .lib-eyebrow-playlists { --lib-dot-color: var(--c-spotify); --lib-dot-glow: rgba(var(--rgb-spotify), 0.45); }
     .lib-eyebrow-saved     { --lib-dot-color: var(--c-accent);  --lib-dot-glow: rgba(var(--rgb-accent), 0.45); }
     .lib-eyebrow-podcasts  { --lib-dot-color: var(--c-purple);  --lib-dot-glow: rgba(var(--rgb-purple), 0.45); }
+    .lib-eyebrow-tracks    { --lib-dot-color: var(--c-spotify); --lib-dot-glow: rgba(var(--rgb-spotify), 0.45); }
+
+    .search-more-standalone {
+      display: flex; justify-content: flex-end;
+      padding: 0.25rem 0.125rem 0;
+    }
+    .search-more-standalone .lib-more-link { margin-left: 0; }
 
     /* Load more (text link, right-aligned inside eyebrow) */
     .lib-more-link {
@@ -412,7 +512,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
       opacity: 0; transform: scale(0.8); flex-shrink: 0;
     }
-    .result-play ha-icon { --mdc-icon-size: 1rem; color: rgb(6, 16, 10); display: flex; align-items: center; justify-content: center; }
+    .result-play ha-icon { --mdc-icon-size: 1rem; color: var(--c-spotify-on); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
     @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
     @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
@@ -483,7 +583,7 @@ class GlassSpotifyCard extends BaseCard {
     }
     .playlist-art-play ha-icon {
       --mdc-icon-size: 1.125rem;
-      color: rgb(6, 16, 10);
+      color: var(--c-spotify-on);
       display: flex; align-items: center; justify-content: center;
     }
     @media (hover: hover) and (pointer: fine) {
@@ -500,191 +600,442 @@ class GlassSpotifyCard extends BaseCard {
     }
     .playlist-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
 
-    /* Drilldown header */
-    .drilldown-header {
-      display: flex; align-items: center; justify-content: space-between;
-    }
+    /* Drilldown: hero + tracks */
+    .drilldown { display: flex; flex-direction: column; gap: 0.75rem; }
 
-    /* Back button */
-    .back-btn {
-      display: flex; align-items: center; gap: 0.25rem;
-      background: none; border: none; color: var(--t3);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      cursor: pointer; padding: 0.25rem 0.125rem; outline: none;
+    .drilldown-hero {
+      position: relative;
+      display: grid; grid-template-columns: auto 1fr;
+      gap: 0.875rem;
+      padding: 0.5rem 0.125rem 0.875rem;
+      border-bottom: 1px solid var(--b1);
+    }
+    .drilldown-back {
+      position: absolute; top: 0; right: 0;
+      width: 1.875rem; height: 1.875rem; border-radius: 50%;
+      background: var(--s2); border: 1px solid var(--b1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; outline: none;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       -webkit-tap-highlight-color: transparent;
-      transition: color var(--t-fast);
+      z-index: 1;
     }
-    .back-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .back-btn:hover { color: var(--t1); } }
-    @media (pointer: coarse) { .back-btn:active { animation: bounce 0.3s ease; } }
-    .back-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-
-    /* Play all button */
-    .play-all-btn {
-      display: flex; align-items: center; gap: 0.25rem;
-      background: rgba(30, 215, 96, 0.12); border: none; color: var(--c-spotify-hover);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      cursor: pointer; padding: 0.25rem 0.625rem; border-radius: var(--radius-full);
-      outline: none; -webkit-tap-highlight-color: transparent;
-      transition: background var(--t-fast), color var(--t-fast);
+    .drilldown-back ha-icon { --mdc-icon-size: 1rem; color: var(--t2); display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) {
+      .drilldown-back:hover {
+        background: var(--s3);
+        border-color: color-mix(in srgb, var(--c-spotify) 35%, transparent);
+      }
+      .drilldown-back:hover ha-icon { color: var(--c-spotify); }
     }
-    .play-all-btn ha-icon { --mdc-icon-size: 1rem; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .play-all-btn:hover { background: rgba(30, 215, 96, 0.22); } }
-    @media (pointer: coarse) { .play-all-btn:active { animation: bounce 0.3s ease; } }
-    .play-all-btn:focus-visible { outline: 2px solid rgba(30, 215, 96, 0.4); outline-offset: 2px; }
+    @media (hover: hover) { .drilldown-back:active { transform: scale(0.92); } }
+    @media (pointer: coarse) { .drilldown-back:active { animation: bounce 0.3s ease; } }
+    .drilldown-back:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+    @media (pointer: coarse) {
+      .drilldown-back::after { content: ''; position: absolute; inset: -0.625rem; }
+    }
 
-    /* Empty & error states */
+    .drilldown-hero-art {
+      width: 5rem; height: 5rem; border-radius: var(--radius-md);
+      background: var(--s2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      box-shadow:
+        0 12px 28px rgba(var(--rgb-black), 0.4),
+        0 0 0 1px var(--b1) inset,
+        0 0 18px rgba(var(--rgb-spotify), 0.12);
+    }
+    .drilldown-hero-art img { width: 100%; height: 100%; object-fit: cover; }
+    .drilldown-hero-art ha-icon {
+      --mdc-icon-size: 2rem;
+      color: color-mix(in srgb, var(--c-spotify) 50%, var(--t4));
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .drilldown-hero-info {
+      min-width: 0;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      justify-content: center;
+      padding-right: 2.25rem;
+    }
+    .drilldown-hero-title {
+      font-size: var(--fz-md); font-weight: 700; color: var(--t1); line-height: 1.2;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .drilldown-hero-meta {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .drilldown-play-cta {
+      position: relative;
+      align-self: flex-start;
+      margin-top: 0.375rem;
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+      border-radius: var(--radius-full);
+      background: var(--c-spotify);
+      border: none;
+      color: var(--c-spotify-on);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 700;
+      cursor: pointer; outline: none;
+      transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+      box-shadow: 0 4px 14px rgba(var(--rgb-spotify), 0.3);
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (pointer: coarse) {
+      .drilldown-play-cta::after { content: ''; position: absolute; inset: -0.4375rem; }
+    }
+    .drilldown-play-cta ha-icon {
+      --mdc-icon-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .drilldown-play-cta:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+    @media (hover: hover) and (pointer: fine) {
+      .drilldown-play-cta:not(:disabled):hover {
+        background: var(--c-spotify-hover);
+        box-shadow: 0 6px 18px rgba(var(--rgb-spotify), 0.45);
+      }
+    }
+    @media (hover: hover) { .drilldown-play-cta:active:not(:disabled) { transform: scale(0.96); } }
+    @media (pointer: coarse) { .drilldown-play-cta:active:not(:disabled) { animation: bounce 0.3s ease; } }
+    .drilldown-play-cta:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.4); outline-offset: 2px; }
+
+    .drilldown-tracks { flex: 1; min-height: 0; }
+
+    /* — Empty / setup / error states (cohérent eyebrow + cercle ambient) — */
     .empty-state {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 2rem 1rem; gap: 0.5rem;
+      padding: 2rem 1.25rem; gap: 0.625rem; text-align: center;
     }
-    .empty-state ha-icon { --mdc-icon-size: 2rem; color: var(--t4); display: flex; align-items: center; justify-content: center; }
-    .empty-state-text { font-size: var(--fz-base); font-weight: 500; color: var(--t4); text-align: center; }
+    .empty-state .ambient-icon {
+      width: 3.25rem; height: 3.25rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--c-spotify) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-spotify) 22%, transparent);
+      box-shadow: 0 0 18px rgba(var(--rgb-spotify), 0.15);
+      margin-bottom: 0.125rem;
+    }
+    .empty-state .ambient-icon ha-icon {
+      --mdc-icon-size: 1.5rem;
+      color: color-mix(in srgb, var(--c-spotify) 70%, var(--t2));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .empty-state-title {
+      font-size: var(--fz-md); font-weight: 700; color: var(--t1); line-height: 1.3;
+    }
+    .empty-state-sub {
+      font-size: var(--fz-sm); font-weight: 500; color: var(--t3); line-height: 1.4;
+      max-width: 22rem;
+    }
+    /* Alert variant */
+    .empty-state.is-alert .ambient-icon {
+      background: color-mix(in srgb, var(--c-alert) 10%, transparent);
+      border-color: color-mix(in srgb, var(--c-alert) 22%, transparent);
+      box-shadow: 0 0 18px rgba(var(--rgb-alert), 0.15);
+    }
+    .empty-state.is-alert .ambient-icon ha-icon {
+      color: color-mix(in srgb, var(--c-alert) 80%, var(--t2));
+    }
+
+    /* Eyebrow for setup/error banners — same pattern as library */
+    .banner-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      font-size: var(--fz-sm); font-weight: 700;
+      letter-spacing: 0.1px; margin-bottom: 0.25rem;
+    }
+    .banner-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+    }
+    .banner-eyebrow-setup { color: var(--c-spotify); }
+    .banner-eyebrow-setup .banner-eyebrow-dot { background: var(--c-spotify); box-shadow: 0 0 8px rgba(var(--rgb-spotify), 0.6); }
+    .banner-eyebrow-error { color: var(--c-alert); }
+    .banner-eyebrow-error .banner-eyebrow-dot { background: var(--c-alert); box-shadow: 0 0 8px rgba(var(--rgb-alert), 0.55); }
 
     .error-banner {
-      padding: 0.5rem 0.75rem; border-radius: var(--radius-md);
-      background: rgba(var(--rgb-alert),0.1); border: 1px solid rgba(var(--rgb-alert),0.2);
-      font-size: var(--fz-base); font-weight: 500; color: var(--c-alert);
+      display: flex; align-items: flex-start; gap: 0.625rem;
+      padding: 0.625rem 0.75rem; border-radius: var(--radius-md);
+      background: rgba(var(--rgb-alert), 0.08);
+      border: 1px solid rgba(var(--rgb-alert), 0.2);
     }
-
-    .setup-banner {
-      display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
-      padding: 1.5rem 1rem; text-align: center;
-    }
-    .setup-banner ha-icon { --mdc-icon-size: 2.5rem; color: var(--c-spotify); display: flex; align-items: center; justify-content: center; }
-    .setup-banner-text { font-size: var(--fz-base); color: var(--t3); line-height: 1.5; }
-    .setup-link {
-      font-size: var(--fz-base); font-weight: 600; color: var(--c-spotify);
-      background: rgba(var(--rgb-spotify),0.1); border: 1px solid rgba(var(--rgb-spotify),0.2);
-      border-radius: var(--radius-md); padding: 0.375rem 0.875rem;
-      cursor: pointer; text-decoration: none; outline: none;
-      -webkit-tap-highlight-color: transparent; transition: background var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) { .setup-link:hover { background: rgba(var(--rgb-spotify),0.2); } }
-    @media (pointer: coarse) { .setup-link:active { animation: bounce 0.3s ease; } }
-    .setup-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-
-    /* Load more button */
-    .load-more-btn {
+    .error-banner-icon {
+      width: 1.5rem; height: 1.5rem; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      padding: 0.5rem; border-radius: var(--radius-md);
-      background: var(--s1); border: 1px solid var(--b1);
-      color: var(--t3); font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
-      transition: background var(--t-fast), color var(--t-fast); flex-shrink: 0;
+      background: rgba(var(--rgb-alert), 0.18);
     }
-    @media (hover: hover) and (pointer: fine) { .load-more-btn:hover { background: var(--s2); color: var(--t1); } }
-    @media (pointer: coarse) { .load-more-btn:active { animation: bounce 0.3s ease; } }
-    .load-more-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .error-banner-icon ha-icon {
+      --mdc-icon-size: 0.9375rem; color: var(--c-alert);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .error-banner-body { flex: 1; min-width: 0; }
+    .error-banner-text {
+      font-size: var(--fz-base); font-weight: 500; color: var(--t2); line-height: 1.35;
+    }
+
+    /* Setup banner — uses empty-state shell + eyebrow + CTA */
+    .setup-banner-cta {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem; border-radius: var(--radius-full);
+      min-height: 2.75rem; box-sizing: border-box;
+      background: var(--c-spotify); color: var(--c-spotify-on);
+      border: none;
+      font-family: inherit; font-size: var(--fz-base); font-weight: 700;
+      text-decoration: none; cursor: pointer; outline: none;
+      box-shadow: 0 4px 14px rgba(var(--rgb-spotify), 0.3);
+      transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .setup-banner-cta ha-icon { --mdc-icon-size: 0.9375rem; display: flex; align-items: center; justify-content: center; }
+    @media (hover: hover) and (pointer: fine) {
+      .setup-banner-cta:hover {
+        background: var(--c-spotify-hover);
+        box-shadow: 0 6px 18px rgba(var(--rgb-spotify), 0.45);
+      }
+    }
+    @media (hover: hover) { .setup-banner-cta:active { transform: scale(0.97); } }
+    @media (pointer: coarse) { .setup-banner-cta:active { animation: bounce 0.3s ease; } }
+    .setup-banner-cta:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.4); outline-offset: 2px; }
 
     /* Speaker picker overlay */
     .picker-backdrop {
       position: fixed; inset: 0; z-index: 10000;
-      background: rgba(var(--rgb-black),0.5);
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 30%, rgba(var(--rgb-spotify), 0.18), transparent 70%),
+        rgba(var(--rgb-black), 0.62);
       display: flex; align-items: flex-end; justify-content: center;
       padding: 1rem; padding-bottom: 5rem;
       opacity: 0; pointer-events: none;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s var(--ease-std);
     }
     .picker-backdrop.visible { opacity: 1; pointer-events: auto; }
 
     .speaker-picker {
       width: 100%; max-width: 25rem;
-      padding: 1rem;
+      padding: 1rem 1rem 1.125rem;
       max-height: calc(100dvh - 10rem);
       display: flex; flex-direction: column;
-      transform: translateY(20px);
-      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      transform: translateY(28px);
+      transition: transform 0.35s var(--ease-out);
     }
     .picker-backdrop.visible .speaker-picker { transform: translateY(0); }
 
-    .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .picker-title { font-size: var(--fz-md); font-weight: 700; color: var(--t1); }
+    .picker-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.625rem;
+    }
+    .picker-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--c-spotify);
+      letter-spacing: 0.1px;
+    }
+    .picker-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--c-spotify);
+      box-shadow: 0 0 8px rgba(var(--rgb-spotify), 0.6);
+    }
     .picker-close {
+      position: relative;
       width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none; transition: background var(--t-fast);
+      cursor: pointer; padding: 0; outline: none;
+      transition: background var(--t-fast);
+    }
+    @media (pointer: coarse) {
+      .picker-close::after { content: ''; position: absolute; inset: -0.5rem; }
     }
     .picker-close ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .picker-close:hover { background: var(--s3); } }
     @media (pointer: coarse) { .picker-close:active { animation: bounce 0.3s ease; } }
     .picker-close:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
-    .picker-track {
-      display: flex; align-items: center; gap: 0.625rem;
-      padding: 0.5rem; margin-bottom: 0.75rem;
-      background: var(--s1); border-radius: var(--radius-md); border: 1px solid var(--b1);
+    /* Hero block: oversized artwork + track meta */
+    .picker-hero {
+      display: flex; align-items: center; gap: 0.875rem;
+      padding: 0.25rem 0.125rem 0.75rem;
+      margin-bottom: 0.625rem;
+      border-bottom: 1px solid var(--b1);
     }
-    .picker-track-art {
-      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm); flex-shrink: 0;
-      background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden;
+    .picker-hero-art {
+      width: 4.5rem; height: 4.5rem; border-radius: var(--radius-md);
+      background: var(--s2); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+      box-shadow:
+        0 12px 28px rgba(var(--rgb-black), 0.45),
+        0 0 0 1px var(--b1) inset,
+        0 0 18px rgba(var(--rgb-spotify), 0.18);
     }
-    .picker-track-art img { width: 100%; height: 100%; object-fit: cover; }
-    .picker-track-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
-    .picker-track-info { flex: 1; min-width: 0; }
-    .picker-track-title { font-size: var(--fz-base); font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .picker-track-artist { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-hero-art img { width: 100%; height: 100%; object-fit: cover; }
+    .picker-hero-art ha-icon {
+      --mdc-icon-size: 1.75rem; color: color-mix(in srgb, var(--c-spotify) 50%, var(--t4));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .picker-hero-info { flex: 1; min-width: 0; }
+    .picker-hero-title {
+      font-size: var(--fz-md); font-weight: 700; color: var(--t1); line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .picker-hero-artist {
+      font-size: var(--fz-base); font-weight: 500; color: var(--t3); margin-top: 0.125rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
+    /* Speaker rows */
     .picker-speakers {
-      display: flex; flex-direction: column; gap: 0.25rem;
+      display: flex; flex-direction: column; gap: 0.3125rem;
       overflow-y: auto; flex: 1; min-height: 0;
       scrollbar-width: none;
+      padding-right: 0.125rem;
     }
     .picker-speakers::-webkit-scrollbar { display: none; }
     .picker-speaker {
-      display: flex; align-items: center; gap: 0.625rem;
-      padding: 0.5rem; border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: 0.6875rem;
+      padding: 0.5rem 0.625rem; border-radius: var(--radius-md);
       background: var(--s1); border: 1px solid var(--b1);
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+      cursor: pointer;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
       font-family: inherit; outline: none; width: 100%;
       -webkit-tap-highlight-color: transparent; color: inherit;
-      flex-shrink: 0;
+      flex-shrink: 0; position: relative;
+      text-align: left;
     }
-    .picker-speaker.selected { border-color: rgba(var(--rgb-spotify),0.4); background: rgba(var(--rgb-spotify),0.08); }
-    @media (hover: hover) and (pointer: fine) { .picker-speaker:hover { background: var(--s3); border-color: var(--b2); } }
-    @media (hover: hover) and (pointer: fine) { .picker-speaker:active { transform: scale(0.98); } }
-    @media (pointer: coarse) { .picker-speaker:active { animation: bounce 0.3s ease; } }
     .picker-speaker:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .picker-speaker:not(.selected):hover { background: var(--s2); border-color: var(--b2); transform: translateX(2px); }
+    }
+    @media (hover: hover) and (pointer: fine) { .picker-speaker:active { transform: translateX(2px) scale(0.985); } }
+    @media (pointer: coarse) { .picker-speaker:active { animation: bounce 0.3s ease; } }
+
+    /* State: playing — subtle spotify ring even when not selected */
+    .picker-speaker.state-playing .picker-speaker-icon {
+      background: rgba(var(--rgb-spotify), 0.12);
+      border-color: rgba(var(--rgb-spotify), 0.3);
+    }
+    .picker-speaker.state-playing .picker-speaker-icon ha-icon { color: var(--c-spotify); }
+
+    /* State: off — dimmed */
+    .picker-speaker.state-off .picker-speaker-name { color: var(--t3); }
+    .picker-speaker.state-off .picker-speaker-icon ha-icon { color: var(--t4); }
+
+    /* State: selected — wins over playing visually */
+    .picker-speaker.selected {
+      background: color-mix(in srgb, var(--c-spotify) 14%, transparent);
+      border-color: color-mix(in srgb, var(--c-spotify) 55%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-spotify) 40%, transparent) inset;
+    }
 
     .picker-speaker-icon {
-      width: 2rem; height: 2rem; border-radius: var(--radius-sm);
+      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-sm);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast);
     }
-    .picker-speaker.selected .picker-speaker-icon { background: rgba(var(--rgb-spotify),0.15); border-color: rgba(var(--rgb-spotify),0.3); }
-    .picker-speaker-icon ha-icon { --mdc-icon-size: 1rem; color: var(--t3); display: flex; align-items: center; justify-content: center; }
+    .picker-speaker.selected .picker-speaker-icon {
+      background: rgba(var(--rgb-spotify), 0.2);
+      border-color: rgba(var(--rgb-spotify), 0.45);
+    }
+    .picker-speaker-icon ha-icon { --mdc-icon-size: 1.125rem; color: var(--t2); display: flex; align-items: center; justify-content: center; transition: color var(--t-fast); }
     .picker-speaker.selected .picker-speaker-icon ha-icon { color: var(--c-spotify); }
-    .picker-speaker-name { flex: 1; font-size: var(--fz-base); font-weight: 600; color: var(--t2); }
-    .picker-speaker-status { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); white-space: nowrap; }
-    .picker-speaker-status.playing { color: rgba(var(--rgb-spotify),0.6); }
+
+    .picker-speaker-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.0625rem; }
+    .picker-speaker-name {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .picker-speaker-status {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      font-size: var(--fz-xs); font-weight: 500; color: var(--t3);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .picker-state-dot {
+      width: 0.3125rem; height: 0.3125rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--t4);
+    }
+    .picker-speaker.state-playing .picker-state-label { color: var(--c-spotify); }
+    .picker-speaker.state-paused .picker-state-dot { background: var(--c-warning); }
+    .picker-speaker.state-off .picker-state-dot { background: var(--t4); opacity: 0.5; }
+    .picker-speaker.state-idle .picker-state-dot {
+      background: var(--c-spotify);
+      box-shadow: 0 0 6px rgba(var(--rgb-spotify), 0.45);
+    }
+
+    /* EQ bars for playing state (transform-only, composited) */
+    .picker-state-eq {
+      display: inline-flex; align-items: flex-end; gap: 0.125rem;
+      width: 0.75rem; height: 0.625rem; flex-shrink: 0;
+    }
+    .picker-state-eq span {
+      flex: 1; height: 100%;
+      background: var(--c-spotify); border-radius: 1px;
+      transform-origin: bottom center;
+      animation: picker-eq 0.9s ease-in-out infinite;
+    }
+    .picker-state-eq span:nth-child(1) { animation-delay: -0.2s; }
+    .picker-state-eq span:nth-child(2) { animation-delay: -0.5s; }
+    .picker-state-eq span:nth-child(3) { animation-delay: -0.35s; }
+    @keyframes picker-eq {
+      0%, 100% { transform: scaleY(0.3); }
+      50%      { transform: scaleY(1);   }
+    }
+
     .picker-speaker-check {
-      width: 1.25rem; height: 1.25rem; border-radius: 50%;
+      width: 1.375rem; height: 1.375rem; border-radius: 50%;
       border: 2px solid var(--b2); background: transparent;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: border-color var(--t-fast), background var(--t-fast);
+      transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+      transform: scale(0.9);
     }
-    .picker-speaker.selected .picker-speaker-check { border-color: var(--c-spotify); background: var(--c-spotify); }
-    .picker-speaker-check ha-icon { --mdc-icon-size: var(--icon-sm); color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t-fast); }
+    .picker-speaker.selected .picker-speaker-check {
+      border-color: var(--c-spotify); background: var(--c-spotify);
+      transform: scale(1);
+    }
+    .picker-speaker-check ha-icon {
+      --mdc-icon-size: 0.875rem; color: var(--c-spotify-on);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity var(--t-fast);
+    }
     .picker-speaker.selected .picker-speaker-check ha-icon { opacity: 1; }
 
     .picker-play-bar {
-      display: flex; gap: 0.5rem; padding-top: 0.5rem; flex-shrink: 0;
+      display: flex; gap: 0.5rem; padding-top: 0.875rem; flex-shrink: 0;
     }
     .picker-play-btn {
-      flex: 1; padding: 0.625rem; border-radius: var(--radius-md);
+      flex: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md);
       border: none; cursor: pointer; font-family: inherit; font-size: var(--fz-base); font-weight: 700;
-      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
-      transition: background var(--t-fast), transform var(--t-fast); outline: none;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast); outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    .picker-play-btn.primary { background: var(--c-spotify); color: #fff; }
-    .picker-play-btn.primary:disabled { opacity: 0.4; cursor: default; }
-    @media (hover: hover) and (pointer: fine) { .picker-play-btn.primary:not(:disabled):hover { background: var(--c-spotify-hover); } }
-    .picker-play-btn.primary ha-icon { --mdc-icon-size: var(--icon-md); display: flex; align-items: center; justify-content: center; }
+    .picker-play-btn.primary {
+      background: var(--c-spotify);
+      color: var(--c-spotify-on);
+      box-shadow: 0 6px 20px rgba(var(--rgb-spotify), 0.35);
+    }
+    .picker-play-btn.primary:disabled {
+      background: var(--s3); color: var(--t4); cursor: default;
+      box-shadow: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .picker-play-btn.primary:not(:disabled):hover {
+        background: var(--c-spotify-hover);
+        box-shadow: 0 8px 24px rgba(var(--rgb-spotify), 0.5);
+      }
+    }
+    .picker-play-btn.primary ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .picker-play-btn:active:not(:disabled) { transform: scale(0.98); } }
     @media (pointer: coarse) { .picker-play-btn:active:not(:disabled) { animation: bounce 0.3s ease; } }
+    .picker-play-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.4); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .picker-backdrop, .speaker-picker, .picker-speaker { transition: none; }
+      .picker-state-eq span { animation: none; transform: scaleY(0.6); }
+      .picker-speaker:hover { transform: none; }
+      .drilldown-back, .drilldown-play-cta { transition: none; }
+      .drilldown-back:active, .drilldown-play-cta:active { transform: none; }
+      .np-btn, .np-btn-play, .setup-banner-cta { transition: none; }
+      .np-btn:active, .np-btn-play:active, .setup-banner-cta:active { transform: none; }
+    }
 
     /* Now playing indicator */
     .result-row.now-playing {
@@ -760,6 +1111,53 @@ class GlassSpotifyCard extends BaseCard {
     return (entity.attributes.media_content_id as string ?? '') === uri;
   }
 
+  private _getPlaybackEntity(): { entityId: string; state: string; title: string | null; artist: string | null; art: string | null } | null {
+    const entityId = this._getEntityId();
+    if (!entityId) return null;
+    const entity = this.hass?.states[entityId];
+    if (!entity) return null;
+    if (entity.state !== 'playing' && entity.state !== 'paused') return null;
+    return {
+      entityId,
+      state: entity.state,
+      title: (entity.attributes.media_title as string | undefined) ?? null,
+      artist: (entity.attributes.media_artist as string | undefined) ?? null,
+      art: (entity.attributes.entity_picture as string | undefined) ?? null,
+    };
+  }
+
+  private _mediaPlayPause(e: Event): void {
+    e.stopPropagation();
+    const id = this._getEntityId();
+    if (!id) return;
+    fireHaptic(this, 'light');
+    this._safeCallService('media_player', 'media_play_pause', {}, { entity_id: id });
+  }
+
+  private _mediaNext(e: Event): void {
+    e.stopPropagation();
+    const id = this._getEntityId();
+    if (!id) return;
+    fireHaptic(this, 'light');
+    this._safeCallService('media_player', 'media_next_track', {}, { entity_id: id });
+  }
+
+  private _mediaPrev(e: Event): void {
+    e.stopPropagation();
+    const id = this._getEntityId();
+    if (!id) return;
+    fireHaptic(this, 'light');
+    this._safeCallService('media_player', 'media_previous_track', {}, { entity_id: id });
+  }
+
+  private _focusSearchInput(): void {
+    // The search input renders only after the fold is open; wait one frame
+    requestAnimationFrame(() => {
+      const input = this.renderRoot.querySelector<HTMLInputElement>('input.search-input');
+      input?.focus();
+    });
+  }
+
   private _getEntityId(): string {
     if (this._config?.entity) return this._config.entity as string;
     if (this._spotifyConfig.entity_id) return this._spotifyConfig.entity_id;
@@ -793,6 +1191,7 @@ class GlassSpotifyCard extends BaseCard {
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoadingInProgress = false;
+    window.removeEventListener('keydown', this._onPickerKeydown);
   }
 
   protected _collapseExpanded(): void {
@@ -970,10 +1369,10 @@ class GlassSpotifyCard extends BaseCard {
 
   // — Drilldown —
 
-  private async _openDrilldown(type: 'playlist' | 'album', id: string, title: string): Promise<void> {
+  private async _openDrilldown(type: 'playlist' | 'album', id: string, title: string, image?: string, subtitle?: string): Promise<void> {
     if (!this._backend) return;
     this._view = 'drilldown';
-    this._drilldown = { title, type, id, items: [], total: 0, offset: 0, loading: true };
+    this._drilldown = { title, type, id, image, subtitle, items: [], total: 0, offset: 0, loading: true };
     this._error = null;
     try {
       const category = type === 'playlist' ? 'playlist_tracks' : 'album_tracks';
@@ -1033,6 +1432,14 @@ class GlassSpotifyCard extends BaseCard {
     this._pickerItem = item;
     this._view = 'speaker_picker';
     this._selectedSpeakers = new Set<string>();
+    window.addEventListener('keydown', this._onPickerKeydown);
+    // Focus the close button once the dialog has rendered
+    queueMicrotask(() => {
+      requestAnimationFrame(() => {
+        const closeBtn = this.renderRoot.querySelector<HTMLButtonElement>('.picker-close');
+        closeBtn?.focus();
+      });
+    });
     // Collect media_player entities
     if (this.hass) {
       const visibleSet = this._spotifyConfig.visible_speakers;
@@ -1072,7 +1479,15 @@ class GlassSpotifyCard extends BaseCard {
   private _closePicker(): void {
     this._pickerItem = null;
     this._view = this._drilldown ? 'drilldown' : this._searchQuery ? 'search' : 'library';
+    window.removeEventListener('keydown', this._onPickerKeydown);
   }
+
+  private _onPickerKeydown = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape' && this._view === 'speaker_picker') {
+      e.preventDefault();
+      this._closePicker();
+    }
+  };
 
   private _toggleSpeakerSelection(entityId: string): void {
     const next = new Set(this._selectedSpeakers);
@@ -1307,11 +1722,16 @@ class GlassSpotifyCard extends BaseCard {
     // Not configured
     if (this._spotifyConfigured === false) {
       return this._renderShell(html`
-        <div class="setup-banner">
-          <ha-icon .icon=${'mdi:spotify'}></ha-icon>
-          <div class="setup-banner-text">${t('spotify.not_configured')}</div>
-          <a class="setup-link" href="/config/integrations/dashboard" target="_blank">
-            ${t('spotify.open_config')}
+        <div class="empty-state">
+          <div class="banner-eyebrow banner-eyebrow-setup">
+            <span class="banner-eyebrow-dot"></span>
+            <span>${t('spotify.setup_eyebrow')}</span>
+          </div>
+          <div class="ambient-icon"><ha-icon .icon=${'mdi:spotify'}></ha-icon></div>
+          <div class="empty-state-title">${t('spotify.not_configured')}</div>
+          <a class="setup-banner-cta" href="/config/integrations/dashboard" target="_blank" rel="noopener noreferrer">
+            <ha-icon .icon=${'mdi:arrow-up-right'}></ha-icon>
+            <span>${t('spotify.open_config')}</span>
           </a>
         </div>
       `);
@@ -1320,11 +1740,16 @@ class GlassSpotifyCard extends BaseCard {
     // No entity
     if (!entityId) {
       return this._renderShell(html`
-        <div class="setup-banner">
-          <ha-icon .icon=${'mdi:spotify'}></ha-icon>
-          <div class="setup-banner-text">${t('spotify.no_entity')}</div>
-          <a class="setup-link" href="/glass-cards" target="_blank">
-            ${t('spotify.open_config')}
+        <div class="empty-state">
+          <div class="banner-eyebrow banner-eyebrow-setup">
+            <span class="banner-eyebrow-dot"></span>
+            <span>${t('spotify.setup_eyebrow')}</span>
+          </div>
+          <div class="ambient-icon"><ha-icon .icon=${'mdi:spotify'}></ha-icon></div>
+          <div class="empty-state-title">${t('spotify.no_entity')}</div>
+          <a class="setup-banner-cta" href="/glass-cards" target="_blank" rel="noopener noreferrer">
+            <ha-icon .icon=${'mdi:arrow-up-right'}></ha-icon>
+            <span>${t('spotify.open_config')}</span>
           </a>
         </div>
       `);
@@ -1334,7 +1759,18 @@ class GlassSpotifyCard extends BaseCard {
 
     return html`
       ${this._renderShell(html`
-        ${this._error ? html`<div class="error-banner">${this._error}</div>` : nothing}
+        ${this._error ? html`
+          <div class="error-banner" role="alert">
+            <div class="error-banner-icon"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></div>
+            <div class="error-banner-body">
+              <div class="banner-eyebrow banner-eyebrow-error">
+                <span class="banner-eyebrow-dot"></span>
+                <span>${t('spotify.error_eyebrow')}</span>
+              </div>
+              <div class="error-banner-text">${this._error}</div>
+            </div>
+          </div>
+        ` : nothing}
         ${this._view === 'drilldown' && this._drilldown
           ? this._renderDrilldown()
           : html`
@@ -1372,6 +1808,11 @@ class GlassSpotifyCard extends BaseCard {
   }
 
   private _renderSearch(): TemplateResult {
+    const playback = this._getPlaybackEntity();
+    // Show now-playing bar instead of search when fold is closed AND something is playing/paused
+    if (playback && !this._foldOpen) {
+      return this._renderNowPlayingBar(playback);
+    }
     return html`
       <div class="search-row">
         <div class="search-input-wrap">
@@ -1399,6 +1840,49 @@ class GlassSpotifyCard extends BaseCard {
             <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
         </div>
+      </div>
+    `;
+  }
+
+  private _renderNowPlayingBar(playback: { state: string; title: string | null; artist: string | null; art: string | null }): TemplateResult {
+    const isPlaying = playback.state === 'playing';
+    const titleText = playback.title ?? t('spotify.tab_tracks');
+    return html`
+      <div class="np-bar" role="region" aria-label=${t('spotify.now_playing_aria')}>
+        <div class="np-art">
+          ${playback.art
+            ? html`<img src=${playback.art} alt="" loading="lazy" />`
+            : html`<ha-icon .icon=${'mdi:music-note'}></ha-icon>`}
+        </div>
+        <div class="np-meta">
+          <div class="np-title">${titleText}</div>
+          ${playback.artist ? html`<div class="np-artist">${playback.artist}</div>` : nothing}
+        </div>
+        <div class="np-transport">
+          <button class="np-btn" aria-label=${t('spotify.previous_track')} @click=${(e: Event) => this._mediaPrev(e)}>
+            <ha-icon .icon=${'mdi:skip-previous'}></ha-icon>
+          </button>
+          <button class="np-btn np-btn-play ${isPlaying ? 'is-playing' : 'is-paused'}" aria-label=${isPlaying ? t('spotify.pause') : t('spotify.play')} @click=${(e: Event) => this._mediaPlayPause(e)}>
+            <ha-icon .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
+          </button>
+          <button class="np-btn" aria-label=${t('spotify.next_track')} @click=${(e: Event) => this._mediaNext(e)}>
+            <ha-icon .icon=${'mdi:skip-next'}></ha-icon>
+          </button>
+        </div>
+        <button
+          class="np-btn np-btn-search"
+          aria-label=${t('spotify.search_placeholder')}
+          @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = true; this._focusSearchInput(); }}
+        >
+          <ha-icon .icon=${'mdi:magnify'}></ha-icon>
+        </button>
+        <button
+          class="search-toggle ${this._foldOpen ? 'open' : ''}"
+          aria-label=${t('spotify.toggle_library')}
+          @click=${() => { this._foldOpen = !this._foldOpen; }}
+        >
+          <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
+        </button>
       </div>
     `;
   }
@@ -1446,8 +1930,9 @@ class GlassSpotifyCard extends BaseCard {
     if (!hasContent) {
       return html`
         <div class="empty-state">
-          <ha-icon .icon=${'mdi:music-note-off'}></ha-icon>
-          <div class="empty-state-text">${t('spotify.no_content')}</div>
+          <div class="ambient-icon"><ha-icon .icon=${'mdi:music-note-off'}></ha-icon></div>
+          <div class="empty-state-title">${t('spotify.no_content')}</div>
+          <div class="empty-state-sub">${t('spotify.no_content_sub')}</div>
         </div>
       `;
     }
@@ -1514,7 +1999,7 @@ class GlassSpotifyCard extends BaseCard {
       <button
         class="playlist-card"
         aria-label=${pl.name}
-        @click=${() => this._openDrilldown('playlist', pl.id, pl.name)}
+        @click=${() => this._openDrilldown('playlist', pl.id, pl.name, getImage(pl, 300), pl.owner?.display_name)}
       >
         <div class="playlist-art">
           ${img
@@ -1542,8 +2027,8 @@ class GlassSpotifyCard extends BaseCard {
         role="button"
         tabindex="0"
         @click=${() => {
-          if (type === 'playlist') this._openDrilldown('playlist', item.id, item.name);
-          else if (type === 'album') this._openDrilldown('album', item.id, item.name);
+          if (type === 'playlist') this._openDrilldown('playlist', item.id, item.name, getImage(item, 300), item.owner?.display_name);
+          else if (type === 'album') this._openDrilldown('album', item.id, item.name, getImage(item, 300), getArtistNames(item));
           else this._openPicker(item);
         }}
         @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
@@ -1597,32 +2082,71 @@ class GlassSpotifyCard extends BaseCard {
     if (!showTracks && !showPlaylists && !showShows) {
       return html`
         <div class="empty-state">
-          <ha-icon .icon=${'mdi:music-note-off'}></ha-icon>
-          <div class="empty-state-text">${t('spotify.no_results', { query: this._searchQuery })}</div>
+          <div class="ambient-icon"><ha-icon .icon=${'mdi:magnify'}></ha-icon></div>
+          <div class="empty-state-title">${t('spotify.no_results_title')}</div>
+          <div class="empty-state-sub">${t('spotify.no_results', { query: this._searchQuery })}</div>
         </div>
       `;
     }
 
+    // The lib-more-link attaches to the last visible section. When in a single-tab view,
+    // there's only one section, so it lands on it. In "all" view it attaches to the bottom one.
+    const showLast = showShows ? 'shows' : showPlaylists ? 'playlists' : 'tracks';
+    const moreLink = this._searchHasMore ? html`
+      <button
+        class="lib-more-link"
+        ?disabled=${this._searchLoading}
+        aria-label="${t('spotify.load_more')} (${this._searchQuery})"
+        @click=${(e: Event) => { e.stopPropagation(); this._doSearch(true); }}
+      >
+        ${this._searchLoading
+          ? html`<span>${t('spotify.loading')}</span>`
+          : html`<span aria-hidden="true">${t('spotify.load_more')}</span>`}
+      </button>
+    ` : nothing;
+
     return html`
       ${showTracks ? html`
-        ${this._tab === 'all' ? html`<div class="section-title">${t('spotify.tab_tracks')}</div>` : nothing}
-        ${tracks.map((item) => this._renderResultRow(item, 'track'))}
+        <div class="lib-section">
+          ${this._tab === 'all' ? html`
+            <div class="lib-eyebrow lib-eyebrow-tracks">
+              <span class="lib-eyebrow-dot"></span>
+              <span>${t('spotify.tab_tracks')}</span>
+              ${showLast === 'tracks' ? moreLink : nothing}
+            </div>
+          ` : nothing}
+          ${tracks.map((item) => this._renderResultRow(item, 'track'))}
+        </div>
       ` : nothing}
 
       ${showPlaylists ? html`
-        ${this._tab === 'all' ? html`<div class="section-title">${t('spotify.tab_playlists')}</div>` : nothing}
-        ${playlists.map((item) => this._renderResultRow(item, 'playlist'))}
+        <div class="lib-section">
+          ${this._tab === 'all' ? html`
+            <div class="lib-eyebrow lib-eyebrow-playlists">
+              <span class="lib-eyebrow-dot"></span>
+              <span>${t('spotify.tab_playlists')}</span>
+              ${showLast === 'playlists' ? moreLink : nothing}
+            </div>
+          ` : nothing}
+          ${playlists.map((item) => this._renderResultRow(item, 'playlist'))}
+        </div>
       ` : nothing}
 
       ${showShows ? html`
-        ${this._tab === 'all' ? html`<div class="section-title">${t('spotify.tab_podcasts')}</div>` : nothing}
-        ${shows.map((item) => this._renderResultRow({ ...item, type: 'show' }, 'show'))}
+        <div class="lib-section">
+          ${this._tab === 'all' ? html`
+            <div class="lib-eyebrow lib-eyebrow-podcasts">
+              <span class="lib-eyebrow-dot"></span>
+              <span>${t('spotify.tab_podcasts')}</span>
+              ${showLast === 'shows' ? moreLink : nothing}
+            </div>
+          ` : nothing}
+          ${shows.map((item) => this._renderResultRow({ ...item, type: 'show' }, 'show'))}
+        </div>
       ` : nothing}
 
-      ${this._searchHasMore ? html`
-        <button class="load-more-btn" @click=${() => this._doSearch(true)} ?disabled=${this._searchLoading}>
-          ${this._searchLoading ? t('spotify.loading') : t('spotify.load_more')}
-        </button>
+      ${this._tab !== 'all' && this._searchHasMore ? html`
+        <div class="lib-section search-more-standalone">${moreLink}</div>
       ` : nothing}
     `;
   }
@@ -1639,29 +2163,64 @@ class GlassSpotifyCard extends BaseCard {
   private _renderDrilldown(): TemplateResult | typeof nothing {
     const dd = this._drilldown;
     if (!dd) return nothing;
+    const typeLabel = dd.type === 'album' ? t('spotify.type_album') : t('spotify.type_playlist');
+    const countLabel = dd.total > 0 ? t('spotify.tracks_count', { count: String(dd.total) }) : '';
+    const meta = [dd.subtitle, typeLabel, countLabel].filter(Boolean).join(' · ');
+    const hasMore = !dd.loading && dd.items.length < dd.total;
     return html`
-      <div class="drilldown-header">
-        <button class="back-btn" @click=${this._goBack}>
-          <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-          ${t('spotify.back')}
-        </button>
-        <button class="play-all-btn" @click=${this._playFullDrilldown} aria-label=${t('spotify.play_all')}>
-          <ha-icon .icon=${'mdi:play-circle'}></ha-icon>
-          ${t('spotify.play_all')}
-        </button>
-      </div>
-      <div class="section-title">${dd.title}</div>
-      <div class="content-area">
-        ${dd.items.map((item) => {
-          const track = item.track ?? item;
-          return this._renderResultRow(track, track.type ?? 'track');
-        })}
-        ${dd.loading ? html`<div class="loading-text">${t('spotify.loading')}</div>` : nothing}
-        ${!dd.loading && dd.items.length < dd.total ? html`
-          <button class="load-more-btn" ?disabled=${dd.loading} @click=${this._loadMoreDrilldown}>
-            ${t('spotify.load_more')}
+      <div class="drilldown">
+        <div class="drilldown-hero">
+          <button class="drilldown-back" @click=${this._goBack} aria-label=${t('spotify.back')}>
+            <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
           </button>
-        ` : nothing}
+          <div class="drilldown-hero-art">
+            ${dd.image
+              ? html`<img src=${dd.image} alt="" loading="lazy" />`
+              : html`<ha-icon .icon=${dd.type === 'album' ? 'mdi:album' : 'mdi:playlist-music'}></ha-icon>`}
+          </div>
+          <div class="drilldown-hero-info">
+            <div class="drilldown-hero-title">${dd.title}</div>
+            ${meta ? html`<div class="drilldown-hero-meta">${meta}</div>` : nothing}
+            <button
+              class="drilldown-play-cta"
+              @click=${this._playFullDrilldown}
+              ?disabled=${dd.items.length === 0}
+              aria-label=${t('spotify.play_all')}
+            >
+              <ha-icon .icon=${'mdi:play'}></ha-icon>
+              <span>${t('spotify.play_all')}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="lib-section drilldown-tracks">
+          <div class="lib-eyebrow lib-eyebrow-playlists">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${t('spotify.tab_tracks')}</span>
+            ${hasMore ? html`
+              <button
+                class="lib-more-link"
+                ?disabled=${dd.loading}
+                aria-label="${t('spotify.load_more')} (${dd.items.length}/${dd.total})"
+                @click=${(e: Event) => { e.stopPropagation(); this._loadMoreDrilldown(); }}
+              >
+                <span aria-hidden="true">${t('spotify.load_more')}</span>
+                <span class="lib-more-count" aria-hidden="true">${dd.items.length} / ${dd.total}</span>
+              </button>
+            ` : nothing}
+          </div>
+          ${dd.items.map((item) => {
+            const track = item.track ?? item;
+            return this._renderResultRow(track, track.type ?? 'track');
+          })}
+          ${dd.loading ? html`<div class="loading-text">${t('spotify.loading')}</div>` : nothing}
+          ${!dd.loading && dd.items.length === 0 ? html`
+            <div class="empty-state">
+              <ha-icon .icon=${'mdi:music-note-off'}></ha-icon>
+              <div class="empty-state-text">${t('spotify.no_content')}</div>
+            </div>
+          ` : nothing}
+        </div>
       </div>
     `;
   }
@@ -1671,53 +2230,46 @@ class GlassSpotifyCard extends BaseCard {
   private _renderSpeakerPicker(): TemplateResult | typeof nothing {
     const item = this._pickerItem;
     if (!item) return nothing;
-    const img = getImage(item, 64);
+    const img = getImage(item, 200);
     const artist = getArtistNames(item);
-    const hasSelection = this._selectedSpeakers.size > 0;
+    const selectedCount = this._selectedSpeakers.size;
+    const hasSelection = selectedCount > 0;
+
+    let playLabel = t('spotify.choose_speaker');
+    if (selectedCount === 1) {
+      const single = this._speakers.find((s) => this._selectedSpeakers.has(s.entityId));
+      playLabel = single ? t('spotify.play_on_named', { name: single.name }) : t('spotify.play');
+    } else if (selectedCount > 1) {
+      playLabel = t('spotify.play_on_count', { count: String(selectedCount) });
+    }
+
     return html`
       <div class="picker-backdrop visible" role="presentation" @click=${(e: Event) => { if ((e.target as HTMLElement).classList.contains('picker-backdrop')) this._closePicker(); }}>
-        <div class="glass speaker-picker">
+        <div class="glass speaker-picker" role="dialog" aria-modal="true" aria-labelledby="picker-track-title">
           <div class="picker-header">
-            <div class="picker-title">${t('spotify.play_on')}</div>
+            <div class="picker-eyebrow">
+              <span class="picker-eyebrow-dot"></span>
+              <span>${t('spotify.connect')}</span>
+            </div>
             <button class="picker-close" aria-label="${t('common.close')}" @click=${this._closePicker}>
               <ha-icon .icon=${'mdi:close'}></ha-icon>
             </button>
           </div>
 
-          <div class="picker-track">
-            <div class="picker-track-art">
+          <div class="picker-hero">
+            <div class="picker-hero-art">
               ${img
                 ? html`<img src=${img} alt="" />`
                 : html`<ha-icon .icon=${typeIcon(item.type ?? 'track')}></ha-icon>`}
             </div>
-            <div class="picker-track-info">
-              <div class="picker-track-title">${item.name}</div>
-              ${artist ? html`<div class="picker-track-artist">${artist}</div>` : nothing}
+            <div class="picker-hero-info">
+              <div class="picker-hero-title" id="picker-track-title">${item.name}</div>
+              ${artist ? html`<div class="picker-hero-artist">${artist}</div>` : nothing}
             </div>
           </div>
 
-          <div class="picker-speakers">
-            ${this._speakers.map((sp) => {
-              const selected = this._selectedSpeakers.has(sp.entityId);
-              return html`
-                <button class="picker-speaker ${selected ? 'selected' : ''}" @click=${() => this._toggleSpeakerSelection(sp.entityId)}>
-                  <div class="picker-speaker-icon">
-                    <ha-icon .icon=${sp.icon}></ha-icon>
-                  </div>
-                  <div class="picker-speaker-name">${sp.name}</div>
-                  <div class="picker-speaker-status ${sp.state === 'playing' ? 'playing' : ''}">
-                    ${sp.state === 'playing' && sp.mediaTitle
-                      ? sp.mediaTitle
-                      : sp.state === 'paused'
-                        ? t('spotify.paused')
-                        : t('spotify.available')}
-                  </div>
-                  <div class="picker-speaker-check">
-                    <ha-icon .icon=${'mdi:check'}></ha-icon>
-                  </div>
-                </button>
-              `;
-            })}
+          <div class="picker-speakers" role="listbox" aria-multiselectable="true">
+            ${this._speakers.map((sp) => this._renderSpeakerRow(sp))}
           </div>
 
           <div class="picker-play-bar">
@@ -1725,14 +2277,52 @@ class GlassSpotifyCard extends BaseCard {
               class="picker-play-btn primary"
               ?disabled=${!hasSelection}
               @click=${() => this._playOnSelectedSpeakers()}
-              aria-label=${t('spotify.play')}
+              aria-label=${playLabel}
             >
               <ha-icon .icon=${'mdi:play'}></ha-icon>
-              ${t('spotify.play')}${hasSelection ? ` (${this._selectedSpeakers.size})` : ''}
+              <span>${playLabel}</span>
             </button>
           </div>
         </div>
       </div>
+    `;
+  }
+
+  private _renderSpeakerRow(sp: { entityId: string; name: string; state: string; mediaTitle: string | null; icon: string }): TemplateResult {
+    const selected = this._selectedSpeakers.has(sp.entityId);
+    const isPlaying = sp.state === 'playing';
+    const isPaused = sp.state === 'paused';
+    const stateLabel = isPlaying && sp.mediaTitle
+      ? sp.mediaTitle
+      : isPaused
+        ? t('spotify.paused')
+        : sp.state === 'off'
+          ? t('spotify.speaker_off')
+          : t('spotify.available');
+    const stateClass = isPlaying ? 'playing' : isPaused ? 'paused' : sp.state === 'off' ? 'off' : 'idle';
+    return html`
+      <button
+        class="picker-speaker ${selected ? 'selected' : ''} state-${stateClass}"
+        role="option"
+        aria-selected=${selected ? 'true' : 'false'}
+        @click=${() => this._toggleSpeakerSelection(sp.entityId)}
+      >
+        <div class="picker-speaker-icon">
+          <ha-icon .icon=${sp.icon}></ha-icon>
+        </div>
+        <div class="picker-speaker-meta">
+          <div class="picker-speaker-name">${sp.name}</div>
+          <div class="picker-speaker-status">
+            ${isPlaying
+              ? html`<span class="picker-state-eq" aria-hidden="true"><span></span><span></span><span></span></span>`
+              : html`<span class="picker-state-dot" aria-hidden="true"></span>`}
+            <span class="picker-state-label">${stateLabel}</span>
+          </div>
+        </div>
+        <div class="picker-speaker-check" aria-hidden="true">
+          <ha-icon .icon=${'mdi:check'}></ha-icon>
+        </div>
+      </button>
     `;
   }
 }
