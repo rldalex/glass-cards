@@ -665,6 +665,7 @@ class PresenceCardConfig:
     smartphone_sensors: dict[str, str] = field(default_factory=dict)
     notify_services: dict[str, str] = field(default_factory=dict)
     driving_sensors: dict[str, str] = field(default_factory=dict)
+    sleep_sensors: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -674,6 +675,7 @@ class PresenceCardConfig:
             "smartphone_sensors": self.smartphone_sensors,
             "notify_services": self.notify_services,
             "driving_sensors": self.driving_sensors,
+            "sleep_sensors": self.sleep_sensors,
         }
 
     @classmethod
@@ -689,6 +691,9 @@ class PresenceCardConfig:
         raw_driving = data.get("driving_sensors", {})
         if not isinstance(raw_driving, dict):
             raw_driving = {}
+        raw_sleep = data.get("sleep_sensors", {})
+        if not isinstance(raw_sleep, dict):
+            raw_sleep = {}
         return cls(
             show_header=bool(data.get("show_header", True)),
             person_entities=[
@@ -707,6 +712,11 @@ class PresenceCardConfig:
             driving_sensors={
                 str(k): str(v)
                 for k, v in raw_driving.items()
+                if isinstance(k, str) and isinstance(v, str)
+            },
+            sleep_sensors={
+                str(k): str(v)
+                for k, v in raw_sleep.items()
                 if isinstance(k, str) and isinstance(v, str)
             },
         )

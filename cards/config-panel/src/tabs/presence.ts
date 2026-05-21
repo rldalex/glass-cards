@@ -12,13 +12,14 @@ export class ConfigTabPresence extends BaseConfigTab {
   @state() _presenceSmartphoneSensors: Record<string, string> = {};
   @state() _presenceNotifyServices: Record<string, string> = {};
   @state() _presenceDrivingSensors: Record<string, string> = {};
+  @state() _presenceSleepSensors: Record<string, string> = {};
   @state() _presenceDropdownOpen: string | null = null;
   @state() _presenceDropdownSearch = '';
   @state() _personDragIdx: number | null = null;
   @state() _personDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
-    '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors',
+    '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors', '_presenceSleepSensors',
   ]);
 
   private _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
@@ -52,6 +53,7 @@ export class ConfigTabPresence extends BaseConfigTab {
       if (path.includes(dd)) return;
     }
     this._presenceDropdownOpen = null;
+    this._presenceDropdownSearch = '';
   }
 
   // — Persistence —
@@ -63,12 +65,14 @@ export class ConfigTabPresence extends BaseConfigTab {
       smartphone_sensors?: Record<string, string>;
       notify_services?: Record<string, string>;
       driving_sensors?: Record<string, string>;
+      sleep_sensors?: Record<string, string>;
     };
     this._presenceShowHeader = c.show_header ?? true;
     this._presencePersonEntities = c.person_entities ?? [];
     this._presenceSmartphoneSensors = c.smartphone_sensors ?? {};
     this._presenceNotifyServices = c.notify_services ?? {};
     this._presenceDrivingSensors = c.driving_sensors ?? {};
+    this._presenceSleepSensors = c.sleep_sensors ?? {};
   }
 
   collectSaveData(): Record<string, unknown> {
@@ -78,6 +82,7 @@ export class ConfigTabPresence extends BaseConfigTab {
       smartphone_sensors: this._presenceSmartphoneSensors,
       notify_services: this._presenceNotifyServices,
       driving_sensors: this._presenceDrivingSensors,
+      sleep_sensors: this._presenceSleepSensors,
     };
   }
 
@@ -96,6 +101,7 @@ export class ConfigTabPresence extends BaseConfigTab {
           smartphone_sensors?: Record<string, string>;
           notify_services?: Record<string, string>;
           driving_sensors?: Record<string, string>;
+          sleep_sensors?: Record<string, string>;
         };
       }>('get_config');
       if (result?.presence_card) this.loadFromConfig(result.presence_card);
@@ -132,10 +138,10 @@ export class ConfigTabPresence extends BaseConfigTab {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  private _getAvailableDrivingSensors(): { entityId: string; name: string }[] {
+  private _entitiesByDomain(prefixes: string[]): { entityId: string; name: string }[] {
     if (!this.hass) return [];
     return Object.keys(this.hass.states)
-      .filter((id) => id.startsWith('binary_sensor.'))
+      .filter((id) => prefixes.some((p) => id.startsWith(p)))
       .map((id) => {
         const entity = this.hass?.states[id];
         const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
@@ -143,6 +149,8 @@ export class ConfigTabPresence extends BaseConfigTab {
       })
       .sort((a, b) => a.name.localeCompare(b.name));
   }
+  private _getAvailableDrivingSensors() { return this._entitiesByDomain(['binary_sensor.']); }
+  private _getAvailableSleepSensors() { return this._entitiesByDomain(['input_boolean.', 'binary_sensor.']); }
 
   private _getAvailableNotifyServices(): string[] {
     if (!this.hass) return [];
@@ -214,6 +222,7 @@ export class ConfigTabPresence extends BaseConfigTab {
       : persons.map((p) => p.entityId);
     const smartphoneSensors = this._getAvailableSmartphoneSensors();
     const drivingSensors = this._getAvailableDrivingSensors();
+    const sleepSensors = this._getAvailableSleepSensors();
     const notifyServices = this._getAvailableNotifyServices();
 
     const autoMode = this._presencePersonEntities.length === 0;
@@ -325,11 +334,14 @@ export class ConfigTabPresence extends BaseConfigTab {
           const currentSensor = this._presenceSmartphoneSensors[personId] || '';
           const currentNotify = this._presenceNotifyServices[personId] || '';
           const currentDriving = this._presenceDrivingSensors[personId] || '';
+          const currentSleep = this._presenceSleepSensors[personId] || '';
           const sensorName = smartphoneSensors.find((s) => s.entityId === currentSensor)?.name;
           const drivingName = drivingSensors.find((s) => s.entityId === currentDriving)?.name;
+          const sleepName = sleepSensors.find((s) => s.entityId === currentSleep)?.name;
           const smKey = `${personId}:smartphone`;
           const notKey = `${personId}:notify`;
           const drvKey = `${personId}:driving`;
+          const slpKey = `${personId}:sleep`;
 
           return html`
             <div class="presence-mapping-card">
@@ -498,6 +510,61 @@ export class ConfigTabPresence extends BaseConfigTab {
                         }}
                       >
                         <ha-icon .icon=${'mdi:car'}></ha-icon>
+                        ${s.name}
+                      </button>
+                    `)}
+                  </div>
+                </div>
+              </div>
+
+              <div class="presence-mapping-field">
+                <div class="dropdown ${this._presenceDropdownOpen === slpKey ? 'open' : ''}">
+                  <button
+                    class="dropdown-trigger"
+                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === slpKey ? null : slpKey; }}
+                    aria-expanded=${this._presenceDropdownOpen === slpKey ? 'true' : 'false'}
+                    aria-haspopup="listbox"
+                  >
+                    <ha-icon .icon=${'mdi:sleep'}></ha-icon>
+                    <span>${sleepName || currentSleep || t('config.presence_sleep_none')}</span>
+                    <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+                  </button>
+                  <div class="dropdown-menu" role="listbox">
+                    <input
+                      class="dropdown-search"
+                      type="text"
+                      placeholder=${t('config.search_entity')}
+                      .value=${this._presenceDropdownOpen === slpKey ? this._presenceDropdownSearch : ''}
+                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
+                      @click=${(e: Event) => e.stopPropagation()}
+                    />
+                    <button
+                      class="dropdown-item ${!currentSleep ? 'active' : ''}"
+                      role="option"
+                      aria-selected=${!currentSleep ? 'true' : 'false'}
+                      @click=${() => {
+                        const sensors = { ...this._presenceSleepSensors };
+                        delete sensors[personId];
+                        this._presenceSleepSensors = sensors;
+                        this._presenceDropdownOpen = null;
+                      }}
+                    >
+                      <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
+                      ${t('config.presence_sleep_none')}
+                    </button>
+                    ${sleepSensors
+                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
+                      .map((s) => html`
+                      <button
+                        class="dropdown-item ${currentSleep === s.entityId ? 'active' : ''}"
+                        role="option"
+                        aria-selected=${currentSleep === s.entityId ? 'true' : 'false'}
+                        @click=${() => {
+                          this._presenceSleepSensors = { ...this._presenceSleepSensors, [personId]: s.entityId };
+                          this._presenceDropdownOpen = null;
+                        }}
+                      >
+                        <ha-icon .icon=${'mdi:sleep'}></ha-icon>
                         ${s.name}
                       </button>
                     `)}

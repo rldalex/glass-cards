@@ -781,6 +781,11 @@ async def ws_set_dashboard(
                 str, vol.Match(r"^binary_sensor\.[\w-]+$")
             ),
         },
+        vol.Optional("sleep_sensors"): {
+            vol.All(str, vol.Match(r"^person\.[\w-]+$")): vol.All(
+                str, vol.Match(r"^(input_boolean|binary_sensor)\.[\w-]+$")
+            ),
+        },
     }
 )
 @websocket_api.async_response
@@ -805,6 +810,8 @@ async def ws_set_presence_config(
         store.data.presence_card.notify_services = msg["notify_services"]
     if "driving_sensors" in msg:
         store.data.presence_card.driving_sensors = msg["driving_sensors"]
+    if "sleep_sensors" in msg:
+        store.data.presence_card.sleep_sensors = msg["sleep_sensors"]
 
     try:
         await store.async_save()

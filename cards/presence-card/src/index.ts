@@ -13,6 +13,7 @@ interface PresenceBackendConfig {
   smartphone_sensors: Record<string, string>;
   notify_services: Record<string, string>;
   driving_sensors: Record<string, string>;
+  sleep_sensors: Record<string, string>;
 }
 
 interface PersonData {
@@ -30,6 +31,7 @@ interface PersonData {
   spo2: number | null;
   steps: number | null;
   isDriving: boolean;
+  isSleeping: boolean;
   notifyService: string | null;
 }
 
@@ -55,12 +57,12 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function timeAgo(isoString: string): string {
+function seenAgo(isoString: string): string {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60) return t('presence.just_now');
-  if (diff < 3600) return t('presence.min_ago', { count: Math.floor(diff / 60) });
-  if (diff < 86400) return t('presence.hours_ago', { count: Math.floor(diff / 3600) });
-  return t('presence.days_ago', { count: Math.floor(diff / 86400) });
+  if (diff < 60) return t('presence.seen_just_now');
+  if (diff < 3600) return t('presence.seen_min_ago', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('presence.seen_hours_ago', { count: Math.floor(diff / 3600) });
+  return t('presence.seen_days_ago', { count: Math.floor(diff / 86400) });
 }
 
 function batteryIcon(level: number): string {
@@ -75,6 +77,13 @@ function batteryClass(level: number): string {
   if (level > 50) return 'high';
   if (level > 20) return 'medium';
   return 'low';
+}
+
+function lastSeenClass(isoString: string): 'fresh' | 'stale' | 'old' {
+  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (diff < 3600) return 'fresh';        // < 1h
+  if (diff < 86400) return 'stale';       // < 24h
+  return 'old';                            // ≥ 24h
 }
 
 function stateClass(s: string): string {
@@ -122,6 +131,7 @@ export class GlassPresenceCard extends BaseCard {
     smartphone_sensors: {},
     notify_services: {},
     driving_sensors: {},
+    sleep_sensors: {},
   };
   @state() private _activePerson: string | null = null;
   @state() private _notifText = '';
@@ -140,7 +150,11 @@ export class GlassPresenceCard extends BaseCard {
       this._configLoaded = false;
       this._loadConfig();
     });
-    this._clockInterval = setInterval(() => this.requestUpdate(), 60_000);
+    // Only `seenAgo` / `lastSeenClass` in the open fold need re-rendering by elapsed time.
+    // Skip the tick when no person is active to avoid spurious 60s full re-renders.
+    this._clockInterval = setInterval(() => {
+      if (this._activePerson) this.requestUpdate();
+    }, 60_000);
   }
 
   disconnectedCallback(): void {
@@ -196,6 +210,7 @@ export class GlassPresenceCard extends BaseCard {
           smartphone_sensors: cfg.smartphone_sensors ?? {},
           notify_services: cfg.notify_services ?? {},
           driving_sensors: cfg.driving_sensors ?? {},
+          sleep_sensors: cfg.sleep_sensors ?? {},
         };
       }
       this._configLoaded = true;
@@ -265,6 +280,10 @@ export class GlassPresenceCard extends BaseCard {
       isDriving = true;
     }
 
+    // Sleeping (input_boolean.<person>_dort or any binary_sensor)
+    const sleepSensorId = this._presenceConfig.sleep_sensors[entityId];
+    const isSleeping = !!(sleepSensorId && this.hass?.states[sleepSensorId]?.state === 'on');
+
     return {
       entityId,
       name,
@@ -280,6 +299,7 @@ export class GlassPresenceCard extends BaseCard {
       spo2,
       steps,
       isDriving,
+      isSleeping,
       notifyService,
     };
   }
@@ -426,9 +446,11 @@ export class GlassPresenceCard extends BaseCard {
   private _renderPerson(p: PersonData, isRight: boolean, colorIdx = 0): TemplateResult {
     const colors = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
     const unavailable = isEntityUnavailable(p.state);
+    const isActive = this._activePerson === p.entityId;
+    const isDimmed = this._activePerson !== null && !isActive;
 
     return html`
-      <div class="person-block ${isRight ? 'right' : ''} ${unavailable ? 'entity-unavailable' : ''}">
+      <div class="person-block ${isRight ? 'right' : ''} ${unavailable ? 'entity-unavailable' : ''} ${isDimmed ? 'dimmed' : ''} ${isActive ? 'active' : ''}">
         <button
           class="avatar-wrapper"
           aria-label=${t('presence.avatar_aria', { name: p.name })}
@@ -444,16 +466,19 @@ export class GlassPresenceCard extends BaseCard {
             ? html`<div class="avatar avatar-fallback avatar-unavailable"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></div>`
             : html`
                 ${p.entityPicture
-                  ? html`<img class="avatar" src=${p.entityPicture} alt=${p.name} />`
+                  ? html`<img class="avatar ${p.isSleeping ? 'sleeping' : ''}" src=${p.entityPicture} alt=${p.name} />`
                   : html`
                       <div
-                        class="avatar avatar-fallback"
+                        class="avatar avatar-fallback ${p.isSleeping ? 'sleeping' : ''}"
                         style="background: linear-gradient(135deg, ${colors.from}, ${colors.to})"
                       >
                         <ha-icon .icon=${'mdi:account'}></ha-icon>
                       </div>
                     `}
                 <div class="avatar-status ${stateClass(p.state)}"></div>
+                ${p.isSleeping ? html`
+                  <span class="sleep-badge" aria-label=${t('presence.sleeping_aria', { name: p.name })}>zzz</span>
+                ` : nothing}
               `}
         </button>
         <div class="person-info">
@@ -461,7 +486,7 @@ export class GlassPresenceCard extends BaseCard {
           <div class="person-sub">
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
-              <span class="person-location">${stateText(p.state)}</span>
+              <span class="person-location">${p.isSleeping ? t('presence.sleeping') : stateText(p.state)}</span>
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
@@ -481,8 +506,9 @@ export class GlassPresenceCard extends BaseCard {
     const valueText = km < 1 ? String(Math.round(km * 1000)) : String(Math.round(km));
     const unitText = km < 1 ? t('presence.distance_m') : t('presence.distance_km');
 
+    const isDimmed = this._activePerson !== null;
     return html`
-      <div class="distance-center ${isNear ? 'near' : ''}">
+      <div class="distance-center ${isNear ? 'near' : ''} ${isDimmed ? 'dimmed' : ''}">
         <div class="distance-line"></div>
         <div class="distance-info">
           <div class="distance-value">${valueText}</div>
@@ -516,34 +542,36 @@ export class GlassPresenceCard extends BaseCard {
     const person = persons.find((p) => p.entityId === this._activePerson);
     if (!person) return nothing;
 
-    const hasHealth = person.heartRate != null || person.spo2 != null || person.steps != null;
+    // In solo mode (1 person), health chips are already shown beside the avatar
+    // (see _renderSoloChips) and notifying oneself is pointless. Show only the
+    // address / battery / last-seen row in the fold.
+    const isSolo = persons.length === 1;
+    const hasHealth = !isSolo && (person.heartRate != null || person.spo2 != null || person.steps != null);
+    const showNotif = !isSolo && !!person.notifyService;
 
     return html`
       <div class="fold-sep ${presClass}"></div>
       <div class="ctrl-fold">
         <div class="ctrl-fold-inner">
           <div class="fold-content">
-            <div class="health-address-row">
-              ${person.geocodedLocation ? html`
-                <ha-icon .icon=${'mdi:map-marker'}></ha-icon>
-                <span class="address-text">${person.geocodedLocation}</span>
-              ` : nothing}
-              <span class="fold-meta">
-                ${person.batteryLevel != null ? html`
-                  <span class="fold-battery ${batteryClass(person.batteryLevel)}">
-                    <ha-icon .icon=${batteryIcon(person.batteryLevel)}></ha-icon>
-                    ${person.batteryLevel}%
-                  </span>
-                ` : nothing}
-                <span class="fold-last-seen">${timeAgo(person.lastUpdated)}</span>
+            <div class="loc-row">
+              <span class="loc-address">
+                <ha-icon .icon=${'mdi:map-marker-radius'}></ha-icon>
+                ${person.geocodedLocation ? html`<span class="loc-address-text">${person.geocodedLocation}</span>` : nothing}
+                <span class="loc-address-time lastseen-${lastSeenClass(person.lastUpdated)}"
+                      title=${t('presence.last_seen_label')}>
+                  ${seenAgo(person.lastUpdated)}
+                </span>
               </span>
+              ${person.batteryLevel != null ? html`
+                <span class="meta-chip battery-${batteryClass(person.batteryLevel)}">
+                  <ha-icon .icon=${batteryIcon(person.batteryLevel)}></ha-icon>
+                  <span>${person.batteryLevel}%</span>
+                </span>
+              ` : nothing}
             </div>
             ${hasHealth
               ? html`
-                  <div class="health-zone-label">
-                    ${t('presence.health_label')}
-                    <span class="health-zone-name">${person.name}</span>
-                  </div>
                   <div class="health-pills">
                     ${person.heartRate != null
                       ? html`
@@ -581,7 +609,7 @@ export class GlassPresenceCard extends BaseCard {
                   </div>
                 `
               : nothing}
-            ${person.notifyService
+            ${showNotif
               ? html`
                   <div class="notif-zone">
                     ${this._notifSent ? html`
@@ -590,14 +618,10 @@ export class GlassPresenceCard extends BaseCard {
                         ${t('presence.notif_sent')}
                       </div>
                     ` : html`
-                      <div class="notif-to">
-                        ${t('presence.notify_to')}
-                        <span class="notif-to-name">${person.name}</span>
-                      </div>
                       <div class="notif-row">
                         <textarea
                           class="notif-input"
-                          placeholder=${t('presence.notify_placeholder')}
+                          placeholder=${t('presence.notify_placeholder', { name: person.name })}
                           .value=${this._notifText}
                           @input=${(e: InputEvent) => {
                             this._notifText = (e.target as HTMLTextAreaElement).value;
@@ -666,7 +690,27 @@ export class GlassPresenceCard extends BaseCard {
       .card-count.mixed { background: rgba(var(--rgb-warning),0.15); color: var(--c-warning); }
 
       /* ── Presence card ── */
-      .presence-card { padding: 0.4375rem 0.875rem; width: 100%; box-sizing: border-box; }
+      .presence-card { padding: 0.4375rem 0.875rem; width: 100%; box-sizing: border-box; position: relative; overflow: hidden; }
+
+      /* Atmospheric halo at the card bottom — color-shifted per presence */
+      .presence-card::after {
+        content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+        height: 45%; pointer-events: none; z-index: 0;
+        background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-accent), 0.08), transparent 70%);
+        transition: opacity var(--t-slow), background var(--t-slow);
+      }
+      .presence-card[data-presence="home"]::after {
+        background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-success), 0.1), transparent 70%);
+      }
+      .presence-card[data-presence="away"]::after {
+        background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-alert), 0.08), transparent 70%);
+      }
+      .presence-card[data-presence="mixed"]::after {
+        background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-warning), 0.08), transparent 70%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .presence-card::after { transition: none; }
+      }
 
       .card-tint {
         position: absolute; inset: 0; border-radius: inherit;
@@ -700,7 +744,7 @@ export class GlassPresenceCard extends BaseCard {
       .family-row { display: flex; align-items: center; width: 100%; }
       .family-sep {
         height: 0.0625rem; margin: 0.5rem 0.75rem;
-        background: linear-gradient(90deg, transparent, var(--b2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent), 0.25), transparent);
       }
       .family-row.solo-row { justify-content: center; }
       .family-row.solo-row .person-block { flex: 0 1 auto; }
@@ -709,8 +753,16 @@ export class GlassPresenceCard extends BaseCard {
       .person-block {
         display: flex; align-items: center; gap: 0.625rem;
         flex: 1; min-width: 0;
+        transition: opacity var(--t-med);
       }
       .person-block.right { flex-direction: row-reverse; text-align: right; }
+      /* When another person is active, fade out non-active blocks so the
+         selected one stands out without needing to repeat the name in the fold */
+      .person-block.dimmed { opacity: 0.32; }
+      .distance-center.dimmed { opacity: 0.32; transition: opacity var(--t-med); }
+      @media (prefers-reduced-motion: reduce) {
+        .person-block, .distance-center { transition: none; }
+      }
 
       .avatar-wrapper {
         position: relative; flex-shrink: 0;
@@ -725,7 +777,7 @@ export class GlassPresenceCard extends BaseCard {
       .avatar {
         width: 2.375rem; height: 2.375rem; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        transition: border-color var(--t-med);
+        transition: border-color var(--t-fast), box-shadow var(--t-fast);
         object-fit: cover;
       }
       .avatar-fallback { border: 2px solid rgba(var(--rgb-white),0.1); }
@@ -733,6 +785,16 @@ export class GlassPresenceCard extends BaseCard {
       .avatar-fallback ha-icon {
         display: flex; align-items: center; justify-content: center;
         --mdc-icon-size: var(--icon-lg); color: rgba(var(--rgb-white),0.85);
+      }
+
+      /* Active state: when this person's fold is open, ring + glow the avatar */
+      .avatar-wrapper[aria-expanded="true"] .avatar {
+        border-color: rgb(var(--rgb-accent));
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-accent) 35%, transparent),
+                    0 0 14px color-mix(in srgb, var(--c-accent) 40%, transparent);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .avatar { transition: none; }
       }
 
       @media (hover: hover) and (pointer: fine) {
@@ -747,6 +809,33 @@ export class GlassPresenceCard extends BaseCard {
       }
       .avatar-status.home { background: var(--c-success); box-shadow: 0 0 6px rgba(var(--rgb-success),0.5); }
       .avatar-status.away { background: var(--c-alert); box-shadow: 0 0 6px rgba(var(--rgb-alert),0.5); }
+
+      /* Sleeping: dim + slight transparency, like a "resting" state */
+      .avatar.sleeping {
+        filter: saturate(0.45) brightness(0.78);
+        opacity: 0.7;
+      }
+      .sleep-badge {
+        position: absolute; top: -0.1875rem; left: -0.375rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 1.25rem; height: 0.9375rem;
+        padding: 0 0.3125rem;
+        border-radius: var(--radius-full);
+        background: var(--s4); border: 1px solid var(--b1);
+        font-family: inherit; font-weight: 700;
+        font-size: 0.5625rem; letter-spacing: 0.08em; line-height: 1;
+        color: var(--t2);
+        transform-origin: center;
+        animation: sleep-breathing 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      }
+      .person-block.right .sleep-badge { left: auto; right: -0.375rem; }
+      @keyframes sleep-breathing {
+        0%, 100% { opacity: 0.65; transform: scale(0.94); }
+        50%      { opacity: 1;    transform: scale(1.06); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sleep-badge { animation: none; }
+      }
       .avatar-status.zone { background: var(--c-info); box-shadow: 0 0 6px rgba(var(--rgb-info),0.5); }
 
       .avatar-unavailable {
@@ -814,6 +903,9 @@ export class GlassPresenceCard extends BaseCard {
         0%, 100% { transform: scale(1); opacity: 0.55; }
         50% { transform: scale(1.05); opacity: 0.85; }
       }
+      @media (prefers-reduced-motion: reduce) {
+        .heart-pulse { animation: none; }
+      }
 
       /* ── Solo health chips ── */
       .solo-health-chips { display: flex; align-items: center; gap: 0.3125rem; flex-shrink: 0; }
@@ -853,47 +945,65 @@ export class GlassPresenceCard extends BaseCard {
       .ctrl-fold-inner { overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease-std); }
       .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
-      .fold-content { display: flex; flex-direction: column; gap: 0.375rem; padding-top: 0.5rem; }
+      .fold-content { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.5rem; }
 
       /* ── Health zone ── */
-      .health-zone-label {
-        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
-        display: flex; align-items: center; gap: 0.3125rem;
-      }
-      .health-zone-name { color: var(--t3); font-weight: 600; }
-
-      .health-address-row {
-        display: flex; align-items: center; gap: 0.3125rem;
-        padding: 0.3125rem 0.5rem; border-radius: var(--radius-sm);
+      /* Address + meta row — boxed, hierarchy via typography and state colors */
+      .loc-row {
+        display: flex; flex-wrap: wrap; align-items: center;
+        column-gap: 0.625rem; row-gap: 0.3125rem;
+        padding: 0.4375rem 0.625rem;
+        border-radius: var(--radius-sm);
         background: var(--s1); border: 1px solid var(--b1);
       }
-      .health-address-row > ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.75rem; color: var(--t4); flex-shrink: 0;
+      .loc-address {
+        flex: 1 1 auto; min-width: 0;
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        font-size: var(--fz-sm); font-weight: 600; color: var(--t1);
       }
-      .address-text {
-        font-size: var(--fz-sm); font-weight: 400; color: var(--t3);
+      .loc-address ha-icon {
+        display: flex; align-items: center; justify-content: center;
+        --mdc-icon-size: 0.875rem;
+        color: rgb(var(--rgb-info));
+        flex-shrink: 0;
+      }
+      .loc-address-text {
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        flex: 1; min-width: 0;
+        min-width: 0; flex: 0 1 auto;
       }
-      .fold-battery {
-        display: flex; align-items: center; gap: 0.1875rem;
-        font-size: var(--fz-sm); font-weight: 500; flex-shrink: 0; margin-left: auto;
+      .loc-address-time {
+        font-size: var(--fz-xs); font-weight: 500;
+        color: var(--t4); flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
       }
-      .fold-battery.high { color: var(--c-success); }
-      .fold-battery.medium { color: var(--c-warning); }
-      .fold-battery.low { color: var(--c-alert); }
-      .fold-battery ha-icon {
+      .loc-address-text + .loc-address-time::before {
+        content: '·'; margin-right: 0.3125rem; opacity: 0.5;
+      }
+      .loc-address-time.lastseen-stale { color: var(--c-warning); }
+      .loc-address-time.lastseen-old { color: var(--c-alert); }
+      .meta-chip {
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        font-size: var(--fz-xs); font-weight: 600;
+        color: var(--t4); font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .meta-chip ha-icon {
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: var(--icon-sm); color: inherit;
+        --mdc-icon-size: 0.8125rem;
+        color: var(--t4);
       }
-      .fold-meta {
-        display: flex; align-items: center; gap: 0.375rem;
-        margin-left: auto; flex-shrink: 0;
-      }
-      .fold-last-seen {
-        font-size: var(--fz-sm); font-weight: 400; color: var(--t4); white-space: nowrap;
-      }
+      /* Battery state colours */
+      .meta-chip.battery-high ha-icon { color: var(--c-success); }
+      .meta-chip.battery-medium { color: var(--c-warning); }
+      .meta-chip.battery-medium ha-icon { color: var(--c-warning); }
+      .meta-chip.battery-low { color: var(--c-alert); }
+      .meta-chip.battery-low ha-icon { color: var(--c-alert); }
+      /* Last-seen freshness */
+      .meta-chip.lastseen-fresh ha-icon { color: rgba(var(--rgb-success), 0.65); }
+      .meta-chip.lastseen-stale { color: var(--c-warning); }
+      .meta-chip.lastseen-stale ha-icon { color: var(--c-warning); }
+      .meta-chip.lastseen-old { color: var(--c-alert); }
+      .meta-chip.lastseen-old ha-icon { color: var(--c-alert); }
 
       .health-pills { display: flex; gap: 0.375rem; }
       .health-pill {
@@ -925,18 +1035,12 @@ export class GlassPresenceCard extends BaseCard {
       .health-pill.steps .health-pill-value { color: var(--c-success); opacity: 0.85; }
 
       /* ── Notification zone ── */
-      .notif-zone { padding: 0.5rem 0 0.25rem; display: flex; gap: 0.5rem; flex-direction: column; }
-      .notif-to {
-        font-size: var(--fz-sm); font-weight: 500; color: var(--t4);
-        display: flex; align-items: center; gap: 0.3125rem;
-      }
-      .notif-to-name { color: var(--t2); font-weight: 600; }
-
+      .notif-zone { display: flex; gap: 0.5rem; flex-direction: column; }
       .notif-row { display: flex; gap: 0.5rem; align-items: flex-end; }
       .notif-input {
         flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
         border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: var(--fz-base);
+        color: var(--t1); font-family: inherit; font-size: 1rem;
         outline: none; resize: none; height: 2.25rem; box-sizing: border-box;
         transition: border-color var(--t-fast);
       }

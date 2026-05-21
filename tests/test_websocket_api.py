@@ -682,6 +682,23 @@ class TestSetPresenceConfig:
         result = mock_connection.send_result.call_args[0][1]
         assert result["person_entities"] == ["person.alex", "person.marie"]
 
+    @pytest.mark.asyncio
+    async def test_set_sleep_sensors(self, hass_with_store, mock_connection, mock_store):
+        """Should map person → input_boolean (or binary_sensor) for sleep detection."""
+        await ws_set_presence_config(
+            hass_with_store, mock_connection,
+            {
+                "id": 132, "type": "glass_cards/set_presence_config",
+                "sleep_sensors": {
+                    "person.roland": "input_boolean.roland_dort",
+                    "person.marie": "binary_sensor.marie_bed_occupancy",
+                },
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["sleep_sensors"]["person.roland"] == "input_boolean.roland_dort"
+        assert result["sleep_sensors"]["person.marie"] == "binary_sensor.marie_bed_occupancy"
+
 
 class TestSetCameraCarouselConfig:
     """Tests for ws_set_camera_carousel_config."""
