@@ -2822,7 +2822,6 @@
           </div>
         </div>
       </div>
-      <div class="fold-sep ${i?"visible":""} ${r}"></div>
     `}_renderListTempControl(e,t){if("off"===t.state||"fan_only"===t.state)return ie;const i=t.attributes.supported_features||0;if("heat_cool"===t.state&&i&Jt){return function(e,t,i,a,r){if("heat_cool"!==e.state)return ie;if(!((e.attributes.supported_features||0)&Jt))return ie;const s=e.attributes.min_temp||7,o=e.attributes.max_temp||35,n=e.attributes.target_temp_step||.5,l="low"===i.dragging?i.lowTemp:e.attributes.target_temp_low??s,c="high"===i.dragging?i.highTemp:e.attributes.target_temp_high??o,d=o-s,h=d>0?(l-s)/d*100:0,p=d>0?(c-s)/d*100:100;return Z`
     <div class="range-slider-row">
       <div class="range-labels">

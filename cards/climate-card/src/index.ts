@@ -762,7 +762,6 @@ export class GlassClimateCard extends BaseCard {
           </div>
         </div>
       </div>
-      <div class="fold-sep ${isExpanded ? 'visible' : ''} ${sepColor}"></div>
     `;
   }
 

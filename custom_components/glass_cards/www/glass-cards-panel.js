@@ -7266,7 +7266,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${rt("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${rt("config.title")}</span>
-          <span class="page-subtitle">${rt("config.brand")} <span class="page-version">v${"0.0.202"}</span></span>
+          <span class="page-subtitle">${rt("config.brand")} <span class="page-version">v${"0.0.203"}</span></span>
         </div>
 
         <div class="glass config-panel">
@@ -8145,7 +8145,6 @@
           </div>
         </div>
       </div>
-      <div class="fold-sep ${i?"visible":""} ${r}"></div>
     `}_renderListTempControl(e,t){if("off"===t.state||"fan_only"===t.state)return B;const i=t.attributes.supported_features||0;if("heat_cool"===t.state&&i&la){return function(e,t,i,a,r){if("heat_cool"!==e.state)return B;if(!((e.attributes.supported_features||0)&la))return B;const s=e.attributes.min_temp||7,o=e.attributes.max_temp||35,n=e.attributes.target_temp_step||.5,c="low"===i.dragging?i.lowTemp:e.attributes.target_temp_low??s,l="high"===i.dragging?i.highTemp:e.attributes.target_temp_high??o,d=o-s,h=d>0?(c-s)/d*100:0,p=d>0?(l-s)/d*100:100;return N`
     <div class="range-slider-row">
       <div class="range-labels">
