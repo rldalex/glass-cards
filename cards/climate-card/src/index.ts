@@ -723,7 +723,7 @@ export class GlassClimateCard extends BaseCard {
         >
           <ha-icon .icon=${icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
         </button>
-        <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'} aria-label=${t('climate.controls_aria')}>
+        <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'}>
           <div class="cl-info">
             <div class="cl-name">${marqueeText(name, MARQUEE_COMPACT)}</div>
             <div class="cl-sub">
@@ -1011,16 +1011,16 @@ export class GlassClimateCard extends BaseCard {
 
       /* Climate tokens */
       --cl-heat: #f97316;
-      --cl-heat-bg: rgba(249,115,22,0.1);
-      --cl-heat-border: rgba(249,115,22,0.15);
-      --cl-heat-glow: rgba(249,115,22,0.4);
-      --cl-heat-sub: rgba(249,115,22,0.6);
+      --cl-heat-bg: rgba(var(--rgb-heat), 0.1);
+      --cl-heat-border: rgba(var(--rgb-heat), 0.15);
+      --cl-heat-glow: rgba(var(--rgb-heat), 0.4);
+      --cl-heat-sub: rgba(var(--rgb-heat), 0.6);
 
       --cl-cool: #38bdf8;
-      --cl-cool-bg: rgba(56,189,248,0.1);
-      --cl-cool-border: rgba(56,189,248,0.15);
-      --cl-cool-glow: rgba(56,189,248,0.4);
-      --cl-cool-sub: rgba(56,189,248,0.6);
+      --cl-cool-bg: rgba(var(--rgb-cool), 0.1);
+      --cl-cool-border: rgba(var(--rgb-cool), 0.15);
+      --cl-cool-glow: rgba(var(--rgb-cool), 0.4);
+      --cl-cool-sub: rgba(var(--rgb-cool), 0.6);
 
       --cl-auto: #a78bfa;
       --cl-auto-bg: rgba(var(--rgb-purple),0.1);
@@ -1048,9 +1048,9 @@ export class GlassClimateCard extends BaseCard {
       border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
       transition: background var(--t-med), color var(--t-med);
     }
-    .card-count.some { background: rgba(249,115,22,0.15); color: var(--cl-heat); }
+    .card-count.some { background: rgba(var(--rgb-heat), 0.15); color: var(--cl-heat); }
     .card-count.none { background: var(--s2); color: var(--t3); }
-    .card-count.all  { background: rgba(249,115,22,0.2); color: var(--cl-heat); }
+    .card-count.all  { background: rgba(var(--rgb-heat), 0.2); color: var(--cl-heat); }
     .card-header-right { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
 
     /* ── Card Body ── */
@@ -1159,12 +1159,12 @@ export class GlassClimateCard extends BaseCard {
     .cl-row[data-action="idle"] .cl-icon-btn ha-icon { color: var(--t2); }
 
     @keyframes pulse-heat {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(249,115,22,0.6)); }
-      50%      { filter: drop-shadow(0 0 2px rgba(249,115,22,0.2)); }
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--rgb-heat), 0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(var(--rgb-heat), 0.2)); }
     }
     @keyframes pulse-cool {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.6)); }
-      50%      { filter: drop-shadow(0 0 2px rgba(56,189,248,0.2)); }
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--rgb-cool), 0.6)); }
+      50%      { filter: drop-shadow(0 0 2px rgba(var(--rgb-cool), 0.2)); }
     }
 
     /* ── Expand Button ── */
@@ -1251,11 +1251,11 @@ export class GlassClimateCard extends BaseCard {
     /* ── Fold separator ── */
     .fold-sep {
       height: 0; margin: 0 0.75rem; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-heat), 0.25), transparent);
       opacity: 0; transition: opacity 0.25s var(--ease-std), height 0.25s var(--ease-std);
     }
     .fold-sep.cool {
-      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-cool), 0.25), transparent);
     }
     .fold-sep.visible { height: 0.0625rem; opacity: 1; }
 
@@ -1382,10 +1382,10 @@ export class GlassClimateCard extends BaseCard {
       transition: background var(--t-med);
     }
     .ctrl-fold-sep-top.heat-sep {
-      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-heat), 0.25), transparent);
     }
     .ctrl-fold-sep-top.cool-sep {
-      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.25), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-cool), 0.25), transparent);
     }
 
     /* ── Entity tabs ── */
@@ -1411,20 +1411,6 @@ export class GlassClimateCard extends BaseCard {
       .entity-tab:not(.active):hover { background: var(--s2); color: var(--t2); }
     }
 
-    .entity-tab .tab-dot {
-      width: 0.3125rem; height: 0.3125rem; border-radius: 50%; flex-shrink: 0;
-      transition: background var(--t-med), box-shadow var(--t-med);
-    }
-    .entity-tab .tab-dot.heating,
-    .entity-tab .tab-dot.preheating {
-      background: var(--cl-heat); box-shadow: 0 0 6px var(--cl-heat-glow);
-    }
-    .entity-tab .tab-dot.cooling {
-      background: var(--cl-cool); box-shadow: 0 0 6px var(--cl-cool-glow);
-    }
-    .entity-tab .tab-dot.idle { background: var(--t3); }
-    .entity-tab .tab-dot.off { background: var(--t4); }
-
     .entity-tab.heat { color: var(--cl-heat-sub); }
     .entity-tab.cool { color: var(--cl-cool-sub); }
 
@@ -1434,11 +1420,11 @@ export class GlassClimateCard extends BaseCard {
     }
     .entity-tab.active.heat {
       background: var(--cl-heat-bg); color: var(--cl-heat);
-      box-shadow: 0 1px 6px rgba(249,115,22,0.15);
+      box-shadow: 0 1px 6px rgba(var(--rgb-heat), 0.15);
     }
     .entity-tab.active.cool {
       background: var(--cl-cool-bg); color: var(--cl-cool);
-      box-shadow: 0 1px 6px rgba(56,189,248,0.15);
+      box-shadow: 0 1px 6px rgba(var(--rgb-cool), 0.15);
     }
 
     /* ── Arc gauge ── */
@@ -1504,6 +1490,7 @@ export class GlassClimateCard extends BaseCard {
       font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
     }
     .gauge-sub-info ha-icon { opacity: 0.5; display: flex; align-items: center; justify-content: center; }
+    .gauge-sub-info-sep { color: var(--t4); }
 
     /* ── Normal mode temp stepper (glass sub-panel) ── */
     .temp-control-panel {
@@ -1568,7 +1555,7 @@ export class GlassClimateCard extends BaseCard {
     @media (hover: hover) { .chip:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
     .chip.active {
-      border-color: var(--chip-color, rgba(249,115,22,0.15));
+      border-color: var(--chip-color, var(--cl-heat-border));
       background: color-mix(in srgb, var(--chip-color, var(--cl-heat)) 10%, transparent);
       color: var(--chip-color, var(--cl-heat));
     }
@@ -1634,11 +1621,11 @@ export class GlassClimateCard extends BaseCard {
     .range-thumb:focus-visible { box-shadow: 0 0 0 3px rgba(var(--rgb-white),0.25); }
     .range-thumb.low {
       background: var(--cl-heat); border-color: var(--cl-heat);
-      box-shadow: 0 0 8px rgba(249,115,22,0.4);
+      box-shadow: 0 0 8px var(--cl-heat-glow);
     }
     .range-thumb.high {
       background: var(--cl-cool); border-color: var(--cl-cool);
-      box-shadow: 0 0 8px rgba(56,189,248,0.4);
+      box-shadow: 0 0 8px var(--cl-cool-glow);
     }
 
     /* ── Aux heat toggle ── */
@@ -1656,10 +1643,10 @@ export class GlassClimateCard extends BaseCard {
       background: var(--t3);
       transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
     }
-    .toggle.on { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); }
+    .toggle.on { background: rgba(var(--rgb-heat), 0.2); border-color: rgba(var(--rgb-heat), 0.3); }
     .toggle.on .toggle-knob {
       transform: translateX(18px); background: var(--cl-heat);
-      box-shadow: 0 0 8px rgba(249,115,22,0.4);
+      box-shadow: 0 0 8px var(--cl-heat-glow);
     }
     .toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
   `];

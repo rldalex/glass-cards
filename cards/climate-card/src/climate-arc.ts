@@ -154,7 +154,7 @@ export function renderArcGauge(entity: HassEntity): TemplateResult {
                 <span>${humidity}%</span>
               ` : nothing}
               ${presetMode && presetMode !== 'none' ? html`
-                ${humidity != null ? html`<span style="opacity:0.4">·</span>` : nothing}
+                ${humidity != null ? html`<span class="gauge-sub-info-sep" aria-hidden="true">·</span>` : nothing}
                 <ha-icon .icon=${PRESET_ICONS[presetMode] || 'mdi:cog'} style="--mdc-icon-size:12px;display:flex;align-items:center;justify-content:center;"></ha-icon>
                 <span>${PRESET_I18N[presetMode] ? t(PRESET_I18N[presetMode] as Parameters<typeof t>[0]) : presetMode}</span>
               ` : nothing}
