@@ -1,7 +1,7 @@
 import { html, svg, css, nothing, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, hostMixin, glassMixin, marqueeMixin, marqueeText, MARQUEE_COMPACT } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin } from '@glass-cards/ui-core';
 
 interface HaCalendarEvent {
   summary: string;
@@ -504,7 +504,7 @@ export class GlassCalendarCard extends BaseCard {
                 aria-label="${ev.title}${ev.time ? `, ${ev.time}` : ', toute la journée'}${ev.now ? ', en cours' : ''}">
                 <span class="v4-event-dot" aria-hidden="true"></span>
                 <span class="v4-event-content">
-                  <span class="v4-event-title">${marqueeText(ev.title, MARQUEE_COMPACT)}</span>
+                  <span class="v4-event-title">${ev.title}</span>
                   <span class="v4-event-time">${timeLabel}</span>
                 </span>
                 ${ev.allday ? html`<span class="v4-event-allday">Journée</span>` : nothing}
@@ -554,7 +554,7 @@ export class GlassCalendarCard extends BaseCard {
 
   // ───────────── Styles ─────────────
 
-  static styles = [glassTokens, hostMixin, glassMixin, marqueeMixin, css`
+  static styles = [glassTokens, hostMixin, glassMixin, css`
     :host { width: 100%; color: var(--t1); }
     .calendar-card { width: 100%; overflow: hidden; position: relative; }
 

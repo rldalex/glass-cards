@@ -23,14 +23,20 @@ const SCENARIOS: CalScenario[] = [
       { title: 'Rendez-vous médecin', time: '08:30 - 09:15', cal: 'perso', dayOffset: 1 },
       { title: 'Lunch avec Sarah', time: '12:30 - 14:00', cal: 'travail', dayOffset: 1 },
       { title: 'École Luca: réunion', time: '17:00 - 18:00', cal: 'famille', dayOffset: 1 },
-      // Multi-day all-day vacation (J+2 → J+4, end exclusive in CalDAV → spans 2, 3, 4)
-      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 2 },
-      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 3 },
-      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 4 },
       { title: 'Préparer valises', time: '20:00 - 21:00', cal: 'taches', dayOffset: 1 },
+      // Multi-day all-day vacation (J+2 → J+4, end exclusive in CalDAV → spans 2, 3, 4)
+      // Each day adds its own timed event for visual distinguishability
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 2 },
+      { title: 'Vol Genève → Annecy', time: '15:00 - 16:30', cal: 'travail', dayOffset: 2 },
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 3 },
+      { title: 'Randonnée Lac d\'Annecy', time: '09:00 - 14:00', cal: 'perso', dayOffset: 3 },
+      { title: 'Anniversaire Léa', cal: 'anniversaires', allday: true, dayOffset: 3 },
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 4 },
+      { title: 'Retour Genève', time: '18:00 - 19:30', cal: 'travail', dayOffset: 4 },
       // J+5
       { title: 'Brunch Maman', time: '11:00 - 13:00', cal: 'famille', dayOffset: 5 },
-      // J+6 : empty
+      { title: 'Sport', time: '17:00 - 18:30', cal: 'perso', dayOffset: 5 },
+      // J+6 : empty (montre l'empty state)
     ],
   },
   {

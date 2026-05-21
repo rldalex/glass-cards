@@ -8127,7 +8127,7 @@
                 aria-label="${e.title}${e.time?`, ${e.time}`:", toute la journée"}${e.now?", en cours":""}">
                 <span class="v4-event-dot" aria-hidden="true"></span>
                 <span class="v4-event-content">
-                  <span class="v4-event-title">${Ae(e.title,12)}</span>
+                  <span class="v4-event-title">${e.title}</span>
                   <span class="v4-event-time">${i}</span>
                 </span>
                 ${e.allday?X`<span class="v4-event-allday">Journée</span>`:J}
@@ -8150,7 +8150,7 @@
       ${Q`<line x1="3" y1="10" x2="21" y2="10"/>`}
     </svg>`}_chevronIcon(){return X`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       ${Q`<polyline points="6 9 12 15 18 9"/>`}
-    </svg>`}static{this.styles=[Se,Te,Ie,ze,h`
+    </svg>`}static{this.styles=[Se,Te,Ie,h`
     :host { width: 100%; color: var(--t1); }
     .calendar-card { width: 100%; overflow: hidden; position: relative; }
 
