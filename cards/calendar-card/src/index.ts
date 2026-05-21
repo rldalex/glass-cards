@@ -523,10 +523,18 @@ export class GlassCalendarCard extends BaseCard {
     return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
   }
 
-  private _renderLegend(): TemplateResult {
+  private _renderLegend(): TemplateResult | typeof nothing {
+    // Only show calendars that actually have events visible right now
+    // (hidden entities never reach _allEvents, so this naturally filters them out).
+    const used = new Set<string>();
+    for (const e of this._allEvents()) {
+      if (CAL_COLORS[e.cal]) used.add(e.cal);
+    }
+    const items = Object.entries(CAL_COLORS).filter(([key]) => used.has(key));
+    if (items.length === 0) return nothing;
     return html`
       <div class="v4-cal-legend">
-        ${Object.entries(CAL_COLORS).map(([, def]) => html`
+        ${items.map(([, def]) => html`
           <span class="v4-cal-legend-item">
             <span class="v4-cal-legend-dot" style="background:${def.color}"></span>
             <span class="v4-cal-legend-label">${def.label}</span>

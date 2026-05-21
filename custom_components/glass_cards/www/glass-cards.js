@@ -8132,9 +8132,9 @@
               </button>
             `})}
         </div>
-      `;return Z`<div class="v4-event-section">${a}${r}</div>`}_sectionLabelFor(e){if(0===e)return"Aujourd'hui";if(1===e)return"Demain";const t=new Date;return t.setDate(t.getDate()+e),`${Ea[t.getDay()]} ${t.getDate()} ${Aa[t.getMonth()]}`}_renderLegend(){return Z`
+      `;return Z`<div class="v4-event-section">${a}${r}</div>`}_sectionLabelFor(e){if(0===e)return"Aujourd'hui";if(1===e)return"Demain";const t=new Date;return t.setDate(t.getDate()+e),`${Ea[t.getDay()]} ${t.getDate()} ${Aa[t.getMonth()]}`}_renderLegend(){const e=new Set;for(const i of this._allEvents())za[i.cal]&&e.add(i.cal);const t=Object.entries(za).filter(([t])=>e.has(t));return 0===t.length?ie:Z`
       <div class="v4-cal-legend">
-        ${Object.entries(za).map(([,e])=>Z`
+        ${t.map(([,e])=>Z`
           <span class="v4-cal-legend-item">
             <span class="v4-cal-legend-dot" style="background:${e.color}"></span>
             <span class="v4-cal-legend-label">${e.label}</span>
