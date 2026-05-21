@@ -34,6 +34,7 @@ const SCENARIOS: Scenario[] = [
           unit_of_measurement: '%',
           geocoded_location: 'Paris, France',
           heart_rate: 72, oxygen_saturation: 98, daily_steps: 6234,
+          is_charging: true,
         },
       },
     ],

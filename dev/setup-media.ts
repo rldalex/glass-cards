@@ -160,8 +160,46 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+function touchStates(states: Record<string, HassEntity>, ids: string[], mutate: (attrs: Record<string, unknown>) => void): void {
+  const now = new Date().toISOString();
+  for (const id of ids) {
+    const cur = states[id];
+    if (!cur) continue;
+    const attrs = { ...cur.attributes };
+    mutate(attrs);
+    states[id] = { ...cur, attributes: attrs, last_changed: now, last_updated: now };
+  }
+}
+
 function handleMediaService(states: Record<string, HassEntity>, _domain: string, service: string, data: Record<string, unknown> | undefined, target: { entity_id?: string | string[] } | undefined): void {
   const ids = ([] as string[]).concat(target?.entity_id ?? []);
+
+  // Multiroom: join adds members to coordinator's group; unjoin pulls the
+  // target speaker out into its own (solo) group. Both update group_members
+  // on every affected speaker so the UI re-renders consistently.
+  if (service === 'join') {
+    const coordinator = ids[0];
+    if (!coordinator || !states[coordinator]) return;
+    const newMembers = (data?.group_members as string[]) || [];
+    const current = (states[coordinator].attributes.group_members as string[]) || [coordinator];
+    const merged = Array.from(new Set([coordinator, ...current, ...newMembers]));
+    touchStates(states, merged, (attrs) => { attrs.group_members = merged; });
+    return;
+  }
+  if (service === 'unjoin') {
+    for (const id of ids) {
+      const cur = states[id];
+      if (!cur) continue;
+      const oldGroup = (cur.attributes.group_members as string[]) || [id];
+      const remaining = oldGroup.filter((m) => m !== id);
+      touchStates(states, [id], (attrs) => { attrs.group_members = [id]; });
+      if (remaining.length > 0) {
+        touchStates(states, remaining, (attrs) => { attrs.group_members = remaining; });
+      }
+    }
+    return;
+  }
+
   for (const id of ids) {
     const cur = states[id];
     if (!cur) continue;

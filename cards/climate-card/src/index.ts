@@ -1163,9 +1163,8 @@ export class GlassClimateCard extends BaseCard {
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
     .entity-unavailable .cl-icon-btn { border-color: var(--c-alert); }
-    @media (hover: hover) and (pointer: fine) {
-      .cl-row:hover { background: var(--s1); }
-    }
+    /* No row-level hover: the row contains its own interactive buttons
+       (icon-toggle + expand-area) which carry their own hover/active states. */
     @media (pointer: coarse) {
       .cl-row:active { animation: bounce 0.3s ease; }
     }

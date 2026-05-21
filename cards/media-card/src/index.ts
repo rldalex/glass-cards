@@ -697,14 +697,32 @@ export class GlassMediaCard extends BaseCard {
     bar.addEventListener('lostpointercapture', cleanup);
   }
 
-  /* ── Multiroom volume slider ── */
+  /* ── Multiroom volume slider (custom: name + value overlay on the track) ── */
+
+  /** Keyboard a11y on the custom slider: arrows ±5, Home/End jump to 0/100. */
+  private _onVolKey(e: KeyboardEvent, entityId: string, currentVol: number): void {
+    let next: number | null = null;
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowDown': next = Math.max(0, currentVol - 5); break;
+      case 'ArrowRight':
+      case 'ArrowUp': next = Math.min(100, currentVol + 5); break;
+      case 'PageDown': next = Math.max(0, currentVol - 10); break;
+      case 'PageUp': next = Math.min(100, currentVol + 10); break;
+      case 'Home': next = 0; break;
+      case 'End': next = 100; break;
+      default: return;
+    }
+    e.preventDefault();
+    this._setVolume(entityId, next / 100);
+  }
 
   private _onMrVolPointerDown(e: PointerEvent, entityId: string): void {
     e.stopPropagation();
     const bar = e.currentTarget as HTMLElement;
     bar.setPointerCapture(e.pointerId);
-    const fill = bar.querySelector('.mr-vol-fill') as HTMLElement;
-    const val = bar.querySelector('.mr-vol-val') as HTMLElement;
+    const fill = bar.querySelector('.speaker-vol-fill') as HTMLElement;
+    const val = bar.querySelector('.speaker-vol-val') as HTMLElement;
 
     const update = (evt: PointerEvent) => {
       const r = bar.getBoundingClientRect();
@@ -969,54 +987,72 @@ export class GlassMediaCard extends BaseCard {
 
   private _renderControlsTab(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     return html`
-      <!-- Volume -->
-      ${hasFeature(master, F_VOLUME_SET) ? html`
-        <div class="ctrl-label">${t('media.volume_label')}</div>
-        <div class="volume-row">
-          ${hasFeature(master, F_VOLUME_MUTE) ? html`
-            <button class="volume-btn ${master.isMuted ? 'muted' : ''}"
-              aria-label=${master.isMuted ? t('media.unmute_aria', { name: master.name }) : t('media.mute_aria', { name: master.name })}
-              @click=${(e: Event) => { e.stopPropagation(); this._toggleMute(master); }}>
-              <ha-icon .icon=${master.isMuted ? 'mdi:volume-off' : master.volume > 0.5 ? 'mdi:volume-high' : 'mdi:volume-medium'}></ha-icon>
-            </button>
-          ` : nothing}
-          <glass-slider
-            .value=${Math.round((master.isMuted ? 0 : master.volume) * 100)}
-            color="var(--rgb-white)"
-            .label=${`${Math.round((master.isMuted ? 0 : master.volume) * 100)}%`}
-            @glass-slider-input=${(e: CustomEvent) => this._setVolume(master.entityId, e.detail.value / 100)}
-            @glass-slider-change=${(e: CustomEvent) => this._setVolume(master.entityId, e.detail.value / 100)}
-          ></glass-slider>
-        </div>
-      ` : nothing}
+      <!-- Volume (master) — same bar pattern as the speakers below -->
+      ${hasFeature(master, F_VOLUME_SET) ? (() => {
+        const masterVol = Math.round((master.isMuted ? 0 : master.volume) * 100);
+        const muteIcon = master.isMuted || master.volume === 0
+          ? 'mdi:volume-off'
+          : master.volume >= 0.67 ? 'mdi:volume-high'
+          : master.volume >= 0.34 ? 'mdi:volume-medium'
+          : 'mdi:volume-low';
+        return html`
+          <div class="speaker-row master ${master.isMuted ? 'muted' : ''}">
+            ${hasFeature(master, F_VOLUME_MUTE) ? html`
+              <button class="speaker-icon-btn"
+                aria-label=${master.isMuted ? t('media.unmute_aria', { name: master.name }) : t('media.mute_aria', { name: master.name })}
+                @click=${(e: Event) => { e.stopPropagation(); this._toggleMute(master); }}>
+                <ha-icon .icon=${muteIcon}></ha-icon>
+              </button>
+            ` : html`
+              <div class="speaker-icon-btn static">
+                <ha-icon .icon=${muteIcon}></ha-icon>
+              </div>
+            `}
+            <div class="speaker-vol-slider"
+              role="slider"
+              tabindex="0"
+              aria-label=${t('media.volume_aria', { name: master.name })}
+              aria-valuenow=${masterVol}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              @pointerdown=${(e: PointerEvent) => this._onMrVolPointerDown(e, master.entityId)}
+              @keydown=${(e: KeyboardEvent) => this._onVolKey(e, master.entityId, masterVol)}>
+              <div class="speaker-vol-fill" style="width:${masterVol}%"></div>
+              <span class="speaker-vol-val">${masterVol}%</span>
+            </div>
+          </div>
+        `;
+      })() : nothing}
 
-      <!-- Source chips -->
       ${hasFeature(master, F_SELECT_SOURCE) && master.sourceList.length > 0 ? html`
         <div class="dash-fold-sep"></div>
-        <div class="ctrl-label">${t('media.source_label')}</div>
-        <div class="chips-row">
-          ${master.sourceList.map((src) => html`
-            <button class="chip ${master.source === src ? 'active' : ''}"
-              @click=${(e: Event) => { e.stopPropagation(); this._selectSource(master.entityId, src); }}>
-              <ha-icon .icon=${SOURCE_ICONS[src] || 'mdi:import'}></ha-icon>
-              <span>${src}</span>
-            </button>
-          `)}
+        <div class="media-section">
+          <div class="media-eyebrow"><span>${t('media.source_label')}</span></div>
+          <div class="chips-row">
+            ${master.sourceList.map((src) => html`
+              <button class="chip ${master.source === src ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); this._selectSource(master.entityId, src); }}>
+                <ha-icon .icon=${SOURCE_ICONS[src] || 'mdi:import'}></ha-icon>
+                <span>${src}</span>
+              </button>
+            `)}
+          </div>
         </div>
       ` : nothing}
 
-      <!-- Sound mode chips -->
       ${hasFeature(master, F_SELECT_SOUND_MODE) && master.soundModeList.length > 0 ? html`
         <div class="dash-fold-sep"></div>
-        <div class="ctrl-label">${t('media.sound_mode_label')}</div>
-        <div class="chips-row">
-          ${master.soundModeList.map((mode) => html`
-            <button class="chip ${master.soundMode === mode ? 'active' : ''}"
-              @click=${(e: Event) => { e.stopPropagation(); this._selectSoundMode(master.entityId, mode); }}>
-              <ha-icon .icon=${'mdi:equalizer'}></ha-icon>
-              <span>${mode}</span>
-            </button>
-          `)}
+        <div class="media-section">
+          <div class="media-eyebrow"><span>${t('media.sound_mode_label')}</span></div>
+          <div class="chips-row">
+            ${master.soundModeList.map((mode) => html`
+              <button class="chip ${master.soundMode === mode ? 'active' : ''}"
+                @click=${(e: Event) => { e.stopPropagation(); this._selectSoundMode(master.entityId, mode); }}>
+                <ha-icon .icon=${'mdi:equalizer'}></ha-icon>
+                <span>${mode}</span>
+              </button>
+            `)}
+          </div>
         </div>
       ` : nothing}
 
@@ -1136,25 +1172,31 @@ export class GlassMediaCard extends BaseCard {
 
     const coordinatorId = coordinator.entityId;
     const groupSet = new Set(coordinator.groupMembers);
-    // Exclude coordinator from the grid (it's shown in the glass panel)
+    // Exclude coordinator from the list (it's shown in the glass panel)
     const otherPlayers = allPlayers.filter((p) => p.entityId !== coordinatorId);
-
     if (otherPlayers.length === 0) return html``;
+
+    const joinedCount = otherPlayers.filter((p) => groupSet.has(p.entityId)).length + 1;
+    const totalCount = otherPlayers.length + 1;
 
     return html`
       <div class="dash-fold-sep"></div>
-      <div class="ctrl-label">${t('media.speakers_label')}</div>
-      <div class="multiroom-grid">
-        ${otherPlayers.map((speaker) => {
-          const inGroup = groupSet.has(speaker.entityId);
-
-          return html`
-            <div class="mr-cell ${inGroup ? 'joined' : ''}">
-              <div class="mr-cell-top">
-                <button class="mr-icon-btn"
+      <div class="speakers-section">
+        <div class="speakers-eyebrow">
+          <span>${t('media.speakers_label')}</span>
+          <span class="speakers-count">${joinedCount}/${totalCount}</span>
+        </div>
+        <div class="speakers-list">
+          ${otherPlayers.map((speaker) => {
+            const inGroup = groupSet.has(speaker.entityId);
+            const vol = Math.round(speaker.volume * 100);
+            return html`
+              <div class="speaker-row ${inGroup ? 'joined' : ''}">
+                <button class="speaker-icon-btn"
                   aria-label=${inGroup
                     ? t('media.remove_group_aria', { name: speaker.name })
                     : t('media.add_group_aria', { name: speaker.name })}
+                  aria-pressed=${inGroup ? 'true' : 'false'}
                   @click=${(e: Event) => {
                     e.stopPropagation();
                     if (inGroup) this._unjoinGroup(speaker.entityId);
@@ -1162,21 +1204,24 @@ export class GlassMediaCard extends BaseCard {
                   }}>
                   <ha-icon .icon=${speaker.icon || 'mdi:speaker'}></ha-icon>
                 </button>
-                <div class="mr-info">
-                  <div class="mr-name">${speaker.name}</div>
+                <div class="speaker-vol-slider"
+                  role="slider"
+                  tabindex=${inGroup ? '0' : '-1'}
+                  aria-label=${t('media.volume_aria', { name: speaker.name })}
+                  aria-valuenow=${vol}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  aria-disabled=${inGroup ? 'false' : 'true'}
+                  @pointerdown=${inGroup ? (e: PointerEvent) => this._onMrVolPointerDown(e, speaker.entityId) : null}
+                  @keydown=${inGroup ? (e: KeyboardEvent) => this._onVolKey(e, speaker.entityId, vol) : null}>
+                  <div class="speaker-vol-fill" style="width:${vol}%"></div>
+                  <span class="speaker-vol-name" title=${speaker.name}>${speaker.name}</span>
+                  <span class="speaker-vol-val">${vol}%</span>
                 </div>
               </div>
-              ${inGroup ? html`
-                <div class="mr-vol-slider"
-                  @pointerdown=${(e: PointerEvent) => this._onMrVolPointerDown(e, speaker.entityId)}>
-                  <div class="mr-vol-fill" style="width:${Math.round(speaker.volume * 100)}%"></div>
-                  <div class="mr-vol-icon"><ha-icon .icon=${'mdi:volume-medium'}></ha-icon></div>
-                  <span class="mr-vol-val">${Math.round(speaker.volume * 100)}%</span>
-                </div>
-              ` : nothing}
-            </div>
-          `;
-        })}
+            `;
+          })}
+        </div>
       </div>
     `;
   }
@@ -1765,25 +1810,12 @@ export class GlassMediaCard extends BaseCard {
         background: linear-gradient(90deg, transparent, rgba(var(--rgb-white),0.12), transparent);
       }
 
-      /* ── Volume row ── */
-      .volume-row { display: flex; align-items: center; gap: 0.5rem; }
-      .volume-btn {
-        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
-        background: transparent; border: none;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-        -webkit-tap-highlight-color: transparent; flex-shrink: 0;
-        color: rgba(var(--rgb-white),0.85);
+      /* Master-only quirks: hover bump on the mute icon and red icon when muted. */
+      @media (hover: hover) and (pointer: fine) {
+        .speaker-row.master .speaker-icon-btn:hover { background: rgba(var(--rgb-white), 0.14); color: #fff; }
       }
-      .volume-btn ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: var(--icon-md);
-      }
-      @media (hover: hover) and (pointer: fine) { .volume-btn:hover { color: #fff; } }
-      .volume-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      @media (pointer: coarse) { .volume-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) and (pointer: fine) { .volume-btn:active { transform: scale(0.96); } }
-      .volume-btn.muted { color: var(--c-alert); }
+      .speaker-row.master.muted .speaker-icon-btn { color: var(--c-alert); }
+      .speaker-icon-btn.static { cursor: default; }
 
       /* ── Volume slider ── */
       glass-slider { flex: 1; }
@@ -1814,105 +1846,128 @@ export class GlassMediaCard extends BaseCard {
         color: #fff;
       }
 
-      /* ── Multiroom grid ── */
-      .multiroom-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem;
+      /* ── Speakers list (multiroom) ── */
+      /* Sections génériques + eyebrows partagés (source, sound mode, enceintes) */
+      .speakers-section,
+      .media-section { display: flex; flex-direction: column; gap: 0.4375rem; }
+      .speakers-eyebrow,
+      .media-eyebrow {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0.125rem;
+        font-size: var(--fz-xxs); font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.8px;
+        color: var(--t4);
       }
-      :host([size="xs"]) .multiroom-grid,
-      :host([size="sm"]) .multiroom-grid {
-        grid-template-columns: 1fr;
+      .speakers-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        height: 1rem; padding: 0 0.4375rem;
+        border-radius: var(--radius-full);
+        background: var(--s2); color: var(--t3);
+        font-size: var(--fz-xxs); font-weight: 700;
+        letter-spacing: 0.5px;
       }
-      .mr-cell {
-        display: flex; flex-direction: column; gap: 0.25rem;
-        padding: 0.375rem; border-radius: var(--radius-md);
-        background: var(--s1); border: 1px solid var(--b1);
-        transition: background var(--t-fast), border-color var(--t-fast);
-      }
-      .mr-cell.joined {
-        background: rgba(var(--rgb-white),0.04); border-color: rgba(var(--rgb-white),0.15);
-      }
-      .mr-cell-top {
-        display: flex; align-items: center; gap: 0.375rem;
-      }
-      .mr-icon-btn {
-        width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm);
+      /* Icon and slider read as one continuous bar. Radius aligned with the
+         segmented controls/queue toggle above for visual consistency. */
+      .speakers-list { display: flex; flex-direction: column; gap: 0.375rem; }
+      .speaker-row {
+        display: flex; align-items: stretch; height: 2rem;
+        border-radius: var(--radius-lg);
         background: var(--s2); border: 1px solid var(--b1);
-        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        cursor: pointer; padding: 0; outline: none;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-        color: rgba(var(--rgb-white),0.6);
+        overflow: hidden;
+        transition: border-color var(--t-fast);
       }
-      .mr-icon-btn ha-icon {
+      /* Joined speakers share the master's white tint (the whole group reads
+         as a single tonal family). */
+      .speaker-row:is(.master, .joined) {
+        border-color: rgba(var(--rgb-white), 0.18);
+      }
+
+      .speaker-icon-btn {
+        width: 2rem; flex-shrink: 0;
+        background: var(--s3); border: none;
+        border-right: 1px solid var(--b1);
+        padding: 0; outline: none; cursor: pointer;
         display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: var(--icon-sm);
+        color: var(--t4);
+        transition: background var(--t-fast), color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .speaker-icon-btn ha-icon {
+        --mdc-icon-size: 0.875rem;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .speaker-row:is(.master, .joined) .speaker-icon-btn {
+        background: rgba(var(--rgb-white), 0.08);
+        color: rgba(var(--rgb-white), 0.85);
+        border-right-color: rgba(var(--rgb-white), 0.18);
       }
       @media (hover: hover) and (pointer: fine) {
-        .mr-icon-btn:hover { background: var(--s3); border-color: var(--b2); color: #fff; }
+        .speaker-row:not(.master):not(.joined) .speaker-icon-btn:hover { background: var(--s4); color: var(--t2); }
       }
-      @media (pointer: coarse) { .mr-icon-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) and (pointer: fine) { .mr-icon-btn:active { transform: scale(0.96); } }
-      .mr-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      .mr-cell.joined .mr-icon-btn {
-        background: rgba(var(--rgb-white),0.08); border-color: rgba(var(--rgb-white),0.15); color: #fff;
-      }
+      .speaker-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
-      .mr-info { flex: 1; min-width: 0; }
-      .mr-name {
-        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      .speaker-vol-slider {
+        position: relative; flex: 1;
+        cursor: pointer; touch-action: none;
+        user-select: none; -webkit-user-select: none;
+        transition: opacity var(--t-fast);
+        outline: none;
       }
-      .mr-cell.joined .mr-name { color: #fff; }
-      .mr-coordinator {
-        font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-        color: rgba(var(--rgb-white),0.5);
+      .speaker-vol-slider:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white), 0.35);
+        outline-offset: -2px;
       }
-
-      /* Multiroom volume slider */
-      .mr-vol-slider {
-        position: relative; width: 100%; height: 1.25rem;
-        border-radius: var(--radius-xs); background: var(--s2);
-        border: 1px solid var(--b1); overflow: hidden; cursor: pointer;
-        touch-action: none; user-select: none; -webkit-user-select: none;
+      .speaker-row:not(.master):not(.joined) .speaker-vol-slider {
+        opacity: 0.4; pointer-events: none; cursor: default;
       }
-      .mr-vol-fill {
+      .speaker-vol-fill {
         position: absolute; top: 0; left: 0; height: 100%;
-        border-radius: inherit; pointer-events: none;
-        background: linear-gradient(90deg, rgba(var(--rgb-white),0.06), rgba(var(--rgb-white),0.12));
+        pointer-events: none;
+        background: linear-gradient(90deg,
+          rgba(var(--rgb-white), 0.05),
+          rgba(var(--rgb-white), 0.1));
         transition: width var(--t-fast);
       }
-      .mr-cell.joined .mr-vol-fill {
-        background: linear-gradient(90deg, rgba(var(--rgb-white),0.1), rgba(var(--rgb-white),0.2));
+      .speaker-row:is(.master, .joined) .speaker-vol-fill {
+        background: linear-gradient(90deg,
+          rgba(var(--rgb-white), 0.08),
+          rgba(var(--rgb-white), 0.18));
       }
-      .mr-vol-val {
-        position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
-        font-size: var(--fz-xxs); font-weight: 600; color: rgba(var(--rgb-white),0.5); pointer-events: none;
+      .speaker-vol-slider:active .speaker-vol-fill { transition: none; }
+      .speaker-vol-name {
+        position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
+        font-size: var(--fz-sm); font-weight: 600; color: var(--t1);
+        z-index: 1; pointer-events: none;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: calc(100% - 4rem);
+        text-shadow: 0 1px 2px rgba(var(--rgb-black), 0.25);
+      }
+      .speaker-row:not(.master):not(.joined) .speaker-vol-name { color: var(--t3); text-shadow: none; }
+      .speaker-vol-val {
+        position: absolute; top: 50%; right: 0.625rem; transform: translateY(-50%);
+        font-size: var(--fz-xs); font-weight: 700; color: var(--t2);
+        z-index: 1; pointer-events: none;
         font-variant-numeric: tabular-nums;
       }
-      .mr-cell.joined .mr-vol-val { color: rgba(var(--rgb-white),0.7); }
-      .mr-vol-icon {
-        position: absolute; top: 0; bottom: 0; left: 0.375rem;
-        display: flex; align-items: center;
-        pointer-events: none;
+      .speaker-row:is(.master, .joined) .speaker-vol-val { color: var(--t1); }
+      @media (prefers-reduced-motion: reduce) {
+        .speaker-row, .speaker-vol-fill, .speaker-vol-slider, .speaker-icon-btn { transition: none; }
       }
-      .mr-vol-icon ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 0.6875rem; color: rgba(var(--rgb-white),0.5);
-      }
-      .mr-cell.joined .mr-vol-icon ha-icon { color: rgba(var(--rgb-white),0.7); }
 
       /* ── Segmented control ── */
       .segmented {
         display: inline-flex; gap: 0;
         border-radius: var(--radius-lg); background: var(--s1);
         border: 1px solid var(--b1); padding: 0.1875rem;
-        margin-bottom: 0.5rem; width: 100%;
+        width: 100%;
+        box-sizing: border-box;
       }
       .seg-btn {
         flex: 1;
         padding: 0.4375rem 0; border-radius: var(--radius-sm);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: rgba(var(--rgb-white),0.6); cursor: pointer; transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+        color: rgba(var(--rgb-white),0.6); cursor: pointer;
+        transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
         border: none; background: transparent; outline: none;
         -webkit-tap-highlight-color: transparent;
       }

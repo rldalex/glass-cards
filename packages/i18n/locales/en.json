@@ -50,7 +50,11 @@
     "temp_cold": "Cold",
     "dashboard_title": "LIGHTS ON",
     "dashboard_overflow": "and {count} more…",
-    "dashboard_turn_all_off_aria": "Turn off all lights in the house"
+    "dashboard_turn_all_off_aria": "Turn off all lights in the house",
+    "section_brightness": "Brightness",
+    "section_temperature": "Temperature",
+    "section_color": "Color",
+    "section_effects": "Effects"
   },
 
   "popup": {
@@ -122,6 +126,9 @@
     "closing": "Closing…",
     "position": "Position",
     "tilt": "Tilt",
+    "section_position": "Position",
+    "section_tilt": "Tilt",
+    "section_presets": "Presets",
     "stop_aria": "Stop {name}",
     "open_aria": "Open {name}",
     "close_aria": "Close {name}",
@@ -224,7 +231,11 @@
     "direction_reverse_aria": "Winter mode",
     "oscillation_aria": "Oscillation",
     "ceiling_light_aria": "Ceiling light",
-    "no_fans": "No fans in this room."
+    "no_fans": "No fans in this room.",
+    "section_speed": "Speed",
+    "section_mode": "Mode",
+    "section_direction": "Direction",
+    "section_oscillation": "Oscillation"
   },
 
   "title_card": {

@@ -93,6 +93,15 @@ function hsClose(a: [number, number, number], b: [number, number, number]): bool
 
 const ALLOWED_EFFECTS = ['off', 'candle', 'fire'] as const;
 
+function effectIcon(effect: string): string {
+  switch (effect) {
+    case 'off': return 'mdi:flash-off';
+    case 'candle': return 'mdi:candle';
+    case 'fire': return 'mdi:fire';
+    default: return 'mdi:auto-fix';
+  }
+}
+
 // — Component —
 
 export class GlassLightCard extends BaseCard {
@@ -269,11 +278,8 @@ export class GlassLightCard extends BaseCard {
         -webkit-tap-highlight-color: transparent;
         user-select: none;
       }
-      @media (hover: hover) and (pointer: fine) {
-        .light-row:hover {
-          background: var(--s1);
-        }
-      }
+      /* No row-level hover: the row contains its own interactive buttons
+         (icon-toggle + expand) which carry their own hover/active states. */
       @media (pointer: coarse) {
         .light-row:active { animation: bounce 0.3s ease; }
       }
@@ -461,6 +467,10 @@ export class GlassLightCard extends BaseCard {
         transition: opacity var(--t-layout);
         grid-column: 1 / -1;
       }
+      /* In a compact pair, anchor the separator under the opened light only
+         so the user can tell which fold belongs to which lamp. */
+      .fold-sep.fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
+      .fold-sep.fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
       .fold-sep.visible { opacity: 1; }
       .ctrl-panel {
         padding: 0.375rem 0 0.25rem;
@@ -468,14 +478,22 @@ export class GlassLightCard extends BaseCard {
         flex-direction: column;
         gap: 0.625rem;
       }
-      .ctrl-label {
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        color: rgba(var(--rgb-light-glow), 0.6);
+      /* ── Fold sections + eyebrow (Intensité / Température / Couleur / Effets) ── */
+      .ctrl-panel {
+        gap: 0.75rem;
       }
-      .ctrl-panel[data-rgb] .ctrl-label {
-        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.6));
+      .light-section {
+        display: flex; flex-direction: column; gap: 0.4375rem;
+      }
+      .light-eyebrow {
+        display: inline-flex; align-items: center; gap: 0.4375rem;
+        font-size: var(--fz-xxs); font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.8px;
+        color: rgba(var(--rgb-light-glow), 0.65);
+        padding-left: 0.125rem;
+      }
+      .ctrl-panel[data-rgb] .light-eyebrow {
+        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.65));
       }
 
       /* ── Slider ── */
@@ -525,20 +543,57 @@ export class GlassLightCard extends BaseCard {
       @media (pointer: coarse) {
         .cdot:active { animation: bounce 0.3s ease; }
       }
-      .cdot.active { border-color: rgba(var(--rgb-white), 0.6); }
-      .effect-chip {
-        width: auto; height: auto;
-        border-radius: var(--radius-md);
-        padding: 4px 8px;
-        font-size: var(--fz-xs); font-weight: 600;
-        letter-spacing: 0.5px; text-transform: uppercase;
-        color: var(--t3); border: 1px solid var(--b2); background: var(--s1);
-        transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+      .cdot.active {
+        border-color: var(--light-tint, rgb(var(--rgb-light-glow)));
+        box-shadow: 0 0 0 1px var(--s4),
+                    0 0 10px var(--light-tint-glow, rgba(var(--rgb-light-glow), 0.45));
       }
-      .effect-chip.active {
+      @media (prefers-reduced-motion: reduce) {
+        .cdot { transition: none; }
+      }
+      /* ── Effect pills ── */
+      .effect-row {
+        display: flex; flex-wrap: wrap; gap: 0.375rem;
+        padding: 0.125rem 0;
+      }
+      .effect-pill {
+        display: inline-flex; align-items: center; gap: 0.3125rem;
+        height: 1.75rem; padding: 0 0.625rem;
+        border-radius: var(--radius-full);
+        background: var(--s1); border: 1px solid var(--b1);
+        color: var(--t3);
+        font-family: inherit; font-weight: 600;
+        font-size: var(--fz-xs); letter-spacing: 0.4px;
+        cursor: pointer; outline: none;
+        transition: background var(--t-fast), border-color var(--t-fast),
+                    color var(--t-fast), transform var(--t-fast),
+                    box-shadow var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .effect-pill ha-icon {
+        --mdc-icon-size: 0.875rem;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--t4);
+      }
+      .effect-pill.active {
+        background: color-mix(in srgb, var(--light-tint, rgb(var(--rgb-light-glow))) 22%, var(--s2));
+        border-color: var(--light-tint, rgb(var(--rgb-light-glow)));
         color: var(--t1);
-        border-color: rgba(var(--rgb-white), 0.35);
-        background: var(--s2);
+        /* Inset glow stays within the pill — outer glow would be clipped by
+           the fold's overflow: hidden during the open animation. */
+        box-shadow: inset 0 0 12px var(--light-tint-glow, rgba(var(--rgb-light-glow), 0.35));
+      }
+      .effect-pill.active ha-icon { color: var(--light-tint, rgb(var(--rgb-light-glow))); }
+      @media (hover: hover) and (pointer: fine) {
+        .effect-pill:not(.active):hover { background: var(--s2); color: var(--t2); border-color: var(--b2); }
+        .effect-pill:active { transform: scale(0.96); }
+      }
+      @media (pointer: coarse) {
+        .effect-pill:active { animation: bounce 0.3s ease; }
+      }
+      .effect-pill:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: 2px; }
+      @media (prefers-reduced-motion: reduce) {
+        .effect-pill { transition: none; }
       }
       @media (hover: hover) and (pointer: fine) {
         .effect-chip:hover { transform: none; background: var(--s2); }
@@ -596,27 +651,39 @@ export class GlassLightCard extends BaseCard {
         to { opacity: 1; }
       }
       .color-picker-dialog {
+        position: relative;
         background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
         backdrop-filter: blur(40px) saturate(1.4);
         -webkit-backdrop-filter: blur(40px) saturate(1.4);
         border: 1px solid var(--b2);
         border-radius: var(--radius-xl);
-        padding: 1.25rem;
+        padding: 1rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1rem;
+        gap: 0.875rem;
         box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.15);
         max-width: 18.75rem;
         width: 90vw;
       }
-      .color-picker-dialog .cp-title {
-        font-size: var(--fz-base);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--t3);
+      /* Close icon top-right, 44×44 hit area via padding */
+      .cp-close-x {
+        position: absolute; top: 0.375rem; right: 0.375rem;
+        width: 2.25rem; height: 2.25rem;
+        border-radius: 50%;
+        background: transparent; border: none;
+        color: var(--t3); cursor: pointer; outline: none;
+        display: flex; align-items: center; justify-content: center;
+        transition: background var(--t-fast), color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
       }
+      .cp-close-x ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
+      @media (hover: hover) and (pointer: fine) {
+        .cp-close-x:hover { background: var(--s2); color: var(--t1); }
+      }
+      .cp-close-x:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
+      .cp-close-x:active { transform: scale(0.94); }
+
       .cp-wheel-wrap {
         position: relative;
         width: 13.75rem;
@@ -650,30 +717,21 @@ export class GlassLightCard extends BaseCard {
         background: rgba(var(--rgb-white),0.5);
         border-radius: 1px;
       }
-      .cp-preview {
-        width: 100%;
-        height: 2.25rem;
+      /* Compact preview row: swatch + hex code on one line */
+      .cp-preview-row {
+        display: inline-flex; align-items: center; gap: 0.625rem;
+        padding: 0.375rem 0.5rem;
         border-radius: var(--radius-md);
-        border: 1px solid var(--b2);
+        background: var(--s1); border: 1px solid var(--b1);
+      }
+      .cp-swatch {
+        width: 1.625rem; height: 1.625rem; border-radius: var(--radius-sm);
+        border: 1px solid rgba(var(--rgb-white), 0.15);
+        box-shadow: inset 0 0 0 1px rgba(var(--rgb-black), 0.15);
       }
       .cp-hex {
         font-size: var(--fz-base); font-weight: 600; color: var(--t2);
         font-family: monospace; letter-spacing: 0.5px;
-      }
-      .cp-close {
-        font-family: inherit;
-        font-size: var(--fz-base);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--t2);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        border-radius: var(--radius-md);
-        padding: 0.5rem 1.5rem;
-        cursor: pointer;
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
       }
 
       /* Focus-visible ring */
@@ -1078,8 +1136,12 @@ export class GlassLightCard extends BaseCard {
     const isOn = entity.state === 'on';
     const type = detectLightType(entity);
     const brightness = entity.attributes.brightness as number | undefined;
-    const brightnessPct =
-      isOn && brightness !== undefined ? Math.round((brightness / 255) * 100) : 0;
+    // Simple (no-dim) lights have no `brightness` attribute. When such a lamp
+    // is ON, treat it as 100% by convention so the tint / halo intensity
+    // reflects "fully lit" instead of 0%.
+    const brightnessPct = isOn
+      ? brightness !== undefined ? Math.round((brightness / 255) * 100) : 100
+      : 0;
 
     let colorTempKelvin: number | null = null;
     const minKelvin = (entity.attributes.min_color_temp_kelvin as number) || 2000;
@@ -1301,15 +1363,26 @@ export class GlassLightCard extends BaseCard {
   private _computeTint(lights: LightInfo[]): { background: string; opacity: string } | null {
     const onLights = lights.filter((l) => l.isOn);
     if (onLights.length === 0) return null;
-    const ratio = onLights.length / lights.length;
 
+    // Halo intensity reflects how much light is actually emitted: combine the
+    // count ratio with the average brightness of the lamps that are on so a
+    // single lamp at 100% glows brighter than three lamps at 10%.
+    const ratio = onLights.length / lights.length;
+    const avgBri = onLights.reduce((sum, l) => sum + (l.brightnessPct ?? 100), 0) / onLights.length;
+    const intensity = (avgBri / 100) * (0.55 + ratio * 0.45) * 0.22;
+
+    // Dominant colour: brightest RGB lamp first, else the brightest kelvin,
+    // else a warm fallback. The halo borrows the lamp's own colour.
     let color = '#fbbf24';
-    const rgbLight = onLights.find((l) => l.type === 'rgb' && l.rgbColor);
-    if (rgbLight?.rgbColor) color = rgbToHex(rgbLight.rgbColor);
+    const sorted = [...onLights].sort((a, b) => (b.brightnessPct ?? 0) - (a.brightnessPct ?? 0));
+    const rgbTop = sorted.find((l) => l.type === 'rgb' && l.rgbColor);
+    const tempTop = sorted.find((l) => l.type === 'color_temp' && l.colorTempKelvin);
+    if (rgbTop?.rgbColor) color = rgbToHex(rgbTop.rgbColor);
+    else if (tempTop?.colorTempKelvin) color = getTempInfo(tempTop.colorTempKelvin).color;
 
     return {
       background: `radial-gradient(ellipse at 30% 30%, ${color}, transparent 70%)`,
-      opacity: (ratio * 0.18).toFixed(3),
+      opacity: intensity.toFixed(3),
     };
   }
 
@@ -1433,29 +1506,69 @@ export class GlassLightCard extends BaseCard {
     return 'rgba(var(--rgb-light-glow),0.25)';
   }
 
-  private _renderControlFold(info: LightInfo, isLast = false): TemplateResult {
+  /** Returns CSS custom properties `--light-tint` (solid) + `--light-tint-glow`
+   * (rgba 0.4) reflecting the light's current colour. Used by the fold to
+   * colour the active cdot / effect chip with the lamp's own colour. */
+  private _getLightTintStyle(info: LightInfo): string {
+    if (info.type === 'rgb' && info.rgbColor) {
+      const [r, g, b] = info.rgbColor;
+      return `--light-tint:rgb(${r},${g},${b});--light-tint-glow:rgba(${r},${g},${b},0.45)`;
+    }
+    if (info.type === 'color_temp' && info.colorTempKelvin) {
+      const hex = getTempInfo(info.colorTempKelvin).color;
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `--light-tint:${hex};--light-tint-glow:rgba(${r},${g},${b},0.45)`;
+    }
+    return '';
+  }
+
+  private _renderControlFold(info: LightInfo, position: 'full' | 'left' | 'right' = 'full'): TemplateResult {
     const isExpanded = this._expandedEntity === info.entityId && info.isOn;
     const isRgb = info.type === 'rgb';
     const sliderColor = this._getSliderColor(info);
     const foldColor = this._getFoldColor(info);
+    const tintStyle = this._getLightTintStyle(info);
 
     return html`
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
-      <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
+      <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
+      <div class="ctrl-fold ${isExpanded ? 'open' : ''}" style=${tintStyle}>
         <div class="ctrl-fold-inner">
           <div class="ctrl-panel" ?data-rgb=${isRgb}>
-            <span class="ctrl-label">${info.name}</span>
-
-            ${info.type !== 'simple'
-              ? this._renderBrightnessSlider(info, sliderColor)
-              : nothing}
-            ${info.type === 'color_temp' ? this._renderTempSlider(info) : nothing}
-            ${info.type === 'rgb' ? this._renderColorRow(info) : nothing}
-            ${this._renderEffectChips(info)}
+            ${info.type !== 'simple' ? html`
+              <div class="light-section">
+                <div class="light-eyebrow"><span>${t('light.section_brightness')}</span></div>
+                ${this._renderBrightnessSlider(info, sliderColor)}
+              </div>
+            ` : nothing}
+            ${info.type === 'color_temp' ? html`
+              <div class="light-section">
+                <div class="light-eyebrow"><span>${t('light.section_temperature')}</span></div>
+                ${this._renderTempSlider(info)}
+              </div>
+            ` : nothing}
+            ${info.type === 'rgb' ? html`
+              <div class="light-section">
+                <div class="light-eyebrow"><span>${t('light.section_color')}</span></div>
+                ${this._renderColorRow(info)}
+              </div>
+            ` : nothing}
+            ${this._renderEffectsSection(info)}
           </div>
         </div>
       </div>
-      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>` : nothing}
+    `;
+  }
+
+  private _renderEffectsSection(info: LightInfo): TemplateResult | typeof nothing {
+    const chips = this._renderEffectChips(info);
+    if (chips === nothing) return nothing;
+    return html`
+      <div class="light-section">
+        <div class="light-eyebrow"><span>${t('light.section_effects')}</span></div>
+        ${chips}
+      </div>
     `;
   }
 
@@ -1494,16 +1607,21 @@ export class GlassLightCard extends BaseCard {
     const currentEffect = (info.entity.attributes.effect as string | undefined)?.toLowerCase();
 
     return html`
-      <div class="color-row" style="flex-wrap:wrap">
-        ${available.map(
-          (effect) => html`
+      <div class="effect-row">
+        ${available.map((effect) => {
+          const isActive = currentEffect === effect || (!currentEffect && effect === 'off');
+          return html`
             <button
-              class="cdot effect-chip ${currentEffect === effect || (!currentEffect && effect === 'off') ? 'active' : ''}"
+              class="effect-pill ${isActive ? 'active' : ''}"
               @click=${() => this._setEffect(info.entityId, effect)}
               aria-label="${t(`light.effect_${effect}`)}"
-            >${t(`light.effect_${effect}`)}</button>
-          `,
-        )}
+              aria-pressed=${isActive ? 'true' : 'false'}
+            >
+              <ha-icon .icon=${effectIcon(effect)}></ha-icon>
+              <span>${t(`light.effect_${effect}`)}</span>
+            </button>
+          `;
+        })}
       </div>
     `;
   }
@@ -1519,8 +1637,10 @@ export class GlassLightCard extends BaseCard {
       <div class="color-picker-overlay" role="presentation" @click=${(e: Event) => {
         if ((e.target as HTMLElement).classList.contains('color-picker-overlay')) this._closeColorPicker();
       }}>
-        <div class="color-picker-dialog">
-          <span class="cp-title">${t('light.color_picker_title')}</span>
+        <div class="color-picker-dialog" role="dialog" aria-modal="true" aria-label="${t('light.color_picker_title')}">
+          <button class="cp-close-x" @click=${() => this._closeColorPicker()} aria-label="${t('common.close')}">
+            <ha-icon .icon=${'mdi:close'}></ha-icon>
+          </button>
           <div class="cp-wheel-wrap">
             <canvas
               @mousedown=${(e: MouseEvent) => {
@@ -1567,11 +1687,10 @@ export class GlassLightCard extends BaseCard {
             ></canvas>
             <div class="cp-cursor" style="left:${this._colorPickerPos?.x ?? 50}%;top:${this._colorPickerPos?.y ?? 50}%;background:${hex}"></div>
           </div>
-          <div class="cp-preview" style="background:${hex}"></div>
-          <span class="cp-hex">${hex}</span>
-          <button class="cp-close" @click=${() => this._closeColorPicker()}>
-            ${t('common.close')}
-          </button>
+          <div class="cp-preview-row">
+            <div class="cp-swatch" style="background:${hex}"></div>
+            <span class="cp-hex">${hex}</span>
+          </div>
         </div>
       </div>
     `;
@@ -1630,20 +1749,18 @@ export class GlassLightCard extends BaseCard {
     const layout = this._buildLayout(lights);
     const results: TemplateResult[] = [];
 
-    for (let idx = 0; idx < layout.length; idx++) {
-      const item = layout[idx];
-      const isLast = idx === layout.length - 1;
+    for (const item of layout) {
       if (item.kind === 'full') {
         results.push(this._renderLightRow(item.light, false, false));
-        results.push(this._renderControlFold(item.light, isLast));
+        results.push(this._renderControlFold(item.light, 'full'));
       } else {
         results.push(this._renderLightRow(item.left, true, false));
         if (item.right) {
           results.push(this._renderLightRow(item.right, true, true));
         }
-        results.push(this._renderControlFold(item.left, isLast));
+        results.push(this._renderControlFold(item.left, 'left'));
         if (item.right) {
-          results.push(this._renderControlFold(item.right, isLast));
+          results.push(this._renderControlFold(item.right, 'right'));
         }
       }
     }
@@ -1660,20 +1777,19 @@ export class GlassLightCard extends BaseCard {
       const left = visible[i];
       const right = i + 1 < visible.length ? visible[i + 1] : null;
       if (right) {
-        const last = i + 2 >= visible.length;
         // Compact pair
         results.push(html`
           ${this._renderLightRow(left, true, false)}
           ${this._renderLightRow(right, true, true)}
-          ${this._renderControlFold(left, last)}
-          ${this._renderControlFold(right, last)}
+          ${this._renderControlFold(left, 'left')}
+          ${this._renderControlFold(right, 'right')}
         `);
         i += 2;
       } else {
         // Last odd light: full width
         results.push(html`
           ${this._renderLightRow(left, false, false)}
-          ${this._renderControlFold(left, true)}
+          ${this._renderControlFold(left, 'full')}
         `);
         i++;
       }

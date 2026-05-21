@@ -25,6 +25,7 @@ interface PersonData {
   longitude: number | null;
   sourceType: string;
   batteryLevel: number | null;
+  isCharging: boolean;
   lastUpdated: string;
   geocodedLocation: string | null;
   heartRate: number | null;
@@ -83,7 +84,14 @@ function lastSeenClassFromDiff(diff: number): 'fresh' | 'stale' | 'old' {
   return 'old';
 }
 
-function batteryIcon(level: number): string {
+function batteryIcon(level: number, charging = false): string {
+  if (charging) {
+    if (level > 80) return 'mdi:battery-charging';
+    if (level > 60) return 'mdi:battery-charging-70';
+    if (level > 40) return 'mdi:battery-charging-50';
+    if (level > 20) return 'mdi:battery-charging-30';
+    return 'mdi:battery-charging-10';
+  }
   if (level > 80) return 'mdi:battery';
   if (level > 60) return 'mdi:battery-70';
   if (level > 40) return 'mdi:battery-50';
@@ -267,6 +275,15 @@ export class GlassPresenceCard extends BaseCard {
     if (batteryLevel == null) {
       batteryLevel = safeNum(attrs.battery_level);
     }
+    // Charging state: HA companion app exposes `is_charging` on the battery sensor.
+    // Also check truthy string variants ("true", "on", "1") since HA sometimes
+    // surfaces it as a string template attribute.
+    const chargingRaw = smartAttrs.is_charging ?? attrs.is_charging;
+    const isCharging =
+      chargingRaw === true ||
+      chargingRaw === 'true' ||
+      chargingRaw === 'on' ||
+      chargingRaw === '1';
 
     // Health data from smartphone sensor attributes
     const heartRate = safeNum(smartAttrs.heart_rate);
@@ -305,6 +322,7 @@ export class GlassPresenceCard extends BaseCard {
       longitude: safeNum(attrs.longitude),
       sourceType: (attrs.source_type as string) || 'gps',
       batteryLevel,
+      isCharging,
       lastUpdated: entity.last_updated,
       geocodedLocation,
       heartRate,
@@ -581,8 +599,8 @@ export class GlassPresenceCard extends BaseCard {
                 `;
               })()}
               ${person.batteryLevel != null ? html`
-                <span class="meta-chip battery-${batteryClass(person.batteryLevel)}">
-                  <ha-icon .icon=${batteryIcon(person.batteryLevel)}></ha-icon>
+                <span class="meta-chip battery-${batteryClass(person.batteryLevel)} ${person.isCharging ? 'charging' : ''}">
+                  <ha-icon .icon=${batteryIcon(person.batteryLevel, person.isCharging)}></ha-icon>
                   <span>${person.batteryLevel}%</span>
                 </span>
               ` : nothing}
@@ -1012,6 +1030,15 @@ export class GlassPresenceCard extends BaseCard {
       .meta-chip.battery-medium ha-icon { color: var(--c-warning); }
       .meta-chip.battery-low { color: var(--c-alert); }
       .meta-chip.battery-low ha-icon { color: var(--c-alert); }
+      /* Charging: subtle pulse on the icon to signal active charge */
+      .meta-chip.charging ha-icon { animation: charge-pulse 1.8s ease-in-out infinite; }
+      @keyframes charge-pulse {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .meta-chip.charging ha-icon { animation: none; }
+      }
       /* Last-seen freshness */
       .meta-chip.lastseen-fresh ha-icon { color: rgba(var(--rgb-success), 0.65); }
       .meta-chip.lastseen-stale { color: var(--c-warning); }

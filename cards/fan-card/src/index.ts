@@ -1,4 +1,4 @@
-import { html, css, nothing, type PropertyValues } from 'lit';
+import { html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
@@ -273,9 +273,7 @@ class GlassFanCard extends BaseCard {
       content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
       background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.08) 30%, rgba(var(--rgb-white),0.08) 70%, transparent);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .fan-row:hover { background: var(--s1); }
-    }
+    /* No row-level hover: sub-buttons (icon-toggle + expand) carry their own. */
     @media (pointer: coarse) {
       .fan-row:active { animation: bounce 0.3s ease; }
     }
@@ -389,6 +387,9 @@ class GlassFanCard extends BaseCard {
       background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
       opacity: 0; transition: opacity var(--t-layout);
     }
+    /* In a compact pair, anchor the separator under the opened fan only. */
+    .fold-sep.fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
+    .fold-sep.fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
     .fold-sep.visible { opacity: 1; }
 
     /* ── Controls fold ── */
@@ -406,11 +407,18 @@ class GlassFanCard extends BaseCard {
 
     .ctrl-panel {
       padding: 0.375rem 0 0.25rem;
-      display: flex; flex-direction: column; gap: 0.625rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
     }
-    .ctrl-label {
-      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
-      color: rgba(var(--rgb-accent),0.6); text-transform: uppercase;
+    /* ── Fold sections + eyebrow (Vitesse / Mode / Direction / Oscillation) ── */
+    .fan-section {
+      display: flex; flex-direction: column; gap: 0.4375rem;
+    }
+    .fan-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      font-size: var(--fz-xxs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--t4);
+      padding-left: 0.125rem;
     }
 
     /* ── Speed steps ── */
@@ -1155,22 +1163,19 @@ class GlassFanCard extends BaseCard {
       if (this._isCompact(fan)) {
         const next = i + 1 < fans.length && this._isCompact(fans[i + 1]) ? fans[i + 1] : null;
         if (next) {
-          const last = i + 2 >= fans.length;
           results.push(this._renderFanRow(fan, true, false));
           results.push(this._renderFanRow(next, true, true));
-          results.push(this._renderControlFold(fan, last));
-          results.push(this._renderControlFold(next, last));
+          results.push(this._renderControlFold(fan, 'left'));
+          results.push(this._renderControlFold(next, 'right'));
           i += 2;
         } else {
-          const last = i + 1 >= fans.length;
           results.push(this._renderFanRow(fan, false, false));
-          results.push(this._renderControlFold(fan, last));
+          results.push(this._renderControlFold(fan, 'full'));
           i++;
         }
       } else {
-        const last = i + 1 >= fans.length;
         results.push(this._renderFanRow(fan, false, false));
-        results.push(this._renderControlFold(fan, last));
+        results.push(this._renderControlFold(fan, 'full'));
         i++;
       }
     }
@@ -1184,15 +1189,14 @@ class GlassFanCard extends BaseCard {
       const left = fans[i];
       const right = i + 1 < fans.length ? fans[i + 1] : null;
       if (right) {
-        const last = i + 2 >= fans.length;
         results.push(this._renderFanRow(left, true, false));
         results.push(this._renderFanRow(right, true, true));
-        results.push(this._renderControlFold(left, last));
-        results.push(this._renderControlFold(right, last));
+        results.push(this._renderControlFold(left, 'left'));
+        results.push(this._renderControlFold(right, 'right'));
         i += 2;
       } else {
         results.push(this._renderFanRow(left, false, false));
-        results.push(this._renderControlFold(left, true));
+        results.push(this._renderControlFold(left, 'full'));
         i++;
       }
     }
@@ -1221,7 +1225,8 @@ class GlassFanCard extends BaseCard {
 
     const gesture = this._bindGesture({
       onTap: () => this._toggleFan(fan),
-      onLongPress: () => this._toggleExpand(fan),
+      // Long-press expands controls only when the fan actually has some.
+      onLongPress: hasControls ? () => this._toggleExpand(fan) : undefined,
       exclude: '.fan-icon-btn',
     });
 
@@ -1270,16 +1275,17 @@ class GlassFanCard extends BaseCard {
     `;
   }
 
-  private _renderControlFold(fan: FanInfo, isLast = false) {
+  private _renderControlFold(fan: FanInfo, position: 'full' | 'left' | 'right' = 'full'): TemplateResult | typeof nothing {
+    // Simple on/off fans have no controls → no fold at all.
+    if (!this._hasControls(fan)) return nothing;
     const isExpanded = this._expandedEntity === fan.entityId;
     return html`
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+      <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           ${isExpanded ? this._renderControls(fan) : nothing}
         </div>
       </div>
-      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>` : nothing}
     `;
   }
 
@@ -1296,101 +1302,104 @@ class GlassFanCard extends BaseCard {
 
     return html`
       <div class="ctrl-panel">
-        ${!fan.isSimple ? html`<span class="ctrl-label">${fan.name}</span>` : nothing}
-
         ${hasSpeed ? html`
-          <!-- Speed steps -->
-          <div class="speed-steps">
-            ${Array.from({ length: fan.speedCount }, (_, i) => {
-              const step = i + 1;
-              const pct = stepToPct(step, fan.speedCount);
-              const pctDisplay = stepToPctDisplay(step, fan.speedCount);
-              return html`
-                <button
-                  class="speed-step ${currentStep === step ? 'active' : ''}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._setSpeed(fan, pct); }}
-                  aria-label=${t('fan.speed_step_aria', { step: String(step), pct: String(pctDisplay) })}
-                >
-                  <span>${step}</span>
-                  <span class="speed-step-pct">${pctDisplay}%</span>
-                </button>
-              `;
-            })}
-          </div>
-
-          ${!fan.isSimple ? html`
-            <!-- Speed slider (complex fans only) -->
-            <div class="slider-wrap">
-              <div class="slider-icon"><ha-icon .icon=${'mdi:speedometer'}></ha-icon></div>
-              <glass-slider
-                .value=${displayPct}
-                .step=${Math.round(100 / fan.speedCount)}
-                color="var(--rgb-accent)"
-                .label=${`${displayPct}%`}
-                @glass-slider-input=${(e: CustomEvent) => this._onSpeedSliderInput(fan, e.detail.value)}
-                @glass-slider-change=${(e: CustomEvent) => this._onSpeedSliderChange(fan, e.detail.value)}
-              ></glass-slider>
+          <div class="fan-section">
+            <div class="fan-eyebrow"><span>${t('fan.section_speed')}</span></div>
+            <div class="speed-steps">
+              ${Array.from({ length: fan.speedCount }, (_, i) => {
+                const step = i + 1;
+                const pct = stepToPct(step, fan.speedCount);
+                const pctDisplay = stepToPctDisplay(step, fan.speedCount);
+                return html`
+                  <button
+                    class="speed-step ${currentStep === step ? 'active' : ''}"
+                    @click=${(e: Event) => { e.stopPropagation(); this._setSpeed(fan, pct); }}
+                    aria-label=${t('fan.speed_step_aria', { step: String(step), pct: String(pctDisplay) })}
+                  >
+                    <span>${step}</span>
+                    <span class="speed-step-pct">${pctDisplay}%</span>
+                  </button>
+                `;
+              })}
             </div>
-          ` : nothing}
+            ${!fan.isSimple ? html`
+              <div class="slider-wrap">
+                <div class="slider-icon"><ha-icon .icon=${'mdi:speedometer'}></ha-icon></div>
+                <glass-slider
+                  .value=${displayPct}
+                  .step=${Math.round(100 / fan.speedCount)}
+                  color="var(--rgb-accent)"
+                  .label=${`${displayPct}%`}
+                  @glass-slider-input=${(e: CustomEvent) => this._onSpeedSliderInput(fan, e.detail.value)}
+                  @glass-slider-change=${(e: CustomEvent) => this._onSpeedSliderChange(fan, e.detail.value)}
+                ></glass-slider>
+              </div>
+            ` : nothing}
+          </div>
         ` : nothing}
 
         ${hasPreset ? html`
-          <!-- Preset modes -->
-          <div class="mode-row">
-            ${fan.presetModes.map((mode) => html`
-              <button
-                class="chip ${fan.presetMode === mode ? 'active' : ''}"
-                @click=${(e: Event) => this._setPresetMode(fan, mode, e)}
-                aria-label=${presetLabel(mode)}
-              >
-                <ha-icon .icon=${PRESET_MODE_ICONS[mode.toLowerCase()] || 'mdi:cog'}></ha-icon>
-                <span>${presetLabel(mode)}</span>
-              </button>
-            `)}
+          <div class="fan-section">
+            <div class="fan-eyebrow"><span>${t('fan.section_mode')}</span></div>
+            <div class="mode-row">
+              ${fan.presetModes.map((mode) => html`
+                <button
+                  class="chip ${fan.presetMode === mode ? 'active' : ''}"
+                  @click=${(e: Event) => this._setPresetMode(fan, mode, e)}
+                  aria-label=${presetLabel(mode)}
+                >
+                  <ha-icon .icon=${PRESET_MODE_ICONS[mode.toLowerCase()] || 'mdi:cog'}></ha-icon>
+                  <span>${presetLabel(mode)}</span>
+                </button>
+              `)}
+            </div>
           </div>
         ` : nothing}
 
         ${hasDirection ? html`
-          <div class="ctrl-sep"></div>
-          <!-- Direction -->
-          <div class="direction-row">
-            <div class="direction-label">
-              <ha-icon .icon=${'mdi:rotate-3d-variant'}></ha-icon>
-              ${t('fan.direction')}
-            </div>
-            <div class="direction-btns">
-              <button
-                class="dir-btn ${fan.direction === 'forward' ? 'active' : ''}"
-                @click=${(e: Event) => this._setDirection(fan, 'forward', e)}
-                aria-label=${t('fan.direction_forward_aria')}
-              >
-                <ha-icon .icon=${'mdi:rotate-right'}></ha-icon>
-              </button>
-              <button
-                class="dir-btn ${fan.direction === 'reverse' ? 'active' : ''}"
-                @click=${(e: Event) => this._setDirection(fan, 'reverse', e)}
-                aria-label=${t('fan.direction_reverse_aria')}
-              >
-                <ha-icon .icon=${'mdi:rotate-left'}></ha-icon>
-              </button>
+          <div class="fan-section">
+            <div class="fan-eyebrow"><span>${t('fan.section_direction')}</span></div>
+            <div class="direction-row">
+              <div class="direction-label">
+                <ha-icon .icon=${'mdi:rotate-3d-variant'}></ha-icon>
+                ${t('fan.direction')}
+              </div>
+              <div class="direction-btns">
+                <button
+                  class="dir-btn ${fan.direction === 'forward' ? 'active' : ''}"
+                  @click=${(e: Event) => this._setDirection(fan, 'forward', e)}
+                  aria-label=${t('fan.direction_forward_aria')}
+                >
+                  <ha-icon .icon=${'mdi:rotate-right'}></ha-icon>
+                </button>
+                <button
+                  class="dir-btn ${fan.direction === 'reverse' ? 'active' : ''}"
+                  @click=${(e: Event) => this._setDirection(fan, 'reverse', e)}
+                  aria-label=${t('fan.direction_reverse_aria')}
+                >
+                  <ha-icon .icon=${'mdi:rotate-left'}></ha-icon>
+                </button>
+              </div>
             </div>
           </div>
         ` : nothing}
 
         ${hasOscillate ? html`
-          <!-- Oscillation -->
-          <div class="osc-row">
-            <div class="osc-label">
-              <ha-icon .icon=${'mdi:arrow-left-right'}></ha-icon>
-              ${t('fan.oscillation')}
+          <div class="fan-section">
+            <div class="fan-eyebrow"><span>${t('fan.section_oscillation')}</span></div>
+            <div class="osc-row">
+              <div class="osc-label">
+                <ha-icon .icon=${'mdi:arrow-left-right'}></ha-icon>
+                ${t('fan.oscillation')}
+              </div>
+              <button
+                class="toggle-sm ${fan.oscillating ? 'on' : ''}"
+                @click=${(e: Event) => this._toggleOscillation(fan, e)}
+                role="switch"
+                aria-checked=${fan.oscillating ? 'true' : 'false'}
+                aria-label=${t('fan.oscillation_aria')}
+              ></button>
             </div>
-            <button
-              class="toggle-sm ${fan.oscillating ? 'on' : ''}"
-              @click=${(e: Event) => this._toggleOscillation(fan, e)}
-              role="switch"
-              aria-checked=${fan.oscillating ? 'true' : 'false'}
-              aria-label=${t('fan.oscillation_aria')}
-            ></button>
           </div>
         ` : nothing}
 

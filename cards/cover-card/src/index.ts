@@ -250,9 +250,7 @@ class GlassCoverCard extends BaseCard {
       content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
       background: linear-gradient(180deg, transparent, var(--b2), transparent);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .cv-row:hover { background: var(--s1); }
-    }
+    /* No row-level hover: sub-buttons (icon-toggle + expand) carry their own. */
     @media (pointer: coarse) {
       .cv-row:active { animation: bounce 0.3s ease; }
     }
@@ -332,6 +330,8 @@ class GlassCoverCard extends BaseCard {
     }
 
     /* ── Fold ── */
+    .fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
+    .fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
     .fold-sep {
       grid-column: 1 / -1;
       height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
@@ -354,11 +354,16 @@ class GlassCoverCard extends BaseCard {
 
     .ctrl-panel {
       padding: 0.375rem 0 0.25rem;
-      display: flex; flex-direction: column; gap: 0.625rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
     }
-    .ctrl-label {
-      font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px;
-      color: rgba(var(--rgb-purple),0.6); text-transform: uppercase;
+    /* ── Fold sections + eyebrow (Position / Inclinaison / Préréglages) ── */
+    .cover-section { display: flex; flex-direction: column; gap: 0.4375rem; }
+    .cover-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      font-size: var(--fz-xxs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--t4);
+      padding-left: 0.125rem;
     }
 
     /* Transport */
@@ -743,22 +748,19 @@ class GlassCoverCard extends BaseCard {
       if (this._isCompact(cv)) {
         const next = i + 1 < covers.length && this._isCompact(covers[i + 1]) ? covers[i + 1] : null;
         if (next) {
-          const last = i + 2 >= covers.length;
           results.push(this._renderCoverRow(cv, true, false));
           results.push(this._renderCoverRow(next, true, true));
-          results.push(this._renderControlFold(cv, last));
-          results.push(this._renderControlFold(next, last));
+          results.push(this._renderControlFold(cv, 'left'));
+          results.push(this._renderControlFold(next, 'right'));
           i += 2;
         } else {
-          const last = i + 1 >= covers.length;
           results.push(this._renderCoverRow(cv, false, false));
-          results.push(this._renderControlFold(cv, last));
+          results.push(this._renderControlFold(cv, 'full'));
           i++;
         }
       } else {
-        const last = i + 1 >= covers.length;
         results.push(this._renderCoverRow(cv, false, false));
-        results.push(this._renderControlFold(cv, last));
+        results.push(this._renderControlFold(cv, 'full'));
         i++;
       }
     }
@@ -780,22 +782,19 @@ class GlassCoverCard extends BaseCard {
       if (this._getDashboardLayout(cv.entityId) === 'compact') {
         const next = i + 1 < covers.length && this._getDashboardLayout(covers[i + 1].entityId) === 'compact' ? covers[i + 1] : null;
         if (next) {
-          const last = i + 2 >= covers.length;
           results.push(this._renderCoverRow(cv, true, false));
           results.push(this._renderCoverRow(next, true, true));
-          results.push(this._renderControlFold(cv, last));
-          results.push(this._renderControlFold(next, last));
+          results.push(this._renderControlFold(cv, 'left'));
+          results.push(this._renderControlFold(next, 'right'));
           i += 2;
         } else {
-          const last = i + 1 >= covers.length;
           results.push(this._renderCoverRow(cv, false, false));
-          results.push(this._renderControlFold(cv, last));
+          results.push(this._renderControlFold(cv, 'full'));
           i++;
         }
       } else {
-        const last = i + 1 >= covers.length;
         results.push(this._renderCoverRow(cv, false, false));
-        results.push(this._renderControlFold(cv, last));
+        results.push(this._renderControlFold(cv, 'full'));
         i++;
       }
     }
@@ -850,16 +849,15 @@ class GlassCoverCard extends BaseCard {
     `;
   }
 
-  private _renderControlFold(cv: CoverInfo, isLast = false) {
+  private _renderControlFold(cv: CoverInfo, position: 'full' | 'left' | 'right' = 'full') {
     const isExpanded = this._expanded === cv.entityId;
     return html`
-      <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
+      <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           ${isExpanded ? this._renderControls(cv) : nothing}
         </div>
       </div>
-      ${!isLast ? html`<div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>` : nothing}
     `;
   }
 
@@ -898,9 +896,6 @@ class GlassCoverCard extends BaseCard {
 
     return html`
       <div class="ctrl-panel">
-        <span class="ctrl-label">${cv.name}</span>
-
-        <!-- Transport -->
         <div class="transport-row">
           ${sf & F.OPEN ? html`
             <button class="transport-btn ${cv.position === 100 || (cv.position === null && cv.isOpen) ? 'accent' : ''}"
@@ -925,50 +920,54 @@ class GlassCoverCard extends BaseCard {
           ` : nothing}
         </div>
 
-        <!-- Position slider -->
         ${hasPosition ? html`
-          <div class="slider-wrap">
-            <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, false)}></ha-icon></div>
-            <glass-slider
-              .value=${cv.position ?? 0}
-              color="var(--rgb-purple)"
-              .label=${`${cv.position ?? 0}%`}
-              @glass-slider-input=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
-              @glass-slider-change=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
-            ></glass-slider>
-            <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, true)}></ha-icon></div>
+          <div class="cover-section">
+            <div class="cover-eyebrow"><span>${t('cover.section_position')}</span></div>
+            <div class="slider-wrap">
+              <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, false)}></ha-icon></div>
+              <glass-slider
+                .value=${cv.position ?? 0}
+                color="var(--rgb-purple)"
+                .label=${`${cv.position ?? 0}%`}
+                @glass-slider-input=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
+                @glass-slider-change=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
+              ></glass-slider>
+              <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, true)}></ha-icon></div>
+            </div>
           </div>
         ` : nothing}
 
-        <!-- Tilt slider -->
         ${hasTilt ? html`
-          <span class="ctrl-label">${t('cover.tilt')}</span>
-          <div class="slider-wrap">
-            <div class="slider-icon"><ha-icon .icon=${'mdi:blinds'}></ha-icon></div>
-            <glass-slider
-              .value=${cv.tiltPosition ?? 0}
-              color="var(--rgb-purple)"
-              .label=${`${cv.tiltPosition ?? 0}%`}
-              @glass-slider-input=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
-              @glass-slider-change=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
-            ></glass-slider>
-            <div class="slider-icon"><ha-icon .icon=${'mdi:blinds-open'}></ha-icon></div>
+          <div class="cover-section">
+            <div class="cover-eyebrow"><span>${t('cover.section_tilt')}</span></div>
+            <div class="slider-wrap">
+              <div class="slider-icon"><ha-icon .icon=${'mdi:blinds'}></ha-icon></div>
+              <glass-slider
+                .value=${cv.tiltPosition ?? 0}
+                color="var(--rgb-purple)"
+                .label=${`${cv.tiltPosition ?? 0}%`}
+                @glass-slider-input=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
+                @glass-slider-change=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
+              ></glass-slider>
+              <div class="slider-icon"><ha-icon .icon=${'mdi:blinds-open'}></ha-icon></div>
+            </div>
           </div>
         ` : nothing}
 
-        <!-- Presets -->
-        <div class="ctrl-sep"></div>
-        <div class="preset-row">
-          ${presets.map((p) => html`
-            <button
-              class="chip ${cv.position === p.position ? 'active' : ''}"
-              @click=${(e: Event) => this._setPreset(cv, p.position, e)}
-              aria-label=${p.label}
-            >
-              <ha-icon .icon=${p.icon}></ha-icon>
-              <span>${p.label}</span>
-            </button>
-          `)}
+        <div class="cover-section">
+          <div class="cover-eyebrow"><span>${t('cover.section_presets')}</span></div>
+          <div class="preset-row">
+            ${presets.map((p) => html`
+              <button
+                class="chip ${cv.position === p.position ? 'active' : ''}"
+                @click=${(e: Event) => this._setPreset(cv, p.position, e)}
+                aria-label=${p.label}
+              >
+                <ha-icon .icon=${p.icon}></ha-icon>
+                <span>${p.label}</span>
+              </button>
+            `)}
+          </div>
         </div>
       </div>
     `;

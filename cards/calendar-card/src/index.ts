@@ -640,13 +640,9 @@ export class GlassCalendarCard extends BaseCard {
       color: var(--t3); flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .v4-compact:hover .v4-compact-chevron {
-        background: var(--s3);
-        border-color: rgba(var(--rgb-accent), 0.35);
-        color: rgb(var(--rgb-accent));
-      }
-    }
+    /* No row-level hover on the closed compact bar: the chevron + state
+       already signal interactivity, and hover-stickiness after a tap on
+       mobile was distracting. */
     .v4-compact-chevron svg { width: 0.75rem; height: 0.75rem; transition: transform var(--t-fast); }
     .calendar-card.open .v4-compact-chevron svg { transform: rotate(180deg); }
     .calendar-card.open .v4-compact-chevron {

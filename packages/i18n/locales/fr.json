@@ -50,7 +50,11 @@
     "temp_cold": "Froid",
     "dashboard_title": "LUMIÈRES ALLUMÉES",
     "dashboard_overflow": "et {count} autres…",
-    "dashboard_turn_all_off_aria": "Éteindre toutes les lumières de la maison"
+    "dashboard_turn_all_off_aria": "Éteindre toutes les lumières de la maison",
+    "section_brightness": "Intensité",
+    "section_temperature": "Température",
+    "section_color": "Couleur",
+    "section_effects": "Effets"
   },
 
   "popup": {
@@ -122,6 +126,9 @@
     "closing": "Fermeture…",
     "position": "Position",
     "tilt": "Inclinaison",
+    "section_position": "Position",
+    "section_tilt": "Inclinaison",
+    "section_presets": "Préréglages",
     "stop_aria": "Arrêter {name}",
     "open_aria": "Ouvrir {name}",
     "close_aria": "Fermer {name}",
@@ -224,7 +231,11 @@
     "direction_reverse_aria": "Mode hiver",
     "oscillation_aria": "Oscillation",
     "ceiling_light_aria": "Éclairage plafonnier",
-    "no_fans": "Aucun ventilateur dans cette pièce."
+    "no_fans": "Aucun ventilateur dans cette pièce.",
+    "section_speed": "Vitesse",
+    "section_mode": "Mode",
+    "section_direction": "Direction",
+    "section_oscillation": "Oscillation"
   },
 
   "title_card": {
