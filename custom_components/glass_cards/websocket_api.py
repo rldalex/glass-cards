@@ -375,7 +375,7 @@ async def ws_set_weather(
     {
         vol.Required("type"): "glass_cards/set_calendar_card",
         vol.Optional("show_header"): bool,
-        vol.Optional("hidden_entities"): [vol.All(str, vol.Match(r"^calendar\.\w+$"))],
+        vol.Optional("hidden_entities"): [vol.All(str, vol.Match(r"^calendar\.[\w-]+$"))],
     }
 )
 @websocket_api.async_response
@@ -393,7 +393,7 @@ async def ws_set_calendar_card(
     if "show_header" in msg:
         store.data.calendar_card.show_header = msg["show_header"]
     if "hidden_entities" in msg:
-        store.data.calendar_card.hidden_entities = msg["hidden_entities"]
+        store.data.calendar_card.hidden_entities = _dedupe_ordered(msg["hidden_entities"])
 
     try:
         await store.async_save()

@@ -757,7 +757,7 @@ class DashboardConfig:
         )
 
 
-_CALENDAR_ENTITY_RE = re.compile(r"^calendar\.\w+$")
+_CALENDAR_ENTITY_RE = re.compile(r"^calendar\.[\w-]+$")
 
 
 @dataclass

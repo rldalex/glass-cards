@@ -10,6 +10,7 @@ from custom_components.glass_cards.websocket_api import (
     ws_get_config,
     ws_get_room,
     ws_get_schedules,
+    ws_set_calendar_card,
     ws_set_camera_carousel_config,
     ws_set_climate_config,
     ws_set_cover_config,
@@ -679,6 +680,57 @@ class TestSetCameraCarouselConfig:
         )
         result = mock_connection.send_result.call_args[0][1]
         assert result["entity_order"] == ["camera.front", "camera.back"]
+
+
+class TestSetCalendarCard:
+    """Tests for ws_set_calendar_card."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header."""
+        await ws_set_calendar_card(
+            hass_with_store, mock_connection,
+            {"id": 160, "type": "glass_cards/set_calendar_card", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_hidden_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should update hidden_entities."""
+        await ws_set_calendar_card(
+            hass_with_store, mock_connection,
+            {"id": 161, "type": "glass_cards/set_calendar_card", "hidden_entities": ["calendar.perso", "calendar.travail"]},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["hidden_entities"] == ["calendar.perso", "calendar.travail"]
+
+    @pytest.mark.asyncio
+    async def test_dedupes_hidden_entities(self, hass_with_store, mock_connection, mock_store):
+        """Should dedupe hidden_entities on write (order-preserving)."""
+        await ws_set_calendar_card(
+            hass_with_store, mock_connection,
+            {
+                "id": 162, "type": "glass_cards/set_calendar_card",
+                "hidden_entities": ["calendar.perso", "calendar.travail", "calendar.perso"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["hidden_entities"] == ["calendar.perso", "calendar.travail"]
+
+    @pytest.mark.asyncio
+    async def test_accepts_hyphenated_entity_ids(self, hass_with_store, mock_connection, mock_store):
+        """Should accept entity IDs with hyphens (Google Calendar / CalDAV convention)."""
+        await ws_set_calendar_card(
+            hass_with_store, mock_connection,
+            {
+                "id": 163, "type": "glass_cards/set_calendar_card",
+                "hidden_entities": ["calendar.my-google-calendar", "calendar.family-events-1"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["hidden_entities"] == ["calendar.my-google-calendar", "calendar.family-events-1"]
 
 
 class TestSetSpotifyConfig:
