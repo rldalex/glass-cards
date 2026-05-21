@@ -25,6 +25,7 @@ from custom_components.glass_cards.websocket_api import (
     ws_set_spotify_config,
     ws_set_title_config,
     ws_set_weather,
+    ws_set_wizard_completed,
 )
 
 
@@ -338,6 +339,28 @@ class TestSetSchedule:
                 },
             )
 
+    @pytest.mark.asyncio
+    async def test_accepts_hyphenated_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """Should accept entity_id with hyphens (custom integrations).
+
+        Regression guard for v0.0.200: the schedule regex used to be
+        ^[a-z_]+\\.[a-z0-9_]+$ which blocked any entity with a hyphenated
+        object_id (Google Calendar, CalDAV, custom integrations).
+        """
+        await ws_set_schedule(
+            hass_with_store, mock_connection,
+            {
+                "id": 19,
+                "type": "glass_cards/set_schedule",
+                "entity_id": "calendar.my-google-calendar",
+                "periods": [
+                    {"start": "2026-12-01T18:00", "end": "2027-01-15T23:59", "recurring": True},
+                ],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_id"] == "calendar.my-google-calendar"
+
 
 class TestSetClimateConfig:
     """Tests for ws_set_climate_config."""
@@ -370,19 +393,23 @@ class TestSetClimateConfig:
         assert result["entity_order"] == ["climate.salon", "climate.chambre"]
 
     @pytest.mark.asyncio
-    async def test_set_hidden_entities(self, hass_with_store, mock_connection, mock_store):
-        """Should update hidden_entities."""
+    async def test_set_hidden_entities_dedupes_ordered(self, hass_with_store, mock_connection, mock_store):
+        """Should update hidden_entities with ORDER-PRESERVING dedup (not list(set())).
+
+        Regression guard for v0.0.200: previously used list(set(...)) which destroyed
+        user-defined ordering.
+        """
         await ws_set_climate_config(
             hass_with_store,
             mock_connection,
             {
                 "id": 52,
                 "type": "glass_cards/set_climate_config",
-                "hidden_entities": ["climate.garage"],
+                "hidden_entities": ["climate.garage", "climate.chambre", "climate.garage", "climate.salon"],
             },
         )
         result = mock_connection.send_result.call_args[0][1]
-        assert "climate.garage" in result["hidden_entities"]
+        assert result["hidden_entities"] == ["climate.garage", "climate.chambre", "climate.salon"]
 
     @pytest.mark.asyncio
     async def test_set_dashboard_entities(self, hass_with_store, mock_connection, mock_store):
@@ -470,6 +497,16 @@ class TestSetWeather:
         )
         result = mock_connection.send_result.call_args[0][1]
         assert result["hidden_metrics"] == ["humidity", "wind"]
+
+    @pytest.mark.asyncio
+    async def test_accepts_hyphenated_entity_id(self, hass_with_store, mock_connection, mock_store):
+        """Should accept hyphenated weather entity IDs (custom integrations)."""
+        await ws_set_weather(
+            hass_with_store, mock_connection,
+            {"id": 63, "type": "glass_cards/set_weather", "entity_id": "weather.my-home-city"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_id"] == "weather.my-home-city"
 
 
 class TestSetLightConfig:
@@ -773,3 +810,52 @@ class TestSetSpotifyConfig:
         )
         result = mock_connection.send_result.call_args[0][1]
         assert result["visible_speakers"] == ["media_player.sonos", "media_player.echo"]
+
+
+class TestSetWizardCompleted:
+    """Tests for ws_set_wizard_completed."""
+
+    @pytest.mark.asyncio
+    async def test_set_completed_true(self, hass_with_store, mock_connection, mock_store):
+        """Should mark wizard as completed."""
+        await ws_set_wizard_completed(
+            hass_with_store, mock_connection,
+            {"id": 170, "type": "glass_cards/set_wizard_completed", "completed": True},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["wizard_completed"] is True
+        mock_store._store.async_save.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_set_completed_false(self, hass_with_store, mock_connection, mock_store):
+        """Should mark wizard as not completed (reset)."""
+        mock_store._data.wizard_completed = True
+        await ws_set_wizard_completed(
+            hass_with_store, mock_connection,
+            {"id": 171, "type": "glass_cards/set_wizard_completed", "completed": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["wizard_completed"] is False
+
+    @pytest.mark.asyncio
+    async def test_broadcasts_change(self, hass_with_store, mock_connection, mock_store):
+        """Should fire glass_cards_config_changed on the HA bus."""
+        await ws_set_wizard_completed(
+            hass_with_store, mock_connection,
+            {"id": 172, "type": "glass_cards/set_wizard_completed", "completed": True},
+        )
+        hass_with_store.bus.async_fire.assert_called_with(
+            "glass_cards_config_changed", {"section": "wizard"}
+        )
+
+    @pytest.mark.asyncio
+    async def test_unauthorized(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-edit user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_set_wizard_completed(
+                hass_with_store, mock_connection,
+                {"id": 173, "type": "glass_cards/set_wizard_completed", "completed": True},
+            )

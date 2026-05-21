@@ -218,9 +218,9 @@ async def ws_set_room(
     if "card_order" in msg:
         room.card_order = msg["card_order"]
     if "hidden_entities" in msg:
-        room.hidden_entities = msg["hidden_entities"]
+        room.hidden_entities = _dedupe_ordered(msg["hidden_entities"])
     if "entity_order" in msg:
-        room.entity_order = msg["entity_order"]
+        room.entity_order = _dedupe_ordered(msg["entity_order"])
     if "entity_layouts" in msg:
         room.entity_layouts = msg["entity_layouts"]
     if "hidden_scenes" in msg:
@@ -341,7 +341,7 @@ async def ws_delete_room(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "glass_cards/set_weather",
-        vol.Optional("entity_id"): vol.All(str, vol.Strip, vol.Match(r"^weather\.\w+$")),
+        vol.Optional("entity_id"): vol.All(str, vol.Strip, vol.Match(r"^weather\.[\w-]+$")),
         vol.Optional("hidden_metrics"): [vol.In(list(VALID_WEATHER_METRICS))],
         vol.Optional("show_daily"): bool,
         vol.Optional("show_hourly"): bool,
@@ -574,7 +574,7 @@ async def ws_set_climate_config(
     if "entity_order" in msg:
         store.data.climate_card.entity_order = _dedupe_ordered(msg["entity_order"])
     if "hidden_entities" in msg:
-        store.data.climate_card.hidden_entities = list(set(msg["hidden_entities"]))
+        store.data.climate_card.hidden_entities = _dedupe_ordered(msg["hidden_entities"])
     if "dashboard_entities" in msg:
         store.data.climate_card.dashboard_entities = _dedupe_ordered(msg["dashboard_entities"])
 
@@ -611,7 +611,7 @@ async def ws_set_climate_config(
                     ["input_select", "scenes", "booleans"]
                 ),
                 vol.Optional("entity", default=""): vol.Any(
-                    "", vol.All(str, vol.Match(r"^[a-z_]+\.[a-z0-9_]+$"))
+                    "", vol.All(str, vol.Match(r"^[a-z_]+\.[\w-]+$"))
                 ),
                 vol.Optional("label", default=""): str,
                 vol.Optional("modes", default=[]): [
@@ -706,7 +706,7 @@ async def ws_set_media_config(
                 ep[area_id] = deduped
         store.data.media_card.extra_entities = ep
     if "hidden_entities" in msg:
-        store.data.media_card.hidden_entities = list(set(msg["hidden_entities"]))
+        store.data.media_card.hidden_entities = _dedupe_ordered(msg["hidden_entities"])
     if "show_header" in msg:
         store.data.media_card.show_header = msg["show_header"]
 
@@ -798,7 +798,7 @@ async def ws_set_presence_config(
     if "show_header" in msg:
         store.data.presence_card.show_header = msg["show_header"]
     if "person_entities" in msg:
-        store.data.presence_card.person_entities = msg["person_entities"]
+        store.data.presence_card.person_entities = _dedupe_ordered(msg["person_entities"])
     if "smartphone_sensors" in msg:
         store.data.presence_card.smartphone_sensors = msg["smartphone_sensors"]
     if "notify_services" in msg:
@@ -1317,7 +1317,7 @@ async def ws_get_schedules(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "glass_cards/set_schedule",
-        vol.Required("entity_id"): vol.All(str, vol.Match(r"^[a-z_]+\.[a-z0-9_]+$")),
+        vol.Required("entity_id"): vol.All(str, vol.Match(r"^[a-z_]+\.[\w-]+$")),
         vol.Required("periods"): [
             {
                 vol.Required("start"): vol.All(str, _validate_iso_datetime),
@@ -1412,4 +1412,5 @@ async def ws_set_wizard_completed(
     except HomeAssistantError as exc:
         connection.send_error(msg["id"], "storage_error", str(exc))
         return
+    _broadcast(hass, "wizard")
     connection.send_result(msg["id"], {"wizard_completed": store.data.wizard_completed})
