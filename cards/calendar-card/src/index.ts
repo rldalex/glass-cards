@@ -56,6 +56,7 @@ function isUpcoming(timeStr: string): boolean {
 }
 
 function visibleInTicker(e: CalendarEvent): boolean {
+  if ((e.dayOffset ?? 0) !== 0) return false;
   return !!(e.now || e.allday || !e.time || isUpcoming(e.time));
 }
 
