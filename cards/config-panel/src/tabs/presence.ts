@@ -158,6 +158,86 @@ export class ConfigTabPresence extends BaseConfigTab {
     return Object.keys(services?.notify ?? {}).map((s) => `notify.${s}`).sort();
   }
 
+  // — Dropdown render helper — used by all four per-person dropdowns
+  // (smartphone, notify, driving, sleep) to avoid 50-line copy-paste blocks.
+
+  private _renderEntityDropdown<T>(cfg: {
+    key: string;
+    triggerIcon: string;
+    triggerLabel: string;
+    items: T[];
+    itemIcon: string;
+    itemId: (item: T) => string;
+    itemLabel: (item: T) => string;
+    activeId: string;          // current selected id; '' if none
+    noneLabel: string;
+    noneIcon: string;
+    onSelect: (item: T) => void;
+    onClear: () => void;
+  }): TemplateResult {
+    const isOpen = this._presenceDropdownOpen === cfg.key;
+    const search = isOpen ? this._presenceDropdownSearch : '';
+    const q = search.toLowerCase();
+    const filtered = !q
+      ? cfg.items
+      : cfg.items.filter((it) =>
+          cfg.itemLabel(it).toLowerCase().includes(q) ||
+          cfg.itemId(it).toLowerCase().includes(q),
+        );
+    return html`
+      <div class="presence-mapping-field">
+        <div class="dropdown ${isOpen ? 'open' : ''}">
+          <button
+            class="dropdown-trigger"
+            @click=${() => {
+              this._presenceDropdownSearch = '';
+              this._presenceDropdownOpen = isOpen ? null : cfg.key;
+            }}
+            aria-expanded=${isOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+          >
+            <ha-icon .icon=${cfg.triggerIcon}></ha-icon>
+            <span>${cfg.triggerLabel}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          <div class="dropdown-menu" role="listbox">
+            <input
+              class="dropdown-search"
+              type="text"
+              placeholder=${t('config.search_entity')}
+              .value=${search}
+              @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
+              @click=${(e: Event) => e.stopPropagation()}
+            />
+            <button
+              class="dropdown-item ${!cfg.activeId ? 'active' : ''}"
+              role="option"
+              aria-selected=${!cfg.activeId ? 'true' : 'false'}
+              @click=${() => { cfg.onClear(); this._presenceDropdownOpen = null; }}
+            >
+              <ha-icon .icon=${cfg.noneIcon}></ha-icon>
+              ${cfg.noneLabel}
+            </button>
+            ${filtered.map((it) => {
+              const id = cfg.itemId(it);
+              return html`
+                <button
+                  class="dropdown-item ${cfg.activeId === id ? 'active' : ''}"
+                  role="option"
+                  aria-selected=${cfg.activeId === id ? 'true' : 'false'}
+                  @click=${() => { cfg.onSelect(it); this._presenceDropdownOpen = null; }}
+                >
+                  <ha-icon .icon=${cfg.itemIcon}></ha-icon>
+                  ${cfg.itemLabel(it)}
+                </button>
+              `;
+            })}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // — Actions —
 
   private _getOrderedPersons(persons: { entityId: string; name: string }[]): { entityId: string; name: string }[] {
@@ -352,225 +432,62 @@ export class ConfigTabPresence extends BaseConfigTab {
                 <span class="item-name">${person.name}</span>
               </div>
 
-              <div class="presence-mapping-field">
-                <div class="dropdown ${this._presenceDropdownOpen === smKey ? 'open' : ''}">
-                  <button
-                    class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === smKey ? null : smKey; }}
-                    aria-expanded=${this._presenceDropdownOpen === smKey ? 'true' : 'false'}
-                    aria-haspopup="listbox"
-                  >
-                    <ha-icon .icon=${'mdi:cellphone'}></ha-icon>
-                    <span>${sensorName || currentSensor || t('config.presence_auto_detect')}</span>
-                    <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                  </button>
-                  <div class="dropdown-menu" role="listbox">
-                    <input
-                      class="dropdown-search"
-                      type="text"
-                      placeholder=${t('config.search_entity')}
-                      .value=${this._presenceDropdownOpen === smKey ? this._presenceDropdownSearch : ''}
-                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
-                      @click=${(e: Event) => e.stopPropagation()}
-                    />
-                    <button
-                      class="dropdown-item ${!currentSensor ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${!currentSensor ? 'true' : 'false'}
-                      @click=${() => {
-                        const sensors = { ...this._presenceSmartphoneSensors };
-                        delete sensors[personId];
-                        this._presenceSmartphoneSensors = sensors;
-                        this._presenceDropdownOpen = null;
-                      }}
-                    >
-                      <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-                      ${t('config.presence_auto_detect')}
-                    </button>
-                    ${smartphoneSensors
-                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
-                      .map((s) => html`
-                      <button
-                        class="dropdown-item ${currentSensor === s.entityId ? 'active' : ''}"
-                        role="option"
-                        aria-selected=${currentSensor === s.entityId ? 'true' : 'false'}
-                        @click=${() => {
-                          this._presenceSmartphoneSensors = { ...this._presenceSmartphoneSensors, [personId]: s.entityId };
-                          this._presenceDropdownOpen = null;
-                        }}
-                      >
-                        <ha-icon .icon=${'mdi:cellphone'}></ha-icon>
-                        ${s.name}
-                      </button>
-                    `)}
-                  </div>
-                </div>
-              </div>
-
-              <div class="presence-mapping-field">
-                <div class="dropdown ${this._presenceDropdownOpen === notKey ? 'open' : ''}">
-                  <button
-                    class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === notKey ? null : notKey; }}
-                    aria-expanded=${this._presenceDropdownOpen === notKey ? 'true' : 'false'}
-                    aria-haspopup="listbox"
-                  >
-                    <ha-icon .icon=${'mdi:bell'}></ha-icon>
-                    <span>${currentNotify || t('config.presence_auto_detect')}</span>
-                    <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                  </button>
-                  <div class="dropdown-menu" role="listbox">
-                    <input
-                      class="dropdown-search"
-                      type="text"
-                      placeholder=${t('config.search_entity')}
-                      .value=${this._presenceDropdownOpen === notKey ? this._presenceDropdownSearch : ''}
-                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
-                      @click=${(e: Event) => e.stopPropagation()}
-                    />
-                    <button
-                      class="dropdown-item ${!currentNotify ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${!currentNotify ? 'true' : 'false'}
-                      @click=${() => {
-                        const services = { ...this._presenceNotifyServices };
-                        delete services[personId];
-                        this._presenceNotifyServices = services;
-                        this._presenceDropdownOpen = null;
-                      }}
-                    >
-                      <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-                      ${t('config.presence_auto_detect')}
-                    </button>
-                    ${notifyServices
-                      .filter((s) => !this._presenceDropdownSearch || s.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
-                      .map((s) => html`
-                      <button
-                        class="dropdown-item ${currentNotify === s ? 'active' : ''}"
-                        role="option"
-                        aria-selected=${currentNotify === s ? 'true' : 'false'}
-                        @click=${() => {
-                          this._presenceNotifyServices = { ...this._presenceNotifyServices, [personId]: s };
-                          this._presenceDropdownOpen = null;
-                        }}
-                      >
-                        <ha-icon .icon=${'mdi:bell'}></ha-icon>
-                        ${s}
-                      </button>
-                    `)}
-                  </div>
-                </div>
-              </div>
-
-              <div class="presence-mapping-field">
-                <div class="dropdown ${this._presenceDropdownOpen === drvKey ? 'open' : ''}">
-                  <button
-                    class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === drvKey ? null : drvKey; }}
-                    aria-expanded=${this._presenceDropdownOpen === drvKey ? 'true' : 'false'}
-                    aria-haspopup="listbox"
-                  >
-                    <ha-icon .icon=${'mdi:car'}></ha-icon>
-                    <span>${drivingName || currentDriving || t('config.presence_auto_detect')}</span>
-                    <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                  </button>
-                  <div class="dropdown-menu" role="listbox">
-                    <input
-                      class="dropdown-search"
-                      type="text"
-                      placeholder=${t('config.search_entity')}
-                      .value=${this._presenceDropdownOpen === drvKey ? this._presenceDropdownSearch : ''}
-                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
-                      @click=${(e: Event) => e.stopPropagation()}
-                    />
-                    <button
-                      class="dropdown-item ${!currentDriving ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${!currentDriving ? 'true' : 'false'}
-                      @click=${() => {
-                        const sensors = { ...this._presenceDrivingSensors };
-                        delete sensors[personId];
-                        this._presenceDrivingSensors = sensors;
-                        this._presenceDropdownOpen = null;
-                      }}
-                    >
-                      <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-                      ${t('config.presence_auto_detect')}
-                    </button>
-                    ${drivingSensors
-                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
-                      .map((s) => html`
-                      <button
-                        class="dropdown-item ${currentDriving === s.entityId ? 'active' : ''}"
-                        role="option"
-                        aria-selected=${currentDriving === s.entityId ? 'true' : 'false'}
-                        @click=${() => {
-                          this._presenceDrivingSensors = { ...this._presenceDrivingSensors, [personId]: s.entityId };
-                          this._presenceDropdownOpen = null;
-                        }}
-                      >
-                        <ha-icon .icon=${'mdi:car'}></ha-icon>
-                        ${s.name}
-                      </button>
-                    `)}
-                  </div>
-                </div>
-              </div>
-
-              <div class="presence-mapping-field">
-                <div class="dropdown ${this._presenceDropdownOpen === slpKey ? 'open' : ''}">
-                  <button
-                    class="dropdown-trigger"
-                    @click=${() => { this._presenceDropdownSearch = ''; this._presenceDropdownOpen = this._presenceDropdownOpen === slpKey ? null : slpKey; }}
-                    aria-expanded=${this._presenceDropdownOpen === slpKey ? 'true' : 'false'}
-                    aria-haspopup="listbox"
-                  >
-                    <ha-icon .icon=${'mdi:sleep'}></ha-icon>
-                    <span>${sleepName || currentSleep || t('config.presence_sleep_none')}</span>
-                    <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                  </button>
-                  <div class="dropdown-menu" role="listbox">
-                    <input
-                      class="dropdown-search"
-                      type="text"
-                      placeholder=${t('config.search_entity')}
-                      .value=${this._presenceDropdownOpen === slpKey ? this._presenceDropdownSearch : ''}
-                      @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
-                      @click=${(e: Event) => e.stopPropagation()}
-                    />
-                    <button
-                      class="dropdown-item ${!currentSleep ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${!currentSleep ? 'true' : 'false'}
-                      @click=${() => {
-                        const sensors = { ...this._presenceSleepSensors };
-                        delete sensors[personId];
-                        this._presenceSleepSensors = sensors;
-                        this._presenceDropdownOpen = null;
-                      }}
-                    >
-                      <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
-                      ${t('config.presence_sleep_none')}
-                    </button>
-                    ${sleepSensors
-                      .filter((s) => !this._presenceDropdownSearch || s.name.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()) || s.entityId.toLowerCase().includes(this._presenceDropdownSearch.toLowerCase()))
-                      .map((s) => html`
-                      <button
-                        class="dropdown-item ${currentSleep === s.entityId ? 'active' : ''}"
-                        role="option"
-                        aria-selected=${currentSleep === s.entityId ? 'true' : 'false'}
-                        @click=${() => {
-                          this._presenceSleepSensors = { ...this._presenceSleepSensors, [personId]: s.entityId };
-                          this._presenceDropdownOpen = null;
-                        }}
-                      >
-                        <ha-icon .icon=${'mdi:sleep'}></ha-icon>
-                        ${s.name}
-                      </button>
-                    `)}
-                  </div>
-                </div>
-              </div>
+              ${this._renderEntityDropdown({
+                key: smKey,
+                triggerIcon: 'mdi:cellphone',
+                triggerLabel: sensorName || currentSensor || t('config.presence_auto_detect'),
+                items: smartphoneSensors,
+                itemIcon: 'mdi:cellphone',
+                itemId: (s) => s.entityId,
+                itemLabel: (s) => s.name,
+                activeId: currentSensor,
+                noneLabel: t('config.presence_auto_detect'),
+                noneIcon: 'mdi:auto-fix',
+                onSelect: (s) => { this._presenceSmartphoneSensors = { ...this._presenceSmartphoneSensors, [personId]: s.entityId }; },
+                onClear: () => { const m = { ...this._presenceSmartphoneSensors }; delete m[personId]; this._presenceSmartphoneSensors = m; },
+              })}
+              ${this._renderEntityDropdown({
+                key: notKey,
+                triggerIcon: 'mdi:bell',
+                triggerLabel: currentNotify || t('config.presence_auto_detect'),
+                items: notifyServices,
+                itemIcon: 'mdi:bell',
+                itemId: (s) => s,
+                itemLabel: (s) => s,
+                activeId: currentNotify,
+                noneLabel: t('config.presence_auto_detect'),
+                noneIcon: 'mdi:auto-fix',
+                onSelect: (s) => { this._presenceNotifyServices = { ...this._presenceNotifyServices, [personId]: s }; },
+                onClear: () => { const m = { ...this._presenceNotifyServices }; delete m[personId]; this._presenceNotifyServices = m; },
+              })}
+              ${this._renderEntityDropdown({
+                key: drvKey,
+                triggerIcon: 'mdi:car',
+                triggerLabel: drivingName || currentDriving || t('config.presence_auto_detect'),
+                items: drivingSensors,
+                itemIcon: 'mdi:car',
+                itemId: (s) => s.entityId,
+                itemLabel: (s) => s.name,
+                activeId: currentDriving,
+                noneLabel: t('config.presence_auto_detect'),
+                noneIcon: 'mdi:auto-fix',
+                onSelect: (s) => { this._presenceDrivingSensors = { ...this._presenceDrivingSensors, [personId]: s.entityId }; },
+                onClear: () => { const m = { ...this._presenceDrivingSensors }; delete m[personId]; this._presenceDrivingSensors = m; },
+              })}
+              ${this._renderEntityDropdown({
+                key: slpKey,
+                triggerIcon: 'mdi:sleep',
+                triggerLabel: sleepName || currentSleep || t('config.presence_sleep_none'),
+                items: sleepSensors,
+                itemIcon: 'mdi:sleep',
+                itemId: (s) => s.entityId,
+                itemLabel: (s) => s.name,
+                activeId: currentSleep,
+                noneLabel: t('config.presence_sleep_none'),
+                noneIcon: 'mdi:close-circle-outline',
+                onSelect: (s) => { this._presenceSleepSensors = { ...this._presenceSleepSensors, [personId]: s.entityId }; },
+                onClear: () => { const m = { ...this._presenceSleepSensors }; delete m[personId]; this._presenceSleepSensors = m; },
+              })}
             </div>
           `;
         })}

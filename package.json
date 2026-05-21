@@ -1,6 +1,6 @@
 {
   "name": "glass-cards",
-  "version": "0.0.209",
+  "version": "0.0.210",
   "private": true,
   "type": "module",
   "description": "A modular UI framework for Home Assistant",

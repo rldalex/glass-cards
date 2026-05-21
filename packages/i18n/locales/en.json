@@ -374,10 +374,7 @@
     "sleeping": "Sleeping",
     "sleeping_aria": "{name} is sleeping",
     "last_seen_label": "Last location update",
-    "seen_just_now": "Seen just now",
-    "seen_min_ago": "Seen {count} min ago",
-    "seen_hours_ago": "Seen {count}h ago",
-    "seen_days_ago": "Seen {count}d ago",
+    "seen_prefix": "Seen",
     "distance_m": "m",
     "distance_km": "km"
   },

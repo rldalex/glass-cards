@@ -57,12 +57,30 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function seenAgo(isoString: string): string {
-  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60) return t('presence.seen_just_now');
-  if (diff < 3600) return t('presence.seen_min_ago', { count: Math.floor(diff / 60) });
-  if (diff < 86400) return t('presence.seen_hours_ago', { count: Math.floor(diff / 3600) });
-  return t('presence.seen_days_ago', { count: Math.floor(diff / 86400) });
+/** Seconds since `isoString`. Cheap and shared between seenAgo + lastSeenClass. */
+function elapsedSeconds(isoString: string): number {
+  return Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+}
+
+function elapsedText(diff: number): string {
+  if (diff < 60) return t('presence.just_now');
+  if (diff < 3600) return t('presence.min_ago', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('presence.hours_ago', { count: Math.floor(diff / 3600) });
+  return t('presence.days_ago', { count: Math.floor(diff / 86400) });
+}
+
+function seenAgoFromDiff(diff: number): string {
+  const time = elapsedText(diff);
+  const prefix = t('presence.seen_prefix');
+  // Lowercase the first character so e.g. "Vu" + "À l'instant" → "Vu à l'instant"
+  const lowered = time.charAt(0).toLocaleLowerCase() + time.slice(1);
+  return `${prefix} ${lowered}`;
+}
+
+function lastSeenClassFromDiff(diff: number): 'fresh' | 'stale' | 'old' {
+  if (diff < 3600) return 'fresh';
+  if (diff < 86400) return 'stale';
+  return 'old';
 }
 
 function batteryIcon(level: number): string {
@@ -79,12 +97,6 @@ function batteryClass(level: number): string {
   return 'low';
 }
 
-function lastSeenClass(isoString: string): 'fresh' | 'stale' | 'old' {
-  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 3600) return 'fresh';        // < 1h
-  if (diff < 86400) return 'stale';       // < 24h
-  return 'old';                            // ≥ 24h
-}
 
 function stateClass(s: string): string {
   if (s === 'home') return 'home';
@@ -486,7 +498,7 @@ export class GlassPresenceCard extends BaseCard {
           <div class="person-sub">
             <div class="person-line">
               <span class="source-icon"><ha-icon .icon=${sourceIcon(p.sourceType)}></ha-icon></span>
-              <span class="person-location">${p.isSleeping ? t('presence.sleeping') : stateText(p.state)}</span>
+              <span class="person-location">${stateText(p.state)}</span>
               ${p.isDriving
                 ? html`<span class="driving-icon"><ha-icon .icon=${'mdi:car'}></ha-icon></span>`
                 : nothing}
@@ -555,14 +567,19 @@ export class GlassPresenceCard extends BaseCard {
         <div class="ctrl-fold-inner">
           <div class="fold-content">
             <div class="loc-row">
-              <span class="loc-address">
-                <ha-icon .icon=${'mdi:map-marker-radius'}></ha-icon>
-                ${person.geocodedLocation ? html`<span class="loc-address-text">${person.geocodedLocation}</span>` : nothing}
-                <span class="loc-address-time lastseen-${lastSeenClass(person.lastUpdated)}"
-                      title=${t('presence.last_seen_label')}>
-                  ${seenAgo(person.lastUpdated)}
-                </span>
-              </span>
+              ${(() => {
+                const diff = elapsedSeconds(person.lastUpdated);
+                return html`
+                  <span class="loc-address">
+                    <ha-icon .icon=${'mdi:map-marker-radius'}></ha-icon>
+                    ${person.geocodedLocation ? html`<span class="loc-address-text">${person.geocodedLocation}</span>` : nothing}
+                    <span class="loc-address-time lastseen-${lastSeenClassFromDiff(diff)}"
+                          title=${t('presence.last_seen_label')}>
+                      ${seenAgoFromDiff(diff)}
+                    </span>
+                  </span>
+                `;
+              })()}
               ${person.batteryLevel != null ? html`
                 <span class="meta-chip battery-${batteryClass(person.batteryLevel)}">
                   <ha-icon .icon=${batteryIcon(person.batteryLevel)}></ha-icon>
@@ -626,7 +643,12 @@ export class GlassPresenceCard extends BaseCard {
                           @input=${(e: InputEvent) => {
                             this._notifText = (e.target as HTMLTextAreaElement).value;
                           }}
-                          @focus=${() => this._scrollToTop()}
+                          @focus=${(e: Event) => {
+                            const ta = e.target as HTMLTextAreaElement;
+                            if (ta.dataset.scrolled) return;
+                            ta.dataset.scrolled = '1';
+                            this._scrollToTop();
+                          }}
                         ></textarea>
                         <button
                           class="notif-send"
@@ -780,7 +802,7 @@ export class GlassPresenceCard extends BaseCard {
         transition: border-color var(--t-fast), box-shadow var(--t-fast);
         object-fit: cover;
       }
-      .avatar-fallback { border: 2px solid rgba(var(--rgb-white),0.1); }
+      .avatar-fallback { border: none; }
       img.avatar { display: block; }
       .avatar-fallback ha-icon {
         display: flex; align-items: center; justify-content: center;
@@ -788,18 +810,10 @@ export class GlassPresenceCard extends BaseCard {
       }
 
       /* Active state: when this person's fold is open, ring + glow the avatar */
-      .avatar-wrapper[aria-expanded="true"] .avatar {
-        border-color: rgb(var(--rgb-accent));
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-accent) 35%, transparent),
-                    0 0 14px color-mix(in srgb, var(--c-accent) 40%, transparent);
-      }
       @media (prefers-reduced-motion: reduce) {
         .avatar { transition: none; }
       }
 
-      @media (hover: hover) and (pointer: fine) {
-        .avatar-wrapper:hover .avatar { border-color: rgba(var(--rgb-white),0.3); }
-      }
 
       .avatar-status {
         position: absolute; bottom: -0.0625rem; right: -0.0625rem;
@@ -1040,7 +1054,7 @@ export class GlassPresenceCard extends BaseCard {
       .notif-input {
         flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
         border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: 1rem;
+        color: var(--t1); font-family: inherit; font-size: var(--fz-base);
         outline: none; resize: none; height: 2.25rem; box-sizing: border-box;
         transition: border-color var(--t-fast);
       }

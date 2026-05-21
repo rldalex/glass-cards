@@ -374,10 +374,7 @@
     "sleeping": "Dort",
     "sleeping_aria": "{name} dort",
     "last_seen_label": "Dernière localisation",
-    "seen_just_now": "Vu à l'instant",
-    "seen_min_ago": "Vu il y a {count} min",
-    "seen_hours_ago": "Vu il y a {count}h",
-    "seen_days_ago": "Vu il y a {count}j",
+    "seen_prefix": "Vu",
     "distance_m": "m",
     "distance_km": "km"
   },
