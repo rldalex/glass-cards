@@ -352,36 +352,68 @@ class GlassWeatherCard extends BaseCard {
     .wc-fold-sep.visible { opacity: 1; }
 
     .wc-forecast-zone {
-      display: flex; flex-direction: column; gap: 0.25rem;
+      display: flex; flex-direction: column; gap: 0.375rem;
       margin-top: 0.125rem;
     }
-    .wc-fc-tabs {
-      display: flex; gap: 0.1875rem;
-      margin: 0 auto; width: fit-content;
+
+    /* Forecast eyebrow (coherent with library / spotify / calendar) */
+    .wc-fc-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      padding: 0 0.125rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .wc-fc-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: rgb(var(--rgb-accent));
+      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
+    }
+
+    /* Tab rail with sliding capsule (capsule hidden when no tab is active) */
+    .wc-fc-rail {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(var(--fc-tab-count, 2), 1fr);
+      padding: 0.1875rem;
+      border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+    }
+    .wc-fc-capsule {
+      position: absolute; top: 0.1875rem; bottom: 0.1875rem;
+      left: 0.1875rem;
+      width: calc((100% - 0.375rem) / var(--fc-tab-count, 2));
+      border-radius: calc(var(--radius-md) - 0.1875rem);
+      background: color-mix(in srgb, var(--c-accent) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-accent) 30%, transparent);
+      box-shadow: 0 1px 6px color-mix(in srgb, var(--c-accent) 25%, transparent);
+      transform: translateX(calc(var(--fc-active-idx, 0) * 100%));
+      transition: transform var(--t-layout);
+      pointer-events: none;
+      z-index: 0;
     }
     .wc-fc-tab {
-      padding: 0.25rem 0.75rem;
-      border: 1px solid var(--b1);
-      border-radius: var(--radius-full);
-      background: transparent; color: var(--t4);
-      font-family: inherit; font-size: var(--fz-xs); font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      outline: none;
+      position: relative; z-index: 1;
+      height: 1.875rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--t3);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+      cursor: pointer; outline: none;
+      transition: color var(--t-fast), transform var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
     }
-    .wc-fc-tab:focus-visible { box-shadow: 0 0 0 2px rgba(var(--rgb-white),0.25); }
+    .wc-fc-tab:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
+      .wc-fc-tab:not(.active):hover { color: var(--t2); }
       .wc-fc-tab:active { transform: scale(0.96); }
     }
     @media (pointer: coarse) {
       .wc-fc-tab:active { animation: bounce 0.3s ease; }
     }
-    .wc-fc-tab.active {
-      background: var(--s4); border-color: var(--b3); color: var(--t1);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .wc-fc-tab:hover { background: var(--s2); color: var(--t3); }
-    }
+    .wc-fc-tab.active { color: rgb(var(--rgb-accent)); font-weight: 700; }
 
     /* ── Daily list ── */
     .wc-daily-list, .wc-hourly-list {
@@ -391,11 +423,15 @@ class GlassWeatherCard extends BaseCard {
     .wc-day-row {
       display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.625rem 2.375rem;
       align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.25rem;
+      padding: 0.3125rem 0.5rem 0.3125rem 0.25rem;
       border-radius: var(--radius-sm);
-      transition: background var(--t-fast);
+      border: 1px solid transparent;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
     }
-    .wc-day-row:first-child { background: var(--s2); }
+    .wc-day-row:first-child {
+      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+      border-color: color-mix(in srgb, var(--c-accent) 28%, transparent);
+    }
     .wc-day-label {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
     }
@@ -439,11 +475,15 @@ class GlassWeatherCard extends BaseCard {
     .wc-hour-row {
       display: grid; grid-template-columns: 2.625rem 1.125rem 1fr 2.375rem 2rem;
       align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.25rem;
+      padding: 0.3125rem 0.5rem 0.3125rem 0.25rem;
       border-radius: var(--radius-sm);
-      transition: background var(--t-fast);
+      border: 1px solid transparent;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
     }
-    .wc-hour-row.now { background: var(--s2); }
+    .wc-hour-row.now {
+      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+      border-color: color-mix(in srgb, var(--c-accent) 28%, transparent);
+    }
     .wc-hour-time {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
     }
@@ -468,17 +508,38 @@ class GlassWeatherCard extends BaseCard {
     }
 
     @media (hover: hover) and (pointer: fine) {
-      .wc-day-row:hover, .wc-hour-row:hover { background: var(--s1); }
+      .wc-day-row:hover, .wc-hour-row:hover {
+        background: var(--s1);
+        transform: translateX(2px);
+        border-color: var(--b2);
+      }
     }
     @media (pointer: coarse) {
       .wc-day-row:active, .wc-hour-row:active { animation: bounce 0.3s ease; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      .wc-day-row:hover, .wc-hour-row:hover { transform: none; }
+      .wc-fc-capsule { transition: none; }
+    }
 
-    /* ── Tint ── */
+    /* ── Tint (top, dynamic per condition) ── */
     .tint {
       position: absolute; inset: 0; border-radius: inherit;
       pointer-events: none; z-index: 0;
       transition: opacity var(--t-slow);
+    }
+    /* Atmospheric halo at the card bottom — accent-tinted, coherent with
+       library / spotify / climate / calendar */
+    .weather-card { position: relative; }
+    .weather-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 45%; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-accent), 0.08), transparent 70%);
+      transition: opacity var(--t-slow);
+    }
+    .weather-card > * { position: relative; z-index: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .weather-card::after { transition: none; }
     }
   `];
 
@@ -1234,17 +1295,29 @@ class GlassWeatherCard extends BaseCard {
     const showHourly = this._weatherConfig.show_hourly;
     if (!showDaily && !showHourly) return nothing;
 
+    const tabCount = (showDaily ? 1 : 0) + (showHourly ? 1 : 0);
+    const activeIdx = this._activeTab === null
+      ? -1
+      : showDaily && showHourly
+        ? (this._activeTab === 'daily' ? 0 : 1)
+        : 0;
+
     return html`
       <div class="wc-forecast-zone">
-        <div class="wc-fc-tabs">
+        <div class="wc-fc-eyebrow">
+          <span class="wc-fc-eyebrow-dot"></span>
+          <span>${t('weather.forecast_section')}</span>
+        </div>
+        <div class="wc-fc-rail" style="--fc-tab-count: ${tabCount}; --fc-active-idx: ${activeIdx};">
+          ${activeIdx >= 0 ? html`<div class="wc-fc-capsule" aria-hidden="true"></div>` : nothing}
           ${showDaily ? html`<button class="wc-fc-tab ${this._activeTab === 'daily' ? 'active' : ''}"
             @click="${() => this._switchTab('daily')}"
-            aria-expanded="${this._activeTab === 'daily' ? 'true' : 'false'}"
+            aria-pressed="${this._activeTab === 'daily' ? 'true' : 'false'}"
             aria-controls="wc-daily-panel"
             aria-label="${t('weather.daily_tab')}">${t('weather.daily_tab')}</button>` : nothing}
           ${showHourly ? html`<button class="wc-fc-tab ${this._activeTab === 'hourly' ? 'active' : ''}"
             @click="${() => this._switchTab('hourly')}"
-            aria-expanded="${this._activeTab === 'hourly' ? 'true' : 'false'}"
+            aria-pressed="${this._activeTab === 'hourly' ? 'true' : 'false'}"
             aria-controls="wc-hourly-panel"
             aria-label="${t('weather.hourly_tab')}">${t('weather.hourly_tab')}</button>` : nothing}
         </div>
