@@ -364,18 +364,6 @@ class GlassWeatherCard extends BaseCard {
       margin-top: 0.125rem;
     }
 
-    /* Forecast eyebrow (coherent with library / spotify / calendar) */
-    .wc-fc-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      padding: 0 0.125rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .wc-fc-eyebrow-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: rgb(var(--rgb-accent));
-      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
-    }
 
     /* Tab rail with sliding capsule (capsule hidden when no tab is active) */
     .wc-fc-rail {
@@ -1325,10 +1313,6 @@ class GlassWeatherCard extends BaseCard {
 
     return html`
       <div class="wc-forecast-zone">
-        <div class="wc-fc-eyebrow">
-          <span class="wc-fc-eyebrow-dot"></span>
-          <span>${t('weather.forecast_section')}</span>
-        </div>
         <div class="wc-fc-rail" style="--fc-tab-count: ${tabCount}; --fc-active-idx: ${activeIdx};">
           ${activeIdx >= 0 ? html`<div class="wc-fc-capsule" aria-hidden="true"></div>` : nothing}
           ${showDaily ? html`<button class="wc-fc-tab ${this._activeTab === 'daily' ? 'active' : ''}"

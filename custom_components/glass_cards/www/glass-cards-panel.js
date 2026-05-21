@@ -5829,7 +5829,7 @@
           <button class="btn btn-ghost" @click=${()=>this.reload()}>${it("common.reset")}</button>
         </div>
       </div>
-    `}}Vt([ue()],Xt.prototype,"_titleText"),Vt([ue()],Xt.prototype,"_titleSources"),Vt([ue()],Xt.prototype,"_titlePeriodEntity"),Vt([ue()],Xt.prototype,"_titlePeriodOptions"),Vt([ue()],Xt.prototype,"_titleEditingSourceIdx"),Vt([ue()],Xt.prototype,"_titleAddSourceDropdownOpen"),Vt([ue()],Xt.prototype,"_titleAddEntityDropdownOpen"),Vt([ue()],Xt.prototype,"_titlePeriodDropdownOpen"),Vt([ue()],Xt.prototype,"_periodIconPopupIdx"),Vt([ue()],Xt.prototype,"_iconPopupModeIdx"),Vt([ue()],Xt.prototype,"_iconSearch"),Vt([ue()],Xt.prototype,"_periodEditingIdx"),Vt([ue()],Xt.prototype,"_dragIdx"),Vt([ue()],Xt.prototype,"_dropIdx"),Vt([ue()],Xt.prototype,"_dragContext"),Vt([ue()],Xt.prototype,"_dragModeSrcIdx");try{customElements.define("config-tab-title",Xt)}catch{}var Qt=Object.defineProperty,Jt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Qt(t,i,s),s};const Zt=[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise"},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset"}];class ei extends xt{constructor(){super(...arguments),this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1}static{this._AUTO_SAVE_KEYS=new Set(["_weatherEntity","_weatherHiddenMetrics","_weatherShowDaily","_weatherShowHourly","_weatherShowHeader"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._weatherEntity=t.entity_id??"",this._weatherHiddenMetrics=t.hidden_metrics??[],this._weatherShowDaily=t.show_daily??!0,this._weatherShowHourly=t.show_hourly??!0,this._weatherShowHeader=t.show_header??!0}collectSaveData(){return{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}}async _performSave(){await this.backend.send("set_weather",this.collectSaveData()),_e.emit("weather-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.weather&&this.loadFromConfig(e.weather)}catch{}}_selectEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}_toggleMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics),a=Zt.length-i.size;return N`
+    `}}Vt([ue()],Xt.prototype,"_titleText"),Vt([ue()],Xt.prototype,"_titleSources"),Vt([ue()],Xt.prototype,"_titlePeriodEntity"),Vt([ue()],Xt.prototype,"_titlePeriodOptions"),Vt([ue()],Xt.prototype,"_titleEditingSourceIdx"),Vt([ue()],Xt.prototype,"_titleAddSourceDropdownOpen"),Vt([ue()],Xt.prototype,"_titleAddEntityDropdownOpen"),Vt([ue()],Xt.prototype,"_titlePeriodDropdownOpen"),Vt([ue()],Xt.prototype,"_periodIconPopupIdx"),Vt([ue()],Xt.prototype,"_iconPopupModeIdx"),Vt([ue()],Xt.prototype,"_iconSearch"),Vt([ue()],Xt.prototype,"_periodEditingIdx"),Vt([ue()],Xt.prototype,"_dragIdx"),Vt([ue()],Xt.prototype,"_dropIdx"),Vt([ue()],Xt.prototype,"_dragContext"),Vt([ue()],Xt.prototype,"_dragModeSrcIdx");try{customElements.define("config-tab-title",Xt)}catch{}var Qt=Object.defineProperty,Jt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Qt(t,i,s),s};const Zt=[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity",attr:"humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind",attr:"wind_speed"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure",attr:"pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv",attr:"uv_index"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility",attr:"visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise",attr:null},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset",attr:null}];class ei extends xt{constructor(){super(...arguments),this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1}static{this._AUTO_SAVE_KEYS=new Set(["_weatherEntity","_weatherHiddenMetrics","_weatherShowDaily","_weatherShowHourly","_weatherShowHeader"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._weatherEntity=t.entity_id??"",this._weatherHiddenMetrics=t.hidden_metrics??[],this._weatherShowDaily=t.show_daily??!0,this._weatherShowHourly=t.show_hourly??!0,this._weatherShowHeader=t.show_header??!0}collectSaveData(){return{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}}async _performSave(){await this.backend.send("set_weather",this.collectSaveData()),_e.emit("weather-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.weather&&this.loadFromConfig(e.weather)}catch{}}_selectEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}_toggleMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics),a=t&&this.hass?.states[t]?.attributes||{},r=Zt.filter(e=>null===e.attr||null!=a[e.attr]),s=r.length-r.filter(e=>i.has(e.key)).length;return N`
       <div class="tab-panel weather-tab" id="panel-weather">
         <glass-weather-card .hass=${this.hass} .areaId=${this.areaId} config-preview></glass-weather-card>
 
@@ -5898,12 +5898,12 @@
               <span class="section-label">${it("config.weather_metrics")}</span>
               <span class="section-desc">${it("config.weather_metrics_desc")}</span>
             </div>
-            <span class="cfg-section-count" aria-label="${it("common.count_visible",{count:a,total:Zt.length})}">
-              ${a}/${Zt.length}
+            <span class="cfg-section-count" aria-label="${it("common.count_visible",{count:s,total:r.length})}">
+              ${s}/${r.length}
             </span>
           </header>
           <div class="feature-list">
-            ${Zt.map(e=>{const t=!i.has(e.key);return this._renderFeatureRow({icon:e.icon,nameKey:e.nameKey,on:t,ariaLabel:`${it(t?"common.hide":"common.show")} ${it(e.nameKey)}`,onToggle:()=>this._toggleMetric(e.key)})})}
+            ${r.map(e=>{const t=!i.has(e.key);return this._renderFeatureRow({icon:e.icon,nameKey:e.nameKey,on:t,ariaLabel:`${it(t?"common.hide":"common.show")} ${it(e.nameKey)}`,onToggle:()=>this._toggleMetric(e.key)})})}
           </div>
         </section>
 
@@ -7181,7 +7181,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${it("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${it("config.title")}</span>
-          <span class="page-subtitle">${it("config.brand")} <span class="page-version">v${"0.0.211"}</span></span>
+          <span class="page-subtitle">${it("config.brand")} <span class="page-version">v${"0.0.212"}</span></span>
         </div>
 
         <div class="glass config-panel">
@@ -11456,18 +11456,6 @@
       margin-top: 0.125rem;
     }
 
-    /* Forecast eyebrow (coherent with library / spotify / calendar) */
-    .wc-fc-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      padding: 0 0.125rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .wc-fc-eyebrow-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: rgb(var(--rgb-accent));
-      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
-    }
 
     /* Tab rail with sliding capsule (capsule hidden when no tab is active) */
     .wc-fc-rail {
@@ -11726,10 +11714,6 @@
       </div>
     `}_renderForecasts(e){const t=this._weatherConfig.show_daily,i=this._weatherConfig.show_hourly;if(!t&&!i)return B;const a=(t?1:0)+(i?1:0),r=null===this._activeTab?-1:t&&i?"daily"===this._activeTab?0:1:0;return N`
       <div class="wc-forecast-zone">
-        <div class="wc-fc-eyebrow">
-          <span class="wc-fc-eyebrow-dot"></span>
-          <span>${it("weather.forecast_section")}</span>
-        </div>
         <div class="wc-fc-rail" style="--fc-tab-count: ${a}; --fc-active-idx: ${r};">
           ${r>=0?N`<div class="wc-fc-capsule" aria-hidden="true"></div>`:B}
           ${t?N`<button class="wc-fc-tab ${"daily"===this._activeTab?"active":""}"

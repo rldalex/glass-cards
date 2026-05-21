@@ -2095,18 +2095,6 @@
       margin-top: 0.125rem;
     }
 
-    /* Forecast eyebrow (coherent with library / spotify / calendar) */
-    .wc-fc-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      padding: 0 0.125rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .wc-fc-eyebrow-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: rgb(var(--rgb-accent));
-      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
-    }
 
     /* Tab rail with sliding capsule (capsule hidden when no tab is active) */
     .wc-fc-rail {
@@ -2365,10 +2353,6 @@
       </div>
     `}_renderForecasts(e){const t=this._weatherConfig.show_daily,i=this._weatherConfig.show_hourly;if(!t&&!i)return ie;const a=(t?1:0)+(i?1:0),r=null===this._activeTab?-1:t&&i?"daily"===this._activeTab?0:1:0;return Z`
       <div class="wc-forecast-zone">
-        <div class="wc-fc-eyebrow">
-          <span class="wc-fc-eyebrow-dot"></span>
-          <span>${Je("weather.forecast_section")}</span>
-        </div>
         <div class="wc-fc-rail" style="--fc-tab-count: ${a}; --fc-active-idx: ${r};">
           ${r>=0?Z`<div class="wc-fc-capsule" aria-hidden="true"></div>`:ie}
           ${t?Z`<button class="wc-fc-tab ${"daily"===this._activeTab?"active":""}"

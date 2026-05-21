@@ -7,13 +7,16 @@ import { BaseConfigTab } from '../base-tab';
 // — Metrics definition —
 
 const METRICS = [
-  { key: 'humidity', icon: 'mdi:water-percent', nameKey: 'config.weather_metric_humidity' as const },
-  { key: 'wind', icon: 'mdi:weather-windy', nameKey: 'config.weather_metric_wind' as const },
-  { key: 'pressure', icon: 'mdi:gauge', nameKey: 'config.weather_metric_pressure' as const },
-  { key: 'uv', icon: 'mdi:white-balance-sunny', nameKey: 'config.weather_metric_uv' as const },
-  { key: 'visibility', icon: 'mdi:eye', nameKey: 'config.weather_metric_visibility' as const },
-  { key: 'sunrise', icon: 'mdi:weather-sunset-up', nameKey: 'config.weather_metric_sunrise' as const },
-  { key: 'sunset', icon: 'mdi:weather-sunset-down', nameKey: 'config.weather_metric_sunset' as const },
+  { key: 'humidity', icon: 'mdi:water-percent', nameKey: 'config.weather_metric_humidity' as const, attr: 'humidity' },
+  { key: 'wind', icon: 'mdi:weather-windy', nameKey: 'config.weather_metric_wind' as const, attr: 'wind_speed' },
+  { key: 'pressure', icon: 'mdi:gauge', nameKey: 'config.weather_metric_pressure' as const, attr: 'pressure' },
+  { key: 'uv', icon: 'mdi:white-balance-sunny', nameKey: 'config.weather_metric_uv' as const, attr: 'uv_index' },
+  { key: 'visibility', icon: 'mdi:eye', nameKey: 'config.weather_metric_visibility' as const, attr: 'visibility' },
+  // sunrise/sunset come from the `sun.sun` entity in HA core, not from the
+  // weather entity itself, so they are listed independently of the picked
+  // weather provider.
+  { key: 'sunrise', icon: 'mdi:weather-sunset-up', nameKey: 'config.weather_metric_sunrise' as const, attr: null },
+  { key: 'sunset', icon: 'mdi:weather-sunset-down', nameKey: 'config.weather_metric_sunset' as const, attr: null },
 ];
 
 // — Component —
@@ -96,7 +99,11 @@ export class ConfigTabWeather extends BaseConfigTab {
       : [];
     const selectedEntity = weatherEntities.find((id) => id === this._weatherEntity);
     const hiddenSet = new Set(this._weatherHiddenMetrics);
-    const visibleCount = METRICS.length - hiddenSet.size;
+    // Show only the metrics the picked entity actually provides. sunrise /
+    // sunset always come from sun.sun and are unconditional.
+    const entityAttrs = (selectedEntity && this.hass?.states[selectedEntity]?.attributes) || {};
+    const availableMetrics = METRICS.filter((m) => m.attr === null || (entityAttrs as Record<string, unknown>)[m.attr] != null);
+    const visibleCount = availableMetrics.length - availableMetrics.filter((m) => hiddenSet.has(m.key)).length;
 
     return html`
       <div class="tab-panel weather-tab" id="panel-weather">
@@ -189,12 +196,12 @@ export class ConfigTabWeather extends BaseConfigTab {
               <span class="section-label">${t('config.weather_metrics')}</span>
               <span class="section-desc">${t('config.weather_metrics_desc')}</span>
             </div>
-            <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: METRICS.length })}">
-              ${visibleCount}/${METRICS.length}
+            <span class="cfg-section-count" aria-label="${t('common.count_visible', { count: visibleCount, total: availableMetrics.length })}">
+              ${visibleCount}/${availableMetrics.length}
             </span>
           </header>
           <div class="feature-list">
-            ${METRICS.map((m) => {
+            ${availableMetrics.map((m) => {
               const visible = !hiddenSet.has(m.key);
               return this._renderFeatureRow({
                 icon: m.icon,
