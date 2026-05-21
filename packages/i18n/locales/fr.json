@@ -186,7 +186,8 @@
     "unknown": "Inconnu",
     "avg_label": "Moy.",
     "section_mode": "Mode",
-    "section_preset": "Preset"
+    "section_preset": "Preset",
+    "section_air": "Air"
   },
 
   "fan": {

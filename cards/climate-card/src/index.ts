@@ -25,8 +25,6 @@ import {
   ACTION_LABELS,
   renderHvacModes,
   renderPresets,
-  renderFanModes,
-  renderSwingModes,
 } from './climate-modes';
 import { renderArcGauge } from './climate-arc';
 import { ThermalCanvas } from './climate-canvas';
@@ -750,13 +748,16 @@ export class GlassClimateCard extends BaseCard {
     const hvacAction = this._getHvacAction(entity);
     const sepColor = hvacAction === 'cooling' ? 'cool' : '';
 
+    const tempControl = this._renderListTempControl(entityId, entity);
+    const sectionSepClass = sepColor === 'cool' ? 'cool' : (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat' : '';
+
     return html`
       <div class="fold-sep ${isExpanded ? 'visible' : ''} ${sepColor}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           <div class="ctrl-panel">
-            ${this._renderListTempControl(entityId, entity)}
-            <div class="ctrl-sep"></div>
+            ${tempControl}
+            ${tempControl !== nothing ? html`<div class="section-sep ${sectionSepClass}"></div>` : nothing}
             ${this._renderFoldControls(entityId, entity)}
           </div>
         </div>
@@ -823,28 +824,77 @@ export class GlassClimateCard extends BaseCard {
     `;
   }
 
-  // Shared fold controls (modes, presets, fan, swing, humidity, aux heat)
+  // Shared fold controls (modes, presets, air section)
   private _renderFoldControls(entityId: string, entity: HassEntity): TemplateResult {
     const hvacAction = this._getHvacAction(entity);
-    const labelClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat'
-      : hvacAction === 'cooling' ? 'cool' : 'neutral';
+    const sepClass = (hvacAction === 'heating' || hvacAction === 'preheating') ? 'heat'
+      : hvacAction === 'cooling' ? 'cool' : '';
     const hvacModes = renderHvacModes(entity, (mode) => this._setHvacMode(entityId, mode));
     const presets = renderPresets(entity, (preset) => this._setPreset(entityId, preset));
-    const fanModes = renderFanModes(entity, (mode) => this._setFanMode(entityId, mode));
-    const swingModes = renderSwingModes(entity, (mode) => this._setSwingMode(entityId, mode));
+    const airSection = this._renderAirSection(entityId, entity);
 
     return html`
-      <div class="ctrl-label ${labelClass}">${t('climate.section_mode')}</div>
       ${hvacModes}
       ${presets !== nothing ? html`
-        <div class="ctrl-sep"></div>
-        <div class="ctrl-label ${labelClass}">${t('climate.section_preset')}</div>
+        ${hvacModes !== nothing ? html`<div class="section-sep ${sepClass}"></div>` : nothing}
         ${presets}
       ` : nothing}
-      ${fanModes !== nothing ? html`<div class="ctrl-sep"></div>${fanModes}` : nothing}
-      ${swingModes !== nothing ? html`<div class="ctrl-sep"></div>${swingModes}` : nothing}
-      ${renderHumidityStepper(entity, (val) => this._setHumidity(entityId, val), this._pendingTemps.get(`humidity_${entityId}`))}
-      ${renderAuxHeat(entity, () => this._toggleAuxHeat(entityId, entity))}
+      ${airSection !== nothing ? html`
+        ${(hvacModes !== nothing || presets !== nothing) ? html`<div class="section-sep ${sepClass}"></div>` : nothing}
+        ${airSection}
+      ` : nothing}
+    `;
+  }
+
+  private _renderAirSection(entityId: string, entity: HassEntity): TemplateResult | typeof nothing {
+    const features = (entity.attributes.supported_features as number) || 0;
+    const isOff = entity.state === 'off';
+    const fanModes = !isOff && (features & CF.FAN_MODE) ? (entity.attributes.fan_modes as string[]) || [] : [];
+    const swingModes = !isOff && (features & CF.SWING_MODE) ? (entity.attributes.swing_modes as string[]) || [] : [];
+    const hasHumidity = !isOff && !!(features & CF.TARGET_HUMIDITY) && entity.attributes.humidity != null;
+    const hasAux = !!(features & CF.AUX_HEAT);
+
+    if (!fanModes.length && !swingModes.length && !hasHumidity && !hasAux) return nothing;
+
+    const currentFan = entity.attributes.fan_mode as string | undefined;
+    const currentSwing = entity.attributes.swing_mode as string | undefined;
+
+    return html`
+      <div class="air-section">
+        <div class="air-section-title">${t('climate.section_air')}</div>
+        ${fanModes.length ? html`
+          <div class="air-row">
+            <span class="air-row-label">${t('climate.fan_mode')}</span>
+            <div class="air-pills">
+              ${fanModes.map((m) => html`
+                <button
+                  class="air-pill ${m === currentFan ? 'active' : ''}"
+                  @click=${() => this._setFanMode(entityId, m)}
+                  aria-label="${t('climate.fan_mode')}: ${m}"
+                  aria-pressed=${m === currentFan ? 'true' : 'false'}
+                >${m.replace(/_/g, ' ')}</button>
+              `)}
+            </div>
+          </div>
+        ` : nothing}
+        ${swingModes.length ? html`
+          <div class="air-row">
+            <span class="air-row-label">${t('climate.swing_mode')}</span>
+            <div class="air-pills">
+              ${swingModes.map((m) => html`
+                <button
+                  class="air-pill ${m === currentSwing ? 'active' : ''}"
+                  @click=${() => this._setSwingMode(entityId, m)}
+                  aria-label="${t('climate.swing_mode')}: ${m}"
+                  aria-pressed=${m === currentSwing ? 'true' : 'false'}
+                >${m.replace(/_/g, ' ')}</button>
+              `)}
+            </div>
+          </div>
+        ` : nothing}
+        ${hasHumidity ? renderHumidityStepper(entity, (val) => this._setHumidity(entityId, val), this._pendingTemps.get(`humidity_${entityId}`)) : nothing}
+        ${hasAux ? renderAuxHeat(entity, () => this._toggleAuxHeat(entityId, entity)) : nothing}
+      </div>
     `;
   }
 
@@ -892,7 +942,7 @@ export class GlassClimateCard extends BaseCard {
           : (curIdx - 1 + sorted.length) % sorted.length;
         this._selectedEntity = sorted[nextIdx].entity_id;
       },
-      exclude: 'button, .entity-tab, .temp-stepper-btn, .chip',
+      exclude: 'button, .entity-tab, .temp-stepper-btn, .mode-tile, .preset-chip, .air-pill',
     });
 
     return html`
@@ -915,7 +965,7 @@ export class GlassClimateCard extends BaseCard {
           </div>
         </div>
         <div class="ctrl-fold ${this._foldOpen ? 'open' : ''}">
-          <div class="ctrl-fold-inner normal-fold-inner">
+          <div class="ctrl-fold-inner normal-fold-inner" data-tint=${tintClass || 'none'}>
             <div class="ctrl-fold-sep-top ${foldSepClass}"></div>
             <div class="ctrl-panel">
               ${this._renderFoldControls(entity.entity_id, entity)}
@@ -1272,13 +1322,21 @@ export class GlassClimateCard extends BaseCard {
     .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
     .ctrl-panel {
       padding: 0.375rem 0 0.25rem;
-      display: flex; flex-direction: column; gap: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.625rem;
     }
-    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
-    .ctrl-label { font-size: var(--fz-sm); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
-    .ctrl-label.heat { color: var(--cl-heat-sub); }
-    .ctrl-label.cool { color: var(--cl-cool-sub); }
-    .ctrl-label.neutral { color: var(--t3); }
+
+    /* ── Section separator (tinted by current hvac action) ── */
+    .section-sep {
+      height: 1px; margin: 0.0625rem 0.25rem;
+      background: linear-gradient(90deg, transparent, var(--b2), transparent);
+      transition: background var(--t-med);
+    }
+    .section-sep.heat {
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-heat), 0.25), transparent);
+    }
+    .section-sep.cool {
+      background: linear-gradient(90deg, transparent, rgba(var(--rgb-cool), 0.25), transparent);
+    }
 
     /* ── Large temperature stepper (list mode fold) ── */
     .temp-control {
@@ -1354,6 +1412,7 @@ export class GlassClimateCard extends BaseCard {
 
     /* Normal fold inner (external, connected) */
     .normal-fold-inner {
+      position: relative; overflow: hidden;
       background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
       backdrop-filter: var(--blur-lg);
       -webkit-backdrop-filter: var(--blur-lg);
@@ -1362,6 +1421,19 @@ export class GlassClimateCard extends BaseCard {
       border-radius: 0 0 var(--radius-xl) var(--radius-xl);
       box-shadow: 0 8px 32px rgba(var(--rgb-black),0.3), 0 2px 8px rgba(var(--rgb-black),0.2), inset 0 -1px 0 rgba(var(--rgb-black),0.1);
     }
+    /* Atmospheric halo at fold bottom, tinted by current hvac action */
+    .normal-fold-inner::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--fold-halo, transparent), transparent 70%);
+      opacity: 0; transition: opacity var(--t-slow), background var(--t-slow);
+      z-index: 0;
+    }
+    .normal-fold-inner[data-tint="heat"] { --fold-halo: rgba(var(--rgb-heat), 0.12); }
+    .normal-fold-inner[data-tint="cool"] { --fold-halo: rgba(var(--rgb-cool), 0.12); }
+    .normal-fold-inner[data-tint="auto-tint"] { --fold-halo: rgba(var(--rgb-purple), 0.10); }
+    .normal-fold-inner[data-tint]:not([data-tint="none"])::after { opacity: 1; }
+    .normal-fold-inner > * { position: relative; z-index: 1; }
     .normal-fold-inner .ctrl-panel {
       padding: 0.75rem 0.875rem 0.875rem; gap: 0.625rem;
     }
@@ -1534,30 +1606,170 @@ export class GlassClimateCard extends BaseCard {
        SHARED CONTROL STYLES (used in both modes)
        ════════════════════════════════════════════ */
 
-    /* ── Chip row (HVAC modes, presets, fan, swing) ── */
-    .chip-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1);
+    /* ── Mode tiles (primary HVAC selection) ── */
+    .mode-tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(7.25rem, 1fr));
+      gap: 0.375rem;
+    }
+    .mode-tile {
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5625rem 0.75rem; min-height: 2.75rem;
+      border-radius: var(--radius-md);
+      background: var(--s1);
+      border: 1px solid var(--b2);
       font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
-      outline: none; -webkit-tap-highlight-color: transparent;
+      color: var(--t3); text-align: left;
+      cursor: pointer; outline: none;
+      transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
     }
-    .chip ha-icon {
-      --mdc-icon-size: var(--icon-sm);
+    .mode-tile-icon {
+      --mdc-icon-size: 1.125rem; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
+      transition: color var(--t-fast), filter var(--t-fast);
     }
+    .mode-tile-label {
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mode-tile:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) {
-      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
+      .mode-tile:not(.active):hover { background: var(--s2); color: var(--t2); border-color: var(--b3); }
     }
-    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) { .chip:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
-    .chip.active {
-      border-color: var(--chip-color, var(--cl-heat-border));
-      background: color-mix(in srgb, var(--chip-color, var(--cl-heat)) 10%, transparent);
-      color: var(--chip-color, var(--cl-heat));
+    @media (hover: hover) { .mode-tile:active { transform: scale(0.97); } }
+    @media (pointer: coarse) { .mode-tile:active { animation: bounce 0.3s ease; } }
+
+    /* Active states (atmospheric glow at top-left, tinted tile) */
+    .mode-tile.active::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: radial-gradient(ellipse at 0% 0%, currentColor, transparent 60%);
+      opacity: 0.10; pointer-events: none;
+    }
+    .mode-tile.mode-heat.active,
+    .mode-tile.mode-dry.active {
+      background: var(--cl-heat-bg); border-color: var(--cl-heat-border); color: var(--cl-heat);
+    }
+    .mode-tile.mode-heat.active .mode-tile-icon { animation: pulse-heat 2s ease-in-out infinite; will-change: filter; }
+    .mode-tile.mode-cool.active,
+    .mode-tile.mode-fan-only.active {
+      background: var(--cl-cool-bg); border-color: var(--cl-cool-border); color: var(--cl-cool);
+    }
+    .mode-tile.mode-cool.active .mode-tile-icon { animation: pulse-cool 2s ease-in-out infinite; will-change: filter; }
+    .mode-tile.mode-auto.active,
+    .mode-tile.mode-heat-cool.active {
+      background: var(--cl-auto-bg); border-color: var(--cl-auto-border); color: var(--cl-auto);
+    }
+    .mode-tile.mode-off.active {
+      background: var(--s3); border-color: var(--b3); color: var(--t2);
+    }
+
+    /* ── Preset chips (ambiance row, horizontal scroll) ── */
+    .preset-row {
+      display: flex; gap: 0.375rem; overflow-x: auto;
+      padding: 0.125rem 0.0625rem; margin: 0 -0.0625rem;
+      scrollbar-width: none;
+    }
+    .preset-row::-webkit-scrollbar { display: none; }
+    .preset-chip {
+      position: relative;
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.4375rem 0.875rem; border-radius: var(--radius-full);
+      background: color-mix(in srgb, var(--preset-color, var(--t3)) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--preset-color, var(--t3)) 16%, transparent);
+      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
+      color: var(--t2);
+      white-space: nowrap; flex-shrink: 0; outline: none;
+      cursor: pointer;
+      transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Hit-area vertical expansion to 44px on touch devices (no horizontal overlap) */
+    @media (pointer: coarse) {
+      .preset-chip::after {
+        content: ''; position: absolute; left: 0; right: 0; top: -0.4375rem; bottom: -0.4375rem;
+      }
+    }
+    .preset-chip-icon {
+      --mdc-icon-size: 0.875rem; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: color-mix(in srgb, var(--preset-color, var(--t3)) 75%, var(--t1));
+    }
+    .preset-chip:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .preset-chip:not(.active):hover {
+        background: color-mix(in srgb, var(--preset-color, var(--t3)) 14%, transparent);
+        color: var(--t1);
+      }
+    }
+    @media (hover: hover) { .preset-chip:active { transform: scale(0.97); } }
+    @media (pointer: coarse) { .preset-chip:active { animation: bounce 0.3s ease; } }
+    .preset-chip.active {
+      background: color-mix(in srgb, var(--preset-color, var(--t3)) 20%, transparent);
+      border-color: color-mix(in srgb, var(--preset-color, var(--t3)) 45%, transparent);
+      color: var(--t1);
+    }
+    .preset-chip.active .preset-chip-icon {
+      color: var(--preset-color, var(--t1));
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--preset-color, var(--t3)) 50%, transparent));
+    }
+
+    /* ── Air section (Fan, Swing, Humidity, Aux) ── */
+    .air-section { display: flex; flex-direction: column; gap: 0.5rem; }
+    .air-section-title {
+      display: flex; align-items: center; gap: 0.4375rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .air-section-title::before {
+      content: ''; flex-shrink: 0;
+      width: 0.3125rem; height: 0.3125rem; border-radius: 50%;
+      background: var(--t3); opacity: 0.7;
+    }
+    .air-row {
+      display: flex; align-items: center; gap: 0.5rem; min-height: 1.875rem;
+    }
+    .air-row-label {
+      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
+      flex-shrink: 0; min-width: 3.25rem;
+    }
+    .air-pills {
+      display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
+      flex: 1; min-width: 0;
+    }
+    .air-pills::-webkit-scrollbar { display: none; }
+    .air-pill {
+      position: relative;
+      padding: 0.3125rem 0.625rem; border-radius: var(--radius-sm);
+      background: var(--s1); border: 1px solid var(--b1);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+      color: var(--t3); cursor: pointer; outline: none;
+      transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+      white-space: nowrap; flex-shrink: 0;
+      text-transform: capitalize;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (pointer: coarse) {
+      .air-pill::after {
+        content: ''; position: absolute; left: 0; right: 0; top: -0.5rem; bottom: -0.5rem;
+      }
+    }
+    .air-pill:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .air-pill:not(.active):hover { background: var(--s2); color: var(--t2); }
+    }
+    @media (hover: hover) { .air-pill:active { transform: scale(0.96); } }
+    @media (pointer: coarse) { .air-pill:active { animation: bounce 0.3s ease; } }
+    .air-pill.active {
+      background: var(--s3); color: var(--t1); border-color: var(--b3);
+    }
+
+    /* Reduced motion: kill all non-essential animations */
+    @media (prefers-reduced-motion: reduce) {
+      .mode-tile.active .mode-tile-icon { animation: none; }
+      .preset-chip.active .preset-chip-icon { filter: none; }
+      .normal-fold-inner::after { transition: none; }
+      .section-sep { transition: none; }
     }
 
     /* ── Stepper row (inline small stepper, used by climate-controls.ts) ── */

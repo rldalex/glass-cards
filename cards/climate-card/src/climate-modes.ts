@@ -38,6 +38,18 @@ export const HVAC_COLORS: Record<string, string> = {
   off: 'var(--t4)',
 };
 
+// — Preset palette: each preset evokes its own atmosphere —
+// Maps to existing tokens; rendered as colored chip backgrounds in renderPresets()
+export const PRESET_COLORS: Record<string, string> = {
+  eco: 'var(--c-success)',
+  comfort: 'var(--c-warning)',
+  boost: 'var(--cl-heat)',
+  away: 'var(--c-info)',
+  sleep: 'var(--c-purple)',
+  activity: 'var(--c-accent)',
+  none: 'var(--t3)',
+};
+
 // — Action labels (shared with arc gauge) —
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -88,27 +100,26 @@ export const PRESET_I18N: Record<string, string> = {
 export function renderHvacModes(
   entity: HassEntity,
   onSetMode: (mode: string) => void,
-): TemplateResult {
+): TemplateResult | typeof nothing {
   const modes = (entity.attributes.hvac_modes as string[]) || [];
+  if (modes.length === 0) return nothing;
   const current = entity.state;
 
   return html`
-    <div class="chip-row">
+    <div class="mode-tile-grid">
       ${modes.map((mode) => {
         const active = mode === current;
-        const color = HVAC_COLORS[mode] || 'var(--t4)';
         const icon = HVAC_ICONS[mode] || 'mdi:thermostat';
         const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as Parameters<typeof t>[0]) : mode;
         return html`
           <button
-            class="chip ${active ? 'active' : ''}"
-            style="${active ? `--chip-color:${color};` : ''}"
+            class="mode-tile mode-${mode.replace('_', '-')} ${active ? 'active' : ''}"
             @click=${() => onSetMode(mode)}
             aria-label=${label}
             aria-pressed=${active ? 'true' : 'false'}
           >
-            <ha-icon .icon=${icon} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-            <span>${label}</span>
+            <ha-icon class="mode-tile-icon" .icon=${icon}></ha-icon>
+            <span class="mode-tile-label">${label}</span>
           </button>
         `;
       })}
@@ -125,22 +136,25 @@ export function renderPresets(
   if (!(features & CF.PRESET_MODE)) return nothing;
 
   const presets = (entity.attributes.preset_modes as string[]) || [];
+  if (presets.length === 0) return nothing;
   const current = entity.attributes.preset_mode as string | undefined;
 
   return html`
-    <div class="chip-row">
+    <div class="preset-row">
       ${presets.map((preset) => {
         const active = preset === current;
+        const color = PRESET_COLORS[preset] || 'var(--c-accent)';
         const icon = PRESET_ICONS[preset] || 'mdi:tune';
         const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as Parameters<typeof t>[0]) : preset;
         return html`
           <button
-            class="chip ${active ? 'active' : ''}"
+            class="preset-chip ${active ? 'active' : ''}"
+            style="--preset-color: ${color};"
             @click=${() => onSetPreset(preset)}
             aria-label=${label}
             aria-pressed=${active ? 'true' : 'false'}
           >
-            <ha-icon .icon=${icon} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+            <ha-icon class="preset-chip-icon" .icon=${icon}></ha-icon>
             <span>${label}</span>
           </button>
         `;
@@ -149,58 +163,3 @@ export function renderPresets(
   `;
 }
 
-export function renderFanModes(
-  entity: HassEntity,
-  onSetFan: (mode: string) => void,
-): TemplateResult | typeof nothing {
-  if (entity.state === 'off') return nothing;
-  const features = (entity.attributes.supported_features as number) || 0;
-  if (!(features & CF.FAN_MODE)) return nothing;
-
-  const modes = (entity.attributes.fan_modes as string[]) || [];
-  const current = entity.attributes.fan_mode as string | undefined;
-
-  return html`
-    <div class="chip-row">
-      ${modes.map((mode) => html`
-        <button
-          class="chip ${mode === current ? 'active' : ''}"
-          @click=${() => onSetFan(mode)}
-          aria-label="${t('climate.fan_mode')}: ${mode}"
-          aria-pressed=${mode === current ? 'true' : 'false'}
-        >
-          <ha-icon .icon=${'mdi:fan'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-          <span>${mode}</span>
-        </button>
-      `)}
-    </div>
-  `;
-}
-
-export function renderSwingModes(
-  entity: HassEntity,
-  onSetSwing: (mode: string) => void,
-): TemplateResult | typeof nothing {
-  if (entity.state === 'off') return nothing;
-  const features = (entity.attributes.supported_features as number) || 0;
-  if (!(features & CF.SWING_MODE)) return nothing;
-
-  const modes = (entity.attributes.swing_modes as string[]) || [];
-  const current = entity.attributes.swing_mode as string | undefined;
-
-  return html`
-    <div class="chip-row">
-      ${modes.map((mode) => html`
-        <button
-          class="chip ${mode === current ? 'active' : ''}"
-          @click=${() => onSetSwing(mode)}
-          aria-label="${t('climate.swing_mode')}: ${mode}"
-          aria-pressed=${mode === current ? 'true' : 'false'}
-        >
-          <ha-icon .icon=${'mdi:arrow-oscillating'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-          <span>${mode}</span>
-        </button>
-      `)}
-    </div>
-  `;
-}
