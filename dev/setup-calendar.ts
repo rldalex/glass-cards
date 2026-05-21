@@ -8,25 +8,38 @@ interface CalScenario { id: string; label: string; description: string; events: 
 const SCENARIOS: CalScenario[] = [
   {
     id: 'busy',
-    label: 'Journée chargée',
-    description: '7 événements — un en cours, un all-day',
+    label: 'Semaine remplie',
+    description: 'Today + demain + jours suivants, dont une vacance multi-jours (J+2 → J+4)',
     events: [
-      { title: 'Daily standup', time: '09:00 - 09:30', cal: 'travail' },
-      { title: 'Dentiste Luca', time: '10:15 - 11:00', cal: 'famille', now: true },
-      { title: 'Revue sprint Q2', time: '14:00 - 15:30', cal: 'travail' },
-      { title: 'Courses Migros', time: '17:00', cal: 'taches' },
-      { title: 'Anniversaire Maman', cal: 'anniversaires', allday: true },
-      { title: 'Yoga', time: '18:30 - 19:30', cal: 'perso' },
-      { title: 'Appel Marc', time: '20:00', cal: 'perso' },
+      // Today (J+0)
+      { title: 'Daily standup', time: '09:00 - 09:30', cal: 'travail', dayOffset: 0 },
+      { title: 'Dentiste Luca', time: '10:15 - 11:00', cal: 'famille', now: true, dayOffset: 0 },
+      { title: 'Revue sprint Q2', time: '14:00 - 15:30', cal: 'travail', dayOffset: 0 },
+      { title: 'Courses Migros', time: '17:00', cal: 'taches', dayOffset: 0 },
+      { title: 'Anniversaire Maman', cal: 'anniversaires', allday: true, dayOffset: 0 },
+      { title: 'Yoga', time: '18:30 - 19:30', cal: 'perso', dayOffset: 0 },
+      { title: 'Appel Marc', time: '20:00', cal: 'perso', dayOffset: 0 },
+      // Tomorrow (J+1)
+      { title: 'Rendez-vous médecin', time: '08:30 - 09:15', cal: 'perso', dayOffset: 1 },
+      { title: 'Lunch avec Sarah', time: '12:30 - 14:00', cal: 'travail', dayOffset: 1 },
+      { title: 'École Luca: réunion', time: '17:00 - 18:00', cal: 'famille', dayOffset: 1 },
+      // Multi-day all-day vacation (J+2 → J+4, end exclusive in CalDAV → spans 2, 3, 4)
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 2 },
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 3 },
+      { title: 'Vacances Annecy', cal: 'perso', allday: true, dayOffset: 4 },
+      { title: 'Préparer valises', time: '20:00 - 21:00', cal: 'taches', dayOffset: 1 },
+      // J+5
+      { title: 'Brunch Maman', time: '11:00 - 13:00', cal: 'famille', dayOffset: 5 },
+      // J+6 : empty
     ],
   },
   {
     id: 'light',
     label: 'Journée légère',
-    description: '2 événements',
+    description: '2 événements aujourd\'hui, rien les autres jours',
     events: [
-      { title: 'Brunch dimanche', time: '11:00 - 13:00', cal: 'famille' },
-      { title: 'Lessive', cal: 'taches', allday: true },
+      { title: 'Brunch dimanche', time: '11:00 - 13:00', cal: 'famille', dayOffset: 0 },
+      { title: 'Lessive', cal: 'taches', allday: true, dayOffset: 0 },
     ],
   },
   {

@@ -49,11 +49,17 @@ const TICKER_TRANSITION_MS = 500;
 
 function isUpcoming(timeStr: string): boolean {
   const parts = timeStr.split(' - ');
-  const endTime = parts.length > 1 ? parts[1] : parts[0];
-  const [h, m] = endTime.split(':').map((n) => parseInt(n, 10));
+  const startStr = parts[0];
+  const endStr = parts.length > 1 ? parts[1] : parts[0];
+  const [eh, em] = endStr.split(':').map((n) => parseInt(n, 10));
+  const [sh, sm] = startStr.split(':').map((n) => parseInt(n, 10));
   const now = new Date();
   const eventEnd = new Date();
-  eventEnd.setHours(h, m, 0, 0);
+  eventEnd.setHours(eh, em, 0, 0);
+  // Cross-midnight: end < start numerically means end is tomorrow
+  if (eh < sh || (eh === sh && em < sm)) {
+    eventEnd.setDate(eventEnd.getDate() + 1);
+  }
   return eventEnd > now;
 }
 
@@ -92,9 +98,13 @@ export class GlassCalendarCard extends BaseCard {
   private _tickerTimer?: ReturnType<typeof setInterval>;
   private _leaveTimer?: ReturnType<typeof setTimeout>;
   private _refreshTimer?: ReturnType<typeof setInterval>;
+  private _midnightTimer?: ReturnType<typeof setInterval>;
   private _backend?: BackendService;
   private _configLoaded = false;
+  private _configLoadInFlight = false;
   private _fetchInFlight = false;
+  private _lastEventsKey = '';
+  private _lastTodayKey = '';
   /** Stable id so multiple instances can coexist with aria-controls. */
   private readonly _foldId = `cal-fold-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -111,6 +121,7 @@ export class GlassCalendarCard extends BaseCard {
     super.disconnectedCallback();
     this._stopTicker();
     this._stopRefreshTimer();
+    this._stopMidnightWatcher();
     this._backend = undefined;
     this._configLoaded = false;
   }
@@ -123,23 +134,29 @@ export class GlassCalendarCard extends BaseCard {
   }
 
   private async _loadConfigAndFetch(): Promise<void> {
-    if (!this.hass) return;
-    if (!this._backend) this._backend = new BackendService(this.hass);
+    if (!this.hass || this._configLoadInFlight) return;
+    this._configLoadInFlight = true;
     try {
-      const result = await this._backend.send<{
-        calendar_card?: { show_header?: boolean; hidden_entities?: string[] };
-      }>('get_config');
-      this._hiddenEntities = result?.calendar_card?.hidden_entities ?? [];
-      if (result?.calendar_card?.show_header !== undefined) {
-        this.showHeader = result.calendar_card.show_header;
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      try {
+        const result = await this._backend.send<{
+          calendar_card?: { show_header?: boolean; hidden_entities?: string[] };
+        }>('get_config');
+        this._hiddenEntities = result?.calendar_card?.hidden_entities ?? [];
+        if (result?.calendar_card?.show_header !== undefined) {
+          this.showHeader = result.calendar_card.show_header;
+        }
+        this._configLoaded = true;
+      } catch {
+        // Backend unavailable — proceed with defaults
+        this._configLoaded = true;
       }
-      this._configLoaded = true;
-    } catch {
-      // Backend unavailable — proceed with defaults
-      this._configLoaded = true;
+      await this._fetchEvents();
+      this._startRefreshTimer();
+      this._startMidnightWatcher();
+    } finally {
+      this._configLoadInFlight = false;
     }
-    await this._fetchEvents();
-    this._startRefreshTimer();
   }
 
   private _startRefreshTimer(): void {
@@ -151,6 +168,36 @@ export class GlassCalendarCard extends BaseCard {
     if (this._refreshTimer) {
       clearInterval(this._refreshTimer);
       this._refreshTimer = undefined;
+    }
+  }
+
+  private _todayKey(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }
+
+  /**
+   * Detects midnight crossings (every minute). When today shifts, dayOffsets
+   * computed at fetch time become stale, and the selected day index now points
+   * to a different absolute date. Reset selection to today and refetch.
+   */
+  private _startMidnightWatcher(): void {
+    this._stopMidnightWatcher();
+    this._lastTodayKey = this._todayKey();
+    this._midnightTimer = setInterval(() => {
+      const k = this._todayKey();
+      if (k !== this._lastTodayKey) {
+        this._lastTodayKey = k;
+        this._selectedDayOffset = 0;
+        void this._fetchEvents();
+      }
+    }, 60 * 1000);
+  }
+
+  private _stopMidnightWatcher(): void {
+    if (this._midnightTimer) {
+      clearInterval(this._midnightTimer);
+      this._midnightTimer = undefined;
     }
   }
 
@@ -176,10 +223,10 @@ export class GlassCalendarCard extends BaseCard {
         calendarIds.map(async (id) => {
           try {
             const raw = await this.hass!.callApi<HaCalendarEvent[]>('GET', `calendars/${id}?${qs}`);
-            return (Array.isArray(raw) ? raw : []).map((ev) => this._toCardEvent(ev, id));
+            return (Array.isArray(raw) ? raw : []).flatMap((ev) => this._toCardEvents(ev, id));
           } catch (err) {
             console.warn(`[glass-calendar-card] failed to fetch events for ${id}`, err);
-            return [];
+            return [] as CalendarEvent[];
           }
         }),
       );
@@ -192,15 +239,30 @@ export class GlassCalendarCard extends BaseCard {
     }
   }
 
-  private _toCardEvent(ev: HaCalendarEvent, entityId: string): CalendarEvent {
+  private _toCardEvents(ev: HaCalendarEvent, entityId: string): CalendarEvent[] {
     const cal = entityId.split('.')[1] || 'perso';
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // All-day event: HA returns start.date inclusive, end.date EXCLUSIVE (iCal/CalDAV).
+    // A Mon-Wed event has start.date=Mon, end.date=Thu. Explode in one entry per visible day.
     if (ev.start.date && !ev.start.dateTime) {
       const startDay = new Date(ev.start.date + 'T00:00:00');
-      const dayOffset = Math.round((startDay.getTime() - today.getTime()) / 86400000);
-      return { title: ev.summary, time: null, cal, allday: true, dayOffset };
+      const endDayExcl = ev.end.date
+        ? new Date(ev.end.date + 'T00:00:00')
+        : new Date(startDay.getTime() + 86400000);
+      const startOffset = Math.round((startDay.getTime() - today.getTime()) / 86400000);
+      const endOffsetExcl = Math.round((endDayExcl.getTime() - today.getTime()) / 86400000);
+      const from = Math.max(0, startOffset);
+      const to = Math.min(7, endOffsetExcl);
+      const out: CalendarEvent[] = [];
+      for (let off = from; off < to; off++) {
+        out.push({ title: ev.summary, time: null, cal, allday: true, dayOffset: off });
+      }
+      return out;
     }
+
+    // Timed event (possibly spanning midnight, but HA splits at midnight in most integrations).
     const startIso = ev.start.dateTime ?? '';
     const endIso = ev.end.dateTime ?? '';
     const startHM = startIso ? startIso.slice(11, 16) : '';
@@ -216,19 +278,29 @@ export class GlassCalendarCard extends BaseCard {
       startDay.setHours(0, 0, 0, 0);
       dayOffset = Math.round((startDay.getTime() - today.getTime()) / 86400000);
     }
-    return { title: ev.summary, time, cal, now: isNow, dayOffset };
+    if (dayOffset < 0 || dayOffset > 6) return [];
+    return [{ title: ev.summary, time, cal, now: isNow, dayOffset }];
   }
 
   protected updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps as never);
     if (changedProps.has('events') || changedProps.has('_fetchedEvents')) {
-      this._stopTicker();
-      this._tickerIdx = 0;
-      this._tickerLeavingIdx = null;
-      this._startTicker();
+      const key = this._eventsKey(this._allEvents());
+      if (key !== this._lastEventsKey) {
+        this._lastEventsKey = key;
+        this._stopTicker();
+        this._tickerIdx = 0;
+        this._tickerLeavingIdx = null;
+        this._startTicker();
+      }
     } else if (!this._tickerTimer && this._tickerEvents().length > 1) {
       this._startTicker();
     }
+  }
+
+  /** Cheap content fingerprint for "did the event list change ?" checks. */
+  private _eventsKey(events: CalendarEvent[]): string {
+    return events.map((e) => `${e.title}\x1f${e.time ?? ''}\x1f${e.dayOffset ?? ''}\x1f${e.allday ? 1 : 0}\x1f${e.now ? 1 : 0}`).join('\x1e');
   }
 
   private _allEvents(): CalendarEvent[] {
@@ -294,7 +366,7 @@ export class GlassCalendarCard extends BaseCard {
             <span class="v4-compact-count">${ticker.length}</span>
           </span>
           <span class="v4-compact-sep"></span>
-          <span class="v4-ticker-wrap" aria-live="polite" aria-atomic="true">
+          <span class="v4-ticker-wrap" aria-hidden="true">
             ${this._renderTicker(ticker)}
           </span>
           <span class="v4-compact-chevron">${this._chevronIcon()}</span>
