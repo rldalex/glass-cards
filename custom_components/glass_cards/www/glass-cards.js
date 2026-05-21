@@ -8132,9 +8132,9 @@
               </button>
             `})}
         </div>
-      `;return Z`<div class="v4-event-section">${a}${r}</div>`}_sectionLabelFor(e){if(0===e)return"Aujourd'hui";if(1===e)return"Demain";const t=new Date;return t.setDate(t.getDate()+e),`${Ea[t.getDay()]} ${t.getDate()} ${Aa[t.getMonth()]}`}_renderLegend(){const e=new Set;for(const i of this._allEvents())za[i.cal]&&e.add(i.cal);const t=Object.entries(za).filter(([t])=>e.has(t));return 0===t.length?ie:Z`
+      `;return Z`<div class="v4-event-section">${a}${r}</div>`}_sectionLabelFor(e){if(0===e)return"Aujourd'hui";if(1===e)return"Demain";const t=new Date;return t.setDate(t.getDate()+e),`${Ea[t.getDay()]} ${t.getDate()} ${Aa[t.getMonth()]}`}_renderLegend(){const e=[],t=new Set;for(const a of this._allEvents())a.cal&&!t.has(a.cal)&&(t.add(a.cal),e.push(a.cal));if(0===e.length)return ie;const i=e.map(e=>{const t=za[e];if(t)return{color:t.color,label:t.label};const i=this.hass?.states[`calendar.${e}`];return{color:"var(--c-accent)",label:i?.attributes.friendly_name??e.charAt(0).toUpperCase()+e.slice(1).replace(/_/g," ")}});return Z`
       <div class="v4-cal-legend">
-        ${t.map(([,e])=>Z`
+        ${i.map(e=>Z`
           <span class="v4-cal-legend-item">
             <span class="v4-cal-legend-dot" style="background:${e.color}"></span>
             <span class="v4-cal-legend-label">${e.label}</span>

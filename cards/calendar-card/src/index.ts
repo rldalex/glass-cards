@@ -524,17 +524,31 @@ export class GlassCalendarCard extends BaseCard {
   }
 
   private _renderLegend(): TemplateResult | typeof nothing {
-    // Only show calendars that actually have events visible right now
-    // (hidden entities never reach _allEvents, so this naturally filters them out).
+    // Show every calendar that has at least one event in the fetched window.
+    // Slugs in CAL_COLORS keep their canonical label + colour; unknown slugs
+    // fall back to the HA friendly_name (or the slug itself) and a neutral
+    // accent colour, so users with non-default calendar IDs still see them.
+    const usedOrder: string[] = [];
     const used = new Set<string>();
     for (const e of this._allEvents()) {
-      if (CAL_COLORS[e.cal]) used.add(e.cal);
+      if (!e.cal || used.has(e.cal)) continue;
+      used.add(e.cal);
+      usedOrder.push(e.cal);
     }
-    const items = Object.entries(CAL_COLORS).filter(([key]) => used.has(key));
-    if (items.length === 0) return nothing;
+    if (usedOrder.length === 0) return nothing;
+
+    const items = usedOrder.map((slug) => {
+      const known = CAL_COLORS[slug];
+      if (known) return { color: known.color, label: known.label };
+      const entity = this.hass?.states[`calendar.${slug}`];
+      const label = (entity?.attributes.friendly_name as string | undefined)
+        ?? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/_/g, ' ');
+      return { color: 'var(--c-accent)', label };
+    });
+
     return html`
       <div class="v4-cal-legend">
-        ${items.map(([, def]) => html`
+        ${items.map((def) => html`
           <span class="v4-cal-legend-item">
             <span class="v4-cal-legend-dot" style="background:${def.color}"></span>
             <span class="v4-cal-legend-label">${def.label}</span>
