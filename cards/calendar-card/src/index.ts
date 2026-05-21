@@ -382,7 +382,6 @@ export class GlassCalendarCard extends BaseCard {
             </div>
           </div>
         </div>
-        <div class="v4-fold-sep below-fold" aria-hidden="true"></div>
       </div>
     `;
   }
@@ -671,7 +670,6 @@ export class GlassCalendarCard extends BaseCard {
       transition: opacity var(--t-fast) 0.1s;
     }
     .calendar-card.open .v4-fold-sep { display: block; opacity: 1; }
-    .calendar-card.open .v4-fold-sep.below-fold { margin-bottom: 0.5rem; }
 
     /* ── Fold (grid 0fr/1fr — never animate height) ── */
     .v4-fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-layout); }
