@@ -8045,7 +8045,7 @@
       @media (pointer: coarse) {
         .action-btn:active { animation: bounce 0.15s ease-out; }
       }
-    `]}}ha([we()],xa.prototype,"areaId"),ha([xe()],xa.prototype,"_carouselIndex"),ha([xe()],xa.prototype,"_liveIds"),ha([xe()],xa.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",xa)}catch{}var ka=Object.defineProperty,$a=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ka(t,i,s),s};const Ca={perso:{color:"#818cf8",label:"Personnel"},travail:{color:"#60a5fa",label:"Travail"},famille:{color:"#f472b6",label:"Famille"},taches:{color:"#fbbf24",label:"Tâches"},anniversaires:{color:"#4ade80",label:"Anniversaires"}},Sa=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],Ia=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];function Ta(e){return 0===(e.dayOffset??0)&&!(!e.now&&!e.allday&&e.time&&!function(e){const t=e.split(" - "),i=t.length>1?t[1]:t[0],[a,r]=i.split(":").map(e=>parseInt(e,10)),s=new Date,o=new Date;return o.setHours(a,r,0,0),o>s}(e.time))}class za extends rt{constructor(){super(...arguments),this.events=[],this.showHeader=!0,this._open=!1,this._selectedDayOffset=0,this._tickerIdx=0,this._tickerLeavingIdx=null,this._hiddenEntities=[],this._fetchedEvents=[],this._configLoaded=!1,this._fetchInFlight=!1,this._foldId=`cal-fold-${Math.random().toString(36).slice(2,9)}`}getCardSize(){return 1}connectedCallback(){super.connectedCallback(),this._startTicker(),this._listen("calendar-config-changed",()=>{this._configLoaded=!1,this._loadConfigAndFetch()})}disconnectedCallback(){super.disconnectedCallback(),this._stopTicker(),this._stopRefreshTimer(),this._backend=void 0,this._configLoaded=!1}willUpdate(e){super.willUpdate(e),e.has("hass")&&this.hass&&!this.configPreview&&(this._configLoaded||this._loadConfigAndFetch())}async _loadConfigAndFetch(){if(this.hass){this._backend||(this._backend=new dt(this.hass));try{const e=await this._backend.send("get_config");this._hiddenEntities=e?.calendar_card?.hidden_entities??[],void 0!==e?.calendar_card?.show_header&&(this.showHeader=e.calendar_card.show_header),this._configLoaded=!0}catch{this._configLoaded=!0}await this._fetchEvents(),this._startRefreshTimer()}}_startRefreshTimer(){this._stopRefreshTimer(),this._refreshTimer=setInterval(()=>{this._fetchEvents()},9e5)}_stopRefreshTimer(){this._refreshTimer&&(clearInterval(this._refreshTimer),this._refreshTimer=void 0)}async _fetchEvents(){if(this.hass&&!this.configPreview&&!this._fetchInFlight){this._fetchInFlight=!0;try{const e=new Set(this._hiddenEntities),t=Object.keys(this.hass.states).filter(t=>t.startsWith("calendar.")&&!e.has(t));if(0===t.length)return void(this._fetchedEvents=[]);const i=new Date;i.setHours(0,0,0,0);const a=new Date(i);a.setDate(a.getDate()+7);const r=i.toISOString(),s=a.toISOString(),o=`start=${encodeURIComponent(r)}&end=${encodeURIComponent(s)}`,n=(await Promise.all(t.map(async e=>{try{const t=await this.hass.callApi("GET",`calendars/${e}?${o}`);return(Array.isArray(t)?t:[]).map(t=>this._toCardEvent(t,e))}catch(t){return console.warn(`[glass-calendar-card] failed to fetch events for ${e}`,t),[]}}))).flat();n.sort((e,t)=>(e.allday?0:1)-(t.allday?0:1)||(e.time??"").localeCompare(t.time??"")),this._fetchedEvents=n}finally{this._fetchInFlight=!1}}}_toCardEvent(e,t){const i=t.split(".")[1]||"perso",a=new Date;if(a.setHours(0,0,0,0),e.start.date&&!e.start.dateTime){const t=new Date(e.start.date+"T00:00:00"),r=Math.round((t.getTime()-a.getTime())/864e5);return{title:e.summary,time:null,cal:i,allday:!0,dayOffset:r}}const r=e.start.dateTime??"",s=e.end.dateTime??"",o=r?r.slice(11,16):"",n=s?s.slice(11,16):"",l=n&&n!==o?`${o} - ${n}`:o||null,c=r?new Date(r):null,d=s?new Date(s):null,h=new Date,p=!!(c&&d&&c<=h&&d>=h);let u=0;if(c){const e=new Date(c);e.setHours(0,0,0,0),u=Math.round((e.getTime()-a.getTime())/864e5)}return{title:e.summary,time:l,cal:i,now:p,dayOffset:u}}updated(e){super.updated(e),e.has("events")||e.has("_fetchedEvents")?(this._stopTicker(),this._tickerIdx=0,this._tickerLeavingIdx=null,this._startTicker()):!this._tickerTimer&&this._tickerEvents().length>1&&this._startTicker()}_allEvents(){return this.events.length>0?this.events:this._fetchedEvents}_collapseExpanded(){this._open&&(this._open=!1)}_tickerEvents(){return this._allEvents().filter(Ta)}_startTicker(){this._tickerEvents().length<=1||window.matchMedia("(prefers-reduced-motion: reduce)").matches||(this._tickerTimer=setInterval(()=>this._advanceTicker(),3500))}_stopTicker(){this._tickerTimer&&clearInterval(this._tickerTimer),this._tickerTimer=void 0,this._leaveTimer&&clearTimeout(this._leaveTimer),this._leaveTimer=void 0}_advanceTicker(){const e=this._tickerEvents();if(e.length<=1)return;const t=this._tickerIdx;this._tickerLeavingIdx=t,this._tickerIdx=(t+1)%e.length,this._leaveTimer=setTimeout(()=>{this._tickerLeavingIdx=null},500)}_toggleOpen(){this._open=!this._open}render(){const e=new Date,t=`${Sa[e.getDay()]} ${e.getDate()} ${Ia[e.getMonth()]}`,i=this._tickerEvents(),a=i.filter(e=>e.now).length;return X`
+    `]}}ha([we()],xa.prototype,"areaId"),ha([xe()],xa.prototype,"_carouselIndex"),ha([xe()],xa.prototype,"_liveIds"),ha([xe()],xa.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",xa)}catch{}var ka=Object.defineProperty,$a=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ka(t,i,s),s};const Ca={perso:{color:"var(--c-accent)",label:"Personnel"},travail:{color:"var(--c-info)",label:"Travail"},famille:{color:"#f472b6",label:"Famille"},taches:{color:"var(--c-warning)",label:"Tâches"},anniversaires:{color:"var(--c-success)",label:"Anniversaires"}},Sa=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],Ia=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];function Ta(e){return 0===(e.dayOffset??0)&&!(!e.now&&!e.allday&&e.time&&!function(e){const t=e.split(" - "),i=t.length>1?t[1]:t[0],[a,r]=i.split(":").map(e=>parseInt(e,10)),s=new Date,o=new Date;return o.setHours(a,r,0,0),o>s}(e.time))}class za extends rt{constructor(){super(...arguments),this.events=[],this.showHeader=!0,this._open=!1,this._selectedDayOffset=0,this._tickerIdx=0,this._tickerLeavingIdx=null,this._hiddenEntities=[],this._fetchedEvents=[],this._configLoaded=!1,this._fetchInFlight=!1,this._foldId=`cal-fold-${Math.random().toString(36).slice(2,9)}`}getCardSize(){return 1}connectedCallback(){super.connectedCallback(),this._startTicker(),this._listen("calendar-config-changed",()=>{this._configLoaded=!1,this._loadConfigAndFetch()})}disconnectedCallback(){super.disconnectedCallback(),this._stopTicker(),this._stopRefreshTimer(),this._backend=void 0,this._configLoaded=!1}willUpdate(e){super.willUpdate(e),e.has("hass")&&this.hass&&!this.configPreview&&(this._configLoaded||this._loadConfigAndFetch())}async _loadConfigAndFetch(){if(this.hass){this._backend||(this._backend=new dt(this.hass));try{const e=await this._backend.send("get_config");this._hiddenEntities=e?.calendar_card?.hidden_entities??[],void 0!==e?.calendar_card?.show_header&&(this.showHeader=e.calendar_card.show_header),this._configLoaded=!0}catch{this._configLoaded=!0}await this._fetchEvents(),this._startRefreshTimer()}}_startRefreshTimer(){this._stopRefreshTimer(),this._refreshTimer=setInterval(()=>{this._fetchEvents()},9e5)}_stopRefreshTimer(){this._refreshTimer&&(clearInterval(this._refreshTimer),this._refreshTimer=void 0)}async _fetchEvents(){if(this.hass&&!this.configPreview&&!this._fetchInFlight){this._fetchInFlight=!0;try{const e=new Set(this._hiddenEntities),t=Object.keys(this.hass.states).filter(t=>t.startsWith("calendar.")&&!e.has(t));if(0===t.length)return void(this._fetchedEvents=[]);const i=new Date;i.setHours(0,0,0,0);const a=new Date(i);a.setDate(a.getDate()+7);const r=i.toISOString(),s=a.toISOString(),o=`start=${encodeURIComponent(r)}&end=${encodeURIComponent(s)}`,n=(await Promise.all(t.map(async e=>{try{const t=await this.hass.callApi("GET",`calendars/${e}?${o}`);return(Array.isArray(t)?t:[]).map(t=>this._toCardEvent(t,e))}catch(t){return console.warn(`[glass-calendar-card] failed to fetch events for ${e}`,t),[]}}))).flat();n.sort((e,t)=>(e.allday?0:1)-(t.allday?0:1)||(e.time??"").localeCompare(t.time??"")),this._fetchedEvents=n}finally{this._fetchInFlight=!1}}}_toCardEvent(e,t){const i=t.split(".")[1]||"perso",a=new Date;if(a.setHours(0,0,0,0),e.start.date&&!e.start.dateTime){const t=new Date(e.start.date+"T00:00:00"),r=Math.round((t.getTime()-a.getTime())/864e5);return{title:e.summary,time:null,cal:i,allday:!0,dayOffset:r}}const r=e.start.dateTime??"",s=e.end.dateTime??"",o=r?r.slice(11,16):"",n=s?s.slice(11,16):"",l=n&&n!==o?`${o} - ${n}`:o||null,c=r?new Date(r):null,d=s?new Date(s):null,h=new Date,p=!!(c&&d&&c<=h&&d>=h);let u=0;if(c){const e=new Date(c);e.setHours(0,0,0,0),u=Math.round((e.getTime()-a.getTime())/864e5)}return{title:e.summary,time:l,cal:i,now:p,dayOffset:u}}updated(e){super.updated(e),e.has("events")||e.has("_fetchedEvents")?(this._stopTicker(),this._tickerIdx=0,this._tickerLeavingIdx=null,this._startTicker()):!this._tickerTimer&&this._tickerEvents().length>1&&this._startTicker()}_allEvents(){return this.events.length>0?this.events:this._fetchedEvents}_collapseExpanded(){this._open&&(this._open=!1)}_tickerEvents(){return this._allEvents().filter(Ta)}_startTicker(){this._tickerEvents().length<=1||window.matchMedia("(prefers-reduced-motion: reduce)").matches||(this._tickerTimer=setInterval(()=>this._advanceTicker(),3500))}_stopTicker(){this._tickerTimer&&clearInterval(this._tickerTimer),this._tickerTimer=void 0,this._leaveTimer&&clearTimeout(this._leaveTimer),this._leaveTimer=void 0}_advanceTicker(){const e=this._tickerEvents();if(e.length<=1)return;const t=this._tickerIdx;this._tickerLeavingIdx=t,this._tickerIdx=(t+1)%e.length,this._leaveTimer=setTimeout(()=>{this._tickerLeavingIdx=null},500)}_toggleOpen(){this._open=!this._open}render(){const e=new Date,t=`${Sa[e.getDay()]} ${e.getDate()} ${Ia[e.getMonth()]}`,i=this._tickerEvents(),a=i.filter(e=>e.now).length;return X`
       ${this.showHeader?this._renderHeader(i.length,a):J}
       <div class="glass calendar-card ${this._open?"open":""}">
         <button
@@ -8073,7 +8073,6 @@
           <div class="v4-fold-inner">
             <div class="card-inner">
               ${this._renderWeekStrip()}
-              <div class="v4-fold-separator"></div>
               ${this._renderEventList()}
               ${this._renderLegend()}
             </div>
@@ -8108,29 +8107,34 @@
             ${n.map(e=>X`<span class="v4-week-dot" style="background:${Ca[e]?.color??"var(--t4)"}"></span>`)}
           </span>
         </button>
-      `)}return X`<div class="v4-week-strip">${a}</div>`}_renderEventList(){const e=this._eventsForOffset(this._selectedDayOffset),t=0===this._selectedDayOffset;return 0===e.length?X`
-        <div class="v4-event-list">
-          <div class="v4-event-empty">
-            ${this._calendarIcon("v4-event-empty-icon")}
-            <span class="v4-event-empty-title">Rien de prévu</span>
-            <span class="v4-event-empty-sub">${t?"Profitez de votre journée":"Aucun évènement ce jour-là"}</span>
-          </div>
+      `)}return X`<div class="v4-week-strip">${a}</div>`}_renderEventList(){const e=this._eventsForOffset(this._selectedDayOffset),t=0===this._selectedDayOffset,i=this._sectionLabelFor(this._selectedDayOffset),a=X`
+      <div class="cal-eyebrow">
+        <span class="cal-eyebrow-dot"></span>
+        <span>${i}</span>
+        ${e.length>0?X`<span class="cal-eyebrow-count">${e.length}</span>`:J}
+      </div>
+    `,r=0===e.length?X`
+        <div class="v4-event-empty" role="status" aria-live="polite">
+          <div class="ambient-icon">${this._calendarIcon("ambient-svg")}</div>
+          <span class="v4-event-empty-title">Rien de prévu</span>
+          <span class="v4-event-empty-sub">${t?"Profitez de votre journée":"Aucun évènement ce jour-là"}</span>
         </div>
       `:X`
-      <div class="v4-event-list">
-        ${e.map(e=>{const t=Ca[e.cal]?.color??"rgb(var(--rgb-accent))",i=e.now&&e.time?`${e.time} · En cours`:e.time??"Toute la journée";return X`
-            <button class="v4-event-row ${e.now?"now":""}" type="button"
-              aria-label="${e.title}${e.time?`, ${e.time}`:", toute la journée"}${e.now?", en cours":""}">
-              <span class="v4-event-color-bar" style="background:${t}; color:${t};"></span>
-              <span class="v4-event-content">
-                <span class="v4-event-title">${Ae(e.title,12)}</span>
-                <span class="v4-event-time">${i}</span>
-              </span>
-              ${e.allday?X`<span class="v4-event-allday">Journée</span>`:J}
-            </button>
-          `})}
-      </div>
-    `}_renderLegend(){return X`
+        <div class="v4-event-list">
+          ${e.map(e=>{const t=Ca[e.cal]?.color??"var(--c-accent)",i=e.now&&e.time?`${e.time} · En cours`:e.time??"Toute la journée";return X`
+              <button class="v4-event-row ${e.now?"now":""}" type="button"
+                style="--ev-color: ${t};"
+                aria-label="${e.title}${e.time?`, ${e.time}`:", toute la journée"}${e.now?", en cours":""}">
+                <span class="v4-event-dot" aria-hidden="true"></span>
+                <span class="v4-event-content">
+                  <span class="v4-event-title">${Ae(e.title,12)}</span>
+                  <span class="v4-event-time">${i}</span>
+                </span>
+                ${e.allday?X`<span class="v4-event-allday">Journée</span>`:J}
+              </button>
+            `})}
+        </div>
+      `;return X`<div class="v4-event-section">${a}${r}</div>`}_sectionLabelFor(e){if(0===e)return"Aujourd'hui";if(1===e)return"Demain";const t=new Date;return t.setDate(t.getDate()+e),`${Sa[t.getDay()]} ${t.getDate()} ${Ia[t.getMonth()]}`}_renderLegend(){return X`
       <div class="v4-cal-legend">
         ${Object.entries(Ca).map(([,e])=>X`
           <span class="v4-cal-legend-item">
@@ -8203,17 +8207,26 @@
     }
     .v4-compact-sep { width: 0.0625rem; height: 0.75rem; background: var(--b2); flex-shrink: 0; }
 
-    /* ── Chevron (decorative, rotates via parent .open) ── */
+    /* ── Chevron (round, rotates via parent .open) ── */
     .v4-compact-chevron {
-      width: 1.375rem; height: 1.375rem; border-radius: var(--radius-sm);
+      width: 1.625rem; height: 1.625rem; border-radius: 50%;
       background: var(--s2); border: 0.0625rem solid var(--b1);
       display: inline-flex; align-items: center; justify-content: center;
       color: var(--t3); flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast);
+      transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
     }
-    .v4-compact:hover .v4-compact-chevron { background: var(--s3); border-color: var(--b2); }
+    .v4-compact:hover .v4-compact-chevron {
+      background: var(--s3);
+      border-color: rgba(var(--rgb-accent), 0.35);
+      color: rgb(var(--rgb-accent));
+    }
     .v4-compact-chevron svg { width: 0.75rem; height: 0.75rem; transition: transform var(--t-fast); }
     .calendar-card.open .v4-compact-chevron svg { transform: rotate(180deg); }
+    .calendar-card.open .v4-compact-chevron {
+      background: rgba(var(--rgb-accent), 0.12);
+      border-color: rgba(var(--rgb-accent), 0.3);
+      color: rgb(var(--rgb-accent));
+    }
 
     /* ── Ticker ── */
     .v4-ticker-wrap { flex: 1; min-width: 0; height: 1rem; position: relative; overflow: hidden; }
@@ -8284,54 +8297,153 @@
       display: flex; align-items: center; justify-content: center; border-radius: 50%;
       transition: background var(--t-fast), color var(--t-fast);
     }
-    .v4-week-day.today .v4-week-day-num { background: rgba(var(--rgb-accent), 0.2); color: rgb(var(--rgb-accent)); font-weight: 700; }
+    .v4-week-day.today .v4-week-day-num {
+      background: rgba(var(--rgb-accent), 0.2);
+      color: rgb(var(--rgb-accent));
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(var(--rgb-accent), 0.35);
+    }
     .v4-week-day.selected .v4-week-day-num {
       background: rgb(var(--rgb-accent));
       color: rgba(var(--rgb-white), 0.95);
       font-weight: 700;
+      box-shadow: 0 0 14px rgba(var(--rgb-accent), 0.45);
     }
-    .v4-week-day.selected.today .v4-week-day-num { background: rgb(var(--rgb-accent)); color: rgba(var(--rgb-white), 0.95); }
+    .v4-week-day.selected.today .v4-week-day-num {
+      background: rgb(var(--rgb-accent));
+      color: rgba(var(--rgb-white), 0.95);
+      box-shadow: 0 0 14px rgba(var(--rgb-accent), 0.5);
+    }
     .v4-week-day-dots { display: inline-flex; gap: 0.1875rem; min-height: 0.25rem; }
     .v4-week-dot { width: 0.25rem; height: 0.25rem; border-radius: 50%; }
+    @media (pointer: coarse) {
+      .v4-week-day { position: relative; }
+      .v4-week-day::after { content: ''; position: absolute; inset: -0.25rem 0; }
+    }
 
-    /* ── Event list ── */
-    .v4-fold-separator { height: 0.0625rem; background: var(--b1); margin-bottom: 0.5rem; }
-    .v4-event-list { display: flex; flex-direction: column; gap: 0.125rem; margin-bottom: 0.5rem; }
+    /* ── Event section (eyebrow + list) ── */
+    .v4-event-section { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
+    .cal-eyebrow {
+      display: flex; align-items: center; gap: 0.4375rem;
+      padding: 0 0.125rem;
+      min-height: 1.625rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .cal-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: rgb(var(--rgb-accent));
+      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
+    }
+    .cal-eyebrow-count {
+      margin-left: auto;
+      font-size: var(--fz-xs); font-weight: 600; color: var(--t4);
+      padding: 0 0.375rem; height: 1rem;
+      border-radius: var(--radius-full);
+      background: var(--s2);
+      display: inline-flex; align-items: center; line-height: 1;
+    }
+
+    .v4-event-list { display: flex; flex-direction: column; gap: 0.1875rem; }
     .v4-event-row {
-      display: flex; align-items: center; gap: 0.625rem; padding: 0.625rem;
-      min-height: 2.75rem; border-radius: var(--radius-sm);
-      background: none; border: 0.0625rem solid transparent;
+      position: relative;
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem 0.625rem;
+      min-height: 2.75rem; border-radius: var(--radius-md);
+      background: var(--s1); border: 0.0625rem solid transparent;
       cursor: pointer; outline: none; font-family: inherit; text-align: left;
-      width: 100%; transition: background var(--t-fast);
+      width: 100%;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
-    .v4-event-row:hover { background: var(--s2); }
-    .v4-event-row:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-    .v4-event-color-bar { width: 0.1875rem; height: 1.75rem; border-radius: 0.125rem; flex-shrink: 0; transition: box-shadow var(--t-fast); }
-    .v4-event-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
-    .v4-event-title { font-size: var(--fz-base); font-weight: 600; color: var(--t2); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .v4-event-time { font-size: var(--fz-base); font-weight: 400; color: var(--t3); line-height: 1.2; }
-    .v4-event-allday {
-      font-size: var(--fz-xxs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-      color: var(--t3); padding: 0.125rem 0.5rem; border-radius: var(--radius-full);
-      background: var(--s1); border: 0.0625rem solid var(--b1); flex-shrink: 0;
+    @media (hover: hover) and (pointer: fine) {
+      .v4-event-row:hover {
+        background: var(--s2);
+        transform: translateX(2px);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ev-color) 35%, transparent);
+      }
+      .v4-event-row:hover .v4-event-dot { transform: scale(1.15); }
     }
-    .v4-event-row.now { background: rgba(var(--rgb-accent), 0.04); border-color: rgba(var(--rgb-accent), 0.08); }
-    .v4-event-row.now .v4-event-title { color: var(--t1); }
-    .v4-event-row.now .v4-event-time { color: rgb(var(--rgb-accent)); font-weight: 500; }
-    .v4-event-row.now .v4-event-color-bar { box-shadow: 0 0 0.5rem currentColor; }
+    @media (hover: hover) { .v4-event-row:active { transform: translateX(2px) scale(0.99); } }
+    .v4-event-row:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
+
+    /* Calendar color dot (replaces the banned 3px side-stripe) */
+    .v4-event-dot {
+      width: 0.625rem; height: 0.625rem; border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--ev-color);
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+    }
+    .v4-event-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+    .v4-event-title {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .v4-event-time { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); line-height: 1.2; }
+    .v4-event-allday {
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--t3); padding: 0.125rem 0.5rem; border-radius: var(--radius-full);
+      background: var(--s2); border: 0.0625rem solid var(--b1); flex-shrink: 0;
+    }
+
+    /* Now state: ring accent + glow on the dot */
+    .v4-event-row.now {
+      background: color-mix(in srgb, var(--c-accent) 9%, transparent);
+      border-color: color-mix(in srgb, var(--c-accent) 35%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-accent) 25%, transparent) inset;
+    }
+    .v4-event-row.now .v4-event-time {
+      color: rgb(var(--rgb-accent)); font-weight: 600;
+    }
+    .v4-event-row.now .v4-event-dot {
+      box-shadow: 0 0 10px var(--ev-color);
+      animation: cal-dot-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes cal-dot-pulse {
+      0%, 100% { box-shadow: 0 0 10px var(--ev-color); }
+      50%      { box-shadow: 0 0 4px var(--ev-color); }
+    }
 
     /* ── Empty state ── */
-    .v4-event-empty { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 1rem 0 0.5rem; }
-    .v4-event-empty-icon { width: 1.5rem; height: 1.5rem; color: var(--t4); margin-bottom: 0.125rem; }
-    .v4-event-empty-title { font-size: var(--fz-base); font-weight: 600; color: var(--t3); }
-    .v4-event-empty-sub { font-size: var(--fz-sm); font-weight: 400; color: var(--t4); }
+    .v4-event-empty {
+      display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
+      padding: 1rem 1.25rem; text-align: center;
+    }
+    .v4-event-empty .ambient-icon {
+      width: 3rem; height: 3rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-accent) 22%, transparent);
+      box-shadow: 0 0 18px rgba(var(--rgb-accent), 0.15);
+      margin-bottom: 0.25rem;
+    }
+    .v4-event-empty .ambient-svg {
+      width: 1.375rem; height: 1.375rem;
+      color: color-mix(in srgb, var(--c-accent) 75%, var(--t2));
+    }
+    .v4-event-empty-title { font-size: var(--fz-md); font-weight: 700; color: var(--t1); line-height: 1.3; }
+    .v4-event-empty-sub { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
 
     /* ── Legend ── */
-    .v4-cal-legend { display: flex; gap: 0.625rem; padding: 0.5rem 0 0; flex-wrap: wrap; }
+    .v4-cal-legend {
+      display: flex; gap: 0.625rem; padding: 0.5rem 0.125rem 0; flex-wrap: wrap;
+      border-top: 1px solid var(--b1);
+      margin-top: 0.5rem;
+    }
     .v4-cal-legend-item { display: inline-flex; align-items: center; gap: 0.3125rem; }
     .v4-cal-legend-dot { width: 0.375rem; height: 0.375rem; border-radius: 50%; }
     .v4-cal-legend-label { font-size: var(--fz-xs); font-weight: 500; color: var(--t3); }
+
+    /* ── Atmospheric halo at the bottom of the open fold ── */
+    .calendar-card { position: relative; }
+    .calendar-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 50%; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-accent), 0.08), transparent 70%);
+      opacity: 0; transition: opacity var(--t-slow);
+    }
+    .calendar-card.open::after { opacity: 1; }
+    .calendar-card > * { position: relative; z-index: 1; }
 
     /* ── Reduced motion ── */
     @media (prefers-reduced-motion: reduce) {
@@ -8342,9 +8454,12 @@
       .v4-compact-chevron svg,
       .v4-week-day-num,
       .v4-event-row,
-      .v4-event-color-bar { transition-duration: 0.01ms !important; }
+      .v4-event-dot,
+      .calendar-card::after { transition-duration: 0.01ms !important; }
+      .v4-event-row.now .v4-event-dot { animation: none; }
       .v4-ticker-item.above,
       .v4-ticker-item.below { display: none; }
       .v4-ticker-item.active { transform: none; opacity: 1; }
+      .v4-event-row:hover { transform: none; }
     }
   `]}}$a([we({attribute:!1})],za.prototype,"events"),$a([we({type:Boolean,attribute:"show-header"})],za.prototype,"showHeader"),$a([xe()],za.prototype,"_open"),$a([xe()],za.prototype,"_selectedDayOffset"),$a([xe()],za.prototype,"_tickerIdx"),$a([xe()],za.prototype,"_tickerLeavingIdx"),$a([xe()],za.prototype,"_hiddenEntities"),$a([xe()],za.prototype,"_fetchedEvents");try{customElements.define("glass-calendar-card",za)}catch{}function Ea(){window.dispatchEvent(new Event("ll-rebuild"))}!function(){if(a)return;a=!0;const e=history.pushState,t=history.replaceState;history.pushState=function(t,a,s){if(e.call(this,t,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},history.replaceState=function(e,a,s){if(t.call(this,e,a,s),!r){r=!0;try{window.dispatchEvent(new Event("location-changed")),i.emit("location-changed",void 0)}finally{r=!1}}},window.addEventListener("popstate",s)}(),qe||(qe=new je),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>requestAnimationFrame(Ea)):requestAnimationFrame(Ea),window.addEventListener("connection-status",e=>{"connected"===e.detail&&setTimeout(Ea,500)})}();

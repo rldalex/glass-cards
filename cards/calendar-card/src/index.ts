@@ -29,12 +29,14 @@ export interface CalendarEvent {
 
 interface CalDef { color: string; label: string }
 
+// Calendar colors map to framework tokens where possible.
+// `famille` (pink) has no equivalent in the current palette — kept as hex.
 export const CAL_COLORS: Record<string, CalDef> = {
-  perso: { color: '#818cf8', label: 'Personnel' },
-  travail: { color: '#60a5fa', label: 'Travail' },
+  perso: { color: 'var(--c-accent)', label: 'Personnel' },
+  travail: { color: 'var(--c-info)', label: 'Travail' },
   famille: { color: '#f472b6', label: 'Famille' },
-  taches: { color: '#fbbf24', label: 'Tâches' },
-  anniversaires: { color: '#4ade80', label: 'Anniversaires' },
+  taches: { color: 'var(--c-warning)', label: 'Tâches' },
+  anniversaires: { color: 'var(--c-success)', label: 'Anniversaires' },
 };
 
 const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -303,7 +305,6 @@ export class GlassCalendarCard extends BaseCard {
           <div class="v4-fold-inner">
             <div class="card-inner">
               ${this._renderWeekStrip()}
-              <div class="v4-fold-separator"></div>
               ${this._renderEventList()}
               ${this._renderLegend()}
             </div>
@@ -404,36 +405,51 @@ export class GlassCalendarCard extends BaseCard {
   private _renderEventList(): TemplateResult {
     const events = this._eventsForOffset(this._selectedDayOffset);
     const isToday = this._selectedDayOffset === 0;
-    if (events.length === 0) {
-      return html`
-        <div class="v4-event-list">
-          <div class="v4-event-empty">
-            ${this._calendarIcon('v4-event-empty-icon')}
-            <span class="v4-event-empty-title">Rien de prévu</span>
-            <span class="v4-event-empty-sub">${isToday ? 'Profitez de votre journée' : 'Aucun évènement ce jour-là'}</span>
-          </div>
-        </div>
-      `;
-    }
-    return html`
-      <div class="v4-event-list">
-        ${events.map((ev) => {
-          const color = CAL_COLORS[ev.cal]?.color ?? 'rgb(var(--rgb-accent))';
-          const timeLabel = ev.now && ev.time ? `${ev.time} · En cours` : ev.time ?? 'Toute la journée';
-          return html`
-            <button class="v4-event-row ${ev.now ? 'now' : ''}" type="button"
-              aria-label="${ev.title}${ev.time ? `, ${ev.time}` : ', toute la journée'}${ev.now ? ', en cours' : ''}">
-              <span class="v4-event-color-bar" style="background:${color}; color:${color};"></span>
-              <span class="v4-event-content">
-                <span class="v4-event-title">${marqueeText(ev.title, MARQUEE_COMPACT)}</span>
-                <span class="v4-event-time">${timeLabel}</span>
-              </span>
-              ${ev.allday ? html`<span class="v4-event-allday">Journée</span>` : nothing}
-            </button>
-          `;
-        })}
+    const sectionLabel = this._sectionLabelFor(this._selectedDayOffset);
+    const eyebrow = html`
+      <div class="cal-eyebrow">
+        <span class="cal-eyebrow-dot"></span>
+        <span>${sectionLabel}</span>
+        ${events.length > 0 ? html`<span class="cal-eyebrow-count">${events.length}</span>` : nothing}
       </div>
     `;
+    const body = events.length === 0
+      ? html`
+        <div class="v4-event-empty" role="status" aria-live="polite">
+          <div class="ambient-icon">${this._calendarIcon('ambient-svg')}</div>
+          <span class="v4-event-empty-title">Rien de prévu</span>
+          <span class="v4-event-empty-sub">${isToday ? 'Profitez de votre journée' : 'Aucun évènement ce jour-là'}</span>
+        </div>
+      `
+      : html`
+        <div class="v4-event-list">
+          ${events.map((ev) => {
+            const color = CAL_COLORS[ev.cal]?.color ?? 'var(--c-accent)';
+            const timeLabel = ev.now && ev.time ? `${ev.time} · En cours` : ev.time ?? 'Toute la journée';
+            return html`
+              <button class="v4-event-row ${ev.now ? 'now' : ''}" type="button"
+                style="--ev-color: ${color};"
+                aria-label="${ev.title}${ev.time ? `, ${ev.time}` : ', toute la journée'}${ev.now ? ', en cours' : ''}">
+                <span class="v4-event-dot" aria-hidden="true"></span>
+                <span class="v4-event-content">
+                  <span class="v4-event-title">${marqueeText(ev.title, MARQUEE_COMPACT)}</span>
+                  <span class="v4-event-time">${timeLabel}</span>
+                </span>
+                ${ev.allday ? html`<span class="v4-event-allday">Journée</span>` : nothing}
+              </button>
+            `;
+          })}
+        </div>
+      `;
+    return html`<div class="v4-event-section">${eyebrow}${body}</div>`;
+  }
+
+  private _sectionLabelFor(offset: number): string {
+    if (offset === 0) return 'Aujourd\'hui';
+    if (offset === 1) return 'Demain';
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
   }
 
   private _renderLegend(): TemplateResult {
@@ -523,17 +539,26 @@ export class GlassCalendarCard extends BaseCard {
     }
     .v4-compact-sep { width: 0.0625rem; height: 0.75rem; background: var(--b2); flex-shrink: 0; }
 
-    /* ── Chevron (decorative, rotates via parent .open) ── */
+    /* ── Chevron (round, rotates via parent .open) ── */
     .v4-compact-chevron {
-      width: 1.375rem; height: 1.375rem; border-radius: var(--radius-sm);
+      width: 1.625rem; height: 1.625rem; border-radius: 50%;
       background: var(--s2); border: 0.0625rem solid var(--b1);
       display: inline-flex; align-items: center; justify-content: center;
       color: var(--t3); flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast);
+      transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
     }
-    .v4-compact:hover .v4-compact-chevron { background: var(--s3); border-color: var(--b2); }
+    .v4-compact:hover .v4-compact-chevron {
+      background: var(--s3);
+      border-color: rgba(var(--rgb-accent), 0.35);
+      color: rgb(var(--rgb-accent));
+    }
     .v4-compact-chevron svg { width: 0.75rem; height: 0.75rem; transition: transform var(--t-fast); }
     .calendar-card.open .v4-compact-chevron svg { transform: rotate(180deg); }
+    .calendar-card.open .v4-compact-chevron {
+      background: rgba(var(--rgb-accent), 0.12);
+      border-color: rgba(var(--rgb-accent), 0.3);
+      color: rgb(var(--rgb-accent));
+    }
 
     /* ── Ticker ── */
     .v4-ticker-wrap { flex: 1; min-width: 0; height: 1rem; position: relative; overflow: hidden; }
@@ -604,54 +629,153 @@ export class GlassCalendarCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; border-radius: 50%;
       transition: background var(--t-fast), color var(--t-fast);
     }
-    .v4-week-day.today .v4-week-day-num { background: rgba(var(--rgb-accent), 0.2); color: rgb(var(--rgb-accent)); font-weight: 700; }
+    .v4-week-day.today .v4-week-day-num {
+      background: rgba(var(--rgb-accent), 0.2);
+      color: rgb(var(--rgb-accent));
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(var(--rgb-accent), 0.35);
+    }
     .v4-week-day.selected .v4-week-day-num {
       background: rgb(var(--rgb-accent));
       color: rgba(var(--rgb-white), 0.95);
       font-weight: 700;
+      box-shadow: 0 0 14px rgba(var(--rgb-accent), 0.45);
     }
-    .v4-week-day.selected.today .v4-week-day-num { background: rgb(var(--rgb-accent)); color: rgba(var(--rgb-white), 0.95); }
+    .v4-week-day.selected.today .v4-week-day-num {
+      background: rgb(var(--rgb-accent));
+      color: rgba(var(--rgb-white), 0.95);
+      box-shadow: 0 0 14px rgba(var(--rgb-accent), 0.5);
+    }
     .v4-week-day-dots { display: inline-flex; gap: 0.1875rem; min-height: 0.25rem; }
     .v4-week-dot { width: 0.25rem; height: 0.25rem; border-radius: 50%; }
+    @media (pointer: coarse) {
+      .v4-week-day { position: relative; }
+      .v4-week-day::after { content: ''; position: absolute; inset: -0.25rem 0; }
+    }
 
-    /* ── Event list ── */
-    .v4-fold-separator { height: 0.0625rem; background: var(--b1); margin-bottom: 0.5rem; }
-    .v4-event-list { display: flex; flex-direction: column; gap: 0.125rem; margin-bottom: 0.5rem; }
+    /* ── Event section (eyebrow + list) ── */
+    .v4-event-section { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
+    .cal-eyebrow {
+      display: flex; align-items: center; gap: 0.4375rem;
+      padding: 0 0.125rem;
+      min-height: 1.625rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .cal-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: rgb(var(--rgb-accent));
+      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
+    }
+    .cal-eyebrow-count {
+      margin-left: auto;
+      font-size: var(--fz-xs); font-weight: 600; color: var(--t4);
+      padding: 0 0.375rem; height: 1rem;
+      border-radius: var(--radius-full);
+      background: var(--s2);
+      display: inline-flex; align-items: center; line-height: 1;
+    }
+
+    .v4-event-list { display: flex; flex-direction: column; gap: 0.1875rem; }
     .v4-event-row {
-      display: flex; align-items: center; gap: 0.625rem; padding: 0.625rem;
-      min-height: 2.75rem; border-radius: var(--radius-sm);
-      background: none; border: 0.0625rem solid transparent;
+      position: relative;
+      display: flex; align-items: center; gap: 0.625rem;
+      padding: 0.5rem 0.625rem;
+      min-height: 2.75rem; border-radius: var(--radius-md);
+      background: var(--s1); border: 0.0625rem solid transparent;
       cursor: pointer; outline: none; font-family: inherit; text-align: left;
-      width: 100%; transition: background var(--t-fast);
+      width: 100%;
+      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
-    .v4-event-row:hover { background: var(--s2); }
-    .v4-event-row:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-    .v4-event-color-bar { width: 0.1875rem; height: 1.75rem; border-radius: 0.125rem; flex-shrink: 0; transition: box-shadow var(--t-fast); }
-    .v4-event-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
-    .v4-event-title { font-size: var(--fz-base); font-weight: 600; color: var(--t2); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .v4-event-time { font-size: var(--fz-base); font-weight: 400; color: var(--t3); line-height: 1.2; }
-    .v4-event-allday {
-      font-size: var(--fz-xxs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-      color: var(--t3); padding: 0.125rem 0.5rem; border-radius: var(--radius-full);
-      background: var(--s1); border: 0.0625rem solid var(--b1); flex-shrink: 0;
+    @media (hover: hover) and (pointer: fine) {
+      .v4-event-row:hover {
+        background: var(--s2);
+        transform: translateX(2px);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ev-color) 35%, transparent);
+      }
+      .v4-event-row:hover .v4-event-dot { transform: scale(1.15); }
     }
-    .v4-event-row.now { background: rgba(var(--rgb-accent), 0.04); border-color: rgba(var(--rgb-accent), 0.08); }
-    .v4-event-row.now .v4-event-title { color: var(--t1); }
-    .v4-event-row.now .v4-event-time { color: rgb(var(--rgb-accent)); font-weight: 500; }
-    .v4-event-row.now .v4-event-color-bar { box-shadow: 0 0 0.5rem currentColor; }
+    @media (hover: hover) { .v4-event-row:active { transform: translateX(2px) scale(0.99); } }
+    .v4-event-row:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
+
+    /* Calendar color dot (replaces the banned 3px side-stripe) */
+    .v4-event-dot {
+      width: 0.625rem; height: 0.625rem; border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--ev-color);
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+    }
+    .v4-event-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+    .v4-event-title {
+      font-size: var(--fz-base); font-weight: 600; color: var(--t1); line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .v4-event-time { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); line-height: 1.2; }
+    .v4-event-allday {
+      font-size: var(--fz-xxs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--t3); padding: 0.125rem 0.5rem; border-radius: var(--radius-full);
+      background: var(--s2); border: 0.0625rem solid var(--b1); flex-shrink: 0;
+    }
+
+    /* Now state: ring accent + glow on the dot */
+    .v4-event-row.now {
+      background: color-mix(in srgb, var(--c-accent) 9%, transparent);
+      border-color: color-mix(in srgb, var(--c-accent) 35%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-accent) 25%, transparent) inset;
+    }
+    .v4-event-row.now .v4-event-time {
+      color: rgb(var(--rgb-accent)); font-weight: 600;
+    }
+    .v4-event-row.now .v4-event-dot {
+      box-shadow: 0 0 10px var(--ev-color);
+      animation: cal-dot-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes cal-dot-pulse {
+      0%, 100% { box-shadow: 0 0 10px var(--ev-color); }
+      50%      { box-shadow: 0 0 4px var(--ev-color); }
+    }
 
     /* ── Empty state ── */
-    .v4-event-empty { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 1rem 0 0.5rem; }
-    .v4-event-empty-icon { width: 1.5rem; height: 1.5rem; color: var(--t4); margin-bottom: 0.125rem; }
-    .v4-event-empty-title { font-size: var(--fz-base); font-weight: 600; color: var(--t3); }
-    .v4-event-empty-sub { font-size: var(--fz-sm); font-weight: 400; color: var(--t4); }
+    .v4-event-empty {
+      display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
+      padding: 1rem 1.25rem; text-align: center;
+    }
+    .v4-event-empty .ambient-icon {
+      width: 3rem; height: 3rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-accent) 22%, transparent);
+      box-shadow: 0 0 18px rgba(var(--rgb-accent), 0.15);
+      margin-bottom: 0.25rem;
+    }
+    .v4-event-empty .ambient-svg {
+      width: 1.375rem; height: 1.375rem;
+      color: color-mix(in srgb, var(--c-accent) 75%, var(--t2));
+    }
+    .v4-event-empty-title { font-size: var(--fz-md); font-weight: 700; color: var(--t1); line-height: 1.3; }
+    .v4-event-empty-sub { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
 
     /* ── Legend ── */
-    .v4-cal-legend { display: flex; gap: 0.625rem; padding: 0.5rem 0 0; flex-wrap: wrap; }
+    .v4-cal-legend {
+      display: flex; gap: 0.625rem; padding: 0.5rem 0.125rem 0; flex-wrap: wrap;
+      border-top: 1px solid var(--b1);
+      margin-top: 0.5rem;
+    }
     .v4-cal-legend-item { display: inline-flex; align-items: center; gap: 0.3125rem; }
     .v4-cal-legend-dot { width: 0.375rem; height: 0.375rem; border-radius: 50%; }
     .v4-cal-legend-label { font-size: var(--fz-xs); font-weight: 500; color: var(--t3); }
+
+    /* ── Atmospheric halo at the bottom of the open fold ── */
+    .calendar-card { position: relative; }
+    .calendar-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 50%; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-accent), 0.08), transparent 70%);
+      opacity: 0; transition: opacity var(--t-slow);
+    }
+    .calendar-card.open::after { opacity: 1; }
+    .calendar-card > * { position: relative; z-index: 1; }
 
     /* ── Reduced motion ── */
     @media (prefers-reduced-motion: reduce) {
@@ -662,10 +786,13 @@ export class GlassCalendarCard extends BaseCard {
       .v4-compact-chevron svg,
       .v4-week-day-num,
       .v4-event-row,
-      .v4-event-color-bar { transition-duration: 0.01ms !important; }
+      .v4-event-dot,
+      .calendar-card::after { transition-duration: 0.01ms !important; }
+      .v4-event-row.now .v4-event-dot { animation: none; }
       .v4-ticker-item.above,
       .v4-ticker-item.below { display: none; }
       .v4-ticker-item.active { transform: none; opacity: 1; }
+      .v4-event-row:hover { transform: none; }
     }
   `];
 }
