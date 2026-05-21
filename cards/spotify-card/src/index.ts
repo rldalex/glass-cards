@@ -43,6 +43,14 @@ interface SpotifyItem {
 
 type ViewMode = 'library' | 'search' | 'drilldown' | 'speaker_picker';
 type TabId = 'all' | 'tracks' | 'playlists' | 'podcasts';
+type LibraryCategory = 'playlists' | 'recently_played' | 'saved_tracks' | 'saved_shows';
+
+const LIB_SECTION_LABEL_KEY: Record<LibraryCategory, Parameters<typeof t>[0]> = {
+  playlists: 'spotify.my_playlists',
+  recently_played: 'spotify.recently_played',
+  saved_tracks: 'spotify.saved_tracks',
+  saved_shows: 'spotify.followed_podcasts',
+};
 
 interface DrilldownState {
   title: string;
@@ -164,6 +172,16 @@ class GlassSpotifyCard extends BaseCard {
       background: radial-gradient(ellipse at 20% 20%, rgba(var(--rgb-spotify),0.12), transparent 70%);
       opacity: 0.6;
     }
+    .spotify-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 60%; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-spotify), 0.10), transparent 70%);
+      opacity: 0; transition: opacity var(--t-slow);
+    }
+    .spotify-card.fold-open::after { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .spotify-card::after { transition: none; }
+    }
 
     /* Search */
     .search-row { display: flex; gap: 0.375rem; align-items: center; }
@@ -242,27 +260,46 @@ class GlassSpotifyCard extends BaseCard {
     }
     .sp-fold.open + .sp-fold-sep { opacity: 1; }
 
-    /* Tabs */
-    .tab-bar {
-      display: flex; gap: 0; border-radius: var(--radius-md);
-      background: var(--s1); border: 1px solid var(--b1); overflow: hidden;
+    /* Tabs — sliding rail */
+    .tab-rail {
+      position: relative;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      padding: 0.1875rem;
+      border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+    }
+    .tab-rail-capsule {
+      position: absolute; top: 0.1875rem; bottom: 0.1875rem;
+      left: 0.1875rem; width: calc((100% - 0.375rem) / 4);
+      border-radius: calc(var(--radius-md) - 0.1875rem);
+      background: color-mix(in srgb, var(--c-spotify) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-spotify) 30%, transparent);
+      box-shadow: 0 1px 6px color-mix(in srgb, var(--c-spotify) 25%, transparent);
+      transform: translateX(calc(var(--tab-active-idx, 0) * 100%));
+      transition: transform var(--t-layout);
+      pointer-events: none;
+      z-index: 0;
     }
     .tab-btn {
-      flex: 1; height: 1.875rem;
-      display: flex; align-items: center; justify-content: center; gap: 0.25rem;
+      position: relative; z-index: 1;
+      height: 1.875rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
       background: transparent; border: none; color: var(--t3);
       font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
+      cursor: pointer; outline: none; padding: 0;
+      transition: color var(--t-fast), transform var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
     .tab-btn ha-icon { --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:not(.active):hover { color: var(--t2); } }
     .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .tab-btn:active { animation: bounce 0.3s ease; } }
-    .tab-btn.active { background: rgba(var(--rgb-spotify),0.1); color: var(--c-spotify); }
-    .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
+    .tab-btn.active { color: var(--c-spotify); font-weight: 700; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tab-rail-capsule { transition: none; }
+    }
 
     /* Content area */
     .content-area {
@@ -271,23 +308,65 @@ class GlassSpotifyCard extends BaseCard {
     }
     .content-area::-webkit-scrollbar { display: none; }
 
-    /* Section title */
+    /* Section title (drilldown / search result groups) */
     .section-title {
       font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.2px; color: var(--t4); padding: 0.25rem 0.125rem 0.125rem; flex-shrink: 0;
     }
 
+    /* Library section with eyebrow */
+    .lib-section { display: flex; flex-direction: column; gap: 0.375rem; flex-shrink: 0; }
+    .lib-eyebrow {
+      display: flex; align-items: center; gap: 0.4375rem;
+      padding: 0 0.125rem;
+      min-height: 1.625rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .lib-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--lib-dot-color, var(--t3));
+      box-shadow: 0 0 6px var(--lib-dot-glow, transparent);
+    }
+    .lib-eyebrow-recents   { --lib-dot-color: var(--cl-heat);   --lib-dot-glow: rgba(var(--rgb-heat), 0.45); }
+    .lib-eyebrow-playlists { --lib-dot-color: var(--c-spotify); --lib-dot-glow: rgba(var(--rgb-spotify), 0.45); }
+    .lib-eyebrow-saved     { --lib-dot-color: var(--c-accent);  --lib-dot-glow: rgba(var(--rgb-accent), 0.45); }
+    .lib-eyebrow-podcasts  { --lib-dot-color: var(--c-purple);  --lib-dot-glow: rgba(var(--rgb-purple), 0.45); }
+
+    /* Load more (text link, right-aligned inside eyebrow) */
+    .lib-more-link {
+      position: relative;
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      background: none; border: none; padding: 0.25rem 0.375rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+      color: var(--t3); cursor: pointer; outline: none;
+      transition: color var(--t-fast), background var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lib-more-link .lib-more-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
+    .lib-more-link:disabled { opacity: 0.5; cursor: default; }
+    @media (hover: hover) and (pointer: fine) {
+      .lib-more-link:not(:disabled):hover { color: var(--c-spotify); background: var(--s1); }
+      .lib-more-link:not(:disabled):hover .lib-more-count { color: color-mix(in srgb, var(--c-spotify) 60%, var(--t3)); }
+    }
+    .lib-more-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -1px; }
+
     /* Result row */
     .result-row {
       display: flex; align-items: center; gap: 0.625rem;
-      padding: 0.375rem 0.25rem; cursor: pointer; position: relative;
-      transition: background var(--t-fast); border-radius: var(--radius-md);
+      padding: 0.375rem 0.5rem 0.375rem 0.25rem; cursor: pointer; position: relative;
+      transition: background var(--t-fast), transform var(--t-fast); border-radius: var(--radius-md);
       flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
       font-family: inherit; text-align: left; color: inherit; outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    @media (hover: hover) and (pointer: fine) { .result-row:hover { background: var(--s1); } }
-    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: scale(0.99); } }
+    @media (hover: hover) and (pointer: fine) {
+      .result-row:hover { background: var(--s1); transform: translateX(2px); }
+      .result-row:hover .result-art { box-shadow: 0 0 0 1px rgba(var(--rgb-spotify), 0.35), 0 4px 12px rgba(var(--rgb-black), 0.2); }
+    }
+    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: translateX(2px) scale(0.99); } }
     @media (pointer: coarse) { .result-row:active { animation: bounce 0.3s ease; } }
     .result-row:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
@@ -296,10 +375,18 @@ class GlassSpotifyCard extends BaseCard {
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; position: relative;
+      transition: box-shadow var(--t-fast), transform var(--t-fast);
     }
     .result-art.round { border-radius: 50%; }
     .result-art img { width: 100%; height: 100%; object-fit: cover; }
     .result-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .result-row, .result-row:hover { transform: none; }
+      .playlist-art-play { transition: none; }
+      .playlist-art-overlay { transition: none; }
+      .lib-eyebrow-dot { box-shadow: none; }
+    }
 
     .result-info { flex: 1; min-width: 0; }
     .result-title {
@@ -325,7 +412,7 @@ class GlassSpotifyCard extends BaseCard {
       -webkit-tap-highlight-color: transparent;
       opacity: 0; transform: scale(0.8); flex-shrink: 0;
     }
-    .result-play ha-icon { --mdc-icon-size: 1rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    .result-play ha-icon { --mdc-icon-size: 1rem; color: rgb(6, 16, 10); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
     @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
     @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
@@ -353,30 +440,63 @@ class GlassSpotifyCard extends BaseCard {
       width: 5.25rem; height: 5.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
-      overflow: hidden; position: relative; transition: border-color var(--t-fast);
+      overflow: hidden; position: relative;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    @media (hover: hover) and (pointer: fine) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-art {
+        border-color: color-mix(in srgb, var(--c-spotify) 40%, transparent);
+        box-shadow: 0 8px 24px rgba(var(--rgb-black), 0.35);
+      }
+    }
     .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
-    .playlist-art ha-icon { --mdc-icon-size: 2rem; color: rgba(var(--rgb-white),0.4); display: flex; align-items: center; justify-content: center; }
+    .playlist-art-fallback {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--c-spotify) 25%, var(--s3)), var(--s2));
+    }
+    .playlist-art-fallback ha-icon {
+      --mdc-icon-size: 2rem;
+      color: color-mix(in srgb, var(--c-spotify) 60%, rgba(var(--rgb-white),0.4));
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Hover overlay: bottom gradient + play CTA reveal */
+    .playlist-art-overlay {
+      position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to top, rgba(var(--rgb-black), 0.55), transparent 55%);
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-art-overlay { opacity: 1; }
+    }
 
     .playlist-art-play {
-      position: absolute; bottom: 0.375rem; right: 0.375rem;
-      width: 1.75rem; height: 1.75rem; border-radius: 50%;
+      position: absolute; bottom: 0.4375rem; right: 0.4375rem;
+      width: 2rem; height: 2rem; border-radius: 50%;
       background: var(--c-spotify);
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transform: translateY(4px);
+      opacity: 0; transform: translateY(6px) scale(0.85);
       transition: opacity var(--t-fast), transform var(--t-fast);
-      box-shadow: 0 4px 12px rgba(var(--rgb-black),0.4);
+      box-shadow: 0 6px 18px rgba(var(--rgb-black),0.45), 0 0 12px rgba(var(--rgb-spotify), 0.4);
       pointer-events: none;
     }
-    .playlist-art-play ha-icon { --mdc-icon-size: var(--icon-sm); color: #000; display: flex; align-items: center; justify-content: center; }
+    .playlist-art-play ha-icon {
+      --mdc-icon-size: 1.125rem;
+      color: rgb(6, 16, 10);
+      display: flex; align-items: center; justify-content: center;
+    }
     @media (hover: hover) and (pointer: fine) {
-      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
+      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .playlist-name {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t2); line-height: 1.3;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      transition: color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-name { color: var(--t1); }
     }
     .playlist-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
 
@@ -568,16 +688,20 @@ class GlassSpotifyCard extends BaseCard {
 
     /* Now playing indicator */
     .result-row.now-playing {
-      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
-      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--c-spotify) 10%, transparent);
+      border-radius: var(--radius-md);
     }
     .result-row.now-playing .result-title {
-      color: var(--c-accent);
+      color: var(--c-spotify);
+    }
+    .result-row.now-playing .result-art {
+      box-shadow: 0 0 0 2px var(--c-spotify), 0 0 16px rgba(var(--rgb-spotify), 0.35);
     }
     .result-row .eq-bars { flex-shrink: 0; }
 
     /* Heart (favorite) button */
     .heart-btn {
+      position: relative;
       width: 1.5rem; height: 1.5rem;
       border-radius: var(--radius-sm);
       background: transparent; border: none;
@@ -603,22 +727,18 @@ class GlassSpotifyCard extends BaseCard {
       }
     }
 
-    /* Load more (library pagination) */
-    .load-more {
-      width: 100%;
-      margin-top: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .items-count {
-      font-size: var(--fz-sm);
-      color: var(--t3);
-    }
-
     /* Loading spinner placeholder */
     .loading-text { font-size: var(--fz-base); color: var(--t4); text-align: center; padding: 1rem 0; }
+
+    /* Touch hit-area expansion to reach 44px on touch devices */
+    @media (pointer: coarse) {
+      .tab-btn::after,
+      .lib-more-link::after,
+      .heart-btn::after { content: ''; position: absolute; }
+      .tab-btn::after    { left: 0; right: 0; top: -0.4375rem; bottom: -0.4375rem; }
+      .lib-more-link::after { left: 0; right: 0; top: -0.625rem; bottom: -0.625rem; }
+      .heart-btn::after  { inset: -0.625rem; }
+    }
   `];
 
   // — Entity helpers —
@@ -1107,13 +1227,19 @@ class GlassSpotifyCard extends BaseCard {
     }
   }
 
-  private _renderLoadMore(category: string, currentCount: number): TemplateResult | typeof nothing {
+  private _renderLoadMore(category: LibraryCategory, currentCount: number): TemplateResult | typeof nothing {
     const total = this._sectionTotals[category] ?? 0;
     if (currentCount >= total) return nothing;
+    const loading = this._loadingMore[category];
+    const sectionLabel = t(LIB_SECTION_LABEL_KEY[category]);
     return html`
-      <button class="load-more-btn load-more" ?disabled=${this._loadingMore[category]} @click=${() => this._loadMoreItems(category)}>
-        ${t('spotify.load_more')}
-        <span class="items-count">${t('spotify.items_count', { current: String(currentCount), total: String(total) })}</span>
+      <button
+        class="lib-more-link"
+        ?disabled=${loading}
+        aria-label="${t('spotify.load_more')} ${sectionLabel} (${currentCount}/${total})"
+        @click=${(e: Event) => { e.stopPropagation(); this._loadMoreItems(category); }}
+      >
+        ${loading ? t('spotify.loading') : html`<span aria-hidden="true">${t('spotify.load_more')}</span><span class="lib-more-count" aria-hidden="true">${currentCount} / ${total}</span>`}
       </button>
     `;
   }
@@ -1237,7 +1363,7 @@ class GlassSpotifyCard extends BaseCard {
             </div>
           </div>
         ` : nothing}
-        <div class="glass spotify-card">
+        <div class="glass spotify-card ${this._foldOpen ? 'fold-open' : ''}">
           <div class="tint"></div>
           <div class="card-inner">${content}</div>
         </div>
@@ -1284,11 +1410,14 @@ class GlassSpotifyCard extends BaseCard {
       { id: 'playlists', labelKey: 'spotify.tab_playlists', icon: 'mdi:playlist-music' },
       { id: 'podcasts', labelKey: 'spotify.tab_podcasts', icon: 'mdi:podcast' },
     ];
+    const activeIdx = tabs.findIndex((t) => t.id === this._tab);
     return html`
-      <div class="tab-bar">
+      <div class="tab-rail" style="--tab-active-idx: ${activeIdx};">
+        <div class="tab-rail-capsule" aria-hidden="true"></div>
         ${tabs.map((tab) => html`
           <button
             class="tab-btn ${this._tab === tab.id ? 'active' : ''}"
+            aria-pressed=${this._tab === tab.id ? 'true' : 'false'}
             aria-label=${t(tab.labelKey as Parameters<typeof t>[0])}
             @click=${() => { this._tab = tab.id; if (this._searchQuery) { this._searchOffset = 0; this._doSearch(false); } }}
           >
@@ -1325,35 +1454,55 @@ class GlassSpotifyCard extends BaseCard {
 
     return html`
       ${showPlaylists && this._playlists.length > 0 ? html`
-        <div class="section-title">${t('spotify.my_playlists')}</div>
-        <div class="playlist-scroll">
-          ${this._playlists.map((pl) => this._renderPlaylistCard(pl))}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-playlists">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${t('spotify.my_playlists')}</span>
+            ${this._renderLoadMore('playlists', this._playlists.length)}
+          </div>
+          <div class="playlist-scroll">
+            ${this._playlists.map((pl) => this._renderPlaylistCard(pl))}
+          </div>
         </div>
-        ${this._renderLoadMore('playlists', this._playlists.length)}
       ` : nothing}
 
       ${showTracks && this._recentlyPlayed.length > 0 ? html`
-        <div class="section-title">${t('spotify.recently_played')}</div>
-        ${this._recentlyPlayed.map((item) => {
-          const track = item.track ?? item;
-          return this._renderResultRow(track, track.type ?? 'track');
-        })}
-        ${this._renderLoadMore('recently_played', this._recentlyPlayed.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-recents">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${t('spotify.recently_played')}</span>
+            ${this._renderLoadMore('recently_played', this._recentlyPlayed.length)}
+          </div>
+          ${this._recentlyPlayed.map((item) => {
+            const track = item.track ?? item;
+            return this._renderResultRow(track, track.type ?? 'track');
+          })}
+        </div>
       ` : nothing}
 
       ${showTracks && this._savedTracks.length > 0 ? html`
-        <div class="section-title">${t('spotify.saved_tracks')}</div>
-        ${this._savedTracks.map((item) => {
-          const track = item.track ?? item;
-          return this._renderResultRow(track, 'track');
-        })}
-        ${this._renderLoadMore('saved_tracks', this._savedTracks.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-saved">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${t('spotify.saved_tracks')}</span>
+            ${this._renderLoadMore('saved_tracks', this._savedTracks.length)}
+          </div>
+          ${this._savedTracks.map((item) => {
+            const track = item.track ?? item;
+            return this._renderResultRow(track, 'track');
+          })}
+        </div>
       ` : nothing}
 
       ${showPodcasts && this._savedShows.length > 0 ? html`
-        <div class="section-title">${t('spotify.followed_podcasts')}</div>
-        ${this._savedShows.map((show) => this._renderResultRow({ ...show, type: 'show' as const }, 'show'))}
-        ${this._renderLoadMore('saved_shows', this._savedShows.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-podcasts">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${t('spotify.followed_podcasts')}</span>
+            ${this._renderLoadMore('saved_shows', this._savedShows.length)}
+          </div>
+          ${this._savedShows.map((show) => this._renderResultRow({ ...show, type: 'show' as const }, 'show'))}
+        </div>
       ` : nothing}
     `;
   }
@@ -1367,10 +1516,11 @@ class GlassSpotifyCard extends BaseCard {
         aria-label=${pl.name}
         @click=${() => this._openDrilldown('playlist', pl.id, pl.name)}
       >
-        <div class="playlist-art" style=${img ? '' : 'background:#3040a0'}>
+        <div class="playlist-art">
           ${img
             ? html`<img src=${img} alt="" loading="lazy" />`
-            : html`<ha-icon .icon=${'mdi:playlist-music'}></ha-icon>`}
+            : html`<div class="playlist-art-fallback"><ha-icon .icon=${'mdi:playlist-music'}></ha-icon></div>`}
+          <div class="playlist-art-overlay" aria-hidden="true"></div>
           <div class="playlist-art-play"><ha-icon .icon=${'mdi:play'}></ha-icon></div>
         </div>
         <div class="playlist-name">${pl.name}</div>

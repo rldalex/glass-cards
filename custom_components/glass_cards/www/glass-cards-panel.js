@@ -7266,7 +7266,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${et("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${et("config.title")}</span>
-          <span class="page-subtitle">${et("config.brand")} <span class="page-version">v${"0.0.192"}</span></span>
+          <span class="page-subtitle">${et("config.brand")} <span class="page-version">v${"0.0.193"}</span></span>
         </div>
 
         <div class="glass config-panel">
@@ -12209,7 +12209,7 @@
         .avatar-wrapper:active,
         .notif-send:active { animation: bounce 0.3s ease; }
       }
-    `]}}yr([ue()],kr.prototype,"_presenceConfig"),yr([ue()],kr.prototype,"_activePerson"),yr([ue()],kr.prototype,"_notifText"),yr([ue()],kr.prototype,"_notifSent");try{customElements.define("glass-presence-card",kr)}catch{}st("glass-spotify-card-editor");var $r=Object.defineProperty,Sr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&$r(t,i,s),s};function Cr(e,t=300){if(!e)return"";const i=e.images??e.album?.images??[];if(0===i.length)return"";const a=[...i].sort((e,i)=>Math.abs((e.width??300)-t)-Math.abs((i.width??300)-t));return a[0]?.url??""}function Ir(e){return e&&e.artists?.length?e.artists.map(e=>e.name).join(", "):""}function Er(e){switch(e){case"track":default:return"mdi:music-note";case"playlist":return"mdi:playlist-music";case"album":return"mdi:album";case"show":case"podcast":case"episode":return"mdi:podcast"}}class zr extends ct{constructor(){super(...arguments),this._view="library",this._tab="all",this._searchQuery="",this._playlists=[],this._recentlyPlayed=[],this._savedTracks=[],this._savedShows=[],this._searchResults={tracks:[],playlists:[],shows:[]},this._searchLoading=!1,this._searchOffset=0,this._searchHasMore=!1,this._searchVersion=0,this._drilldown=null,this._speakers=[],this._pickerItem=null,this._selectedSpeakers=new Set,this._error=null,this._libraryLoading=!1,this._spotifyConfigured=null,this._foldOpen=!1,this._savedMap=new Map,this._sectionTotals={},this._loadingMore={},this._spotifyConfig={entity_id:"",show_header:!0,sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},this._configLoaded=!1,this._configLoadingInProgress=!1,this._loadVersion=0,this._radioQueueVersion=0,this._debounceTimer=0}static getConfigElement(){return document.createElement("glass-spotify-card-editor")}getCardSize(){return 4}static{this.styles=[$e,Se,Ce,De,Te,s`
+    `]}}yr([ue()],kr.prototype,"_presenceConfig"),yr([ue()],kr.prototype,"_activePerson"),yr([ue()],kr.prototype,"_notifText"),yr([ue()],kr.prototype,"_notifSent");try{customElements.define("glass-presence-card",kr)}catch{}st("glass-spotify-card-editor");var $r=Object.defineProperty,Sr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&$r(t,i,s),s};const Cr={playlists:"spotify.my_playlists",recently_played:"spotify.recently_played",saved_tracks:"spotify.saved_tracks",saved_shows:"spotify.followed_podcasts"};function Ir(e,t=300){if(!e)return"";const i=e.images??e.album?.images??[];if(0===i.length)return"";const a=[...i].sort((e,i)=>Math.abs((e.width??300)-t)-Math.abs((i.width??300)-t));return a[0]?.url??""}function Er(e){return e&&e.artists?.length?e.artists.map(e=>e.name).join(", "):""}function zr(e){switch(e){case"track":default:return"mdi:music-note";case"playlist":return"mdi:playlist-music";case"album":return"mdi:album";case"show":case"podcast":case"episode":return"mdi:podcast"}}class Dr extends ct{constructor(){super(...arguments),this._view="library",this._tab="all",this._searchQuery="",this._playlists=[],this._recentlyPlayed=[],this._savedTracks=[],this._savedShows=[],this._searchResults={tracks:[],playlists:[],shows:[]},this._searchLoading=!1,this._searchOffset=0,this._searchHasMore=!1,this._searchVersion=0,this._drilldown=null,this._speakers=[],this._pickerItem=null,this._selectedSpeakers=new Set,this._error=null,this._libraryLoading=!1,this._spotifyConfigured=null,this._foldOpen=!1,this._savedMap=new Map,this._sectionTotals={},this._loadingMore={},this._spotifyConfig={entity_id:"",show_header:!0,sort_order:"recent_first",max_items_per_section:6,visible_speakers:[]},this._configLoaded=!1,this._configLoadingInProgress=!1,this._loadVersion=0,this._radioQueueVersion=0,this._debounceTimer=0}static getConfigElement(){return document.createElement("glass-spotify-card-editor")}getCardSize(){return 4}static{this.styles=[$e,Se,Ce,De,Te,s`
     :host { width: 100%; user-select: none; -webkit-user-select: none; }
 
     .spotify-card-wrap { display: flex; flex-direction: column; gap: 0.375rem; }
@@ -12230,6 +12230,16 @@
       pointer-events: none; z-index: 0;
       background: radial-gradient(ellipse at 20% 20%, rgba(var(--rgb-spotify),0.12), transparent 70%);
       opacity: 0.6;
+    }
+    .spotify-card::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 60%; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(var(--rgb-spotify), 0.10), transparent 70%);
+      opacity: 0; transition: opacity var(--t-slow);
+    }
+    .spotify-card.fold-open::after { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .spotify-card::after { transition: none; }
     }
 
     /* Search */
@@ -12309,27 +12319,46 @@
     }
     .sp-fold.open + .sp-fold-sep { opacity: 1; }
 
-    /* Tabs */
-    .tab-bar {
-      display: flex; gap: 0; border-radius: var(--radius-md);
-      background: var(--s1); border: 1px solid var(--b1); overflow: hidden;
+    /* Tabs — sliding rail */
+    .tab-rail {
+      position: relative;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      padding: 0.1875rem;
+      border-radius: var(--radius-md);
+      background: var(--s1); border: 1px solid var(--b1);
+    }
+    .tab-rail-capsule {
+      position: absolute; top: 0.1875rem; bottom: 0.1875rem;
+      left: 0.1875rem; width: calc((100% - 0.375rem) / 4);
+      border-radius: calc(var(--radius-md) - 0.1875rem);
+      background: color-mix(in srgb, var(--c-spotify) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-spotify) 30%, transparent);
+      box-shadow: 0 1px 6px color-mix(in srgb, var(--c-spotify) 25%, transparent);
+      transform: translateX(calc(var(--tab-active-idx, 0) * 100%));
+      transition: transform var(--t-layout);
+      pointer-events: none;
+      z-index: 0;
     }
     .tab-btn {
-      flex: 1; height: 1.875rem;
-      display: flex; align-items: center; justify-content: center; gap: 0.25rem;
+      position: relative; z-index: 1;
+      height: 1.875rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
       background: transparent; border: none; color: var(--t3);
       font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
+      cursor: pointer; outline: none; padding: 0;
+      transition: color var(--t-fast), transform var(--t-fast);
       -webkit-tap-highlight-color: transparent;
     }
     .tab-btn ha-icon { --mdc-icon-size: var(--icon-sm); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .tab-btn:hover { background: var(--s2); color: var(--t2); } }
+    @media (hover: hover) and (pointer: fine) { .tab-btn:not(.active):hover { color: var(--t2); } }
     .tab-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
     @media (hover: hover) and (pointer: fine) { .tab-btn:active { transform: scale(0.96); } }
     @media (pointer: coarse) { .tab-btn:active { animation: bounce 0.3s ease; } }
-    .tab-btn.active { background: rgba(var(--rgb-spotify),0.1); color: var(--c-spotify); }
-    .tab-btn + .tab-btn { border-left: 1px solid var(--b1); }
+    .tab-btn.active { color: var(--c-spotify); font-weight: 700; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tab-rail-capsule { transition: none; }
+    }
 
     /* Content area */
     .content-area {
@@ -12338,23 +12367,65 @@
     }
     .content-area::-webkit-scrollbar { display: none; }
 
-    /* Section title */
+    /* Section title (drilldown / search result groups) */
     .section-title {
       font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
       letter-spacing: 1.2px; color: var(--t4); padding: 0.25rem 0.125rem 0.125rem; flex-shrink: 0;
     }
 
+    /* Library section with eyebrow */
+    .lib-section { display: flex; flex-direction: column; gap: 0.375rem; flex-shrink: 0; }
+    .lib-eyebrow {
+      display: flex; align-items: center; gap: 0.4375rem;
+      padding: 0 0.125rem;
+      min-height: 1.625rem;
+      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
+      letter-spacing: 0.1px;
+    }
+    .lib-eyebrow-dot {
+      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--lib-dot-color, var(--t3));
+      box-shadow: 0 0 6px var(--lib-dot-glow, transparent);
+    }
+    .lib-eyebrow-recents   { --lib-dot-color: var(--cl-heat);   --lib-dot-glow: rgba(var(--rgb-heat), 0.45); }
+    .lib-eyebrow-playlists { --lib-dot-color: var(--c-spotify); --lib-dot-glow: rgba(var(--rgb-spotify), 0.45); }
+    .lib-eyebrow-saved     { --lib-dot-color: var(--c-accent);  --lib-dot-glow: rgba(var(--rgb-accent), 0.45); }
+    .lib-eyebrow-podcasts  { --lib-dot-color: var(--c-purple);  --lib-dot-glow: rgba(var(--rgb-purple), 0.45); }
+
+    /* Load more (text link, right-aligned inside eyebrow) */
+    .lib-more-link {
+      position: relative;
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 0.4375rem;
+      background: none; border: none; padding: 0.25rem 0.375rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
+      color: var(--t3); cursor: pointer; outline: none;
+      transition: color var(--t-fast), background var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lib-more-link .lib-more-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
+    .lib-more-link:disabled { opacity: 0.5; cursor: default; }
+    @media (hover: hover) and (pointer: fine) {
+      .lib-more-link:not(:disabled):hover { color: var(--c-spotify); background: var(--s1); }
+      .lib-more-link:not(:disabled):hover .lib-more-count { color: color-mix(in srgb, var(--c-spotify) 60%, var(--t3)); }
+    }
+    .lib-more-link:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -1px; }
+
     /* Result row */
     .result-row {
       display: flex; align-items: center; gap: 0.625rem;
-      padding: 0.375rem 0.25rem; cursor: pointer; position: relative;
-      transition: background var(--t-fast); border-radius: var(--radius-md);
+      padding: 0.375rem 0.5rem 0.375rem 0.25rem; cursor: pointer; position: relative;
+      transition: background var(--t-fast), transform var(--t-fast); border-radius: var(--radius-md);
       flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
       font-family: inherit; text-align: left; color: inherit; outline: none;
       -webkit-tap-highlight-color: transparent;
     }
-    @media (hover: hover) and (pointer: fine) { .result-row:hover { background: var(--s1); } }
-    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: scale(0.99); } }
+    @media (hover: hover) and (pointer: fine) {
+      .result-row:hover { background: var(--s1); transform: translateX(2px); }
+      .result-row:hover .result-art { box-shadow: 0 0 0 1px rgba(var(--rgb-spotify), 0.35), 0 4px 12px rgba(var(--rgb-black), 0.2); }
+    }
+    @media (hover: hover) and (pointer: fine) { .result-row:active { transform: translateX(2px) scale(0.99); } }
     @media (pointer: coarse) { .result-row:active { animation: bounce 0.3s ease; } }
     .result-row:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
 
@@ -12363,10 +12434,18 @@
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; position: relative;
+      transition: box-shadow var(--t-fast), transform var(--t-fast);
     }
     .result-art.round { border-radius: 50%; }
     .result-art img { width: 100%; height: 100%; object-fit: cover; }
     .result-art ha-icon { --mdc-icon-size: var(--icon-md); color: var(--t4); display: flex; align-items: center; justify-content: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .result-row, .result-row:hover { transform: none; }
+      .playlist-art-play { transition: none; }
+      .playlist-art-overlay { transition: none; }
+      .lib-eyebrow-dot { box-shadow: none; }
+    }
 
     .result-info { flex: 1; min-width: 0; }
     .result-title {
@@ -12392,7 +12471,7 @@
       -webkit-tap-highlight-color: transparent;
       opacity: 0; transform: scale(0.8); flex-shrink: 0;
     }
-    .result-play ha-icon { --mdc-icon-size: 1rem; color: #000; display: flex; align-items: center; justify-content: center; }
+    .result-play ha-icon { --mdc-icon-size: 1rem; color: rgb(6, 16, 10); display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
     @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
     @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
@@ -12420,30 +12499,63 @@
       width: 5.25rem; height: 5.25rem; border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center;
-      overflow: hidden; position: relative; transition: border-color var(--t-fast);
+      overflow: hidden; position: relative;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    @media (hover: hover) and (pointer: fine) { .playlist-card:hover .playlist-art { border-color: var(--b3); } }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-art {
+        border-color: color-mix(in srgb, var(--c-spotify) 40%, transparent);
+        box-shadow: 0 8px 24px rgba(var(--rgb-black), 0.35);
+      }
+    }
     .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
-    .playlist-art ha-icon { --mdc-icon-size: 2rem; color: rgba(var(--rgb-white),0.4); display: flex; align-items: center; justify-content: center; }
+    .playlist-art-fallback {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--c-spotify) 25%, var(--s3)), var(--s2));
+    }
+    .playlist-art-fallback ha-icon {
+      --mdc-icon-size: 2rem;
+      color: color-mix(in srgb, var(--c-spotify) 60%, rgba(var(--rgb-white),0.4));
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Hover overlay: bottom gradient + play CTA reveal */
+    .playlist-art-overlay {
+      position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to top, rgba(var(--rgb-black), 0.55), transparent 55%);
+      opacity: 0; transition: opacity var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-art-overlay { opacity: 1; }
+    }
 
     .playlist-art-play {
-      position: absolute; bottom: 0.375rem; right: 0.375rem;
-      width: 1.75rem; height: 1.75rem; border-radius: 50%;
+      position: absolute; bottom: 0.4375rem; right: 0.4375rem;
+      width: 2rem; height: 2rem; border-radius: 50%;
       background: var(--c-spotify);
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transform: translateY(4px);
+      opacity: 0; transform: translateY(6px) scale(0.85);
       transition: opacity var(--t-fast), transform var(--t-fast);
-      box-shadow: 0 4px 12px rgba(var(--rgb-black),0.4);
+      box-shadow: 0 6px 18px rgba(var(--rgb-black),0.45), 0 0 12px rgba(var(--rgb-spotify), 0.4);
       pointer-events: none;
     }
-    .playlist-art-play ha-icon { --mdc-icon-size: var(--icon-sm); color: #000; display: flex; align-items: center; justify-content: center; }
+    .playlist-art-play ha-icon {
+      --mdc-icon-size: 1.125rem;
+      color: rgb(6, 16, 10);
+      display: flex; align-items: center; justify-content: center;
+    }
     @media (hover: hover) and (pointer: fine) {
-      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0); }
+      .playlist-card:hover .playlist-art-play { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .playlist-name {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t2); line-height: 1.3;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      transition: color var(--t-fast);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .playlist-card:hover .playlist-name { color: var(--t1); }
     }
     .playlist-count { font-size: var(--fz-xs); font-weight: 500; color: var(--t4); }
 
@@ -12635,16 +12747,20 @@
 
     /* Now playing indicator */
     .result-row.now-playing {
-      background: color-mix(in srgb, var(--c-accent) 8%, transparent);
-      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--c-spotify) 10%, transparent);
+      border-radius: var(--radius-md);
     }
     .result-row.now-playing .result-title {
-      color: var(--c-accent);
+      color: var(--c-spotify);
+    }
+    .result-row.now-playing .result-art {
+      box-shadow: 0 0 0 2px var(--c-spotify), 0 0 16px rgba(var(--rgb-spotify), 0.35);
     }
     .result-row .eq-bars { flex-shrink: 0; }
 
     /* Heart (favorite) button */
     .heart-btn {
+      position: relative;
       width: 1.5rem; height: 1.5rem;
       border-radius: var(--radius-sm);
       background: transparent; border: none;
@@ -12670,26 +12786,26 @@
       }
     }
 
-    /* Load more (library pagination) */
-    .load-more {
-      width: 100%;
-      margin-top: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .items-count {
-      font-size: var(--fz-sm);
-      color: var(--t3);
-    }
-
     /* Loading spinner placeholder */
     .loading-text { font-size: var(--fz-base); color: var(--t4); text-align: center; padding: 1rem 0; }
-  `]}getTrackedEntityIds(){const e=this._getEntityId(),t=e?[e]:[];return this._spotifyConfig?.entity_id&&!t.includes(this._spotifyConfig.entity_id)&&t.push(this._spotifyConfig.entity_id),t}_isNowPlaying(e){const t=this._spotifyConfig?.entity_id;if(!t)return!1;const i=this.hass?.states[t];return!(!i||"playing"!==i.state)&&(i.attributes.media_content_id??"")===e}_getEntityId(){if(this._config?.entity)return this._config.entity;if(this._spotifyConfig.entity_id)return this._spotifyConfig.entity_id;if(this.hass){const e=Object.keys(this.hass.states).find(e=>e.startsWith("media_player.spotify"));if(e)return e}return""}shouldUpdate(e){return!!super.shouldUpdate(e)&&("speaker_picker"!==this._view||1!==e.size||!e.has("hass"))}connectedCallback(){super.connectedCallback(),this._listen("spotify-config-changed",()=>{this._configLoaded=!1,this._loadConfig()})}disconnectedCallback(){super.disconnectedCallback(),this._debounceTimer&&clearTimeout(this._debounceTimer),this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1}_collapseExpanded(){"speaker_picker"!==this._view?(this._foldOpen&&(this._foldOpen=!1),this._drilldown&&(this._drilldown=null,this._view=this._searchQuery?"search":"library")):this._closePicker()}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1),this._configLoaded||this._configLoadingInProgress||(this._backend=new gt(this.hass),this._loadConfig()))}async _loadConfig(){if(!this._backend||this._configLoadingInProgress)return;this._configLoadingInProgress=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;if(t?.spotify_card&&(this._spotifyConfig=t.spotify_card),this._configLoaded=!0,await this._checkSpotifyStatus(),e!==this._loadVersion)return;this._spotifyConfigured&&this._loadLibrary(),this.requestUpdate()}catch{}finally{e===this._loadVersion&&(this._configLoadingInProgress=!1)}}async _checkSpotifyStatus(){if(this._backend)try{const e=await this._backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}async _loadLibrary(){if(!this._backend)return;this._libraryLoading=!0,this._error=null;const e=this._spotifyConfig.max_items_per_section;try{const[t,i,a,r]=await Promise.all([this._backend.send("spotify_browse",{category:"playlists",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"recently_played",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_tracks",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_shows",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order})]);this._playlists=(t?.items??[]).filter(Boolean),this._recentlyPlayed=(i?.items??[]).filter(Boolean),this._savedTracks=(a?.items??[]).filter(Boolean),this._savedShows=(r?.items??[]).filter(Boolean).map(e=>e.show??e),this._sectionTotals={playlists:t?.total??0,recently_played:i?.total??0,saved_tracks:a?.total??0,saved_shows:r?.total??0};const s=[];for(const e of this._recentlyPlayed){const t=e.track??e;!t.id||"track"!==t.type&&t.type||s.push(t.id)}for(const e of this._savedTracks){const t=e.track??e;t.id&&s.push(t.id)}s.length&&this._checkSavedStatus(s)}catch(t){this._handleApiError(t)}finally{this._libraryLoading=!1}}_onSearchInput(e){const t=e.target.value;if(this._searchQuery=t,this._debounceTimer&&clearTimeout(this._debounceTimer),0===t.length)return this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},void(this._searchOffset=0);this._foldOpen||(this._foldOpen=!0),this._view="search",this._debounceTimer=window.setTimeout(()=>this._doSearch(!1),300)}_clearSearch(){this._searchQuery="",this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},this._searchOffset=0,this._foldOpen=!1}async _doSearch(e){if(!this._backend||!this._searchQuery)return;const t=++this._searchVersion;this._searchLoading=!0,this._error=null;const i=e?this._searchOffset:0;try{let a;a="tracks"===this._tab?["track"]:"playlists"===this._tab?["playlist"]:"podcasts"===this._tab?["show"]:["track","playlist","show"];const r=await this._backend.send("spotify_search",{query:this._searchQuery,types:a,limit:12,offset:i});if(t!==this._searchVersion)return;const s=(r?.tracks?.items??[]).filter(Boolean),o=(r?.playlists?.items??[]).filter(Boolean),n=(r?.shows?.items??[]).filter(Boolean);this._searchResults=e?{tracks:[...this._searchResults.tracks,...s],playlists:[...this._searchResults.playlists,...o],shows:[...this._searchResults.shows,...n]}:{tracks:s,playlists:o,shows:n},this._searchOffset=i+12;const c=(r?.tracks?.total??0)+(r?.playlists?.total??0)+(r?.shows?.total??0),l=this._searchResults.tracks.length+this._searchResults.playlists.length+this._searchResults.shows.length;this._searchHasMore=l<c;const d=s.filter(e=>e.id).map(e=>e.id);d.length&&this._checkSavedStatus(d)}catch(a){if(t!==this._searchVersion)return;this._handleApiError(a)}finally{t===this._searchVersion&&(this._searchLoading=!1)}}async _openDrilldown(e,t,i){if(this._backend){this._view="drilldown",this._drilldown={title:i,type:e,id:t,items:[],total:0,offset:0,loading:!0},this._error=null;try{const i="playlist"===e?"playlist_tracks":"album_tracks",a=await this._backend.send("spotify_browse",{category:i,content_id:t,limit:20,offset:0,sort_order:this._spotifyConfig.sort_order}),r=a?.items??[];if(!this._drilldown)return;this._drilldown={...this._drilldown,items:r,total:a?.total??0,offset:20,loading:!1};const s=r.map(e=>(e.track??e).id).filter(Boolean);s.length&&this._checkSavedStatus(s)}catch(a){this._handleApiError(a),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}async _loadMoreDrilldown(){if(this._drilldown&&this._backend){this._drilldown={...this._drilldown,loading:!0};try{const e="playlist"===this._drilldown.type?"playlist_tracks":"album_tracks",t=await this._backend.send("spotify_browse",{category:e,content_id:this._drilldown.id,limit:20,offset:this._drilldown.offset,sort_order:this._spotifyConfig.sort_order}),i=t?.items??[];this._drilldown={...this._drilldown,items:[...this._drilldown.items,...i],offset:this._drilldown.offset+20,loading:!1};const a=i.map(e=>(e.track??e).id).filter(Boolean);a.length&&this._checkSavedStatus(a)}catch(e){this._handleApiError(e),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}_goBack(){this._drilldown=null,this._view=this._searchQuery?"search":"library"}_openPicker(e){if(this._pickerItem=e,this._view="speaker_picker",this._selectedSpeakers=new Set,this.hass){const e=this._spotifyConfig.visible_speakers,t=e.length>0;this._speakers=Object.entries(this.hass.states).filter(([i])=>!!i.startsWith("media_player.")&&!(t&&!e.includes(i))).map(([e,t])=>{const i=t.attributes.device_class??"";let a="mdi:speaker";return"tv"===i||e.includes("tv")?a="mdi:television":"receiver"===i?a="mdi:audio-video":(e.includes("nest")||e.includes("hub")||e.includes("echo_show"))&&(a="mdi:tablet"),{entityId:e,name:t.attributes.friendly_name??e,state:t.state,mediaTitle:t.attributes.media_title??null,icon:a}}).sort((i,a)=>{if(t)return e.indexOf(i.entityId)-e.indexOf(a.entityId);const r=e=>"playing"===e?0:"paused"===e?1:2;return r(i.state)-r(a.state)})}}_closePicker(){this._pickerItem=null,this._view=this._drilldown?"drilldown":this._searchQuery?"search":"library"}_toggleSpeakerSelection(e){const t=new Set(this._selectedSpeakers);t.has(e)?t.delete(e):t.add(e),this._selectedSpeakers=t}async _playOnSelectedSpeakers(){if(!this.hass||!this._pickerItem||0===this._selectedSpeakers.size)return;lt(this,"light");const e=this._pickerItem,t=e.uri??`spotify:${e.type}:${e.id}`,i=[...this._selectedSpeakers],a="track"===e.type?"music":"playlist"===e.type?"playlist":"album"===e.type?"music":"podcast";try{for(const e of i){const t=this.hass.states[e];if(!t)continue;const i=t.attributes.group_members;i&&i.length>1&&this._safeCallService("media_player","unjoin",{},{entity_id:e})}i.length>1&&await new Promise(e=>setTimeout(e,600));const r=i[0];if(this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:r}),i.length>1){const e=i.slice(1),s=this.hass.states[r];if(s&&!!(524288&s.attributes.supported_features))await new Promise(e=>setTimeout(e,800)),this._safeCallService("media_player","join",{group_members:e},{entity_id:r});else for(const i of e)this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:i})}"track"!==e.type&&"episode"!==e.type||!this._backend||this._seedRadioQueue(e)}catch{}this._closePicker()}async _seedRadioQueue(e){if(!this._backend)return;const t=++this._radioQueueVersion;try{if(await new Promise(e=>setTimeout(e,2e3)),!this._backend||t!==this._radioQueueVersion)return;const i=await this._backend.send("spotify_browse",{category:"recommendations",seed_tracks:[e.id],limit:20});if(t!==this._radioQueueVersion)return;const a=i?.tracks??[];_e.emit("radio-queue-started",{count:a.length});let r=0;for(let e=0;e<a.length;e++){const i=a[e];if(!this._backend||t!==this._radioQueueVersion)break;const s=i.uri??`spotify:track:${i.id}`;try{await this._backend.send("spotify_add_to_queue",{uri:s}),r++,_e.emit("radio-queue-track-added",{track:{id:i.id,name:i.name,uri:s,artist:Ir(i)||void 0},index:e}),await new Promise(e=>setTimeout(e,150))}catch{break}}t===this._radioQueueVersion&&_e.emit("radio-queue-complete",{total:r})}catch(i){t===this._radioQueueVersion&&_e.emit("radio-queue-error",{message:i.message??"Unknown error"})}}async _loadMoreItems(e){if(!this._backend||this._loadingMore[e])return;this._loadingMore={...this._loadingMore,[e]:!0};const t=this._spotifyConfig.max_items_per_section;let i=0;"playlists"===e?i=this._playlists.length:"recently_played"===e?i=this._recentlyPlayed.length:"saved_tracks"===e?i=this._savedTracks.length:"saved_shows"===e&&(i=this._savedShows.length);try{const a=await this._backend.send("spotify_browse",{category:e,limit:t,offset:i,sort_order:this._spotifyConfig.sort_order}),r=(a?.items??[]).filter(Boolean);if("playlists"===e)this._playlists=[...this._playlists,...r];else if("recently_played"===e)this._recentlyPlayed=[...this._recentlyPlayed,...r];else if("saved_tracks"===e){this._savedTracks=[...this._savedTracks,...r];const e=r.map(e=>(e.track??e).id).filter(Boolean);e.length&&this._checkSavedStatus(e)}else"saved_shows"===e&&(this._savedShows=[...this._savedShows,...r.map(e=>e.show??e)]);null!=a?.total&&(this._sectionTotals={...this._sectionTotals,[e]:a.total})}catch(a){this._handleApiError(a)}finally{this._loadingMore={...this._loadingMore,[e]:!1}}}_renderLoadMore(e,t){const i=this._sectionTotals[e]??0;return t>=i?B:N`
-      <button class="load-more-btn load-more" ?disabled=${this._loadingMore[e]} @click=${()=>this._loadMoreItems(e)}>
-        ${et("spotify.load_more")}
-        <span class="items-count">${et("spotify.items_count",{current:String(t),total:String(i)})}</span>
+
+    /* Touch hit-area expansion to reach 44px on touch devices */
+    @media (pointer: coarse) {
+      .tab-btn::after,
+      .lib-more-link::after,
+      .heart-btn::after { content: ''; position: absolute; }
+      .tab-btn::after    { left: 0; right: 0; top: -0.4375rem; bottom: -0.4375rem; }
+      .lib-more-link::after { left: 0; right: 0; top: -0.625rem; bottom: -0.625rem; }
+      .heart-btn::after  { inset: -0.625rem; }
+    }
+  `]}getTrackedEntityIds(){const e=this._getEntityId(),t=e?[e]:[];return this._spotifyConfig?.entity_id&&!t.includes(this._spotifyConfig.entity_id)&&t.push(this._spotifyConfig.entity_id),t}_isNowPlaying(e){const t=this._spotifyConfig?.entity_id;if(!t)return!1;const i=this.hass?.states[t];return!(!i||"playing"!==i.state)&&(i.attributes.media_content_id??"")===e}_getEntityId(){if(this._config?.entity)return this._config.entity;if(this._spotifyConfig.entity_id)return this._spotifyConfig.entity_id;if(this.hass){const e=Object.keys(this.hass.states).find(e=>e.startsWith("media_player.spotify"));if(e)return e}return""}shouldUpdate(e){return!!super.shouldUpdate(e)&&("speaker_picker"!==this._view||1!==e.size||!e.has("hass"))}connectedCallback(){super.connectedCallback(),this._listen("spotify-config-changed",()=>{this._configLoaded=!1,this._loadConfig()})}disconnectedCallback(){super.disconnectedCallback(),this._debounceTimer&&clearTimeout(this._debounceTimer),this._backend=void 0,this._configLoaded=!1,this._configLoadingInProgress=!1}_collapseExpanded(){"speaker_picker"!==this._view?(this._foldOpen&&(this._foldOpen=!1),this._drilldown&&(this._drilldown=null,this._view=this._searchQuery?"search":"library")):this._closePicker()}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1),this._configLoaded||this._configLoadingInProgress||(this._backend=new gt(this.hass),this._loadConfig()))}async _loadConfig(){if(!this._backend||this._configLoadingInProgress)return;this._configLoadingInProgress=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;if(t?.spotify_card&&(this._spotifyConfig=t.spotify_card),this._configLoaded=!0,await this._checkSpotifyStatus(),e!==this._loadVersion)return;this._spotifyConfigured&&this._loadLibrary(),this.requestUpdate()}catch{}finally{e===this._loadVersion&&(this._configLoadingInProgress=!1)}}async _checkSpotifyStatus(){if(this._backend)try{const e=await this._backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}async _loadLibrary(){if(!this._backend)return;this._libraryLoading=!0,this._error=null;const e=this._spotifyConfig.max_items_per_section;try{const[t,i,a,r]=await Promise.all([this._backend.send("spotify_browse",{category:"playlists",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"recently_played",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_tracks",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order}),this._backend.send("spotify_browse",{category:"saved_shows",limit:e,offset:0,sort_order:this._spotifyConfig.sort_order})]);this._playlists=(t?.items??[]).filter(Boolean),this._recentlyPlayed=(i?.items??[]).filter(Boolean),this._savedTracks=(a?.items??[]).filter(Boolean),this._savedShows=(r?.items??[]).filter(Boolean).map(e=>e.show??e),this._sectionTotals={playlists:t?.total??0,recently_played:i?.total??0,saved_tracks:a?.total??0,saved_shows:r?.total??0};const s=[];for(const e of this._recentlyPlayed){const t=e.track??e;!t.id||"track"!==t.type&&t.type||s.push(t.id)}for(const e of this._savedTracks){const t=e.track??e;t.id&&s.push(t.id)}s.length&&this._checkSavedStatus(s)}catch(t){this._handleApiError(t)}finally{this._libraryLoading=!1}}_onSearchInput(e){const t=e.target.value;if(this._searchQuery=t,this._debounceTimer&&clearTimeout(this._debounceTimer),0===t.length)return this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},void(this._searchOffset=0);this._foldOpen||(this._foldOpen=!0),this._view="search",this._debounceTimer=window.setTimeout(()=>this._doSearch(!1),300)}_clearSearch(){this._searchQuery="",this._view="library",this._searchResults={tracks:[],playlists:[],shows:[]},this._searchOffset=0,this._foldOpen=!1}async _doSearch(e){if(!this._backend||!this._searchQuery)return;const t=++this._searchVersion;this._searchLoading=!0,this._error=null;const i=e?this._searchOffset:0;try{let a;a="tracks"===this._tab?["track"]:"playlists"===this._tab?["playlist"]:"podcasts"===this._tab?["show"]:["track","playlist","show"];const r=await this._backend.send("spotify_search",{query:this._searchQuery,types:a,limit:12,offset:i});if(t!==this._searchVersion)return;const s=(r?.tracks?.items??[]).filter(Boolean),o=(r?.playlists?.items??[]).filter(Boolean),n=(r?.shows?.items??[]).filter(Boolean);this._searchResults=e?{tracks:[...this._searchResults.tracks,...s],playlists:[...this._searchResults.playlists,...o],shows:[...this._searchResults.shows,...n]}:{tracks:s,playlists:o,shows:n},this._searchOffset=i+12;const c=(r?.tracks?.total??0)+(r?.playlists?.total??0)+(r?.shows?.total??0),l=this._searchResults.tracks.length+this._searchResults.playlists.length+this._searchResults.shows.length;this._searchHasMore=l<c;const d=s.filter(e=>e.id).map(e=>e.id);d.length&&this._checkSavedStatus(d)}catch(a){if(t!==this._searchVersion)return;this._handleApiError(a)}finally{t===this._searchVersion&&(this._searchLoading=!1)}}async _openDrilldown(e,t,i){if(this._backend){this._view="drilldown",this._drilldown={title:i,type:e,id:t,items:[],total:0,offset:0,loading:!0},this._error=null;try{const i="playlist"===e?"playlist_tracks":"album_tracks",a=await this._backend.send("spotify_browse",{category:i,content_id:t,limit:20,offset:0,sort_order:this._spotifyConfig.sort_order}),r=a?.items??[];if(!this._drilldown)return;this._drilldown={...this._drilldown,items:r,total:a?.total??0,offset:20,loading:!1};const s=r.map(e=>(e.track??e).id).filter(Boolean);s.length&&this._checkSavedStatus(s)}catch(a){this._handleApiError(a),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}async _loadMoreDrilldown(){if(this._drilldown&&this._backend){this._drilldown={...this._drilldown,loading:!0};try{const e="playlist"===this._drilldown.type?"playlist_tracks":"album_tracks",t=await this._backend.send("spotify_browse",{category:e,content_id:this._drilldown.id,limit:20,offset:this._drilldown.offset,sort_order:this._spotifyConfig.sort_order}),i=t?.items??[];this._drilldown={...this._drilldown,items:[...this._drilldown.items,...i],offset:this._drilldown.offset+20,loading:!1};const a=i.map(e=>(e.track??e).id).filter(Boolean);a.length&&this._checkSavedStatus(a)}catch(e){this._handleApiError(e),this._drilldown&&(this._drilldown={...this._drilldown,loading:!1})}}}_goBack(){this._drilldown=null,this._view=this._searchQuery?"search":"library"}_openPicker(e){if(this._pickerItem=e,this._view="speaker_picker",this._selectedSpeakers=new Set,this.hass){const e=this._spotifyConfig.visible_speakers,t=e.length>0;this._speakers=Object.entries(this.hass.states).filter(([i])=>!!i.startsWith("media_player.")&&!(t&&!e.includes(i))).map(([e,t])=>{const i=t.attributes.device_class??"";let a="mdi:speaker";return"tv"===i||e.includes("tv")?a="mdi:television":"receiver"===i?a="mdi:audio-video":(e.includes("nest")||e.includes("hub")||e.includes("echo_show"))&&(a="mdi:tablet"),{entityId:e,name:t.attributes.friendly_name??e,state:t.state,mediaTitle:t.attributes.media_title??null,icon:a}}).sort((i,a)=>{if(t)return e.indexOf(i.entityId)-e.indexOf(a.entityId);const r=e=>"playing"===e?0:"paused"===e?1:2;return r(i.state)-r(a.state)})}}_closePicker(){this._pickerItem=null,this._view=this._drilldown?"drilldown":this._searchQuery?"search":"library"}_toggleSpeakerSelection(e){const t=new Set(this._selectedSpeakers);t.has(e)?t.delete(e):t.add(e),this._selectedSpeakers=t}async _playOnSelectedSpeakers(){if(!this.hass||!this._pickerItem||0===this._selectedSpeakers.size)return;lt(this,"light");const e=this._pickerItem,t=e.uri??`spotify:${e.type}:${e.id}`,i=[...this._selectedSpeakers],a="track"===e.type?"music":"playlist"===e.type?"playlist":"album"===e.type?"music":"podcast";try{for(const e of i){const t=this.hass.states[e];if(!t)continue;const i=t.attributes.group_members;i&&i.length>1&&this._safeCallService("media_player","unjoin",{},{entity_id:e})}i.length>1&&await new Promise(e=>setTimeout(e,600));const r=i[0];if(this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:r}),i.length>1){const e=i.slice(1),s=this.hass.states[r];if(s&&!!(524288&s.attributes.supported_features))await new Promise(e=>setTimeout(e,800)),this._safeCallService("media_player","join",{group_members:e},{entity_id:r});else for(const i of e)this._safeCallService("media_player","play_media",{media_content_id:t,media_content_type:a},{entity_id:i})}"track"!==e.type&&"episode"!==e.type||!this._backend||this._seedRadioQueue(e)}catch{}this._closePicker()}async _seedRadioQueue(e){if(!this._backend)return;const t=++this._radioQueueVersion;try{if(await new Promise(e=>setTimeout(e,2e3)),!this._backend||t!==this._radioQueueVersion)return;const i=await this._backend.send("spotify_browse",{category:"recommendations",seed_tracks:[e.id],limit:20});if(t!==this._radioQueueVersion)return;const a=i?.tracks??[];_e.emit("radio-queue-started",{count:a.length});let r=0;for(let e=0;e<a.length;e++){const i=a[e];if(!this._backend||t!==this._radioQueueVersion)break;const s=i.uri??`spotify:track:${i.id}`;try{await this._backend.send("spotify_add_to_queue",{uri:s}),r++,_e.emit("radio-queue-track-added",{track:{id:i.id,name:i.name,uri:s,artist:Er(i)||void 0},index:e}),await new Promise(e=>setTimeout(e,150))}catch{break}}t===this._radioQueueVersion&&_e.emit("radio-queue-complete",{total:r})}catch(i){t===this._radioQueueVersion&&_e.emit("radio-queue-error",{message:i.message??"Unknown error"})}}async _loadMoreItems(e){if(!this._backend||this._loadingMore[e])return;this._loadingMore={...this._loadingMore,[e]:!0};const t=this._spotifyConfig.max_items_per_section;let i=0;"playlists"===e?i=this._playlists.length:"recently_played"===e?i=this._recentlyPlayed.length:"saved_tracks"===e?i=this._savedTracks.length:"saved_shows"===e&&(i=this._savedShows.length);try{const a=await this._backend.send("spotify_browse",{category:e,limit:t,offset:i,sort_order:this._spotifyConfig.sort_order}),r=(a?.items??[]).filter(Boolean);if("playlists"===e)this._playlists=[...this._playlists,...r];else if("recently_played"===e)this._recentlyPlayed=[...this._recentlyPlayed,...r];else if("saved_tracks"===e){this._savedTracks=[...this._savedTracks,...r];const e=r.map(e=>(e.track??e).id).filter(Boolean);e.length&&this._checkSavedStatus(e)}else"saved_shows"===e&&(this._savedShows=[...this._savedShows,...r.map(e=>e.show??e)]);null!=a?.total&&(this._sectionTotals={...this._sectionTotals,[e]:a.total})}catch(a){this._handleApiError(a)}finally{this._loadingMore={...this._loadingMore,[e]:!1}}}_renderLoadMore(e,t){const i=this._sectionTotals[e]??0;if(t>=i)return B;const a=this._loadingMore[e],r=et(Cr[e]);return N`
+      <button
+        class="lib-more-link"
+        ?disabled=${a}
+        aria-label="${et("spotify.load_more")} ${r} (${t}/${i})"
+        @click=${t=>{t.stopPropagation(),this._loadMoreItems(e)}}
+      >
+        ${a?et("spotify.loading"):N`<span aria-hidden="true">${et("spotify.load_more")}</span><span class="lib-more-count" aria-hidden="true">${t} / ${i}</span>`}
       </button>
     `}async _checkSavedStatus(e){const t=[...new Set(e)];if(t.length&&this._backend)try{const e=await this._backend.send("spotify_check_saved",{track_ids:t});if(!this.isConnected)return;const i=new Map(this._savedMap);for(const[t,a]of Object.entries(e??{}))i.set(t,a);this._savedMap=i}catch{}}async _toggleSaved(e){if(!this._backend)return;lt(this,"light");const t=this._savedMap.get(e)??!1,i=new Map(this._savedMap);i.set(e,!t),this._savedMap=i;try{t?await this._backend.send("spotify_remove_tracks",{track_ids:[e]}):await this._backend.send("spotify_save_tracks",{track_ids:[e]})}catch{const i=new Map(this._savedMap);i.set(e,t),this._savedMap=i}}_handleApiError(e){const t=e;"spotify_not_configured"===t.code?this._spotifyConfigured=!1:t.message?.includes("rate limit")||t.message?.includes("429")?this._error=et("spotify.error_rate_limit",{seconds:"30"}):this._error=et("spotify.error_api")}render(){if(this._lang,!this._configLoaded)return B;const e=this._getEntityId();if(!1===this._spotifyConfigured)return this._renderShell(N`
         <div class="setup-banner">
@@ -12732,7 +12848,7 @@
             </div>
           </div>
         `:B}
-        <div class="glass spotify-card">
+        <div class="glass spotify-card ${this._foldOpen?"fold-open":""}">
           <div class="tint"></div>
           <div class="card-inner">${e}</div>
         </div>
@@ -12765,11 +12881,13 @@
           </button>
         </div>
       </div>
-    `}_renderTabs(){return N`
-      <div class="tab-bar">
-        ${[{id:"all",labelKey:"spotify.tab_all",icon:"mdi:home"},{id:"tracks",labelKey:"spotify.tab_tracks",icon:"mdi:music-note"},{id:"playlists",labelKey:"spotify.tab_playlists",icon:"mdi:playlist-music"},{id:"podcasts",labelKey:"spotify.tab_podcasts",icon:"mdi:podcast"}].map(e=>N`
+    `}_renderTabs(){const e=[{id:"all",labelKey:"spotify.tab_all",icon:"mdi:home"},{id:"tracks",labelKey:"spotify.tab_tracks",icon:"mdi:music-note"},{id:"playlists",labelKey:"spotify.tab_playlists",icon:"mdi:playlist-music"},{id:"podcasts",labelKey:"spotify.tab_podcasts",icon:"mdi:podcast"}],t=e.findIndex(e=>e.id===this._tab);return N`
+      <div class="tab-rail" style="--tab-active-idx: ${t};">
+        <div class="tab-rail-capsule" aria-hidden="true"></div>
+        ${e.map(e=>N`
           <button
             class="tab-btn ${this._tab===e.id?"active":""}"
+            aria-pressed=${this._tab===e.id?"true":"false"}
             aria-label=${et(e.labelKey)}
             @click=${()=>{this._tab=e.id,this._searchQuery&&(this._searchOffset=0,this._doSearch(!1))}}
           >
@@ -12780,49 +12898,70 @@
       </div>
     `}_renderLibrary(){if(this._libraryLoading)return N`<div class="loading-text">${et("spotify.loading")}</div>`;const e="all"===this._tab||"playlists"===this._tab,t="all"===this._tab||"tracks"===this._tab,i="all"===this._tab||"podcasts"===this._tab;return e&&this._playlists.length>0||t&&(this._recentlyPlayed.length>0||this._savedTracks.length>0)||i&&this._savedShows.length>0?N`
       ${e&&this._playlists.length>0?N`
-        <div class="section-title">${et("spotify.my_playlists")}</div>
-        <div class="playlist-scroll">
-          ${this._playlists.map(e=>this._renderPlaylistCard(e))}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-playlists">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${et("spotify.my_playlists")}</span>
+            ${this._renderLoadMore("playlists",this._playlists.length)}
+          </div>
+          <div class="playlist-scroll">
+            ${this._playlists.map(e=>this._renderPlaylistCard(e))}
+          </div>
         </div>
-        ${this._renderLoadMore("playlists",this._playlists.length)}
       `:B}
 
       ${t&&this._recentlyPlayed.length>0?N`
-        <div class="section-title">${et("spotify.recently_played")}</div>
-        ${this._recentlyPlayed.map(e=>{const t=e.track??e;return this._renderResultRow(t,t.type??"track")})}
-        ${this._renderLoadMore("recently_played",this._recentlyPlayed.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-recents">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${et("spotify.recently_played")}</span>
+            ${this._renderLoadMore("recently_played",this._recentlyPlayed.length)}
+          </div>
+          ${this._recentlyPlayed.map(e=>{const t=e.track??e;return this._renderResultRow(t,t.type??"track")})}
+        </div>
       `:B}
 
       ${t&&this._savedTracks.length>0?N`
-        <div class="section-title">${et("spotify.saved_tracks")}</div>
-        ${this._savedTracks.map(e=>{const t=e.track??e;return this._renderResultRow(t,"track")})}
-        ${this._renderLoadMore("saved_tracks",this._savedTracks.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-saved">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${et("spotify.saved_tracks")}</span>
+            ${this._renderLoadMore("saved_tracks",this._savedTracks.length)}
+          </div>
+          ${this._savedTracks.map(e=>{const t=e.track??e;return this._renderResultRow(t,"track")})}
+        </div>
       `:B}
 
       ${i&&this._savedShows.length>0?N`
-        <div class="section-title">${et("spotify.followed_podcasts")}</div>
-        ${this._savedShows.map(e=>this._renderResultRow({...e,type:"show"},"show"))}
-        ${this._renderLoadMore("saved_shows",this._savedShows.length)}
+        <div class="lib-section">
+          <div class="lib-eyebrow lib-eyebrow-podcasts">
+            <span class="lib-eyebrow-dot"></span>
+            <span>${et("spotify.followed_podcasts")}</span>
+            ${this._renderLoadMore("saved_shows",this._savedShows.length)}
+          </div>
+          ${this._savedShows.map(e=>this._renderResultRow({...e,type:"show"},"show"))}
+        </div>
       `:B}
     `:N`
         <div class="empty-state">
           <ha-icon .icon=${"mdi:music-note-off"}></ha-icon>
           <div class="empty-state-text">${et("spotify.no_content")}</div>
         </div>
-      `}_renderPlaylistCard(e){const t=Cr(e,160),i=e.tracks?.total??0;return N`
+      `}_renderPlaylistCard(e){const t=Ir(e,160),i=e.tracks?.total??0;return N`
       <button
         class="playlist-card"
         aria-label=${e.name}
         @click=${()=>this._openDrilldown("playlist",e.id,e.name)}
       >
-        <div class="playlist-art" style=${t?"":"background:#3040a0"}>
-          ${t?N`<img src=${t} alt="" loading="lazy" />`:N`<ha-icon .icon=${"mdi:playlist-music"}></ha-icon>`}
+        <div class="playlist-art">
+          ${t?N`<img src=${t} alt="" loading="lazy" />`:N`<div class="playlist-art-fallback"><ha-icon .icon=${"mdi:playlist-music"}></ha-icon></div>`}
+          <div class="playlist-art-overlay" aria-hidden="true"></div>
           <div class="playlist-art-play"><ha-icon .icon=${"mdi:play"}></ha-icon></div>
         </div>
         <div class="playlist-name">${e.name}</div>
         ${i>0?N`<div class="playlist-count">${et("spotify.tracks_count",{count:String(i)})}</div>`:B}
       </button>
-    `}_renderResultRow(e,t){if(!e)return B;const i=Cr(e,64),a=Ir(e)||(e.owner?.display_name??""),r="show"===t||"episode"===t,s=e.uri??`spotify:${e.type??t}:${e.id}`,o=this._isNowPlaying(s);return N`
+    `}_renderResultRow(e,t){if(!e)return B;const i=Ir(e,64),a=Er(e)||(e.owner?.display_name??""),r="show"===t||"episode"===t,s=e.uri??`spotify:${e.type??t}:${e.id}`,o=this._isNowPlaying(s);return N`
       <div
         class="result-row ${o?"now-playing":""}"
         role="button"
@@ -12831,7 +12970,7 @@
         @keydown=${e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),e.currentTarget.click())}}
       >
         <div class="result-art ${r?"round":""}">
-          ${i?N`<img src=${i} alt="" loading="lazy" />`:N`<ha-icon .icon=${Er(t)}></ha-icon>`}
+          ${i?N`<img src=${i} alt="" loading="lazy" />`:N`<ha-icon .icon=${zr(t)}></ha-icon>`}
         </div>
         <div class="result-info">
           <div class="result-title">${e.name}</div>
@@ -12904,7 +13043,7 @@
           </button>
         `:B}
       </div>
-    `:B}_renderSpeakerPicker(){const e=this._pickerItem;if(!e)return B;const t=Cr(e,64),i=Ir(e),a=this._selectedSpeakers.size>0;return N`
+    `:B}_renderSpeakerPicker(){const e=this._pickerItem;if(!e)return B;const t=Ir(e,64),i=Er(e),a=this._selectedSpeakers.size>0;return N`
       <div class="picker-backdrop visible" role="presentation" @click=${e=>{e.target.classList.contains("picker-backdrop")&&this._closePicker()}}>
         <div class="glass speaker-picker">
           <div class="picker-header">
@@ -12916,7 +13055,7 @@
 
           <div class="picker-track">
             <div class="picker-track-art">
-              ${t?N`<img src=${t} alt="" />`:N`<ha-icon .icon=${Er(e.type??"track")}></ha-icon>`}
+              ${t?N`<img src=${t} alt="" />`:N`<ha-icon .icon=${zr(e.type??"track")}></ha-icon>`}
             </div>
             <div class="picker-track-info">
               <div class="picker-track-title">${e.name}</div>
@@ -12954,7 +13093,7 @@
           </div>
         </div>
       </div>
-    `}}Sr([ue()],zr.prototype,"_view"),Sr([ue()],zr.prototype,"_tab"),Sr([ue()],zr.prototype,"_searchQuery"),Sr([ue()],zr.prototype,"_playlists"),Sr([ue()],zr.prototype,"_recentlyPlayed"),Sr([ue()],zr.prototype,"_savedTracks"),Sr([ue()],zr.prototype,"_savedShows"),Sr([ue()],zr.prototype,"_searchResults"),Sr([ue()],zr.prototype,"_searchLoading"),Sr([ue()],zr.prototype,"_searchOffset"),Sr([ue()],zr.prototype,"_searchHasMore"),Sr([ue()],zr.prototype,"_drilldown"),Sr([ue()],zr.prototype,"_speakers"),Sr([ue()],zr.prototype,"_pickerItem"),Sr([ue()],zr.prototype,"_selectedSpeakers"),Sr([ue()],zr.prototype,"_error"),Sr([ue()],zr.prototype,"_libraryLoading"),Sr([ue()],zr.prototype,"_spotifyConfigured"),Sr([ue()],zr.prototype,"_foldOpen"),Sr([ue()],zr.prototype,"_savedMap"),Sr([ue()],zr.prototype,"_sectionTotals"),Sr([ue()],zr.prototype,"_loadingMore");try{customElements.define("glass-spotify-card",zr)}catch{}st("glass-camera-carousel-card-editor");var Dr=Object.defineProperty,Tr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Dr(t,i,s),s};const Pr=1,Lr="mdi:cctv",Ar="mdi:webcam",Mr="mdi:doorbell-video",Or={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},Rr={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},jr=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],Hr=new Map;function Fr(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const l of Object.keys(i))i[l].device_id===r&&l.startsWith("binary_sensor.")&&t[l]&&(s+=`:${l}=${t[l].state}`);const o=Hr.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[l,d]of Object.entries(i))d.device_id===r&&n.push(l);const c={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const l of n){const e=t[l];if(e&&(l.startsWith("binary_sensor.")&&Rr.motion.test(l)&&(c.motionSensorId=l),l.startsWith("switch.")&&Rr.record.test(l)&&(c.recordSwitchId=l),Rr.siren.test(l)&&(c.sirenId=l),l.startsWith("light.")&&Rr.floodlight.test(l)&&(c.floodlightId=l),l.startsWith("switch.")&&Rr.auto_tracking.test(l)&&(c.autoTrackId=l),l.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of jr)t.test(l)&&!c.aiDetected.includes(i)&&c.aiDetected.push(i)}return Hr.set(e,{key:s,result:c}),c}function qr(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?Mr:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?Ar:Lr}class Vr extends ct{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._foldOpen=!1,this._camConfig=null,this._roomConfig=null,this._configLoaded=!1,this._configLoading=!1,this._roomConfigLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._cachedCamerasKey="",this._loadConfig()}),this._listen("room-config-changed",e=>{this.areaId&&e.areaId===this.areaId&&(this._roomConfig=null,this._cachedCamerasKey="",this._loadRoomConfig())}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),Hr.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=Fr(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new gt(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._roomConfig=null,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig(),!this.areaId||this._roomConfig||this._roomConfigLoading||this._loadRoomConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],hidden_entities:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}async _loadRoomConfig(){if(!this._backend||!this.areaId||this._roomConfigLoading)return;this._roomConfigLoading=!0;const e=this.areaId;try{const t=await this._backend.send("get_room",{area_id:e});if(this.areaId!==e)return;this._roomConfig={hidden_entities:t?.hidden_entities??[],entity_order:t?.entity_order??[]},this._cachedCamerasKey="",this.requestUpdate()}catch{}finally{this._roomConfigLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?ht(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=new Set(this._camConfig?.hidden_entities??[]);if(this.areaId&&this._roomConfig)for(const r of this._roomConfig.hidden_entities)t.add(r);t.size&&(e=e.filter(e=>!t.has(e)));const i=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(i===this._cachedCamerasKey)return this._cachedCameraIds;const a=this.areaId?this._roomConfig?.entity_order??[]:[];if(this.areaId&&a.length){const t=a.filter(t=>e.includes(t)),i=e.filter(e=>!t.includes(e));e=[...t,...i]}else{const t=this._camConfig?.entity_order??[];if(t.length){const i=t.filter(t=>e.includes(t)),a=e.filter(e=>!i.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...i,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}}return this._cachedCamerasKey=i,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!jr.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=Fr(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:qr(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._foldOpen=!1,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return B;const e=this._getCameraIds();if(!e.length)return B;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]),a=this._bindGesture({onTap:()=>{const t=e[this._carouselIndex];t&&!this._liveIds.has(t)&&this._startStream(t)},onLongPress:()=>{this._isSwiping=!1,this._trackEl=null,this._foldOpen=!this._foldOpen},exclude:".carousel-nav"});return N`
+    `}}Sr([ue()],Dr.prototype,"_view"),Sr([ue()],Dr.prototype,"_tab"),Sr([ue()],Dr.prototype,"_searchQuery"),Sr([ue()],Dr.prototype,"_playlists"),Sr([ue()],Dr.prototype,"_recentlyPlayed"),Sr([ue()],Dr.prototype,"_savedTracks"),Sr([ue()],Dr.prototype,"_savedShows"),Sr([ue()],Dr.prototype,"_searchResults"),Sr([ue()],Dr.prototype,"_searchLoading"),Sr([ue()],Dr.prototype,"_searchOffset"),Sr([ue()],Dr.prototype,"_searchHasMore"),Sr([ue()],Dr.prototype,"_drilldown"),Sr([ue()],Dr.prototype,"_speakers"),Sr([ue()],Dr.prototype,"_pickerItem"),Sr([ue()],Dr.prototype,"_selectedSpeakers"),Sr([ue()],Dr.prototype,"_error"),Sr([ue()],Dr.prototype,"_libraryLoading"),Sr([ue()],Dr.prototype,"_spotifyConfigured"),Sr([ue()],Dr.prototype,"_foldOpen"),Sr([ue()],Dr.prototype,"_savedMap"),Sr([ue()],Dr.prototype,"_sectionTotals"),Sr([ue()],Dr.prototype,"_loadingMore");try{customElements.define("glass-spotify-card",Dr)}catch{}st("glass-camera-carousel-card-editor");var Tr=Object.defineProperty,Pr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Tr(t,i,s),s};const Lr=1,Ar="mdi:cctv",Mr="mdi:webcam",Or="mdi:doorbell-video",Rr={person:"mdi:human",vehicle:"mdi:car",pet:"mdi:dog",animal:"mdi:paw",package:"mdi:package-variant",face:"mdi:face-recognition",baby_crying:"mdi:baby-face-outline",bicycle:"mdi:bicycle"},jr={motion:/_(motion|mouvement)$/,record:/_(record|enregistrer)$/,siren:/^siren\./,floodlight:/_(floodlight|projecteur)$/,auto_tracking:/_(auto_tracking|suivi_automatique)$/},Hr=[[/_person(ne)?$/,"person"],[/_vehicu?le$/,"vehicle"],[/_pet$|_animal_domestique$/,"pet"],[/_animal$/,"animal"],[/_face$|_visage$/,"face"],[/_package$|_colis$/,"package"],[/_baby_crying$|_pleur_bebe$/,"baby_crying"],[/_bicycl?e$|_velo$/,"bicycle"]],Fr=new Map;function qr(e,t,i){const a=i[e];if(!a?.device_id)return{motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};const r=a.device_id;let s=r;for(const l of Object.keys(i))i[l].device_id===r&&l.startsWith("binary_sensor.")&&t[l]&&(s+=`:${l}=${t[l].state}`);const o=Fr.get(e);if(o&&o.key===s)return o.result;const n=[];for(const[l,d]of Object.entries(i))d.device_id===r&&n.push(l);const c={motionSensorId:null,recordSwitchId:null,sirenId:null,floodlightId:null,autoTrackId:null,aiDetected:[]};for(const l of n){const e=t[l];if(e&&(l.startsWith("binary_sensor.")&&jr.motion.test(l)&&(c.motionSensorId=l),l.startsWith("switch.")&&jr.record.test(l)&&(c.recordSwitchId=l),jr.siren.test(l)&&(c.sirenId=l),l.startsWith("light.")&&jr.floodlight.test(l)&&(c.floodlightId=l),l.startsWith("switch.")&&jr.auto_tracking.test(l)&&(c.autoTrackId=l),l.startsWith("binary_sensor.")&&"on"===e.state))for(const[t,i]of Hr)t.test(l)&&!c.aiDetected.includes(i)&&c.aiDetected.push(i)}return Fr.set(e,{key:s,result:c}),c}function Vr(e){const t=e.attributes?.icon;if(t)return t;const i=e.entity_id;return i.includes("doorbell")?Or:i.includes("indoor")||i.includes("salon")||i.includes("chambre")?Mr:Ar}class Nr extends ct{constructor(){super(...arguments),this._carouselIndex=0,this._liveIds=new Set,this._foldOpen=!1,this._camConfig=null,this._roomConfig=null,this._configLoaded=!1,this._configLoading=!1,this._roomConfigLoading=!1,this._loadVersion=0,this._touchStartX=0,this._touchDelta=0,this._isSwiping=!1,this._trackEl=null,this._cachedCameraIds=[],this._cachedCamerasKey="",this._onPointerDown=e=>{if(e.target.closest(".carousel-nav"))return;this._touchStartX=e.clientX,this._touchDelta=0,this._isSwiping=!0;e.currentTarget.setPointerCapture(e.pointerId),this._trackEl=this.shadowRoot?.querySelector(".carousel-track"),this._trackEl&&(this._trackEl.style.transition="none")},this._onPointerMove=e=>{if(!this._isSwiping)return;const t=this._trackEl??this.shadowRoot?.querySelector(".carousel-track");if(!t)return;this._trackEl=t,this._touchDelta=e.clientX-this._touchStartX;const i=e.currentTarget.offsetWidth,a=100*this._carouselIndex,r=this._touchDelta/i*100;this._trackEl.style.transform=`translateX(${-a+r}%)`},this._onPointerUp=e=>{if(!this._isSwiping||!this._trackEl)return;this._isSwiping=!1,this._trackEl.style.transition="";const t=.2*e.currentTarget.offsetWidth;this._touchDelta<-t?this._goTo(this._carouselIndex+1):this._touchDelta>t?this._goTo(this._carouselIndex-1):this._goTo(this._carouselIndex),this._trackEl=null},this._onPointerCancel=()=>{this._isSwiping&&this._trackEl&&(this._isSwiping=!1,this._trackEl.style.transition="",this._goTo(this._carouselIndex),this._trackEl=null)}}static getConfigElement(){return document.createElement("glass-camera-carousel-card-editor")}getCardSize(){return 3}connectedCallback(){super.connectedCallback(),this._listen("camera-carousel-config-changed",()=>{this._configLoaded=!1,this._cachedCamerasKey="",this._loadConfig()}),this._listen("room-config-changed",e=>{this.areaId&&e.areaId===this.areaId&&(this._roomConfig=null,this._cachedCamerasKey="",this._loadRoomConfig())}),this._listen("dashboard-config-changed",()=>this.requestUpdate()),this._timestampTimer=setInterval(()=>this.requestUpdate(),6e4)}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._clearCycleTimer(),this._clearTimestampTimer(),Fr.clear()}getTrackedEntityIds(){if(!this.hass)return[];const e=this.hass;return this._getCameraIds().flatMap(t=>{const i=qr(t,e.states,e.entities);return[t,i.motionSensorId,i.recordSwitchId,i.sirenId,i.floodlightId,i.autoTrackId].filter(Boolean)})}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection===this.hass.connection||(this._backend=new gt(this.hass))),this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._carouselIndex=0,this._cachedCamerasKey="",this._configLoaded=!1,this._roomConfig=null,this._liveIds=new Set),this._configLoaded||this._configLoading||this._loadConfig(),!this.areaId||this._roomConfig||this._roomConfigLoading||this._loadRoomConfig()}async _loadConfig(){if(!this._backend||this._configLoading)return;this._configLoading=!0;const e=++this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;this._camConfig=t.camera_carousel||{show_header:!0,entity_order:[],hidden_entities:[],auto_cycle:!1,cycle_interval:10},this._configLoaded=!0,this._setupCycleTimer(),this.requestUpdate()}catch{}finally{this._configLoading=!1}}async _loadRoomConfig(){if(!this._backend||!this.areaId||this._roomConfigLoading)return;this._roomConfigLoading=!0;const e=this.areaId;try{const t=await this._backend.send("get_room",{area_id:e});if(this.areaId!==e)return;this._roomConfig={hidden_entities:t?.hidden_entities??[],entity_order:t?.entity_order??[]},this._cachedCamerasKey="",this.requestUpdate()}catch{}finally{this._roomConfigLoading=!1}}_getCameraIds(){if(!this.hass)return[];let e;e=this.areaId?ht(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id):Object.keys(this.hass.states).filter(e=>e.startsWith("camera."));const t=new Set(this._camConfig?.hidden_entities??[]);if(this.areaId&&this._roomConfig)for(const r of this._roomConfig.hidden_entities)t.add(r);t.size&&(e=e.filter(e=>!t.has(e)));const i=e.length+":"+e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.last_changed}`:e}).join(",");if(i===this._cachedCamerasKey)return this._cachedCameraIds;const a=this.areaId?this._roomConfig?.entity_order??[]:[];if(this.areaId&&a.length){const t=a.filter(t=>e.includes(t)),i=e.filter(e=>!t.includes(e));e=[...t,...i]}else{const t=this._camConfig?.entity_order??[];if(t.length){const i=t.filter(t=>e.includes(t)),a=e.filter(e=>!i.includes(e));if(!this.areaId){const e=this.hass.states,t=this.hass.entities;a.sort((i,a)=>this._latestAlertTimestamp(a,e,t)-this._latestAlertTimestamp(i,e,t))}e=[...i,...a]}else if(!this.areaId){const t=this.hass.states,i=this.hass.entities;e.sort((e,a)=>this._latestAlertTimestamp(a,t,i)-this._latestAlertTimestamp(e,t,i))}}return this._cachedCamerasKey=i,this._cachedCameraIds=e,this._carouselIndex>=e.length&&(this._carouselIndex=Math.max(0,e.length-1)),this._cachedCameraIds}_latestAlertTimestamp(e,t,i){const a=i[e];if(!a?.device_id)return 0;const r=a.device_id;let s=0;for(const[o,n]of Object.entries(i)){if(n.device_id!==r||!o.startsWith("binary_sensor."))continue;if(!Hr.some(([e])=>e.test(o)))continue;const e=t[o];if(!e)continue;const i=new Date(e.last_changed).getTime();i>s&&(s=i)}return s}_getCameraInfo(e){if(!this.hass)return null;const t=this.hass.states[e];if(!t)return null;const i=t.attributes?.supported_features??0,a="unavailable"!==t.state&&!1!==t.attributes?.is_on,r=qr(e,this.hass.states,this.hass.entities);return{entityId:e,entity:t,name:t.attributes?.friendly_name||e.split(".")[1],state:t.state,isOn:a,features:i,entityPicture:t.attributes?.entity_picture??null,motionSensorId:r.motionSensorId,motionDetectionSupported:void 0!==t.attributes?.motion_detection,motionDetectionEnabled:!0===t.attributes?.motion_detection,hasMotion:!!r.motionSensorId&&"on"===this.hass.states[r.motionSensorId]?.state,recordSwitchId:r.recordSwitchId,isRecording:"recording"===t.state||!!r.recordSwitchId&&"on"===this.hass.states[r.recordSwitchId]?.state,sirenId:r.sirenId,floodlightId:r.floodlightId,autoTrackId:r.autoTrackId,aiDetected:r.aiDetected,icon:Vr(t)}}_setupCycleTimer(){if(this._clearCycleTimer(),this._camConfig?.auto_cycle&&this._getCameraIds().length>1){const e=1e3*(this._camConfig.cycle_interval||10);this._cycleTimer=setInterval(()=>{if(this._isSwiping)return;const e=this._getCameraIds();e.length>1&&(this._carouselIndex=(this._carouselIndex+1)%e.length,this.requestUpdate())},e)}}_clearCycleTimer(){this._cycleTimer&&(clearInterval(this._cycleTimer),this._cycleTimer=void 0)}_clearTimestampTimer(){this._timestampTimer&&(clearInterval(this._timestampTimer),this._timestampTimer=void 0)}_goTo(e){const t=this._getCameraIds();t.length&&(this._carouselIndex=(e%t.length+t.length)%t.length,this._foldOpen=!1,this._setupCycleTimer(),this.requestUpdate())}_prev(){this._goTo(this._carouselIndex-1)}_next(){this._goTo(this._carouselIndex+1)}_togglePower(e){if(!this.hass)return;const t=e.isOn?"turn_off":"turn_on";this._safeCallService("camera",t,{entity_id:e.entityId})}_snapshot(e){if(!this.hass)return;const t=new CustomEvent("hass-more-info",{detail:{entityId:e.entityId},bubbles:!0,composed:!0});this.dispatchEvent(t)}_toggleRecord(e){if(!this.hass||!e.recordSwitchId)return;const t="on"===this.hass.states[e.recordSwitchId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.recordSwitchId})}_toggleMotion(e){if(!this.hass)return;const t=e.motionDetectionEnabled?"disable_motion_detection":"enable_motion_detection";this._safeCallService("camera",t,{entity_id:e.entityId})}_toggleSiren(e){if(!this.hass||!e.sirenId)return;const t="on"===this.hass.states[e.sirenId]?.state;this._safeCallService("siren",t?"turn_off":"turn_on",{entity_id:e.sirenId})}_toggleFloodlight(e){if(!this.hass||!e.floodlightId)return;const t="on"===this.hass.states[e.floodlightId]?.state;this._safeCallService("light",t?"turn_off":"turn_on",{entity_id:e.floodlightId})}_toggleAutoTrack(e){if(!this.hass||!e.autoTrackId)return;const t="on"===this.hass.states[e.autoTrackId]?.state;this._safeCallService("switch",t?"turn_off":"turn_on",{entity_id:e.autoTrackId})}_startStream(e){const t=new Set(this._liveIds);t.add(e),this._liveIds=t}render(){if(this._lang,!this.hass)return B;const e=this._getCameraIds();if(!e.length)return B;const t=!1!==this._camConfig?.show_header,i=this._getCameraInfo(e[this._carouselIndex]),a=this._bindGesture({onTap:()=>{const t=e[this._carouselIndex];t&&!this._liveIds.has(t)&&this._startStream(t)},onLongPress:()=>{this._isSwiping=!1,this._trackEl=null,this._foldOpen=!this._foldOpen},exclude:".carousel-nav"});return N`
       ${t?N`
         <div class="card-header">
           <div class="card-header-left">
@@ -13032,7 +13171,7 @@
                 <div class="stream-ai-tags">
                   ${i.aiDetected.map(e=>N`
                     <div class="stream-ai-tag">
-                      <ha-icon .icon=${Or[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
+                      <ha-icon .icon=${Rr[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
                       ${et(`camera.ai_${e}`)}
                     </div>
                   `)}
@@ -13072,7 +13211,7 @@
               <div class="carousel-ai-mini">
                 ${e.aiDetected.map(e=>N`
                   <div class="ai-badge active">
-                    <ha-icon .icon=${Or[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
+                    <ha-icon .icon=${Rr[e]||"mdi:eye"} style="--mdc-icon-size:10px"></ha-icon>
                   </div>
                 `)}
               </div>
@@ -13087,7 +13226,7 @@
             ${et("camera.power_on")}
           </button>
         </div>
-      `;const t=0!==(e.features&Pr),i=!!e.sirenId&&"on"===this.hass?.states[e.sirenId]?.state,a=!!e.floodlightId&&"on"===this.hass?.states[e.floodlightId]?.state,r=!!e.autoTrackId&&"on"===this.hass?.states[e.autoTrackId]?.state;return N`
+      `;const t=0!==(e.features&Lr),i=!!e.sirenId&&"on"===this.hass?.states[e.sirenId]?.state,a=!!e.floodlightId&&"on"===this.hass?.states[e.floodlightId]?.state,r=!!e.autoTrackId&&"on"===this.hass?.states[e.autoTrackId]?.state;return N`
       <div class="carousel-actions">
         ${t?N`
           <button class="action-btn active" @click=${()=>this._togglePower(e)} aria-label="${et("camera.power_off")}">
@@ -13432,7 +13571,7 @@
       @media (pointer: coarse) {
         .action-btn:active { animation: bounce 0.15s ease-out; }
       }
-    `]}}Tr([pe()],Vr.prototype,"areaId"),Tr([ue()],Vr.prototype,"_carouselIndex"),Tr([ue()],Vr.prototype,"_liveIds"),Tr([ue()],Vr.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",Vr)}catch{}st("glass-title-card-editor");var Nr=Object.defineProperty,Ur=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Nr(t,i,s),s};const Wr={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},Br={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function Kr(e){if(Wr[e])return Wr[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return Wr.neutral}const Gr={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Yr={icon:"mdi:clock-outline",color:"var(--t3)"};class Xr extends ct{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=Gr[e]||Yr,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[$e,Se,De,s`
+    `]}}Pr([pe()],Nr.prototype,"areaId"),Pr([ue()],Nr.prototype,"_carouselIndex"),Pr([ue()],Nr.prototype,"_liveIds"),Pr([ue()],Nr.prototype,"_foldOpen");try{customElements.define("glass-camera-carousel-card",Nr)}catch{}st("glass-title-card-editor");var Ur=Object.defineProperty,Wr=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ur(t,i,s),s};const Br={success:{text:"var(--c-success)",dot:"var(--c-success)",glow:"rgba(74,222,128,0.5)"},warning:{text:"var(--c-warning)",dot:"var(--c-warning)",glow:"rgba(251,191,36,0.5)"},info:{text:"var(--c-info)",dot:"var(--c-info)",glow:"rgba(96,165,250,0.5)"},accent:{text:"var(--c-accent)",dot:"var(--c-accent)",glow:"rgba(129,140,248,0.5)"},alert:{text:"var(--c-alert)",dot:"var(--c-alert)",glow:"rgba(248,113,113,0.5)"},neutral:{text:"var(--t3)",dot:"var(--t4)",glow:"none"}},Kr={input_select:"title_card.group_mode",scenes:"title_card.group_scenes",booleans:"title_card.group_toggles"};function Gr(e){if(Br[e])return Br[e];if(e.startsWith("#")&&7===e.length){const t=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),a=parseInt(e.slice(5,7),16);return{text:e,dot:e,glow:`rgba(${t},${i},${a},0.5)`}}return Br.neutral}const Yr={Matin:{icon:"mdi:weather-sunset-up",color:"#f0a050"},"Après-midi":{icon:"mdi:white-balance-sunny",color:"#7db8e0"},Soir:{icon:"mdi:weather-sunset-down",color:"#e08040"},Nuit:{icon:"mdi:weather-night",color:"#8b8ff0"}},Xr={icon:"mdi:clock-outline",color:"var(--t3)"};class Qr extends ct{constructor(){super(...arguments),this._foldOpen=!1,this._activatingSceneId=null,this._titleConfig={title:"",sources:[],period_entity:"",period_options:[]},this._configLoaded=!1,this._configLoading=!1,this._loadVersion=0,this._sceneTimeout=0,this._boundClickOutside=this._onClickOutside.bind(this)}static getConfigElement(){return document.createElement("glass-title-card-editor")}getCardSize(){return 2}get _periodEntityId(){return this._titleConfig.period_entity||"input_select.periode_journee"}_getPeriodVisual(e){const t=Yr[e]||Xr,i=this._titleConfig.period_options.find(t=>t.id===e);if(!i)return t;const a=i.color?.startsWith("#");return{icon:i.icon||t.icon,color:a?i.color:t.color}}static{this.styles=[$e,Se,De,s`
     :host {
       width: 100%;
       user-select: none;
@@ -13599,7 +13738,7 @@
       }
       .chip.pulsing { animation: none; }
     }
-  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++,this._sceneTimeout&&(clearTimeout(this._sceneTimeout),this._sceneTimeout=0)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new gt(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=[this._periodEntityId];for(const t of this._titleConfig.sources)if("input_select"===t.source_type&&t.entity)e.push(t.entity);else for(const i of t.modes)i.id.includes(".")&&e.push(i.id);return e}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_dashStyle(e){if(0===e.length)return"";const t=e.map(e=>Kr(e)),i="width:"+Math.min(20+4*e.length,36)+"px";if(1===t.length)return`background:${t[0].dot};box-shadow:0 0 8px ${t[0].glow};${i}`;const a=t.length,r=t.flatMap((e,t)=>[`${e.dot} ${Math.round(t/a*100)}%`,`${e.dot} ${Math.round((t+1)/a*100)}%`]).join(", "),s=t.filter(e=>"none"!==e.glow);return`background:linear-gradient(90deg, ${r});box-shadow:${s.length>0?s.map(e=>`0 0 6px ${e.glow}`).join(", "):"none"};${i}`}_getActiveColors(e){if("input_select"===e.source_type){if(!e.entity||!this.hass)return[];const t=this.hass.states[e.entity];if(!t)return[];const i=e.modes.find(e=>e.id===t.state),a=i?.color||"neutral";return"neutral"!==a?[a]:[]}if("booleans"===e.source_type){if(!this.hass)return[];const t=[];for(const i of e.modes)if("on"===this.hass.states[i.id]?.state){const e=i.color||"success";"neutral"!==e&&t.push(e)}return t}if(this._activatingSceneId){const t=e.modes.find(e=>e.id===this._activatingSceneId);if(t)return[t.color||"accent"]}return[]}_isChipActive(e,t,i){return"input_select"===e.source_type?!(!e.entity||!this.hass)&&this.hass.states[e.entity]?.state===t.id:"booleans"===e.source_type?"on"===this.hass?.states[t.id]?.state:"scenes"===e.source_type&&this._activatingSceneId===t.id}_pulseChip(e){this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))})}_selectOption(e,t){e.entity&&this.hass&&(this._safeCallService("input_select","select_option",{option:t},{entity_id:e.entity}),this._pulseChip(t))}_activateScene(e){this.hass&&(lt(this,"light"),this._safeCallService("scene","turn_on",{},{entity_id:e}),this._activatingSceneId=e,this._sceneTimeout&&clearTimeout(this._sceneTimeout),this._sceneTimeout=window.setTimeout(()=>{this._activatingSceneId=null,this._sceneTimeout=0},2e3),this._pulseChip(e))}_toggleBoolean(e){this.hass&&(this._safeCallService("input_boolean","toggle",{},{entity_id:e}),this._pulseChip(e))}_toggleFold(){this._foldOpen=!this._foldOpen}_onClickOutside(e){if(!this._foldOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelector(".dash-trigger"),r=i.querySelector(".fold-section");a&&r&&!t.includes(a)&&!t.includes(r)&&(this._foldOpen=!1)}render(){this._lang;const e=this._titleConfig.title||(this.configPreview?et("config.title_title_placeholder"):"");if(!e)return this.style.display="none",B;this.style.display="";const t=this._titleConfig.sources,i=t.length>0&&t.some(e=>e.modes.length>0),a=[];if(i)for(const s of t)a.push(...this._getActiveColors(s));const r=a.length>0?this._dashStyle(a):"";return N`
+  `]}connectedCallback(){super.connectedCallback(),this._listen("title-config-changed",()=>this._loadConfig()),document.addEventListener("click",this._boundClickOutside)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundClickOutside),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++,this._sceneTimeout&&(clearTimeout(this._sceneTimeout),this._sceneTimeout=0)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._loadVersion++),this._configLoaded||this._configLoading||(this._configLoading=!0,this._backend=new gt(this.hass),this._loadConfig()))}getTrackedEntityIds(){const e=[this._periodEntityId];for(const t of this._titleConfig.sources)if("input_select"===t.source_type&&t.entity)e.push(t.entity);else for(const i of t.modes)i.id.includes(".")&&e.push(i.id);return e}async _loadConfig(){if(!this._backend)return;const e=this._loadVersion;try{const t=await this._backend.send("get_config");if(e!==this._loadVersion)return;t?.title_card&&(this._titleConfig=t.title_card),this._configLoaded=!0,this._configLoading=!1,this.requestUpdate()}catch{e===this._loadVersion&&(this._configLoading=!1)}}_dashStyle(e){if(0===e.length)return"";const t=e.map(e=>Gr(e)),i="width:"+Math.min(20+4*e.length,36)+"px";if(1===t.length)return`background:${t[0].dot};box-shadow:0 0 8px ${t[0].glow};${i}`;const a=t.length,r=t.flatMap((e,t)=>[`${e.dot} ${Math.round(t/a*100)}%`,`${e.dot} ${Math.round((t+1)/a*100)}%`]).join(", "),s=t.filter(e=>"none"!==e.glow);return`background:linear-gradient(90deg, ${r});box-shadow:${s.length>0?s.map(e=>`0 0 6px ${e.glow}`).join(", "):"none"};${i}`}_getActiveColors(e){if("input_select"===e.source_type){if(!e.entity||!this.hass)return[];const t=this.hass.states[e.entity];if(!t)return[];const i=e.modes.find(e=>e.id===t.state),a=i?.color||"neutral";return"neutral"!==a?[a]:[]}if("booleans"===e.source_type){if(!this.hass)return[];const t=[];for(const i of e.modes)if("on"===this.hass.states[i.id]?.state){const e=i.color||"success";"neutral"!==e&&t.push(e)}return t}if(this._activatingSceneId){const t=e.modes.find(e=>e.id===this._activatingSceneId);if(t)return[t.color||"accent"]}return[]}_isChipActive(e,t,i){return"input_select"===e.source_type?!(!e.entity||!this.hass)&&this.hass.states[e.entity]?.state===t.id:"booleans"===e.source_type?"on"===this.hass?.states[t.id]?.state:"scenes"===e.source_type&&this._activatingSceneId===t.id}_pulseChip(e){this.updateComplete.then(()=>{const t=this.shadowRoot?.querySelector(`.chip[data-id="${e}"]`);t&&(t.classList.add("pulsing"),setTimeout(()=>t.classList.remove("pulsing"),600))})}_selectOption(e,t){e.entity&&this.hass&&(this._safeCallService("input_select","select_option",{option:t},{entity_id:e.entity}),this._pulseChip(t))}_activateScene(e){this.hass&&(lt(this,"light"),this._safeCallService("scene","turn_on",{},{entity_id:e}),this._activatingSceneId=e,this._sceneTimeout&&clearTimeout(this._sceneTimeout),this._sceneTimeout=window.setTimeout(()=>{this._activatingSceneId=null,this._sceneTimeout=0},2e3),this._pulseChip(e))}_toggleBoolean(e){this.hass&&(this._safeCallService("input_boolean","toggle",{},{entity_id:e}),this._pulseChip(e))}_toggleFold(){this._foldOpen=!this._foldOpen}_onClickOutside(e){if(!this._foldOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelector(".dash-trigger"),r=i.querySelector(".fold-section");a&&r&&!t.includes(a)&&!t.includes(r)&&(this._foldOpen=!1)}render(){this._lang;const e=this._titleConfig.title||(this.configPreview?et("config.title_title_placeholder"):"");if(!e)return this.style.display="none",B;this.style.display="";const t=this._titleConfig.sources,i=t.length>0&&t.some(e=>e.modes.length>0),a=[];if(i)for(const s of t)a.push(...this._getActiveColors(s));const r=a.length>0?this._dashStyle(a):"";return N`
       <div class="title-card">
         <div class="title-text">${e}</div>
         ${this._renderPeriodIndicator()}
@@ -13623,7 +13762,7 @@
           </div>
         `:B}
       </div>
-    `}_renderPeriodIndicator(){if(!this.hass)return B;const e=this.hass.states[this._periodEntityId];if(!e)return B;const t=e.attributes?.options??[];if(0===t.length)return B;const i=e.state,a=t.indexOf(i);if(-1===a)return N`<div class="period-indicator"></div>`;const r=Kr(this._getPeriodVisual(i).color);return N`
+    `}_renderPeriodIndicator(){if(!this.hass)return B;const e=this.hass.states[this._periodEntityId];if(!e)return B;const t=e.attributes?.options??[];if(0===t.length)return B;const i=e.state,a=t.indexOf(i);if(-1===a)return N`<div class="period-indicator"></div>`;const r=Gr(this._getPeriodVisual(i).color);return N`
       <div class="period-indicator" aria-live="polite" aria-label="${i}">
         ${t.map((e,t)=>{const i=t===a,s=this._getPeriodVisual(e);return N`
             <div class="period-item ${i?"active":""}"
@@ -13633,11 +13772,11 @@
             </div>
           `})}
       </div>
-    `}_renderSourceGroup(e,t,i){if(0===e.modes.length)return B;const a=Br[e.source_type],r=e.label||(a?et(a):e.source_type);return N`
+    `}_renderSourceGroup(e,t,i){if(0===e.modes.length)return B;const a=Kr[e.source_type],r=e.label||(a?et(a):e.source_type);return N`
       <div class="chips-group">
         ${i?N`<div class="chips-group-label">${r}</div>`:B}
         <div class="chips-row">
-          ${e.modes.map((t,i)=>{const a=this._isChipActive(e,t,i),r=Kr(t.color||"neutral");return N`
+          ${e.modes.map((t,i)=>{const a=this._isChipActive(e,t,i),r=Gr(t.color||"neutral");return N`
               <button
                 class="chip"
                 data-id=${t.id}
@@ -13651,4 +13790,4 @@
             `})}
         </div>
       </div>
-    `}_onChipClick(e,t,i){"input_select"===e.source_type?this._selectOption(e,t.id):"scenes"===e.source_type?this._activateScene(t.id):"booleans"===e.source_type&&this._toggleBoolean(t.id)}}Ur([ue()],Xr.prototype,"_foldOpen"),Ur([ue()],Xr.prototype,"_activatingSceneId");try{customElements.define("glass-title-card",Xr)}catch{}}();
+    `}_onChipClick(e,t,i){"input_select"===e.source_type?this._selectOption(e,t.id):"scenes"===e.source_type?this._activateScene(t.id):"booleans"===e.source_type&&this._toggleBoolean(t.id)}}Wr([ue()],Qr.prototype,"_foldOpen"),Wr([ue()],Qr.prototype,"_activatingSceneId");try{customElements.define("glass-title-card",Qr)}catch{}}();
