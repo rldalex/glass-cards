@@ -80,6 +80,8 @@ importers:
 
   cards/title-card: {}
 
+  cards/vacuum-card: {}
+
   cards/weather-card: {}
 
   packages/base-card: {}

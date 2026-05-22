@@ -19,6 +19,7 @@ export type TranslationKey =
   | `weather.${keyof typeof fr.weather}`
   | `popup.${keyof typeof fr.popup}`
   | `title_card.${keyof typeof fr.title_card}`
+  | `vacuum.${keyof typeof fr.vacuum}`
   | `editor.${keyof typeof fr.editor}`
   | `fan.${keyof typeof fr.fan}`
   | `cover.${keyof typeof fr.cover}`
