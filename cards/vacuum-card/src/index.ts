@@ -169,13 +169,19 @@ export class GlassVacuumCard extends BaseCard {
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.625rem 0.75rem;
+        gap: 0.375rem;
+        padding: 0.5rem 0 0.75rem;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
         mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
         -webkit-mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
+      }
+      .rooms-row::before,
+      .rooms-row::after {
+        content: '';
+        flex-shrink: 0;
+        width: 0.875rem;
       }
       .rooms-row::-webkit-scrollbar {
         display: none;
