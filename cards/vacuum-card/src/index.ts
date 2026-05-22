@@ -25,6 +25,18 @@ import {
 } from './companions';
 import { FAN_SPEED_LABELS, MOP_INTENSITY_LABELS, MOP_PATTERN_LABELS, labelOf, humanizeRoomSlug } from './labels';
 
+function relativeTime(isoString: string): string {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diff < 60) return 'à l\'instant';
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
+  if (diff < 172800) return 'hier';
+  return `il y a ${Math.floor(diff / 86400)} jours`;
+}
+
 function normalize(s: string): string {
   return s
     .normalize('NFD')
@@ -459,6 +471,68 @@ export class GlassVacuumCard extends BaseCard {
       .status-pill-inline ha-icon {
         --mdc-icon-size: 0.9rem;
       }
+      .dock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+        gap: 0.5rem;
+      }
+      .dock-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.625rem 0.5rem;
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        text-align: center;
+        min-height: 4rem;
+      }
+      .dock-cell ha-icon {
+        --mdc-icon-size: 1.5rem;
+      }
+      .dock-label {
+        font-size: var(--fz-sm);
+        color: var(--t2);
+        line-height: 1.25;
+      }
+      .conso-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3125rem;
+      }
+      .conso-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: var(--fz-sm);
+      }
+      .conso-label {
+        color: var(--t2);
+      }
+      .conso-value {
+        font-weight: 600;
+      }
+      .conso-bar {
+        position: relative;
+        height: 0.375rem;
+        background: var(--s2);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+      }
+      .conso-bar-fill {
+        height: 100%;
+        border-radius: var(--radius-full);
+        transition: width var(--t-med), background var(--t-fast);
+      }
+      .stats-row {
+        font-size: var(--fz-sm);
+        color: var(--t2);
+        line-height: 1.4;
+      }
+      .stats-totals {
+        color: var(--t3);
+      }
     `,
   ];
 
@@ -657,6 +731,7 @@ export class GlassVacuumCard extends BaseCard {
           ${this._renderRoomChips(companions)}
           ${this._renderTransport(vacuum)}
           ${this._renderDailyFold(vacuum, companions)}
+          ${this._renderMaintenanceFold(companions)}
         </div>
       </div>
     `;
@@ -955,6 +1030,160 @@ export class GlassVacuumCard extends BaseCard {
       <div class="status-pill-inline" style="border-color: ${color}; background: rgba(255,255,255,0.04);">
         <ha-icon icon=${icon} style="color: ${color};"></ha-icon>
         <span>${label}</span>
+      </div>
+    `;
+  }
+
+  private _renderDock(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
+    if (!companions) return nothing;
+    const cells = [
+      {
+        icon: 'mdi:battery-charging',
+        label: isBinaryOn(this.hass!, companions.charging)
+          ? t('vacuum.dock_charging')
+          : t('vacuum.dock_idle'),
+        color: isBinaryOn(this.hass!, companions.charging) ? 'var(--c-success)' : 'var(--t3)',
+      },
+      {
+        icon: 'mdi:hair-dryer-outline',
+        label: isBinaryOn(this.hass!, companions.dockDrying)
+          ? t('vacuum.dock_drying_label', {
+              minutes: Math.round(numericState(this.hass!, companions.dockDryingTimeLeft, 0)),
+            })
+          : t('vacuum.dock_drying_idle'),
+        color: isBinaryOn(this.hass!, companions.dockDrying) ? 'var(--c-info)' : 'var(--t3)',
+      },
+      {
+        icon: 'mdi:water-pump',
+        label: isBinaryOn(this.hass!, companions.dirtyWaterBox)
+          ? t('vacuum.dirty_full')
+          : t('vacuum.dirty_ok'),
+        color: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? 'var(--c-alert)' : 'var(--c-success)',
+      },
+      {
+        icon: 'mdi:water',
+        label: isBinaryOn(this.hass!, companions.cleanWaterBox)
+          ? t('vacuum.clean_ok')
+          : t('vacuum.clean_empty'),
+        color: isBinaryOn(this.hass!, companions.cleanWaterBox) ? 'var(--c-success)' : 'var(--c-alert)',
+      },
+      {
+        icon: 'mdi:bottle-tonic-outline',
+        label: isBinaryOn(this.hass!, companions.cleaningFluid)
+          ? t('vacuum.fluid_ok')
+          : t('vacuum.fluid_empty'),
+        color: isBinaryOn(this.hass!, companions.cleaningFluid) ? 'var(--c-success)' : 'var(--c-warning)',
+      },
+    ];
+
+    return html`
+      <div class="fold-section">
+        <div class="eyebrow">${t('vacuum.section_dock')}</div>
+        <div class="dock-grid">
+          ${cells.map((c) => html`
+            <div class="dock-cell">
+              <ha-icon icon=${c.icon} style=${`color:${c.color}`}></ha-icon>
+              <span class="dock-label">${c.label}</span>
+            </div>
+          `)}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderConso(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
+    if (!companions) return nothing;
+    const items = [
+      { key: companions.consoBrushMain, label: t('vacuum.conso_brush_main'), max: 300 },
+      { key: companions.consoBrushSide, label: t('vacuum.conso_brush_side'), max: 200 },
+      { key: companions.consoFilter, label: t('vacuum.conso_filter'), max: 150 },
+      { key: companions.consoSensors, label: t('vacuum.conso_sensors'), max: 100 },
+    ].filter((i) => i.key);
+
+    if (items.length === 0) return nothing;
+
+    return html`
+      <div class="fold-section">
+        <div class="eyebrow">${t('vacuum.section_consumables')}</div>
+        ${items.map((i) => {
+          const hours = numericState(this.hass!, i.key, 0);
+          let color = 'var(--c-success)';
+          if (hours < 0) color = 'var(--c-alert)';
+          else if (hours < 20) color = 'var(--c-alert)';
+          else if (hours < 50) color = 'var(--c-warning)';
+          const pct = Math.max(0, Math.min(100, (hours / i.max) * 100));
+          const rightLabel = hours < 0 ? t('vacuum.conso_clean_now') : t('vacuum.conso_hours', { hours: Math.round(hours) });
+          return html`
+            <div class="conso-row">
+              <div class="conso-header">
+                <span class="conso-label">${i.label}</span>
+                <span class="conso-value" style=${`color:${color}`}>${rightLabel}</span>
+              </div>
+              <div
+                class="conso-bar"
+                role="progressbar"
+                aria-valuenow=${Math.max(0, Math.round(hours))}
+                aria-valuemin="0"
+                aria-valuemax=${i.max}
+                aria-label="${i.label} : ${rightLabel}"
+              >
+                <div class="conso-bar-fill" style=${`width:${pct}%;background:${color}`}></div>
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderStats(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
+    if (!companions) return nothing;
+    const lastEnd = entityState(this.hass!, companions.lastEnd, '');
+    const dur = numericState(this.hass!, companions.durationCurrent, 0);
+    const area = numericState(this.hass!, companions.areaCurrent, 0);
+    const totalCount = Math.round(numericState(this.hass!, companions.totalCleanings, 0));
+    const totalArea = Math.round(numericState(this.hass!, companions.areaTotal, 0));
+
+    const when = lastEnd ? relativeTime(lastEnd) : '—';
+    const duration = `${Math.round(dur)} min`;
+    const areaLabel = `${area} m²`;
+
+    return html`
+      <div class="fold-section">
+        <div class="eyebrow">${t('vacuum.section_stats')}</div>
+        <div class="stats-row">${t('vacuum.stats_last_session', { when, duration, area: areaLabel })}</div>
+        <div class="stats-row stats-totals">
+          ${t('vacuum.stats_totals', { count: totalCount, area: `${totalArea} m²` })}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderMaintenanceFold(companions: VacuumCompanions | null): TemplateResult {
+    const open = this._foldMaintenanceOpen;
+    return html`
+      <button
+        type="button"
+        class="fold-toggle"
+        aria-expanded=${open}
+        aria-controls="fold-maintenance"
+        @click=${() => { this._foldMaintenanceOpen = !this._foldMaintenanceOpen; }}
+      >
+        <span class="fold-toggle-label">${t('vacuum.fold_maintenance')}</span>
+        <ha-icon icon="mdi:chevron-down" class=${open ? 'rotated' : ''}></ha-icon>
+      </button>
+      <div
+        id="fold-maintenance"
+        class="fold ${open ? 'open' : ''}"
+        aria-hidden=${!open}
+      >
+        <div class="fold-inner">
+          <div class="fold-sep top"></div>
+          ${this._renderDock(companions)}
+          ${this._renderConso(companions)}
+          ${this._renderStats(companions)}
+          <div class="fold-sep bottom"></div>
+        </div>
       </div>
     `;
   }
