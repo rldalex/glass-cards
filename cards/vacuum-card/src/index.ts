@@ -56,6 +56,8 @@ export class GlassVacuumCard extends BaseCard {
   @state() private _open = false;
   @state() private _pendingAction: string | null = null;
   @state() private _locateFlashing = false;
+  @state() private _optimisticRoom: string | null = null;
+  private _optimisticTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _locateTimer: ReturnType<typeof setTimeout> | null = null;
   private _confirmTimerId: ReturnType<typeof setTimeout> | null = null;
@@ -71,9 +73,12 @@ export class GlassVacuumCard extends BaseCard {
     super.disconnectedCallback();
     if (this._locateTimer) clearTimeout(this._locateTimer);
     if (this._confirmTimerId) clearTimeout(this._confirmTimerId);
+    if (this._optimisticTimer) clearTimeout(this._optimisticTimer);
     this._locateTimer = null;
     this._confirmTimerId = null;
+    this._optimisticTimer = null;
     this._pendingAction = null;
+    this._optimisticRoom = null;
   }
 
   static styles = [
@@ -593,11 +598,30 @@ export class GlassVacuumCard extends BaseCard {
   }
 
   private _isCurrentRoomButton(_entityId: string, slug: string): boolean {
+    // Optimistic state wins if set — user just tapped this room, we show it as
+    // active even before HA reports back via `current_room`.
+    if (this._optimisticRoom && normalize(this._optimisticRoom) === normalize(slug)) {
+      return true;
+    }
     const companions = this._companions();
     if (!companions) return false;
     const currentRoom = entityState(this.hass!, companions.currentRoom, '');
     if (!currentRoom) return false;
     return normalize(slug) === normalize(currentRoom);
+  }
+
+  private _onRoomChipTap(entityId: string, slug: string): void {
+    // Optimistic mark + immediate service call. Clear the mark after 3s if HA
+    // hasn't propagated the new current_room by then; if HA confirms earlier
+    // (its current_room matches our optimistic slug), the chip stays active via
+    // the real-state branch in _isCurrentRoomButton.
+    this._optimisticRoom = slug;
+    if (this._optimisticTimer) clearTimeout(this._optimisticTimer);
+    this._optimisticTimer = setTimeout(() => {
+      this._optimisticRoom = null;
+      this._optimisticTimer = null;
+    }, 3000);
+    this._pressButton(entityId);
   }
 
   private _renderAllHouseChip(allHouseId: string, showingConfirm: boolean): TemplateResult {
@@ -813,7 +837,7 @@ export class GlassVacuumCard extends BaseCard {
                   class="chip ${isCurrent ? 'active' : ''}"
                   aria-label=${t('vacuum.clean_room_aria', { room: label })}
                   aria-pressed=${isCurrent}
-                  @click=${() => this._pressButton(entityId)}
+                  @click=${() => this._onRoomChipTap(entityId, slug)}
                 >
                   ${isCurrent ? html`<span class="dot dot-info pulsing"></span>` : nothing}
                   <span>${label}</span>
