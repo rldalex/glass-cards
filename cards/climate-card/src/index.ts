@@ -1171,7 +1171,7 @@ export class GlassClimateCard extends BaseCard {
 
     /* ── Icon Button ── */
     .cl-icon-btn {
-      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); cursor: pointer; padding: 0; outline: none;
@@ -1342,7 +1342,7 @@ export class GlassClimateCard extends BaseCard {
       padding: 0.5rem 0;
     }
     .temp-stepper-btn {
-      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
+      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); outline: none; padding: 0;
@@ -1613,7 +1613,7 @@ export class GlassClimateCard extends BaseCard {
     .mode-tile {
       position: relative; overflow: hidden;
       display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.5625rem 0.75rem; min-height: 2.75rem;
+      padding: 0.5625rem 0.75rem; min-height: var(--tap-lg);
       border-radius: var(--radius-md);
       background: var(--s1);
       border: 1px solid var(--b2);

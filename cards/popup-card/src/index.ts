@@ -183,10 +183,10 @@ export class GlassRoomPopup extends LitElement {
         flex-shrink: 0;
       }
       .header-icon {
-        min-width: 2.75rem;
-        min-height: 2.75rem;
-        width: 2.75rem;
-        height: 2.75rem;
+        min-width: var(--tap-lg);
+        min-height: var(--tap-lg);
+        width: var(--tap-lg);
+        height: var(--tap-lg);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -269,8 +269,8 @@ export class GlassRoomPopup extends LitElement {
         border: 1px solid var(--b1);
         width: 1.75rem;
         height: 1.75rem;
-        min-width: 2.75rem;
-        min-height: 2.75rem;
+        min-width: var(--tap-lg);
+        min-height: var(--tap-lg);
         border-radius: var(--radius-sm);
         color: var(--t3);
         cursor: pointer;
@@ -335,7 +335,7 @@ export class GlassRoomPopup extends LitElement {
         background: rgba(var(--rgb-white), 0.04);
         border: 1px solid var(--b1);
         border-radius: var(--radius-md);
-        min-height: 2.75rem;
+        min-height: var(--tap-lg);
         padding: 0.3125rem 0.75rem;
         font-size: var(--fz-sm);
         font-weight: 600;

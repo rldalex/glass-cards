@@ -63,7 +63,7 @@ export const CARD_ICONS: Record<string, string> = {
   fan: 'mdi:fan',
   cover: 'mdi:blinds',
   camera: 'mdi:cctv',
-  vacuum: 'mdi:robot-vacuum',
+  vacuum: 'mdi:robot-vacuum-variant',
 };
 
 type DomainKey = 'light' | 'media_player' | 'climate' | 'fan' | 'cover' | 'camera' | 'vacuum';

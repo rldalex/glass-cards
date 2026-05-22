@@ -704,7 +704,7 @@ export class GlassCalendarCard extends BaseCard {
     }
     .v4-week-day {
       display: flex; flex-direction: column; align-items: center; gap: 0.1875rem;
-      padding: 0.375rem 0; min-height: 2.75rem;
+      padding: 0.375rem 0; min-height: var(--tap-lg);
       border-radius: var(--radius-sm); background: none; border: none;
       cursor: pointer; outline: none; font-family: inherit;
       transition: background var(--t-fast);
@@ -773,7 +773,7 @@ export class GlassCalendarCard extends BaseCard {
       position: relative;
       display: flex; align-items: center; gap: 0.625rem;
       padding: 0.5rem 0.625rem;
-      min-height: 2.75rem; border-radius: var(--radius-md);
+      min-height: var(--tap-lg); border-radius: var(--radius-md);
       background: var(--s1); border: 0.0625rem solid transparent;
       cursor: pointer; outline: none; font-family: inherit; text-align: left;
       width: 100%;

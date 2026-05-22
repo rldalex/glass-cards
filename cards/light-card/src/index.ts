@@ -309,8 +309,8 @@ export class GlassLightCard extends BaseCard {
 
       /* ── Icon Button ── */
       .light-icon-btn {
-        width: 2.25rem;
-        height: 2.25rem;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
         border-radius: var(--radius-md);
         background: var(--s2);
         border: 1px solid var(--b1);

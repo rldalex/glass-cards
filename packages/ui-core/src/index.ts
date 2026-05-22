@@ -21,6 +21,10 @@ export const glassTokens: CSSResult = css`
     --radius-xs: 6px;
     --radius-full: 9999px;
 
+    /* Touch target — standard mobile-first size (44px, Apple/Material baseline)
+       Applies to icon buttons in compact bars and primary action buttons. */
+    --tap-lg: 2.75rem;
+
     --fz-display: 28px;
     --fz-xl: 22px;
     --fz-lg: 14px;

@@ -222,7 +222,7 @@ class GlassSpotifyCard extends BaseCard {
     /* — Now-playing bar (replaces search bar when something is playing and fold is closed) — */
     .np-bar {
       display: flex; align-items: center; gap: 0.5rem;
-      min-height: 2.75rem;
+      min-height: var(--tap-lg);
     }
     .np-art {
       width: 2.5rem; height: 2.5rem; border-radius: var(--radius-sm);
@@ -776,7 +776,7 @@ class GlassSpotifyCard extends BaseCard {
       display: inline-flex; align-items: center; gap: 0.4375rem;
       margin-top: 0.5rem;
       padding: 0.75rem 1rem; border-radius: var(--radius-full);
-      min-height: 2.75rem; box-sizing: border-box;
+      min-height: var(--tap-lg); box-sizing: border-box;
       background: var(--c-spotify); color: var(--c-spotify-on);
       border: none;
       font-family: inherit; font-size: var(--fz-base); font-weight: 700;

@@ -1667,7 +1667,7 @@ export class GlassMediaCard extends BaseCard {
         margin-top: 0.125rem;
       }
       .transport-btn {
-        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+        width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
         background: transparent; border: 1px solid transparent;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
@@ -1690,7 +1690,6 @@ export class GlassMediaCard extends BaseCard {
         border-color: rgba(var(--rgb-white),0.25);
       }
 
-      .transport-skip { width: 2.5rem; height: 2.5rem; }
       .transport-skip ha-icon { --mdc-icon-size: 1.625rem; }
       .transport-skip { color: rgba(var(--rgb-white),0.85); }
 

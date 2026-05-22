@@ -267,7 +267,7 @@ class GlassCoverCard extends BaseCard {
     .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
 
     .cv-icon-btn {
-      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
@@ -371,7 +371,7 @@ class GlassCoverCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; gap: 0.375rem;
     }
     .transport-btn {
-      width: 2.75rem; height: 2.75rem; border-radius: var(--radius-lg);
+      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
       background: var(--s2); border: 1px solid var(--b2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;

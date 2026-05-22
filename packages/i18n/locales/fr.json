@@ -267,6 +267,8 @@
     "battery_aria": "Batterie {level}%, {charging}",
     "charging": "en charge",
     "not_charging": "sur batterie",
+    "alert_aria": "Alerte : entretien requis",
+    "warning_aria": "Avertissement : entretien à prévoir",
     "all_house": "Toute la maison",
     "confirm_short": "Confirmer ?",
     "clean_room_aria": "Nettoyer {room}",

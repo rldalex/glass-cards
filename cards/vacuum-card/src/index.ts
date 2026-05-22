@@ -170,9 +170,16 @@ export class GlassVacuumCard extends BaseCard {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.55; }
       }
-      .card-error {
-        border-color: var(--c-alert) !important;
+      @keyframes vac-pulse-alert {
+        0%, 100% { border-color: rgba(var(--rgb-alert), 0.4); }
+        50%      { border-color: rgba(var(--rgb-alert), 1); }
       }
+      @keyframes vac-pulse-warning {
+        0%, 100% { border-color: rgba(var(--rgb-warning), 0.4); }
+        50%      { border-color: rgba(var(--rgb-warning), 1); }
+      }
+      .glass.alert-pulse   { animation: vac-pulse-alert 2s ease-in-out infinite; border-width: 1.5px; }
+      .glass.warning-pulse { animation: vac-pulse-warning 2.4s ease-in-out infinite; border-width: 1.5px; }
       .rooms-section {
         padding: 0.5rem 0 0.75rem;
       }
@@ -234,8 +241,8 @@ export class GlassVacuumCard extends BaseCard {
       .t-btn {
         position: relative;
         flex: 0 0 auto;
-        width: 2.75rem;
-        height: 2.75rem;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
         background: var(--s2);
         border: 1px solid var(--b1);
         border-radius: var(--radius-md);
@@ -385,7 +392,7 @@ export class GlassVacuumCard extends BaseCard {
         display: inline-flex;
         align-items: center;
         gap: 0.3125rem;
-        padding: 0.3125rem 0.75rem;
+        padding: 0.5rem 0.875rem;
         background: var(--s1);
         border: 1px solid var(--b2);
         border-radius: var(--radius-md);
@@ -518,6 +525,12 @@ export class GlassVacuumCard extends BaseCard {
         .t-btn.flashing ha-icon {
           animation: none;
         }
+        .glass.alert-pulse,
+        .glass.warning-pulse {
+          animation: none;
+        }
+        .glass.alert-pulse   { border-color: var(--c-alert); }
+        .glass.warning-pulse { border-color: var(--c-warning); }
         .ctrl-fold {
           transition: none;
         }
@@ -605,6 +618,40 @@ export class GlassVacuumCard extends BaseCard {
     if (level > 50) return 'var(--c-success)';
     if (level >= 20) return 'var(--c-warning)';
     return 'var(--c-alert)';
+  }
+
+  private _isStateReady(entityId: string | undefined): boolean {
+    if (!entityId || !this.hass) return false;
+    const s = this.hass.states[entityId]?.state;
+    return s !== undefined && s !== 'unavailable' && s !== 'unknown';
+  }
+
+  private _alertLevel(
+    vacuum: HassEntity,
+    companions: VacuumCompanions | null,
+  ): 'alert' | 'warning' | null {
+    if (vacuum.state === 'error') return 'alert';
+    if (!companions) return null;
+
+    let hasWarning = false;
+
+    if (this._isStateReady(companions.dirtyWaterBox) && isBinaryOn(this.hass!, companions.dirtyWaterBox)) hasWarning = true;
+    if (this._isStateReady(companions.cleanWaterBox) && !isBinaryOn(this.hass!, companions.cleanWaterBox)) hasWarning = true;
+
+    const consoKeys = [
+      companions.consoBrushMain,
+      companions.consoBrushSide,
+      companions.consoFilter,
+      companions.consoSensors,
+    ];
+    for (const key of consoKeys) {
+      if (!this._isStateReady(key)) continue;
+      const hours = numericState(this.hass!, key, NaN);
+      if (!Number.isFinite(hours)) continue;
+      if (hours < 50) hasWarning = true;
+    }
+
+    return hasWarning ? 'warning' : null;
   }
 
   private async _callService(domain: string, service: string, data: Record<string, unknown>): Promise<void> {
@@ -755,13 +802,18 @@ export class GlassVacuumCard extends BaseCard {
 
     const companions = this._companions();
     const isUnavailable = isEntityUnavailable(vacuum.state);
-    const isError = vacuum.state === 'error';
+    const alertLevel = this._alertLevel(vacuum, companions);
+    const pulseClass = alertLevel === 'alert' ? 'alert-pulse' : alertLevel === 'warning' ? 'warning-pulse' : '';
 
     const open = this._open;
     return html`
-      <div class="glass ${isUnavailable ? 'unavailable' : ''} ${isError ? 'card-error' : ''}">
+      <div
+        class="glass ${isUnavailable ? 'unavailable' : ''} ${pulseClass}"
+        role=${alertLevel ? 'status' : nothing}
+        aria-live=${alertLevel ? 'polite' : nothing}
+      >
         <div class="card-inner">
-          ${this._renderCompact(vacuum, companions, open)}
+          ${this._renderCompact(vacuum, companions, open, alertLevel)}
           <div class="ctrl-fold ${open ? 'open' : ''}">
             <div class="ctrl-fold-inner">
               <div class="fold-content">
@@ -790,6 +842,7 @@ export class GlassVacuumCard extends BaseCard {
     vacuum: HassEntity,
     companions: VacuumCompanions | null,
     open: boolean,
+    alertLevel: 'alert' | 'warning' | null,
   ): TemplateResult {
     const battery = this._batteryLevel();
     const charging = companions ? isBinaryOn(this.hass!, companions.charging) : false;
@@ -804,6 +857,9 @@ export class GlassVacuumCard extends BaseCard {
     const battStyle = `color:${battColor}`;
     const battClass = `battery ${charging ? 'charging' : ''}`;
     const friendlyName = (vacuum.attributes.friendly_name as string) ?? '';
+    const compactAria = alertLevel
+      ? `${t('vacuum.title')} — ${alertLevel === 'alert' ? t('vacuum.alert_aria') : t('vacuum.warning_aria')}`
+      : t('vacuum.title');
     const gesture = this._bindGesture({
       onTap: this._toggleOpen,
       onLongPress: this._toggleOpen,
@@ -814,14 +870,14 @@ export class GlassVacuumCard extends BaseCard {
         role="button"
         tabindex="0"
         aria-expanded=${open ? 'true' : 'false'}
-        aria-label=${t('vacuum.title')}
+        aria-label=${compactAria}
         @pointerdown=${gesture.pointerdown}
         @pointerup=${gesture.pointerup}
         @pointermove=${gesture.pointermove}
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
       >
-        <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
+        <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum-variant'}></ha-icon>
         <div class="status-info" aria-live="polite">
           <span class="vacuum-name">${friendlyName}</span>
           <span class="status-text">${statusLabel}</span>

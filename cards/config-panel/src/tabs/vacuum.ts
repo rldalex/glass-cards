@@ -131,7 +131,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
                     @click=${() => this._selectEntity(v.entityId)}
                   >
                     <div class="feature-icon">
-                      <ha-icon .icon=${'mdi:robot-vacuum'}></ha-icon>
+                      <ha-icon .icon=${'mdi:robot-vacuum-variant'}></ha-icon>
                     </div>
                     <div class="feature-text">
                       <div class="feature-name">${v.name}</div>

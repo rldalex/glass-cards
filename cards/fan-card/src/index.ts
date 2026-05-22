@@ -280,7 +280,7 @@ class GlassFanCard extends BaseCard {
 
     /* ── Icon Button ── */
     .fan-icon-btn {
-      width: 2.25rem; height: 2.25rem; border-radius: var(--radius-md);
+      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
       background: var(--s2); border: 1px solid var(--b1);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: background var(--t-fast), border-color var(--t-fast); cursor: pointer; padding: 0; outline: none;
