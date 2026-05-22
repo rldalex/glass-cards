@@ -124,16 +124,14 @@ export class GlassVacuumCard extends BaseCard {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .status-line {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3125rem;
-        min-width: 0;
-      }
-      .status-line .status-text {
+      .status-text {
         font-size: var(--fz-sm);
         font-weight: 500;
         color: var(--t3);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .dot {
         width: 0.5rem;
@@ -802,10 +800,7 @@ export class GlassVacuumCard extends BaseCard {
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
           <span class="vacuum-name">${friendlyName}</span>
-          <span class="status-line">
-            <span class="dot dot-${statusVariant}"></span>
-            <span class="status-text">${statusLabel}</span>
-          </span>
+          <span class="status-text">${statusLabel}</span>
         </div>
         <div class=${battClass} aria-label=${batteryAria} style=${battStyle}>
           <ha-icon .icon=${battIcon}></ha-icon>
