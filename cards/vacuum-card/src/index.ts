@@ -548,6 +548,11 @@ export class GlassVacuumCard extends BaseCard {
       if (room) return t('vacuum.cleaning_room', { room });
       return t('vacuum.status_cleaning');
     }
+    // Docked: surface "Mop drying" if dock is drying the mop right now
+    if (vacuum.state === 'docked' && isBinaryOn(this.hass!, companions.dockDrying)) {
+      const minutes = Math.round(numericState(this.hass!, companions.dockDryingTimeLeft, 0));
+      if (minutes > 0) return t('vacuum.dock_drying_label', { minutes });
+    }
     return t(`vacuum.status_${vacuum.state}` as Parameters<typeof t>[0]) ?? vacuum.state;
   }
 
@@ -593,6 +598,31 @@ export class GlassVacuumCard extends BaseCard {
     const currentRoom = entityState(this.hass!, companions.currentRoom, '');
     if (!currentRoom) return false;
     return normalize(slug) === normalize(currentRoom);
+  }
+
+  private _renderAllHouseChip(allHouseId: string, showingConfirm: boolean): TemplateResult {
+    // Tap = 3s inline confirm (safety against accidental tap). Long-press = fire
+    // immediately (power-user shortcut, matches the gesture convention in DESIGN.md).
+    const gesture = this._bindGesture({
+      onTap: () => this._confirmAllHouse(allHouseId),
+      onLongPress: () => this._pressButton(allHouseId),
+    });
+    return html`
+      <span class="rooms-sep-v" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="chip chip-accent ${showingConfirm ? 'confirming' : ''}"
+        aria-label=${t('vacuum.all_house')}
+        @pointerdown=${gesture.pointerdown}
+        @pointerup=${gesture.pointerup}
+        @pointermove=${gesture.pointermove}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
+      >
+        <ha-icon .icon=${'mdi:home-outline'}></ha-icon>
+        <span>${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}</span>
+      </button>
+    `;
   }
 
   private _confirmAllHouse(allHouseId: string): void {
@@ -801,18 +831,7 @@ export class GlassVacuumCard extends BaseCard {
               `;
             })}
             ${allHouseId
-              ? html`
-                  <span class="rooms-sep-v" aria-hidden="true"></span>
-                  <button
-                    type="button"
-                    class="chip chip-accent ${showingConfirm ? 'confirming' : ''}"
-                    aria-label=${t('vacuum.all_house')}
-                    @click=${() => this._confirmAllHouse(allHouseId)}
-                  >
-                    <ha-icon .icon=${'mdi:home-outline'}></ha-icon>
-                    <span>${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}</span>
-                  </button>
-                `
+              ? this._renderAllHouseChip(allHouseId, showingConfirm)
               : nothing}
           </div>
         </div>
