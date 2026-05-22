@@ -7248,7 +7248,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${at("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${at("config.title")}</span>
-          <span class="page-subtitle">${at("config.brand")} <span class="page-version">v${"0.0.212"}</span></span>
+          <span class="page-subtitle">${at("config.brand")} <span class="page-version">v${"0.0.213"}</span></span>
         </div>
 
         <div class="glass config-panel">
