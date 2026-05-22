@@ -177,11 +177,6 @@ export class GlassVacuumCard extends BaseCard {
       .battery-pill.charging ha-icon {
         animation: vac-pulse 2s ease-in-out infinite;
       }
-      @media (prefers-reduced-motion: reduce) {
-        .battery-pill.charging ha-icon {
-          animation: none;
-        }
-      }
       @keyframes vac-pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.55; }
@@ -253,11 +248,6 @@ export class GlassVacuumCard extends BaseCard {
         border-radius: 50%;
         background: var(--c-info);
         animation: vac-dot-pulse 1.5s ease-in-out infinite;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .dot-pulse {
-          animation: none;
-        }
       }
       @keyframes vac-dot-pulse {
         0%, 100% { opacity: 1; transform: scale(1); }
@@ -350,11 +340,6 @@ export class GlassVacuumCard extends BaseCard {
         30% { color: var(--c-info); transform: scale(1.2); }
         60% { color: var(--c-info); transform: scale(1); }
         100% { color: var(--t1); transform: scale(1); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .t-btn.flashing ha-icon {
-          animation: none;
-        }
       }
       .fold-toggle {
         display: flex;
@@ -532,6 +517,39 @@ export class GlassVacuumCard extends BaseCard {
       }
       .stats-totals {
         color: var(--t3);
+      }
+      button:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.35);
+        outline-offset: 2px;
+      }
+      .room-chip:focus-visible,
+      .chip:focus-visible {
+        outline-offset: -2px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .battery-pill.charging ha-icon {
+          animation: none;
+        }
+        .dot-pulse {
+          animation: none;
+        }
+        .t-btn.flashing ha-icon {
+          animation: none;
+        }
+        .fold {
+          transition: none;
+        }
+        .fold-inner {
+          transition: none;
+        }
+        .fold-toggle ha-icon {
+          transition: none;
+        }
+        .t-btn,
+        .room-chip,
+        .chip {
+          transition: none;
+        }
       }
     `,
   ];
@@ -756,6 +774,7 @@ export class GlassVacuumCard extends BaseCard {
       <button
         class="hero"
         type="button"
+        data-action="map-fullscreen"
         aria-label=${t('vacuum.open_controls')}
         @click=${this._toggleDailyFold}
       >
