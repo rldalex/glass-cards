@@ -23,7 +23,7 @@ import {
   numericState,
   type VacuumCompanions,
 } from './companions';
-import { humanizeRoomSlug } from './labels';
+import { FAN_SPEED_LABELS, MOP_INTENSITY_LABELS, MOP_PATTERN_LABELS, labelOf, humanizeRoomSlug } from './labels';
 
 function normalize(s: string): string {
   return s
@@ -344,6 +344,121 @@ export class GlassVacuumCard extends BaseCard {
           animation: none;
         }
       }
+      .fold-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        background: transparent;
+        border: 0;
+        border-top: 1px solid var(--b1);
+        color: var(--t2);
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+      }
+      .fold-toggle ha-icon {
+        --mdc-icon-size: 1.125rem;
+        transition: transform var(--t-fast);
+      }
+      .fold-toggle ha-icon.rotated {
+        transform: rotate(180deg);
+      }
+      .fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--t-layout);
+      }
+      .fold.open {
+        grid-template-rows: 1fr;
+      }
+      .fold-inner {
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity var(--t-med) 0.1s;
+      }
+      .fold.open .fold-inner {
+        opacity: 1;
+      }
+      .fold-sep {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent), 0.18), transparent);
+        margin: 0 0.75rem;
+      }
+      .fold-sep.top {
+        margin-bottom: 0.5rem;
+      }
+      .fold-sep.bottom {
+        margin-top: 0.5rem;
+      }
+      .fold-section {
+        padding: 0.5rem 0.875rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .eyebrow {
+        font-size: var(--fz-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--t4);
+      }
+      .chips-row {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.375rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 0.125rem;
+      }
+      .chips-row::-webkit-scrollbar {
+        display: none;
+      }
+      .chip {
+        flex-shrink: 0;
+        padding: 0.4375rem 0.75rem;
+        background: var(--s1);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t2);
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+        min-height: 2.5rem;
+      }
+      .chip:hover {
+        background: var(--s2);
+      }
+      .chip.active {
+        background: rgba(var(--rgb-info), 0.18);
+        border-color: rgba(var(--rgb-info), 0.4);
+        color: var(--t1);
+      }
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        margin-top: 0.25rem;
+      }
+      .status-pill-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.625rem;
+        border: 1px solid;
+        border-radius: var(--radius-full);
+        font-size: var(--fz-sm);
+        color: var(--t1);
+      }
+      .status-pill-inline ha-icon {
+        --mdc-icon-size: 0.9rem;
+      }
     `,
   ];
 
@@ -508,6 +623,14 @@ export class GlassVacuumCard extends BaseCard {
     void this._callService('vacuum', 'return_to_base', { entity_id: this.config!.entity as string });
   };
 
+  private _selectOption = (entityId: string, option: string): void => {
+    void this._callService('select', 'select_option', { entity_id: entityId, option });
+  };
+
+  private _setFanSpeed = (speed: string): void => {
+    void this._callService('vacuum', 'set_fan_speed', { entity_id: this.config!.entity as string, fan_speed: speed });
+  };
+
   render(): TemplateResult | typeof nothing {
     const vacuum = this._vacuumEntity();
     if (!this.hass || !this.config?.entity) return nothing;
@@ -533,6 +656,7 @@ export class GlassVacuumCard extends BaseCard {
           ${this._renderHero(vacuum, companions, friendlyName)}
           ${this._renderRoomChips(companions)}
           ${this._renderTransport(vacuum)}
+          ${this._renderDailyFold(vacuum, companions)}
         </div>
       </div>
     `;
@@ -709,6 +833,128 @@ export class GlassVacuumCard extends BaseCard {
               </button>
             `
           : nothing}
+      </div>
+    `;
+  }
+  private _renderDailyFold(vacuum: HassEntity, companions: VacuumCompanions | null): TemplateResult {
+    const open = this._foldDailyOpen;
+    return html`
+      <button
+        type="button"
+        class="fold-toggle"
+        aria-expanded=${open}
+        aria-controls="fold-daily"
+        @click=${() => { this._foldDailyOpen = !this._foldDailyOpen; }}
+      >
+        <span class="fold-toggle-label">${t('vacuum.fold_daily')}</span>
+        <ha-icon icon="mdi:chevron-down" class=${open ? 'rotated' : ''}></ha-icon>
+      </button>
+      <div
+        id="fold-daily"
+        class="fold ${open ? 'open' : ''}"
+        aria-hidden=${!open}
+      >
+        <div class="fold-inner">
+          <div class="fold-sep top"></div>
+          ${this._renderAspiration(vacuum)}
+          ${this._renderLavage(companions)}
+          <div class="fold-sep bottom"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderAspiration(vacuum: HassEntity): TemplateResult | typeof nothing {
+    const features = (vacuum.attributes.supported_features as number) ?? 0;
+    const hasFanSpeed = (features & 32) !== 0;
+    if (!hasFanSpeed) return nothing;
+
+    const list = (vacuum.attributes.fan_speed_list as string[] | undefined) ?? [];
+    const current = vacuum.attributes.fan_speed as string | undefined;
+
+    return html`
+      <div class="fold-section">
+        <div class="eyebrow">${t('vacuum.section_suction')}</div>
+        <div class="chips-row">
+          ${list.map((opt) => html`
+            <button
+              type="button"
+              class="chip ${opt === current ? 'active' : ''}"
+              @click=${() => this._setFanSpeed(opt)}
+            >${labelOf(FAN_SPEED_LABELS, opt)}</button>
+          `)}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderLavage(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
+    if (!companions) return nothing;
+    const hasMop = companions.mopIntensity || companions.mopPattern || companions.mopAttached;
+    if (!hasMop) return nothing;
+
+    const intensityState = this.hass!.states[companions.mopIntensity ?? ''];
+    const patternState = this.hass!.states[companions.mopPattern ?? ''];
+    const intensityList = (intensityState?.attributes.options as string[] | undefined) ?? [];
+    const patternList = (patternState?.attributes.options as string[] | undefined) ?? [];
+    const currentIntensity = intensityState?.state;
+    const currentPattern = patternState?.state;
+
+    return html`
+      <div class="fold-section">
+        <div class="eyebrow">${t('vacuum.section_mopping')}</div>
+        ${companions.mopIntensity && intensityList.length > 0
+          ? html`
+              <div class="chips-row">
+                ${intensityList.map((opt) => html`
+                  <button
+                    type="button"
+                    class="chip ${opt === currentIntensity ? 'active' : ''}"
+                    @click=${() => this._selectOption(companions.mopIntensity!, opt)}
+                  >${labelOf(MOP_INTENSITY_LABELS, opt)}</button>
+                `)}
+              </div>
+            `
+          : nothing}
+        ${companions.mopPattern && patternList.length > 0
+          ? html`
+              <div class="chips-row">
+                ${patternList.map((opt) => html`
+                  <button
+                    type="button"
+                    class="chip ${opt === currentPattern ? 'active' : ''}"
+                    @click=${() => this._selectOption(companions.mopPattern!, opt)}
+                  >${labelOf(MOP_PATTERN_LABELS, opt)}</button>
+                `)}
+              </div>
+            `
+          : nothing}
+        <div class="status-row">
+          ${this._renderStatusPill(
+            isBinaryOn(this.hass!, companions.mopAttached)
+              ? { label: t('vacuum.mop_attached'), color: 'var(--c-success)', icon: 'mdi:check-circle' }
+              : { label: t('vacuum.mop_missing'), color: 'var(--c-alert)', icon: 'mdi:alert-circle-outline' },
+          )}
+          ${this._renderStatusPill(
+            isBinaryOn(this.hass!, companions.tankAttached)
+              ? { label: t('vacuum.tank_ok'), color: 'var(--c-success)', icon: 'mdi:check-circle' }
+              : { label: t('vacuum.tank_missing'), color: 'var(--c-alert)', icon: 'mdi:alert-circle-outline' },
+          )}
+          ${this._renderStatusPill(
+            isBinaryOn(this.hass!, companions.waterShortage)
+              ? { label: t('vacuum.water_short'), color: 'var(--c-alert)', icon: 'mdi:water-off' }
+              : { label: t('vacuum.water_ok'), color: 'var(--c-success)', icon: 'mdi:water' },
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderStatusPill({ label, color, icon }: { label: string; color: string; icon: string }): TemplateResult {
+    return html`
+      <div class="status-pill-inline" style="border-color: ${color}; background: rgba(255,255,255,0.04);">
+        <ha-icon icon=${icon} style="color: ${color};"></ha-icon>
+        <span>${label}</span>
       </div>
     `;
   }
