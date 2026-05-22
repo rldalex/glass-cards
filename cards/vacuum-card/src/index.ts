@@ -110,10 +110,30 @@ export class GlassVacuumCard extends BaseCard {
       }
       .status-info {
         flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        min-width: 0;
+      }
+      .vacuum-name {
+        font-size: var(--fz-md);
+        font-weight: 600;
+        color: var(--t1);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .status-line {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.3125rem;
         min-width: 0;
+      }
+      .status-line .status-text {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
       }
       .dot {
         width: 0.5rem;
@@ -761,6 +781,7 @@ export class GlassVacuumCard extends BaseCard {
 
     const battStyle = `color:${battColor}`;
     const battClass = `battery ${charging ? 'charging' : ''}`;
+    const friendlyName = (vacuum.attributes.friendly_name as string) ?? '';
     const gesture = this._bindGesture({
       onTap: this._toggleOpen,
       onLongPress: this._toggleOpen,
@@ -780,8 +801,11 @@ export class GlassVacuumCard extends BaseCard {
       >
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
-          <span class="dot dot-${statusVariant}"></span>
-          <span class="status-text">${statusLabel}</span>
+          <span class="vacuum-name">${friendlyName}</span>
+          <span class="status-line">
+            <span class="dot dot-${statusVariant}"></span>
+            <span class="status-text">${statusLabel}</span>
+          </span>
         </div>
         <div class=${battClass} aria-label=${batteryAria} style=${battStyle}>
           <ha-icon .icon=${battIcon}></ha-icon>
