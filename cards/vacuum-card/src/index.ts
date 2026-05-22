@@ -53,7 +53,7 @@ export class GlassVacuumCard extends BaseCard {
   @property({ attribute: false }) hass?: import('@glass-cards/base-card').HomeAssistant;
   @property({ attribute: false }) config?: LovelaceCardConfig;
 
-  private _open = false;
+  @state() private _open = false;
   @state() private _pendingAction: string | null = null;
   @state() private _locateFlashing = false;
 
@@ -745,17 +745,7 @@ export class GlassVacuumCard extends BaseCard {
   }
 
   private _toggleOpen = (): void => {
-    // Direct DOM toggle to avoid Lit re-render (works around a bug where
-    // re-rendering this card crashes Lit with 'ChildPart has no parentNode').
-    const root = this.shadowRoot;
-    if (!root) return;
-    const compact = root.querySelector('.compact');
-    const fold = root.querySelector('.ctrl-fold');
-    if (!compact || !fold) return;
-    const isOpen = fold.classList.toggle('open');
-    compact.classList.toggle('open', isOpen);
-    compact.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    this._open = isOpen;
+    this._open = !this._open;
   };
 
   private _renderCompact(
@@ -848,7 +838,7 @@ export class GlassVacuumCard extends BaseCard {
             aria-label=${t('vacuum.transport_locate')}
             @click=${this._vacuumLocate}
           >
-            <ha-icon icon="mdi:crosshairs"></ha-icon>
+            <ha-icon .icon=${'mdi:crosshairs'}></ha-icon>
             <span>${t('vacuum.transport_locate')}</span>
           </button>
           <button
@@ -857,7 +847,7 @@ export class GlassVacuumCard extends BaseCard {
             aria-label=${t('vacuum.transport_retry')}
             @click=${this._vacuumStart}
           >
-            <ha-icon icon="mdi:refresh"></ha-icon>
+            <ha-icon .icon=${'mdi:refresh'}></ha-icon>
             <span>${t('vacuum.transport_retry')}</span>
           </button>
         </div>
@@ -880,7 +870,7 @@ export class GlassVacuumCard extends BaseCard {
           aria-label=${isPlaying ? t('vacuum.transport_pause') : t('vacuum.transport_start')}
           @click=${isPlaying ? this._vacuumPause : this._vacuumStart}
         >
-          <ha-icon icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
+          <ha-icon .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
         </button>
         ${canStop
           ? html`
@@ -891,7 +881,7 @@ export class GlassVacuumCard extends BaseCard {
                 ?aria-disabled=${vacuum.state === 'docked'}
                 @click=${this._vacuumStop}
               >
-                <ha-icon icon="mdi:stop"></ha-icon>
+                <ha-icon .icon=${'mdi:stop'}></ha-icon>
                 ${showingStopConfirm
                   ? html`<span class="confirm-label">${t('vacuum.confirm_short')}</span>`
                   : nothing}
@@ -906,7 +896,7 @@ export class GlassVacuumCard extends BaseCard {
                 aria-label=${t('vacuum.transport_locate')}
                 @click=${this._vacuumLocate}
               >
-                <ha-icon icon="mdi:crosshairs"></ha-icon>
+                <ha-icon .icon=${'mdi:crosshairs'}></ha-icon>
               </button>
             `
           : nothing}
@@ -919,7 +909,7 @@ export class GlassVacuumCard extends BaseCard {
                 ?aria-disabled=${vacuum.state === 'docked'}
                 @click=${this._vacuumReturn}
               >
-                <ha-icon icon="mdi:home-import-outline"></ha-icon>
+                <ha-icon .icon=${'mdi:home-import-outline'}></ha-icon>
               </button>
             `
           : nothing}
