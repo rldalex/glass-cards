@@ -374,17 +374,21 @@ export class GlassVacuumCard extends BaseCard {
       }
       .chip {
         flex-shrink: 0;
-        padding: 0.4375rem 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3125rem;
+        padding: 0.3125rem 0.75rem;
         background: var(--s1);
         border: 1px solid var(--b2);
         border-radius: var(--radius-md);
         color: var(--t2);
         font-size: var(--fz-sm);
-        font-weight: 500;
+        font-weight: 600;
+        line-height: 1.4;
         cursor: pointer;
         white-space: nowrap;
         transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        min-height: 2.5rem;
+        font-family: inherit;
       }
       .chip:hover {
         background: var(--s2);
