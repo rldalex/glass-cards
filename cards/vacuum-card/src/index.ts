@@ -144,14 +144,6 @@ export class GlassVacuumCard extends BaseCard {
       .dot-warning { background: var(--c-warning); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
       .dot-info    { background: var(--c-info);    box-shadow: 0 0 6px rgba(96,165,250,0.5); }
       .dot-off     { background: var(--t4); }
-      .status-text {
-        font-size: var(--fz-md);
-        color: var(--t1);
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
       .battery {
         display: inline-flex;
         align-items: center;
@@ -193,18 +185,22 @@ export class GlassVacuumCard extends BaseCard {
         flex-shrink: 0;
         display: inline-flex;
         align-items: center;
-        gap: 0.375rem;
-        min-height: 2.75rem;
-        padding: 0 0.875rem;
+        gap: 0.3125rem;
+        padding: 0.3125rem 0.75rem;
         background: var(--s1);
         border: 1px solid var(--b2);
         border-radius: var(--radius-md);
-        color: var(--t1);
-        font-size: var(--fz-md);
-        font-weight: 500;
+        color: var(--t2);
+        font-size: var(--fz-sm);
+        font-weight: 600;
         cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
         white-space: nowrap;
+        font-family: inherit;
+      }
+      .room-chip:hover {
+        background: var(--s3);
+        color: var(--t1);
       }
       .room-chip:active {
         transform: scale(0.97);
@@ -212,6 +208,7 @@ export class GlassVacuumCard extends BaseCard {
       .room-chip.active {
         background: rgba(var(--rgb-info), 0.18);
         border-color: rgba(var(--rgb-info), 0.4);
+        color: var(--t1);
       }
       .room-chip.all-house {
         background: rgba(var(--rgb-accent), 0.12);
