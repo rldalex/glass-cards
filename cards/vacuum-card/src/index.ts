@@ -323,19 +323,6 @@ export class GlassVacuumCard extends BaseCard {
         text-align: left;
         font-family: inherit;
       }
-      .fold-chevron {
-        display: inline-block;
-        width: 0;
-        height: 0;
-        border-left: 0.3125rem solid transparent;
-        border-right: 0.3125rem solid transparent;
-        border-top: 0.375rem solid var(--t3);
-        transition: transform var(--t-fast);
-        flex-shrink: 0;
-      }
-      .compact.open .fold-chevron {
-        transform: rotate(180deg);
-      }
       .ctrl-fold {
         display: grid;
         grid-template-rows: 0fr;
@@ -438,33 +425,35 @@ export class GlassVacuumCard extends BaseCard {
       .badge-off     { background: var(--s1); color: var(--t3); border: 1px solid var(--b1); }
       .dock-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
-        gap: 0.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+        gap: 0.375rem;
       }
       .dock-cell {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0.625rem 0.5rem;
+        gap: 0.375rem;
+        padding: 0.3125rem 0.5rem;
         background: var(--s1);
         border: 1px solid var(--b1);
         border-radius: var(--radius-md);
-        text-align: center;
-        min-height: 4rem;
+        min-height: 1.75rem;
         transition: background var(--t-fast), border-color var(--t-fast);
       }
       .dock-cell ha-icon {
-        --mdc-icon-size: 1.5rem;
+        --mdc-icon-size: 0.9rem;
+        flex-shrink: 0;
       }
       .dock-cell.success { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.25); }
       .dock-cell.alert   { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); }
       .dock-cell.warning { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.25); }
       .dock-cell.info    { background: rgba(96,165,250,0.08);  border-color: rgba(96,165,250,0.25); }
       .dock-label {
-        font-size: var(--fz-sm);
+        font-size: var(--fz-xs);
         color: var(--t2);
-        line-height: 1.25;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .conso-row {
         display: flex;
@@ -528,9 +517,6 @@ export class GlassVacuumCard extends BaseCard {
           transition: none;
         }
         .ctrl-fold-inner {
-          transition: none;
-        }
-        .fold-chevron {
           transition: none;
         }
         .t-btn,
@@ -775,13 +761,22 @@ export class GlassVacuumCard extends BaseCard {
 
     const battStyle = `color:${battColor}`;
     const battClass = `battery ${charging ? 'charging' : ''}`;
+    const gesture = this._bindGesture({
+      onTap: this._toggleOpen,
+      onLongPress: this._toggleOpen,
+    });
     return html`
-      <button
-        type="button"
+      <div
         class="compact ${open ? 'open' : ''}"
+        role="button"
+        tabindex="0"
         aria-expanded=${open ? 'true' : 'false'}
-        aria-controls="vacuum-fold"
-        @click=${this._toggleOpen}
+        aria-label=${t('vacuum.title')}
+        @pointerdown=${gesture.pointerdown}
+        @pointerup=${gesture.pointerup}
+        @pointermove=${gesture.pointermove}
+        @pointercancel=${gesture.pointercancel}
+        @contextmenu=${gesture.contextmenu}
       >
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
@@ -792,8 +787,7 @@ export class GlassVacuumCard extends BaseCard {
           <ha-icon .icon=${battIcon} style=${battStyle}></ha-icon>
           <span style=${battStyle}>${battery}%</span>
         </div>
-        <span class="fold-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
     `;
   }
   private _renderRoomChips(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
