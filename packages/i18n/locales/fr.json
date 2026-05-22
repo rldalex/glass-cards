@@ -819,6 +819,8 @@
     "dashboard_card_camera_carousel": "Caméras",
     "dashboard_card_calendar": "Calendrier",
     "dashboard_card_calendar_desc": "Vue rapide des prochains évènements de tes calendriers",
+    "dashboard_card_vacuum": "Aspirateur",
+    "dashboard_card_vacuum_desc": "Statut + contrôle de l'aspirateur robot (Roborock et compatibles)",
     "calendar_show_header": "Afficher l'en-tête",
     "calendar_show_header_desc": "Titre et compteur d'évènements au-dessus de la carte",
     "calendar_dashboard_info": "La carte Calendrier n'apparaît que sur le tableau de bord. Elle regroupe les évènements des calendriers activés ci-dessous.",

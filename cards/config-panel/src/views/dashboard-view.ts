@@ -29,9 +29,12 @@ const DASH_CARD_META: DashCardMeta[] = [
   { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.rgb },
   { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.rgb },
   { id: 'calendar', icon: 'mdi:calendar-month', nameKey: 'config.dashboard_card_calendar', color: DOMAIN_COLORS.calendar.rgb },
+  { id: 'vacuum', icon: 'mdi:robot-vacuum', nameKey: 'config.dashboard_card_vacuum', color: DOMAIN_COLORS.vacuum.rgb },
 ];
 
 // Map card IDs to sub-section IDs used by tabs
+// Note: vacuum is not mapped — it has no config tab (fully auto-discovered).
+// Clicking its chip in the dashboard list just toggles visibility.
 const SUB_MAP: Record<string, string> = {
   title: 'title', light: 'light', weather: 'weather',
   cover: 'cover', climate: 'climate', fan: 'fan', media: 'media',

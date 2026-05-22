@@ -819,6 +819,8 @@
     "dashboard_card_camera_carousel": "Cameras",
     "dashboard_card_calendar": "Calendar",
     "dashboard_card_calendar_desc": "Quick view of your upcoming events from all your calendars",
+    "dashboard_card_vacuum": "Vacuum",
+    "dashboard_card_vacuum_desc": "Status + control of your robot vacuum (Roborock and compatibles)",
     "calendar_show_header": "Show header",
     "calendar_show_header_desc": "Title and event counter above the card",
     "calendar_dashboard_info": "The Calendar card only appears on the dashboard. It groups events from the calendars enabled below.",

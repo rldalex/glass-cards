@@ -30,6 +30,8 @@ import './tabs/camera-carousel';
 import './tabs/climate';
 import './tabs/unassigned';
 import './tabs/calendar';
+// tabs/vacuum not added: vacuum-card is fully auto-discovered, no per-card
+// config to persist. Only the Dashboard tab visibility toggle is wired up.
 
 // View components
 import './views/room-list.js';

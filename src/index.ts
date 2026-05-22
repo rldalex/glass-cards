@@ -15,6 +15,7 @@ import '../cards/media-card/src/index';
 import '../cards/presence-card/src/index';
 import '../cards/camera-carousel/src/index';
 import '../cards/calendar-card/src/index';
+import '../cards/vacuum-card/src/index';
 
 installHistoryIntercept();
 getThemeManager();
