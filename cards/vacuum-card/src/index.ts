@@ -53,7 +53,7 @@ export class GlassVacuumCard extends BaseCard {
   @property({ attribute: false }) hass?: import('@glass-cards/base-card').HomeAssistant;
   @property({ attribute: false }) config?: LovelaceCardConfig;
 
-  @state() private _open = false;
+  private _open = false;
   @state() private _pendingAction: string | null = null;
   @state() private _locateFlashing = false;
 
@@ -165,67 +165,40 @@ export class GlassVacuumCard extends BaseCard {
       .card-error {
         border-color: var(--c-alert) !important;
       }
-      .rooms-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.375rem;
+      .rooms-section {
         padding: 0.5rem 0 0.75rem;
+      }
+      .rooms-scroller {
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
+        overflow-y: hidden;
         scrollbar-width: none;
-        mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
-        -webkit-mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
+        mask-image: linear-gradient(90deg, black 0, black calc(100% - 14px), transparent);
+        -webkit-mask-image: linear-gradient(90deg, black 0, black calc(100% - 14px), transparent);
       }
-      .rooms-row::before,
-      .rooms-row::after {
-        content: '';
-        flex-shrink: 0;
-        width: 0.875rem;
-      }
-      .rooms-row::-webkit-scrollbar {
+      .rooms-scroller::-webkit-scrollbar {
         display: none;
       }
-      .room-chip {
-        scroll-snap-align: start;
-        flex-shrink: 0;
+      .rooms-track {
         display: inline-flex;
         align-items: center;
-        gap: 0.3125rem;
-        padding: 0.3125rem 0.75rem;
-        background: var(--s1);
-        border: 1px solid var(--b2);
-        border-radius: var(--radius-md);
-        color: var(--t2);
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
-        white-space: nowrap;
-        font-family: inherit;
+        gap: 0.375rem;
+        padding: 0 1.5rem 0 0.875rem;
       }
-      .room-chip:hover {
-        background: var(--s3);
-        color: var(--t1);
+      .chip-accent {
+        background: rgba(var(--rgb-accent), 0.12) !important;
+        border-color: rgba(var(--rgb-accent), 0.3) !important;
+        color: var(--t1) !important;
       }
-      .room-chip:active {
-        transform: scale(0.97);
+      .chip ha-icon {
+        --mdc-icon-size: 0.875rem;
       }
-      .room-chip.active {
-        background: rgba(var(--rgb-info), 0.18);
-        border-color: rgba(var(--rgb-info), 0.4);
-        color: var(--t1);
-      }
-      .room-chip.all-house {
-        background: rgba(var(--rgb-accent), 0.12);
-        border-color: rgba(var(--rgb-accent), 0.3);
-      }
-      .room-chip.confirming {
-        background: rgba(var(--rgb-warning), 0.18);
-        border-color: rgba(var(--rgb-warning), 0.45);
-      }
-      .room-chip ha-icon {
-        --mdc-icon-size: 1.125rem;
+      .rooms-sep-v {
+        display: inline-block;
+        width: 1px;
+        height: 1.25rem;
+        background: var(--b1);
+        flex-shrink: 0;
+        margin: 0 0.125rem;
       }
       .rooms-sep {
         display: inline-block;
@@ -520,7 +493,6 @@ export class GlassVacuumCard extends BaseCard {
         outline: 2px solid rgba(255, 255, 255, 0.35);
         outline-offset: 2px;
       }
-      .room-chip:focus-visible,
       .chip:focus-visible {
         outline-offset: -2px;
       }
@@ -541,7 +513,6 @@ export class GlassVacuumCard extends BaseCard {
           transition: none;
         }
         .t-btn,
-        .room-chip,
         .chip {
           transition: none;
         }
@@ -574,17 +545,6 @@ export class GlassVacuumCard extends BaseCard {
       return t('vacuum.status_cleaning');
     }
     return t(`vacuum.status_${vacuum.state}` as Parameters<typeof t>[0]) ?? vacuum.state;
-  }
-
-  private _statusVariant(state: string): 'success' | 'warning' | 'info' | 'alert' | 'off' {
-    switch (state) {
-      case 'cleaning': return 'success';
-      case 'paused': return 'warning';
-      case 'returning': return 'info';
-      case 'error': return 'alert';
-      case 'docked':
-      default: return 'off';
-    }
   }
 
   private _batteryLevel(): number {
@@ -774,7 +734,6 @@ export class GlassVacuumCard extends BaseCard {
     const battIcon = this._batteryIcon(battery, charging);
     const battColor = this._batteryColor(battery);
     const statusLabel = this._statusLabel();
-    const statusVariant = this._statusVariant(vacuum.state);
     const batteryAria = t('vacuum.battery_aria', {
       level: battery,
       charging: charging ? t('vacuum.charging') : t('vacuum.not_charging'),
@@ -818,39 +777,41 @@ export class GlassVacuumCard extends BaseCard {
     const showingConfirm = this._pendingAction === 'all_house';
 
     return html`
-      <div class="rooms-row" role="group" aria-label="Pièces à nettoyer">
-        ${companions.roomButtons.map(({ entityId, slug }) => {
-          const label = humanizeRoomSlug(slug);
-          const isCurrent = this._isCurrentRoomButton(entityId, slug);
-          return html`
-            <button
-              type="button"
-              class="room-chip ${isCurrent ? 'active' : ''}"
-              aria-label=${t('vacuum.clean_room_aria', { room: label })}
-              aria-pressed=${isCurrent}
-              @click=${() => this._pressButton(entityId)}
-            >
-              ${isCurrent ? html`<span class="dot dot-info pulsing"></span>` : nothing}
-              <span class="room-label">${label}</span>
-            </button>
-          `;
-        })}
-        ${allHouseId
-          ? html`
-              <span class="rooms-sep" aria-hidden="true"></span>
-              <button
-                type="button"
-                class="room-chip all-house ${showingConfirm ? 'confirming' : ''}"
-                aria-label=${t('vacuum.all_house')}
-                @click=${() => this._confirmAllHouse(allHouseId)}
-              >
-                <ha-icon icon="mdi:home-outline"></ha-icon>
-                <span class="room-label">
-                  ${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}
-                </span>
-              </button>
-            `
-          : nothing}
+      <div class="rooms-section">
+        <div class="rooms-scroller">
+          <div class="rooms-track" role="group" aria-label="Pièces à nettoyer">
+            ${companions.roomButtons.map(({ entityId, slug }) => {
+              const label = humanizeRoomSlug(slug);
+              const isCurrent = this._isCurrentRoomButton(entityId, slug);
+              return html`
+                <button
+                  type="button"
+                  class="chip ${isCurrent ? 'active' : ''}"
+                  aria-label=${t('vacuum.clean_room_aria', { room: label })}
+                  aria-pressed=${isCurrent}
+                  @click=${() => this._pressButton(entityId)}
+                >
+                  ${isCurrent ? html`<span class="dot dot-info pulsing"></span>` : nothing}
+                  <span>${label}</span>
+                </button>
+              `;
+            })}
+            ${allHouseId
+              ? html`
+                  <span class="rooms-sep-v" aria-hidden="true"></span>
+                  <button
+                    type="button"
+                    class="chip chip-accent ${showingConfirm ? 'confirming' : ''}"
+                    aria-label=${t('vacuum.all_house')}
+                    @click=${() => this._confirmAllHouse(allHouseId)}
+                  >
+                    <ha-icon .icon=${'mdi:home-outline'}></ha-icon>
+                    <span>${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}</span>
+                  </button>
+                `
+              : nothing}
+          </div>
+        </div>
       </div>
     `;
   }
