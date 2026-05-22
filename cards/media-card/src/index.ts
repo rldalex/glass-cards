@@ -1116,7 +1116,7 @@ export class GlassMediaCard extends BaseCard {
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
               <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
                       @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(realIndex); }}>
-                <ha-icon icon="mdi:close"></ha-icon>
+                <ha-icon .icon=${'mdi:close'}></ha-icon>
               </button>
             </div>
           `;

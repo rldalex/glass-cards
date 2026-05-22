@@ -2346,7 +2346,7 @@
       <div class="wc-metrics" role="list">
         ${d.map(e=>Z`
           <div class="wc-metric ${e.cls}" role="listitem" aria-label="${e.label}" title="${e.label}">
-            <ha-icon icon="${e.icon}" aria-hidden="true"></ha-icon>
+            <ha-icon .icon=${e.icon} aria-hidden="true"></ha-icon>
             ${e.val}
           </div>
         `)}
@@ -6419,7 +6419,7 @@
               ${o?Z`<span class="queue-badge">${Je("media.radio_badge")}</span>`:ie}
               <button class="btn-icon xs queue-remove" aria-label="${Je("media.remove_from_queue")}"
                       @click=${e=>{e.stopPropagation(),this._removeFromQueue(n)}}>
-                <ha-icon icon="mdi:close"></ha-icon>
+                <ha-icon .icon=${"mdi:close"}></ha-icon>
               </button>
             </div>
           `})}

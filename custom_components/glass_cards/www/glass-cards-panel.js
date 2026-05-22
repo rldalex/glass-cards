@@ -10450,7 +10450,7 @@
               ${o?N`<span class="queue-badge">${it("media.radio_badge")}</span>`:K}
               <button class="btn-icon xs queue-remove" aria-label="${it("media.remove_from_queue")}"
                       @click=${e=>{e.stopPropagation(),this._removeFromQueue(n)}}>
-                <ha-icon icon="mdi:close"></ha-icon>
+                <ha-icon .icon=${"mdi:close"}></ha-icon>
               </button>
             </div>
           `})}
@@ -11707,7 +11707,7 @@
       <div class="wc-metrics" role="list">
         ${d.map(e=>N`
           <div class="wc-metric ${e.cls}" role="listitem" aria-label="${e.label}" title="${e.label}">
-            <ha-icon icon="${e.icon}" aria-hidden="true"></ha-icon>
+            <ha-icon .icon=${e.icon} aria-hidden="true"></ha-icon>
             ${e.val}
           </div>
         `)}

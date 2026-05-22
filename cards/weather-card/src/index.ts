@@ -1291,7 +1291,7 @@ class GlassWeatherCard extends BaseCard {
       <div class="wc-metrics" role="list">
         ${cells.map((c) => html`
           <div class="wc-metric ${c.cls}" role="listitem" aria-label="${c.label}" title="${c.label}">
-            <ha-icon icon="${c.icon}" aria-hidden="true"></ha-icon>
+            <ha-icon .icon=${c.icon} aria-hidden="true"></ha-icon>
             ${c.val}
           </div>
         `)}
