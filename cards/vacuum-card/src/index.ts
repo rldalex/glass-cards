@@ -44,6 +44,7 @@ export class GlassVacuumCard extends BaseCard {
   @state() private _foldDailyOpen = false;
   @state() private _foldMaintenanceOpen = false;
   @state() private _pendingAction: string | null = null;
+  @state() private _locateFlashing = false;
 
   private _locateTimer: ReturnType<typeof setTimeout> | null = null;
   private _confirmTimerId: ReturnType<typeof setTimeout> | null = null;
@@ -250,6 +251,99 @@ export class GlassVacuumCard extends BaseCard {
         0%, 100% { opacity: 1; transform: scale(1); }
         50% { opacity: 0.5; transform: scale(0.85); }
       }
+      .transport {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem 0.75rem;
+        align-items: center;
+      }
+      .transport-error {
+        gap: 0.5rem;
+      }
+      .t-btn {
+        position: relative;
+        flex: 0 0 auto;
+        width: 2.75rem;
+        height: 2.75rem;
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        color: var(--t1);
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .t-btn ha-icon {
+        --mdc-icon-size: 1.25rem;
+      }
+      .t-btn:hover {
+        background: var(--s3);
+        border-color: var(--b2);
+      }
+      .t-btn:active {
+        transform: scale(0.95);
+      }
+      .t-btn[aria-disabled='true'] {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .t-btn.t-primary {
+        background: rgba(var(--rgb-info), 0.18);
+        border-color: rgba(var(--rgb-info), 0.4);
+      }
+      .t-btn.t-primary ha-icon {
+        color: var(--c-info);
+      }
+      .t-btn.confirming {
+        background: rgba(var(--rgb-warning), 0.22);
+        border-color: rgba(var(--rgb-warning), 0.5);
+        flex: 1 1 auto;
+        width: auto;
+        gap: 0.5rem;
+        padding: 0 0.75rem;
+        color: var(--c-warning);
+      }
+      .t-btn.confirming .confirm-label {
+        font-size: var(--fz-sm);
+        font-weight: 600;
+      }
+      .t-btn.flashing ha-icon {
+        animation: vac-locate-flash 1.5s ease-out;
+        color: var(--c-info);
+      }
+      .t-btn.t-secondary {
+        flex: 1 1 auto;
+        width: auto;
+        gap: 0.5rem;
+        padding: 0 0.875rem;
+        font-size: var(--fz-md);
+        font-weight: 500;
+      }
+      .t-btn.t-secondary ha-icon {
+        --mdc-icon-size: 1.125rem;
+      }
+      .transport-error .t-primary {
+        flex: 1 1 auto;
+        width: auto;
+        padding: 0 0.875rem;
+        gap: 0.5rem;
+        font-size: var(--fz-md);
+        font-weight: 500;
+      }
+      @keyframes vac-locate-flash {
+        0% { color: var(--c-info); transform: scale(1); }
+        30% { color: var(--c-info); transform: scale(1.2); }
+        60% { color: var(--c-info); transform: scale(1); }
+        100% { color: var(--t1); transform: scale(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .t-btn.flashing ha-icon {
+          animation: none;
+        }
+      }
     `,
   ];
 
@@ -362,6 +456,58 @@ export class GlassVacuumCard extends BaseCard {
     }, 3000);
   }
 
+  private _isCleaning(state: string): boolean {
+    return state === 'cleaning';
+  }
+
+  private _isPlaying(state: string): boolean {
+    return state === 'cleaning';
+  }
+
+  private _vacuumStart = (): void => {
+    void this._callService('vacuum', 'start', { entity_id: this.config!.entity as string });
+  };
+
+  private _vacuumPause = (): void => {
+    void this._callService('vacuum', 'pause', { entity_id: this.config!.entity as string });
+  };
+
+  private _vacuumStop = (): void => {
+    const vacuum = this._vacuumEntity();
+    if (!vacuum) return;
+    if (this._isCleaning(vacuum.state)) {
+      if (this._pendingAction === 'stop') {
+        if (this._confirmTimerId) clearTimeout(this._confirmTimerId);
+        this._confirmTimerId = null;
+        this._pendingAction = null;
+        void this._callService('vacuum', 'stop', { entity_id: this.config!.entity as string });
+        return;
+      }
+      this._pendingAction = 'stop';
+      this._confirmTimerId = setTimeout(() => {
+        this._pendingAction = null;
+        this._confirmTimerId = null;
+        this.requestUpdate();
+      }, 3000);
+      return;
+    }
+    void this._callService('vacuum', 'stop', { entity_id: this.config!.entity as string });
+  };
+
+  private _vacuumLocate = (): void => {
+    void this._callService('vacuum', 'locate', { entity_id: this.config!.entity as string });
+    this._locateFlashing = true;
+    if (this._locateTimer) clearTimeout(this._locateTimer);
+    this._locateTimer = setTimeout(() => {
+      this._locateFlashing = false;
+      this._locateTimer = null;
+    }, 1500);
+  };
+
+  private _vacuumReturn = (): void => {
+    void this._callService('vacuum', 'return_to_base', { entity_id: this.config!.entity as string });
+  };
+
   render(): TemplateResult | typeof nothing {
     const vacuum = this._vacuumEntity();
     if (!this.hass || !this.config?.entity) return nothing;
@@ -386,6 +532,7 @@ export class GlassVacuumCard extends BaseCard {
         <div class="card-inner">
           ${this._renderHero(vacuum, companions, friendlyName)}
           ${this._renderRoomChips(companions)}
+          ${this._renderTransport(vacuum)}
         </div>
       </div>
     `;
@@ -471,6 +618,94 @@ export class GlassVacuumCard extends BaseCard {
                 <span class="room-label">
                   ${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}
                 </span>
+              </button>
+            `
+          : nothing}
+      </div>
+    `;
+  }
+  private _renderTransport(vacuum: HassEntity): TemplateResult {
+    if (vacuum.state === 'error') {
+      return html`
+        <div class="transport transport-error">
+          <button
+            type="button"
+            class="t-btn t-secondary"
+            aria-label=${t('vacuum.transport_locate')}
+            @click=${this._vacuumLocate}
+          >
+            <ha-icon icon="mdi:crosshairs"></ha-icon>
+            <span>${t('vacuum.transport_locate')}</span>
+          </button>
+          <button
+            type="button"
+            class="t-btn t-primary"
+            aria-label=${t('vacuum.transport_retry')}
+            @click=${this._vacuumStart}
+          >
+            <ha-icon icon="mdi:refresh"></ha-icon>
+            <span>${t('vacuum.transport_retry')}</span>
+          </button>
+        </div>
+      `;
+    }
+
+    const features = (vacuum.attributes.supported_features as number) ?? 0;
+    const canStop = (features & 8) !== 0;
+    const canLocate = (features & 512) !== 0;
+    const canReturn = (features & 16) !== 0;
+
+    const showingStopConfirm = this._pendingAction === 'stop';
+    const isPlaying = this._isPlaying(vacuum.state);
+
+    return html`
+      <div class="transport">
+        <button
+          type="button"
+          class="t-btn t-primary"
+          aria-label=${isPlaying ? t('vacuum.transport_pause') : t('vacuum.transport_start')}
+          @click=${isPlaying ? this._vacuumPause : this._vacuumStart}
+        >
+          <ha-icon icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
+        </button>
+        ${canStop
+          ? html`
+              <button
+                type="button"
+                class="t-btn ${showingStopConfirm ? 'confirming' : ''}"
+                aria-label=${t('vacuum.transport_stop')}
+                ?aria-disabled=${vacuum.state === 'docked'}
+                @click=${this._vacuumStop}
+              >
+                <ha-icon icon="mdi:stop"></ha-icon>
+                ${showingStopConfirm
+                  ? html`<span class="confirm-label">${t('vacuum.confirm_short')}</span>`
+                  : nothing}
+              </button>
+            `
+          : nothing}
+        ${canLocate
+          ? html`
+              <button
+                type="button"
+                class="t-btn ${this._locateFlashing ? 'flashing' : ''}"
+                aria-label=${t('vacuum.transport_locate')}
+                @click=${this._vacuumLocate}
+              >
+                <ha-icon icon="mdi:crosshairs"></ha-icon>
+              </button>
+            `
+          : nothing}
+        ${canReturn
+          ? html`
+              <button
+                type="button"
+                class="t-btn"
+                aria-label=${t('vacuum.transport_return')}
+                ?aria-disabled=${vacuum.state === 'docked'}
+                @click=${this._vacuumReturn}
+              >
+                <ha-icon icon="mdi:home-import-outline"></ha-icon>
               </button>
             `
           : nothing}
