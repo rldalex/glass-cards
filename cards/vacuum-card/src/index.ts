@@ -729,23 +729,24 @@ export class GlassVacuumCard extends BaseCard {
     const battColor = this._batteryColor(battery);
     const statusLabel = this._statusLabel();
     const statusColor = this._statusColor(vacuum.state);
+    const batteryAria = t('vacuum.battery_aria', {
+      level: battery,
+      charging: charging ? t('vacuum.charging') : t('vacuum.not_charging'),
+    });
 
+    const dotStyle = `background:${statusColor}`;
+    const battStyle = `color:${battColor}`;
+    const battClass = `battery ${charging ? 'charging' : ''}`;
     return html`
       <div class="header">
-        <ha-icon class="vacuum-icon" icon="mdi:robot-vacuum"></ha-icon>
+        <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
-          <span class="status-dot" style=${`background:${statusColor}`}></span>
+          <span class="status-dot" style=${dotStyle}></span>
           <span class="status-text">${statusLabel}</span>
         </div>
-        <div
-          class="battery ${charging ? 'charging' : ''}"
-          aria-label=${t('vacuum.battery_aria', {
-            level: battery,
-            charging: charging ? t('vacuum.charging') : t('vacuum.not_charging'),
-          })}
-        >
-          <ha-icon icon=${battIcon} style=${`color:${battColor}`}></ha-icon>
-          <span style=${`color:${battColor}`}>${battery}%</span>
+        <div class=${battClass} aria-label=${batteryAria}>
+          <ha-icon .icon=${battIcon} style=${battStyle}></ha-icon>
+          <span style=${battStyle}>${battery}%</span>
         </div>
       </div>
     `;
