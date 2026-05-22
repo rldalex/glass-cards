@@ -164,8 +164,8 @@ export class GlassVacuumCard extends BaseCard {
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
-        mask-image: linear-gradient(90deg, transparent 0, black 24px, black calc(100% - 24px), transparent);
-        -webkit-mask-image: linear-gradient(90deg, transparent 0, black 24px, black calc(100% - 24px), transparent);
+        mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
+        -webkit-mask-image: linear-gradient(90deg, black 0, black calc(100% - 32px), transparent);
       }
       .rooms-row::-webkit-scrollbar {
         display: none;
@@ -783,9 +783,9 @@ export class GlassVacuumCard extends BaseCard {
           <span class="dot dot-${statusVariant}"></span>
           <span class="status-text">${statusLabel}</span>
         </div>
-        <div class=${battClass} aria-label=${batteryAria}>
-          <ha-icon .icon=${battIcon} style=${battStyle}></ha-icon>
-          <span style=${battStyle}>${battery}%</span>
+        <div class=${battClass} aria-label=${batteryAria} style=${battStyle}>
+          <ha-icon .icon=${battIcon}></ha-icon>
+          <span>${battery}%</span>
         </div>
       </div>
     `;
@@ -1062,8 +1062,8 @@ export class GlassVacuumCard extends BaseCard {
         <div class="eyebrow">${t('vacuum.section_dock')}</div>
         <div class="dock-grid">
           ${cells.map((c) => html`
-            <div class="dock-cell ${c.variant === 'idle' ? '' : c.variant}">
-              <ha-icon .icon=${c.icon} style="color:${variantColor[c.variant]}"></ha-icon>
+            <div class="dock-cell ${c.variant === 'idle' ? '' : c.variant}" style="color:${variantColor[c.variant]}">
+              <ha-icon .icon=${c.icon}></ha-icon>
               <span class="dock-label">${c.label}</span>
             </div>
           `)}
