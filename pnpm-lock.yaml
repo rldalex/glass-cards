@@ -60,6 +60,8 @@ importers:
 
   cards/climate-card: {}
 
+  cards/config-panel: {}
+
   cards/cover-card: {}
 
   cards/fan-card: {}
