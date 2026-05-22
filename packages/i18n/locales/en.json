@@ -270,7 +270,6 @@
     "all_house": "Whole house",
     "confirm_short": "Confirm?",
     "clean_room_aria": "Clean {room}",
-    "open_controls": "Open vacuum controls",
     "transport_start": "Start",
     "transport_pause": "Pause",
     "transport_stop": "Stop",
@@ -308,8 +307,7 @@
     "conso_sensors": "Sensors",
     "conso_strainer": "Dock strainer",
     "stats_last_session": "{when} · {duration} · {area}",
-    "stats_totals": "{count} cleanings · {area} total",
-    "map_alt": "Map of the house seen by {name}"
+    "stats_totals": "{count} cleanings · {area} total"
   },
 
   "spotify": {

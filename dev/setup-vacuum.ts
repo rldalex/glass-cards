@@ -3,7 +3,6 @@
 import { layoutHarness, rowEl, chipEl } from './setup-climate';
 import { makeCardHass, type MockEntitySpec } from './mock-card-hass';
 import type { HomeAssistant } from '@glass-cards/base-card';
-import mapMockUrl from './assets/vacuum-map-mock.svg?url';
 
 interface Scenario {
   id: string;
@@ -58,14 +57,6 @@ function selectEntity(id: string, value: string, options: string[]): MockEntityS
   };
 }
 
-function imageEntity(id: string): MockEntitySpec {
-  return {
-    entity_id: `image.${VAC_PREFIX}_${id}`,
-    state: new Date().toISOString(),
-    attributes: { friendly_name: id, entity_picture: mapMockUrl },
-  };
-}
-
 function roomButton(slug: string): MockEntitySpec {
   return {
     entity_id: `button.${VAC_PREFIX}_nettoyage_${slug}`,
@@ -101,8 +92,6 @@ function commonEntities(overrides: CommonEntityOpts): MockEntitySpec[] {
     sensor('batterie', String(overrides.battery)),
     sensor('erreur_de_l_aspirateur', overrides.errorMessage ?? 'none'),
     sensor('current_room', overrides.currentRoom ?? ''),
-    // Map
-    imageEntity('maison'),
     // Mop / water
     binarySensor('serpilliere_fixee', true),
     binarySensor('reservoir_d_eau_fixe', true),
