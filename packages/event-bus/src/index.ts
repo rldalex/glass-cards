@@ -19,6 +19,7 @@ export interface GlassEventMap {
   'presence-config-changed': undefined;
   'camera-carousel-config-changed': undefined;
   'calendar-config-changed': undefined;
+  'vacuum-config-changed': undefined;
   'schedule-changed': { entityId: string };
   // Radio queue feedback events (spotify → media card)
   'radio-queue-started': { count: number };
@@ -139,6 +140,7 @@ const SECTION_TO_EVENT: Partial<Record<string, keyof GlassEventMap>> = {
   media_card: 'media-config-changed',
   presence_card: 'presence-config-changed',
   calendar_card: 'calendar-config-changed',
+  vacuum_card: 'vacuum-config-changed',
   dashboard: 'dashboard-config-changed',
 };
 

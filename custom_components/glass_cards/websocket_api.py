@@ -100,6 +100,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_presence_config)
     websocket_api.async_register_command(hass, ws_set_camera_carousel_config)
     websocket_api.async_register_command(hass, ws_set_calendar_card)
+    websocket_api.async_register_command(hass, ws_set_vacuum_card)
     websocket_api.async_register_command(hass, ws_get_schedules)
     websocket_api.async_register_command(hass, ws_set_schedule)
     websocket_api.async_register_command(hass, ws_set_wizard_completed)
@@ -411,6 +412,39 @@ async def ws_set_calendar_card(
         return
     _broadcast(hass, "calendar_card")
     connection.send_result(msg["id"], store.data.calendar_card.to_dict())
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "glass_cards/set_vacuum_card",
+        vol.Optional("show_header"): bool,
+        vol.Optional("entity"): vol.Any("", vol.All(str, vol.Match(r"^vacuum\.[\w-]+$"))),
+    }
+)
+@websocket_api.async_response
+async def ws_set_vacuum_card(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update the vacuum card configuration."""
+    if not can_edit(connection.user):
+        raise Unauthorized()
+
+    store = _get_store(hass)
+
+    if "show_header" in msg:
+        store.data.vacuum_card.show_header = msg["show_header"]
+    if "entity" in msg:
+        store.data.vacuum_card.entity = msg["entity"]
+
+    try:
+        await store.async_save()
+    except HomeAssistantError as exc:
+        connection.send_error(msg["id"], "storage_error", str(exc))
+        return
+    _broadcast(hass, "vacuum_card")
+    connection.send_result(msg["id"], store.data.vacuum_card.to_dict())
 
 
 @websocket_api.websocket_command(

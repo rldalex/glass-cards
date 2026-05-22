@@ -768,6 +768,7 @@ class DashboardConfig:
 
 
 _CALENDAR_ENTITY_RE = re.compile(r"^calendar\.[\w-]+$")
+_VACUUM_ENTITY_RE = re.compile(r"^vacuum\.[\w-]+$")
 
 
 @dataclass
@@ -801,6 +802,37 @@ class CalendarCardConfig:
 
 
 @dataclass
+class VacuumCardConfig:
+    """Configuration for the vacuum card (dashboard only).
+
+    The card auto-discovers all its companion entities from a single
+    vacuum.* entity, so the only persisted state is the visual header
+    toggle and the chosen primary entity (useful when several vacuums
+    are present — first match would otherwise be arbitrary).
+    """
+
+    show_header: bool = True
+    entity: str = ""  # empty = auto-pick the first vacuum.* entity at render time
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "show_header": self.show_header,
+            "entity": self.entity,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> VacuumCardConfig:
+        """Deserialize from dict."""
+        raw_entity = data.get("entity", "")
+        entity = raw_entity if isinstance(raw_entity, str) and _VACUUM_ENTITY_RE.match(raw_entity) else ""
+        return cls(
+            show_header=bool(data.get("show_header", True)),
+            entity=entity,
+        )
+
+
+@dataclass
 class GlassCardsData:
     """Top-level data structure for Glass Cards."""
 
@@ -817,6 +849,7 @@ class GlassCardsData:
     media_card: MediaCardConfig = field(default_factory=MediaCardConfig)
     presence_card: PresenceCardConfig = field(default_factory=PresenceCardConfig)
     calendar_card: CalendarCardConfig = field(default_factory=CalendarCardConfig)
+    vacuum_card: VacuumCardConfig = field(default_factory=VacuumCardConfig)
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     entity_schedules: dict[str, EntitySchedule] = field(default_factory=dict)
     wizard_completed: bool = False
@@ -837,6 +870,7 @@ class GlassCardsData:
             "media_card": self.media_card.to_dict(),
             "presence_card": self.presence_card.to_dict(),
             "calendar_card": self.calendar_card.to_dict(),
+            "vacuum_card": self.vacuum_card.to_dict(),
             "dashboard": self.dashboard.to_dict(),
             "entity_schedules": {
                 k: v.to_dict() for k, v in self.entity_schedules.items()
@@ -865,6 +899,7 @@ class GlassCardsData:
             media_card=MediaCardConfig.from_dict(data.get("media_card", {})),
             presence_card=PresenceCardConfig.from_dict(data.get("presence_card", {})),
             calendar_card=CalendarCardConfig.from_dict(data.get("calendar_card", {})),
+            vacuum_card=VacuumCardConfig.from_dict(data.get("vacuum_card", {})),
             dashboard=DashboardConfig.from_dict(data.get("dashboard", {})),
             entity_schedules={
                 k: EntitySchedule.from_dict({**v, "entity_id": k})

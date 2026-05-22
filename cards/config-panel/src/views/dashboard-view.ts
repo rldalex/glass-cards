@@ -33,13 +33,11 @@ const DASH_CARD_META: DashCardMeta[] = [
 ];
 
 // Map card IDs to sub-section IDs used by tabs
-// Note: vacuum is not mapped — it has no config tab (fully auto-discovered).
-// Clicking its chip in the dashboard list just toggles visibility.
 const SUB_MAP: Record<string, string> = {
   title: 'title', light: 'light', weather: 'weather',
   cover: 'cover', climate: 'climate', fan: 'fan', media: 'media',
   spotify: 'spotify', presence: 'presence', camera_carousel: 'camera',
-  calendar: 'calendar',
+  calendar: 'calendar', vacuum: 'vacuum',
 };
 
 // Map sub-section IDs to backend config keys (used by _sliceFor)
@@ -47,7 +45,7 @@ const CONFIG_KEYS: Record<string, string> = {
   title: 'title_card', weather: 'weather', light: 'light_card', cover: 'cover_card',
   climate: 'climate_card', fan: 'fan_card', media: 'media_card',
   spotify: 'spotify_card', presence: 'presence_card', camera: 'camera_carousel',
-  calendar: 'calendar_card',
+  calendar: 'calendar_card', vacuum: 'vacuum_card',
 };
 
 export class ConfigDashboardView extends LitElement {
@@ -373,6 +371,8 @@ export class ConfigDashboardView extends LitElement {
         return html`<config-tab-media .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-media>`;
       case 'calendar':
         return html`<config-tab-calendar .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-calendar>`;
+      case 'vacuum':
+        return html`<config-tab-vacuum .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-vacuum>`;
       default:
         return html`<div class="placeholder"><ha-icon .icon=${'mdi:hammer-wrench'}></ha-icon><span>${id}</span></div>`;
     }

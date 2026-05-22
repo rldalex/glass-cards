@@ -63,7 +63,10 @@ export class GlassVacuumCard extends BaseCard {
   private _confirmTimerId: ReturnType<typeof setTimeout> | null = null;
 
   setConfig(config: LovelaceCardConfig): void {
-    if (!config?.entity || !(config.entity as string).startsWith('vacuum.')) {
+    // config.entity is optional — when omitted (e.g., navbar-card auto-renders
+    // the dashboard stack), the card auto-picks the first vacuum.* entity from
+    // hass.states. If provided, it must point to a vacuum entity.
+    if (config?.entity && !(config.entity as string).startsWith('vacuum.')) {
       throw new Error('vacuum-card: config.entity must be a vacuum.* entity_id');
     }
     this.config = config;
@@ -529,14 +532,30 @@ export class GlassVacuumCard extends BaseCard {
     `,
   ];
 
+  /** Resolve the active vacuum entity_id. Use config.entity if set, otherwise
+   *  fall back to the first vacuum.* entity found in hass.states. Returns null
+   *  if hass is not ready or no vacuum entity exists at all. */
+  private _resolveEntityId(): string | null {
+    if (!this.hass) return null;
+    const configEntity = this.config?.entity as string | undefined;
+    if (configEntity && this.hass.states[configEntity]) return configEntity;
+    // Auto-pick first vacuum.* entity (the Config Panel may override later).
+    for (const id of Object.keys(this.hass.states)) {
+      if (id.startsWith('vacuum.')) return id;
+    }
+    return null;
+  }
+
   private _vacuumEntity(): HassEntity | null {
-    if (!this.hass || !this.config?.entity) return null;
-    return this.hass.states[this.config.entity as string] ?? null;
+    const entityId = this._resolveEntityId();
+    if (!entityId) return null;
+    return this.hass!.states[entityId] ?? null;
   }
 
   private _companions(): VacuumCompanions | null {
-    if (!this.hass || !this.config?.entity) return null;
-    return discoverVacuumCompanions(this.hass, this.config.entity as string);
+    const entityId = this._resolveEntityId();
+    if (!entityId) return null;
+    return discoverVacuumCompanions(this.hass!, entityId);
   }
 
   private _statusLabel(): string {
@@ -674,11 +693,11 @@ export class GlassVacuumCard extends BaseCard {
   }
 
   private _vacuumStart = (): void => {
-    void this._callService('vacuum', 'start', { entity_id: this.config!.entity as string });
+    void this._callService('vacuum', 'start', { entity_id: this._resolveEntityId() ?? "" });
   };
 
   private _vacuumPause = (): void => {
-    void this._callService('vacuum', 'pause', { entity_id: this.config!.entity as string });
+    void this._callService('vacuum', 'pause', { entity_id: this._resolveEntityId() ?? "" });
   };
 
   private _vacuumStop = (): void => {
@@ -689,7 +708,7 @@ export class GlassVacuumCard extends BaseCard {
         if (this._confirmTimerId) clearTimeout(this._confirmTimerId);
         this._confirmTimerId = null;
         this._pendingAction = null;
-        void this._callService('vacuum', 'stop', { entity_id: this.config!.entity as string });
+        void this._callService('vacuum', 'stop', { entity_id: this._resolveEntityId() ?? "" });
         return;
       }
       this._pendingAction = 'stop';
@@ -700,11 +719,11 @@ export class GlassVacuumCard extends BaseCard {
       }, 3000);
       return;
     }
-    void this._callService('vacuum', 'stop', { entity_id: this.config!.entity as string });
+    void this._callService('vacuum', 'stop', { entity_id: this._resolveEntityId() ?? "" });
   };
 
   private _vacuumLocate = (): void => {
-    void this._callService('vacuum', 'locate', { entity_id: this.config!.entity as string });
+    void this._callService('vacuum', 'locate', { entity_id: this._resolveEntityId() ?? "" });
     this._locateFlashing = true;
     if (this._locateTimer) clearTimeout(this._locateTimer);
     this._locateTimer = setTimeout(() => {
@@ -714,7 +733,7 @@ export class GlassVacuumCard extends BaseCard {
   };
 
   private _vacuumReturn = (): void => {
-    void this._callService('vacuum', 'return_to_base', { entity_id: this.config!.entity as string });
+    void this._callService('vacuum', 'return_to_base', { entity_id: this._resolveEntityId() ?? "" });
   };
 
   private _selectOption = (entityId: string, option: string): void => {
@@ -722,21 +741,16 @@ export class GlassVacuumCard extends BaseCard {
   };
 
   private _setFanSpeed = (speed: string): void => {
-    void this._callService('vacuum', 'set_fan_speed', { entity_id: this.config!.entity as string, fan_speed: speed });
+    void this._callService('vacuum', 'set_fan_speed', { entity_id: this._resolveEntityId() ?? "", fan_speed: speed });
   };
 
   render(): TemplateResult | typeof nothing {
+    if (!this.hass) return nothing;
     const vacuum = this._vacuumEntity();
-    if (!this.hass || !this.config?.entity) return nothing;
-
     if (!vacuum) {
-      return html`
-        <div class="glass">
-          <div class="card-inner">
-            <div class="placeholder">Vacuum entité ${this.config.entity} introuvable.</div>
-          </div>
-        </div>
-      `;
+      // No vacuum.* entity in this HA — hide the card silently. (The user
+      // toggled vacuum visible in the Dashboard tab but has no robot yet.)
+      return nothing;
     }
 
     const companions = this._companions();
