@@ -309,19 +309,19 @@ export class GlassVacuumCard extends BaseCard {
         100% { color: var(--t1); transform: scale(1); }
       }
       .compact {
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         gap: 0.625rem;
         width: 100%;
         padding: 0.4375rem 0.875rem;
-        background: transparent;
-        border: 0;
         border-radius: var(--radius-xl);
         min-height: 3.25rem;
         color: var(--t1);
         cursor: pointer;
         text-align: left;
         font-family: inherit;
+        -webkit-tap-highlight-color: transparent;
       }
       .ctrl-fold {
         display: grid;
