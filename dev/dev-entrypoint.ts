@@ -101,6 +101,12 @@ const SETUPS: SetupEntry[] = [
     description: 'Popup pièce ouvert avec sub-cards mountées dynamiquement.',
     load: () => import('./setup-popup').then((m) => m.setupPopup),
   },
+  {
+    id: 'vacuum',
+    label: 'Vacuum Card',
+    description: 'Roborock Saros 10R — 9 scenarios (docked/cleaning/returning/error/...) avec auto-discovery 49 entités.',
+    load: () => import('./setup-vacuum').then((m) => m.setupVacuum),
+  },
 ];
 
 // ───────────────────────── Boot ─────────────────────────
