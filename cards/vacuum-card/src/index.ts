@@ -53,8 +53,7 @@ export class GlassVacuumCard extends BaseCard {
   @property({ attribute: false }) hass?: import('@glass-cards/base-card').HomeAssistant;
   @property({ attribute: false }) config?: LovelaceCardConfig;
 
-  @state() private _foldDailyOpen = false;
-  @state() private _foldMaintenanceOpen = false;
+  @state() private _open = false;
   @state() private _pendingAction: string | null = null;
   @state() private _locateFlashing = false;
 
@@ -103,15 +102,6 @@ export class GlassVacuumCard extends BaseCard {
         padding: 1rem;
         font-size: var(--fz-md);
         color: var(--t2);
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        padding: 0.4375rem 0.875rem;
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-        border-bottom: 1px solid var(--b1);
-        min-height: 3.25rem;
       }
       .vacuum-icon {
         --mdc-icon-size: 1.5rem;
@@ -318,21 +308,20 @@ export class GlassVacuumCard extends BaseCard {
         60% { color: var(--c-info); transform: scale(1); }
         100% { color: var(--t1); transform: scale(1); }
       }
-      .fold-toggle {
+      .compact {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 0.625rem;
         width: 100%;
-        padding: 0.625rem 0.875rem;
+        padding: 0.4375rem 0.875rem;
         background: transparent;
         border: 0;
-        border-top: 1px solid var(--b1);
-        color: var(--t2);
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        border-radius: var(--radius-xl);
+        min-height: 3.25rem;
+        color: var(--t1);
         cursor: pointer;
+        text-align: left;
+        font-family: inherit;
       }
       .fold-chevron {
         display: inline-block;
@@ -340,27 +329,32 @@ export class GlassVacuumCard extends BaseCard {
         height: 0;
         border-left: 0.3125rem solid transparent;
         border-right: 0.3125rem solid transparent;
-        border-top: 0.375rem solid currentColor;
+        border-top: 0.375rem solid var(--t3);
         transition: transform var(--t-fast);
+        flex-shrink: 0;
       }
-      .fold-toggle[aria-expanded='true'] .fold-chevron {
+      .compact.open .fold-chevron {
         transform: rotate(180deg);
       }
-      .fold {
+      .ctrl-fold {
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows var(--t-layout);
       }
-      .fold.open {
+      .ctrl-fold.open {
         grid-template-rows: 1fr;
       }
-      .fold-inner {
+      .ctrl-fold-inner {
         overflow: hidden;
         opacity: 0;
         transition: opacity var(--t-med) 0.1s;
       }
-      .fold.open .fold-inner {
+      .ctrl-fold.open .ctrl-fold-inner {
         opacity: 1;
+      }
+      .fold-content {
+        display: flex;
+        flex-direction: column;
       }
       .fold-sep {
         height: 1px;
@@ -530,13 +524,13 @@ export class GlassVacuumCard extends BaseCard {
         .t-btn.flashing ha-icon {
           animation: none;
         }
-        .fold {
+        .ctrl-fold {
           transition: none;
         }
-        .fold-inner {
+        .ctrl-fold-inner {
           transition: none;
         }
-        .fold-toggle ha-icon {
+        .fold-chevron {
           transition: none;
         }
         .t-btn,
@@ -724,22 +718,49 @@ export class GlassVacuumCard extends BaseCard {
     const isUnavailable = isEntityUnavailable(vacuum.state);
     const isError = vacuum.state === 'error';
 
+    const open = this._open;
     return html`
       <div class="glass ${isUnavailable ? 'unavailable' : ''} ${isError ? 'card-error' : ''}">
         <div class="card-inner">
-          ${this._renderHeader(vacuum, companions)}
-          ${this._renderRoomChips(companions)}
-          ${this._renderTransport(vacuum)}
-          ${this._renderDailyFold(vacuum, companions)}
-          ${this._renderMaintenanceFold(companions)}
+          ${this._renderCompact(vacuum, companions, open)}
+          <div class="ctrl-fold ${open ? 'open' : ''}">
+            <div class="ctrl-fold-inner">
+              <div class="fold-content">
+                <div class="fold-sep top"></div>
+                ${this._renderRoomChips(companions)}
+                ${this._renderTransport(vacuum)}
+                ${this._renderAspiration(vacuum)}
+                ${this._renderLavage(companions)}
+                ${this._renderDock(companions)}
+                ${this._renderConso(companions)}
+                ${this._renderStats(companions)}
+                <div class="fold-sep bottom"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
   }
 
-  private _renderHeader(
+  private _toggleOpen = (): void => {
+    // Direct DOM toggle to avoid Lit re-render (works around a bug where
+    // re-rendering this card crashes Lit with 'ChildPart has no parentNode').
+    const root = this.shadowRoot;
+    if (!root) return;
+    const compact = root.querySelector('.compact');
+    const fold = root.querySelector('.ctrl-fold');
+    if (!compact || !fold) return;
+    const isOpen = fold.classList.toggle('open');
+    compact.classList.toggle('open', isOpen);
+    compact.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    this._open = isOpen;
+  };
+
+  private _renderCompact(
     vacuum: HassEntity,
     companions: VacuumCompanions | null,
+    open: boolean,
   ): TemplateResult {
     const battery = this._batteryLevel();
     const charging = companions ? isBinaryOn(this.hass!, companions.charging) : false;
@@ -755,7 +776,13 @@ export class GlassVacuumCard extends BaseCard {
     const battStyle = `color:${battColor}`;
     const battClass = `battery ${charging ? 'charging' : ''}`;
     return html`
-      <div class="header">
+      <button
+        type="button"
+        class="compact ${open ? 'open' : ''}"
+        aria-expanded=${open ? 'true' : 'false'}
+        aria-controls="vacuum-fold"
+        @click=${this._toggleOpen}
+      >
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
           <span class="dot dot-${statusVariant}"></span>
@@ -765,7 +792,8 @@ export class GlassVacuumCard extends BaseCard {
           <ha-icon .icon=${battIcon} style=${battStyle}></ha-icon>
           <span style=${battStyle}>${battery}%</span>
         </div>
-      </div>
+        <span class="fold-chevron" aria-hidden="true"></span>
+      </button>
     `;
   }
   private _renderRoomChips(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
@@ -898,30 +926,6 @@ export class GlassVacuumCard extends BaseCard {
       </div>
     `;
   }
-  private _renderDailyFold(vacuum: HassEntity, companions: VacuumCompanions | null): TemplateResult {
-    const open = this._foldDailyOpen;
-    return html`
-      <button
-        type="button"
-        class="fold-toggle"
-        aria-expanded=${open}
-        aria-controls="fold-daily"
-        @click=${() => { this._foldDailyOpen = !this._foldDailyOpen; }}
-      >
-        <span class="fold-toggle-label">${t('vacuum.fold_daily')}</span>
-        <span class="fold-chevron" aria-hidden="true"></span>
-      </button>
-      <div id="fold-daily" class="fold ${open ? 'open' : ''}">
-        <div class="fold-inner">
-          <div class="fold-sep top"></div>
-          ${this._renderAspiration(vacuum)}
-          ${this._renderLavage(companions)}
-          <div class="fold-sep bottom"></div>
-        </div>
-      </div>
-    `;
-  }
-
   private _renderAspiration(vacuum: HassEntity): TemplateResult | typeof nothing {
     const features = (vacuum.attributes.supported_features as number) ?? 0;
     const hasFanSpeed = (features & 32) !== 0;
@@ -1142,30 +1146,6 @@ export class GlassVacuumCard extends BaseCard {
     `;
   }
 
-  private _renderMaintenanceFold(companions: VacuumCompanions | null): TemplateResult {
-    const open = this._foldMaintenanceOpen;
-    return html`
-      <button
-        type="button"
-        class="fold-toggle"
-        aria-expanded=${open}
-        aria-controls="fold-maintenance"
-        @click=${() => { this._foldMaintenanceOpen = !this._foldMaintenanceOpen; }}
-      >
-        <span class="fold-toggle-label">${t('vacuum.fold_maintenance')}</span>
-        <span class="fold-chevron" aria-hidden="true"></span>
-      </button>
-      <div id="fold-maintenance" class="fold ${open ? 'open' : ''}">
-        <div class="fold-inner">
-          <div class="fold-sep top"></div>
-          ${this._renderDock(companions)}
-          ${this._renderConso(companions)}
-          ${this._renderStats(companions)}
-          <div class="fold-sep bottom"></div>
-        </div>
-      </div>
-    `;
-  }
 }
 
 customElements.define('glass-vacuum-card', GlassVacuumCard);
