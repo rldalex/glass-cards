@@ -101,6 +101,10 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     show_header: true,
     hidden_entities: [] as string[],
   };
+  let vacuumCardConfig = {
+    show_header: true,
+    entity: '',
+  };
   const roomConfigs: Record<string, { icon?: string | null }> = {};
   try {
     if (!self._backend) throw new Error('No backend');
@@ -118,6 +122,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
       climate_card: typeof climateCardConfig;
       camera_carousel: typeof cameraCarouselConfig;
       calendar_card: typeof calendarCardConfig;
+      vacuum_card: typeof vacuumCardConfig;
       dashboard: typeof dashboardConfig;
       wizard_completed?: boolean;
     }>('get_config');
@@ -134,6 +139,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     if (result.climate_card) climateCardConfig = result.climate_card;
     if (result.camera_carousel) cameraCarouselConfig = result.camera_carousel;
     if (result.calendar_card) calendarCardConfig = result.calendar_card;
+    if (result.vacuum_card) vacuumCardConfig = result.vacuum_card;
     if (result.dashboard) dashboardConfig = result.dashboard;
     if (result.wizard_completed !== undefined) self._wizardCompleted = result.wizard_completed;
   } catch {
@@ -166,6 +172,7 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     climate_card: climateCardConfig,
     camera_carousel: cameraCarouselConfig,
     calendar_card: calendarCardConfig,
+    vacuum_card: vacuumCardConfig,
   };
 
   const hiddenSet = new Set(navbarConfig.hidden_rooms);

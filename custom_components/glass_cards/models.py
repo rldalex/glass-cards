@@ -14,7 +14,7 @@ VALID_WEATHER_METRICS = frozenset(
 )
 
 VALID_DASHBOARD_CARDS = frozenset(
-    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel", "climate", "calendar"}
+    {"weather", "light", "title", "cover", "spotify", "media", "presence", "fan", "camera_carousel", "climate", "calendar", "vacuum"}
 )
 
 VALID_SORT_ORDERS = frozenset({"recent_first", "oldest_first"})
@@ -26,7 +26,7 @@ VALID_MODE_SOURCES = frozenset({"", "input_select", "scenes", "booleans"})
 VALID_MEDIA_VARIANTS = frozenset({"list", "hero"})
 
 DEFAULT_DASHBOARD_CARDS: list[str] = ["weather"]
-DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "climate", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence", "calendar"]
+DEFAULT_CARD_ORDER: list[str] = ["title", "weather", "climate", "light", "media", "fan", "cover", "camera_carousel", "spotify", "presence", "calendar", "vacuum"]
 
 
 @dataclass
