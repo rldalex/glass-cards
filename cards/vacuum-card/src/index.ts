@@ -125,12 +125,17 @@ export class GlassVacuumCard extends BaseCard {
         gap: 0.5rem;
         min-width: 0;
       }
-      .status-dot {
+      .dot {
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 50%;
         flex-shrink: 0;
       }
+      .dot-success { background: var(--c-success); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+      .dot-alert   { background: var(--c-alert);   box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+      .dot-warning { background: var(--c-warning); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+      .dot-info    { background: var(--c-info);    box-shadow: 0 0 6px rgba(96,165,250,0.5); }
+      .dot-off     { background: var(--t4); }
       .status-text {
         font-size: var(--fz-md);
         color: var(--t1);
@@ -218,11 +223,7 @@ export class GlassVacuumCard extends BaseCard {
         background: var(--b1);
         flex-shrink: 0;
       }
-      .dot-pulse {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--c-info);
+      .dot.pulsing {
         animation: vac-dot-pulse 1.5s ease-in-out infinite;
       }
       @keyframes vac-dot-pulse {
@@ -333,11 +334,16 @@ export class GlassVacuumCard extends BaseCard {
         letter-spacing: 1px;
         cursor: pointer;
       }
-      .fold-toggle ha-icon {
-        --mdc-icon-size: 1.125rem;
+      .fold-chevron {
+        display: inline-block;
+        width: 0;
+        height: 0;
+        border-left: 0.3125rem solid transparent;
+        border-right: 0.3125rem solid transparent;
+        border-top: 0.375rem solid currentColor;
         transition: transform var(--t-fast);
       }
-      .fold-toggle ha-icon.rotated {
+      .fold-toggle[aria-expanded='true'] .fold-chevron {
         transform: rotate(180deg);
       }
       .fold {
@@ -419,19 +425,23 @@ export class GlassVacuumCard extends BaseCard {
         gap: 0.375rem;
         margin-top: 0.25rem;
       }
-      .status-pill-inline {
+      .badge {
         display: inline-flex;
         align-items: center;
         gap: 0.375rem;
         padding: 0.25rem 0.625rem;
-        border: 1px solid;
-        border-radius: var(--radius-full);
+        border-radius: 20px;
         font-size: var(--fz-sm);
-        color: var(--t1);
+        font-weight: 600;
       }
-      .status-pill-inline ha-icon {
+      .badge ha-icon {
         --mdc-icon-size: 0.9rem;
       }
+      .badge-success { background: rgba(74,222,128,0.15);  color: var(--c-success); }
+      .badge-alert   { background: rgba(248,113,113,0.15); color: var(--c-alert); }
+      .badge-warning { background: rgba(251,191,36,0.15);  color: var(--c-warning); }
+      .badge-info    { background: rgba(96,165,250,0.15);  color: var(--c-info); }
+      .badge-off     { background: var(--s1); color: var(--t3); border: 1px solid var(--b1); }
       .dock-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
@@ -448,10 +458,15 @@ export class GlassVacuumCard extends BaseCard {
         border-radius: var(--radius-md);
         text-align: center;
         min-height: 4rem;
+        transition: background var(--t-fast), border-color var(--t-fast);
       }
       .dock-cell ha-icon {
         --mdc-icon-size: 1.5rem;
       }
+      .dock-cell.success { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.25); }
+      .dock-cell.alert   { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); }
+      .dock-cell.warning { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.25); }
+      .dock-cell.info    { background: rgba(96,165,250,0.08);  border-color: rgba(96,165,250,0.25); }
       .dock-label {
         font-size: var(--fz-sm);
         color: var(--t2);
@@ -474,17 +489,20 @@ export class GlassVacuumCard extends BaseCard {
       .conso-value {
         font-weight: 600;
       }
-      .conso-bar {
+      .progress {
         position: relative;
+        width: 100%;
         height: 0.375rem;
         background: var(--s2);
         border-radius: var(--radius-full);
         overflow: hidden;
       }
-      .conso-bar-fill {
+      .progress-fill {
         height: 100%;
-        border-radius: var(--radius-full);
-        transition: width var(--t-med), background var(--t-fast);
+        width: 100%;
+        border-radius: inherit;
+        transform-origin: left center;
+        transition: transform var(--t-med), background var(--t-fast);
       }
       .stats-row {
         font-size: var(--fz-sm);
@@ -506,7 +524,7 @@ export class GlassVacuumCard extends BaseCard {
         .battery.charging ha-icon {
           animation: none;
         }
-        .dot-pulse {
+        .dot.pulsing {
           animation: none;
         }
         .t-btn.flashing ha-icon {
@@ -557,14 +575,14 @@ export class GlassVacuumCard extends BaseCard {
     return t(`vacuum.status_${vacuum.state}` as Parameters<typeof t>[0]) ?? vacuum.state;
   }
 
-  private _statusColor(state: string): string {
+  private _statusVariant(state: string): 'success' | 'warning' | 'info' | 'alert' | 'off' {
     switch (state) {
-      case 'cleaning': return 'var(--c-success)';
-      case 'paused': return 'var(--c-warning)';
-      case 'returning': return 'var(--c-info)';
-      case 'docked': return 'var(--t3)';
-      case 'error': return 'var(--c-alert)';
-      default: return 'var(--t3)';
+      case 'cleaning': return 'success';
+      case 'paused': return 'warning';
+      case 'returning': return 'info';
+      case 'error': return 'alert';
+      case 'docked':
+      default: return 'off';
     }
   }
 
@@ -728,20 +746,19 @@ export class GlassVacuumCard extends BaseCard {
     const battIcon = this._batteryIcon(battery, charging);
     const battColor = this._batteryColor(battery);
     const statusLabel = this._statusLabel();
-    const statusColor = this._statusColor(vacuum.state);
+    const statusVariant = this._statusVariant(vacuum.state);
     const batteryAria = t('vacuum.battery_aria', {
       level: battery,
       charging: charging ? t('vacuum.charging') : t('vacuum.not_charging'),
     });
 
-    const dotStyle = `background:${statusColor}`;
     const battStyle = `color:${battColor}`;
     const battClass = `battery ${charging ? 'charging' : ''}`;
     return html`
       <div class="header">
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum'}></ha-icon>
         <div class="status-info" aria-live="polite">
-          <span class="status-dot" style=${dotStyle}></span>
+          <span class="dot dot-${statusVariant}"></span>
           <span class="status-text">${statusLabel}</span>
         </div>
         <div class=${battClass} aria-label=${batteryAria}>
@@ -769,7 +786,7 @@ export class GlassVacuumCard extends BaseCard {
               aria-pressed=${isCurrent}
               @click=${() => this._pressButton(entityId)}
             >
-              ${isCurrent ? html`<span class="dot dot-pulse"></span>` : nothing}
+              ${isCurrent ? html`<span class="dot dot-info pulsing"></span>` : nothing}
               <span class="room-label">${label}</span>
             </button>
           `;
@@ -892,13 +909,9 @@ export class GlassVacuumCard extends BaseCard {
         @click=${() => { this._foldDailyOpen = !this._foldDailyOpen; }}
       >
         <span class="fold-toggle-label">${t('vacuum.fold_daily')}</span>
-        <ha-icon icon="mdi:chevron-down" class=${open ? 'rotated' : ''}></ha-icon>
+        <span class="fold-chevron" aria-hidden="true"></span>
       </button>
-      <div
-        id="fold-daily"
-        class="fold ${open ? 'open' : ''}"
-        aria-hidden=${!open}
-      >
+      <div id="fold-daily" class="fold ${open ? 'open' : ''}">
         <div class="fold-inner">
           <div class="fold-sep top"></div>
           ${this._renderAspiration(vacuum)}
@@ -975,30 +988,30 @@ export class GlassVacuumCard extends BaseCard {
             `
           : nothing}
         <div class="status-row">
-          ${this._renderStatusPill(
+          ${this._renderBadge(
             isBinaryOn(this.hass!, companions.mopAttached)
-              ? { label: t('vacuum.mop_attached'), color: 'var(--c-success)', icon: 'mdi:check-circle' }
-              : { label: t('vacuum.mop_missing'), color: 'var(--c-alert)', icon: 'mdi:alert-circle-outline' },
+              ? { label: t('vacuum.mop_attached'), variant: 'success', icon: 'mdi:check-circle' }
+              : { label: t('vacuum.mop_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
           )}
-          ${this._renderStatusPill(
+          ${this._renderBadge(
             isBinaryOn(this.hass!, companions.tankAttached)
-              ? { label: t('vacuum.tank_ok'), color: 'var(--c-success)', icon: 'mdi:check-circle' }
-              : { label: t('vacuum.tank_missing'), color: 'var(--c-alert)', icon: 'mdi:alert-circle-outline' },
+              ? { label: t('vacuum.tank_ok'), variant: 'success', icon: 'mdi:check-circle' }
+              : { label: t('vacuum.tank_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
           )}
-          ${this._renderStatusPill(
+          ${this._renderBadge(
             isBinaryOn(this.hass!, companions.waterShortage)
-              ? { label: t('vacuum.water_short'), color: 'var(--c-alert)', icon: 'mdi:water-off' }
-              : { label: t('vacuum.water_ok'), color: 'var(--c-success)', icon: 'mdi:water' },
+              ? { label: t('vacuum.water_short'), variant: 'alert', icon: 'mdi:water-off' }
+              : { label: t('vacuum.water_ok'), variant: 'success', icon: 'mdi:water' },
           )}
         </div>
       </div>
     `;
   }
 
-  private _renderStatusPill({ label, color, icon }: { label: string; color: string; icon: string }): TemplateResult {
+  private _renderBadge({ label, variant, icon }: { label: string; variant: 'success' | 'alert' | 'warning' | 'info'; icon: string }): TemplateResult {
     return html`
-      <div class="status-pill-inline" style="border-color: ${color}; background: rgba(255,255,255,0.04);">
-        <ha-icon icon=${icon} style="color: ${color};"></ha-icon>
+      <div class="badge badge-${variant}">
+        <ha-icon .icon=${icon}></ha-icon>
         <span>${label}</span>
       </div>
     `;
@@ -1006,13 +1019,12 @@ export class GlassVacuumCard extends BaseCard {
 
   private _renderDock(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
     if (!companions) return nothing;
-    const cells = [
+    type DockVariant = 'success' | 'alert' | 'warning' | 'info' | 'idle';
+    const cells: { icon: string; label: string; variant: DockVariant }[] = [
       {
         icon: 'mdi:battery-charging',
-        label: isBinaryOn(this.hass!, companions.charging)
-          ? t('vacuum.dock_charging')
-          : t('vacuum.dock_idle'),
-        color: isBinaryOn(this.hass!, companions.charging) ? 'var(--c-success)' : 'var(--t3)',
+        label: isBinaryOn(this.hass!, companions.charging) ? t('vacuum.dock_charging') : t('vacuum.dock_idle'),
+        variant: isBinaryOn(this.hass!, companions.charging) ? 'success' : 'idle',
       },
       {
         icon: 'mdi:hair-dryer-outline',
@@ -1021,38 +1033,39 @@ export class GlassVacuumCard extends BaseCard {
               minutes: Math.round(numericState(this.hass!, companions.dockDryingTimeLeft, 0)),
             })
           : t('vacuum.dock_drying_idle'),
-        color: isBinaryOn(this.hass!, companions.dockDrying) ? 'var(--c-info)' : 'var(--t3)',
+        variant: isBinaryOn(this.hass!, companions.dockDrying) ? 'info' : 'idle',
       },
       {
         icon: 'mdi:water-pump',
-        label: isBinaryOn(this.hass!, companions.dirtyWaterBox)
-          ? t('vacuum.dirty_full')
-          : t('vacuum.dirty_ok'),
-        color: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? 'var(--c-alert)' : 'var(--c-success)',
+        label: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? t('vacuum.dirty_full') : t('vacuum.dirty_ok'),
+        variant: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? 'alert' : 'success',
       },
       {
         icon: 'mdi:water',
-        label: isBinaryOn(this.hass!, companions.cleanWaterBox)
-          ? t('vacuum.clean_ok')
-          : t('vacuum.clean_empty'),
-        color: isBinaryOn(this.hass!, companions.cleanWaterBox) ? 'var(--c-success)' : 'var(--c-alert)',
+        label: isBinaryOn(this.hass!, companions.cleanWaterBox) ? t('vacuum.clean_ok') : t('vacuum.clean_empty'),
+        variant: isBinaryOn(this.hass!, companions.cleanWaterBox) ? 'success' : 'alert',
       },
       {
         icon: 'mdi:bottle-tonic-outline',
-        label: isBinaryOn(this.hass!, companions.cleaningFluid)
-          ? t('vacuum.fluid_ok')
-          : t('vacuum.fluid_empty'),
-        color: isBinaryOn(this.hass!, companions.cleaningFluid) ? 'var(--c-success)' : 'var(--c-warning)',
+        label: isBinaryOn(this.hass!, companions.cleaningFluid) ? t('vacuum.fluid_ok') : t('vacuum.fluid_empty'),
+        variant: isBinaryOn(this.hass!, companions.cleaningFluid) ? 'success' : 'warning',
       },
     ];
+    const variantColor: Record<DockVariant, string> = {
+      success: 'var(--c-success)',
+      alert: 'var(--c-alert)',
+      warning: 'var(--c-warning)',
+      info: 'var(--c-info)',
+      idle: 'var(--t3)',
+    };
 
     return html`
       <div class="fold-section">
         <div class="eyebrow">${t('vacuum.section_dock')}</div>
         <div class="dock-grid">
           ${cells.map((c) => html`
-            <div class="dock-cell">
-              <ha-icon icon=${c.icon} style=${`color:${c.color}`}></ha-icon>
+            <div class="dock-cell ${c.variant === 'idle' ? '' : c.variant}">
+              <ha-icon .icon=${c.icon} style="color:${variantColor[c.variant]}"></ha-icon>
               <span class="dock-label">${c.label}</span>
             </div>
           `)}
@@ -1087,17 +1100,17 @@ export class GlassVacuumCard extends BaseCard {
             <div class="conso-row">
               <div class="conso-header">
                 <span class="conso-label">${i.label}</span>
-                <span class="conso-value" style=${`color:${color}`}>${rightLabel}</span>
+                <span class="conso-value" style="color:${color}">${rightLabel}</span>
               </div>
               <div
-                class="conso-bar"
+                class="progress"
                 role="progressbar"
                 aria-valuenow=${Math.max(0, Math.round(hours))}
                 aria-valuemin="0"
                 aria-valuemax=${i.max}
                 aria-label="${i.label} : ${rightLabel}"
               >
-                <div class="conso-bar-fill" style=${`width:${pct}%;background:${color}`}></div>
+                <div class="progress-fill" style="transform:scaleX(${pct / 100});background:${color}"></div>
               </div>
             </div>
           `;
@@ -1140,13 +1153,9 @@ export class GlassVacuumCard extends BaseCard {
         @click=${() => { this._foldMaintenanceOpen = !this._foldMaintenanceOpen; }}
       >
         <span class="fold-toggle-label">${t('vacuum.fold_maintenance')}</span>
-        <ha-icon icon="mdi:chevron-down" class=${open ? 'rotated' : ''}></ha-icon>
+        <span class="fold-chevron" aria-hidden="true"></span>
       </button>
-      <div
-        id="fold-maintenance"
-        class="fold ${open ? 'open' : ''}"
-        aria-hidden=${!open}
-      >
+      <div id="fold-maintenance" class="fold ${open ? 'open' : ''}">
         <div class="fold-inner">
           <div class="fold-sep top"></div>
           ${this._renderDock(companions)}
