@@ -830,7 +830,10 @@ export class GlassNavbarCard extends BaseCard {
     style.textContent = `
       .mdc-drawer { display: none !important; }
       .mdc-drawer-scrim { display: none !important; }
-      .mdc-drawer-app-content { margin-left: 0 !important; }
+      .mdc-drawer-app-content {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+      }
     `;
     drawerShadow.appendChild(style);
     this._sidebarStyleEl = style;
