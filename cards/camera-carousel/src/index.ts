@@ -887,6 +887,8 @@ class GlassCameraCarouselCard extends BaseCard {
     css`
       :host {
         width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
         user-select: none;
         -webkit-user-select: none;
 
