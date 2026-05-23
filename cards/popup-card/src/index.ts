@@ -6,11 +6,19 @@ import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } 
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 import './editor';
 
+interface RoomButton {
+  icon?: string;
+  label?: string;
+  service: string; // domain.service
+  data?: Record<string, unknown>;
+}
+
 interface RoomConfig {
   icon?: string | null;
   card_order?: string[];
   hidden_scenes?: string[];
   scene_order?: string[];
+  buttons?: RoomButton[];
 }
 
 interface AreaMeta {
@@ -50,6 +58,8 @@ export class GlassRoomPopup extends LitElement {
   private _backend?: BackendService;
   private _busCleanups: (() => void)[] = [];
   @state() private _swipeClass = '';
+  @state() private _flashingBtnIdx: number | null = null;
+  private _flashingTimer: ReturnType<typeof setTimeout> | null = null;
   private _swipeAnimating = false;
   private _swipeAnimTimer?: ReturnType<typeof setTimeout>;
   private _currentRoomIndex?: number;
@@ -264,6 +274,48 @@ export class GlassRoomPopup extends LitElement {
         font-size: var(--fz-sm);
         font-style: italic;
       }
+      .room-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        flex-shrink: 0;
+        min-height: var(--tap-lg);
+        max-width: 8rem;
+        padding: 0 0.625rem;
+        background: var(--s2);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-sm);
+        color: var(--t2);
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        outline: none;
+        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .room-action-btn.icon-only {
+        width: var(--tap-lg);
+        padding: 0;
+      }
+      .room-action-btn ha-icon {
+        --mdc-icon-size: 1.125rem;
+        color: var(--t2);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .room-action-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t1); }
+        .room-action-btn:hover ha-icon { color: var(--t1); }
+      }
+      .room-action-btn:active { transform: scale(0.96); }
+      .room-action-btn.flashing { animation: room-btn-flash 0.4s ease; }
+      @keyframes room-btn-flash {
+        0%, 100% { background: var(--s2); }
+        50%      { background: rgba(var(--rgb-accent), 0.25); }
+      }
       .close-btn {
         background: transparent;
         border: 1px solid var(--b1);
@@ -459,6 +511,11 @@ export class GlassRoomPopup extends LitElement {
       clearTimeout(this._autoCloseTimeout);
       this._autoCloseTimeout = undefined;
     }
+    if (this._flashingTimer !== null) {
+      clearTimeout(this._flashingTimer);
+      this._flashingTimer = null;
+    }
+    this._flashingBtnIdx = null;
     this._peekedRooms.clear();
     this._loadingRooms.clear();
     this._busCleanups.forEach((cleanup) => cleanup());
@@ -856,6 +913,7 @@ export class GlassRoomPopup extends LitElement {
               ${meta.sensorUnavailable && !meta.temperature && !meta.humidity ? html`<span class="sensor-warn">${t('popup.sensor_unavailable')}</span>` : nothing}
             </div>
           </div>
+          ${this._renderRoomButtons()}
           <button
             class="close-btn"
             @click=${() => bus.emit('popup-close', undefined)}
@@ -894,6 +952,51 @@ export class GlassRoomPopup extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _renderRoomButtons(): TemplateResult | typeof nothing {
+    if (!this._areaId) return nothing;
+    const roomCfg = this._roomConfigs.get(this._areaId);
+    const buttons = (roomCfg?.buttons ?? []).filter((b) => (b.icon || b.label) && b.service);
+    if (buttons.length === 0) return nothing;
+    return html`
+      ${buttons.map((btn, idx) => {
+        const hasIcon = !!btn.icon;
+        const hasLabel = !!btn.label;
+        const cls = `room-action-btn ${hasIcon && !hasLabel ? 'icon-only' : ''} ${this._flashingBtnIdx === idx ? 'flashing' : ''}`;
+        // Prefer explicit label, then entity friendly_name, then service. Never expose the raw MDI slug to SR.
+        const entityId = typeof btn.data?.entity_id === 'string' ? btn.data.entity_id : '';
+        const entityFriendly = entityId ? (this.hass?.states?.[entityId]?.attributes?.friendly_name as string) || '' : '';
+        const aria = btn.label || entityFriendly || btn.service;
+        return html`
+          <button
+            class=${cls}
+            @click=${() => this._invokeRoomButton(btn, idx)}
+            aria-label=${aria}
+            title=${aria}
+          >
+            ${hasIcon ? html`<ha-icon .icon=${btn.icon}></ha-icon>` : nothing}
+            ${hasLabel ? html`<span>${btn.label}</span>` : nothing}
+          </button>
+        `;
+      })}
+    `;
+  }
+
+  private _invokeRoomButton(btn: RoomButton, idx: number): void {
+    if (!this.hass || !btn.service) return;
+    const dotIdx = btn.service.indexOf('.');
+    if (dotIdx < 0) return;
+    const domain = btn.service.slice(0, dotIdx);
+    const service = btn.service.slice(dotIdx + 1);
+    void this.hass.callService(domain, service, btn.data ?? {});
+
+    if (this._flashingTimer) clearTimeout(this._flashingTimer);
+    this._flashingBtnIdx = idx;
+    this._flashingTimer = setTimeout(() => {
+      this._flashingBtnIdx = null;
+      this._flashingTimer = null;
+    }, 400);
   }
 }
 

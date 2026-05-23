@@ -151,7 +151,7 @@ const ENTITIES: EntitySpec[] = [
 
 interface BackendStore {
   navbar: { room_order: string[]; hidden_rooms: string[]; auto_sort: boolean; popup_auto_close?: number };
-  rooms: Record<string, { icon?: string | null; hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string> }>;
+  rooms: Record<string, { icon?: string | null; hidden_entities?: string[]; entity_order?: string[]; entity_layouts?: Record<string, string>; area_id?: string; buttons?: { icon?: string; label?: string; service: string; data?: Record<string, unknown> }[] }>;
   dashboard: { enabled_cards: string[]; card_order: string[]; hide_header: boolean; hide_sidebar: boolean };
   weather: Record<string, unknown>;
   light_card: Record<string, unknown>;
@@ -170,7 +170,22 @@ interface BackendStore {
 function defaultStore(): BackendStore {
   return {
     navbar: { room_order: ['salon', 'chambre', 'cuisine', 'bureau', 'salle_de_bain', 'entree'], hidden_rooms: [], auto_sort: true, popup_auto_close: 0 },
-    rooms: {},
+    rooms: {
+      salon: {
+        area_id: 'salon',
+        buttons: [
+          { icon: 'mdi:robot-vacuum-variant', label: 'Aspirer', service: 'vacuum.clean_area', data: { entity_id: 'vacuum.saros_10r', segments: [1] } },
+          { icon: 'mdi:palette', label: '', service: 'scene.turn_on', data: { entity_id: 'scene.soiree' } },
+          { icon: '', label: 'Tout off', service: 'homeassistant.turn_off', data: { area_id: 'salon' } },
+        ],
+      },
+      chambre: {
+        area_id: 'chambre',
+        buttons: [
+          { icon: 'mdi:robot-vacuum-variant', label: '', service: 'vacuum.clean_area', data: { entity_id: 'vacuum.saros_10r', segments: [2] } },
+        ],
+      },
+    },
     dashboard: {
       enabled_cards: ['title', 'weather', 'climate', 'light', 'media', 'presence', 'camera_carousel'],
       card_order: ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'camera_carousel', 'spotify', 'presence'],
@@ -493,6 +508,21 @@ export function makeFullHouseHass(onMutate: (h: HomeAssistant) => void): HomeAss
     areas,
     devices,
     entities: entitiesReg,
+    services: {
+      light: { turn_on: {}, turn_off: {}, toggle: {} },
+      switch: { turn_on: {}, turn_off: {}, toggle: {} },
+      vacuum: { start: {}, pause: {}, stop: {}, return_to_base: {}, locate: {}, clean_area: {}, clean_zone: {} },
+      cover: { open_cover: {}, close_cover: {}, stop_cover: {}, toggle: {}, set_cover_position: {} },
+      climate: { turn_on: {}, turn_off: {}, set_temperature: {}, set_hvac_mode: {} },
+      fan: { turn_on: {}, turn_off: {}, toggle: {}, set_percentage: {} },
+      media_player: { media_play_pause: {}, media_play: {}, media_pause: {}, volume_set: {} },
+      scene: { turn_on: {} },
+      script: { turn_on: {}, turn_off: {}, toggle: {} },
+      automation: { trigger: {}, turn_on: {}, turn_off: {} },
+      input_boolean: { turn_on: {}, turn_off: {}, toggle: {} },
+      button: { press: {} },
+      homeassistant: { turn_on: {}, turn_off: {}, toggle: {} },
+    },
     ...({ config: { unit_system: { temperature: '°C' } } } as object),
   };
 

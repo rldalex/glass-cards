@@ -85,6 +85,43 @@ class EntitySchedule:
         )
 
 
+_SERVICE_RE = re.compile(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")
+MAX_ROOM_BUTTONS = 3
+
+
+@dataclass
+class RoomButton:
+    """A configurable action button rendered in the room popup header."""
+
+    icon: str = ""  # e.g. "mdi:robot-vacuum-variant"; empty = no icon
+    label: str = ""  # empty = icon-only
+    service: str = ""  # e.g. "vacuum.clean_area"; required to be valid
+    data: dict[str, Any] = field(default_factory=dict)  # service data payload
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict."""
+        return {
+            "icon": self.icon,
+            "label": self.label,
+            "service": self.service,
+            "data": self.data,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> RoomButton:
+        """Deserialize from dict, dropping malformed fields."""
+        icon = data.get("icon", "")
+        label = data.get("label", "")
+        service = data.get("service", "")
+        raw_data = data.get("data", {})
+        return cls(
+            icon=str(icon) if isinstance(icon, str) else "",
+            label=str(label) if isinstance(label, str) else "",
+            service=str(service) if isinstance(service, str) and _SERVICE_RE.match(service) else "",
+            data=raw_data if isinstance(raw_data, dict) else {},
+        )
+
+
 @dataclass
 class RoomConfig:
     """Configuration for a single room (area)."""
@@ -110,6 +147,7 @@ class RoomConfig:
     presence_entity: str | None = None
     show_presence: bool = False
     sort_by_lights: bool = True
+    buttons: list[RoomButton] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -135,6 +173,7 @@ class RoomConfig:
             "presence_entity": self.presence_entity,
             "show_presence": self.show_presence,
             "sort_by_lights": self.sort_by_lights,
+            "buttons": [b.to_dict() for b in self.buttons],
         }
 
     @classmethod
@@ -173,6 +212,11 @@ class RoomConfig:
             presence_entity=data.get("presence_entity") if isinstance(data.get("presence_entity"), str) else None,
             show_presence=bool(data.get("show_presence", False)),
             sort_by_lights=bool(data.get("sort_by_lights", True)),
+            buttons=[
+                RoomButton.from_dict(b)
+                for b in (data.get("buttons", []) or [])
+                if isinstance(b, dict)
+            ][:MAX_ROOM_BUTTONS],
         )
 
 

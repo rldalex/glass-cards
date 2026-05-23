@@ -55,6 +55,7 @@ export interface HomeAssistant {
   areas: Record<string, AreaRegistryEntry>;
   devices: Record<string, DeviceRegistryEntry>;
   entities: Record<string, EntityRegistryEntry>;
+  services?: Record<string, Record<string, { fields?: Record<string, unknown> }>>;
 }
 
 export interface LovelaceCardConfig {

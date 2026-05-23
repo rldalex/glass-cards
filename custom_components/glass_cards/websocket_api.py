@@ -34,6 +34,7 @@ from .permissions import can_edit, can_read
 from .models import (
     DEFAULT_COVER_PRESETS,
     EntitySchedule,
+    RoomButton,
     RoomConfig,
     TitleModeEntry,
     TitleSourceEntry,
@@ -196,6 +197,17 @@ async def ws_get_room(
         vol.Optional("presence_entity"): vol.Any(str, None),
         vol.Optional("show_presence"): bool,
         vol.Optional("sort_by_lights"): bool,
+        vol.Optional("buttons"): vol.All(
+            [
+                {
+                    vol.Optional("icon", default=""): str,
+                    vol.Optional("label", default=""): str,
+                    vol.Required("service"): vol.All(str, vol.Match(r"^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$")),
+                    vol.Optional("data", default=dict): dict,
+                }
+            ],
+            vol.Length(max=3),
+        ),
     }
 )
 @websocket_api.async_response
@@ -256,6 +268,16 @@ async def ws_set_room(
         room.show_presence = msg["show_presence"]
     if "sort_by_lights" in msg:
         room.sort_by_lights = msg["sort_by_lights"]
+    if "buttons" in msg:
+        room.buttons = [
+            RoomButton(
+                icon=b.get("icon", ""),
+                label=b.get("label", ""),
+                service=b["service"],
+                data=b.get("data", {}),
+            )
+            for b in msg["buttons"]
+        ]
 
     try:
         await store.async_save()

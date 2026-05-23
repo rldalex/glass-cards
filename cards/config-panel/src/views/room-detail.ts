@@ -12,6 +12,45 @@ import { createSaveScheduler } from '../utils/save-scheduler';
 /** Explicit "no sensor" sentinel — distinguishes user choice from undecided auto-detect. */
 const NONE_SENTINEL = '__none__';
 
+/** Default icon per HA domain — used when the user picks an entity and the icon field is empty. */
+const DOMAIN_ICONS: Record<string, string> = {
+  light: 'mdi:lightbulb',
+  switch: 'mdi:toggle-switch',
+  vacuum: 'mdi:robot-vacuum-variant',
+  cover: 'mdi:window-shutter',
+  climate: 'mdi:thermostat',
+  fan: 'mdi:fan',
+  media_player: 'mdi:speaker',
+  scene: 'mdi:palette',
+  script: 'mdi:script-text',
+  automation: 'mdi:robot',
+  input_boolean: 'mdi:toggle-switch',
+  input_select: 'mdi:form-dropdown',
+  button: 'mdi:gesture-tap-button',
+  lock: 'mdi:lock',
+  camera: 'mdi:cctv',
+  alarm_control_panel: 'mdi:shield-home',
+};
+
+/** Default service suggestion per HA domain — pre-fills the service field on entity pick. */
+const DOMAIN_DEFAULT_SERVICE: Record<string, string> = {
+  light: 'light.toggle',
+  switch: 'switch.toggle',
+  vacuum: 'vacuum.start',
+  cover: 'cover.toggle',
+  climate: 'climate.turn_on',
+  fan: 'fan.toggle',
+  media_player: 'media_player.media_play_pause',
+  scene: 'scene.turn_on',
+  script: 'script.turn_on',
+  automation: 'automation.trigger',
+  input_boolean: 'input_boolean.toggle',
+  button: 'button.press',
+  lock: 'lock.lock',
+  camera: 'camera.turn_on',
+  alarm_control_panel: 'alarm_control_panel.alarm_arm_home',
+};
+
 interface SectionDef {
   id: string;
   label: string;
@@ -54,12 +93,23 @@ export class ConfigRoomDetail extends LitElement {
   @state() private _presenceEntity = '';
   @state() private _showPresence = false;
   @state() private _sortByLights = true;
+  @state() private _buttons: { icon: string; label: string; service: string; data_json: string }[] = [];
   private _availableTempEntities: { id: string; name: string }[] = [];
   private _availableHumidityEntities: { id: string; name: string }[] = [];
   private _availablePresenceEntities: { id: string; name: string }[] = [];
   @state() private _tempDropdownOpen = false;
   @state() private _humidityDropdownOpen = false;
   @state() private _presenceDropdownOpen = false;
+
+  // Per-button dropdown / search state (entity + service pickers, icon portal)
+  @state() private _btnEntityOpen: number | null = null;
+  @state() private _btnEntitySearch = '';
+  @state() private _btnServiceOpen: number | null = null;
+  @state() private _btnServiceSearch = '';
+  @state() private _btnIconPortalIdx: number | null = null;
+  @state() private _btnIconSearch = '';
+  private _btnIconList: string[] = [];
+  private _btnIconLoading = false;
 
   // Drag state for section reorder
   @state() private _dragIdx: number | null = null;
@@ -88,10 +138,45 @@ export class ConfigRoomDetail extends LitElement {
     }
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    document.addEventListener('mousedown', this._onDocMouseDown);
+    document.addEventListener('keydown', this._onDocKeyDown);
+  }
+
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this._saveScheduler.cancel();
+    this._removeIconPortal();
+    this._btnIconPortalIdx = null;
+    document.removeEventListener('mousedown', this._onDocMouseDown);
+    document.removeEventListener('keydown', this._onDocKeyDown);
   }
+
+  private _onDocMouseDown = (e: MouseEvent): void => {
+    // Close entity/service dropdowns when clicking outside any .dropdown
+    if (this._btnEntityOpen !== null || this._btnServiceOpen !== null) {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('.dropdown')) {
+        this._btnEntityOpen = null;
+        this._btnServiceOpen = null;
+      }
+    }
+  };
+
+  private _onDocKeyDown = (e: KeyboardEvent): void => {
+    if (e.key !== 'Escape') return;
+    // Esc closes whichever overlay is open (portal first, then dropdowns)
+    if (this._btnIconPortalIdx !== null) {
+      this._btnIconPortalIdx = null;
+      this._removeIconPortal();
+      return;
+    }
+    if (this._btnEntityOpen !== null || this._btnServiceOpen !== null) {
+      this._btnEntityOpen = null;
+      this._btnServiceOpen = null;
+    }
+  };
 
   // ── Load ──
 
@@ -122,6 +207,7 @@ export class ConfigRoomDetail extends LitElement {
         presence_entity?: string | null;
         show_presence?: boolean;
         sort_by_lights?: boolean;
+        buttons?: { icon?: string; label?: string; service?: string; data?: Record<string, unknown> }[];
       } | null>('get_room', { area_id: this.areaId });
       if (result) {
         storedOrder = result.card_order.length > 0 ? result.card_order : null;
@@ -138,6 +224,12 @@ export class ConfigRoomDetail extends LitElement {
         this._presenceEntity = result.presence_entity ?? '';
         this._showPresence = result.show_presence ?? false;
         this._sortByLights = result.sort_by_lights ?? true;
+        this._buttons = (result.buttons ?? []).map((b) => ({
+          icon: b.icon ?? '',
+          label: b.label ?? '',
+          service: b.service ?? '',
+          data_json: b.data && Object.keys(b.data).length > 0 ? JSON.stringify(b.data, null, 2) : '',
+        }));
       }
     } catch { /* backend not available */ }
 
@@ -219,6 +311,20 @@ export class ConfigRoomDetail extends LitElement {
 
   private async _save(): Promise<void> {
     if (!this.backend || !this.areaId) return;
+    const serviceRe = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
+    // Backend only requires a valid service; icon/label optional (frontend renders with sensible fallback).
+    const buttons = this._buttons
+      .filter((b) => serviceRe.test(b.service))
+      .map((b) => {
+        let data: Record<string, unknown> = {};
+        if (b.data_json.trim()) {
+          try {
+            const parsed = JSON.parse(b.data_json);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) data = parsed;
+          } catch { /* invalid JSON → empty data */ }
+        }
+        return { icon: b.icon, label: b.label, service: b.service, data };
+      });
     try {
       await this.backend.send('set_room', {
         area_id: this.areaId,
@@ -236,6 +342,7 @@ export class ConfigRoomDetail extends LitElement {
         presence_entity: this._presenceEntity || null,
         show_presence: this._showPresence,
         sort_by_lights: this._sortByLights,
+        buttons,
       });
       bus.emit('room-config-changed', { areaId: this.areaId });
       this.dispatchEvent(new CustomEvent('tab-toast', { detail: { success: true }, bubbles: true, composed: true }));
@@ -341,11 +448,13 @@ export class ConfigRoomDetail extends LitElement {
 
       ${this._renderIndicators()}
       ${this._renderSensors()}
+      ${this._renderButtonsSection()}
+      ${this._renderThresholds()}
 
       ${this._scenes.length > 0 ? html`
         <section class="cfg-section">
           <header class="cfg-section-head">
-            <span class="cfg-section-num">5</span>
+            <span class="cfg-section-num">6</span>
             <div class="cfg-section-text">
               <span class="section-label">${t('config.popup_scenes')}</span>
             </div>
@@ -439,6 +548,443 @@ export class ConfigRoomDetail extends LitElement {
   private _selectPresenceEntity(id: string): void {
     this._presenceEntity = id;
     this._presenceDropdownOpen = false;
+    this._scheduleSave();
+  }
+
+  private _renderButtonsSection(): TemplateResult {
+    const MAX = 3;
+    return html`
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">4</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.room_buttons_title')}</span>
+            <span class="section-desc">${t('config.room_buttons_desc')}</span>
+          </div>
+          <span class="cfg-section-count">${this._buttons.length}/${MAX}</span>
+        </header>
+        <div class="room-buttons-list">
+          ${this._buttons.map((btn, idx) => this._renderButtonRow(btn, idx))}
+          ${this._buttons.length < MAX ? html`
+            <button class="room-button-add" type="button" @click=${() => this._addButton()}>
+              <ha-icon .icon=${'mdi:plus-circle-outline'}></ha-icon>
+              <span>${t('config.room_button_add')}</span>
+            </button>
+          ` : nothing}
+        </div>
+      </section>
+    `;
+  }
+
+  private _entityFromData(data_json: string): string {
+    if (!data_json.trim()) return '';
+    try {
+      const parsed = JSON.parse(data_json);
+      if (parsed && typeof parsed === 'object' && typeof parsed.entity_id === 'string') {
+        return parsed.entity_id;
+      }
+    } catch { /* ignore */ }
+    return '';
+  }
+
+  private _filterEntities(query: string): { id: string; name: string }[] {
+    if (!this.hass) return [];
+    const q = query.toLowerCase().trim();
+    const all = Object.keys(this.hass.states);
+    const items = all
+      .map((id) => ({
+        id,
+        name: (this.hass.states[id]?.attributes?.friendly_name as string) || id.split('.')[1] || id,
+      }))
+      .filter((e) => !q || e.id.includes(q) || e.name.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return items.slice(0, 80);
+  }
+
+  private _filterServices(domain: string, query: string): string[] {
+    if (!domain || !this.hass?.services?.[domain]) return [];
+    const q = query.toLowerCase().trim();
+    return Object.keys(this.hass.services[domain])
+      .filter((s) => !q || s.includes(q))
+      .sort()
+      .slice(0, 40);
+  }
+
+  private _renderButtonRow(btn: { icon: string; label: string; service: string; data_json: string }, idx: number): TemplateResult {
+    const currentEntity = this._entityFromData(btn.data_json);
+    const entityDomain = currentEntity.split('.')[0];
+    const entityState = currentEntity ? this.hass?.states?.[currentEntity] : undefined;
+    const friendlyName = (entityState?.attributes?.friendly_name as string) || '';
+    const entityOpen = this._btnEntityOpen === idx;
+    const serviceOpen = this._btnServiceOpen === idx;
+    const entityItems = entityOpen ? this._filterEntities(this._btnEntitySearch) : [];
+    const serviceItems = serviceOpen ? this._filterServices(entityDomain, this._btnServiceSearch) : [];
+    const effectiveIcon = btn.icon || (entityDomain && DOMAIN_ICONS[entityDomain]) || '';
+    const triggerEntityIcon = entityState?.attributes?.icon as string | undefined;
+
+    return html`
+      <div class="room-button-row">
+        <div class="dropdown room-button-entity-dropdown ${entityOpen ? 'open' : ''}">
+          <button
+            type="button"
+            class="dropdown-trigger"
+            @click=${(e: Event) => { e.stopPropagation(); this._toggleEntityDropdown(idx); }}
+            aria-expanded=${entityOpen ? 'true' : 'false'}
+            aria-haspopup="listbox"
+            aria-label="${t('config.room_button_entity')}"
+          >
+            <ha-icon .icon=${triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline'}></ha-icon>
+            <span>${currentEntity ? (friendlyName || currentEntity) : t('config.room_button_entity_placeholder')}</span>
+            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+          </button>
+          ${entityOpen ? html`
+            <div class="dropdown-menu" role="listbox" @click=${(e: Event) => e.stopPropagation()}>
+              <input
+                type="text"
+                class="dropdown-search"
+                placeholder="${t('config.room_button_entity_search')}"
+                .value=${this._btnEntitySearch}
+                @input=${(e: Event) => { this._btnEntitySearch = (e.target as HTMLInputElement).value; }}
+              />
+              ${entityItems.length === 0
+                ? html`<div class="dropdown-empty">${t('config.room_button_entity_empty')}</div>`
+                : entityItems.map((item) => html`
+                    <button
+                      class="dropdown-item ${item.id === currentEntity ? 'active' : ''}"
+                      role="option"
+                      aria-selected=${item.id === currentEntity ? 'true' : 'false'}
+                      @click=${() => this._selectButtonEntity(idx, item.id)}
+                    >
+                      <ha-icon .icon=${(this.hass?.states?.[item.id]?.attributes?.icon as string) || DOMAIN_ICONS[item.id.split('.')[0]] || 'mdi:cube-outline'}></ha-icon>
+                      <span>${item.name}</span>
+                    </button>
+                  `)}
+            </div>
+          ` : nothing}
+        </div>
+
+        <div class="room-button-label-row">
+          <button
+            type="button"
+            class="room-button-icon-trigger"
+            @click=${() => this._openButtonIconPortal(idx)}
+            aria-label="${t('config.room_button_icon_pick')}"
+            title="${effectiveIcon ? (btn.icon ? btn.icon : t('config.room_button_icon_auto', { icon: effectiveIcon })) : t('config.room_button_icon_pick')}"
+          >
+            <ha-icon class="room-button-icon-preview" .icon=${effectiveIcon || 'mdi:image-plus-outline'}></ha-icon>
+          </button>
+          <input
+            type="text"
+            class="room-button-input"
+            placeholder=${friendlyName || t('config.room_button_label_placeholder')}
+            .value=${btn.label}
+            @input=${(e: Event) => this._updateButton(idx, 'label', (e.target as HTMLInputElement).value)}
+          />
+        </div>
+
+        <button
+          type="button"
+          class="room-button-delete"
+          @click=${() => this._removeButton(idx)}
+        >
+          <ha-icon .icon=${'mdi:trash-can-outline'}></ha-icon>
+          <span>${t('config.room_button_delete')}</span>
+        </button>
+
+        <details class="room-button-advanced" ?open=${!currentEntity && (!!btn.service || !!btn.data_json)}>
+          <summary>${t('config.room_button_advanced')}</summary>
+
+          <div class="dropdown ${serviceOpen ? 'open' : ''}">
+            <button
+              type="button"
+              class="dropdown-trigger"
+              @click=${(e: Event) => { e.stopPropagation(); this._toggleServiceDropdown(idx); }}
+              aria-expanded=${serviceOpen ? 'true' : 'false'}
+              aria-haspopup="listbox"
+              aria-label="${t('config.room_button_service')}"
+              ?disabled=${!entityDomain}
+            >
+              <ha-icon .icon=${'mdi:flash-outline'}></ha-icon>
+              <span>${btn.service || (entityDomain ? `${entityDomain}.${DOMAIN_DEFAULT_SERVICE[entityDomain]?.split('.')[1] ?? 'toggle'}` : t('config.room_button_service_disabled'))}</span>
+              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
+            </button>
+            ${serviceOpen && entityDomain ? html`
+              <div class="dropdown-menu" role="listbox" @click=${(e: Event) => e.stopPropagation()}>
+                <input
+                  type="text"
+                  class="dropdown-search"
+                  placeholder="${t('config.room_button_service_search')}"
+                  .value=${this._btnServiceSearch}
+                  @input=${(e: Event) => { this._btnServiceSearch = (e.target as HTMLInputElement).value; }}
+                />
+                ${serviceItems.length === 0
+                  ? html`<div class="dropdown-empty">${t('config.room_button_service_empty')}</div>`
+                  : serviceItems.map((s) => {
+                      const full = `${entityDomain}.${s}`;
+                      return html`
+                        <button
+                          class="dropdown-item ${full === btn.service ? 'active' : ''}"
+                          role="option"
+                          aria-selected=${full === btn.service ? 'true' : 'false'}
+                          @click=${() => this._selectButtonService(idx, full)}
+                        >
+                          <span>${full}</span>
+                        </button>
+                      `;
+                    })}
+              </div>
+            ` : nothing}
+          </div>
+
+          <textarea
+            class="room-button-input room-button-textarea"
+            rows="3"
+            spellcheck="false"
+            placeholder='{ "entity_id": "vacuum.robot" }'
+            aria-label="${t('config.room_button_data')}"
+            .value=${btn.data_json}
+            @input=${(e: Event) => this._updateButton(idx, 'data_json', (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
+        </details>
+      </div>
+    `;
+  }
+
+  private _toggleEntityDropdown(idx: number): void {
+    this._btnEntityOpen = this._btnEntityOpen === idx ? null : idx;
+    this._btnServiceOpen = null;
+    this._btnEntitySearch = '';
+  }
+
+  private _toggleServiceDropdown(idx: number): void {
+    this._btnServiceOpen = this._btnServiceOpen === idx ? null : idx;
+    this._btnEntityOpen = null;
+    this._btnServiceSearch = '';
+  }
+
+  private _selectButtonEntity(idx: number, entityId: string): void {
+    this._btnEntityOpen = null;
+    this._btnEntitySearch = '';
+    this._pickEntity(idx, entityId);
+  }
+
+  private _selectButtonService(idx: number, service: string): void {
+    this._btnServiceOpen = null;
+    this._btnServiceSearch = '';
+    this._updateButton(idx, 'service', service);
+  }
+
+  private async _openButtonIconPortal(idx: number): Promise<void> {
+    this._btnIconSearch = '';
+    this._btnIconPortalIdx = idx;
+    this._renderIconPortal();
+    if (this._btnIconList.length === 0 && !this._btnIconLoading) {
+      this._btnIconLoading = true;
+      try {
+        const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
+        picker.hass = this.hass;
+        picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
+        document.body.appendChild(picker);
+        await new Promise((r) => setTimeout(r, 50));
+        const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
+        if (gp?.getItems) {
+          const items = await gp.getItems();
+          if (items?.length) this._btnIconList = items.map((i) => i.id);
+        }
+        document.body.removeChild(picker);
+      } catch { /* ignore */ } finally {
+        this._btnIconLoading = false;
+        if (this._btnIconPortalIdx !== null) this._renderIconPortal();
+      }
+    }
+  }
+
+  private _btnIconPortalEl: HTMLDivElement | null = null;
+  private _portalClickHandler: ((e: MouseEvent) => void) | null = null;
+
+  private _renderIconPortal(): void {
+    if (this._btnIconPortalIdx === null) { this._removeIconPortal(); return; }
+    const idx = this._btnIconPortalIdx;
+    const currentBtn = this._buttons[idx];
+    if (!currentBtn) { this._removeIconPortal(); return; }
+    const currentIcon = currentBtn.icon;
+    const query = this._btnIconSearch.toLowerCase().trim();
+    const icons = query
+      ? this._btnIconList.filter((i) => i.toLowerCase().includes(query)).slice(0, 120)
+      : this._btnIconList.slice(0, 120);
+
+    const close = () => { this._btnIconPortalIdx = null; this._removeIconPortal(); };
+    const select = (icon: string) => { this._updateButton(idx, 'icon', icon); close(); };
+    const onSearch = (val: string) => {
+      const inputEl = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
+      const caret = inputEl?.selectionStart ?? null;
+      this._btnIconSearch = val;
+      this._renderIconPortal();
+      if (caret !== null) {
+        const newInput = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
+        if (newInput) {
+          try { newInput.setSelectionRange(caret, caret); } catch { /* ignore */ }
+        }
+      }
+    };
+
+    if (!this._btnIconPortalEl) {
+      this._btnIconPortalEl = document.createElement('div');
+      this._portalClickHandler = (e: MouseEvent) => {
+        if (e.target === this._btnIconPortalEl) close();
+      };
+      this._btnIconPortalEl.addEventListener('click', this._portalClickHandler);
+      document.body.appendChild(this._btnIconPortalEl);
+    }
+
+    this._btnIconPortalEl.replaceChildren();
+    Object.assign(this._btnIconPortalEl.style, {
+      position: 'fixed', inset: '0', zIndex: '10000',
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1.5rem',
+    });
+
+    const popup = document.createElement('div');
+    Object.assign(popup.style, {
+      width: '100%', maxWidth: '25rem', maxHeight: '70vh',
+      display: 'flex', flexDirection: 'column',
+      borderRadius: '22px',
+      background: 'linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)',
+      boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      overflow: 'hidden',
+    });
+
+    const header = document.createElement('div');
+    Object.assign(header.style, { padding: '0.875rem 1rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.625rem', borderBottom: '1px solid rgba(255,255,255,0.06)' });
+    const titleEl = document.createElement('span');
+    Object.assign(titleEl.style, { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.45)' });
+    titleEl.textContent = t('config.room_button_icon_pick');
+    const searchInput = document.createElement('input');
+    searchInput.className = 'icon-portal-search';
+    Object.assign(searchInput.style, { width: '100%', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontSize: '13px', outline: 'none', boxSizing: 'border-box' });
+    searchInput.placeholder = 'mdi:...';
+    searchInput.value = this._btnIconSearch;
+    searchInput.addEventListener('input', () => onSearch(searchInput.value));
+    header.appendChild(titleEl);
+    header.appendChild(searchInput);
+    popup.appendChild(header);
+
+    const gridWrap = document.createElement('div');
+    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem', scrollbarWidth: 'none' });
+    const grid = document.createElement('div');
+    Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' });
+
+    const noIconBtn = this._createBtnIconCell('mdi:cancel', currentIcon === '', 0.4);
+    noIconBtn.addEventListener('click', () => select(''));
+    grid.appendChild(noIconBtn);
+
+    for (const icon of icons) {
+      const btnEl = this._createBtnIconCell(icon, icon === currentIcon, 1);
+      btnEl.addEventListener('click', () => select(icon));
+      grid.appendChild(btnEl);
+    }
+
+    if (icons.length === 0 && this._btnIconSearch) {
+      const empty = document.createElement('div');
+      Object.assign(empty.style, { gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '13px' });
+      empty.textContent = t('config.title_no_icons_found');
+      grid.appendChild(empty);
+    }
+
+    gridWrap.appendChild(grid);
+    popup.appendChild(gridWrap);
+    this._btnIconPortalEl.appendChild(popup);
+    searchInput.focus();
+  }
+
+  private _createBtnIconCell(icon: string, selected: boolean, opacity: number): HTMLButtonElement {
+    const btn = document.createElement('button');
+    Object.assign(btn.style, {
+      width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      borderRadius: '8px', border: selected ? '1px solid rgba(129,140,248,0.5)' : '1px solid transparent',
+      background: selected ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.03)',
+      color: selected ? 'rgb(129,140,248)' : `rgba(255,255,255,${opacity})`,
+      cursor: 'pointer', padding: '0', outline: 'none',
+    });
+    const iconEl = document.createElement('ha-icon') as HTMLElement & { icon: string };
+    iconEl.icon = icon;
+    btn.appendChild(iconEl);
+    return btn;
+  }
+
+  private _removeIconPortal(): void {
+    if (this._btnIconPortalEl) {
+      if (this._portalClickHandler) {
+        this._btnIconPortalEl.removeEventListener('click', this._portalClickHandler);
+        this._portalClickHandler = null;
+      }
+      this._btnIconPortalEl.remove();
+      this._btnIconPortalEl = null;
+    }
+  }
+
+  private _pickEntity(idx: number, entityId: string): void {
+    if (!entityId) return;
+    const domain = entityId.split('.')[0];
+    if (!domain) return;
+    const state = this.hass?.states?.[entityId];
+    const friendlyName = (state?.attributes?.friendly_name as string) || '';
+
+    this._buttons = this._buttons.map((b, i) => {
+      if (i !== idx) return b;
+      // Always inject the new entity_id in data_json (preserve other fields if user customized).
+      let nextData: Record<string, unknown> = { entity_id: entityId };
+      if (b.data_json.trim()) {
+        try {
+          const parsed = JSON.parse(b.data_json);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            nextData = { ...parsed, entity_id: entityId };
+          }
+        } catch { /* keep minimal */ }
+      }
+      // Autofill icon/label/service only if empty (don't overwrite user customisation).
+      return {
+        icon: b.icon || DOMAIN_ICONS[domain] || '',
+        label: b.label || friendlyName,
+        service: b.service || DOMAIN_DEFAULT_SERVICE[domain] || `${domain}.toggle`,
+        data_json: JSON.stringify(nextData, null, 2),
+      };
+    });
+    this._scheduleSave();
+  }
+
+  private _addButton(): void {
+    if (this._buttons.length >= 3) return;
+    this._buttons = [...this._buttons, { icon: '', label: '', service: '', data_json: '' }];
+    this._scheduleSave();
+  }
+
+  private _removeButton(idx: number): void {
+    this._buttons = this._buttons.filter((_, i) => i !== idx);
+    // Reset / shift per-row open indices so they don't point to wrong rows after deletion.
+    if (this._btnEntityOpen !== null) {
+      if (this._btnEntityOpen === idx) this._btnEntityOpen = null;
+      else if (this._btnEntityOpen > idx) this._btnEntityOpen -= 1;
+    }
+    if (this._btnServiceOpen !== null) {
+      if (this._btnServiceOpen === idx) this._btnServiceOpen = null;
+      else if (this._btnServiceOpen > idx) this._btnServiceOpen -= 1;
+    }
+    if (this._btnIconPortalIdx !== null) {
+      if (this._btnIconPortalIdx === idx) {
+        this._btnIconPortalIdx = null;
+        this._removeIconPortal();
+      } else if (this._btnIconPortalIdx > idx) {
+        this._btnIconPortalIdx -= 1;
+      }
+    }
+    this._scheduleSave();
+  }
+
+  private _updateButton(idx: number, field: 'icon' | 'label' | 'service' | 'data_json', value: string): void {
+    this._buttons = this._buttons.map((b, i) => i === idx ? { ...b, [field]: value } : b);
     this._scheduleSave();
   }
 
@@ -659,52 +1205,56 @@ export class ConfigRoomDetail extends LitElement {
       </div>
 
       </section>
+    `;
+  }
 
+  private _renderThresholds(): TemplateResult {
+    return html`
       <section class="cfg-section">
         <header class="cfg-section-head">
-          <span class="cfg-section-num">4</span>
+          <span class="cfg-section-num">5</span>
           <div class="cfg-section-text">
             <span class="section-label">${t('config.room_thresholds_title')}</span>
             <span class="section-desc">${t('config.room_thresholds_desc')}</span>
           </div>
         </header>
-      <div class="feature-list">
-        <div class="range-row">
-          <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer-high'}></ha-icon></div>
-          <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${t('config.room_temp_high')}</div>
+        <div class="feature-list">
+          <div class="range-row">
+            <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer-high'}></ha-icon></div>
+            <div class="feature-text pw-rd-flex-fixed">
+              <div class="feature-name">${t('config.room_temp_high')}</div>
+            </div>
+            <input type="range" class="range-input" min="20" max="35" step="0.5"
+              .value=${String(this._tempHigh ?? 24)}
+              @input=${(e: Event) => { this._tempHigh = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
+            />
+            <span class="range-value">${this._tempHigh ?? 24}\u00b0C</span>
           </div>
-          <input type="range" class="range-input" min="20" max="35" step="0.5"
-            .value=${String(this._tempHigh ?? 24)}
-            @input=${(e: Event) => { this._tempHigh = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
-          />
-          <span class="range-value">${this._tempHigh ?? 24}\u00b0C</span>
-        </div>
 
-        <div class="range-row">
-          <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer-low'}></ha-icon></div>
-          <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${t('config.room_temp_low')}</div>
+          <div class="range-row">
+            <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer-low'}></ha-icon></div>
+            <div class="feature-text pw-rd-flex-fixed">
+              <div class="feature-name">${t('config.room_temp_low')}</div>
+            </div>
+            <input type="range" class="range-input" min="10" max="25" step="0.5"
+              .value=${String(this._tempLow ?? 17)}
+              @input=${(e: Event) => { this._tempLow = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
+            />
+            <span class="range-value">${this._tempLow ?? 17}\u00b0C</span>
           </div>
-          <input type="range" class="range-input" min="10" max="25" step="0.5"
-            .value=${String(this._tempLow ?? 17)}
-            @input=${(e: Event) => { this._tempLow = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
-          />
-          <span class="range-value">${this._tempLow ?? 17}\u00b0C</span>
-        </div>
 
-        <div class="range-row">
-          <div class="feature-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
-          <div class="feature-text pw-rd-flex-fixed">
-            <div class="feature-name">${t('config.room_humidity_threshold')}</div>
+          <div class="range-row">
+            <div class="feature-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
+            <div class="feature-text pw-rd-flex-fixed">
+              <div class="feature-name">${t('config.room_humidity_threshold')}</div>
+            </div>
+            <input type="range" class="range-input" min="40" max="90" step="1"
+              .value=${String(this._humidityThreshold ?? 65)}
+              @input=${(e: Event) => { this._humidityThreshold = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
+            />
+            <span class="range-value">${this._humidityThreshold ?? 65}%</span>
           </div>
-          <input type="range" class="range-input" min="40" max="90" step="1"
-            .value=${String(this._humidityThreshold ?? 65)}
-            @input=${(e: Event) => { this._humidityThreshold = parseFloat((e.target as HTMLInputElement).value); this._scheduleSave(); }}
-          />
-          <span class="range-value">${this._humidityThreshold ?? 65}%</span>
         </div>
-      </div>
       </section>
     `;
   }

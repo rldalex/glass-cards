@@ -2307,4 +2307,194 @@ export const baseStyles = css`
 
       /* DOMAIN_COLORS pass --icon-color as an RGB triplet "R, G, B"
          consumed via rgb() / rgba(). Falls back to accent 129,140,248. */
+
+      /* ── Room popup action buttons editor ── */
+      .room-buttons-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        margin-bottom: 1rem;
+      }
+      .room-button-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        padding: 0.5rem 0.625rem;
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+      }
+      .room-button-label-row {
+        display: flex;
+        align-items: stretch;
+        gap: 0.375rem;
+      }
+      .room-button-entity-dropdown {
+        margin-bottom: 0;
+      }
+      .room-button-entity-dropdown .dropdown-trigger {
+        min-height: var(--tap-lg);
+      }
+      .room-button-entity-dropdown .dropdown-trigger > span {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .room-button-icon-trigger {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
+        flex-shrink: 0;
+        padding: 0;
+        background: rgba(var(--rgb-accent), 0.10);
+        border: 1px dashed rgba(var(--rgb-accent), 0.35);
+        border-radius: var(--radius-lg);
+        color: var(--c-accent);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--t-fast), border-color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .room-button-icon-trigger .room-button-icon-preview { --mdc-icon-size: 1.125rem; }
+      @media (hover: hover) and (pointer: fine) {
+        .room-button-icon-trigger:hover {
+          background: rgba(var(--rgb-accent), 0.18);
+          border-color: rgba(var(--rgb-accent), 0.55);
+        }
+      }
+      .room-button-icon-trigger:focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 2px;
+      }
+      .room-button-delete {
+        align-self: stretch;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        margin-top: 0.125rem;
+        padding: 0.5rem 0.875rem;
+        background: transparent;
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        outline: none;
+        transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .room-button-delete ha-icon { --mdc-icon-size: 1rem; }
+      @media (hover: hover) and (pointer: fine) {
+        .room-button-delete:hover {
+          background: rgba(var(--rgb-alert), 0.12);
+          color: var(--c-alert);
+          border-color: rgba(var(--rgb-alert), 0.35);
+        }
+      }
+      .room-button-delete:focus-visible {
+        outline: 2px solid var(--c-alert);
+        outline-offset: 2px;
+      }
+      .room-button-row .dropdown {
+        margin-bottom: 0;
+      }
+      .room-button-row .dropdown-trigger[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .room-button-input {
+        flex: 1;
+        min-width: 0;
+        min-height: var(--tap-lg);
+        padding: 0.5rem 0.75rem;
+        background: var(--s2);
+        border: 1px solid var(--b2);
+        border-radius: var(--radius-lg);
+        color: var(--t1);
+        font-family: inherit;
+        font-size: var(--fz-base);
+        outline: none;
+        transition: border-color var(--t-fast), background var(--t-fast);
+        box-sizing: border-box;
+      }
+      .room-button-input:focus {
+        border-color: var(--b3);
+        background: var(--s3);
+      }
+      .room-button-input::placeholder {
+        color: var(--t4);
+      }
+      .room-button-textarea {
+        width: 100%;
+        font-family: 'SFMono-Regular', Consolas, monospace;
+        font-size: var(--fz-sm);
+        min-height: 3rem;
+        resize: vertical;
+      }
+      .room-button-advanced {
+        margin-top: 0.25rem;
+        font-size: var(--fz-sm);
+      }
+      .room-button-advanced summary {
+        cursor: pointer;
+        color: var(--t3);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: var(--fz-xs);
+        padding: 0.25rem 0;
+        outline: none;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .room-button-advanced summary::before {
+        content: '›';
+        display: inline-block;
+        font-size: 1em;
+        line-height: 1;
+        transition: transform var(--t-fast);
+      }
+      .room-button-advanced[open] summary::before {
+        transform: rotate(90deg);
+      }
+      .room-button-advanced summary::-webkit-details-marker {
+        display: none;
+      }
+      .room-button-advanced > .room-button-field {
+        margin-top: 0.5rem;
+      }
+      .room-button-add {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        padding: 0.5rem 0.875rem;
+        background: var(--s1);
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t2);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: var(--fz-sm);
+        font-weight: 600;
+        outline: none;
+        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+      }
+      .room-button-add ha-icon { --mdc-icon-size: 1rem; }
+      @media (hover: hover) and (pointer: fine) {
+        .room-button-add:hover {
+          background: var(--s2);
+          border-color: var(--b3);
+          color: var(--t1);
+        }
+      }
 `;
