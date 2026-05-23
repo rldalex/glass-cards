@@ -2,6 +2,7 @@ import { html, css, nothing, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
+  BackendService,
   type HassEntity,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
@@ -57,10 +58,46 @@ export class GlassVacuumCard extends BaseCard {
   @state() private _pendingAction: string | null = null;
   @state() private _locateFlashing = false;
   @state() private _optimisticRoom: string | null = null;
+  @state() private _showHeader = true;
   private _optimisticTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _locateTimer: ReturnType<typeof setTimeout> | null = null;
   private _confirmTimerId: ReturnType<typeof setTimeout> | null = null;
+  private _backend?: BackendService;
+  private _vacuumConfigLoaded = false;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._listen('vacuum-config-changed', () => {
+      this._vacuumConfigLoaded = false;
+      this._loadVacuumConfig();
+    });
+  }
+
+  protected updated(changedProps: import('lit').PropertyValues): void {
+    super.updated(changedProps);
+    if (changedProps.has('hass') && this.hass && this._backend && this._backend.connection !== this.hass.connection) {
+      this._backend = undefined;
+      this._vacuumConfigLoaded = false;
+    }
+    if (this.hass && !this._vacuumConfigLoaded) this._loadVacuumConfig();
+  }
+
+  private async _loadVacuumConfig(): Promise<void> {
+    if (!this.hass || this._vacuumConfigLoaded) return;
+    this._vacuumConfigLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<{
+        vacuum_card?: { show_header?: boolean };
+      }>('get_config');
+      if (result?.vacuum_card) {
+        this._showHeader = result.vacuum_card.show_header ?? true;
+      }
+    } catch {
+      // Backend not available
+    }
+  }
 
   setConfig(config: LovelaceCardConfig): void {
     // config.entity is optional — when omitted (e.g., navbar-card auto-renders
@@ -82,6 +119,8 @@ export class GlassVacuumCard extends BaseCard {
     this._optimisticTimer = null;
     this._pendingAction = null;
     this._optimisticRoom = null;
+    this._backend = undefined;
+    this._vacuumConfigLoaded = false;
   }
 
   static styles = [
@@ -107,6 +146,14 @@ export class GlassVacuumCard extends BaseCard {
         flex-direction: column;
         position: relative;
         z-index: 1;
+      }
+      .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
+      }
+      .card-title {
+        font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1.5px; color: var(--t4);
       }
       .placeholder {
         padding: 1rem;
@@ -809,6 +856,7 @@ export class GlassVacuumCard extends BaseCard {
 
     const open = this._open;
     return html`
+      ${this._showHeader ? this._renderHeader() : nothing}
       <div
         class="glass ${isUnavailable ? 'unavailable' : ''} ${pulseClass}"
         role=${alertLevel ? 'status' : nothing}
@@ -839,6 +887,14 @@ export class GlassVacuumCard extends BaseCard {
   private _toggleOpen = (): void => {
     this._open = !this._open;
   };
+
+  private _renderHeader(): TemplateResult {
+    return html`
+      <div class="card-header">
+        <span class="card-title">${t('vacuum.title')}</span>
+      </div>
+    `;
+  }
 
   private _renderCompact(
     vacuum: HassEntity,
