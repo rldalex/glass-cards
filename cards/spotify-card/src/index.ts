@@ -154,7 +154,8 @@ class GlassSpotifyCard extends BaseCard {
 
   static styles: CSSResult[] = [glassTokens, hostMixin, glassMixin, bounceMixin, eqMixin, css`
     :host {
-      width: 100%; user-select: none; -webkit-user-select: none;
+      width: 100%; max-width: 31.25rem; margin: 0 auto;
+      user-select: none; -webkit-user-select: none;
       /* "On Spotify" — dark near-black tinted toward spotify green, used for text/icons over the saturated spotify background */
       --c-spotify-on: var(--c-spotify-on);
     }

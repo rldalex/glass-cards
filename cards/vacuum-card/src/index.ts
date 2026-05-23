@@ -98,6 +98,8 @@ export class GlassVacuumCard extends BaseCard {
         --rgb-warning: 251, 191, 36;
         --rgb-accent: 129, 140, 248;
         width: 100%;
+        max-width: 31.25rem;
+        margin: 0 auto;
         color: var(--t1);
       }
       .card-inner {

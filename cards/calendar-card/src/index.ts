@@ -576,7 +576,7 @@ export class GlassCalendarCard extends BaseCard {
   // ───────────── Styles ─────────────
 
   static styles = [glassTokens, hostMixin, glassMixin, css`
-    :host { width: 100%; color: var(--t1); }
+    :host { width: 100%; max-width: 31.25rem; margin: 0 auto; color: var(--t1); }
     .calendar-card { width: 100%; overflow: hidden; position: relative; }
 
     /* ── Card Header (matches presence/climate/etc. pattern) ── */
