@@ -6515,13 +6515,13 @@
             <!-- Label -->
             <div class="title-source-field">
               <span class="title-source-field-label">${ri("config.title_source_label")}</span>
-              <input
+              <glass-form-input
                 class="input"
                 type="text"
                 .value=${e.label}
                 placeholder=${a?ri(a.i18nKey):""}
-                @input=${e=>this._setTitleSourceLabel(t,e.target.value)}
-              />
+                @glass-input=${e=>this._setTitleSourceLabel(t,e.detail.value)}
+              ></glass-form-input>
             </div>
 
             ${"input_select"===e.source_type?this._renderInputSelectEntityPicker(e,t):W}
@@ -6587,13 +6587,13 @@
           `:W}
         </div>
         <div class="title-mode-fields-row">
-          <input
+          <glass-form-input
             class="input"
             type="text"
             placeholder=${ri("config.title_mode_label")}
             .value=${i.label}
-            @input=${e=>this._updateTitleMode(s,"label",e.target.value)}
-          />
+            @glass-input=${e=>this._updateTitleMode(s,"label",e.detail.value)}
+          ></glass-form-input>
           <button
             class="title-icon-btn ${i.icon?"has-icon":""}"
             @click=${()=>this._openIconPopup(s)}
@@ -6720,17 +6720,18 @@
             </div>
           </header>
           <div class="title-text-field">
-            <input
+            <glass-form-input
               class="input"
               type="text"
               .value=${this._titleText}
               placeholder=${ri("config.title_title_placeholder")}
-              maxlength=${40}
-              @input=${e=>{this._titleText=e.target.value}}
-            />
-            <span class="title-text-count ${t>34?"warn":""}">
-              ${t}/${40}
-            </span>
+              max-length=${40}
+              @glass-input=${e=>{this._titleText=e.detail.value}}
+            >
+              <span slot="trailing" class="title-text-count ${t>34?"warn":""}">
+                ${t}/${40}
+              </span>
+            </glass-form-input>
           </div>
         </section>
 
@@ -7081,14 +7082,14 @@
             </header>
 
           <div class="ua-toolbar">
-            <input
-              type="text"
+            <glass-form-input
+              type="search"
               class="ua-search-input"
               placeholder="${ri("config.search_entity")}"
               aria-label="${ri("config.search_entity")}"
               .value=${this._unassignedEntitySearch}
-              @input=${e=>{this._unassignedEntitySearch=e.target.value}}
-            />
+              @glass-input=${e=>{this._unassignedEntitySearch=e.detail.value}}
+            ></glass-form-input>
             <div class="chip-group ua-filter-chips" role="tablist">
               <glass-chip
                 size="sm"
@@ -7538,13 +7539,13 @@
           >
             <ha-icon class="room-button-icon-preview" .icon=${c||"mdi:image-plus-outline"}></ha-icon>
           </button>
-          <input
+          <glass-form-input
             type="text"
             class="room-button-input"
             placeholder=${r||ri("config.room_button_label_placeholder")}
             .value=${e.label}
-            @input=${e=>this._updateButton(t,"label",e.target.value)}
-          />
+            @glass-input=${e=>this._updateButton(t,"label",e.detail.value)}
+          ></glass-form-input>
         </div>
 
         <details
@@ -7567,15 +7568,15 @@
             @glass-dropdown-change=${e=>this._selectButtonService(t,e.detail.value)}
           ></glass-dropdown>
 
-          <textarea
-            class="room-button-input room-button-textarea"
+          <glass-form-input
+            multiline
             rows="3"
-            spellcheck="false"
+            class="room-button-input room-button-textarea"
             placeholder='{ "entity_id": "vacuum.robot" }'
             aria-label="${ri("config.room_button_data")}"
             .value=${e.data_json}
-            @input=${e=>this._updateButton(t,"data_json",e.target.value)}
-          ></textarea>
+            @glass-input=${e=>this._updateButton(t,"data_json",e.detail.value)}
+          ></glass-form-input>
         </details>
 
         <button

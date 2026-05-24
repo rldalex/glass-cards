@@ -641,13 +641,13 @@ export class ConfigRoomDetail extends LitElement {
           >
             <ha-icon class="room-button-icon-preview" .icon=${effectiveIcon || 'mdi:image-plus-outline'}></ha-icon>
           </button>
-          <input
+          <glass-form-input
             type="text"
             class="room-button-input"
             placeholder=${friendlyName || t('config.room_button_label_placeholder')}
             .value=${btn.label}
-            @input=${(e: Event) => this._updateButton(idx, 'label', (e.target as HTMLInputElement).value)}
-          />
+            @glass-input=${(e: CustomEvent<{ value: string }>) => this._updateButton(idx, 'label', e.detail.value)}
+          ></glass-form-input>
         </div>
 
         <details
@@ -670,15 +670,15 @@ export class ConfigRoomDetail extends LitElement {
             @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectButtonService(idx, e.detail.value)}
           ></glass-dropdown>
 
-          <textarea
-            class="room-button-input room-button-textarea"
+          <glass-form-input
+            multiline
             rows="3"
-            spellcheck="false"
+            class="room-button-input room-button-textarea"
             placeholder='{ "entity_id": "vacuum.robot" }'
             aria-label="${t('config.room_button_data')}"
             .value=${btn.data_json}
-            @input=${(e: Event) => this._updateButton(idx, 'data_json', (e.target as HTMLTextAreaElement).value)}
-          ></textarea>
+            @glass-input=${(e: CustomEvent<{ value: string }>) => this._updateButton(idx, 'data_json', e.detail.value)}
+          ></glass-form-input>
         </details>
 
         <button
