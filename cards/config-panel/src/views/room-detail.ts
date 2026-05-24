@@ -517,25 +517,22 @@ export class ConfigRoomDetail extends LitElement {
               <ha-icon .icon=${sec.icon}></ha-icon>
             </div>
             <span class="section-title">${sec.label}</span>
+            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
           <glass-toggle
             .checked=${sec.visible}
             aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
             @glass-toggle-change=${() => this._toggleSectionVisible(sec.id)}
           ></glass-toggle>
-          <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
-            @click=${() => { if (sec.visible) this._toggleSection(sec.id); }}></ha-icon>
         </div>
-        ${sec.visible ? html`
-          <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
-          <div class="section-fold ${isOpen ? 'open' : ''}">
-            <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
-              <div class="section-content">
-                ${isOpen ? this._renderSection(sec) : nothing}
-              </div>
+        <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
+        <div class="section-fold ${isOpen ? 'open' : ''}">
+          <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
+            <div class="section-content">
+              ${isOpen ? this._renderSection(sec) : nothing}
             </div>
           </div>
-        ` : nothing}
+        </div>
       </div>
     `;
   }

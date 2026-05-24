@@ -1582,13 +1582,6 @@
         color: var(--t2);
         --mdc-icon-color: var(--t2);
       }
-      /* When the section is disabled (toggle off), keep the chevron's
-         layout slot but hide it — prevents the toggle from shifting
-         horizontally on every on/off click. */
-      .section-header-wrap.off > .section-chevron {
-        visibility: hidden;
-        pointer-events: none;
-      }
 
       .section-header {
         display: flex;
@@ -8080,25 +8073,22 @@
               <ha-icon .icon=${e.icon}></ha-icon>
             </div>
             <span class="section-title">${e.label}</span>
+            <ha-icon class="section-chevron ${i?"open":""}" .icon=${"mdi:chevron-down"}></ha-icon>
           </button>
           <glass-toggle
             .checked=${e.visible}
             aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.label}"
             @glass-toggle-change=${()=>this._toggleSectionVisible(e.id)}
           ></glass-toggle>
-          <ha-icon class="section-chevron ${i?"open":""}" .icon=${"mdi:chevron-down"}
-            @click=${()=>{e.visible&&this._toggleSection(e.id)}}></ha-icon>
         </div>
-        ${e.visible?N`
-          <div class="fold-sep ${i?"visible":""}" style="--fold-color:rgb(${e.color})"></div>
-          <div class="section-fold ${i?"open":""}">
-            <div class="section-fold-inner" aria-hidden=${i?"false":"true"}>
-              <div class="section-content">
-                ${i?this._renderSection(e):W}
-              </div>
+        <div class="fold-sep ${i?"visible":""}" style="--fold-color:rgb(${e.color})"></div>
+        <div class="section-fold ${i?"open":""}">
+          <div class="section-fold-inner" aria-hidden=${i?"false":"true"}>
+            <div class="section-content">
+              ${i?this._renderSection(e):W}
             </div>
           </div>
-        `:W}
+        </div>
       </div>
     `}_selectTempEntity(e){this._tempEntity=e,this._tempDropdownOpen=!1,this._scheduleSave()}_selectHumidityEntity(e){this._humidityEntity=e,this._humidityDropdownOpen=!1,this._scheduleSave()}_selectPresenceEntity(e){this._presenceEntity=e,this._presenceDropdownOpen=!1,this._scheduleSave()}_renderButtonsSection(){return N`
       <section class="cfg-section">
