@@ -46,9 +46,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   @state() _titlePeriodEntity = '';
   @state() _titlePeriodOptions: { id: string; label: string; icon: string; color: string }[] = [];
   @state() _titleEditingSourceIdx: number | null = null;
-  @state() _titleAddSourceDropdownOpen = false;
-  @state() _titleAddEntityDropdownOpen = false;
-  @state() _titlePeriodDropdownOpen = false;
   @state() _periodIconPopupIdx: number | null = null;
   @state() _iconPopupModeIdx: number | null = null;
   @state() _iconSearch = '';
@@ -56,8 +53,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   @state() _periodEditingIdx: number | null = null;
 
   // Non-reactive state
-  _titleAddEntitySearch = '';
-  _titlePeriodSearch = '';
   _iconList: string[] = [];
   _iconLoading = false;
   private _portalEl: HTMLDivElement | null = null;
@@ -130,8 +125,6 @@ export class ConfigTabTitle extends BaseConfigTab {
     this._periodIconPopupIdx = null;
     this._removeIconPortal();
     this._titleEditingSourceIdx = null;
-    this._titleAddSourceDropdownOpen = false;
-    this._titleAddEntityDropdownOpen = false;
     try {
       const result = await this.backend.send<{
         title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
@@ -207,7 +200,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   // — Source actions —
 
   private _addTitleSource(sourceType: SourceType): void {
-    this._titleAddSourceDropdownOpen = false;
     this._titleSources = [...this._titleSources, {
       source_type: sourceType,
       entity: '',
@@ -229,7 +221,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   }
 
   private _setTitleSourceEntity(srcIdx: number, entityId: string): void {
-    this._titleAddEntityDropdownOpen = false;
     const sources = [...this._titleSources];
     if (!sources[srcIdx]) return;
     sources[srcIdx] = { ...sources[srcIdx], entity: entityId };
@@ -259,7 +250,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   }
 
   private _addTitleModeEntity(srcIdx: number, entityId: string): void {
-    this._titleAddEntityDropdownOpen = false;
     const sources = [...this._titleSources];
     if (!sources[srcIdx]) return;
     if (sources[srcIdx].modes.some((m) => m.id === entityId)) return;
@@ -304,7 +294,6 @@ export class ConfigTabTitle extends BaseConfigTab {
   // — Period entity actions —
 
   private _setTitlePeriodEntity(entityId: string): void {
-    this._titlePeriodDropdownOpen = false;
     this._titlePeriodEntity = entityId;
     // Auto-populate period options from input_select options
     if (entityId && this.hass) {
@@ -530,7 +519,7 @@ export class ConfigTabTitle extends BaseConfigTab {
             size="xs"
             .icon=${isEditing ? 'mdi:pencil' : 'mdi:pencil-outline'}
             aria-label=${isEditing ? t('common.collapse') : t('common.expand')}
-            @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; this._titleAddEntityDropdownOpen = false; }}
+            @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; }}
           ></glass-icon-button>
           <glass-icon-button
             size="xs"
@@ -577,54 +566,23 @@ export class ConfigTabTitle extends BaseConfigTab {
     const inputSelectEntities = this.hass
       ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.')).sort()
       : [];
+    const items = [
+      { value: '', label: t('title_card.mode_none'), icon: 'mdi:close' },
+      ...inputSelectEntities.map((id) => ({ value: id, label: id, icon: 'mdi:form-select' })),
+    ];
 
     return html`
       <div class="title-source-field">
         <span class="title-source-field-label">${t('config.title_mode_entity')}</span>
-        <div class="dropdown ${this._titleEditingSourceIdx === srcIdx && this._titleAddEntityDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { if (!this._titleAddEntityDropdownOpen) this._titleAddEntitySearch = ''; this._titleAddEntityDropdownOpen = !this._titleAddEntityDropdownOpen; }}
-            aria-expanded=${this._titleAddEntityDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${src.entity ? 'mdi:form-select' : 'mdi:help-circle-outline'}></ha-icon>
-            <span>${src.entity || t('config.title_select_entity')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            <input
-              class="dropdown-search"
-              type="text"
-              placeholder=${t('config.search_entity')}
-              .value=${this._titleAddEntitySearch}
-              @input=${(e: InputEvent) => { this._titleAddEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
-              @click=${(e: Event) => e.stopPropagation()}
-            />
-            <button
-              class="dropdown-item ${!src.entity ? 'active' : ''}"
-              role="option"
-              aria-selected=${!src.entity ? 'true' : 'false'}
-              @click=${() => this._setTitleSourceEntity(srcIdx, '')}
-            >
-              <ha-icon .icon=${'mdi:close'}></ha-icon>
-              ${t('title_card.mode_none')}
-            </button>
-            ${inputSelectEntities
-              .filter((id) => !this._titleAddEntitySearch || id.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase()))
-              .map((id) => html`
-                <button
-                  class="dropdown-item ${id === src.entity ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${id === src.entity ? 'true' : 'false'}
-                  @click=${() => this._setTitleSourceEntity(srcIdx, id)}
-                >
-                  <ha-icon .icon=${'mdi:form-select'}></ha-icon>
-                  ${id}
-                </button>
-              `)}
-          </div>
-        </div>
+        <glass-dropdown
+          .items=${items}
+          .value=${src.entity}
+          .label=${src.entity || t('config.title_select_entity')}
+          icon=${src.entity ? 'mdi:form-select' : 'mdi:help-circle-outline'}
+          searchable
+          search-placeholder=${t('config.search_entity')}
+          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._setTitleSourceEntity(srcIdx, e.detail.value)}
+        ></glass-dropdown>
       </div>
     `;
   }
@@ -639,44 +597,20 @@ export class ConfigTabTitle extends BaseConfigTab {
       : [];
     const existingIds = new Set(src.modes.map((m) => m.id));
     const addable = allEntities.filter((id) => !existingIds.has(id));
+    const items = addable.map((id) => ({ value: id, label: id, icon: entityIcon }));
 
     return html`
       <div class="title-source-field">
         <span class="title-source-field-label">${t('config.title_add_entity')}</span>
-        <div class="dropdown ${this._titleEditingSourceIdx === srcIdx && this._titleAddEntityDropdownOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => { if (!this._titleAddEntityDropdownOpen) this._titleAddEntitySearch = ''; this._titleAddEntityDropdownOpen = !this._titleAddEntityDropdownOpen; }}
-            aria-expanded=${this._titleAddEntityDropdownOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${'mdi:plus'}></ha-icon>
-            <span>${t('config.title_add_entity')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            <input
-              class="dropdown-search"
-              type="text"
-              placeholder=${t('config.search_entity')}
-              .value=${this._titleAddEntitySearch}
-              @input=${(e: InputEvent) => { this._titleAddEntitySearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
-              @click=${(e: Event) => e.stopPropagation()}
-            />
-            ${addable
-              .filter((id) => !this._titleAddEntitySearch || id.toLowerCase().includes(this._titleAddEntitySearch.toLowerCase()))
-              .map((id) => html`
-                <button
-                  class="dropdown-item"
-                  role="option"
-                  @click=${() => this._addTitleModeEntity(srcIdx, id)}
-                >
-                  <ha-icon .icon=${entityIcon}></ha-icon>
-                  ${id}
-                </button>
-              `)}
-          </div>
-        </div>
+        <glass-dropdown
+          .items=${items}
+          .value=${''}
+          .label=${t('config.title_add_entity')}
+          icon="mdi:plus"
+          searchable
+          search-placeholder=${t('config.search_entity')}
+          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => { if (e.detail.value) this._addTitleModeEntity(srcIdx, e.detail.value); }}
+        ></glass-dropdown>
       </div>
     `;
   }
@@ -753,52 +687,21 @@ export class ConfigTabTitle extends BaseConfigTab {
       ? Object.keys(this.hass.states).filter((id) => id.startsWith('input_select.')).sort()
       : [];
     const currentEntity = this._titlePeriodEntity;
+    const items = [
+      { value: '', label: t('config.title_period_auto'), icon: 'mdi:clock-outline' },
+      ...inputSelectEntities.map((id) => ({ value: id, label: id, icon: 'mdi:form-select' })),
+    ];
 
     return html`
-      <div class="dropdown ${this._titlePeriodDropdownOpen ? 'open' : ''}">
-        <button
-          class="dropdown-trigger"
-          @click=${() => { if (!this._titlePeriodDropdownOpen) this._titlePeriodSearch = ''; this._titlePeriodDropdownOpen = !this._titlePeriodDropdownOpen; }}
-          aria-expanded=${this._titlePeriodDropdownOpen ? 'true' : 'false'}
-          aria-haspopup="listbox"
-        >
-          <ha-icon .icon=${currentEntity ? 'mdi:form-select' : 'mdi:clock-outline'}></ha-icon>
-          <span>${currentEntity || t('config.title_period_auto')}</span>
-          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
-        <div class="dropdown-menu" role="listbox">
-          <input
-            class="dropdown-search"
-            type="text"
-            placeholder=${t('config.search_entity')}
-            .value=${this._titlePeriodSearch}
-            @input=${(e: InputEvent) => { this._titlePeriodSearch = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
-            @click=${(e: Event) => e.stopPropagation()}
-          />
-          <button
-            class="dropdown-item ${!currentEntity ? 'active' : ''}"
-            role="option"
-            aria-selected=${!currentEntity ? 'true' : 'false'}
-            @click=${() => this._setTitlePeriodEntity('')}
-          >
-            <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
-            ${t('config.title_period_auto')}
-          </button>
-          ${inputSelectEntities
-            .filter((id) => !this._titlePeriodSearch || id.toLowerCase().includes(this._titlePeriodSearch.toLowerCase()))
-            .map((id) => html`
-              <button
-                class="dropdown-item ${id === currentEntity ? 'active' : ''}"
-                role="option"
-                aria-selected=${id === currentEntity ? 'true' : 'false'}
-                @click=${() => this._setTitlePeriodEntity(id)}
-              >
-                <ha-icon .icon=${'mdi:form-select'}></ha-icon>
-                ${id}
-              </button>
-            `)}
-        </div>
-      </div>
+      <glass-dropdown
+        .items=${items}
+        .value=${currentEntity}
+        .label=${currentEntity || t('config.title_period_auto')}
+        icon=${currentEntity ? 'mdi:form-select' : 'mdi:clock-outline'}
+        searchable
+        search-placeholder=${t('config.search_entity')}
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._setTitlePeriodEntity(e.detail.value)}
+      ></glass-dropdown>
     `;
   }
 
@@ -983,30 +886,14 @@ export class ConfigTabTitle extends BaseConfigTab {
           ` : sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
 
           <div class="cfg-add-wrap">
-            <div class="dropdown ${this._titleAddSourceDropdownOpen ? 'open' : ''}">
-              <button
-                class="dropdown-trigger cfg-add-btn"
-                @click=${() => { this._titleAddSourceDropdownOpen = !this._titleAddSourceDropdownOpen; }}
-                aria-expanded=${this._titleAddSourceDropdownOpen ? 'true' : 'false'}
-                aria-haspopup="listbox"
-              >
-                <ha-icon .icon=${'mdi:plus'}></ha-icon>
-                <span>${t('config.title_add_source')}</span>
-                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-              </button>
-              <div class="dropdown-menu" role="listbox">
-                ${SOURCE_DEFS.map((s) => html`
-                  <button
-                    class="dropdown-item"
-                    role="option"
-                    @click=${() => this._addTitleSource(s.key)}
-                  >
-                    <ha-icon .icon=${s.icon} style="color:${resolveD(s.tone)};"></ha-icon>
-                    ${t(s.i18nKey)}
-                  </button>
-                `)}
-              </div>
-            </div>
+            <glass-dropdown
+              class="cfg-add-btn"
+              .items=${SOURCE_DEFS.map((s) => ({ value: s.key, label: t(s.i18nKey), icon: s.icon }))}
+              .value=${''}
+              .label=${t('config.title_add_source')}
+              icon="mdi:plus"
+              @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._addTitleSource(e.detail.value as SourceType)}
+            ></glass-dropdown>
           </div>
         </section>
 

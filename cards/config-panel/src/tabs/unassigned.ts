@@ -34,9 +34,7 @@ function domainLabel(domain: string): string {
 
 export class ConfigTabUnassigned extends BaseConfigTab {
   @state() _unassignedEntities: EntityAreaEntry[] = [];
-  @state() _unassignedDropdownEntity: string | null = null;
   @state() _unassignedEntitySearch = '';
-  @state() _unassignedAreaSearch = '';
   @state() _unassignedEditingEntity: string | null = null;
   @state() _iconPopupEntity: string | null = null;
   @state() _iconSearch = '';
@@ -100,10 +98,8 @@ export class ConfigTabUnassigned extends BaseConfigTab {
 
   _loadEntities(): void {
     this._unassignedEntities = this._collectAllEntities();
-    this._unassignedDropdownEntity = null;
     this._unassignedEditingEntity = null;
     this._unassignedEntitySearch = '';
-    this._unassignedAreaSearch = '';
   }
 
   // — Actions —
@@ -121,8 +117,6 @@ export class ConfigTabUnassigned extends BaseConfigTab {
           ? { ...e, areaId, areaName: this.hass?.areas[areaId]?.name ?? null }
           : e,
       );
-      this._unassignedDropdownEntity = null;
-      this._unassignedAreaSearch = '';
       // Notify parent that room assignments changed
       this.dispatchEvent(new CustomEvent('entities-assigned', { bubbles: true, composed: true }));
     } catch {
@@ -316,11 +310,6 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     this._removeIconPortal();
   }
 
-  /** Close dropdown when clicking outside (called by parent via event or directly). */
-  closeDropdowns(): void {
-    this._unassignedDropdownEntity = null;
-  }
-
   // — Render —
 
   renderTab(): TemplateResult {
@@ -330,7 +319,6 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     const entities = this._unassignedEntities;
     const areas = Object.values(this.hass.areas).sort((a, b) => a.name.localeCompare(b.name));
     const entitySearch = this._unassignedEntitySearch.toLowerCase();
-    const areaSearch = this._unassignedAreaSearch.toLowerCase();
 
     const unassignedCount = entities.filter((e) => !e.areaId).length;
     const totalCount = entities.length;
@@ -351,11 +339,6 @@ export class ConfigTabUnassigned extends BaseConfigTab {
       list.push(e);
       grouped.set(e.domain, list);
     }
-
-    // Filter areas by search in dropdown
-    const filteredAreas = areaSearch
-      ? areas.filter((a) => a.name.toLowerCase().includes(areaSearch))
-      : areas;
 
     const hasWarn = unassignedCount > 0;
 
@@ -448,8 +431,8 @@ export class ConfigTabUnassigned extends BaseConfigTab {
             <div class="ua-list ${isCollapsed ? 'collapsed' : ''}">
               <div class="ua-list-inner">
               ${items.map((e) => {
-                const isOpen = this._unassignedDropdownEntity === e.entityId;
                 const isEditing = this._unassignedEditingEntity === e.entityId;
+                const areaItems = areas.map((a) => ({ value: a.area_id, label: a.name, icon: a.icon || 'mdi:home' }));
                 return html`
                   <div class="item-card pw-ua-card">
                     <div class="item-row">
@@ -496,44 +479,17 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                         <span class="item-meta">${e.entityId}</span>
                       </div>
                     </div>
-                    <div class="dropdown ${isOpen ? 'open' : ''} pw-ua-area-dropdown">
-                      <button
-                        class="dropdown-trigger pw-ua-area-trigger ${!e.areaId ? 'pw-ua-unassigned' : ''}"
-                        @click=${(ev: Event) => {
-                          ev.stopPropagation();
-                          this._unassignedAreaSearch = '';
-                          this._unassignedDropdownEntity = isOpen ? null : e.entityId;
-                        }}
-                        aria-expanded=${isOpen ? 'true' : 'false'}
-                        aria-haspopup="listbox"
-                      >
-                        <ha-icon .icon=${e.areaId ? 'mdi:home' : 'mdi:alert-circle-outline'} class="pw-ua-area-icon"></ha-icon>
-                        ${e.areaName ?? t('config.unassigned_select_area')}
-                        <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                      </button>
-                      <div class="dropdown-menu" role="listbox">
-                        <input
-                          type="text"
-                          class="dropdown-search"
-                          placeholder="${t('config.search_entity')}"
-                          aria-label="${t('config.search_entity')}"
-                          .value=${this._unassignedAreaSearch}
-                          @input=${(ev: InputEvent) => { this._unassignedAreaSearch = (ev.target as HTMLInputElement).value; }}
-                          @click=${(ev: Event) => ev.stopPropagation()}
-                        />
-                        ${filteredAreas.map((a) => html`
-                          <button
-                            class="dropdown-item ${a.area_id === e.areaId ? 'active' : ''}"
-                            role="option"
-                            aria-selected=${a.area_id === e.areaId ? 'true' : 'false'}
-                            @click=${() => this._assignEntityArea(e.entityId, a.area_id)}
-                          >
-                            <ha-icon .icon=${a.icon || 'mdi:home'}></ha-icon>
-                            ${a.name}
-                          </button>
-                        `)}
-                      </div>
-                    </div>
+                    <glass-dropdown
+                      class="pw-ua-area-dropdown ${!e.areaId ? 'pw-ua-unassigned' : ''}"
+                      .items=${areaItems}
+                      .value=${e.areaId ?? ''}
+                      .label=${t('config.unassigned_select_area')}
+                      icon=${e.areaId ? 'mdi:home' : 'mdi:alert-circle-outline'}
+                      searchable
+                      search-placeholder=${t('config.search_entity')}
+                      empty-text=${t('config.unassigned_no_results')}
+                      @glass-dropdown-change=${(ev: CustomEvent<{ value: string }>) => this._assignEntityArea(e.entityId, ev.detail.value)}
+                    ></glass-dropdown>
                   </div>
                 `;
               })}

@@ -27,7 +27,6 @@ export class ConfigTabWeather extends BaseConfigTab {
   @state() _weatherShowDaily = true;
   @state() _weatherShowHourly = true;
   @state() _weatherShowHeader = true;
-  @state() _weatherDropdownOpen = false;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_weatherEntity', '_weatherHiddenMetrics', '_weatherShowDaily', '_weatherShowHourly', '_weatherShowHeader',
@@ -80,7 +79,6 @@ export class ConfigTabWeather extends BaseConfigTab {
 
   private _selectEntity(entityId: string): void {
     this._weatherEntity = entityId;
-    this._weatherDropdownOpen = false;
   }
 
   private _toggleMetric(metric: string): void {
@@ -121,33 +119,13 @@ export class ConfigTabWeather extends BaseConfigTab {
           ${weatherEntities.length === 0 ? html`
             <glass-empty-state variant="inline" .icon=${'mdi:weather-cloudy-alert'} .title=${t('config.weather_no_entity')}></glass-empty-state>
           ` : html`
-            <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
-              <button
-                class="dropdown-trigger"
-                @click=${() => (this._weatherDropdownOpen = !this._weatherDropdownOpen)}
-                aria-expanded=${this._weatherDropdownOpen ? 'true' : 'false'}
-                aria-haspopup="listbox"
-              >
-                <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-                <span>${selectedEntity || t('common.select')}</span>
-                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-              </button>
-              <div class="dropdown-menu" role="listbox">
-                ${weatherEntities.map(
-                  (id) => html`
-                    <button
-                      class="dropdown-item ${id === this._weatherEntity ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${id === this._weatherEntity ? 'true' : 'false'}
-                      @click=${() => this._selectEntity(id)}
-                    >
-                      <ha-icon .icon=${'mdi:weather-partly-cloudy'}></ha-icon>
-                      ${id}
-                    </button>
-                  `,
-                )}
-              </div>
-            </div>
+            <glass-dropdown
+              .items=${weatherEntities.map((id) => ({ value: id, label: id, icon: 'mdi:weather-partly-cloudy' }))}
+              .value=${this._weatherEntity}
+              .label=${t('common.select')}
+              icon="mdi:weather-partly-cloudy"
+              @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectEntity(e.detail.value)}
+            ></glass-dropdown>
           `}
         </section>
 
