@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-button>` — Text or icon+text button at 44px (save/cancel/locate).
@@ -22,6 +23,7 @@ export class GlassButton extends LitElement {
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: inline-flex;

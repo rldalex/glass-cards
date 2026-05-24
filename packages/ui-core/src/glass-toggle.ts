@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-toggle>` — Switch on/off with 44px tap wrapper.
@@ -30,6 +31,7 @@ export class GlassToggle extends LitElement {
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: inline-flex;

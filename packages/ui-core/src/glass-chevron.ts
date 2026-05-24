@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-chevron>` — Chevron that rotates when `open`.
@@ -26,6 +27,7 @@ export class GlassChevron extends LitElement {
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: inline-flex;

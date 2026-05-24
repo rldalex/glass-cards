@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-progress-bar>` — Thin horizontal progress indicator.
@@ -29,6 +30,7 @@ export class GlassProgressBar extends LitElement {
   private _ac: AbortController | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: block;

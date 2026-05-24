@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult, type PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-slider>` — Reusable pill-shaped slider with GPU-accelerated transforms.
@@ -24,6 +25,7 @@ export class GlassSlider extends LitElement {
   // inherited from the parent card which includes glassTokens. No need to
   // re-declare them here — avoids circular import with ./index.
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: block;

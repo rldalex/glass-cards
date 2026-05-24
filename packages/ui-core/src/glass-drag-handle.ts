@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-drag-handle>` — Visual grip for draggable rows.
@@ -16,6 +17,7 @@ export class GlassDragHandle extends LitElement {
   @property({ type: String, reflect: true }) size: 'sm' | 'md' = 'md';
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         position: relative;

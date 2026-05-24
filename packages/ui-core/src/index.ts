@@ -113,6 +113,10 @@ export const hostMixin: CSSResult = css`
   }
 `;
 
+// — Reduced-motion Mixin —
+
+export { motionMixin } from './motion-mixin';
+
 // — Glass Mixins —
 
 export const glassMixin: CSSResult = css`
@@ -722,6 +726,8 @@ export { GlassDragHandle } from './glass-drag-handle';
 export { GlassEmptyState } from './glass-empty-state';
 export { GlassProgressBar } from './glass-progress-bar';
 export { GlassDropdown, type GlassDropdownItem } from './glass-dropdown';
+// motionMixin is exported above the imports — re-export for clarity not needed,
+// but ensure consumers can import { motionMixin } alongside.
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {

@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-pill>` — Decorative pill (count, status badge, mode label).
@@ -18,6 +19,7 @@ export class GlassPill extends LitElement {
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: inline-flex;

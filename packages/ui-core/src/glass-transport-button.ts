@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-transport-button>` — Media transport control (play, pause, skip).
@@ -19,6 +20,7 @@ export class GlassTransportButton extends LitElement {
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: inline-flex;

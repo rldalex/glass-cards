@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing, type CSSResult, type PropertyValues } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 export interface GlassDropdownItem {
   value: string;
@@ -42,6 +43,7 @@ export class GlassDropdown extends LitElement {
   };
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: block;

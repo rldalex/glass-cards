@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult, type PropertyValues } from 'lit';
 import { property, query } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 /**
  * `<glass-form-input>` — Text input / textarea wrapper with 44px height
@@ -22,6 +23,7 @@ export class GlassFormInput extends LitElement {
   @query('.input') private _input!: HTMLInputElement | HTMLTextAreaElement;
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: block;

@@ -1,5 +1,6 @@
 import { LitElement, html, css, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import { motionMixin } from './motion-mixin';
 
 export interface GlassTabItem {
   value: string;
@@ -22,6 +23,7 @@ export class GlassTabs extends LitElement {
   @property({ type: String, reflect: true }) layout: 'rail' | 'segmented' = 'rail';
 
   static styles: CSSResult[] = [
+    motionMixin,
     css`
       :host {
         display: block;
