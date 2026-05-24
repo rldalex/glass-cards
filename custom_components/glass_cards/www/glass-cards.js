@@ -162,7 +162,12 @@
         }
       }
 
-      /* Icon sizing — defaults to icon-md; override per-size. */
+      /* Icon sizing — applies to BOTH the shadow-DOM fallback ha-icon
+         (when consumer passes the .icon=… property) and any slotted icon
+         (when consumer slots a custom <ha-icon> child). ::slotted() only
+         pierces light-DOM children; the fallback lives in shadow DOM so
+         it needs its own selector. */
+      ha-icon,
       ::slotted(ha-icon),
       ::slotted(*) {
         --mdc-icon-size: var(--icon-md);
@@ -171,8 +176,11 @@
         justify-content: center;
         pointer-events: none;
       }
+      :host([size='xs']) ha-icon,
       :host([size='xs']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-xs); }
+      :host([size='sm']) ha-icon,
       :host([size='sm']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-sm); }
+      :host([size='lg']) ha-icon,
       :host([size='lg']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-lg); }
 
       /* Active state. The 'active-color' attribute selects which --rgb-* the
@@ -214,6 +222,7 @@
     `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}render(){const e=this.ariaLabel??this.icon??"button";return Z`
       <button
         type="button"
+        part="button"
         style="--_ac-rgb:${this._resolveColor()}"
         ?disabled=${this.disabled}
         aria-label=${e}
@@ -1073,6 +1082,7 @@
     `]}render(){return Z`
       <button
         type="button"
+        part="button"
         ?disabled=${this.disabled||this.loading}
         aria-label=${this.ariaLabel??""}
         aria-busy=${this.loading?"true":"false"}
@@ -2683,6 +2693,12 @@
       }
       /* Cap labelled room-action buttons so the room name keeps space. */
       glass-button.room-action-btn { max-width: 8rem; }
+      /* Match the 32px height of the icon-only siblings (glass-icon-button
+         size=sm) so the header reads as a single compact action row. */
+      glass-button.room-action-btn::part(button) {
+        min-height: 2rem;
+        padding: 0 0.625rem;
+      }
       glass-button.room-action-btn.flashing,
       glass-icon-button.room-action-btn.flashing {
         animation: room-btn-flash 0.4s ease;

@@ -253,6 +253,12 @@ export class GlassRoomPopup extends LitElement {
       }
       /* Cap labelled room-action buttons so the room name keeps space. */
       glass-button.room-action-btn { max-width: 8rem; }
+      /* Match the 32px height of the icon-only siblings (glass-icon-button
+         size=sm) so the header reads as a single compact action row. */
+      glass-button.room-action-btn::part(button) {
+        min-height: 2rem;
+        padding: 0 0.625rem;
+      }
       glass-button.room-action-btn.flashing,
       glass-icon-button.room-action-btn.flashing {
         animation: room-btn-flash 0.4s ease;

@@ -3498,7 +3498,12 @@
         }
       }
 
-      /* Icon sizing — defaults to icon-md; override per-size. */
+      /* Icon sizing — applies to BOTH the shadow-DOM fallback ha-icon
+         (when consumer passes the .icon=… property) and any slotted icon
+         (when consumer slots a custom <ha-icon> child). ::slotted() only
+         pierces light-DOM children; the fallback lives in shadow DOM so
+         it needs its own selector. */
+      ha-icon,
       ::slotted(ha-icon),
       ::slotted(*) {
         --mdc-icon-size: var(--icon-md);
@@ -3507,8 +3512,11 @@
         justify-content: center;
         pointer-events: none;
       }
+      :host([size='xs']) ha-icon,
       :host([size='xs']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-xs); }
+      :host([size='sm']) ha-icon,
       :host([size='sm']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-sm); }
+      :host([size='lg']) ha-icon,
       :host([size='lg']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-lg); }
 
       /* Active state. The 'active-color' attribute selects which --rgb-* the
@@ -3550,6 +3558,7 @@
     `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}render(){const e=this.ariaLabel??this.icon??"button";return N`
       <button
         type="button"
+        part="button"
         style="--_ac-rgb:${this._resolveColor()}"
         ?disabled=${this.disabled}
         aria-label=${e}
@@ -4409,6 +4418,7 @@
     `]}render(){return N`
       <button
         type="button"
+        part="button"
         ?disabled=${this.disabled||this.loading}
         aria-label=${this.ariaLabel??""}
         aria-busy=${this.loading?"true":"false"}

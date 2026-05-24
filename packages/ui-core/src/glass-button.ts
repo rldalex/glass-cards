@@ -133,6 +133,7 @@ export class GlassButton extends LitElement {
     return html`
       <button
         type="button"
+        part="button"
         ?disabled=${this.disabled || this.loading}
         aria-label=${this.ariaLabel ?? ''}
         aria-busy=${this.loading ? 'true' : 'false'}
