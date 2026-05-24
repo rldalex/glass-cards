@@ -2790,7 +2790,6 @@
     `}_renderRoomButtons(){if(!this._areaId)return ie;const e=this._roomConfigs.get(this._areaId),t=/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/,i=(e?.buttons??[]).filter(e=>t.test(e.service));if(0===i.length)return ie;return Z`
       ${i.map((e,t)=>{const i="string"==typeof e.data?.entity_id?e.data.entity_id:"",a=i?i.split(".")[0]:"",r=i?this.hass?.states?.[i]:void 0,s=r?.attributes?.friendly_name||"",o=e.icon||((e,t)=>{const i={light:"mdi:lightbulb",switch:"mdi:toggle-switch",vacuum:"mdi:robot-vacuum-variant",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:speaker",scene:"mdi:palette",script:"mdi:script-text",automation:"mdi:robot",input_boolean:"mdi:toggle-switch",button:"mdi:gesture-tap-button",lock:"mdi:lock",camera:"mdi:cctv",notify:"mdi:bell-outline",homeassistant:"mdi:home"};return i[t]||i[e.split(".")[0]]||"mdi:gesture-tap-button"})(e.service,a),n=e.label,l=!!n,c=this._flashingBtnIdx===t,d=n||s||(a?`${a} action`:"Action");return l?Z`
               <glass-button
-                size="sm"
                 variant="secondary"
                 class="room-action-btn ${c?"flashing":""}"
                 .icon=${o}

@@ -852,7 +852,6 @@ export class GlassRoomPopup extends LitElement {
         return hasLabel
           ? html`
               <glass-button
-                size="sm"
                 variant="secondary"
                 class="room-action-btn ${flashing ? 'flashing' : ''}"
                 .icon=${resolvedIcon}
