@@ -109,31 +109,25 @@ export function renderHumidityStepper(
   if (target == null) return nothing;
 
   return html`
-    <div class="stepper-row">
-      <span class="stepper-label">
-        <ha-icon .icon=${'mdi:water-percent'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;margin-right:4px;"></ha-icon>
-        ${t('climate.humidity_target')}
-      </span>
-      <div class="stepper">
-        <button
-          class="btn-icon xs"
-          @click=${() => onChangeHumidity(Math.max(min, target - 1))}
+    <glass-section-title label=${t('climate.humidity_target')}>
+      <div slot="end" class="stepper">
+        <glass-icon-button
+          size="xs"
+          .icon=${'mdi:minus'}
           aria-label=${t('climate.humidity_down_aria')}
           ?disabled=${target <= min}
-        >
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => onChangeHumidity(Math.max(min, target - 1))}
+        ></glass-icon-button>
         <span class="stepper-value">${target}%</span>
-        <button
-          class="btn-icon xs"
-          @click=${() => onChangeHumidity(Math.min(max, target + 1))}
+        <glass-icon-button
+          size="xs"
+          .icon=${'mdi:plus'}
           aria-label=${t('climate.humidity_up_aria')}
           ?disabled=${target >= max}
-        >
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:14px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => onChangeHumidity(Math.min(max, target + 1))}
+        ></glass-icon-button>
       </div>
-    </div>
+    </glass-section-title>
   `;
 }
 
@@ -149,15 +143,14 @@ export function renderAuxHeat(
   const isOn = entity.attributes.aux_heat === 'on';
 
   return html`
-    <div class="aux-row">
-      <ha-icon .icon=${'mdi:radiator'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;margin-right:6px;"></ha-icon>
-      <span class="aux-label">${t('climate.aux_heat')}</span>
+    <glass-section-title label=${t('climate.aux_heat')}>
       <glass-toggle
+        slot="end"
         active-color="heat"
         .checked=${isOn}
         aria-label=${t('climate.aux_heat')}
         @glass-toggle-change=${onToggleAux}
       ></glass-toggle>
-    </div>
+    </glass-section-title>
   `;
 }

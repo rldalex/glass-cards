@@ -628,7 +628,10 @@ export class GlassClimateCard extends BaseCard {
         ${this._showHeader ? this._renderHeader(climates) : nothing}
         <div class="glass climate-card">
           <div class="card-inner">
-            <div class="empty-state">${t('climate.no_climates')}</div>
+            <glass-empty-state
+              icon="mdi:thermometer-off"
+              .title=${t('climate.no_climates')}
+            ></glass-empty-state>
           </div>
         </div>
       `;
@@ -1173,11 +1176,6 @@ export class GlassClimateCard extends BaseCard {
       background: radial-gradient(ellipse at 50% 40%, var(--cl-auto), transparent 70%);
     }
 
-    .empty-state {
-      padding: 1rem; text-align: center;
-      font-size: var(--fz-base); color: var(--t3);
-    }
-
     /* ════════════════════════════════════════════
        LIST MODE STYLES
        ════════════════════════════════════════════ */
@@ -1566,6 +1564,9 @@ export class GlassClimateCard extends BaseCard {
        SHARED CONTROL STYLES (used in both modes)
        ════════════════════════════════════════════ */
 
+    /* ── Modes / Presets section wrappers (eyebrow above, content below) ── */
+    .modes-row, .presets-row { display: flex; flex-direction: column; }
+
     /* ── Mode tiles (primary HVAC selection) ── */
     .mode-tile-grid {
       display: grid;
@@ -1657,37 +1658,13 @@ export class GlassClimateCard extends BaseCard {
       .section-sep { transition: none; }
     }
 
-    /* ── Stepper row (inline small stepper, used by climate-controls.ts) ── */
-    .stepper-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.125rem 0;
-    }
-    .stepper-label {
-      font-size: var(--fz-base); font-weight: 600; color: var(--t2);
-      display: flex; align-items: center;
-    }
+    /* ── Stepper (inline -/+/value group, slotted into glass-section-title) ── */
     .stepper { display: flex; align-items: center; gap: 0.5rem; }
     .stepper-value {
-      font-size: var(--fz-lg); font-weight: 700; color: var(--t1);
-      min-width: 3.25rem; text-align: center;
+      font-size: var(--fz-base); font-weight: 700; color: var(--t1);
+      min-width: 2.5rem; text-align: center;
+      font-variant-numeric: tabular-nums;
     }
-
-    /* ── btn-icon ── */
-    .btn-icon {
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-md); background: var(--s2);
-      border: 1px solid var(--b2); cursor: pointer; padding: 0;
-      outline: none; font-family: inherit;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); -webkit-tap-highlight-color: transparent;
-    }
-    .btn-icon.xs { width: 1.75rem; height: 1.75rem; }
-    .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .btn-icon:hover { background: var(--s3); border-color: var(--b3); }
-    }
-    @media (hover: hover) { .btn-icon:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .btn-icon:active { animation: bounce 0.3s ease; } }
-    .btn-icon:disabled { opacity: 0.3; pointer-events: none; }
 
     /* ── Range slider ── */
     .range-slider-row { display: flex; flex-direction: column; gap: 0.375rem; padding: 0.25rem 0; }
@@ -1725,9 +1702,6 @@ export class GlassClimateCard extends BaseCard {
       box-shadow: 0 0 8px var(--cl-cool-glow);
     }
 
-    /* ── Aux heat row (toggle handled by <glass-toggle>) ── */
-    .aux-row { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0; }
-    .aux-label { font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1; }
   `];
 }
 

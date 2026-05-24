@@ -177,6 +177,8 @@
     "preset_sleep": "Sleep",
     "preset_activity": "Activity",
     "preset_none": "None",
+    "modes_label": "Mode",
+    "presets_label": "Preset",
     "fan_mode": "Fan mode",
     "swing_mode": "Swing mode",
     "fm_auto": "Auto",

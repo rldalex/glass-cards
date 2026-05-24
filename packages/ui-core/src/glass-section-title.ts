@@ -44,8 +44,11 @@ export class GlassSectionTitle extends LitElement {
   ];
 
   protected render() {
+    // Render label inline rather than as default-slot fallback: consumers
+    // often slot named content (e.g. slot="end") with surrounding whitespace
+    // text nodes, which assign to the default slot and hide the fallback.
     return html`
-      <span class="title"><slot>${this.label}</slot></span>
+      <span class="title">${this.label}<slot></slot></span>
       <slot name="end"></slot>
     `;
   }

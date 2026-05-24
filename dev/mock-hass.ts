@@ -250,7 +250,7 @@ export function makeMockHass(
 // ───────────────────────── Scenarios ─────────────────────────
 
 const HVAC_MODES_FULL = ['off', 'heat', 'cool', 'heat_cool', 'auto', 'dry', 'fan_only'];
-const FEATURES_FULL = 1 | 2 | 4 | 8 | 16 | 32 | 128 | 256; // temp + range + humidity + fan + preset + swing + turn on/off
+const FEATURES_FULL = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256; // temp + range + humidity + fan + preset + swing + aux_heat + turn on/off
 
 export const SCENARIOS: MockScenario[] = [
   {
@@ -274,7 +274,13 @@ export const SCENARIOS: MockScenario[] = [
         preset_mode: 'none',
         fan_modes: ['auto', 'low', 'medium', 'high'],
         fan_mode: 'auto',
+        swing_modes: ['off', 'vertical', 'horizontal', 'both'],
+        swing_mode: 'off',
         current_humidity: 48,
+        humidity: 50,
+        min_humidity: 30,
+        max_humidity: 80,
+        aux_heat: 'off',
       },
     }],
   },

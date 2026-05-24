@@ -15,6 +15,11 @@ import { motionMixin } from './motion-mixin';
  * Differs from `<glass-slider>`: thinner (4-6px), no thumb in static
  * mode, and the visual collapses on hover when interactive. Use slider
  * for chunky value controls (brightness, volume).
+ *
+ * Sizes:
+ *   - `size="md"` (default): 4px track
+ *   - `size="lg"`: 6px track — for stat/consumable bars where the bar
+ *     reads as a meter, not a hairline indicator
  */
 export class GlassProgressBar extends LitElement {
   @property({ type: Number }) value = 0;
@@ -22,6 +27,7 @@ export class GlassProgressBar extends LitElement {
   @property({ type: Number }) max = 100;
   @property({ type: Boolean, reflect: true }) interactive = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ type: String, reflect: true }) size: 'md' | 'lg' = 'md';
   @property({ type: String, attribute: 'fill-color' }) fillColor = 'accent';
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
@@ -45,6 +51,7 @@ export class GlassProgressBar extends LitElement {
         overflow: hidden;
         transition: height var(--t-fast);
       }
+      :host([size='lg']) .track { height: 0.375rem; }
       :host([interactive]) .track {
         cursor: pointer;
         touch-action: none;
@@ -55,6 +62,10 @@ export class GlassProgressBar extends LitElement {
       :host([interactive]:not([disabled])) .track:hover,
       :host([interactive]) .track.dragging {
         height: 0.375rem;
+      }
+      :host([size='lg'][interactive]:not([disabled])) .track:hover,
+      :host([size='lg'][interactive]) .track.dragging {
+        height: 0.5rem;
       }
       .fill {
         position: absolute;

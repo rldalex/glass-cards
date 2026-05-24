@@ -432,11 +432,6 @@ class GlassFanCard extends BaseCard {
     /* ── Separator ── */
     .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
 
-    /* ── Empty state ── */
-    .empty-state {
-      grid-column: 1 / -1;
-      padding: 1rem; text-align: center; font-size: var(--fz-base); color: var(--t4);
-    }
   `];
 
   // — Lifecycle —
@@ -958,7 +953,11 @@ class GlassFanCard extends BaseCard {
         ${this._showHeader ? this._renderHeader(0, 0) : nothing}
         <div class="glass fan-card">
           <div class="card-inner">
-            <div class="empty-state">${t('fan.no_fans')}</div>
+            <glass-empty-state
+              style="grid-column: 1 / -1;"
+              icon="mdi:fan-off"
+              .title=${t('fan.no_fans')}
+            ></glass-empty-state>
           </div>
         </div>
       `;

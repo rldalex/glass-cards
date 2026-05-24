@@ -117,23 +117,26 @@ export function renderHvacModes(
   const current = entity.state;
 
   return html`
-    <div class="mode-tile-grid">
-      ${modes.map((mode) => {
-        const active = mode === current;
-        const icon = HVAC_ICONS[mode] || 'mdi:thermostat';
-        const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as Parameters<typeof t>[0]) : mode;
-        return html`
-          <button
-            class="mode-tile mode-${mode.replace('_', '-')} ${active ? 'active' : ''}"
-            @click=${() => onSetMode(mode)}
-            aria-label=${label}
-            aria-pressed=${active ? 'true' : 'false'}
-          >
-            <ha-icon class="mode-tile-icon" .icon=${icon}></ha-icon>
-            <span class="mode-tile-label">${label}</span>
-          </button>
-        `;
-      })}
+    <div class="modes-row">
+      <glass-section-title label=${t('climate.modes_label')}></glass-section-title>
+      <div class="mode-tile-grid">
+        ${modes.map((mode) => {
+          const active = mode === current;
+          const icon = HVAC_ICONS[mode] || 'mdi:thermostat';
+          const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as Parameters<typeof t>[0]) : mode;
+          return html`
+            <button
+              class="mode-tile mode-${mode.replace('_', '-')} ${active ? 'active' : ''}"
+              @click=${() => onSetMode(mode)}
+              aria-label=${label}
+              aria-pressed=${active ? 'true' : 'false'}
+            >
+              <ha-icon class="mode-tile-icon" .icon=${icon}></ha-icon>
+              <span class="mode-tile-label">${label}</span>
+            </button>
+          `;
+        })}
+      </div>
     </div>
   `;
 }
@@ -151,23 +154,26 @@ export function renderPresets(
   const current = entity.attributes.preset_mode as string | undefined;
 
   return html`
-    <div class="preset-row">
-      ${presets.map((preset) => {
-        const active = preset === current;
-        const icon = PRESET_ICONS[preset] || 'mdi:tune';
-        const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as Parameters<typeof t>[0]) : preset;
-        const activeColor = PRESET_ACTIVE_COLORS[preset] || 'accent';
-        return html`
-          <glass-chip
-            size="sm"
-            .activeColor=${activeColor}
-            ?active=${active}
-            .icon=${icon}
-            aria-label=${label}
-            @click=${() => onSetPreset(preset)}
-          >${label}</glass-chip>
-        `;
-      })}
+    <div class="presets-row">
+      <glass-section-title label=${t('climate.presets_label')}></glass-section-title>
+      <div class="preset-row">
+        ${presets.map((preset) => {
+          const active = preset === current;
+          const icon = PRESET_ICONS[preset] || 'mdi:tune';
+          const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as Parameters<typeof t>[0]) : preset;
+          const activeColor = PRESET_ACTIVE_COLORS[preset] || 'accent';
+          return html`
+            <glass-chip
+              size="sm"
+              .activeColor=${activeColor}
+              ?active=${active}
+              .icon=${icon}
+              aria-label=${label}
+              @click=${() => onSetPreset(preset)}
+            >${label}</glass-chip>
+          `;
+        })}
+      </div>
     </div>
   `;
 }

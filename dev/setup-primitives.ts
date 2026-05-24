@@ -459,14 +459,20 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-progress-bar</h2>
-      <div class="sub">Non-interactive (battery, cleaning progress) or interactive (seek bar). The interactive track grows on hover and shows a thumb.</div>
+      <div class="sub">Non-interactive (battery, cleaning progress) or interactive (seek bar). The interactive track grows on hover and shows a thumb. Default size is <code>md</code> (4px); <code>lg</code> renders a 6px meter for consumable / stat bars.</div>
       <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
-        <span class="label">Static — vacuum %</span>
+        <span class="label">Static md — vacuum %</span>
         <glass-progress-bar value="40" fill-color="cool" aria-label="cleaning"></glass-progress-bar>
-        <span class="label">Static — battery low</span>
+        <span class="label">Static md — battery low</span>
         <glass-progress-bar value="15" fill-color="alert" aria-label="battery"></glass-progress-bar>
-        <span class="label">Interactive — media seek</span>
+        <span class="label">Static lg — filter wear (success)</span>
+        <glass-progress-bar size="lg" value="75" fill-color="success" aria-label="filter wear"></glass-progress-bar>
+        <span class="label">Static lg — filter wear (warning)</span>
+        <glass-progress-bar size="lg" value="35" fill-color="warning" aria-label="filter wear"></glass-progress-bar>
+        <span class="label">Interactive md — media seek</span>
         <glass-progress-bar interactive value="62" aria-label="seek"></glass-progress-bar>
+        <span class="label">Interactive lg — media seek</span>
+        <glass-progress-bar interactive size="lg" value="62" aria-label="seek lg"></glass-progress-bar>
       </div>
 
       <h2>glass-dropdown</h2>

@@ -428,21 +428,6 @@ export class GlassVacuumCard extends BaseCard {
       .conso-value {
         font-weight: 600;
       }
-      .progress {
-        position: relative;
-        width: 100%;
-        height: 0.375rem;
-        background: var(--s2);
-        border-radius: var(--radius-full);
-        overflow: hidden;
-      }
-      .progress-fill {
-        height: 100%;
-        width: 100%;
-        border-radius: inherit;
-        transform-origin: left center;
-        transition: transform var(--t-med), background var(--t-fast);
-      }
       .stats-row {
         font-size: var(--fz-sm);
         color: var(--t2);
@@ -1119,28 +1104,23 @@ export class GlassVacuumCard extends BaseCard {
         <glass-section-title label=${t('vacuum.section_consumables')}></glass-section-title>
         ${items.map((i) => {
           const hours = numericState(this.hass!, i.key, 0);
-          let color = 'var(--c-success)';
-          if (hours < 0) color = 'var(--c-alert)';
-          else if (hours < 20) color = 'var(--c-alert)';
-          else if (hours < 50) color = 'var(--c-warning)';
+          let fillColor: 'success' | 'warning' | 'alert' = 'success';
+          if (hours < 20) fillColor = 'alert';
+          else if (hours < 50) fillColor = 'warning';
           const pct = Math.max(0, Math.min(100, (hours / i.max) * 100));
           const rightLabel = hours < 0 ? t('vacuum.conso_clean_now') : t('vacuum.conso_hours', { hours: Math.round(hours) });
           return html`
             <div class="conso-row">
               <div class="conso-header">
                 <span class="conso-label">${i.label}</span>
-                <span class="conso-value" style="color:${color}">${rightLabel}</span>
+                <span class="conso-value" style="color:var(--c-${fillColor})">${rightLabel}</span>
               </div>
-              <div
-                class="progress"
-                role="progressbar"
-                aria-valuenow=${Math.max(0, Math.round(hours))}
-                aria-valuemin="0"
-                aria-valuemax=${i.max}
+              <glass-progress-bar
+                size="lg"
+                .value=${pct}
+                .fillColor=${fillColor}
                 aria-label="${i.label} : ${rightLabel}"
-              >
-                <div class="progress-fill" style="transform:scaleX(${pct / 100});background:${color}"></div>
-              </div>
+              ></glass-progress-bar>
             </div>
           `;
         })}

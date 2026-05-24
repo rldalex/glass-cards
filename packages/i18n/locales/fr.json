@@ -177,6 +177,8 @@
     "preset_sleep": "Nuit",
     "preset_activity": "Activité",
     "preset_none": "Aucun",
+    "modes_label": "Mode",
+    "presets_label": "Préréglage",
     "fan_mode": "Ventilation",
     "swing_mode": "Oscillation",
     "fm_auto": "Auto",
