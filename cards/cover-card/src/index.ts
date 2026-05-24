@@ -185,46 +185,6 @@ class GlassCoverCard extends BaseCard {
     .cover-count.none { background: var(--s2); color: var(--t3); }
     .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
 
-    /* ── Toggle All ── */
-    .toggle-all {
-      position: relative;
-      width: 2.5rem;
-      height: 1.375rem;
-      border-radius: var(--radius-md);
-      background: var(--s2);
-      border: 1px solid var(--b2);
-      cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast);
-      padding: 0;
-      outline: none;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .toggle-all::after {
-      content: '';
-      position: absolute;
-      top: 0.1875rem;
-      left: 0.1875rem;
-      width: 0.875rem;
-      height: 0.875rem;
-      border-radius: 50%;
-      background: var(--t3);
-      transition:
-        transform var(--t-fast),
-        background var(--t-fast),
-        box-shadow var(--t-fast);
-    }
-    .toggle-all.on {
-      background: rgba(var(--rgb-purple),0.2);
-      border-color: rgba(var(--rgb-purple),0.3);
-    }
-    .toggle-all.on::after {
-      transform: translateX(1.125rem);
-      background: var(--cv-color, #a78bfa);
-      box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
-    }
-    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-
     .cover-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
       position: relative; z-index: 1;
@@ -268,33 +228,8 @@ class GlassCoverCard extends BaseCard {
     }
     .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
 
-    .cv-icon-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b1);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      cursor: pointer; padding: 0; outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cv-icon-btn ha-icon {
-      --mdc-icon-size: var(--icon-md);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
-      .cv-icon-btn:hover ha-icon { color: var(--t2); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .cv-icon-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .cv-icon-btn:active { animation: bounce 0.3s ease; }
-    }
-    .cv-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .cv-row.open .cv-icon-btn { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
-    .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(var(--rgb-purple),0.4)); }
-    .entity-unavailable .cv-icon-btn { border-color: var(--c-alert); }
+    /* Cover icon button — handled by <glass-icon-button>. Only override the
+       active tint to match the entity colour token used elsewhere. */
 
     .cv-info { flex: 1; min-width: 0; }
     .cv-name {
@@ -358,45 +293,13 @@ class GlassCoverCard extends BaseCard {
       padding: 0.375rem 0 0.25rem;
       display: flex; flex-direction: column; gap: 0.75rem;
     }
-    /* ── Fold sections + eyebrow (Position / Inclinaison / Préréglages) ── */
+    /* ── Fold sections (Position / Inclinaison / Préréglages) ── */
     .cover-section { display: flex; flex-direction: column; gap: 0.4375rem; }
-    .cover-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      font-size: var(--fz-xxs); font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--t4);
-      padding-left: 0.125rem;
-    }
 
     /* Transport */
     .transport-row {
       display: flex; align-items: center; justify-content: center; gap: 0.375rem;
     }
-    .transport-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .transport-btn ha-icon {
-      --mdc-icon-size: var(--icon-lg);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t2); transition: color var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .transport-btn:hover ha-icon { color: var(--t1); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .transport-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .transport-btn:active { animation: bounce 0.3s ease; }
-    }
-    .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .transport-btn.accent { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
-    .transport-btn.accent ha-icon { color: var(--cv-color, #a78bfa); }
 
     /* Slider */
     .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
@@ -413,29 +316,6 @@ class GlassCoverCard extends BaseCard {
 
     /* Presets */
     .preset-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      outline: none; -webkit-tap-highlight-color: transparent;
-    }
-    .chip ha-icon {
-      --mdc-icon-size: var(--icon-sm);
-      display: flex; align-items: center; justify-content: center;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-    }
-    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .chip:active { animation: bounce 0.3s ease; }
-    }
-    .chip.active { border-color: rgba(var(--rgb-purple),0.15); background: rgba(var(--rgb-purple),0.1); color: var(--cv-color, #a78bfa); }
 
     .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
   `];
@@ -711,13 +591,12 @@ class GlassCoverCard extends BaseCard {
             <span class="cover-title">${t('cover.title')}</span>
             <span class="cover-count ${openCount === 0 ? 'none' : openCount === total ? 'all' : 'some'}">${openCount}/${total}</span>
           </div>
-          <button
-            class="toggle-all ${openCount > 0 ? 'on' : ''}"
-            @click=${() => openCount > 0 ? this._closeAll() : this._openAll()}
-            role="switch"
-            aria-checked=${openCount > 0 ? 'true' : 'false'}
+          <glass-toggle
+            active-color="purple"
+            .checked=${openCount > 0}
             aria-label=${openCount > 0 ? t('cover.close_all_aria') : t('cover.open_all_aria')}
-          ></button>
+            @glass-toggle-change=${() => openCount > 0 ? this._closeAll() : this._openAll()}
+          ></glass-toggle>
         </div>
       ` : nothing}
       <div class="glass cover-card">
@@ -811,7 +690,7 @@ class GlassCoverCard extends BaseCard {
     const gesture = this._bindGesture({
       onTap: () => this._toggleCover(cv),
       onLongPress: () => this._toggleExpand(cv.entityId),
-      exclude: '.cv-icon-btn',
+      exclude: 'glass-icon-button',
     });
     return html`
       <div
@@ -822,13 +701,15 @@ class GlassCoverCard extends BaseCard {
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
       >
-        <button
-          class="cv-icon-btn"
-          @click=${(e: Event) => this._toggleCover(cv, e)}
+        <glass-icon-button
+          .icon=${coverIcon(cv.deviceClass, cv.isOpen)}
+          ?active=${cv.isOpen}
+          ?glow=${cv.isOpen}
+          ?unavailable=${unavailable}
+          active-color="purple"
           aria-label=${t('cover.toggle_aria', { name: cv.name })}
-        >
-          <ha-icon .icon=${coverIcon(cv.deviceClass, cv.isOpen)}></ha-icon>
-        </button>
+          @click=${(e: Event) => this._toggleCover(cv, e)}
+        ></glass-icon-button>
         <button
           class="cv-expand-btn"
           aria-expanded=${isExpanded ? 'true' : 'false'}
@@ -900,31 +781,35 @@ class GlassCoverCard extends BaseCard {
       <div class="ctrl-panel">
         <div class="transport-row">
           ${sf & F.OPEN ? html`
-            <button class="transport-btn ${cv.position === 100 || (cv.position === null && cv.isOpen) ? 'accent' : ''}"
+            <glass-transport-button
+              .icon=${tp.open}
+              active-color="purple"
+              ?active=${cv.position === 100 || (cv.position === null && cv.isOpen)}
+              aria-label=${t('cover.open_aria', { name: cv.name })}
               @click=${(e: Event) => this._openCover(cv, e)}
-              aria-label=${t('cover.open_aria', { name: cv.name })}>
-              <ha-icon .icon=${tp.open}></ha-icon>
-            </button>
+            ></glass-transport-button>
           ` : nothing}
           ${sf & F.STOP ? html`
-            <button class="transport-btn"
+            <glass-transport-button
+              .icon=${tp.stop || 'mdi:stop'}
+              aria-label=${t('cover.stop_aria', { name: cv.name })}
               @click=${(e: Event) => this._stopCover(cv, e)}
-              aria-label=${t('cover.stop_aria', { name: cv.name })}>
-              <ha-icon .icon=${tp.stop || 'mdi:stop'}></ha-icon>
-            </button>
+            ></glass-transport-button>
           ` : nothing}
           ${sf & F.CLOSE ? html`
-            <button class="transport-btn ${cv.position === 0 || (cv.position === null && !cv.isOpen) ? 'accent' : ''}"
+            <glass-transport-button
+              .icon=${tp.close}
+              active-color="purple"
+              ?active=${cv.position === 0 || (cv.position === null && !cv.isOpen)}
+              aria-label=${t('cover.close_aria', { name: cv.name })}
               @click=${(e: Event) => this._closeCover(cv, e)}
-              aria-label=${t('cover.close_aria', { name: cv.name })}>
-              <ha-icon .icon=${tp.close}></ha-icon>
-            </button>
+            ></glass-transport-button>
           ` : nothing}
         </div>
 
         ${hasPosition ? html`
           <div class="cover-section">
-            <div class="cover-eyebrow"><span>${t('cover.section_position')}</span></div>
+            <glass-section-title label=${t('cover.section_position')}></glass-section-title>
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, false)}></ha-icon></div>
               <glass-slider
@@ -941,7 +826,7 @@ class GlassCoverCard extends BaseCard {
 
         ${hasTilt ? html`
           <div class="cover-section">
-            <div class="cover-eyebrow"><span>${t('cover.section_tilt')}</span></div>
+            <glass-section-title label=${t('cover.section_tilt')}></glass-section-title>
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${'mdi:blinds'}></ha-icon></div>
               <glass-slider
@@ -957,17 +842,17 @@ class GlassCoverCard extends BaseCard {
         ` : nothing}
 
         <div class="cover-section">
-          <div class="cover-eyebrow"><span>${t('cover.section_presets')}</span></div>
+          <glass-section-title label=${t('cover.section_presets')}></glass-section-title>
           <div class="preset-row">
             ${presets.map((p) => html`
-              <button
-                class="chip ${cv.position === p.position ? 'active' : ''}"
-                @click=${(e: Event) => this._setPreset(cv, p.position, e)}
+              <glass-chip
+                size="sm"
+                active-color="purple"
+                ?active=${cv.position === p.position}
+                .icon=${p.icon}
                 aria-label=${p.label}
-              >
-                <ha-icon .icon=${p.icon}></ha-icon>
-                <span>${p.label}</span>
-              </button>
+                @click=${(e: Event) => this._setPreset(cv, p.position, e)}
+              >${p.label}</glass-chip>
             `)}
           </div>
         </div>

@@ -10577,46 +10577,6 @@
     .cover-count.none { background: var(--s2); color: var(--t3); }
     .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
 
-    /* ── Toggle All ── */
-    .toggle-all {
-      position: relative;
-      width: 2.5rem;
-      height: 1.375rem;
-      border-radius: var(--radius-md);
-      background: var(--s2);
-      border: 1px solid var(--b2);
-      cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast);
-      padding: 0;
-      outline: none;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .toggle-all::after {
-      content: '';
-      position: absolute;
-      top: 0.1875rem;
-      left: 0.1875rem;
-      width: 0.875rem;
-      height: 0.875rem;
-      border-radius: 50%;
-      background: var(--t3);
-      transition:
-        transform var(--t-fast),
-        background var(--t-fast),
-        box-shadow var(--t-fast);
-    }
-    .toggle-all.on {
-      background: rgba(var(--rgb-purple),0.2);
-      border-color: rgba(var(--rgb-purple),0.3);
-    }
-    .toggle-all.on::after {
-      transform: translateX(1.125rem);
-      background: var(--cv-color, #a78bfa);
-      box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
-    }
-    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-
     .cover-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
       position: relative; z-index: 1;
@@ -10660,33 +10620,8 @@
     }
     .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
 
-    .cv-icon-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b1);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      cursor: pointer; padding: 0; outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cv-icon-btn ha-icon {
-      --mdc-icon-size: var(--icon-md);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .cv-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
-      .cv-icon-btn:hover ha-icon { color: var(--t2); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .cv-icon-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .cv-icon-btn:active { animation: bounce 0.3s ease; }
-    }
-    .cv-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .cv-row.open .cv-icon-btn { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
-    .cv-row.open .cv-icon-btn ha-icon { color: var(--cv-color, #a78bfa); filter: drop-shadow(0 0 6px rgba(var(--rgb-purple),0.4)); }
-    .entity-unavailable .cv-icon-btn { border-color: var(--c-alert); }
+    /* Cover icon button — handled by <glass-icon-button>. Only override the
+       active tint to match the entity colour token used elsewhere. */
 
     .cv-info { flex: 1; min-width: 0; }
     .cv-name {
@@ -10750,45 +10685,13 @@
       padding: 0.375rem 0 0.25rem;
       display: flex; flex-direction: column; gap: 0.75rem;
     }
-    /* ── Fold sections + eyebrow (Position / Inclinaison / Préréglages) ── */
+    /* ── Fold sections (Position / Inclinaison / Préréglages) ── */
     .cover-section { display: flex; flex-direction: column; gap: 0.4375rem; }
-    .cover-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      font-size: var(--fz-xxs); font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--t4);
-      padding-left: 0.125rem;
-    }
 
     /* Transport */
     .transport-row {
       display: flex; align-items: center; justify-content: center; gap: 0.375rem;
     }
-    .transport-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .transport-btn ha-icon {
-      --mdc-icon-size: var(--icon-lg);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t2); transition: color var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .transport-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .transport-btn:hover ha-icon { color: var(--t1); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .transport-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .transport-btn:active { animation: bounce 0.3s ease; }
-    }
-    .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .transport-btn.accent { background: rgba(var(--rgb-purple),0.1); border-color: rgba(var(--rgb-purple),0.15); }
-    .transport-btn.accent ha-icon { color: var(--cv-color, #a78bfa); }
 
     /* Slider */
     .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
@@ -10805,29 +10708,6 @@
 
     /* Presets */
     .preset-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      outline: none; -webkit-tap-highlight-color: transparent;
-    }
-    .chip ha-icon {
-      --mdc-icon-size: var(--icon-sm);
-      display: flex; align-items: center; justify-content: center;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-    }
-    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .chip:active { animation: bounce 0.3s ease; }
-    }
-    .chip.active { border-color: rgba(var(--rgb-purple),0.15); background: rgba(var(--rgb-purple),0.1); color: var(--cv-color, #a78bfa); }
 
     .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
   `]}connectedCallback(){super.connectedCallback(),this._listen("cover-config-changed",()=>{this._coversCacheKey="",this._loadConfig()}),this._listen("room-config-changed",e=>{this.areaId&&e.areaId===this.areaId&&(this._roomConfig=null,this._coversCacheKey="",this._loadRoomConfig(this.areaId))})}disconnectedCallback(){super.disconnectedCallback(),this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._roomLoading=!1;for(const e of this._throttleTimers.values())clearTimeout(e);this._throttleTimers.clear()}_collapseExpanded(){null!==this._expanded&&(this._expanded=null)}updated(e){super.updated(e),e.has("hass")&&this.hass&&(this._backend&&this._backend.connection!==this.hass.connection&&(this._backend=void 0,this._configLoaded=!1,this._configLoading=!1,this._roomConfig=null,this._roomLoading=!1),this._configLoaded||this._configLoading||(this._backend=new ti(this.hass),this._loadConfig())),e.has("areaId")&&this.areaId!==this._lastAreaId&&(this._lastAreaId=this.areaId,this._roomConfig=null,this._expanded=null,this.areaId&&this._loadRoomConfig(this.areaId))}getTrackedEntityIds(){return this._getCovers().map(e=>e.entityId)}async _loadConfig(){if(this._backend&&!this._configLoading){this._configLoading=!0;try{const e=await this._backend.send("get_config");e?.cover_card&&(this._coverConfig=e.cover_card),this._configLoaded=!0,this._configLoading=!1,this.areaId&&this._loadRoomConfig(this.areaId),this.requestUpdate()}catch{this._configLoading=!1}}}async _loadRoomConfig(e){if(this._backend&&!this._roomLoading){this._roomLoading=!0;try{const t=await this._backend.send("get_room",{area_id:e});this.areaId===e&&(this._roomConfig=t?{...t,entity_layouts:t.entity_layouts??{}}:null,this.requestUpdate())}catch{}finally{this._roomLoading=!1}}}_getCovers(){if(!this.hass)return[];let e;if(this.areaId){if(e=Jt(this.areaId,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id),this._roomConfig){const t=new Set(this._roomConfig.hidden_entities);e=e.filter(e=>!t.has(e));const i=this._roomConfig.entity_order;e.sort((e,t)=>{const a=i.indexOf(e),r=i.indexOf(t);return-1!==a&&-1!==r?a-r:-1!==a?-1:-1!==r?1:0})}}else e=this._coverConfig.dashboard_entities;const t=e.map(e=>{const t=this.hass?.states[e];return t?`${e}:${t.state}:${t.attributes.current_position}:${t.attributes.current_tilt_position}`:e}).join("|");return t===this._coversCacheKey&&this._coversCache||(this._coversCache=e.map(e=>{const t=this.hass?.states[e];return t?function(e,t){const i=t.attributes,a=i.device_class||"shutter",r=i.supported_features||0,s=i.current_position,o=i.current_tilt_position,n="open"===t.state||"opening"===t.state;return{entity:t,entityId:e,name:i.friendly_name||e.split(".")[1]||e,isOpen:n,position:s??null,tiltPosition:o??null,deviceClass:a,features:r}}(e,t):null}).filter(e=>null!==e),this._coversCacheKey=t),this._coversCache}_toggleCover(e,t){if(t?.stopPropagation(),!this.hass)return;const i=e.entity.state;if("opening"===i||"closing"===i)this._lastDirection.set(e.entityId,i),this._safeCallService("cover","stop_cover",{},{entity_id:e.entityId});else if("closed"===i)this._lastDirection.delete(e.entityId),this._safeCallService("cover","open_cover",{},{entity_id:e.entityId});else{const t=this._lastDirection.get(e.entityId);this._lastDirection.delete(e.entityId),"opening"===t?this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}):"closing"===t?this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}):this._safeCallService("cover","close_cover",{},{entity_id:e.entityId})}}_openCover(e,t){t.stopPropagation(),this.hass&&(Xt(this,"light"),this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}))}_closeCover(e,t){t.stopPropagation(),this.hass&&(Xt(this,"light"),this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}))}_stopCover(e,t){t.stopPropagation(),this.hass&&(Xt(this,"light"),this._safeCallService("cover","stop_cover",{},{entity_id:e.entityId}))}_setPosition(e,t){if(!this.hass)return;const i=this._throttleTimers.get(e.entityId);i&&clearTimeout(i),this._throttleTimers.set(e.entityId,window.setTimeout(()=>{this._throttleTimers.delete(e.entityId),this._safeCallService("cover","set_cover_position",{position:t},{entity_id:e.entityId})},50))}_setTiltPosition(e,t){if(!this.hass)return;const i=`${e.entityId}_tilt`,a=this._throttleTimers.get(i);a&&clearTimeout(a),this._throttleTimers.set(i,window.setTimeout(()=>{this._throttleTimers.delete(i),this._safeCallService("cover","set_cover_tilt_position",{tilt_position:t},{entity_id:e.entityId})},50))}_openAll(){if(!this.hass)return;const e=this._getCovers();for(const t of e)t.features&Cr&&this._safeCallService("cover","open_cover",{},{entity_id:t.entityId})}_closeAll(){if(!this.hass)return;const e=this._getCovers();for(const t of e)t.features&Ir&&this._safeCallService("cover","close_cover",{},{entity_id:t.entityId})}_setPreset(e,t,i){i.stopPropagation(),this.hass&&(Xt(this,"light"),e.features&Er?this._safeCallService("cover","set_cover_position",{position:t},{entity_id:e.entityId}):t>0?this._safeCallService("cover","open_cover",{},{entity_id:e.entityId}):this._safeCallService("cover","close_cover",{},{entity_id:e.entityId}))}_toggleExpand(e){this._expanded=this._expanded===e?null:e}render(){this._lang;const e=this._getCovers();if(0===e.length&&!this.areaId)return this.style.display="none",W;this.style.display="";const t=this._coverConfig.show_header,i=e.filter(e=>e.isOpen).length,a=e.length;return V`
@@ -10837,13 +10717,12 @@
             <span class="cover-title">${qt("cover.title")}</span>
             <span class="cover-count ${0===i?"none":i===a?"all":"some"}">${i}/${a}</span>
           </div>
-          <button
-            class="toggle-all ${i>0?"on":""}"
-            @click=${()=>i>0?this._closeAll():this._openAll()}
-            role="switch"
-            aria-checked=${i>0?"true":"false"}
+          <glass-toggle
+            active-color="purple"
+            .checked=${i>0}
             aria-label=${qt(i>0?"cover.close_all_aria":"cover.open_all_aria")}
-          ></button>
+            @glass-toggle-change=${()=>i>0?this._closeAll():this._openAll()}
+          ></glass-toggle>
         </div>
       `:W}
       <div class="glass cover-card">
@@ -10855,7 +10734,7 @@
           ${this.areaId?this._renderGrid(e):this._renderDashboardGrid(e)}
         </div>
       </div>
-    `}_getEntityLayout(e){return"full"===(this._roomConfig?.entity_layouts??{})[e]?"full":"compact"}_isCompact(e){return"compact"===this._getEntityLayout(e.entityId)}_renderGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if(this._isCompact(a)){const r=i+1<e.length&&this._isCompact(e[i+1])?e[i+1]:null;r?(t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,"left")),t.push(this._renderControlFold(r,"right")),i+=2):(t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++)}else t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++}return t}_getDashboardLayout(e){const t=this._coverConfig.dashboard_entity_layouts;return t&&t[e]?t[e]:!1!==this._coverConfig.dashboard_compact?"compact":"full"}_renderDashboardGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if("compact"===this._getDashboardLayout(a.entityId)){const r=i+1<e.length&&"compact"===this._getDashboardLayout(e[i+1].entityId)?e[i+1]:null;r?(t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,"left")),t.push(this._renderControlFold(r,"right")),i+=2):(t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++)}else t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++}return t}_renderCoverRow(e,t=!1,i=!1){const a=this._expanded===e.entityId,r=kt(e.entity.state),s=["cv-row",e.isOpen?"open":"",t?"compact":"",i?"compact-right":"",r?"entity-unavailable":""].filter(Boolean).join(" "),o=this._bindGesture({onTap:()=>this._toggleCover(e),onLongPress:()=>this._toggleExpand(e.entityId),exclude:".cv-icon-btn"});return V`
+    `}_getEntityLayout(e){return"full"===(this._roomConfig?.entity_layouts??{})[e]?"full":"compact"}_isCompact(e){return"compact"===this._getEntityLayout(e.entityId)}_renderGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if(this._isCompact(a)){const r=i+1<e.length&&this._isCompact(e[i+1])?e[i+1]:null;r?(t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,"left")),t.push(this._renderControlFold(r,"right")),i+=2):(t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++)}else t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++}return t}_getDashboardLayout(e){const t=this._coverConfig.dashboard_entity_layouts;return t&&t[e]?t[e]:!1!==this._coverConfig.dashboard_compact?"compact":"full"}_renderDashboardGrid(e){const t=[];let i=0;for(;i<e.length;){const a=e[i];if("compact"===this._getDashboardLayout(a.entityId)){const r=i+1<e.length&&"compact"===this._getDashboardLayout(e[i+1].entityId)?e[i+1]:null;r?(t.push(this._renderCoverRow(a,!0,!1)),t.push(this._renderCoverRow(r,!0,!0)),t.push(this._renderControlFold(a,"left")),t.push(this._renderControlFold(r,"right")),i+=2):(t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++)}else t.push(this._renderCoverRow(a,!1,!1)),t.push(this._renderControlFold(a,"full")),i++}return t}_renderCoverRow(e,t=!1,i=!1){const a=this._expanded===e.entityId,r=kt(e.entity.state),s=["cv-row",e.isOpen?"open":"",t?"compact":"",i?"compact-right":"",r?"entity-unavailable":""].filter(Boolean).join(" "),o=this._bindGesture({onTap:()=>this._toggleCover(e),onLongPress:()=>this._toggleExpand(e.entityId),exclude:"glass-icon-button"});return V`
       <div
         class=${s}
         @pointerdown=${o.pointerdown}
@@ -10864,13 +10743,15 @@
         @pointercancel=${o.pointercancel}
         @contextmenu=${o.contextmenu}
       >
-        <button
-          class="cv-icon-btn"
-          @click=${t=>this._toggleCover(e,t)}
+        <glass-icon-button
+          .icon=${Lr(e.deviceClass,e.isOpen)}
+          ?active=${e.isOpen}
+          ?glow=${e.isOpen}
+          ?unavailable=${r}
+          active-color="purple"
           aria-label=${qt("cover.toggle_aria",{name:e.name})}
-        >
-          <ha-icon .icon=${Lr(e.deviceClass,e.isOpen)}></ha-icon>
-        </button>
+          @click=${t=>this._toggleCover(e,t)}
+        ></glass-icon-button>
         <button
           class="cv-expand-btn"
           aria-expanded=${a?"true":"false"}
@@ -10899,31 +10780,35 @@
       <div class="ctrl-panel">
         <div class="transport-row">
           ${t&Cr?V`
-            <button class="transport-btn ${100===e.position||null===e.position&&e.isOpen?"accent":""}"
+            <glass-transport-button
+              .icon=${i.open}
+              active-color="purple"
+              ?active=${100===e.position||null===e.position&&e.isOpen}
+              aria-label=${qt("cover.open_aria",{name:e.name})}
               @click=${t=>this._openCover(e,t)}
-              aria-label=${qt("cover.open_aria",{name:e.name})}>
-              <ha-icon .icon=${i.open}></ha-icon>
-            </button>
+            ></glass-transport-button>
           `:W}
           ${t&zr?V`
-            <button class="transport-btn"
+            <glass-transport-button
+              .icon=${i.stop||"mdi:stop"}
+              aria-label=${qt("cover.stop_aria",{name:e.name})}
               @click=${t=>this._stopCover(e,t)}
-              aria-label=${qt("cover.stop_aria",{name:e.name})}>
-              <ha-icon .icon=${i.stop||"mdi:stop"}></ha-icon>
-            </button>
+            ></glass-transport-button>
           `:W}
           ${t&Ir?V`
-            <button class="transport-btn ${0===e.position||null===e.position&&!e.isOpen?"accent":""}"
+            <glass-transport-button
+              .icon=${i.close}
+              active-color="purple"
+              ?active=${0===e.position||null===e.position&&!e.isOpen}
+              aria-label=${qt("cover.close_aria",{name:e.name})}
               @click=${t=>this._closeCover(e,t)}
-              aria-label=${qt("cover.close_aria",{name:e.name})}>
-              <ha-icon .icon=${i.close}></ha-icon>
-            </button>
+            ></glass-transport-button>
           `:W}
         </div>
 
         ${r?V`
           <div class="cover-section">
-            <div class="cover-eyebrow"><span>${qt("cover.section_position")}</span></div>
+            <glass-section-title label=${qt("cover.section_position")}></glass-section-title>
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${Lr(e.deviceClass,!1)}></ha-icon></div>
               <glass-slider
@@ -10940,7 +10825,7 @@
 
         ${s?V`
           <div class="cover-section">
-            <div class="cover-eyebrow"><span>${qt("cover.section_tilt")}</span></div>
+            <glass-section-title label=${qt("cover.section_tilt")}></glass-section-title>
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${"mdi:blinds"}></ha-icon></div>
               <glass-slider
@@ -10956,17 +10841,17 @@
         `:W}
 
         <div class="cover-section">
-          <div class="cover-eyebrow"><span>${qt("cover.section_presets")}</span></div>
+          <glass-section-title label=${qt("cover.section_presets")}></glass-section-title>
           <div class="preset-row">
             ${o.map(t=>V`
-              <button
-                class="chip ${e.position===t.position?"active":""}"
-                @click=${i=>this._setPreset(e,t.position,i)}
+              <glass-chip
+                size="sm"
+                active-color="purple"
+                ?active=${e.position===t.position}
+                .icon=${t.icon}
                 aria-label=${t.label}
-              >
-                <ha-icon .icon=${t.icon}></ha-icon>
-                <span>${t.label}</span>
-              </button>
+                @click=${i=>this._setPreset(e,t.position,i)}
+              >${t.label}</glass-chip>
             `)}
           </div>
         </div>
