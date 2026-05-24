@@ -1026,6 +1026,7 @@ export class GlassMediaCard extends BaseCard {
               @pointerdown=${(e: PointerEvent) => this._onMrVolPointerDown(e, master.entityId)}
               @keydown=${(e: KeyboardEvent) => this._onVolKey(e, master.entityId, masterVol)}>
               <div class="speaker-vol-fill" style="width:${masterVol}%"></div>
+              <span class="speaker-vol-name" title=${master.name}>${master.name}</span>
               <span class="speaker-vol-val">${masterVol}%</span>
             </div>
           </div>
@@ -1814,7 +1815,7 @@ export class GlassMediaCard extends BaseCard {
          segmented controls/queue toggle above for visual consistency. */
       .speakers-list { display: flex; flex-direction: column; gap: 0.375rem; }
       .speaker-row {
-        display: flex; align-items: stretch; height: 2rem;
+        display: flex; align-items: stretch; height: 2.25rem;
         border-radius: var(--radius-lg);
         background: var(--s2); border: 1px solid var(--b1);
         overflow: hidden;
@@ -1852,12 +1853,11 @@ export class GlassMediaCard extends BaseCard {
 
       .speaker-vol-slider {
         position: relative; flex: 1;
-        height: 2.25rem; min-height: 2.25rem;
+        align-self: stretch;
         display: flex; align-items: center; justify-content: space-between;
         gap: 0.5rem;
         padding: 0 0.625rem;
         background: var(--s1);
-        border: 1px solid var(--b1);
         overflow: hidden;
         cursor: pointer; touch-action: none;
         user-select: none; -webkit-user-select: none;
@@ -1887,7 +1887,8 @@ export class GlassMediaCard extends BaseCard {
       .speaker-vol-slider:active .speaker-vol-fill { transition: none; }
       .speaker-vol-name {
         position: relative; z-index: 1; pointer-events: none;
-        font-size: var(--fz-sm); font-weight: 600; color: var(--t1);
+        display: inline-flex; align-items: center;
+        font-size: var(--fz-sm); font-weight: 600; line-height: 1; color: var(--t1);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         max-width: 60%;
         text-shadow: 0 1px 2px rgba(var(--rgb-black), 0.25);
@@ -1895,7 +1896,8 @@ export class GlassMediaCard extends BaseCard {
       .speaker-row:not(.master):not(.joined) .speaker-vol-name { color: var(--t3); text-shadow: none; }
       .speaker-vol-val {
         position: relative; z-index: 1; pointer-events: none;
-        font-size: var(--fz-xs); font-weight: 700; color: var(--t2);
+        display: inline-flex; align-items: center;
+        font-size: var(--fz-xs); font-weight: 700; line-height: 1; color: var(--t2);
         font-variant-numeric: tabular-nums;
       }
       .speaker-row:is(.master, .joined) .speaker-vol-val { color: var(--t1); }
