@@ -744,7 +744,7 @@ export class GlassClimateCard extends BaseCard {
           </div>
           ${unavailable
             ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
-            : html`<div class="cl-dot"></div>`}
+            : nothing}
         </button>
       </div>
     `;
@@ -869,18 +869,18 @@ export class GlassClimateCard extends BaseCard {
 
     return html`
       <div class="air-section">
-        <div class="air-section-title">${t('climate.section_air')}</div>
         ${fanModes.length ? html`
           <div class="air-row">
             <span class="air-row-label">${t('climate.fan_mode')}</span>
             <div class="air-pills">
               ${fanModes.map((m) => html`
-                <button
-                  class="air-pill ${m === currentFan ? 'active' : ''}"
-                  @click=${() => this._setFanMode(entityId, m)}
+                <glass-chip
+                  size="sm"
+                  active-color="info"
+                  ?active=${m === currentFan}
                   aria-label="${t('climate.fan_mode')}: ${m}"
-                  aria-pressed=${m === currentFan ? 'true' : 'false'}
-                >${m.replace(/_/g, ' ')}</button>
+                  @click=${() => this._setFanMode(entityId, m)}
+                >${m.replace(/_/g, ' ')}</glass-chip>
               `)}
             </div>
           </div>
@@ -890,12 +890,13 @@ export class GlassClimateCard extends BaseCard {
             <span class="air-row-label">${t('climate.swing_mode')}</span>
             <div class="air-pills">
               ${swingModes.map((m) => html`
-                <button
-                  class="air-pill ${m === currentSwing ? 'active' : ''}"
-                  @click=${() => this._setSwingMode(entityId, m)}
+                <glass-chip
+                  size="sm"
+                  active-color="info"
+                  ?active=${m === currentSwing}
                   aria-label="${t('climate.swing_mode')}: ${m}"
-                  aria-pressed=${m === currentSwing ? 'true' : 'false'}
-                >${m.replace(/_/g, ' ')}</button>
+                  @click=${() => this._setSwingMode(entityId, m)}
+                >${m.replace(/_/g, ' ')}</glass-chip>
               `)}
             </div>
           </div>
@@ -950,7 +951,7 @@ export class GlassClimateCard extends BaseCard {
           : (curIdx - 1 + sorted.length) % sorted.length;
         this._selectedEntity = sorted[nextIdx].entity_id;
       },
-      exclude: 'button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile, .air-pill',
+      exclude: 'button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile',
     });
 
     return html`
@@ -1258,20 +1259,10 @@ export class GlassClimateCard extends BaseCard {
     .cl-row[data-action="preheating"] .cl-temp-target { color: var(--cl-heat-sub); }
     .cl-row[data-action="cooling"] .cl-temp-target { color: var(--cl-cool-sub); }
 
-    /* ── Dot ── */
-    .cl-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
-    }
-    .cl-row[data-action="heating"] .cl-dot,
-    .cl-row[data-action="preheating"] .cl-dot {
-      background: var(--cl-heat); box-shadow: 0 0 8px var(--cl-heat-glow);
-    }
-    .cl-row[data-action="cooling"] .cl-dot {
-      background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
-    }
+    /* Status dot removed per design feedback — heating/cooling state is
+       already conveyed by the row tint + temperature color (cl-temp-target). */
 
-    /* Unavailable badge inline (replaces dot) */
+    /* Unavailable badge inline */
     .cl-expand-area .unavailable-badge {
       position: static;
       flex-shrink: 0;
@@ -1629,54 +1620,27 @@ export class GlassClimateCard extends BaseCard {
     }
     .preset-row::-webkit-scrollbar { display: none; }
 
-    /* ── Air section (Fan, Swing, Humidity, Aux) ── */
+    /* ── Air section (Fan, Swing, Humidity, Aux) ──
+       Section title via <glass-section-title> (uppercase eyebrow, no
+       leading dot). Pills via <glass-chip size=sm>. */
     .air-section { display: flex; flex-direction: column; gap: 0.5rem; }
-    .air-section-title {
-      display: flex; align-items: center; gap: 0.4375rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .air-section-title::before {
-      content: ''; flex-shrink: 0;
-      width: 0.3125rem; height: 0.3125rem; border-radius: 50%;
-      background: var(--t3); opacity: 0.7;
-    }
     .air-row {
-      display: flex; align-items: center; gap: 0.5rem; min-height: 1.875rem;
+      display: flex; align-items: center; gap: 0.625rem; min-height: 2rem;
     }
     .air-row-label {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
-      flex-shrink: 0; min-width: 3.25rem;
+      flex-shrink: 0; min-width: 4rem;
+      text-transform: capitalize;
     }
     .air-pills {
-      display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
+      display: flex; gap: 0.375rem; overflow-x: auto; scrollbar-width: none;
       flex: 1; min-width: 0;
+      padding: 0 0.0625rem;
     }
     .air-pills::-webkit-scrollbar { display: none; }
-    .air-pill {
-      position: relative;
-      padding: 0.3125rem 0.625rem; border-radius: var(--radius-sm);
-      background: var(--s1); border: 1px solid var(--b1);
-      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-      color: var(--t3); cursor: pointer; outline: none;
-      transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      white-space: nowrap; flex-shrink: 0;
+    .air-pills glass-chip {
+      flex-shrink: 0;
       text-transform: capitalize;
-      -webkit-tap-highlight-color: transparent;
-    }
-    @media (pointer: coarse) {
-      .air-pill::after {
-        content: ''; position: absolute; left: 0; right: 0; top: -0.5rem; bottom: -0.5rem;
-      }
-    }
-    .air-pill:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .air-pill:not(.active):hover { background: var(--s2); color: var(--t2); }
-    }
-    @media (hover: hover) { .air-pill:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .air-pill:active { animation: bounce 0.3s ease; } }
-    .air-pill.active {
-      background: var(--s3); color: var(--t1); border-color: var(--b3);
     }
 
     /* Reduced motion: kill all non-essential animations */

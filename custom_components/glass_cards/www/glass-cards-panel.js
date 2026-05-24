@@ -8512,7 +8512,7 @@
             <div class="cl-temp-current">${s?"--":null!=n?V`${n.toFixed(1)}<span class="unit">°</span>`:"--"}</div>
             ${r||null==c?W:V`<div class="cl-temp-target">→ ${c.toFixed(1)}°</div>`}
           </div>
-          ${s?V`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:V`<div class="cl-dot"></div>`}
+          ${s?V`<span class="unavailable-badge"><ha-icon .icon=${"mdi:alert-circle-outline"}></ha-icon></span>`:W}
         </button>
       </div>
     `}_renderListFold(e,t){const i=this._expanded===e;if(qt(t.state))return W;const a=this._getHvacAction(t),s="cooling"===a?"cool":"",r=this._renderListTempControl(e,t);return V`
@@ -8625,18 +8625,18 @@
       `:W}
     `}_renderAirSection(e,t){const i=t.attributes.supported_features||0,a="off"===t.state,s=!a&&i&vs&&t.attributes.fan_modes||[],r=!a&&i&ys&&t.attributes.swing_modes||[],o=!a&&!!(i&fs)&&null!=t.attributes.humidity,n=!!(i&ws);if(!(s.length||r.length||o||n))return W;const c=t.attributes.fan_mode,l=t.attributes.swing_mode;return V`
       <div class="air-section">
-        <div class="air-section-title">${oi("climate.section_air")}</div>
         ${s.length?V`
           <div class="air-row">
             <span class="air-row-label">${oi("climate.fan_mode")}</span>
             <div class="air-pills">
               ${s.map(t=>V`
-                <button
-                  class="air-pill ${t===c?"active":""}"
-                  @click=${()=>this._setFanMode(e,t)}
+                <glass-chip
+                  size="sm"
+                  active-color="info"
+                  ?active=${t===c}
                   aria-label="${oi("climate.fan_mode")}: ${t}"
-                  aria-pressed=${t===c?"true":"false"}
-                >${t.replace(/_/g," ")}</button>
+                  @click=${()=>this._setFanMode(e,t)}
+                >${t.replace(/_/g," ")}</glass-chip>
               `)}
             </div>
           </div>
@@ -8646,12 +8646,13 @@
             <span class="air-row-label">${oi("climate.swing_mode")}</span>
             <div class="air-pills">
               ${r.map(t=>V`
-                <button
-                  class="air-pill ${t===l?"active":""}"
-                  @click=${()=>this._setSwingMode(e,t)}
+                <glass-chip
+                  size="sm"
+                  active-color="info"
+                  ?active=${t===l}
                   aria-label="${oi("climate.swing_mode")}: ${t}"
-                  aria-pressed=${t===l?"true":"false"}
-                >${t.replace(/_/g," ")}</button>
+                  @click=${()=>this._setSwingMode(e,t)}
+                >${t.replace(/_/g," ")}</glass-chip>
               `)}
             </div>
           </div>
@@ -8696,7 +8697,7 @@
     </div>
   `}(t,()=>this._toggleAuxHeat(e,t)):W}
       </div>
-    `}_renderNormalMode(e){const t=this._dashboardEntities.length>0||(this._roomConfig?.entity_order?.length??0)>0?e:[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(qs[i]??3)-(qs[a]??3)}),i=this._selectedEntity||t[0]?.entity_id,a=t.find(e=>e.entity_id===i)||t[0];if(!a)return V``;const s=this._getHvacAction(a),r="heating"===s||"preheating"===s?"heat":"cooling"===s?"cool":"auto"===a.state||"heat_cool"===a.state?"auto-tint":"",o="heating"===s||"preheating"===s?"heat-sep":"cooling"===s?"cool-sep":"",n=this._bindGesture({onTap:()=>{this._toggle(a.entity_id,a,new Event("tap"))},onLongPress:()=>{this._foldOpen=!this._foldOpen;const e=this.renderRoot.querySelector(".climate-card");e&&(e.classList.add("lp-pulse"),e.addEventListener("animationend",()=>e.classList.remove("lp-pulse"),{once:!0}))},onSwipe:e=>{if(t.length<=1)return;const a=t.findIndex(e=>e.entity_id===i),s="left"===e?(a+1)%t.length:(a-1+t.length)%t.length;this._selectedEntity=t[s].entity_id},exclude:"button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile, .air-pill"});return V`
+    `}_renderNormalMode(e){const t=this._dashboardEntities.length>0||(this._roomConfig?.entity_order?.length??0)>0?e:[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(qs[i]??3)-(qs[a]??3)}),i=this._selectedEntity||t[0]?.entity_id,a=t.find(e=>e.entity_id===i)||t[0];if(!a)return V``;const s=this._getHvacAction(a),r="heating"===s||"preheating"===s?"heat":"cooling"===s?"cool":"auto"===a.state||"heat_cool"===a.state?"auto-tint":"",o="heating"===s||"preheating"===s?"heat-sep":"cooling"===s?"cool-sep":"",n=this._bindGesture({onTap:()=>{this._toggle(a.entity_id,a,new Event("tap"))},onLongPress:()=>{this._foldOpen=!this._foldOpen;const e=this.renderRoot.querySelector(".climate-card");e&&(e.classList.add("lp-pulse"),e.addEventListener("animationend",()=>e.classList.remove("lp-pulse"),{once:!0}))},onSwipe:e=>{if(t.length<=1)return;const a=t.findIndex(e=>e.entity_id===i),s="left"===e?(a+1)%t.length:(a-1+t.length)%t.length;this._selectedEntity=t[s].entity_id},exclude:"button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile"});return V`
       ${this._showHeader?this._renderHeader(e):W}
       <div class="climate-wrap ${this._foldOpen?"fold-open":""}">
         <div class="glass climate-card normal-mode"
@@ -8952,20 +8953,10 @@
     .cl-row[data-action="preheating"] .cl-temp-target { color: var(--cl-heat-sub); }
     .cl-row[data-action="cooling"] .cl-temp-target { color: var(--cl-cool-sub); }
 
-    /* ── Dot ── */
-    .cl-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
-    }
-    .cl-row[data-action="heating"] .cl-dot,
-    .cl-row[data-action="preheating"] .cl-dot {
-      background: var(--cl-heat); box-shadow: 0 0 8px var(--cl-heat-glow);
-    }
-    .cl-row[data-action="cooling"] .cl-dot {
-      background: var(--cl-cool); box-shadow: 0 0 8px var(--cl-cool-glow);
-    }
+    /* Status dot removed per design feedback — heating/cooling state is
+       already conveyed by the row tint + temperature color (cl-temp-target). */
 
-    /* Unavailable badge inline (replaces dot) */
+    /* Unavailable badge inline */
     .cl-expand-area .unavailable-badge {
       position: static;
       flex-shrink: 0;
@@ -9323,54 +9314,27 @@
     }
     .preset-row::-webkit-scrollbar { display: none; }
 
-    /* ── Air section (Fan, Swing, Humidity, Aux) ── */
+    /* ── Air section (Fan, Swing, Humidity, Aux) ──
+       Section title via <glass-section-title> (uppercase eyebrow, no
+       leading dot). Pills via <glass-chip size=sm>. */
     .air-section { display: flex; flex-direction: column; gap: 0.5rem; }
-    .air-section-title {
-      display: flex; align-items: center; gap: 0.4375rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .air-section-title::before {
-      content: ''; flex-shrink: 0;
-      width: 0.3125rem; height: 0.3125rem; border-radius: 50%;
-      background: var(--t3); opacity: 0.7;
-    }
     .air-row {
-      display: flex; align-items: center; gap: 0.5rem; min-height: 1.875rem;
+      display: flex; align-items: center; gap: 0.625rem; min-height: 2rem;
     }
     .air-row-label {
       font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
-      flex-shrink: 0; min-width: 3.25rem;
+      flex-shrink: 0; min-width: 4rem;
+      text-transform: capitalize;
     }
     .air-pills {
-      display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
+      display: flex; gap: 0.375rem; overflow-x: auto; scrollbar-width: none;
       flex: 1; min-width: 0;
+      padding: 0 0.0625rem;
     }
     .air-pills::-webkit-scrollbar { display: none; }
-    .air-pill {
-      position: relative;
-      padding: 0.3125rem 0.625rem; border-radius: var(--radius-sm);
-      background: var(--s1); border: 1px solid var(--b1);
-      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-      color: var(--t3); cursor: pointer; outline: none;
-      transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      white-space: nowrap; flex-shrink: 0;
+    .air-pills glass-chip {
+      flex-shrink: 0;
       text-transform: capitalize;
-      -webkit-tap-highlight-color: transparent;
-    }
-    @media (pointer: coarse) {
-      .air-pill::after {
-        content: ''; position: absolute; left: 0; right: 0; top: -0.5rem; bottom: -0.5rem;
-      }
-    }
-    .air-pill:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .air-pill:not(.active):hover { background: var(--s2); color: var(--t2); }
-    }
-    @media (hover: hover) { .air-pill:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .air-pill:active { animation: bounce 0.3s ease; } }
-    .air-pill.active {
-      background: var(--s3); color: var(--t1); border-color: var(--b3);
     }
 
     /* Reduced motion: kill all non-essential animations */
