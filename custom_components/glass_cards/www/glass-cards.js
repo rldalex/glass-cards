@@ -4835,14 +4835,15 @@
 
     /* ── Air section (Fan, Swing, Humidity, Aux) ──
        Each row is a stacked group: <glass-section-title> eyebrow on
-       top, pills below. Pills via <glass-chip size=sm>. */
-    .air-section { display: flex; flex-direction: column; gap: 0.75rem; }
+       top, pills below. The eyebrow already brings its own
+       margin-bottom (0.375rem) so the row has no extra gap. */
+    .air-section { display: flex; flex-direction: column; gap: 0.625rem; }
     .air-row {
-      display: flex; flex-direction: column; gap: 0.375rem;
+      display: flex; flex-direction: column;
     }
     .air-pills {
       display: flex; gap: 0.375rem; overflow-x: auto; scrollbar-width: none;
-      padding: 0 0.0625rem;
+      padding: 0 0.375rem;
     }
     .air-pills::-webkit-scrollbar { display: none; }
     .air-pills glass-chip {
