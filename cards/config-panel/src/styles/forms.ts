@@ -213,11 +213,19 @@ export const formStyles = css`
       /* ── Chip (UI kit) ── */
       .chip {
         display: inline-flex; align-items: center; gap: 0.25rem;
+        min-height: 2rem;
         padding: 0.25rem 0.75rem; border-radius: var(--radius-md);
         border: 1px solid var(--b2); background: var(--s1);
         font-family: inherit; font-size: var(--fz-base); font-weight: 600;
         color: var(--t3); cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
         outline: none; -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+      /* Hit-area extension: 32px visual reaches 44px tactile on coarse. */
+      .chip::before {
+        content: '';
+        position: absolute;
+        inset: -0.375rem 0;
       }
       @media (hover: hover) and (pointer: fine) {
         .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
@@ -540,6 +548,13 @@ export const formStyles = css`
         outline: none;
         -webkit-tap-highlight-color: transparent;
         --mdc-icon-size: 1rem;
+        position: relative;
+      }
+      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
+      .schedule-btn::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
       }
       .schedule-btn.active {
         color: var(--c-accent);
@@ -1198,7 +1213,8 @@ export const formStyles = css`
       .presets-btn::before {
         content: '';
         position: absolute;
-        inset: -0.5rem;
+        /* 26px visual + 0.625rem × 2 (20px) = 46px tactile on coarse. */
+        inset: -0.625rem;
       }
       .presets-btn ha-icon { display: flex; align-items: center; justify-content: center; color: var(--t3); }
       @media (hover: hover) and (pointer: fine) {
@@ -1512,7 +1528,8 @@ export const formStyles = css`
       .title-color-swatch::before {
         content: '';
         position: absolute;
-        inset: -0.5rem;
+        /* 26px visual + 0.625rem × 2 (20px) = 46px tactile on coarse. */
+        inset: -0.625rem;
       }
       .title-color-swatch:hover { transform: scale(1.1); }
       .title-color-swatch:focus-visible {
