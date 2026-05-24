@@ -504,9 +504,7 @@ try { customElements.define('primitives-showcase', PrimitivesShowcase); } catch 
 export async function setupPrimitives(): Promise<void> {
   await import('@glass-cards/ui-core');
 
-  // Match Home Assistant's default root font-size so rem values render at
-  // the same scale as production (HA: 14px / browser default: 16px).
-  document.documentElement.style.fontSize = '14px';
+  // (font-size 14px is set globally in dev-entrypoint.ts boot.)
   document.body.replaceChildren();
   document.body.style.cssText = `
     font-family: 'Plus Jakarta Sans', sans-serif;

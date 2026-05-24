@@ -117,6 +117,11 @@ const SETUPS: SetupEntry[] = [
 
 // ───────────────────────── Boot ─────────────────────────
 
+// Align the harness root font-size with Home Assistant (14px) so every
+// `rem` in the codebase renders at the same physical scale here as on
+// production. Set once, globally, before any setup runs.
+document.documentElement.style.fontSize = '14px';
+
 installHistoryIntercept();
 getThemeManager().applyAmbient('day');
 

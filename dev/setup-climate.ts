@@ -63,9 +63,8 @@ export async function setupClimate(): Promise<void> {
 // ───────────────────────── shared layout helpers ─────────────────────────
 
 export function layoutHarness(): { toolbar: HTMLDivElement; stage: HTMLDivElement } {
-  // Match Home Assistant's default root font-size so rem values render at
-  // the same scale as production (HA: 14px / browser default: 16px).
-  document.documentElement.style.fontSize = '14px';
+  // (font-size 14px is set globally in dev-entrypoint.ts boot; this line
+  // is intentionally not re-applied here so setups never override it.)
   document.body.replaceChildren();
   document.body.style.cssText = `
     font-family: 'Plus Jakarta Sans', sans-serif;
