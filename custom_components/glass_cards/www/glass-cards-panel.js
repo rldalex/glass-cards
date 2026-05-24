@@ -1835,15 +1835,8 @@
       .room-button-entity-dropdown {
         margin-bottom: 0;
       }
-      .room-button-entity-dropdown .dropdown-trigger {
-        min-height: var(--tap-lg);
-      }
-      .room-button-entity-dropdown .dropdown-trigger > span {
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      /* min-height + label ellipsis already provided by glass-dropdown's
+         internal .trigger / .trigger .label — no override needed. */
       .room-button-icon-trigger {
         position: relative;
         display: inline-flex;
@@ -1905,13 +1898,11 @@
         outline: 2px solid var(--c-alert);
         outline-offset: 2px;
       }
-      .room-button-row .dropdown {
+      .room-button-row glass-dropdown {
         margin-bottom: 0;
       }
-      .room-button-row .dropdown-trigger[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+      /* glass-dropdown already applies opacity 0.5 + pointer-events:none on
+         :host([disabled]) via its internal styles. */
       .room-button-input {
         flex: 1;
         min-width: 0;
@@ -2236,10 +2227,10 @@
         border-radius: var(--radius-md);
         border: 1px solid var(--b1);
       }
-      .presence-mapping-card .presence-mapping-field .dropdown {
+      .presence-mapping-card .presence-mapping-field glass-dropdown {
         margin-bottom: 0;
       }
-      .presence-mapping-card .presence-mapping-field .dropdown-trigger {
+      .presence-mapping-card .presence-mapping-field glass-dropdown::part(trigger) {
         padding: 0.375rem 0.625rem;
         font-size: var(--fz-sm);
       }
@@ -4232,7 +4223,7 @@
         ?disabled=${this.disabled}
         aria-label=${this.ariaLabel??`color ${this.color}`}
         aria-pressed=${this.selected?"true":"false"}
-      >${this.withCheck?N`<ha-icon class="check" .icon=${"mdi:check"}></ha-icon>`:""}</button>
+      >${this.withCheck?N`<ha-icon class="check" .icon=${"mdi:check"}></ha-icon>`:W}</button>
     `}}st([pe({type:String})],rt.prototype,"color"),st([pe({type:Boolean,reflect:!0})],rt.prototype,"selected"),st([pe({type:Boolean,reflect:!0})],rt.prototype,"disabled"),st([pe({type:Boolean,reflect:!0,attribute:"with-check"})],rt.prototype,"withCheck"),st([pe({type:String,attribute:"aria-label"})],rt.prototype,"ariaLabel");try{customElements.define("glass-color-swatch",rt)}catch{}var ot=Object.defineProperty,nt=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&ot(t,i,r),r};class ct extends ne{constructor(){super(...arguments),this.value="",this.placeholder="",this.type="text",this.multiline=!1,this.rows=3,this.disabled=!1,this.ariaLabel=null}static{this.styles=[r`
       :host {
         display: block;
@@ -4282,21 +4273,19 @@
         flex-shrink: 0;
         margin-right: 0.25rem;
       }
-    `]}focusInput(){this._input?.focus()}getValue(){return this._input?.value??this.value}_onInput(e){const t=e.target;this.value=t.value,this.dispatchEvent(new CustomEvent("glass-input",{detail:{value:this.value},bubbles:!0,composed:!0}))}_onKey(e){"Enter"!==e.key||this.multiline||e.shiftKey||(e.preventDefault(),this.dispatchEvent(new CustomEvent("glass-submit",{detail:{value:this.value},bubbles:!0,composed:!0})))}render(){return N`
+    `]}focusInput(){this._input?.focus()}getValue(){return this._input?.value??this.value}_onInput(e){const t=e.target;this.value=t.value,this.dispatchEvent(new CustomEvent("glass-input",{detail:{value:this.value},bubbles:!0,composed:!0}))}_onKey(e){"Enter"!==e.key||this.multiline||e.shiftKey||(e.preventDefault(),this.dispatchEvent(new CustomEvent("glass-submit",{detail:{value:this.value},bubbles:!0,composed:!0})))}updated(e){super.updated(e),e.has("value")&&this._input&&this._input.value!==this.value&&(this._input.value=this.value)}render(){return N`
       <div class="wrapper">
         ${this.multiline?N`<textarea
               class="input"
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               rows=${this.rows}
               maxlength=${this.maxLength??""}
               aria-label=${this.ariaLabel??""}
               @input=${this._onInput}
-            ></textarea>`:N`<input
+            >${this.value}</textarea>`:N`<input
               class="input"
               type=${this.type}
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               maxlength=${this.maxLength??""}
@@ -4306,7 +4295,7 @@
             />`}
         <slot name="trailing"></slot>
       </div>
-    `}}nt([pe({type:String})],ct.prototype,"value"),nt([pe({type:String})],ct.prototype,"placeholder"),nt([pe({type:String})],ct.prototype,"type"),nt([pe({type:Boolean})],ct.prototype,"multiline"),nt([pe({type:Number})],ct.prototype,"rows"),nt([pe({type:Boolean})],ct.prototype,"disabled"),nt([pe({type:Number,attribute:"max-length"})],ct.prototype,"maxLength"),nt([pe({type:String,attribute:"aria-label"})],ct.prototype,"ariaLabel"),nt([ue(".input")],ct.prototype,"_input");try{customElements.define("glass-form-input",ct)}catch{}var lt=Object.defineProperty,dt=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&lt(t,i,r),r};class ht extends ne{constructor(){super(...arguments),this.icon="",this.variant="secondary",this.size="md",this.disabled=!1,this.loading=!1,this.ariaLabel=null}static{this.styles=[r`
+    `}firstUpdated(){this._input&&this._input.value!==this.value&&(this._input.value=this.value)}}nt([pe({type:String})],ct.prototype,"value"),nt([pe({type:String})],ct.prototype,"placeholder"),nt([pe({type:String})],ct.prototype,"type"),nt([pe({type:Boolean})],ct.prototype,"multiline"),nt([pe({type:Number})],ct.prototype,"rows"),nt([pe({type:Boolean})],ct.prototype,"disabled"),nt([pe({type:Number,attribute:"max-length"})],ct.prototype,"maxLength"),nt([pe({type:String,attribute:"aria-label"})],ct.prototype,"ariaLabel"),nt([ue(".input")],ct.prototype,"_input");try{customElements.define("glass-form-input",ct)}catch{}var lt=Object.defineProperty,dt=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&lt(t,i,r),r};class ht extends ne{constructor(){super(...arguments),this.icon="",this.variant="secondary",this.size="md",this.disabled=!1,this.loading=!1,this.ariaLabel=null}static{this.styles=[r`
       :host {
         display: inline-flex;
         box-sizing: border-box;
@@ -4457,7 +4446,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform var(--t-fast);
+        /* Use --t-med for a calmer rotation (matches the legacy
+           .section-chevron timing previously used in the config-panel). */
+        transition: transform var(--t-med);
         transform-origin: center;
       }
       :host([size='sm']) ha-icon { --mdc-icon-size: 0.75rem; }
@@ -4563,6 +4554,7 @@
       }
       :host([variant='inline']) {
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.625rem;
         padding: 0.875rem 1rem;
         border: 1px dashed var(--b2);
@@ -4570,6 +4562,21 @@
         color: var(--t3);
         font-size: var(--fz-sm);
         text-align: left;
+      }
+      :host([variant='inline']) .title {
+        flex: 1;
+        min-width: 0;
+      }
+      /* In inline mode, push action buttons to a new row so they don't
+         get crammed between title and the wrapper's right edge. */
+      :host([variant='inline']) .actions {
+        flex-basis: 100%;
+        margin-top: 0;
+      }
+      /* And collapse the actions container entirely when no slotted
+         children — prevents an empty row from adding spacing. */
+      :host([variant='inline']) .actions:empty {
+        display: none;
       }
 
       .icon-wrap {
@@ -4870,6 +4877,7 @@
       <button
         type="button"
         class="trigger"
+        part="trigger"
         ?disabled=${this.disabled}
         aria-haspopup="listbox"
         aria-expanded=${this._open?"true":"false"}
@@ -4877,14 +4885,15 @@
         @click=${this._toggleOpen}
         @keydown=${this._onKeyDown}
       >
-        ${t?.icon?N`<ha-icon .icon=${t.icon}></ha-icon>`:this.icon?N`<ha-icon .icon=${this.icon}></ha-icon>`:null}
-        <span class="label ${t?"":"empty"}">${i}</span>
+        ${t?.icon?N`<ha-icon .icon=${t.icon}></ha-icon>`:this.icon?N`<ha-icon .icon=${this.icon}></ha-icon>`:W}
+        <span class="label ${t?"":"empty"}" part="label">${i}</span>
         <glass-chevron ?open=${this._open} size="sm" tone="muted"></glass-chevron>
       </button>
-      <div class="menu ${this._open?"open":""}" role="listbox">
+      <div class="menu ${this._open?"open":""}" part="menu" role="listbox">
         ${this.searchable?N`
           <input
             class="dropdown-search"
+            part="search"
             type="text"
             .value=${this._query}
             placeholder=${this.searchPlaceholder}
@@ -4892,16 +4901,17 @@
             @keydown=${this._onKeyDown}
           />
         `:W}
-        ${0===e.length?N`<div class="empty">${this.emptyText}</div>`:e.map((e,t)=>N`
+        ${0===e.length?N`<div class="empty" part="empty">${this.emptyText}</div>`:e.map((e,t)=>N`
               <button
                 type="button"
                 role="option"
                 class="item ${e.value===this.value?"selected":""} ${t===this._activeIndex?"active-row":""}"
+                part="item ${e.value===this.value?"item-selected":""}"
                 aria-selected=${e.value===this.value?"true":"false"}
                 @click=${()=>this._selectItem(e.value)}
                 @mouseenter=${()=>{this._activeIndex=t}}
               >
-                ${e.icon?N`<ha-icon .icon=${e.icon}></ha-icon>`:null}
+                ${e.icon?N`<ha-icon .icon=${e.icon}></ha-icon>`:W}
                 <span>${e.label}</span>
               </button>
             `)}
@@ -7165,7 +7175,7 @@
           .items=${o}
           .value=${i}
           .label=${i?r||i:ri("config.room_button_entity_placeholder")}
-          icon=${d}
+          .icon=${d??""}
           searchable
           search-placeholder=${ri("config.room_button_entity_search")}
           empty-text=${ri("config.room_button_entity_empty")}

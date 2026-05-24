@@ -1844,15 +1844,8 @@ export const baseStyles = css`
       .room-button-entity-dropdown {
         margin-bottom: 0;
       }
-      .room-button-entity-dropdown .dropdown-trigger {
-        min-height: var(--tap-lg);
-      }
-      .room-button-entity-dropdown .dropdown-trigger > span {
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      /* min-height + label ellipsis already provided by glass-dropdown's
+         internal .trigger / .trigger .label — no override needed. */
       .room-button-icon-trigger {
         position: relative;
         display: inline-flex;
@@ -1914,13 +1907,11 @@ export const baseStyles = css`
         outline: 2px solid var(--c-alert);
         outline-offset: 2px;
       }
-      .room-button-row .dropdown {
+      .room-button-row glass-dropdown {
         margin-bottom: 0;
       }
-      .room-button-row .dropdown-trigger[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+      /* glass-dropdown already applies opacity 0.5 + pointer-events:none on
+         :host([disabled]) via its internal styles. */
       .room-button-input {
         flex: 1;
         min-width: 0;

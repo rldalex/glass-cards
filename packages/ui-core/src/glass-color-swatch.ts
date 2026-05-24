@@ -1,4 +1,4 @@
-import { LitElement, html, css, type CSSResult } from 'lit';
+import { LitElement, html, css, nothing, type CSSResult } from 'lit';
 import { property } from 'lit/decorators.js';
 
 /**
@@ -98,7 +98,7 @@ export class GlassColorSwatch extends LitElement {
         ?disabled=${this.disabled}
         aria-label=${this.ariaLabel ?? `color ${this.color}`}
         aria-pressed=${this.selected ? 'true' : 'false'}
-      >${this.withCheck ? html`<ha-icon class="check" .icon=${'mdi:check'}></ha-icon>` : ''}</button>
+      >${this.withCheck ? html`<ha-icon class="check" .icon=${'mdi:check'}></ha-icon>` : nothing}</button>
     `;
   }
 }

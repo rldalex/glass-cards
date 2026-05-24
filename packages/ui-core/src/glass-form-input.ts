@@ -1,4 +1,4 @@
-import { LitElement, html, css, type CSSResult } from 'lit';
+import { LitElement, html, css, type CSSResult, type PropertyValues } from 'lit';
 import { property, query } from 'lit/decorators.js';
 
 /**
@@ -105,24 +105,37 @@ export class GlassFormInput extends LitElement {
     }
   }
 
+  /**
+   * Sync `this.value` to the underlying input only when it actually
+   * diverges. Skipping the assign when string-equal preserves the user's
+   * caret position during parent re-renders (Lit's `.value=` would
+   * otherwise re-apply the property every render and reset the cursor
+   * to the end of the field on each keystroke when the parent passes
+   * the value back through a controlled binding).
+   */
+  protected updated(changed: PropertyValues): void {
+    super.updated(changed);
+    if (changed.has('value') && this._input && this._input.value !== this.value) {
+      this._input.value = this.value;
+    }
+  }
+
   protected render() {
     return html`
       <div class="wrapper">
         ${this.multiline
           ? html`<textarea
               class="input"
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               rows=${this.rows}
               maxlength=${this.maxLength ?? ''}
               aria-label=${this.ariaLabel ?? ''}
               @input=${this._onInput}
-            ></textarea>`
+            >${this.value}</textarea>`
           : html`<input
               class="input"
               type=${this.type}
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               maxlength=${this.maxLength ?? ''}
@@ -133,6 +146,12 @@ export class GlassFormInput extends LitElement {
         <slot name="trailing"></slot>
       </div>
     `;
+  }
+
+  protected firstUpdated(): void {
+    if (this._input && this._input.value !== this.value) {
+      this._input.value = this.value;
+    }
   }
 }
 

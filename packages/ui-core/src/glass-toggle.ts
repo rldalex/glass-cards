@@ -15,6 +15,11 @@ import { property } from 'lit/decorators.js';
  * parent owns interactivity; the toggle is purely visual, tracking
  * `checked` to flip the knob.
  *
+ * IMPORTANT: in presentation mode you MUST provide interactivity on a
+ * parent element (role=switch + @click that flips `checked` via the
+ * parent's state). Without it the toggle is decorative only and won't
+ * respond to user input — silent failure with no runtime warning.
+ *
  * @fires glass-toggle-change — { checked: boolean }
  */
 export class GlassToggle extends LitElement {
