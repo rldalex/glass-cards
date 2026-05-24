@@ -8,7 +8,7 @@ import {
   type EntityRegistryEntry,
 } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, tappableMixin } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 // — Feature bitmask (HA CameraEntityFeature) —
@@ -533,7 +533,7 @@ class GlassCameraCarouselCard extends BaseCard {
   // — Swipe handlers —
 
   private _onPointerDown = (e: PointerEvent) => {
-    if ((e.target as HTMLElement).closest('.carousel-nav')) return;
+    if ((e.target as HTMLElement).closest('glass-icon-button, .carousel-nav')) return;
     this._touchStartX = e.clientX;
     this._touchDelta = 0;
     this._isSwiping = true;
@@ -647,7 +647,7 @@ class GlassCameraCarouselCard extends BaseCard {
         if (eid && !this._liveIds.has(eid)) this._startStream(eid);
       },
       onLongPress: () => { this._isSwiping = false; this._trackEl = null; this._foldOpen = !this._foldOpen; },
-      exclude: '.carousel-nav',
+      exclude: 'glass-icon-button',
     });
 
     return html`
@@ -671,12 +671,20 @@ class GlassCameraCarouselCard extends BaseCard {
             ${ids.map((eid, idx) => this._renderSlide(eid, idx === this._carouselIndex))}
           </div>
           ${ids.length > 1 ? html`
-            <button class="carousel-nav prev" aria-label="${t('camera.prev_aria')}" @click=${this._prev}>
-              <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
-            </button>
-            <button class="carousel-nav next" aria-label="${t('camera.next_aria')}" @click=${this._next}>
-              <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
-            </button>
+            <glass-icon-button
+              class="carousel-nav prev"
+              size="md"
+              .icon=${'mdi:chevron-left'}
+              aria-label="${t('camera.prev_aria')}"
+              @click=${this._prev}
+            ></glass-icon-button>
+            <glass-icon-button
+              class="carousel-nav next"
+              size="md"
+              .icon=${'mdi:chevron-right'}
+              aria-label="${t('camera.next_aria')}"
+              @click=${this._next}
+            ></glass-icon-button>
           ` : nothing}
           ${ids.length > 1 ? html`
             <div class="carousel-dots">
@@ -773,7 +781,7 @@ class GlassCameraCarouselCard extends BaseCard {
   private _renderDot(entityId: string, idx: number): TemplateResult {
     const cam = this._getCameraInfo(entityId);
     const isActive = idx === this._carouselIndex;
-    let cls = 'carousel-dot-btn';
+    let cls = 'carousel-dot-btn tappable';
     if (isActive) cls += ' active';
     if (cam?.aiDetected.length) cls += ' motion-dot';
 
@@ -816,10 +824,13 @@ class GlassCameraCarouselCard extends BaseCard {
     if (!cam.isOn) {
       return html`
         <div class="carousel-actions">
-          <button class="action-btn" @click=${() => this._togglePower(cam)} aria-label="${t('camera.power_on')}">
-            <ha-icon .icon=${'mdi:power'} style="--mdc-icon-size:14px"></ha-icon>
-            ${t('camera.power_on')}
-          </button>
+          <glass-button
+            size="sm"
+            variant="ghost"
+            .icon=${'mdi:power'}
+            aria-label="${t('camera.power_on')}"
+            @click=${() => this._togglePower(cam)}
+          >${t('camera.power_on')}</glass-button>
         </div>
       `;
     }
@@ -832,44 +843,71 @@ class GlassCameraCarouselCard extends BaseCard {
     return html`
       <div class="carousel-actions">
         ${hasPower ? html`
-          <button class="action-btn active" @click=${() => this._togglePower(cam)} aria-label="${t('camera.power_off')}">
-            <ha-icon .icon=${'mdi:power'} style="--mdc-icon-size:14px"></ha-icon>
-          </button>
+          <glass-icon-button
+            size="md"
+            .icon=${'mdi:power'}
+            ?active=${true}
+            active-color="alert"
+            aria-label="${t('camera.power_off')}"
+            @click=${() => this._togglePower(cam)}
+          ></glass-icon-button>
         ` : nothing}
-        <button class="action-btn" @click=${() => this._snapshot(cam)} aria-label="${t('camera.snapshot')}">
-          <ha-icon .icon=${'mdi:camera'} style="--mdc-icon-size:14px"></ha-icon>
-          ${t('camera.snapshot')}
-        </button>
+        <glass-button
+          size="sm"
+          variant="ghost"
+          .icon=${'mdi:camera'}
+          aria-label="${t('camera.snapshot')}"
+          @click=${() => this._snapshot(cam)}
+        >${t('camera.snapshot')}</glass-button>
         ${cam.recordSwitchId ? html`
-          <button class="action-btn ${cam.isRecording ? 'active-alert' : ''}" @click=${() => this._toggleRecord(cam)}
-            aria-label="${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}">
-            <ha-icon .icon=${cam.isRecording ? 'mdi:record-circle' : 'mdi:record'} style="--mdc-icon-size:14px"></ha-icon>
-            ${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}
-          </button>
+          <glass-button
+            size="sm"
+            variant="ghost"
+            .icon=${cam.isRecording ? 'mdi:record-circle' : 'mdi:record'}
+            class=${cam.isRecording ? 'rec-active' : ''}
+            aria-label="${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}"
+            @click=${() => this._toggleRecord(cam)}
+          >${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}</glass-button>
         ` : nothing}
         ${cam.motionDetectionSupported ? html`
-          <button class="action-btn ${cam.motionDetectionEnabled ? 'active' : ''}" @click=${() => this._toggleMotion(cam)}
-            aria-label="${cam.motionDetectionEnabled ? t('camera.motion_on_aria') : t('camera.motion_off_aria')}">
-            <ha-icon .icon=${cam.motionDetectionEnabled ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off'} style="--mdc-icon-size:14px"></ha-icon>
-          </button>
+          <glass-icon-button
+            size="md"
+            .icon=${cam.motionDetectionEnabled ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off'}
+            ?active=${cam.motionDetectionEnabled}
+            active-color="alert"
+            aria-label="${cam.motionDetectionEnabled ? t('camera.motion_on_aria') : t('camera.motion_off_aria')}"
+            @click=${() => this._toggleMotion(cam)}
+          ></glass-icon-button>
         ` : nothing}
         ${cam.sirenId ? html`
-          <button class="action-btn ${sirenOn ? 'active-alert' : ''}" @click=${() => this._toggleSiren(cam)}
-            aria-label="${t('camera.siren_aria')}">
-            <ha-icon .icon=${'mdi:bullhorn'} style="--mdc-icon-size:14px"></ha-icon>
-          </button>
+          <glass-icon-button
+            size="md"
+            .icon=${'mdi:bullhorn'}
+            ?active=${sirenOn}
+            active-color="alert"
+            aria-label="${t('camera.siren_aria')}"
+            @click=${() => this._toggleSiren(cam)}
+          ></glass-icon-button>
         ` : nothing}
         ${cam.floodlightId ? html`
-          <button class="action-btn ${floodOn ? 'active-warning' : ''}" @click=${() => this._toggleFloodlight(cam)}
-            aria-label="${t('camera.floodlight_aria')}">
-            <ha-icon .icon=${floodOn ? 'mdi:flashlight' : 'mdi:flashlight-off'} style="--mdc-icon-size:14px"></ha-icon>
-          </button>
+          <glass-icon-button
+            size="md"
+            .icon=${floodOn ? 'mdi:flashlight' : 'mdi:flashlight-off'}
+            ?active=${floodOn}
+            active-color="warning"
+            aria-label="${t('camera.floodlight_aria')}"
+            @click=${() => this._toggleFloodlight(cam)}
+          ></glass-icon-button>
         ` : nothing}
         ${cam.autoTrackId ? html`
-          <button class="action-btn ${autoTrackOn ? 'active' : ''}" @click=${() => this._toggleAutoTrack(cam)}
-            aria-label="${t('camera.auto_track_aria')}">
-            <ha-icon .icon=${'mdi:target-account'} style="--mdc-icon-size:14px"></ha-icon>
-          </button>
+          <glass-icon-button
+            size="md"
+            .icon=${'mdi:target-account'}
+            ?active=${autoTrackOn}
+            active-color="alert"
+            aria-label="${t('camera.auto_track_aria')}"
+            @click=${() => this._toggleAutoTrack(cam)}
+          ></glass-icon-button>
         ` : nothing}
       </div>
     `;
@@ -884,6 +922,7 @@ class GlassCameraCarouselCard extends BaseCard {
     foldMixin,
     marqueeMixin,
     bounceMixin,
+    tappableMixin,
     css`
       :host {
         width: 100%;
@@ -1040,30 +1079,16 @@ class GlassCameraCarouselCard extends BaseCard {
       .stream-placeholder span { font-size: var(--fz-sm); color: var(--t4); font-weight: 500; }
       button.stream-placeholder { position: absolute; inset: 0; width: 100%; height: 100%; justify-content: center; }
 
-      /* — Nav arrows — */
+      /* — Nav arrows (positioning overlay for <glass-icon-button>) — */
       .carousel-nav {
         position: absolute; top: 50%; transform: translateY(-50%);
-        width: 2rem; height: 2rem; border-radius: 50%;
-        background: rgba(var(--rgb-black),0.4); border: 1px solid rgba(var(--rgb-white),0.1);
-        -webkit-backdrop-filter: var(--blur-sm);
-        backdrop-filter: var(--blur-sm);
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; padding: 0; outline: none;
-        font-family: inherit; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1);
-        -webkit-tap-highlight-color: transparent;
         z-index: 5; opacity: 0.7;
+        transition: opacity 0.2s cubic-bezier(0.4,0,0.2,1);
       }
-      .carousel-nav ha-icon {
-        --mdc-icon-size: var(--icon-md); color: rgba(var(--rgb-white),0.8);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .carousel-nav:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: -2px; }
-      .carousel-nav:active { transform: translateY(-50%) scale(0.92); }
       .carousel-nav.prev { left: 0.5rem; }
       .carousel-nav.next { right: 0.5rem; }
-
       @media (hover: hover) and (pointer: fine) {
-        .carousel-nav:hover { background: rgba(var(--rgb-black),0.6); opacity: 1; }
+        .carousel-nav:hover { opacity: 1; }
       }
 
       /* — Dots (overlay inside hero) — */
@@ -1166,28 +1191,9 @@ class GlassCameraCarouselCard extends BaseCard {
       }
 
       /* — Quick actions — */
-      .carousel-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-      .action-btn {
-        display: inline-flex; align-items: center; gap: 0.3125rem;
-        padding: 0.375rem 0.75rem; border-radius: var(--radius-md);
-        border: 1px solid var(--b2); background: var(--s1);
-        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1);
-        outline: none; -webkit-tap-highlight-color: transparent;
-      }
-      .action-btn ha-icon { display: flex; align-items: center; justify-content: center; }
-      .action-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      .action-btn:active { transform: scale(0.96); }
-      .action-btn.active { border-color: var(--cam-border); background: var(--cam-bg); color: var(--cam-color); }
-      .action-btn.active-alert { border-color: rgba(var(--rgb-alert),0.2); background: rgba(var(--rgb-alert),0.1); color: var(--c-alert); }
-      .action-btn.active-warning { border-color: rgba(var(--rgb-warning),0.2); background: rgba(var(--rgb-warning),0.1); color: var(--c-warning); }
-
-      @media (hover: hover) and (pointer: fine) {
-        .action-btn:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-      }
-      @media (pointer: coarse) {
-        .action-btn:active { animation: bounce 0.15s ease-out; }
-      }
+      .carousel-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; align-items: center; }
+      /* Recording-active <glass-button>: tint the label red to match the alert active state. */
+      glass-button.rec-active { color: var(--c-alert); }
     `,
   ];
 }
