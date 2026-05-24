@@ -11037,7 +11037,6 @@
       .speaker-vol-slider {
         position: relative; flex: 1;
         height: 2.25rem; min-height: 2.25rem;
-        border-radius: var(--radius-lg);
         background: var(--s1);
         border: 1px solid var(--b1);
         overflow: hidden;
