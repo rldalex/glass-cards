@@ -118,10 +118,7 @@ export class ConfigTabCalendar extends BaseConfigTab {
           </header>
 
           ${calendars.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:calendar-remove-outline'}></ha-icon>
-              <span>${t('config.calendar_no_entities')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:calendar-remove-outline'} .title=${t('config.calendar_no_entities')}></glass-empty-state>
           ` : html`
             <div class="feature-list">
               ${calendars.map((c) => {

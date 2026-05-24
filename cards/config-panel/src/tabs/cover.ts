@@ -563,10 +563,7 @@ export class ConfigTabCover extends BaseConfigTab {
                   <span class="section-label">${t('config.cover_list_title')}</span>
                 </div>
               </header>
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:blinds-open'}></ha-icon>
-                <span>${t('config.cover_no_covers')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:blinds-open'} .title=${t('config.cover_no_covers')}></glass-empty-state>
             </section>
           `}
         ` : nothing}

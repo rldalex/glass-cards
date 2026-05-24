@@ -94,10 +94,7 @@ export class ConfigRoomList extends LitElement {
   protected render(): TemplateResult {
     if (!this.rooms.length) {
       return html`
-        <div class="cfg-empty">
-          <ha-icon .icon=${'mdi:home-search-outline'}></ha-icon>
-          <span>${t('config.no_rooms')}</span>
-        </div>
+        <glass-empty-state variant="inline" .icon=${'mdi:home-search-outline'} .title=${t('config.no_rooms')}></glass-empty-state>
       `;
     }
 

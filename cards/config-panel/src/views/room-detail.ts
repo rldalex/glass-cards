@@ -97,15 +97,8 @@ export class ConfigRoomDetail extends LitElement {
   private _availableTempEntities: { id: string; name: string }[] = [];
   private _availableHumidityEntities: { id: string; name: string }[] = [];
   private _availablePresenceEntities: { id: string; name: string }[] = [];
-  @state() private _tempDropdownOpen = false;
-  @state() private _humidityDropdownOpen = false;
-  @state() private _presenceDropdownOpen = false;
 
-  // Per-button dropdown / search state (entity + service pickers, icon portal)
-  @state() private _btnEntityOpen: number | null = null;
-  @state() private _btnEntitySearch = '';
-  @state() private _btnServiceOpen: number | null = null;
-  @state() private _btnServiceSearch = '';
+  // Per-button dropdown / icon portal state (entity + service pickers use glass-dropdown internally)
   @state() private _btnIconPortalIdx: number | null = null;
   @state() private _btnIconSearch = '';
   @state() private _btnAdvancedOpen = new Set<number>();
@@ -143,7 +136,6 @@ export class ConfigRoomDetail extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    document.addEventListener('mousedown', this._onDocMouseDown);
     document.addEventListener('keydown', this._onDocKeyDown);
   }
 
@@ -152,27 +144,14 @@ export class ConfigRoomDetail extends LitElement {
     this._saveScheduler.cancel();
     this._removeIconPortal();
     this._btnIconPortalIdx = null;
-    document.removeEventListener('mousedown', this._onDocMouseDown);
     document.removeEventListener('keydown', this._onDocKeyDown);
   }
 
   private _lastIconTriggerEl: HTMLElement | null = null;
 
-  private _onDocMouseDown = (e: MouseEvent): void => {
-    if (this._btnEntityOpen === null && this._btnServiceOpen === null) return;
-    // Use composedPath to walk the real event path (works in light DOM and through shadow boundaries).
-    // The portal lives on document.body, so a click inside it must also count as "outside the dropdown".
-    const path = e.composedPath();
-    const insideDropdown = path.some((n) => n instanceof HTMLElement && n.classList?.contains('dropdown'));
-    if (!insideDropdown) {
-      this._btnEntityOpen = null;
-      this._btnServiceOpen = null;
-    }
-  };
-
   private _onDocKeyDown = (e: KeyboardEvent): void => {
     if (e.key !== 'Escape') return;
-    // Esc closes whichever overlay is open (portal first, then dropdowns)
+    // Esc closes the icon portal (dropdowns handle their own Escape internally)
     if (this._btnIconPortalIdx !== null) {
       this._btnIconPortalIdx = null;
       this._removeIconPortal();
@@ -181,11 +160,6 @@ export class ConfigRoomDetail extends LitElement {
         try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
         this._lastIconTriggerEl = null;
       }
-      return;
-    }
-    if (this._btnEntityOpen !== null || this._btnServiceOpen !== null) {
-      this._btnEntityOpen = null;
-      this._btnServiceOpen = null;
     }
   };
 
@@ -426,10 +400,7 @@ export class ConfigRoomDetail extends LitElement {
   protected render(): TemplateResult {
     if (!this._sections.length) {
       return html`
-        <div class="cfg-empty">
-          <ha-icon .icon=${'mdi:home-search-outline'}></ha-icon>
-          <span>${t('config.room_no_entities')}</span>
-        </div>
+        <glass-empty-state variant="inline" .icon=${'mdi:home-search-outline'} .title=${t('config.room_no_entities')}></glass-empty-state>
       `;
     }
 
@@ -539,19 +510,16 @@ export class ConfigRoomDetail extends LitElement {
 
   private _selectTempEntity(id: string): void {
     this._tempEntity = id;
-    this._tempDropdownOpen = false;
     this._scheduleSave();
   }
 
   private _selectHumidityEntity(id: string): void {
     this._humidityEntity = id;
-    this._humidityDropdownOpen = false;
     this._scheduleSave();
   }
 
   private _selectPresenceEntity(id: string): void {
     this._presenceEntity = id;
-    this._presenceDropdownOpen = false;
     this._scheduleSave();
   }
 
@@ -630,53 +598,38 @@ export class ConfigRoomDetail extends LitElement {
     const entityDomain = currentEntity.split('.')[0];
     const entityState = currentEntity ? this.hass?.states?.[currentEntity] : undefined;
     const friendlyName = (entityState?.attributes?.friendly_name as string) || '';
-    const entityOpen = this._btnEntityOpen === idx;
-    const serviceOpen = this._btnServiceOpen === idx;
-    const entityItems = entityOpen ? this._filterEntities(this._btnEntitySearch) : [];
-    const serviceItems = serviceOpen ? this._filterServices(entityDomain, this._btnServiceSearch) : [];
+    const entityItems = this._filterEntities('').map((item) => ({
+      value: item.id,
+      label: item.name,
+      icon: (this.hass?.states?.[item.id]?.attributes?.icon as string) || DOMAIN_ICONS[item.id.split('.')[0]] || 'mdi:cube-outline',
+    }));
+    const serviceItems = entityDomain
+      ? this._filterServices(entityDomain, '').map((s) => {
+          const full = `${entityDomain}.${s}`;
+          return { value: full, label: full };
+        })
+      : [];
     const effectiveIcon = btn.icon || (entityDomain && DOMAIN_ICONS[entityDomain]) || '';
     const triggerEntityIcon = entityState?.attributes?.icon as string | undefined;
+    const entityTriggerIcon = triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline';
+    const serviceFallback = entityDomain
+      ? `${entityDomain}.${DOMAIN_DEFAULT_SERVICE[entityDomain]?.split('.')[1] ?? 'toggle'}`
+      : t('config.room_button_service_disabled');
 
     return html`
       <div class="room-button-row">
-        <div class="dropdown room-button-entity-dropdown ${entityOpen ? 'open' : ''}">
-          <button
-            type="button"
-            class="dropdown-trigger"
-            @click=${(e: Event) => { e.stopPropagation(); this._toggleEntityDropdown(idx); }}
-            aria-expanded=${entityOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-            aria-label="${t('config.room_button_entity')}"
-          >
-            <ha-icon .icon=${triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline'}></ha-icon>
-            <span>${currentEntity ? (friendlyName || currentEntity) : t('config.room_button_entity_placeholder')}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          ${entityOpen ? html`
-            <div class="dropdown-menu" role="listbox" @click=${(e: Event) => e.stopPropagation()}>
-              <input
-                type="text"
-                class="dropdown-search"
-                placeholder="${t('config.room_button_entity_search')}"
-                .value=${this._btnEntitySearch}
-                @input=${(e: Event) => { this._btnEntitySearch = (e.target as HTMLInputElement).value; }}
-              />
-              ${entityItems.length === 0
-                ? html`<div class="dropdown-empty">${t('config.room_button_entity_empty')}</div>`
-                : entityItems.map((item) => html`
-                    <button
-                      class="dropdown-item ${item.id === currentEntity ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${item.id === currentEntity ? 'true' : 'false'}
-                      @click=${() => this._selectButtonEntity(idx, item.id)}
-                    >
-                      <ha-icon .icon=${(this.hass?.states?.[item.id]?.attributes?.icon as string) || DOMAIN_ICONS[item.id.split('.')[0]] || 'mdi:cube-outline'}></ha-icon>
-                      <span>${item.name}</span>
-                    </button>
-                  `)}
-            </div>
-          ` : nothing}
-        </div>
+        <glass-dropdown
+          class="room-button-entity-dropdown"
+          .items=${entityItems}
+          .value=${currentEntity}
+          .label=${currentEntity ? (friendlyName || currentEntity) : t('config.room_button_entity_placeholder')}
+          icon=${entityTriggerIcon}
+          searchable
+          search-placeholder=${t('config.room_button_entity_search')}
+          empty-text=${t('config.room_button_entity_empty')}
+          aria-label=${t('config.room_button_entity')}
+          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectButtonEntity(idx, e.detail.value)}
+        ></glass-dropdown>
 
         <div class="room-button-label-row">
           <button
@@ -704,47 +657,18 @@ export class ConfigRoomDetail extends LitElement {
         >
           <summary>${t('config.room_button_advanced')}</summary>
 
-          <div class="dropdown ${serviceOpen ? 'open' : ''}">
-            <button
-              type="button"
-              class="dropdown-trigger"
-              @click=${(e: Event) => { e.stopPropagation(); this._toggleServiceDropdown(idx); }}
-              aria-expanded=${serviceOpen ? 'true' : 'false'}
-              aria-haspopup="listbox"
-              aria-label="${t('config.room_button_service')}"
-              ?disabled=${!entityDomain}
-            >
-              <ha-icon .icon=${'mdi:flash-outline'}></ha-icon>
-              <span>${btn.service || (entityDomain ? `${entityDomain}.${DOMAIN_DEFAULT_SERVICE[entityDomain]?.split('.')[1] ?? 'toggle'}` : t('config.room_button_service_disabled'))}</span>
-              <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-            </button>
-            ${serviceOpen && entityDomain ? html`
-              <div class="dropdown-menu" role="listbox" @click=${(e: Event) => e.stopPropagation()}>
-                <input
-                  type="text"
-                  class="dropdown-search"
-                  placeholder="${t('config.room_button_service_search')}"
-                  .value=${this._btnServiceSearch}
-                  @input=${(e: Event) => { this._btnServiceSearch = (e.target as HTMLInputElement).value; }}
-                />
-                ${serviceItems.length === 0
-                  ? html`<div class="dropdown-empty">${t('config.room_button_service_empty')}</div>`
-                  : serviceItems.map((s) => {
-                      const full = `${entityDomain}.${s}`;
-                      return html`
-                        <button
-                          class="dropdown-item ${full === btn.service ? 'active' : ''}"
-                          role="option"
-                          aria-selected=${full === btn.service ? 'true' : 'false'}
-                          @click=${() => this._selectButtonService(idx, full)}
-                        >
-                          <span>${full}</span>
-                        </button>
-                      `;
-                    })}
-              </div>
-            ` : nothing}
-          </div>
+          <glass-dropdown
+            .items=${serviceItems}
+            .value=${btn.service}
+            .label=${btn.service || serviceFallback}
+            icon="mdi:flash-outline"
+            ?disabled=${!entityDomain}
+            ?searchable=${!!entityDomain}
+            search-placeholder=${t('config.room_button_service_search')}
+            empty-text=${t('config.room_button_service_empty')}
+            aria-label=${t('config.room_button_service')}
+            @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectButtonService(idx, e.detail.value)}
+          ></glass-dropdown>
 
           <textarea
             class="room-button-input room-button-textarea"
@@ -769,34 +693,15 @@ export class ConfigRoomDetail extends LitElement {
     `;
   }
 
-  private _toggleEntityDropdown(idx: number): void {
-    this._btnEntityOpen = this._btnEntityOpen === idx ? null : idx;
-    this._btnServiceOpen = null;
-    this._btnEntitySearch = '';
-  }
-
-  private _toggleServiceDropdown(idx: number): void {
-    this._btnServiceOpen = this._btnServiceOpen === idx ? null : idx;
-    this._btnEntityOpen = null;
-    this._btnServiceSearch = '';
-  }
-
   private _selectButtonEntity(idx: number, entityId: string): void {
-    this._btnEntityOpen = null;
-    this._btnEntitySearch = '';
     this._pickEntity(idx, entityId);
   }
 
   private _selectButtonService(idx: number, service: string): void {
-    this._btnServiceOpen = null;
-    this._btnServiceSearch = '';
     this._updateButton(idx, 'service', service);
   }
 
   private async _openButtonIconPortal(idx: number): Promise<void> {
-    // Close any open dropdowns so they don't linger behind the portal
-    this._btnEntityOpen = null;
-    this._btnServiceOpen = null;
     this._btnIconSearch = '';
     this._btnIconPortalIdx = idx;
     this._renderIconPortal();
@@ -1037,14 +942,6 @@ export class ConfigRoomDetail extends LitElement {
   private _removeButton(idx: number): void {
     this._buttons = this._buttons.filter((_, i) => i !== idx);
     // Reset / shift per-row open indices so they don't point to wrong rows after deletion.
-    if (this._btnEntityOpen !== null) {
-      if (this._btnEntityOpen === idx) this._btnEntityOpen = null;
-      else if (this._btnEntityOpen > idx) this._btnEntityOpen -= 1;
-    }
-    if (this._btnServiceOpen !== null) {
-      if (this._btnServiceOpen === idx) this._btnServiceOpen = null;
-      else if (this._btnServiceOpen > idx) this._btnServiceOpen -= 1;
-    }
     if (this._btnIconPortalIdx !== null) {
       if (this._btnIconPortalIdx === idx) {
         this._btnIconPortalIdx = null;
@@ -1121,23 +1018,18 @@ export class ConfigRoomDetail extends LitElement {
 
   private _renderSensors(): TemplateResult {
     // Always show — user can choose "none" even if sensors exist
-    const tempLabel = this._tempEntity === NONE_SENTINEL
-      ? t('config.room_no_sensor')
-      : this._tempEntity
-        ? this._availableTempEntities.find(s => s.id === this._tempEntity)?.name ?? this._tempEntity
-        : t('config.room_auto_detect');
+    const buildItems = (
+      available: { id: string; name: string }[],
+      sensorIcon: string,
+    ) => [
+      { value: '', label: t('config.room_auto_detect'), icon: 'mdi:auto-fix' },
+      ...available.map((s) => ({ value: s.id, label: s.name, icon: sensorIcon })),
+      { value: NONE_SENTINEL, label: t('config.room_no_sensor'), icon: 'mdi:close-circle-outline' },
+    ];
 
-    const humidityLabel = this._humidityEntity === NONE_SENTINEL
-      ? t('config.room_no_sensor')
-      : this._humidityEntity
-        ? this._availableHumidityEntities.find(s => s.id === this._humidityEntity)?.name ?? this._humidityEntity
-        : t('config.room_auto_detect');
-
-    const presenceLabel = this._presenceEntity === NONE_SENTINEL
-      ? t('config.room_no_sensor')
-      : this._presenceEntity
-        ? this._availablePresenceEntities.find(s => s.id === this._presenceEntity)?.name ?? this._presenceEntity
-        : t('config.room_auto_detect');
+    const tempItems = buildItems(this._availableTempEntities, 'mdi:thermometer');
+    const humidityItems = buildItems(this._availableHumidityEntities, 'mdi:water-percent');
+    const presenceItems = buildItems(this._availablePresenceEntities, 'mdi:motion-sensor');
 
     return html`
       <section class="cfg-section">
@@ -1150,139 +1042,28 @@ export class ConfigRoomDetail extends LitElement {
         </header>
 
       <div class="cfg-sublabel">${t('config.room_temp_entity')}</div>
-      <div class="dropdown ${this._tempDropdownOpen ? 'open' : ''}">
-        <button
-          class="dropdown-trigger"
-          @click=${() => { this._tempDropdownOpen = !this._tempDropdownOpen; this._humidityDropdownOpen = false; this._presenceDropdownOpen = false; }}
-          aria-expanded=${this._tempDropdownOpen ? 'true' : 'false'}
-          aria-haspopup="listbox"
-        >
-          <ha-icon .icon=${'mdi:thermometer'}></ha-icon>
-          <span>${tempLabel}</span>
-          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
-        <div class="dropdown-menu" role="listbox">
-          <button
-            class="dropdown-item ${!this._tempEntity ? 'active' : ''}"
-            role="option"
-            aria-selected=${!this._tempEntity ? 'true' : 'false'}
-            @click=${() => this._selectTempEntity('')}
-          >
-            <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-            ${t('config.room_auto_detect')}
-          </button>
-          ${this._availableTempEntities.map(s => html`
-            <button
-              class="dropdown-item ${this._tempEntity === s.id ? 'active' : ''}"
-              role="option"
-              aria-selected=${this._tempEntity === s.id ? 'true' : 'false'}
-              @click=${() => this._selectTempEntity(s.id)}
-            >
-              <ha-icon .icon=${'mdi:thermometer'}></ha-icon>
-              ${s.name}
-            </button>
-          `)}
-          <button
-            class="dropdown-item ${this._tempEntity === NONE_SENTINEL ? 'active' : ''}"
-            role="option"
-            aria-selected=${this._tempEntity === NONE_SENTINEL ? 'true' : 'false'}
-            @click=${() => this._selectTempEntity(NONE_SENTINEL)}
-          >
-            <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
-            ${t('config.room_no_sensor')}
-          </button>
-        </div>
-      </div>
+      <glass-dropdown
+        .items=${tempItems}
+        .value=${this._tempEntity || ''}
+        icon="mdi:thermometer"
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectTempEntity(e.detail.value)}
+      ></glass-dropdown>
 
       <div class="cfg-sublabel">${t('config.room_humidity_entity')}</div>
-      <div class="dropdown ${this._humidityDropdownOpen ? 'open' : ''}">
-        <button
-          class="dropdown-trigger"
-          @click=${() => { this._humidityDropdownOpen = !this._humidityDropdownOpen; this._tempDropdownOpen = false; this._presenceDropdownOpen = false; }}
-          aria-expanded=${this._humidityDropdownOpen ? 'true' : 'false'}
-          aria-haspopup="listbox"
-        >
-          <ha-icon .icon=${'mdi:water-percent'}></ha-icon>
-          <span>${humidityLabel}</span>
-          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
-        <div class="dropdown-menu" role="listbox">
-          <button
-            class="dropdown-item ${!this._humidityEntity ? 'active' : ''}"
-            role="option"
-            aria-selected=${!this._humidityEntity ? 'true' : 'false'}
-            @click=${() => this._selectHumidityEntity('')}
-          >
-            <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-            ${t('config.room_auto_detect')}
-          </button>
-          ${this._availableHumidityEntities.map(s => html`
-            <button
-              class="dropdown-item ${this._humidityEntity === s.id ? 'active' : ''}"
-              role="option"
-              aria-selected=${this._humidityEntity === s.id ? 'true' : 'false'}
-              @click=${() => this._selectHumidityEntity(s.id)}
-            >
-              <ha-icon .icon=${'mdi:water-percent'}></ha-icon>
-              ${s.name}
-            </button>
-          `)}
-          <button
-            class="dropdown-item ${this._humidityEntity === NONE_SENTINEL ? 'active' : ''}"
-            role="option"
-            aria-selected=${this._humidityEntity === NONE_SENTINEL ? 'true' : 'false'}
-            @click=${() => this._selectHumidityEntity(NONE_SENTINEL)}
-          >
-            <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
-            ${t('config.room_no_sensor')}
-          </button>
-        </div>
-      </div>
+      <glass-dropdown
+        .items=${humidityItems}
+        .value=${this._humidityEntity || ''}
+        icon="mdi:water-percent"
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectHumidityEntity(e.detail.value)}
+      ></glass-dropdown>
 
       <div class="cfg-sublabel">${t('config.room_presence_entity')}</div>
-      <div class="dropdown ${this._presenceDropdownOpen ? 'open' : ''}">
-        <button
-          class="dropdown-trigger"
-          @click=${() => { this._presenceDropdownOpen = !this._presenceDropdownOpen; this._tempDropdownOpen = false; this._humidityDropdownOpen = false; }}
-          aria-expanded=${this._presenceDropdownOpen ? 'true' : 'false'}
-          aria-haspopup="listbox"
-        >
-          <ha-icon .icon=${'mdi:motion-sensor'}></ha-icon>
-          <span>${presenceLabel}</span>
-          <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
-        <div class="dropdown-menu" role="listbox">
-          <button
-            class="dropdown-item ${!this._presenceEntity ? 'active' : ''}"
-            role="option"
-            aria-selected=${!this._presenceEntity ? 'true' : 'false'}
-            @click=${() => this._selectPresenceEntity('')}
-          >
-            <ha-icon .icon=${'mdi:auto-fix'}></ha-icon>
-            ${t('config.room_auto_detect')}
-          </button>
-          ${this._availablePresenceEntities.map(s => html`
-            <button
-              class="dropdown-item ${this._presenceEntity === s.id ? 'active' : ''}"
-              role="option"
-              aria-selected=${this._presenceEntity === s.id ? 'true' : 'false'}
-              @click=${() => this._selectPresenceEntity(s.id)}
-            >
-              <ha-icon .icon=${'mdi:motion-sensor'}></ha-icon>
-              ${s.name}
-            </button>
-          `)}
-          <button
-            class="dropdown-item ${this._presenceEntity === NONE_SENTINEL ? 'active' : ''}"
-            role="option"
-            aria-selected=${this._presenceEntity === NONE_SENTINEL ? 'true' : 'false'}
-            @click=${() => this._selectPresenceEntity(NONE_SENTINEL)}
-          >
-            <ha-icon .icon=${'mdi:close-circle-outline'}></ha-icon>
-            ${t('config.room_no_sensor')}
-          </button>
-        </div>
-      </div>
+      <glass-dropdown
+        .items=${presenceItems}
+        .value=${this._presenceEntity || ''}
+        icon="mdi:motion-sensor"
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectPresenceEntity(e.detail.value)}
+      ></glass-dropdown>
 
       </section>
     `;

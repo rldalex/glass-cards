@@ -8,9 +8,11 @@ import { property } from 'lit/decorators.js';
  * "Connecte-toi à Spotify", "Aucun événement aujourd'hui".
  *
  * Variants:
- *   - `default` (neutral)
+ *   - `default` (neutral, vertical, icon-in-circle)
  *   - `alert` (tinted with alert color — for error states)
  *   - `compact` (smaller, inline use in folds)
+ *   - `inline` (horizontal: dashed border + icon + text on one row;
+ *     used as "no items yet" placeholders inside admin lists)
  *
  * The default slot lets you add action buttons under the text.
  */
@@ -18,7 +20,7 @@ export class GlassEmptyState extends LitElement {
   @property({ type: String }) icon = '';
   @property({ type: String }) title = '';
   @property({ type: String }) subtitle = '';
-  @property({ type: String, reflect: true }) variant: 'default' | 'alert' | 'compact' = 'default';
+  @property({ type: String, reflect: true }) variant: 'default' | 'alert' | 'compact' | 'inline' = 'default';
 
   static styles: CSSResult[] = [
     css`
@@ -35,6 +37,16 @@ export class GlassEmptyState extends LitElement {
       :host([variant='compact']) {
         padding: 0.75rem 0.5rem;
         gap: 0.25rem;
+      }
+      :host([variant='inline']) {
+        flex-direction: row;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+        font-size: var(--fz-sm);
+        text-align: left;
       }
 
       .icon-wrap {
@@ -54,6 +66,15 @@ export class GlassEmptyState extends LitElement {
         height: 2rem;
         margin-bottom: 0;
       }
+      :host([variant='inline']) .icon-wrap {
+        width: auto;
+        height: auto;
+        border: none;
+        background: transparent;
+        margin: 0;
+        color: var(--t4);
+      }
+      :host([variant='inline']) .icon-wrap ha-icon { --mdc-icon-size: 1.25rem; }
       :host([variant='alert']) .icon-wrap {
         background: rgba(var(--rgb-alert), 0.1);
         border-color: rgba(var(--rgb-alert), 0.25);
@@ -75,6 +96,11 @@ export class GlassEmptyState extends LitElement {
         line-height: 1.3;
       }
       :host([variant='compact']) .title { font-size: var(--fz-sm); }
+      :host([variant='inline']) .title {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+      }
 
       .subtitle {
         font-size: var(--fz-sm);

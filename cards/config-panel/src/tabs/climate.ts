@@ -311,10 +311,7 @@ export class ConfigTabClimate extends BaseConfigTab {
           </header>
 
           ${entities.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:thermostat'}></ha-icon>
-              <span>${t('config.climate_no_entities')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:thermostat'} .title=${t('config.climate_no_entities')}></glass-empty-state>
           ` : html`
             <div class="item-list">
               ${entities.map((e, idx) => {

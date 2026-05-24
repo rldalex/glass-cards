@@ -13,8 +13,6 @@ export class ConfigTabMedia extends BaseConfigTab {
   @state() _mediaHiddenEntities: string[] = [];
   @state() _mediaRoom = '';
   @state() _mediaRoomNativePlayers: string[] = [];
-  @state() _mediaAddDropdownOpen = false;
-  @state() _mediaEntitySearch = '';
   @state() _mediaDashboardPlayers: { entityId: string; name: string; visible: boolean }[] = [];
 
   private _dashboardLoaded = false;
@@ -134,31 +132,6 @@ export class ConfigTabMedia extends BaseConfigTab {
       .map((e) => e.entity_id);
   }
 
-  /** Close dropdowns on outside click */
-  private _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
-
-  override connectedCallback(): void {
-    super.connectedCallback();
-    document.addEventListener('click', this._boundCloseDropdowns);
-  }
-
-  override disconnectedCallback(): void {
-    super.disconnectedCallback();
-    document.removeEventListener('click', this._boundCloseDropdowns);
-  }
-
-  private _closeDropdownsOnOutsideClick(e: MouseEvent): void {
-    if (!this._mediaAddDropdownOpen) return;
-    const path = e.composedPath();
-    const root = this.shadowRoot;
-    if (!root) return;
-    const dropdowns = root.querySelectorAll('.dropdown');
-    for (const dd of dropdowns) {
-      if (path.includes(dd)) return;
-    }
-    this._mediaAddDropdownOpen = false;
-  }
-
   /** Called from parent when switching to media tab without a room selected. */
   initRoom(): void {
     if (!this._mediaRoom && this.rooms.length > 0) {
@@ -185,13 +158,7 @@ export class ConfigTabMedia extends BaseConfigTab {
     const assignedSet = new Set([...this._mediaRoomNativePlayers, ...extraEntities]);
 
     // Available entities = all media_players not yet assigned to this room
-    const search = this._mediaEntitySearch?.toLowerCase() ?? '';
-    const available = allMediaPlayers.filter((id) => {
-      if (assignedSet.has(id)) return false;
-      if (!search) return true;
-      const name = (this.hass?.states[id]?.attributes?.friendly_name as string ?? '').toLowerCase();
-      return id.toLowerCase().includes(search) || name.includes(search);
-    });
+    const available = allMediaPlayers.filter((id) => !assignedSet.has(id));
 
     const isDashboard = !this.areaId;
     const dashPlayers = this._mediaDashboardPlayers;
@@ -242,10 +209,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${dashPlayers.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-                <span>${t('media.no_players')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${dashPlayers.map((e) => {
@@ -282,10 +246,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${natives.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-                <span>${t('media.no_players')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${natives.map((id) => {
@@ -319,10 +280,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${extraEntities.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
-                <span>${t('config.media_no_extra')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-multiple'} .title=${t('config.media_no_extra')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${extraEntities.map((id) => {
@@ -349,45 +307,21 @@ export class ConfigTabMedia extends BaseConfigTab {
             `}
 
             <div class="cfg-add-wrap">
-              <div class="dropdown ${this._mediaAddDropdownOpen ? 'open' : ''}">
-                <button
-                  class="dropdown-trigger cfg-add-btn"
-                  @click=${() => { this._mediaAddDropdownOpen = !this._mediaAddDropdownOpen; this._mediaEntitySearch = ''; }}
-                  aria-expanded=${this._mediaAddDropdownOpen ? 'true' : 'false'}
-                  aria-haspopup="listbox"
-                >
-                  <ha-icon .icon=${'mdi:plus'}></ha-icon>
-                  <span>${t('config.media_add_extra')}</span>
-                  <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-                </button>
-                <div class="dropdown-menu" role="listbox">
-                  <input
-                    type="text"
-                    class="dropdown-search"
-                    placeholder="${t('config.search_entity')}"
-                    .value=${this._mediaEntitySearch ?? ''}
-                    @input=${(e: Event) => { this._mediaEntitySearch = (e.target as HTMLInputElement).value; }}
-                    @click=${(e: Event) => e.stopPropagation()}
-                  />
-                  ${available.slice(0, 20).map((id) => {
-                    const entity = this.hass?.states[id];
-                    const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-                    return html`
-                      <button
-                        class="dropdown-item"
-                        role="option"
-                        @click=${() => { this._addMediaExtraEntity(id); this._mediaAddDropdownOpen = false; }}
-                      >
-                        <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-                        ${name}
-                      </button>
-                    `;
-                  })}
-                  ${available.length === 0 ? html`
-                    <div class="dropdown-empty">${t('config.unassigned_no_results')}</div>
-                  ` : nothing}
-                </div>
-              </div>
+              <glass-dropdown
+                class="cfg-add-btn"
+                .items=${available.map((id) => {
+                  const entity = this.hass?.states[id];
+                  const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+                  return { value: id, label: name, icon: 'mdi:speaker' };
+                })}
+                .value=${''}
+                .label=${t('config.media_add_extra')}
+                icon="mdi:plus"
+                searchable
+                search-placeholder=${t('config.search_entity')}
+                empty-text=${t('config.unassigned_no_results')}
+                @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => { if (e.detail.value) this._addMediaExtraEntity(e.detail.value); }}
+              ></glass-dropdown>
             </div>
           </section>
         ` : nothing}

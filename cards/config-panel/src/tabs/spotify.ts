@@ -10,7 +10,6 @@ export class ConfigTabSpotify extends BaseConfigTab {
   @state() _spotifyShowHeader = true;
   @state() _spotifyEntity = '';
   @state() _spotifySortOrder: 'recent_first' | 'oldest_first' = 'recent_first';
-  @state() _spotifyDropdownOpen = false;
   @state() _spotifyMaxItems = 6;
   @state() _spotifyVisibleSpeakers: string[] = [];
   @state() _spotifyConfigured: boolean | null = null;
@@ -98,7 +97,6 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   private _selectEntity(entityId: string): void {
     this._spotifyEntity = entityId;
-    this._spotifyDropdownOpen = false;
   }
 
   private _toggleSpeaker(entityId: string): void {
@@ -213,7 +211,6 @@ export class ConfigTabSpotify extends BaseConfigTab {
     const mediaPlayerEntities = this.hass
       ? Object.keys(this.hass.states).filter((id) => id.startsWith('media_player.')).sort()
       : [];
-    const selectedEntity = mediaPlayerEntities.find((id) => id === this._spotifyEntity);
     const speakersTotal = mediaPlayerEntities.length;
     const speakersVisible = this._spotifyVisibleSpeakers.filter((id) => mediaPlayerEntities.includes(id)).length;
 
@@ -235,38 +232,15 @@ export class ConfigTabSpotify extends BaseConfigTab {
           </header>
 
           ${mediaPlayerEntities.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-              <span>${t('media.no_players')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
           ` : html`
-            <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
-              <button
-                class="dropdown-trigger"
-                @click=${() => (this._spotifyDropdownOpen = !this._spotifyDropdownOpen)}
-                aria-expanded=${this._spotifyDropdownOpen ? 'true' : 'false'}
-                aria-haspopup="listbox"
-              >
-                <ha-icon .icon=${'mdi:spotify'} class="pw-sp-entity-icon"></ha-icon>
-                <span>${selectedEntity || t('common.select')}</span>
-                <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-              </button>
-              <div class="dropdown-menu" role="listbox">
-                ${mediaPlayerEntities.map(
-                  (id) => html`
-                    <button
-                      class="dropdown-item ${id === this._spotifyEntity ? 'active' : ''}"
-                      role="option"
-                      aria-selected=${id === this._spotifyEntity ? 'true' : 'false'}
-                      @click=${() => this._selectEntity(id)}
-                    >
-                      <ha-icon .icon=${'mdi:speaker'}></ha-icon>
-                      ${id}
-                    </button>
-                  `,
-                )}
-              </div>
-            </div>
+            <glass-dropdown
+              .items=${mediaPlayerEntities.map((id) => ({ value: id, label: id, icon: 'mdi:speaker' }))}
+              .value=${this._spotifyEntity}
+              .label=${t('common.select')}
+              icon="mdi:spotify"
+              @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectEntity(e.detail.value)}
+            ></glass-dropdown>
           `}
         </section>
 

@@ -114,10 +114,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
           </header>
 
           ${vacuums.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:robot-vacuum-variant'}></ha-icon>
-              <span>${t('config.vacuum_no_entities')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:robot-vacuum-variant'} .title=${t('config.vacuum_no_entities')}></glass-empty-state>
           ` : html`
             <div class="feature-list">
               ${vacuums.map((v) => {

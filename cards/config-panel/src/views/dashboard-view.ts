@@ -219,10 +219,7 @@ export class ConfigDashboardView extends LitElement {
         </header>
 
         ${activeIds.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:view-dashboard-outline'}></ha-icon>
-            <span>${t('config.dashboard_desc')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:view-dashboard-outline'} .title=${t('config.dashboard_desc')}></glass-empty-state>
         ` : html`
           <ol class="dash-active-list" role="list" aria-label="${t('config.dashboard_title')}">
             ${activeIds.map((cardId, listIdx) => {

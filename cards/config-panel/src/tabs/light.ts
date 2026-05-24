@@ -802,10 +802,7 @@ export class ConfigTabLight extends BaseConfigTab {
                 ${t('config.light_schedule_hint')}
               </div>
             ` : html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:lightbulb-off-outline'}></ha-icon>
-                <span>${t('config.light_no_lights')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:lightbulb-off-outline'} .title=${t('config.light_no_lights')}></glass-empty-state>
             `}
           </section>
         ` : nothing}

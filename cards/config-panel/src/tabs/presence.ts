@@ -13,8 +13,6 @@ export class ConfigTabPresence extends BaseConfigTab {
   @state() _presenceNotifyServices: Record<string, string> = {};
   @state() _presenceDrivingSensors: Record<string, string> = {};
   @state() _presenceSleepSensors: Record<string, string> = {};
-  @state() _presenceDropdownOpen: string | null = null;
-  @state() _presenceDropdownSearch = '';
   @state() _personDragIdx: number | null = null;
   @state() _personDropIdx: number | null = null;
 
@@ -22,38 +20,11 @@ export class ConfigTabPresence extends BaseConfigTab {
     '_presenceShowHeader', '_presencePersonEntities', '_presenceSmartphoneSensors', '_presenceNotifyServices', '_presenceDrivingSensors', '_presenceSleepSensors',
   ]);
 
-  private _boundCloseDropdowns = this._closeDropdownsOnOutsideClick.bind(this);
-
   // — Lifecycle —
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    document.addEventListener('click', this._boundCloseDropdowns);
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    document.removeEventListener('click', this._boundCloseDropdowns);
-  }
 
   protected override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
     this._checkAutoSave(changedProps);
-  }
-
-  // — Dropdown close on outside click —
-
-  private _closeDropdownsOnOutsideClick(e: MouseEvent): void {
-    if (!this._presenceDropdownOpen) return;
-    const path = e.composedPath();
-    const root = this.shadowRoot;
-    if (!root) return;
-    const dropdowns = root.querySelectorAll('.dropdown');
-    for (const dd of dropdowns) {
-      if (path.includes(dd)) return;
-    }
-    this._presenceDropdownOpen = null;
-    this._presenceDropdownSearch = '';
   }
 
   // — Persistence —
@@ -162,7 +133,6 @@ export class ConfigTabPresence extends BaseConfigTab {
   // (smartphone, notify, driving, sleep) to avoid 50-line copy-paste blocks.
 
   private _renderEntityDropdown<T>(cfg: {
-    key: string;
     triggerIcon: string;
     triggerLabel: string;
     items: T[];
@@ -175,65 +145,28 @@ export class ConfigTabPresence extends BaseConfigTab {
     onSelect: (item: T) => void;
     onClear: () => void;
   }): TemplateResult {
-    const isOpen = this._presenceDropdownOpen === cfg.key;
-    const search = isOpen ? this._presenceDropdownSearch : '';
-    const q = search.toLowerCase();
-    const filtered = !q
-      ? cfg.items
-      : cfg.items.filter((it) =>
-          cfg.itemLabel(it).toLowerCase().includes(q) ||
-          cfg.itemId(it).toLowerCase().includes(q),
-        );
+    const dropdownItems = [
+      { value: '', label: cfg.noneLabel, icon: cfg.noneIcon },
+      ...cfg.items.map((it) => ({ value: cfg.itemId(it), label: cfg.itemLabel(it), icon: cfg.itemIcon })),
+    ];
     return html`
       <div class="presence-mapping-field">
-        <div class="dropdown ${isOpen ? 'open' : ''}">
-          <button
-            class="dropdown-trigger"
-            @click=${() => {
-              this._presenceDropdownSearch = '';
-              this._presenceDropdownOpen = isOpen ? null : cfg.key;
-            }}
-            aria-expanded=${isOpen ? 'true' : 'false'}
-            aria-haspopup="listbox"
-          >
-            <ha-icon .icon=${cfg.triggerIcon}></ha-icon>
-            <span>${cfg.triggerLabel}</span>
-            <ha-icon class="arrow" .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
-          <div class="dropdown-menu" role="listbox">
-            <input
-              class="dropdown-search"
-              type="text"
-              placeholder=${t('config.search_entity')}
-              .value=${search}
-              @input=${(e: InputEvent) => { this._presenceDropdownSearch = (e.target as HTMLInputElement).value; }}
-              @click=${(e: Event) => e.stopPropagation()}
-            />
-            <button
-              class="dropdown-item ${!cfg.activeId ? 'active' : ''}"
-              role="option"
-              aria-selected=${!cfg.activeId ? 'true' : 'false'}
-              @click=${() => { cfg.onClear(); this._presenceDropdownOpen = null; }}
-            >
-              <ha-icon .icon=${cfg.noneIcon}></ha-icon>
-              ${cfg.noneLabel}
-            </button>
-            ${filtered.map((it) => {
-              const id = cfg.itemId(it);
-              return html`
-                <button
-                  class="dropdown-item ${cfg.activeId === id ? 'active' : ''}"
-                  role="option"
-                  aria-selected=${cfg.activeId === id ? 'true' : 'false'}
-                  @click=${() => { cfg.onSelect(it); this._presenceDropdownOpen = null; }}
-                >
-                  <ha-icon .icon=${cfg.itemIcon}></ha-icon>
-                  ${cfg.itemLabel(it)}
-                </button>
-              `;
-            })}
-          </div>
-        </div>
+        <glass-dropdown
+          .items=${dropdownItems}
+          .value=${cfg.activeId}
+          .label=${cfg.triggerLabel}
+          icon=${cfg.triggerIcon}
+          searchable
+          search-placeholder=${t('config.search_entity')}
+          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => {
+            if (!e.detail.value) {
+              cfg.onClear();
+              return;
+            }
+            const found = cfg.items.find((it) => cfg.itemId(it) === e.detail.value);
+            if (found !== undefined) cfg.onSelect(found);
+          }}
+        ></glass-dropdown>
       </div>
     `;
   }
@@ -349,10 +282,7 @@ export class ConfigTabPresence extends BaseConfigTab {
           </header>
 
         ${persons.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:account-off-outline'}></ha-icon>
-            <span>${t('config.presence_no_persons')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:account-off-outline'} .title=${t('config.presence_no_persons')}></glass-empty-state>
         ` : html`
           <div class="item-list">
             ${this._getOrderedPersons(persons).map((p, idx) => {
@@ -400,10 +330,7 @@ export class ConfigTabPresence extends BaseConfigTab {
           </header>
 
         ${selectedPersons.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:cellphone-off'}></ha-icon>
-            <span>${t('config.presence_no_persons')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:cellphone-off'} .title=${t('config.presence_no_persons')}></glass-empty-state>
         ` : nothing}
 
         ${selectedPersons.map((personId) => {
@@ -416,10 +343,6 @@ export class ConfigTabPresence extends BaseConfigTab {
           const sensorName = smartphoneSensors.find((s) => s.entityId === currentSensor)?.name;
           const drivingName = drivingSensors.find((s) => s.entityId === currentDriving)?.name;
           const sleepName = sleepSensors.find((s) => s.entityId === currentSleep)?.name;
-          const smKey = `${personId}:smartphone`;
-          const notKey = `${personId}:notify`;
-          const drvKey = `${personId}:driving`;
-          const slpKey = `${personId}:sleep`;
 
           return html`
             <div class="presence-mapping-card">
@@ -431,7 +354,6 @@ export class ConfigTabPresence extends BaseConfigTab {
               </div>
 
               ${this._renderEntityDropdown({
-                key: smKey,
                 triggerIcon: 'mdi:cellphone',
                 triggerLabel: sensorName || currentSensor || t('config.presence_auto_detect'),
                 items: smartphoneSensors,
@@ -445,7 +367,6 @@ export class ConfigTabPresence extends BaseConfigTab {
                 onClear: () => { const m = { ...this._presenceSmartphoneSensors }; delete m[personId]; this._presenceSmartphoneSensors = m; },
               })}
               ${this._renderEntityDropdown({
-                key: notKey,
                 triggerIcon: 'mdi:bell',
                 triggerLabel: currentNotify || t('config.presence_auto_detect'),
                 items: notifyServices,
@@ -459,7 +380,6 @@ export class ConfigTabPresence extends BaseConfigTab {
                 onClear: () => { const m = { ...this._presenceNotifyServices }; delete m[personId]; this._presenceNotifyServices = m; },
               })}
               ${this._renderEntityDropdown({
-                key: drvKey,
                 triggerIcon: 'mdi:car',
                 triggerLabel: drivingName || currentDriving || t('config.presence_auto_detect'),
                 items: drivingSensors,
@@ -473,7 +393,6 @@ export class ConfigTabPresence extends BaseConfigTab {
                 onClear: () => { const m = { ...this._presenceDrivingSensors }; delete m[personId]; this._presenceDrivingSensors = m; },
               })}
               ${this._renderEntityDropdown({
-                key: slpKey,
                 triggerIcon: 'mdi:sleep',
                 triggerLabel: sleepName || currentSleep || t('config.presence_sleep_none'),
                 items: sleepSensors,

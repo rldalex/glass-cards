@@ -214,10 +214,7 @@ export class ConfigTabFan extends BaseConfigTab {
             </header>
 
             ${fans.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:fan-off'}></ha-icon>
-                <span>${t('config.fan_no_fans')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:fan-off'} .title=${t('config.fan_no_fans')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${fans.map((e, idx) => {
