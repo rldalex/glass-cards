@@ -534,13 +534,13 @@ export class ConfigTabTitle extends BaseConfigTab {
             <!-- Label -->
             <div class="title-source-field">
               <span class="title-source-field-label">${t('config.title_source_label')}</span>
-              <input
+              <glass-form-input
                 class="input"
                 type="text"
                 .value=${src.label}
                 placeholder=${srcDef ? t(srcDef.i18nKey) : ''}
-                @input=${(e: Event) => this._setTitleSourceLabel(srcIdx, (e.target as HTMLInputElement).value)}
-              />
+                @glass-input=${(e: CustomEvent<{ value: string }>) => this._setTitleSourceLabel(srcIdx, e.detail.value)}
+              ></glass-form-input>
             </div>
 
             ${src.source_type === 'input_select' ? this._renderInputSelectEntityPicker(src, srcIdx) : nothing}
@@ -649,13 +649,13 @@ export class ConfigTabTitle extends BaseConfigTab {
           ` : nothing}
         </div>
         <div class="title-mode-fields-row">
-          <input
+          <glass-form-input
             class="input"
             type="text"
             placeholder=${t('config.title_mode_label')}
             .value=${mode.label}
-            @input=${(e: Event) => this._updateTitleMode(flatIdx, 'label', (e.target as HTMLInputElement).value)}
-          />
+            @glass-input=${(e: CustomEvent<{ value: string }>) => this._updateTitleMode(flatIdx, 'label', e.detail.value)}
+          ></glass-form-input>
           <button
             class="title-icon-btn ${mode.icon ? 'has-icon' : ''}"
             @click=${() => this._openIconPopup(flatIdx)}
@@ -857,17 +857,18 @@ export class ConfigTabTitle extends BaseConfigTab {
             </div>
           </header>
           <div class="title-text-field">
-            <input
+            <glass-form-input
               class="input"
               type="text"
               .value=${this._titleText}
               placeholder=${t('config.title_title_placeholder')}
-              maxlength=${titleMax}
-              @input=${(e: Event) => { this._titleText = (e.target as HTMLInputElement).value; }}
-            />
-            <span class="title-text-count ${titleChars > titleMax * 0.85 ? 'warn' : ''}">
-              ${titleChars}/${titleMax}
-            </span>
+              max-length=${titleMax}
+              @glass-input=${(e: CustomEvent<{ value: string }>) => { this._titleText = e.detail.value; }}
+            >
+              <span slot="trailing" class="title-text-count ${titleChars > titleMax * 0.85 ? 'warn' : ''}">
+                ${titleChars}/${titleMax}
+              </span>
+            </glass-form-input>
           </div>
         </section>
 

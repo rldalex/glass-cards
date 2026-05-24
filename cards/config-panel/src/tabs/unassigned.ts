@@ -369,14 +369,14 @@ export class ConfigTabUnassigned extends BaseConfigTab {
             </header>
 
           <div class="ua-toolbar">
-            <input
-              type="text"
+            <glass-form-input
+              type="search"
               class="ua-search-input"
               placeholder="${t('config.search_entity')}"
               aria-label="${t('config.search_entity')}"
               .value=${this._unassignedEntitySearch}
-              @input=${(e: InputEvent) => { this._unassignedEntitySearch = (e.target as HTMLInputElement).value; }}
-            />
+              @glass-input=${(e: CustomEvent<{ value: string }>) => { this._unassignedEntitySearch = e.detail.value; }}
+            ></glass-form-input>
             <div class="chip-group ua-filter-chips" role="tablist">
               <glass-chip
                 size="sm"
