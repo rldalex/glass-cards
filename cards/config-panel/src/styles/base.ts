@@ -747,7 +747,12 @@ export const baseStyles = css`
       }
       .range-value {
         font-size: var(--fz-md); font-weight: 600; color: var(--t1);
-        min-width: 1.75rem; text-align: center;
+        /* Anchor at the right with a fixed-width slot wide enough for the
+           worst case ("35.5°C" or "99.5°C") + tabular-nums so digit width
+           stays constant. Prevents the range-input width from jumping
+           when the value changes between integer and .5 step. */
+        min-width: 3rem; text-align: right;
+        font-variant-numeric: tabular-nums;
       }
       /* Auto-close timer row variants */
       .autoclose-row { padding: 0.375rem 0.75rem; }
