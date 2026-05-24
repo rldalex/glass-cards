@@ -251,83 +251,48 @@ class GlassSpotifyCard extends BaseCard {
       display: inline-flex; align-items: center; gap: 0.0625rem;
       flex-shrink: 0;
     }
-    .np-btn {
+    /* np-bar transport buttons (prev/next/search) handled by
+       <glass-icon-button size="sm">. Only the branded play stays as
+       a real <button>. */
+    .np-btn-play {
       position: relative;
-      width: 1.875rem; height: 1.875rem; border-radius: 50%;
-      background: transparent; border: none;
+      width: 2.125rem; height: 2.125rem; border-radius: 50%;
+      background: var(--c-spotify); color: var(--c-spotify-on);
+      border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; padding: 0; outline: none;
-      color: var(--t2);
-      transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+      transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
       -webkit-tap-highlight-color: transparent;
-    }
-    .np-btn ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .np-btn:hover { background: var(--s2); color: var(--t1); } }
-    @media (hover: hover) { .np-btn:active { transform: scale(0.92); } }
-    @media (pointer: coarse) { .np-btn:active { animation: bounce 0.3s ease; } }
-    .np-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-    @media (pointer: coarse) {
-      .np-btn::after { content: ''; position: absolute; inset: -0.4375rem; }
-    }
-    .np-btn-play {
-      width: 2.125rem; height: 2.125rem;
-      background: var(--c-spotify); color: var(--c-spotify-on);
       box-shadow: 0 4px 14px rgba(var(--rgb-spotify), 0.35);
     }
-    .np-btn-play ha-icon { --mdc-icon-size: 1.25rem; }
+    .np-btn-play ha-icon { --mdc-icon-size: 1.25rem; display: flex; align-items: center; justify-content: center; }
     @media (hover: hover) and (pointer: fine) {
       .np-btn-play:hover {
         background: var(--c-spotify-hover);
-        color: var(--c-spotify-on);
         box-shadow: 0 6px 18px rgba(var(--rgb-spotify), 0.5);
       }
     }
+    @media (hover: hover) { .np-btn-play:active { transform: scale(0.94); } }
+    @media (pointer: coarse) { .np-btn-play:active { animation: bounce 0.3s ease; } }
+    .np-btn-play:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.4); outline-offset: 2px; }
 
-    /* Search-from-now-playing affordance — divider + magnify */
-    .np-btn-search {
-      margin-left: 0.25rem;
-      border-left: none;
-      position: relative;
-    }
-    .np-btn-search::before {
-      content: ''; position: absolute;
-      left: -0.1875rem; top: 25%; bottom: 25%;
-      width: 1px; background: var(--b1);
-      pointer-events: none;
-    }
+    /* Search affordance in np-bar — small magnify icon button */
+    .np-btn-search { margin-left: 0.25rem; }
+
+    /* Search-clear (visible only when query non-empty) — absolute positioning
+       inside the input wrapper. The button styling itself is handled by
+       <glass-icon-button size="sm">. */
     .search-clear {
       position: absolute; top: 50%; right: 1.875rem; transform: translateY(-50%);
-      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
-      background: transparent; border: none;
-      display: none; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
+      display: none;
     }
-    .search-clear.visible { display: flex; }
-    .search-clear ha-icon { --mdc-icon-size: var(--icon-sm); color: var(--t3); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .search-clear:hover { background: var(--s3); } }
-    @media (pointer: coarse) { .search-clear:active { animation: bounce 0.3s ease; } }
-    .search-clear:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+    .search-clear.visible { display: inline-flex; }
 
-    /* Fold toggle arrow (inside search bar) */
+    /* Fold toggle arrow (inside search bar) — absolute positioning only.
+       The button styling itself is handled by <glass-icon-button size="sm">. */
     .search-toggle {
       position: absolute; top: 50%; right: 0.375rem; transform: translateY(-50%);
-      width: 1.5rem; height: 1.5rem; border-radius: var(--radius-xs);
-      background: transparent; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
-      transition: background var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
     }
-    .search-toggle ha-icon {
-      --mdc-icon-size: var(--icon-sm); color: var(--t4);
-      display: flex; align-items: center; justify-content: center;
-      transition: transform var(--t-fast), color var(--t-fast);
-    }
-    @media (hover: hover) and (pointer: fine) { .search-toggle:hover { background: var(--s3); } }
-    @media (hover: hover) and (pointer: fine) { .search-toggle:hover ha-icon { color: var(--t2); } }
-    @media (pointer: coarse) { .search-toggle:active { animation: bounce 0.3s ease; } }
-    .search-toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .search-toggle.open ha-icon { transform: rotate(180deg); color: var(--c-spotify); }
 
     /* Content fold (CSS Grid 0fr/1fr) */
     .sp-fold {
@@ -505,19 +470,17 @@ class GlassSpotifyCard extends BaseCard {
       background: var(--s3); color: var(--t4); flex-shrink: 0;
     }
 
+    /* Result-row play button — opacity reveal on row hover. The button
+       itself is a <glass-icon-button size="sm" active-color="spotify">. */
     .result-play {
-      width: 2rem; height: 2rem; border-radius: 50%;
-      background: var(--c-spotify); border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: opacity var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-      -webkit-tap-highlight-color: transparent;
       opacity: 0; transform: scale(0.8); flex-shrink: 0;
+      transition: opacity var(--t-fast), transform var(--t-fast);
     }
-    .result-play ha-icon { --mdc-icon-size: 1rem; color: var(--c-spotify-on); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) { .result-row:hover .result-play { opacity: 1; transform: scale(1); } }
-    @media (hover: hover) and (pointer: fine) { .result-play:active { transform: scale(0.92); } }
-    @media (pointer: coarse) { .result-play:active { animation: bounce 0.3s ease; } }
-    .result-play:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .result-row:hover .result-play { opacity: 1; transform: scale(1); }
+    }
+    /* Always show on coarse pointers (no hover) */
+    @media (pointer: coarse) { .result-play { opacity: 1; transform: scale(1); } }
 
     /* Playlist grid (horizontal scroll) */
     .playlist-scroll {
@@ -611,29 +574,11 @@ class GlassSpotifyCard extends BaseCard {
       padding: 0.5rem 0.125rem 0.875rem;
       border-bottom: 1px solid var(--b1);
     }
+    /* Drilldown back button — positioning only, glass-icon-button handles
+       the rest. */
     .drilldown-back {
       position: absolute; top: 0; right: 0;
-      width: 1.875rem; height: 1.875rem; border-radius: 50%;
-      background: var(--s2); border: 1px solid var(--b1);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
       z-index: 1;
-    }
-    .drilldown-back ha-icon { --mdc-icon-size: 1rem; color: var(--t2); display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) {
-      .drilldown-back:hover {
-        background: var(--s3);
-        border-color: color-mix(in srgb, var(--c-spotify) 35%, transparent);
-      }
-      .drilldown-back:hover ha-icon { color: var(--c-spotify); }
-    }
-    @media (hover: hover) { .drilldown-back:active { transform: scale(0.92); } }
-    @media (pointer: coarse) { .drilldown-back:active { animation: bounce 0.3s ease; } }
-    .drilldown-back:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-    @media (pointer: coarse) {
-      .drilldown-back::after { content: ''; position: absolute; inset: -0.625rem; }
     }
 
     .drilldown-hero-art {
@@ -1032,10 +977,10 @@ class GlassSpotifyCard extends BaseCard {
       .picker-backdrop, .speaker-picker, .picker-speaker { transition: none; }
       .picker-state-eq span { animation: none; transform: scaleY(0.6); }
       .picker-speaker:hover { transform: none; }
-      .drilldown-back, .drilldown-play-cta { transition: none; }
-      .drilldown-back:active, .drilldown-play-cta:active { transform: none; }
-      .np-btn, .np-btn-play, .setup-banner-cta { transition: none; }
-      .np-btn:active, .np-btn-play:active, .setup-banner-cta:active { transform: none; }
+      .drilldown-play-cta { transition: none; }
+      .drilldown-play-cta:active { transform: none; }
+      .np-btn-play, .setup-banner-cta { transition: none; }
+      .np-btn-play:active, .setup-banner-cta:active { transform: none; }
     }
 
     /* Now playing indicator */
@@ -1051,45 +996,21 @@ class GlassSpotifyCard extends BaseCard {
     }
     .result-row .eq-bars { flex-shrink: 0; }
 
-    /* Heart (favorite) button */
-    .heart-btn {
-      position: relative;
-      width: 1.5rem; height: 1.5rem;
-      border-radius: var(--radius-sm);
-      background: transparent; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
-      color: var(--t3); flex-shrink: 0;
-      transition: transform var(--t-fast), color var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .heart-btn ha-icon {
-      --mdc-icon-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .heart-btn.saved ha-icon {
-      color: var(--c-accent);
-    }
-    .heart-btn:active {
-      transform: scale(0.85);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .heart-btn:hover {
-        transform: scale(1.1);
-      }
-    }
+    /* Heart (favorite) button — handled by <glass-icon-button size="sm"
+       active-color="alert">. flex-shrink stops it from collapsing in
+       narrow rows. */
+    .heart-btn { flex-shrink: 0; }
 
     /* Loading spinner placeholder */
     .loading-text { font-size: var(--fz-base); color: var(--t4); text-align: center; padding: 1rem 0; }
 
-    /* Touch hit-area expansion to reach 44px on touch devices */
+    /* Touch hit-area expansion to reach 44px on touch devices.
+       .heart-btn now uses <glass-icon-button> which provides its own hit-area. */
     @media (pointer: coarse) {
       .tab-btn::after,
-      .lib-more-link::after,
-      .heart-btn::after { content: ''; position: absolute; }
+      .lib-more-link::after { content: ''; position: absolute; }
       .tab-btn::after    { left: 0; right: 0; top: -0.4375rem; bottom: -0.4375rem; }
       .lib-more-link::after { left: 0; right: 0; top: -0.625rem; bottom: -0.625rem; }
-      .heart-btn::after  { inset: -0.625rem; }
     }
   `];
 
@@ -1826,20 +1747,20 @@ class GlassSpotifyCard extends BaseCard {
             @input=${this._onSearchInput}
             @focus=${() => { if (!this._foldOpen) this._foldOpen = true; this._scrollToTop(); }}
           />
-          <button
+          <glass-icon-button
             class="search-clear ${this._searchQuery ? 'visible' : ''}"
+            size="sm"
+            .icon=${'mdi:close'}
             aria-label="${t('spotify.clear_search')}"
             @click=${this._clearSearch}
-          >
-            <ha-icon .icon=${'mdi:close'}></ha-icon>
-          </button>
-          <button
+          ></glass-icon-button>
+          <glass-icon-button
             class="search-toggle ${this._foldOpen ? 'open' : ''}"
+            size="sm"
+            .icon=${this._foldOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
             aria-label=${t('spotify.toggle_library')}
             @click=${() => { this._foldOpen = !this._foldOpen; }}
-          >
-            <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
-          </button>
+          ></glass-icon-button>
         </div>
       </div>
     `;
@@ -1860,30 +1781,36 @@ class GlassSpotifyCard extends BaseCard {
           ${playback.artist ? html`<div class="np-artist">${playback.artist}</div>` : nothing}
         </div>
         <div class="np-transport">
-          <button class="np-btn" aria-label=${t('spotify.previous_track')} @click=${(e: Event) => this._mediaPrev(e)}>
-            <ha-icon .icon=${'mdi:skip-previous'}></ha-icon>
-          </button>
+          <glass-icon-button
+            size="sm"
+            .icon=${'mdi:skip-previous'}
+            aria-label=${t('spotify.previous_track')}
+            @click=${(e: Event) => this._mediaPrev(e)}
+          ></glass-icon-button>
           <button class="np-btn np-btn-play ${isPlaying ? 'is-playing' : 'is-paused'}" aria-label=${isPlaying ? t('spotify.pause') : t('spotify.play')} @click=${(e: Event) => this._mediaPlayPause(e)}>
             <ha-icon .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
           </button>
-          <button class="np-btn" aria-label=${t('spotify.next_track')} @click=${(e: Event) => this._mediaNext(e)}>
-            <ha-icon .icon=${'mdi:skip-next'}></ha-icon>
-          </button>
+          <glass-icon-button
+            size="sm"
+            .icon=${'mdi:skip-next'}
+            aria-label=${t('spotify.next_track')}
+            @click=${(e: Event) => this._mediaNext(e)}
+          ></glass-icon-button>
         </div>
-        <button
-          class="np-btn np-btn-search"
+        <glass-icon-button
+          class="np-btn-search"
+          size="sm"
+          .icon=${'mdi:magnify'}
           aria-label=${t('spotify.search_placeholder')}
           @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = true; this._focusSearchInput(); }}
-        >
-          <ha-icon .icon=${'mdi:magnify'}></ha-icon>
-        </button>
-        <button
+        ></glass-icon-button>
+        <glass-icon-button
           class="search-toggle ${this._foldOpen ? 'open' : ''}"
+          size="sm"
+          .icon=${this._foldOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
           aria-label=${t('spotify.toggle_library')}
           @click=${() => { this._foldOpen = !this._foldOpen; }}
-        >
-          <ha-icon .icon=${'mdi:chevron-down'}></ha-icon>
-        </button>
+        ></glass-icon-button>
       </div>
     `;
   }
@@ -2047,22 +1974,27 @@ class GlassSpotifyCard extends BaseCard {
           </div>
         </div>
         ${(type === 'track' || type === 'episode') && item.id ? html`
-          <button class="heart-btn ${this._savedMap.get(item.id) ? 'saved' : ''}"
-                  aria-label="${this._savedMap.get(item.id) ? t('spotify.remove_track') : t('spotify.save_track')}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._toggleSaved(item.id); }}>
-            <ha-icon .icon="${this._savedMap.get(item.id) ? 'mdi:heart' : 'mdi:heart-outline'}"></ha-icon>
-          </button>
+          <glass-icon-button
+            class="heart-btn"
+            size="sm"
+            active-color="alert"
+            ?active=${this._savedMap.get(item.id) ?? false}
+            .icon=${this._savedMap.get(item.id) ? 'mdi:heart' : 'mdi:heart-outline'}
+            aria-label="${this._savedMap.get(item.id) ? t('spotify.remove_track') : t('spotify.save_track')}"
+            @click=${(e: Event) => { e.stopPropagation(); this._toggleSaved(item.id); }}
+          ></glass-icon-button>
         ` : nothing}
         ${playing
           ? html`<div class="eq-bars"><span></span><span></span><span></span></div>`
           : html`
-            <button
+            <glass-icon-button
               class="result-play"
+              size="sm"
+              .icon=${'mdi:play'}
+              active-color="spotify"
               aria-label=${t('spotify.play_aria', { name: item.name })}
               @click=${(e: Event) => { e.stopPropagation(); this._openPicker(item); }}
-            >
-              <ha-icon .icon=${'mdi:play'}></ha-icon>
-            </button>
+            ></glass-icon-button>
           `}
       </div>
     `;
@@ -2171,9 +2103,13 @@ class GlassSpotifyCard extends BaseCard {
     return html`
       <div class="drilldown">
         <div class="drilldown-hero">
-          <button class="drilldown-back" @click=${this._goBack} aria-label=${t('spotify.back')}>
-            <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-          </button>
+          <glass-icon-button
+            class="drilldown-back"
+            size="sm"
+            .icon=${'mdi:arrow-left'}
+            aria-label=${t('spotify.back')}
+            @click=${this._goBack}
+          ></glass-icon-button>
           <div class="drilldown-hero-art">
             ${dd.image
               ? html`<img src=${dd.image} alt="" loading="lazy" />`
