@@ -525,20 +525,19 @@ export class ConfigTabTitle extends BaseConfigTab {
           <ha-icon .icon=${srcDef?.icon || 'mdi:help'}></ha-icon>
           <span class="title-source-type">${sourceLabel}</span>
           <span class="title-source-badge">${src.modes.length}</span>
-          <button
-            class="btn-icon xs title-source-actions-first"
-            @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; this._titleAddEntityDropdownOpen = false; }}
+          <glass-icon-button
+            class="title-source-actions-first"
+            size="xs"
+            .icon=${isEditing ? 'mdi:pencil' : 'mdi:pencil-outline'}
             aria-label=${isEditing ? t('common.collapse') : t('common.expand')}
-          >
-            <ha-icon .icon=${isEditing ? 'mdi:pencil' : 'mdi:pencil-outline'}></ha-icon>
-          </button>
-          <button
-            class="btn-icon xs"
-            @click=${() => this._removeTitleSource(srcIdx)}
+            @click=${() => { this._titleEditingSourceIdx = isEditing ? null : srcIdx; this._titleAddEntityDropdownOpen = false; }}
+          ></glass-icon-button>
+          <glass-icon-button
+            size="xs"
+            .icon=${'mdi:close'}
             aria-label=${t('config.title_remove_source')}
-          >
-            <ha-icon .icon=${'mdi:close'}></ha-icon>
-          </button>
+            @click=${() => this._removeTitleSource(srcIdx)}
+          ></glass-icon-button>
         </div>
 
         ${isEditing ? html`
@@ -707,13 +706,12 @@ export class ConfigTabTitle extends BaseConfigTab {
           <glass-drag-handle></glass-drag-handle>
           <span class="title-mode-id">${mode.id}</span>
           ${(src.source_type === 'scenes' || src.source_type === 'booleans') ? html`
-            <button
-              class="btn-icon xs"
-              @click=${() => this._removeTitleModeEntity(srcIdx, mode.id)}
+            <glass-icon-button
+              size="xs"
+              .icon=${'mdi:close'}
               aria-label=${t('config.title_remove_entity')}
-            >
-              <ha-icon .icon=${'mdi:close'}></ha-icon>
-            </button>
+              @click=${() => this._removeTitleModeEntity(srcIdx, mode.id)}
+            ></glass-icon-button>
           ` : nothing}
         </div>
         <div class="title-mode-fields-row">
@@ -887,9 +885,8 @@ export class ConfigTabTitle extends BaseConfigTab {
         <div class="title-period-editor-head">
           <ha-icon class="title-period-editor-icon" .icon=${icon} style="color:${resolveD(colorKey)};"></ha-icon>
           <span class="title-period-editor-name">${optionId}</span>
-          <button class="btn-icon xs" @click=${() => { this._periodEditingIdx = null; }} aria-label="${t('common.close')}">
-            <ha-icon .icon=${'mdi:close'}></ha-icon>
-          </button>
+          <glass-icon-button size="xs" .icon=${'mdi:close'} aria-label="${t('common.close')}"
+            @click=${() => { this._periodEditingIdx = null; }}></glass-icon-button>
         </div>
 
         <div class="title-period-editor-field">
@@ -907,14 +904,14 @@ export class ConfigTabTitle extends BaseConfigTab {
           <span class="title-period-editor-field-label">${t('config.title_mode_color')}</span>
           <div class="title-color-swatches">
             ${COLORS.map((c) => html`
-              <button
-                class="title-color-swatch ${c} ${colorKey === c ? 'active' : ''}"
-                @click=${() => this._updateTitlePeriodOption(idx, 'color', c)}
+              <glass-color-swatch
+                with-check
+                .color=${resolveD(c)}
+                ?selected=${colorKey === c}
                 aria-label="${COLOR_LABEL[c] ?? c}"
                 title="${COLOR_LABEL[c] ?? c}"
-              >
-                <ha-icon class="check" .icon=${'mdi:check'}></ha-icon>
-              </button>
+                @click=${() => this._updateTitlePeriodOption(idx, 'color', c)}
+              ></glass-color-swatch>
             `)}
           </div>
         </div>

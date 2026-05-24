@@ -400,38 +400,8 @@ export const baseStyles = css`
          Interactive: <glass-toggle .checked .activeColor @glass-toggle-change>
          Decorative (inside a clickable parent): <glass-toggle presentation .checked> */
 
-      /* ── Icon button (from UI kit) ── */
-      .btn-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: var(--tap-lg); height: var(--tap-lg);
-        border-radius: var(--radius-lg);
-        border: none; background: transparent;
-        color: var(--t3); cursor: pointer;
-        padding: 0; outline: none; flex-shrink: 0;
-        transition: background var(--t-fast), color var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-      }
-      .btn-icon.sm { width: 2rem; height: 2rem; border-radius: var(--radius-md); }
-      .btn-icon.xs { width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm); }
-      .btn-icon ha-icon { display: flex; align-items: center; justify-content: center; }
-      .btn-icon.xs ha-icon { --mdc-icon-size: 0.875rem; }
-      .btn-icon.sm ha-icon { --mdc-icon-size: 1rem; }
-      .btn-icon.sm::before {
-        content: '';
-        position: absolute;
-        inset: -0.375rem;
-      }
-      .btn-icon.xs::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-      }
-      @media (hover: hover) and (pointer: fine) { .btn-icon:hover { background: var(--s2); color: var(--t2); } }
-      @media (pointer: coarse) { .btn-icon:active { animation: bounce 0.3s ease; } }
-      .btn-icon:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+      /* Icon button styles now live in <glass-icon-button> (ui-core).
+         Use size="xs|sm|md|lg" + active-color + ?active. */
 
       /* ── Feature toggles ── */
       .feature-list {
@@ -784,22 +754,8 @@ export const baseStyles = css`
       .mt-12 { margin-top: 0.75rem; }
       .mb-8 { margin-bottom: 0.5rem; }
 
-      /* ── Entity rename ── */
-      .entity-rename-row {
-        display: flex; align-items: center; gap: 0.375rem;
-      }
-      .entity-rename-row .input {
-        flex: 1; min-width: 0;
-        padding: 0.375rem 0.5rem;
-        font-size: var(--fz-base);
-      }
-      .entity-rename-row .btn-icon {
-        width: 1.75rem; height: 1.75rem;
-        border-radius: var(--radius-sm);
-      }
-      .entity-rename-row .btn-icon ha-icon {
-        --mdc-icon-size: 0.875rem;
-      }
+      /* (Dead .entity-rename-row CSS removed — only .entity-rename-input
+         is used in unassigned.ts; the wrapper class was never applied.) */
 
       /* ═══════════════════════════════════════════════
          Navigation (ex nav.ts)
@@ -954,10 +910,8 @@ export const baseStyles = css`
         display: flex;
         gap: 0.375rem;
       }
-      .ua-filter-chips .chip {
+      .ua-filter-chips glass-chip {
         flex: 1;
-        justify-content: center;
-        gap: 0.375rem;
       }
       .ua-filter-chips .chip-count {
         font-size: var(--fz-xxs);
@@ -969,11 +923,11 @@ export const baseStyles = css`
         letter-spacing: 0.5px;
         font-variant-numeric: tabular-nums;
       }
-      .ua-filter-chips .chip.active .chip-count {
+      .ua-filter-chips glass-chip[active] .chip-count {
         background: rgba(var(--rgb-accent), 0.2);
         color: var(--c-accent);
       }
-      .ua-filter-chips .chip.has-warn .chip-count {
+      .ua-filter-chips glass-chip.has-warn .chip-count {
         background: rgba(var(--rgb-warning), 0.15);
         color: var(--c-warning);
       }
@@ -1983,14 +1937,13 @@ export const baseStyles = css`
         --mdc-icon-size: 1rem;
         --mdc-icon-color: var(--t4);
         color: var(--t4);
-        opacity: 0;
-        transform: translateX(-0.25rem);
+        opacity: 0.5;
         transition: opacity var(--t-fast), transform var(--t-fast);
       }
       .dash-row:hover .dash-row-chev,
       .dash-row-main:focus-visible .dash-row-chev {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateX(0.125rem);
       }
 
       /* Hide button (×) — always visible, clear affordance, expands on interaction */

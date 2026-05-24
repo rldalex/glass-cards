@@ -210,35 +210,8 @@ export const formStyles = css`
         margin-bottom: 0.125rem;
       }
 
-      /* ── Chip (UI kit) ── */
-      .chip {
-        display: inline-flex; align-items: center; gap: 0.25rem;
-        min-height: 2rem;
-        padding: 0.25rem 0.75rem; border-radius: var(--radius-md);
-        border: 1px solid var(--b2); background: var(--s1);
-        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: var(--t3); cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        outline: none; -webkit-tap-highlight-color: transparent;
-        position: relative;
-      }
-      /* Hit-area extension: 32px visual reaches 44px tactile on coarse. */
-      .chip::before {
-        content: '';
-        position: absolute;
-        inset: -0.375rem 0;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-      }
-      .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-      .chip.active { background: var(--s4); border-color: var(--b3); color: var(--t1); }
-      .chip ha-icon {
-        --mdc-icon-size: 0.875rem;
-        display: flex; align-items: center; justify-content: center;
-      }
-      @media (pointer: coarse) {
-        .chip:active { transform: scale(0.94); }
-      }
+      /* Chip styles now live in <glass-chip> (ui-core).
+         Pattern: <glass-chip size="sm" active-color="..." ?active>label</glass-chip> */
 
       /* ── Title config styles ── */
       .title-modes-list {
@@ -528,53 +501,8 @@ export const formStyles = css`
       }
 
       /* ── Schedule button (btn-icon.xs pattern from kit) ── */
-      .schedule-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid transparent;
-        background: transparent;
-        color: var(--t4);
-        cursor: pointer;
-        flex-shrink: 0;
-        padding: 0;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        --mdc-icon-size: 1rem;
-        position: relative;
-      }
-      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
-      .schedule-btn::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-      }
-      .schedule-btn.active {
-        color: var(--c-accent);
-        border-color: rgba(var(--rgb-accent),0.25);
-        background: rgba(var(--rgb-accent),0.12);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .schedule-btn:hover {
-          background: var(--s4);
-          border-color: var(--b3);
-          color: var(--t1);
-        }
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .schedule-btn:active { transform: scale(0.96); }
-      }
-      @media (pointer: coarse) {
-        .schedule-btn:active { animation: bounce 0.3s ease; }
-      }
-      .schedule-btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
+      /* .schedule-btn styles now provided by <glass-icon-button size="xs"
+         active-color="accent"> — see tabs/light.ts. */
 
       /* ── Schedule fold (CSS Grid 0fr/1fr from kit) ── */
       .schedule-fold {
@@ -706,35 +634,8 @@ export const formStyles = css`
         color: var(--t1);
       }
 
-      /* ── Schedule delete (btn-icon.xs btn-alert from kit) ── */
-      .schedule-delete {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid rgba(var(--rgb-alert),0.2);
-        background: rgba(var(--rgb-alert),0.1);
-        color: var(--c-alert);
-        cursor: pointer;
-        padding: 0;
-        --mdc-icon-size: 0.875rem;
-        transition: background var(--t-fast), border-color var(--t-fast);
-        outline: none;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .schedule-delete:hover {
-          background: rgba(var(--rgb-alert),0.2);
-          border-color: rgba(var(--rgb-alert),0.3);
-        }
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .schedule-delete:active { transform: scale(0.96); }
-      }
-      @media (pointer: coarse) {
-        .schedule-delete:active { animation: bounce 0.3s ease; }
-      }
+      /* .schedule-delete styles now provided by <glass-icon-button
+         size="xs" active active-color="alert"> — see tabs/light.ts. */
 
       /* ── Schedule add & save (btn btn-sm from kit) ── */
       .schedule-add {
@@ -1190,48 +1091,8 @@ export const formStyles = css`
       .preset-reset-btn ha-icon { --mdc-icon-size: 12px; display: flex; align-items: center; justify-content: center; }
 
       /* ── Presets expand button (cover-specific) ── */
-      .presets-btn {
-        width: 26px;
-        height: 26px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--b2);
-        background: var(--s1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast);
-        outline: none;
-        flex-shrink: 0;
-        padding: 0;
-        --mdc-icon-size: 14px;
-        position: relative;
-      }
-      .presets-btn::before {
-        content: '';
-        position: absolute;
-        /* 26px visual + 0.625rem × 2 (20px) = 46px tactile on coarse. */
-        inset: -0.625rem;
-      }
-      .presets-btn ha-icon { display: flex; align-items: center; justify-content: center; color: var(--t3); }
-      @media (hover: hover) and (pointer: fine) {
-        .presets-btn:hover {
-          background: var(--s3);
-          border-color: var(--b3);
-        }
-      }
-      .presets-btn.active {
-        background: rgba(167, 139, 250, 0.08);
-        border-color: rgba(167, 139, 250, 0.2);
-      }
-      .presets-btn.active ha-icon { color: var(--c-purple, #a78bfa); }
-      @media (pointer: coarse) {
-        .presets-btn:active { animation: bounce 0.3s ease; }
-      }
-      .presets-btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
+      /* .presets-btn styles now provided by glass-icon-button size=xs,
+         active-color=purple, ?active. See tabs/cover.ts for usage. */
 
       /* ── Unassigned / Orphan entities ── */
       .pw-ua-name {
@@ -1511,47 +1372,7 @@ export const formStyles = css`
         gap: 0.3125rem;
         flex-wrap: wrap;
       }
-      .title-color-swatch {
-        position: relative;
-        width: 1.625rem; height: 1.625rem;
-        border-radius: 50%;
-        border: 1px solid rgba(var(--rgb-white), 0.1);
-        cursor: pointer;
-        outline: none;
-        padding: 0;
-        transition: transform var(--t-fast), box-shadow var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .title-color-swatch::before {
-        content: '';
-        position: absolute;
-        /* 26px visual + 0.625rem × 2 (20px) = 46px tactile on coarse. */
-        inset: -0.625rem;
-      }
-      .title-color-swatch:hover { transform: scale(1.1); }
-      .title-color-swatch:focus-visible {
-        outline: 2px solid rgba(var(--rgb-white), 0.25);
-        outline-offset: 2px;
-      }
-      .title-color-swatch.neutral { background: var(--t4); }
-      .title-color-swatch.success { background: var(--c-success); }
-      .title-color-swatch.warning { background: var(--c-warning); }
-      .title-color-swatch.info    { background: var(--c-info); }
-      .title-color-swatch.accent  { background: var(--c-accent); }
-      .title-color-swatch.alert   { background: var(--c-alert); }
-      .title-color-swatch .check {
-        --mdc-icon-size: 0.875rem;
-        color: rgba(var(--rgb-white), 0.95);
-        opacity: 0;
-        transition: opacity var(--t-fast);
-        display: flex; align-items: center; justify-content: center;
-        width: 100%; height: 100%;
-      }
-      .title-color-swatch.active {
-        box-shadow:
-          0 0 0 2px rgba(var(--rgb-white), 0.18),
-          0 0 0.5rem rgba(var(--rgb-white), 0.08);
-        transform: scale(1.05);
-      }
-      .title-color-swatch.active .check { opacity: 1; }
+      /* .title-color-swatch styles now provided by glass-color-swatch
+         with-check, .color=var(--c-tone), and ?selected.
+         See tabs/title.ts for usage. */
 `;

@@ -18,7 +18,7 @@ export class GlassIconButton extends LitElement {
   @property({ type: String }) icon = '';
   @property({ type: Boolean, reflect: true }) active = false;
   @property({ type: String, attribute: 'active-color' }) activeColor = 'accent';
-  @property({ type: String, reflect: true }) size: 'sm' | 'md' | 'lg' = 'md';
+  @property({ type: String, reflect: true }) size: 'xs' | 'sm' | 'md' | 'lg' = 'md';
   @property({ type: Boolean, reflect: true }) glow = false;
   @property({ type: Boolean, reflect: true }) unavailable = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
@@ -56,6 +56,7 @@ export class GlassIconButton extends LitElement {
         -webkit-tap-highlight-color: transparent;
       }
       /* Sizes — md is the canonical 44px tap target. */
+      :host([size='xs']) button { width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm); }
       :host([size='sm']) button { width: 2rem; height: 2rem; }
       :host([size='md']) button { width: var(--tap-lg); height: var(--tap-lg); }
       :host([size='lg']) button { width: 3.25rem; height: 3.25rem; }
@@ -69,12 +70,15 @@ export class GlassIconButton extends LitElement {
         inset: 0;
       }
       @media (pointer: coarse) {
+        :host([size='xs']) button::after {
+          inset: calc((var(--tap-lg) - 1.75rem) / -2);
+        }
         :host([size='sm']) button::after {
           inset: calc((var(--tap-lg) - 2rem) / -2);
         }
       }
 
-      /* Icon sizing — defaults to icon-md; override per-size for sm. */
+      /* Icon sizing — defaults to icon-md; override per-size. */
       ::slotted(ha-icon),
       ::slotted(*) {
         --mdc-icon-size: var(--icon-md);
@@ -83,6 +87,7 @@ export class GlassIconButton extends LitElement {
         justify-content: center;
         pointer-events: none;
       }
+      :host([size='xs']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-xs); }
       :host([size='sm']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-sm); }
       :host([size='lg']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-lg); }
 

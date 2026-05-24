@@ -564,13 +564,15 @@ export class ConfigTabLight extends BaseConfigTab {
                 </span>
                 <span class="check-label">${t('config.light_schedule_recurring')}</span>
               </button>
-              <button
-                class="btn-icon xs schedule-delete"
-                @click=${() => this._removeSchedulePeriod(entityId, idx)}
+              <glass-icon-button
+                class="schedule-delete"
+                size="xs"
+                active
+                active-color="alert"
+                .icon=${'mdi:delete-outline'}
                 aria-label="${t('config.light_schedule_delete_aria')}"
-              >
-                <ha-icon .icon=${'mdi:delete-outline'}></ha-icon>
-              </button>
+                @click=${() => this._removeSchedulePeriod(entityId, idx)}
+              ></glass-icon-button>
             </div>
           </div>
         `)}
@@ -621,15 +623,16 @@ export class ConfigTabLight extends BaseConfigTab {
           <div class="light-state">
             <span class="light-dot ${light.isOn ? 'on' : ''}"></span>
           </div>
-          <button
-            class="schedule-btn ${hasSchedule ? 'active' : ''}"
-            @click=${() => this._toggleScheduleExpand(light.entityId)}
+          <glass-icon-button
+            class="schedule-btn"
+            size="xs"
+            ?active=${hasSchedule}
+            .icon=${'mdi:calendar-clock'}
             aria-label="${t('config.light_schedule_aria', { name: light.name })}"
             aria-expanded=${isExpanded ? 'true' : 'false'}
             title="${t('config.light_schedule_title')}"
-          >
-            <ha-icon .icon=${'mdi:calendar-clock'}></ha-icon>
-          </button>
+            @click=${() => this._toggleScheduleExpand(light.entityId)}
+          ></glass-icon-button>
           <button
             class="layout-btn"
             @click=${() => this._cycleLightLayout(light.entityId)}

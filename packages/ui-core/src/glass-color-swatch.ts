@@ -15,6 +15,9 @@ export class GlassColorSwatch extends LitElement {
   @property({ type: String }) color = '#ffffff';
   @property({ type: Boolean, reflect: true }) selected = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
+  /** When true, render a centered `mdi:check` icon visible only when selected.
+   *  Useful for semantic-color pickers where the ring alone is ambiguous. */
+  @property({ type: Boolean, reflect: true, attribute: 'with-check' }) withCheck = false;
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   static styles: CSSResult[] = [
@@ -62,6 +65,18 @@ export class GlassColorSwatch extends LitElement {
           0 0 12px rgba(var(--rgb-white), 0.25);
       }
 
+      .check {
+        --mdc-icon-size: 0.875rem;
+        color: rgba(var(--rgb-white), 0.95);
+        opacity: 0;
+        transition: opacity var(--t-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      :host([with-check][selected]) .check { opacity: 1; }
+
       :host([disabled]) button {
         opacity: 0.4;
         pointer-events: none;
@@ -83,7 +98,7 @@ export class GlassColorSwatch extends LitElement {
         ?disabled=${this.disabled}
         aria-label=${this.ariaLabel ?? `color ${this.color}`}
         aria-pressed=${this.selected ? 'true' : 'false'}
-      ></button>
+      >${this.withCheck ? html`<ha-icon class="check" .icon=${'mdi:check'}></ha-icon>` : ''}</button>
     `;
   }
 }

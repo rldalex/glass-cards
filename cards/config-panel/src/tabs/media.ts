@@ -335,13 +335,12 @@ export class ConfigTabMedia extends BaseConfigTab {
                           <span class="item-name">${name}</span>
                           <span class="item-meta">${id}</span>
                         </div>
-                        <button
-                          class="btn-icon xs"
-                          @click=${() => this._removeMediaExtraEntity(id)}
+                        <glass-icon-button
+                          size="xs"
+                          .icon=${'mdi:close'}
                           aria-label="${t('common.hide')} ${name}"
-                        >
-                          <ha-icon .icon=${'mdi:close'}></ha-icon>
-                        </button>
+                          @click=${() => this._removeMediaExtraEntity(id)}
+                        ></glass-icon-button>
                       </div>
                     </div>
                   `;

@@ -398,24 +398,24 @@ export class ConfigTabUnassigned extends BaseConfigTab {
               @input=${(e: InputEvent) => { this._unassignedEntitySearch = (e.target as HTMLInputElement).value; }}
             />
             <div class="chip-group ua-filter-chips" role="tablist">
-              <button
-                class="chip ${this._filter === 'all' ? 'active' : ''}"
-                role="tab"
-                aria-selected=${this._filter === 'all' ? 'true' : 'false'}
+              <glass-chip
+                size="sm"
+                ?active=${this._filter === 'all'}
                 @click=${() => { this._filter = 'all'; }}
               >
                 ${t('config.unassigned_filter_all')}
                 <span class="chip-count">${totalCount}</span>
-              </button>
-              <button
-                class="chip ${this._filter === 'orphans' ? 'active' : ''} ${unassignedCount > 0 ? 'has-warn' : ''}"
-                role="tab"
-                aria-selected=${this._filter === 'orphans' ? 'true' : 'false'}
+              </glass-chip>
+              <glass-chip
+                class="${unassignedCount > 0 ? 'has-warn' : ''}"
+                size="sm"
+                active-color=${unassignedCount > 0 ? 'warning' : 'accent'}
+                ?active=${this._filter === 'orphans'}
                 @click=${() => { this._filter = 'orphans'; }}
               >
                 ${t('config.unassigned_filter_orphans')}
                 <span class="chip-count">${unassignedCount}</span>
-              </button>
+              </glass-chip>
             </div>
           </div>
 
@@ -455,14 +455,13 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                 return html`
                   <div class="item-card pw-ua-card">
                     <div class="item-row">
-                      <button
-                        class="btn-icon xs"
+                      <glass-icon-button
+                        size="xs"
+                        .icon=${e.icon || domainIcon(e.domain)}
                         title="${t('config.unassigned_change_icon')}"
                         aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
                         @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
-                      >
-                        <ha-icon .icon=${e.icon || domainIcon(e.domain)}></ha-icon>
-                      </button>
+                      ></glass-icon-button>
                       <div class="item-info">
                         ${isEditing ? html`
                           <input
