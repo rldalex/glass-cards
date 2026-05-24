@@ -50,6 +50,17 @@ export const PRESET_COLORS: Record<string, string> = {
   none: 'var(--t3)',
 };
 
+/** Token name used as `active-color` on the standardized `<glass-chip>`. */
+const PRESET_ACTIVE_COLORS: Record<string, string> = {
+  eco: 'success',
+  comfort: 'warning',
+  boost: 'heat',
+  away: 'info',
+  sleep: 'purple',
+  activity: 'accent',
+  none: 'accent',
+};
+
 // — Action labels (shared with arc gauge) —
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -143,20 +154,18 @@ export function renderPresets(
     <div class="preset-row">
       ${presets.map((preset) => {
         const active = preset === current;
-        const color = PRESET_COLORS[preset] || 'var(--c-accent)';
         const icon = PRESET_ICONS[preset] || 'mdi:tune';
         const label = PRESET_I18N[preset] ? t(PRESET_I18N[preset] as Parameters<typeof t>[0]) : preset;
+        const activeColor = PRESET_ACTIVE_COLORS[preset] || 'accent';
         return html`
-          <button
-            class="preset-chip ${active ? 'active' : ''}"
-            style="--preset-color: ${color};"
-            @click=${() => onSetPreset(preset)}
+          <glass-chip
+            size="sm"
+            .activeColor=${activeColor}
+            ?active=${active}
+            .icon=${icon}
             aria-label=${label}
-            aria-pressed=${active ? 'true' : 'false'}
-          >
-            <ha-icon class="preset-chip-icon" .icon=${icon}></ha-icon>
-            <span>${label}</span>
-          </button>
+            @click=${() => onSetPreset(preset)}
+          >${label}</glass-chip>
         `;
       })}
     </div>

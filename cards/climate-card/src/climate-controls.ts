@@ -152,15 +152,12 @@ export function renderAuxHeat(
     <div class="aux-row">
       <ha-icon .icon=${'mdi:radiator'} style="--mdc-icon-size:16px;display:flex;align-items:center;justify-content:center;margin-right:6px;"></ha-icon>
       <span class="aux-label">${t('climate.aux_heat')}</span>
-      <button
-        class="toggle ${isOn ? 'on' : ''}"
-        role="switch"
-        aria-checked=${isOn ? 'true' : 'false'}
+      <glass-toggle
+        active-color="heat"
+        .checked=${isOn}
         aria-label=${t('climate.aux_heat')}
-        @click=${onToggleAux}
-      >
-        <span class="toggle-knob"></span>
-      </button>
+        @glass-toggle-change=${onToggleAux}
+      ></glass-toggle>
     </div>
   `;
 }
