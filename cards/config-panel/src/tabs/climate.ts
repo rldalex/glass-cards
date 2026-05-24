@@ -272,22 +272,18 @@ export class ConfigTabClimate extends BaseConfigTab {
             </div>
           </header>
           <div class="chip-group">
-            <button
-              class="chip ${currentMode === 'list' ? 'active' : ''}"
+            <glass-chip
+              size="sm"
+              .icon=${'mdi:format-list-bulleted'}
+              ?active=${currentMode === 'list'}
               @click=${() => setMode('list')}
-              aria-pressed=${currentMode === 'list' ? 'true' : 'false'}
-            >
-              <ha-icon .icon=${'mdi:format-list-bulleted'}></ha-icon>
-              ${t('config.climate_mode_list')}
-            </button>
-            <button
-              class="chip ${currentMode === 'normal' ? 'active' : ''}"
+            >${t('config.climate_mode_list')}</glass-chip>
+            <glass-chip
+              size="sm"
+              .icon=${'mdi:gauge'}
+              ?active=${currentMode === 'normal'}
               @click=${() => setMode('normal')}
-              aria-pressed=${currentMode === 'normal' ? 'true' : 'false'}
-            >
-              <ha-icon .icon=${'mdi:gauge'}></ha-icon>
-              ${t('config.climate_mode_normal')}
-            </button>
+            >${t('config.climate_mode_normal')}</glass-chip>
           </div>
           <div class="feature-list">
             ${this._renderFeatureRow({

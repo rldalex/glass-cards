@@ -131,6 +131,7 @@
         -webkit-tap-highlight-color: transparent;
       }
       /* Sizes — md is the canonical 44px tap target. */
+      :host([size='xs']) button { width: 1.75rem; height: 1.75rem; border-radius: var(--radius-sm); }
       :host([size='sm']) button { width: 2rem; height: 2rem; }
       :host([size='md']) button { width: var(--tap-lg); height: var(--tap-lg); }
       :host([size='lg']) button { width: 3.25rem; height: 3.25rem; }
@@ -144,12 +145,15 @@
         inset: 0;
       }
       @media (pointer: coarse) {
+        :host([size='xs']) button::after {
+          inset: calc((var(--tap-lg) - 1.75rem) / -2);
+        }
         :host([size='sm']) button::after {
           inset: calc((var(--tap-lg) - 2rem) / -2);
         }
       }
 
-      /* Icon sizing — defaults to icon-md; override per-size for sm. */
+      /* Icon sizing — defaults to icon-md; override per-size. */
       ::slotted(ha-icon),
       ::slotted(*) {
         --mdc-icon-size: var(--icon-md);
@@ -158,6 +162,7 @@
         justify-content: center;
         pointer-events: none;
       }
+      :host([size='xs']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-xs); }
       :host([size='sm']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-sm); }
       :host([size='lg']) ::slotted(ha-icon) { --mdc-icon-size: var(--icon-lg); }
 
@@ -809,7 +814,7 @@
         margin: 0 auto;
         width: 50%;
       }
-    `]}_resolveTint(){const e=this.tint;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}render(){return Z`<div class="line" style="--_sep-rgb:${this._resolveTint()}"></div>`}}at([Ce({type:String,reflect:!0})],rt.prototype,"variant"),at([Ce({type:String,attribute:"tint"})],rt.prototype,"tint");try{customElements.define("glass-fold-separator",rt)}catch{}var st=Object.defineProperty,ot=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&st(t,i,s),s};class nt extends fe{constructor(){super(...arguments),this.color="#ffffff",this.selected=!1,this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
+    `]}_resolveTint(){const e=this.tint;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}render(){return Z`<div class="line" style="--_sep-rgb:${this._resolveTint()}"></div>`}}at([Ce({type:String,reflect:!0})],rt.prototype,"variant"),at([Ce({type:String,attribute:"tint"})],rt.prototype,"tint");try{customElements.define("glass-fold-separator",rt)}catch{}var st=Object.defineProperty,ot=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&st(t,i,s),s};class nt extends fe{constructor(){super(...arguments),this.color="#ffffff",this.selected=!1,this.disabled=!1,this.withCheck=!1,this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: inline-flex;
         box-sizing: border-box;
@@ -853,6 +858,18 @@
           0 0 12px rgba(var(--rgb-white), 0.25);
       }
 
+      .check {
+        --mdc-icon-size: 0.875rem;
+        color: rgba(var(--rgb-white), 0.95);
+        opacity: 0;
+        transition: opacity var(--t-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      :host([with-check][selected]) .check { opacity: 1; }
+
       :host([disabled]) button {
         opacity: 0.4;
         pointer-events: none;
@@ -870,8 +887,8 @@
         ?disabled=${this.disabled}
         aria-label=${this.ariaLabel??`color ${this.color}`}
         aria-pressed=${this.selected?"true":"false"}
-      ></button>
-    `}}ot([Ce({type:String})],nt.prototype,"color"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"selected"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"disabled"),ot([Ce({type:String,attribute:"aria-label"})],nt.prototype,"ariaLabel");try{customElements.define("glass-color-swatch",nt)}catch{}var lt=Object.defineProperty,ct=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&lt(t,i,s),s};class dt extends fe{constructor(){super(...arguments),this.value="",this.placeholder="",this.type="text",this.multiline=!1,this.rows=3,this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
+      >${this.withCheck?Z`<ha-icon class="check" .icon=${"mdi:check"}></ha-icon>`:""}</button>
+    `}}ot([Ce({type:String})],nt.prototype,"color"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"selected"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"disabled"),ot([Ce({type:Boolean,reflect:!0,attribute:"with-check"})],nt.prototype,"withCheck"),ot([Ce({type:String,attribute:"aria-label"})],nt.prototype,"ariaLabel");try{customElements.define("glass-color-swatch",nt)}catch{}var lt=Object.defineProperty,ct=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&lt(t,i,s),s};class dt extends fe{constructor(){super(...arguments),this.value="",this.placeholder="",this.type="text",this.multiline=!1,this.rows=3,this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: block;
         box-sizing: border-box;

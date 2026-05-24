@@ -466,15 +466,17 @@ export class ConfigTabCover extends BaseConfigTab {
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>
                       </div>
-                      <button
-                        class="presets-btn ${hasCustomPresets ? 'active' : ''}"
-                        @click=${() => this._togglePresetsExpand(e.entityId)}
+                      <glass-icon-button
+                        class="presets-btn"
+                        size="xs"
+                        active-color="purple"
+                        ?active=${hasCustomPresets}
+                        .icon=${'mdi:tune-vertical'}
                         aria-label="${t('config.cover_entity_presets')}"
                         aria-expanded=${isExpanded ? 'true' : 'false'}
                         title="${t('config.cover_entity_presets')}"
-                      >
-                        <ha-icon .icon=${'mdi:tune-vertical'}></ha-icon>
-                      </button>
+                        @click=${() => this._togglePresetsExpand(e.entityId)}
+                      ></glass-icon-button>
                       <button
                         class="layout-btn"
                         @click=${() => this._cycleLayout(e.entityId)}
