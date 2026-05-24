@@ -871,7 +871,7 @@ export class GlassClimateCard extends BaseCard {
       <div class="air-section">
         ${fanModes.length ? html`
           <div class="air-row">
-            <span class="air-row-label">${t('climate.fan_mode')}</span>
+            <glass-section-title label=${t('climate.fan_mode')}></glass-section-title>
             <div class="air-pills">
               ${fanModes.map((m) => html`
                 <glass-chip
@@ -887,7 +887,7 @@ export class GlassClimateCard extends BaseCard {
         ` : nothing}
         ${swingModes.length ? html`
           <div class="air-row">
-            <span class="air-row-label">${t('climate.swing_mode')}</span>
+            <glass-section-title label=${t('climate.swing_mode')}></glass-section-title>
             <div class="air-pills">
               ${swingModes.map((m) => html`
                 <glass-chip
@@ -1621,20 +1621,14 @@ export class GlassClimateCard extends BaseCard {
     .preset-row::-webkit-scrollbar { display: none; }
 
     /* ── Air section (Fan, Swing, Humidity, Aux) ──
-       Section title via <glass-section-title> (uppercase eyebrow, no
-       leading dot). Pills via <glass-chip size=sm>. */
-    .air-section { display: flex; flex-direction: column; gap: 0.5rem; }
+       Each row is a stacked group: <glass-section-title> eyebrow on
+       top, pills below. Pills via <glass-chip size=sm>. */
+    .air-section { display: flex; flex-direction: column; gap: 0.75rem; }
     .air-row {
-      display: flex; align-items: center; gap: 0.625rem; min-height: 2rem;
-    }
-    .air-row-label {
-      font-size: var(--fz-sm); font-weight: 600; color: var(--t3);
-      flex-shrink: 0; min-width: 4rem;
-      text-transform: capitalize;
+      display: flex; flex-direction: column; gap: 0.375rem;
     }
     .air-pills {
       display: flex; gap: 0.375rem; overflow-x: auto; scrollbar-width: none;
-      flex: 1; min-width: 0;
       padding: 0 0.0625rem;
     }
     .air-pills::-webkit-scrollbar { display: none; }
