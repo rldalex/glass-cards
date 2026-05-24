@@ -2,7 +2,7 @@ import { html, css, nothing, type CSSResult, type PropertyValues, type TemplateR
 import { state } from 'lit/decorators.js';
 import { BaseCard, BackendService, fireHaptic } from '@glass-cards/base-card';
 import './editor';
-import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, tappableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
 
 /* ── Types ── */
@@ -482,7 +482,7 @@ export class GlassPresenceCard extends BaseCard {
     return html`
       <div class="person-block ${isRight ? 'right' : ''} ${unavailable ? 'entity-unavailable' : ''} ${isDimmed ? 'dimmed' : ''} ${isActive ? 'active' : ''}">
         <button
-          class="avatar-wrapper"
+          class="avatar-wrapper tappable"
           aria-label=${t('presence.avatar_aria', { name: p.name })}
           aria-expanded=${String(this._activePerson === p.entityId)}
           @click=${(e: Event) => {
@@ -555,13 +555,13 @@ export class GlassPresenceCard extends BaseCard {
     return html`
       <div class="solo-health-chips">
         ${p.heartRate != null
-          ? html`<div class="solo-chip bpm"><ha-icon .icon=${'mdi:heart-pulse'}></ha-icon><span class="solo-chip-val">${p.heartRate}</span></div>`
+          ? html`<glass-pill tone="alert"><ha-icon .icon=${'mdi:heart-pulse'}></ha-icon><span>${p.heartRate}</span></glass-pill>`
           : nothing}
         ${p.spo2 != null
-          ? html`<div class="solo-chip spo2"><ha-icon .icon=${'mdi:water-percent'}></ha-icon><span class="solo-chip-val">${p.spo2}%</span></div>`
+          ? html`<glass-pill tone="info"><ha-icon .icon=${'mdi:water-percent'}></ha-icon><span>${p.spo2}%</span></glass-pill>`
           : nothing}
         ${p.steps != null
-          ? html`<div class="solo-chip steps"><ha-icon .icon=${'mdi:walk'}></ha-icon><span class="solo-chip-val">${p.steps.toLocaleString()}</span></div>`
+          ? html`<glass-pill tone="success"><ha-icon .icon=${'mdi:walk'}></ha-icon><span>${p.steps.toLocaleString()}</span></glass-pill>`
           : nothing}
       </div>
     `;
@@ -654,30 +654,33 @@ export class GlassPresenceCard extends BaseCard {
                       </div>
                     ` : html`
                       <div class="notif-row">
-                        <textarea
+                        <glass-form-input
                           class="notif-input"
+                          multiline
+                          rows="1"
                           placeholder=${t('presence.notify_placeholder', { name: person.name })}
                           .value=${this._notifText}
-                          @input=${(e: InputEvent) => {
-                            this._notifText = (e.target as HTMLTextAreaElement).value;
+                          @glass-input=${(e: CustomEvent<{ value: string }>) => {
+                            this._notifText = e.detail.value;
                           }}
                           @focus=${(e: Event) => {
-                            const ta = e.target as HTMLTextAreaElement;
-                            if (ta.dataset.scrolled) return;
-                            ta.dataset.scrolled = '1';
+                            const el = e.target as HTMLElement & { dataset: DOMStringMap };
+                            if (el.dataset.scrolled) return;
+                            el.dataset.scrolled = '1';
                             this._scrollToTop();
                           }}
-                        ></textarea>
-                        <button
-                          class="notif-send"
+                        ></glass-form-input>
+                        <glass-icon-button
+                          size="sm"
+                          active
+                          active-color="success"
+                          .icon=${'mdi:send'}
                           aria-label=${t('presence.send_aria')}
                           @click=${(e: Event) => {
                             e.stopPropagation();
                             this._sendNotification(person);
                           }}
-                        >
-                          <ha-icon .icon=${'mdi:send'}></ha-icon>
-                        </button>
+                        ></glass-icon-button>
                       </div>
                     `}
                   </div>
@@ -699,6 +702,7 @@ export class GlassPresenceCard extends BaseCard {
     marqueeMixin,
     bounceMixin,
     unavailableMixin,
+    tappableMixin,
     css`
       :host {
         width: 100%;
@@ -941,22 +945,12 @@ export class GlassPresenceCard extends BaseCard {
         .heart-pulse { animation: none; }
       }
 
-      /* ── Solo health chips ── */
+      /* ── Solo health chips (rendered as <glass-pill>) ── */
       .solo-health-chips { display: flex; align-items: center; gap: 0.3125rem; flex-shrink: 0; }
-      .solo-chip {
-        display: flex; align-items: center; gap: 0.1875rem;
-        padding: 0.25rem 0.5rem; border-radius: var(--radius-full);
-        background: var(--s2); border: 1px solid var(--b1);
-        white-space: nowrap; line-height: 1;
-      }
-      .solo-chip ha-icon {
-        display: flex; align-items: center; justify-content: center;
+      .solo-health-chips glass-pill ha-icon {
         --mdc-icon-size: 0.75rem;
+        display: flex; align-items: center; justify-content: center;
       }
-      .solo-chip-val { font-size: var(--fz-base); font-weight: 600; }
-      .solo-chip.bpm ha-icon, .solo-chip.bpm .solo-chip-val { color: var(--c-alert); opacity: 0.8; }
-      .solo-chip.spo2 ha-icon, .solo-chip.spo2 .solo-chip-val { color: var(--c-info); opacity: 0.8; }
-      .solo-chip.steps ha-icon, .solo-chip.steps .solo-chip-val { color: var(--c-success); opacity: 0.8; }
 
       /* ── Fold ── */
       .fold-sep {
@@ -1080,34 +1074,7 @@ export class GlassPresenceCard extends BaseCard {
       /* ── Notification zone ── */
       .notif-zone { display: flex; gap: 0.5rem; flex-direction: column; }
       .notif-row { display: flex; gap: 0.5rem; align-items: flex-end; }
-      .notif-input {
-        flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
-        border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: var(--fz-base);
-        outline: none; resize: none; height: 2.25rem; box-sizing: border-box;
-        transition: border-color var(--t-fast);
-      }
-      .notif-input::placeholder { color: var(--t4); }
-      .notif-input:focus { border-color: var(--b3); }
-
-      .notif-send {
-        width: 2.25rem; height: 2.25rem; border-radius: var(--radius-lg);
-        border: 1px solid rgba(var(--rgb-success),0.2);
-        background: rgba(var(--rgb-success),0.1); color: var(--c-success);
-        cursor: pointer; display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0; transition: background var(--t-fast), border-color var(--t-fast);
-        padding: 0; outline: none; font-size: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .notif-send ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .notif-send:hover { background: rgba(var(--rgb-success),0.2); border-color: rgba(var(--rgb-success),0.3); }
-      }
-      .notif-send:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-      .notif-send:active { transform: scale(0.96); }
+      .notif-row .notif-input { flex: 1; }
 
       .notif-toast {
         display: flex; align-items: center; justify-content: center; gap: 0.375rem;
@@ -1124,8 +1091,7 @@ export class GlassPresenceCard extends BaseCard {
       }
 
       @media (pointer: coarse) {
-        .avatar-wrapper:active,
-        .notif-send:active { animation: bounce 0.3s ease; }
+        .avatar-wrapper:active { animation: bounce 0.3s ease; }
       }
     `,
   ];
