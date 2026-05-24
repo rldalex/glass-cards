@@ -192,33 +192,10 @@ export class GlassRoomPopup extends LitElement {
         align-items: center;
         flex-shrink: 0;
       }
-      .header-icon {
-        min-width: var(--tap-lg);
-        min-height: var(--tap-lg);
-        width: var(--tap-lg);
-        height: var(--tap-lg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        color: var(--t2);
-        cursor: pointer;
-        padding: 0;
-        font-family: inherit;
-        outline: none;
-        transition: transform var(--t-fast);
-      }
-      .header-icon ha-icon,
-      .close-btn ha-icon {
-        display: flex; align-items: center; justify-content: center;
-      }
-      .header-icon.has-light ha-icon {
-        color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.6));
-      }
-      .header-icon.has-music ha-icon {
+      /* Music pulse on the room header icon — the ha-icon is passed as
+         a slot child so it lives in this card's shadow DOM and the
+         selector reaches it normally. */
+      glass-icon-button.header-icon.has-music > ha-icon {
         animation: pulse-music 0.8s ease-in-out infinite;
       }
       @keyframes pulse-music {
@@ -274,99 +251,15 @@ export class GlassRoomPopup extends LitElement {
         font-size: var(--fz-sm);
         font-style: italic;
       }
-      .room-action-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.375rem;
-        flex-shrink: 0;
-        min-height: var(--tap-lg);
-        max-width: 8rem;
-        padding: 0 0.625rem;
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        border-radius: var(--radius-sm);
-        color: var(--t2);
-        cursor: pointer;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-family: inherit;
-        font-family: inherit;
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        outline: none;
-        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
+      /* Cap labelled room-action buttons so the room name keeps space. */
+      glass-button.room-action-btn { max-width: 8rem; }
+      glass-button.room-action-btn.flashing,
+      glass-icon-button.room-action-btn.flashing {
+        animation: room-btn-flash 0.4s ease;
       }
-      .room-action-btn.icon-only {
-        width: var(--tap-lg);
-        padding: 0;
-      }
-      /* On compact viewports (≤420px), collapse all action buttons to icon-only so the room name keeps space. */
-      @media (max-width: 420px) {
-        .room-action-btn {
-          max-width: var(--tap-lg);
-          width: var(--tap-lg);
-          padding: 0;
-        }
-        .room-action-btn span { display: none; }
-      }
-      .room-action-btn ha-icon {
-        --mdc-icon-size: 1.125rem;
-        color: var(--t2);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .room-action-btn:hover { background: var(--s3); border-color: var(--b2); color: var(--t1); }
-        .room-action-btn:hover ha-icon { color: var(--t1); }
-      }
-      .room-action-btn:active { transform: scale(0.96); }
-      .room-action-btn.flashing { animation: room-btn-flash 0.4s ease; }
       @keyframes room-btn-flash {
         0%, 100% { background: var(--s2); }
         50%      { background: rgba(var(--rgb-accent), 0.25); }
-      }
-      .close-btn {
-        background: transparent;
-        border: 1px solid var(--b1);
-        width: 1.75rem;
-        height: 1.75rem;
-        min-width: var(--tap-lg);
-        min-height: var(--tap-lg);
-        border-radius: var(--radius-sm);
-        color: var(--t3);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        font-family: inherit;
-        outline: none;
-        transition: background var(--t-fast);
-        flex-shrink: 0;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .close-btn:hover {
-          background: var(--s3);
-        }
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .close-btn:active {
-          background: var(--s3);
-        }
-      }
-      @media (pointer: coarse) {
-        .close-btn:active {
-          animation: bounce 0.3s ease;
-        }
-      }
-
-      /* Focus-visible ring */
-      .header-icon:focus-visible,
-      .close-btn:focus-visible,
-      .scene-chip:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
       }
 
       /* Scene grid fold */
@@ -393,46 +286,12 @@ export class GlassRoomPopup extends LitElement {
         gap: 0.375rem;
         padding: 0 0 0.75rem;
       }
-      .scene-chip {
-        background: rgba(var(--rgb-white), 0.04);
-        border: 1px solid var(--b1);
-        border-radius: var(--radius-md);
-        min-height: var(--tap-lg);
-        padding: 0.3125rem 0.75rem;
-        font-size: var(--fz-sm);
-        font-weight: 600;
+      /* Scenes are styled by <glass-chip>; force the uppercase eyebrow
+         treatment that the room popup uses (the design specifically
+         wants scenes to read as labels, not headings). */
+      glass-chip.scene-chip {
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        color: var(--t3);
-        cursor: pointer;
-        font-family: inherit;
-        outline: none;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast),
-          color var(--t-fast);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .scene-chip:hover {
-          background: var(--s3);
-          border-color: var(--b3);
-          color: var(--t1);
-        }
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .scene-chip:active {
-          background: var(--s3);
-        }
-      }
-      @media (pointer: coarse) {
-        .scene-chip:active {
-          animation: bounce 0.3s ease;
-        }
-      }
-      .scene-chip.active {
-        background: rgba(var(--rgb-white), 0.12);
-        border-color: rgba(var(--rgb-white), 0.18);
-        color: var(--t1);
       }
 
       .cards {
@@ -903,16 +762,14 @@ export class GlassRoomPopup extends LitElement {
         <div class="dialog-inner ${this._swipeClass}">
         <div class="header">
           <div class="header-left">
-            <button
-              class="header-icon ${meta.hasLight ? 'has-light' : ''} ${meta.hasMusic
-                ? 'has-music'
-                : ''}"
-              @click=${() => hasScenes && (this._scenesOpen = !this._scenesOpen)}
+            <glass-icon-button
+              class="header-icon ${meta.hasMusic ? 'has-music' : ''}"
+              ?active=${meta.hasLight}
+              ?glow=${meta.hasLight}
+              active-color="light-glow"
               aria-label=${hasScenes ? t('popup.toggle_scenes_aria') : meta.name}
-              aria-expanded=${hasScenes ? (this._scenesOpen ? 'true' : 'false') : nothing}
-            >
-              <ha-icon .icon=${meta.icon}></ha-icon>
-            </button>
+              @click=${() => hasScenes && (this._scenesOpen = !this._scenesOpen)}
+            ><ha-icon .icon=${meta.icon}></ha-icon></glass-icon-button>
             <div class="scene-dash ${hasScenes ? 'visible' : ''}"></div>
           </div>
           <div class="header-info">
@@ -924,13 +781,12 @@ export class GlassRoomPopup extends LitElement {
             </div>
           </div>
           ${this._renderRoomButtons()}
-          <button
+          <glass-icon-button
             class="close-btn"
-            @click=${() => bus.emit('popup-close', undefined)}
+            .icon=${'mdi:close'}
             aria-label="${t('popup.close_aria')}"
-          >
-            <ha-icon .icon=${'mdi:close'}></ha-icon>
-          </button>
+            @click=${() => bus.emit('popup-close', undefined)}
+          ></glass-icon-button>
         </div>
         <div class="header-sep"></div>
 
@@ -941,13 +797,13 @@ export class GlassRoomPopup extends LitElement {
                   <div class="scene-chips">
                     ${meta.scenes.map(
                       (s) => html`
-                        <button
-                          class="scene-chip ${this._activeSceneId === s.entity_id ? 'active' : ''}"
-                          @click=${() => this._activateScene(s.entity_id)}
+                        <glass-chip
+                          size="sm"
+                          class="scene-chip"
+                          ?active=${this._activeSceneId === s.entity_id}
                           aria-label="${t('popup.activate_scene_aria', { name: (s.attributes.friendly_name as string) || s.entity_id })}"
-                        >
-                          ${s.attributes.friendly_name || s.entity_id}
-                        </button>
+                          @click=${() => this._activateScene(s.entity_id)}
+                        >${s.attributes.friendly_name || s.entity_id}</glass-chip>
                       `,
                     )}
                   </div>
@@ -990,20 +846,31 @@ export class GlassRoomPopup extends LitElement {
         const resolvedIcon = btn.icon || fallbackIcon(btn.service, entityDomain);
         const resolvedLabel = btn.label;
         const hasLabel = !!resolvedLabel;
-        const cls = `room-action-btn ${!hasLabel ? 'icon-only' : ''} ${this._flashingBtnIdx === idx ? 'flashing' : ''}`;
+        const flashing = this._flashingBtnIdx === idx;
         // Prefer explicit label, then entity friendly_name. Never expose raw MDI slug or service id to SR.
         const aria = resolvedLabel || entityFriendly || (entityDomain ? `${entityDomain} action` : 'Action');
-        return html`
-          <button
-            class=${cls}
-            @click=${() => this._invokeRoomButton(btn, idx)}
-            aria-label=${aria}
-            title=${aria}
-          >
-            <ha-icon .icon=${resolvedIcon}></ha-icon>
-            ${hasLabel ? html`<span>${resolvedLabel}</span>` : nothing}
-          </button>
-        `;
+        return hasLabel
+          ? html`
+              <glass-button
+                size="sm"
+                variant="secondary"
+                class="room-action-btn ${flashing ? 'flashing' : ''}"
+                .icon=${resolvedIcon}
+                aria-label=${aria}
+                title=${aria}
+                @click=${() => this._invokeRoomButton(btn, idx)}
+              >${resolvedLabel}</glass-button>
+            `
+          : html`
+              <glass-icon-button
+                size="md"
+                class="room-action-btn icon-only ${flashing ? 'flashing' : ''}"
+                .icon=${resolvedIcon}
+                aria-label=${aria}
+                title=${aria}
+                @click=${() => this._invokeRoomButton(btn, idx)}
+              ></glass-icon-button>
+            `;
       })}
     `;
   }
