@@ -21,6 +21,11 @@ export class GlassDropdown extends LitElement {
   @property({ type: String }) label = '';
   @property({ type: String }) icon = '';
   @property({ type: String }) placeholder = '';
+  /** Placeholder shown inside the search input. English fallback —
+   *  consumers pass a localised string. */
+  @property({ type: String, attribute: 'search-placeholder' }) searchPlaceholder = 'Search…';
+  /** Text rendered when the search yields no matching item. English fallback. */
+  @property({ type: String, attribute: 'empty-text' }) emptyText = 'No results';
   @property({ type: Boolean }) searchable = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
@@ -280,13 +285,13 @@ export class GlassDropdown extends LitElement {
             class="dropdown-search"
             type="text"
             .value=${this._query}
-            placeholder=${this.placeholder || 'Rechercher…'}
+            placeholder=${this.searchPlaceholder}
             @input=${(e: Event) => { this._query = (e.target as HTMLInputElement).value; this._activeIndex = 0; }}
             @keydown=${this._onKeyDown}
           />
         ` : nothing}
         ${filtered.length === 0
-          ? html`<div class="empty">Aucun résultat</div>`
+          ? html`<div class="empty">${this.emptyText}</div>`
           : filtered.map((it, i) => html`
               <button
                 type="button"

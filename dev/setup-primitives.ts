@@ -384,6 +384,7 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-dropdown</h2>
+      <div class="sub">Pass <code>search-placeholder</code> and <code>empty-text</code> to localise. English defaults so ui-core stays decoupled from i18n.</div>
       <div class="row" style="flex-direction: column; align-items: stretch;">
         <glass-dropdown
           .items=${[
@@ -396,6 +397,8 @@ class PrimitivesShowcase extends LitElement {
           label="Sélectionner une pièce"
           icon="mdi:home"
           searchable
+          search-placeholder="Rechercher une pièce…"
+          empty-text="Aucune pièce"
           aria-label="room"
         ></glass-dropdown>
       </div>

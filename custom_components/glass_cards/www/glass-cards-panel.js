@@ -5553,7 +5553,7 @@
         <div class="fill"></div>
         ${this.interactive?N`<div class="thumb"></div>`:null}
       </div>
-    `}}$t([pe({type:Number})],St.prototype,"value"),$t([pe({type:Number})],St.prototype,"min"),$t([pe({type:Number})],St.prototype,"max"),$t([pe({type:Boolean,reflect:!0})],St.prototype,"interactive"),$t([pe({type:Boolean,reflect:!0})],St.prototype,"disabled"),$t([pe({type:String,attribute:"fill-color"})],St.prototype,"fillColor"),$t([pe({type:String,attribute:"aria-label"})],St.prototype,"ariaLabel");try{customElements.define("glass-progress-bar",St)}catch{}var Ct=Object.defineProperty,It=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ct(t,i,s),s};class Et extends ne{constructor(){super(...arguments),this.items=[],this.value="",this.label="",this.icon="",this.placeholder="",this.searchable=!1,this.disabled=!1,this.ariaLabel=null,this._open=!1,this._query="",this._activeIndex=-1,this._onDocClick=e=>{this._open&&(e.composedPath().includes(this)||this._close())}}static{this.styles=[s`
+    `}}$t([pe({type:Number})],St.prototype,"value"),$t([pe({type:Number})],St.prototype,"min"),$t([pe({type:Number})],St.prototype,"max"),$t([pe({type:Boolean,reflect:!0})],St.prototype,"interactive"),$t([pe({type:Boolean,reflect:!0})],St.prototype,"disabled"),$t([pe({type:String,attribute:"fill-color"})],St.prototype,"fillColor"),$t([pe({type:String,attribute:"aria-label"})],St.prototype,"ariaLabel");try{customElements.define("glass-progress-bar",St)}catch{}var Ct=Object.defineProperty,It=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ct(t,i,s),s};class Et extends ne{constructor(){super(...arguments),this.items=[],this.value="",this.label="",this.icon="",this.placeholder="",this.searchPlaceholder="Search…",this.emptyText="No results",this.searchable=!1,this.disabled=!1,this.ariaLabel=null,this._open=!1,this._query="",this._activeIndex=-1,this._onDocClick=e=>{this._open&&(e.composedPath().includes(this)||this._close())}}static{this.styles=[s`
       :host {
         display: block;
         position: relative;
@@ -5701,12 +5701,12 @@
             class="dropdown-search"
             type="text"
             .value=${this._query}
-            placeholder=${this.placeholder||"Rechercher…"}
+            placeholder=${this.searchPlaceholder}
             @input=${e=>{this._query=e.target.value,this._activeIndex=0}}
             @keydown=${this._onKeyDown}
           />
         `:W}
-        ${0===e.length?N`<div class="empty">Aucun résultat</div>`:e.map((e,t)=>N`
+        ${0===e.length?N`<div class="empty">${this.emptyText}</div>`:e.map((e,t)=>N`
               <button
                 type="button"
                 role="option"
@@ -5720,7 +5720,7 @@
               </button>
             `)}
       </div>
-    `}}It([pe({type:Array})],Et.prototype,"items"),It([pe({type:String,reflect:!0})],Et.prototype,"value"),It([pe({type:String})],Et.prototype,"label"),It([pe({type:String})],Et.prototype,"icon"),It([pe({type:String})],Et.prototype,"placeholder"),It([pe({type:Boolean})],Et.prototype,"searchable"),It([pe({type:Boolean,reflect:!0})],Et.prototype,"disabled"),It([pe({type:String,attribute:"aria-label"})],Et.prototype,"ariaLabel"),It([ue()],Et.prototype,"_open"),It([ue()],Et.prototype,"_query"),It([ue()],Et.prototype,"_activeIndex"),It([ge(".dropdown-search")],Et.prototype,"_searchInput");try{customElements.define("glass-dropdown",Et)}catch{}const zt=s`
+    `}}It([pe({type:Array})],Et.prototype,"items"),It([pe({type:String,reflect:!0})],Et.prototype,"value"),It([pe({type:String})],Et.prototype,"label"),It([pe({type:String})],Et.prototype,"icon"),It([pe({type:String})],Et.prototype,"placeholder"),It([pe({type:String,attribute:"search-placeholder"})],Et.prototype,"searchPlaceholder"),It([pe({type:String,attribute:"empty-text"})],Et.prototype,"emptyText"),It([pe({type:Boolean})],Et.prototype,"searchable"),It([pe({type:Boolean,reflect:!0})],Et.prototype,"disabled"),It([pe({type:String,attribute:"aria-label"})],Et.prototype,"ariaLabel"),It([ue()],Et.prototype,"_open"),It([ue()],Et.prototype,"_query"),It([ue()],Et.prototype,"_activeIndex"),It([ge(".dropdown-search")],Et.prototype,"_searchInput");try{customElements.define("glass-dropdown",Et)}catch{}const zt=s`
   :host {
     --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
