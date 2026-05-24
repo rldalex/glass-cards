@@ -978,6 +978,7 @@ export class GlassMediaCard extends BaseCard {
     return html`
       <glass-tabs
         layout="segmented"
+        size="sm"
         .value=${this._foldTab}
         .items=${[
           { value: 'controls', label: t('media.controls_tab') },
@@ -1851,6 +1852,11 @@ export class GlassMediaCard extends BaseCard {
 
       .speaker-vol-slider {
         position: relative; flex: 1;
+        height: 2.25rem; min-height: 2.25rem;
+        border-radius: var(--radius-lg);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        overflow: hidden;
         cursor: pointer; touch-action: none;
         user-select: none; -webkit-user-select: none;
         transition: opacity var(--t-fast);

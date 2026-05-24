@@ -7093,6 +7093,7 @@
     `}_renderFoldContent(e,t,i){const a="queue"===this._foldTab;return Z`
       <glass-tabs
         layout="segmented"
+        size="sm"
         .value=${this._foldTab}
         .items=${[{value:"controls",label:ti("media.controls_tab")},{value:"queue",label:ti("media.queue_tab")}]}
         @glass-tab-change=${e=>{this._foldTab=e.detail.value,"queue"===this._foldTab&&this._loadQueue()}}
@@ -7753,6 +7754,11 @@
 
       .speaker-vol-slider {
         position: relative; flex: 1;
+        height: 2.25rem; min-height: 2.25rem;
+        border-radius: var(--radius-lg);
+        background: var(--s1);
+        border: 1px solid var(--b1);
+        overflow: hidden;
         cursor: pointer; touch-action: none;
         user-select: none; -webkit-user-select: none;
         transition: opacity var(--t-fast);
