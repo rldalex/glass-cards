@@ -159,8 +159,6 @@
 
       /* ── Spacing utilities ── */
       .mt-sm { margin-top: 0.75rem; }
-      .mt-md { margin-top: 1.25rem; }
-      .mt-lg { margin-top: 1.75rem; }
 
       /* ── Banner ── */
       .banner {
@@ -216,13 +214,6 @@
       }
       .item-row.disabled {
         opacity: 0.35;
-      }
-      .empty-rooms glass-drag-handle {
-        visibility: hidden;
-      }
-      .empty-rooms .room-icon-btn {
-        pointer-events: none;
-        opacity: 0.4;
       }
       .item-row.dragging {
         opacity: 0.4;
@@ -285,24 +276,6 @@
         outline-offset: 2px;
       }
 
-      /* ── Card icon box ── */
-      .card-icon-box {
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .card-icon-box ha-icon {
-        --mdc-icon-size: 1.125rem;
-        color: var(--t2);
-        display: flex; align-items: center; justify-content: center;
-      }
-
       /* ── Item info ── */
       .item-info {
         flex: 1;
@@ -328,38 +301,6 @@
       }
 
       /* ── Entity rename (unassigned tab) ── */
-      .entity-name-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        border-radius: var(--radius-sm);
-        padding: 0.375rem 0.5rem;
-        font-family: inherit;
-        font-size: var(--fz-base);
-        font-weight: 600;
-        color: var(--t1);
-        cursor: pointer;
-        outline: none;
-        transition: background var(--t-fast), border-color var(--t-fast);
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .entity-name-btn:focus-visible {
-        outline: 2px solid rgba(var(--rgb-white), 0.25);
-        outline-offset: 2px;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .entity-name-btn:hover {
-          background: var(--s2);
-          border-color: var(--b2);
-        }
-        .entity-name-btn:hover ha-icon { color: var(--t2) !important; }
-      }
       .entity-rename-input {
         display: block;
         width: 100%;
@@ -373,18 +314,6 @@
         color: var(--t1);
         outline: none;
         box-shadow: 0 0 0 2px rgba(var(--rgb-accent), 0.2);
-      }
-
-      /* ── Card count badge ── */
-      .card-count {
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        color: var(--t3);
-        padding: 0.125rem 0.5rem;
-        border-radius: var(--radius-full);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        flex-shrink: 0;
       }
 
       /* Toggle styles now live in <glass-toggle> (ui-core).
@@ -461,94 +390,6 @@
       }
       .feature-row .feature-name {
         color: var(--t1);
-      }
-      .feature-sub {
-        display: grid;
-        grid-template-rows: 0fr;
-        transition: grid-template-rows var(--t-layout);
-      }
-      .feature-sub.open { grid-template-rows: 1fr; }
-      .feature-sub-inner {
-        overflow: hidden;
-        opacity: 0;
-        transition: opacity 0.2s var(--ease-std);
-      }
-      .feature-sub.open .feature-sub-inner {
-        opacity: 1;
-        transition-delay: 0.08s;
-      }
-      .feature-sub-content {
-        padding: 0.375rem 0.5rem 0.5rem;
-      }
-
-      /* ── Threshold inputs ── */
-      .threshold-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-        margin-bottom: 1rem;
-      }
-      .threshold-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.375rem 0.5rem;
-      }
-      .threshold-icon {
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .threshold-icon ha-icon {
-        --mdc-icon-size: 0.875rem;
-        color: var(--t2);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .threshold-icon.hot ha-icon { color: var(--c-temp-hot); }
-      .threshold-icon.cold ha-icon { color: var(--c-temp-cold); }
-      .threshold-icon.humidity ha-icon { color: var(--c-info); }
-      .threshold-label {
-        flex: 1;
-        min-width: 0;
-        font-size: var(--fz-base);
-        font-weight: 600;
-        color: var(--t2);
-      }
-      .threshold-input {
-        width: 3.5rem;
-        height: 1.75rem;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--b2);
-        background: var(--s2);
-        color: var(--t1);
-        font-family: inherit;
-        font-size: var(--fz-base);
-        font-weight: 600;
-        text-align: center;
-        outline: none;
-        transition: border-color var(--t-fast);
-        -webkit-appearance: none;
-        -moz-appearance: textfield;
-      }
-      .threshold-input:focus {
-        border-color: var(--c-accent);
-      }
-      .threshold-input::-webkit-inner-spin-button,
-      .threshold-input::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-      .threshold-unit {
-        font-size: var(--fz-sm);
-        font-weight: 500;
-        color: var(--t4);
-        width: 1rem;
       }
 
       /* ── Item card wrapper ── */
@@ -653,12 +494,6 @@
         animation: panel-in 0.4s var(--ease-out) both;
       }
 
-      /* ── Fan preview spin ── */
-      @keyframes spin-fan-preview {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-
       /* ── Segmented control ── */
       .segmented {
         display: inline-flex; gap: 0;
@@ -740,10 +575,6 @@
         background: var(--c-info);
         box-shadow: 0 0 6px rgba(var(--rgb-info), 0.4);
       }
-
-      /* ── Utility spacing ── */
-      .mt-12 { margin-top: 0.75rem; }
-      .mb-8 { margin-bottom: 0.5rem; }
 
       /* (Dead .entity-rename-row CSS removed — only .entity-rename-input
          is used in unassigned.ts; the wrapper class was never applied.) */
@@ -1282,86 +1113,6 @@
         }
       }
 
-      /* ── Room grid (legacy, still used elsewhere) ── */
-      .room-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
-        gap: 0.5rem;
-      }
-      .room-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem 0.5rem;
-        border-radius: var(--radius-lg);
-        background: var(--s1);
-        border: 1px solid var(--b1);
-        cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        font-family: inherit;
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        color: var(--t2);
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .room-card ha-icon {
-        --mdc-icon-size: 1.5rem;
-        color: var(--t3);
-        transition: color var(--t-fast);
-      }
-      .room-card-icon {
-        width: 36px; height: 36px;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .room-card-icon ha-icon {
-        --mdc-icon-size: 20px;
-        --mdc-icon-color: var(--icon-color, var(--t3));
-        color: var(--icon-color, var(--t3));
-      }
-      .room-card .room-name {
-        text-align: center;
-        line-height: 1.2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 100%;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .room-card:hover {
-          background: var(--s3);
-          border-color: var(--b2);
-          color: var(--t1);
-        }
-      }
-      .room-card:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
-      .room-card.disabled {
-        opacity: 0.35;
-        cursor: default;
-        pointer-events: none;
-        color: var(--t4);
-      }
-      .badge-soon {
-        font-size: 0.5rem;
-        font-weight: 700;
-        font-family: inherit;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--t4);
-        background: var(--s2);
-        padding: 0.125rem 0.375rem;
-        border-radius: var(--radius-sm);
-      }
-
       /* ── Empty state ── */
       .empty-state {
         display: flex;
@@ -1384,28 +1135,6 @@
           gap: 0.25rem;
         }
         .panel-sidebar .nav-btn ha-icon { --mdc-icon-size: 1rem; }
-        .room-grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
-        }
-        .room-card {
-          padding: 0.75rem 0.5rem;
-          gap: 0.375rem;
-        }
-        .room-card ha-icon { --mdc-icon-size: 1.375rem; }
-        .room-card .room-name { font-size: var(--fz-xs); }
-      }
-      @media (min-width: 1024px) {
-        .room-grid {
-          grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-          gap: 0.75rem;
-        }
-      }
-      @media (min-width: 1440px) {
-        .room-grid {
-          grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-          gap: 1rem;
-        }
       }
 
       /* ═══════════════════════════════════════════════
@@ -2496,65 +2225,6 @@
         outline: 2px solid var(--c-accent); outline-offset: -2px;
       }
 
-      /* ── Icon picker popup (glass) ── */
-      .icon-popup-overlay {
-        position: absolute; inset: 0; z-index: 10000;
-        background: rgba(var(--rgb-black), 0.5);
-        display: flex; align-items: center; justify-content: center;
-        padding: 1.5rem;
-        animation: fade-in 0.15s ease-out;
-      }
-      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-      .icon-popup {
-        width: 100%; max-width: 25rem; max-height: 70vh;
-        display: flex; flex-direction: column;
-        border-radius: var(--radius-xl);
-        background: linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%);
-        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.25);
-        border: 1px solid var(--b2);
-        overflow: hidden;
-        animation: popup-in 0.2s var(--ease-out);
-      }
-      @keyframes popup-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-      .icon-popup-header {
-        padding: 0.75rem 1rem 0.5rem;
-        display: flex; flex-direction: column; gap: 0.5rem;
-        border-bottom: 0.0625rem solid var(--b1);
-      }
-      .icon-popup-title {
-        font-size: var(--fz-base); font-weight: 600; text-transform: uppercase;
-        letter-spacing: 1px; color: var(--t3);
-      }
-      .icon-popup-search {
-        width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
-        border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: var(--fz-md);
-        outline: none; transition: border-color var(--t-fast);
-        box-sizing: border-box;
-      }
-      .icon-popup-search:focus { border-color: var(--b3); }
-      .icon-popup-search::placeholder { color: var(--t4); }
-      .icon-popup-grid-wrap {
-        flex: 1; overflow-y: auto; padding: 0.5rem;
-        scrollbar-width: none;
-      }
-      .icon-popup-grid-wrap::-webkit-scrollbar { display: none; }
-      .icon-popup-grid {
-        display: grid; grid-template-columns: repeat(6, 1fr);
-        gap: 0.25rem;
-      }
-      .icon-popup-grid .icon-pick {
-        aspect-ratio: 1; width: 100%;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .icon-popup-grid .icon-pick ha-icon {
-        display: flex; align-items: center; justify-content: center;
-      }
-      .icon-popup-empty {
-        padding: 1.5rem; text-align: center;
-        font-size: var(--fz-base); color: var(--t4);
-      }
-
       /* ── Presence mapping cards ── */
       .presence-mapping-card {
         display: flex;
@@ -2807,8 +2477,7 @@
       }
 
       /* ── Hint & explanation texts ── */
-      .schedule-hint,
-      .dashboard-vs-room {
+      .schedule-hint {
         display: flex;
         align-items: flex-start;
         gap: 0.375rem;
@@ -2822,8 +2491,7 @@
         color: var(--t3);
         --mdc-icon-size: 0.875rem;
       }
-      .schedule-hint ha-icon,
-      .dashboard-vs-room ha-icon {
+      .schedule-hint ha-icon {
         flex-shrink: 0;
         margin-top: 0.0625rem;
         color: var(--c-info);
