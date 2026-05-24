@@ -763,6 +763,7 @@ export class GlassRoomPopup extends LitElement {
         <div class="header">
           <div class="header-left">
             <glass-icon-button
+              size="sm"
               class="header-icon ${meta.hasMusic ? 'has-music' : ''}"
               ?active=${meta.hasLight}
               ?glow=${meta.hasLight}
@@ -782,6 +783,7 @@ export class GlassRoomPopup extends LitElement {
           </div>
           ${this._renderRoomButtons()}
           <glass-icon-button
+            size="sm"
             class="close-btn"
             .icon=${'mdi:close'}
             aria-label="${t('popup.close_aria')}"
@@ -852,6 +854,7 @@ export class GlassRoomPopup extends LitElement {
         return hasLabel
           ? html`
               <glass-button
+                size="sm"
                 variant="secondary"
                 class="room-action-btn ${flashing ? 'flashing' : ''}"
                 .icon=${resolvedIcon}
@@ -862,7 +865,7 @@ export class GlassRoomPopup extends LitElement {
             `
           : html`
               <glass-icon-button
-                size="md"
+                size="sm"
                 class="room-action-btn icon-only ${flashing ? 'flashing' : ''}"
                 .icon=${resolvedIcon}
                 aria-label=${aria}
