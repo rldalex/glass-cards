@@ -327,6 +327,79 @@ class PrimitivesShowcase extends LitElement {
         <span class="label">→ 44px hit-area builtin, focusable, click bubbles</span>
       </div>
 
+      <h2>glass-status-dot</h2>
+      <div class="sub">Petit cercle indicateur d'état. Non-interactif. <code>glow</code> pour halo.</div>
+      <div class="row">
+        <glass-status-dot></glass-status-dot>
+        <glass-status-dot tone="accent" glow></glass-status-dot>
+        <glass-status-dot tone="success" glow></glass-status-dot>
+        <glass-status-dot tone="warning" glow></glass-status-dot>
+        <glass-status-dot tone="alert" glow></glass-status-dot>
+        <glass-status-dot tone="light-glow" glow></glass-status-dot>
+        <glass-status-dot tone="spotify" glow></glass-status-dot>
+        <glass-status-dot tone="heat" glow></glass-status-dot>
+        <glass-status-dot tone="cool" glow></glass-status-dot>
+        <span class="label">→ sizes</span>
+        <glass-status-dot size="xs" tone="accent"></glass-status-dot>
+        <glass-status-dot size="sm" tone="accent"></glass-status-dot>
+        <glass-status-dot size="md" tone="accent"></glass-status-dot>
+      </div>
+
+      <h2>glass-drag-handle</h2>
+      <div class="row">
+        <glass-drag-handle></glass-drag-handle>
+        <glass-drag-handle size="sm"></glass-drag-handle>
+        <span class="label">→ cursor grab + dim, raises on hover</span>
+      </div>
+
+      <h2>glass-empty-state</h2>
+      <div class="row" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+        <glass-empty-state
+          icon="mdi:music-off"
+          title="Aucune playlist"
+          subtitle="Crée-en une depuis ton compte Spotify pour qu'elle apparaisse ici."
+        ></glass-empty-state>
+        <glass-empty-state
+          icon="mdi:wifi-off"
+          title="Connexion perdue"
+          subtitle="Vérifie ton intégration Spotify dans Home Assistant."
+          variant="alert"
+        ></glass-empty-state>
+        <glass-empty-state
+          icon="mdi:calendar-blank"
+          title="Pas d'événements"
+          variant="compact"
+        ></glass-empty-state>
+      </div>
+
+      <h2>glass-progress-bar</h2>
+      <div class="sub">Non-interactive (battery, cleaning progress) or interactive (seek bar). The interactive track grows on hover and shows a thumb.</div>
+      <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.5rem;">
+        <span class="label">Static — vacuum %</span>
+        <glass-progress-bar value="40" fill-color="cool" aria-label="cleaning"></glass-progress-bar>
+        <span class="label">Static — battery low</span>
+        <glass-progress-bar value="15" fill-color="alert" aria-label="battery"></glass-progress-bar>
+        <span class="label">Interactive — media seek</span>
+        <glass-progress-bar interactive value="62" aria-label="seek"></glass-progress-bar>
+      </div>
+
+      <h2>glass-dropdown</h2>
+      <div class="row" style="flex-direction: column; align-items: stretch;">
+        <glass-dropdown
+          .items=${[
+            { value: 'salon', label: 'Salon', icon: 'mdi:sofa' },
+            { value: 'chambre', label: 'Chambre', icon: 'mdi:bed' },
+            { value: 'cuisine', label: 'Cuisine', icon: 'mdi:silverware-fork-knife' },
+            { value: 'bureau', label: 'Bureau', icon: 'mdi:desk' },
+            { value: 'sdb', label: 'Salle de bain', icon: 'mdi:shower' },
+          ]}
+          label="Sélectionner une pièce"
+          icon="mdi:home"
+          searchable
+          aria-label="room"
+        ></glass-dropdown>
+      </div>
+
       <h2>glass-slider (existing)</h2>
       <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
         <glass-slider value="40" min="0" max="100" step="1" label="40 %"></glass-slider>
