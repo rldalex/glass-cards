@@ -1394,6 +1394,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         font-family: inherit;
+        font-family: inherit;
         font-size: var(--fz-sm);
         font-weight: 600;
         outline: none;
@@ -1403,6 +1404,15 @@
       .room-action-btn.icon-only {
         width: var(--tap-lg);
         padding: 0;
+      }
+      /* On compact viewports (≤420px), collapse all action buttons to icon-only so the room name keeps space. */
+      @media (max-width: 420px) {
+        .room-action-btn {
+          max-width: var(--tap-lg);
+          width: var(--tap-lg);
+          padding: 0;
+        }
+        .room-action-btn span { display: none; }
       }
       .room-action-btn ha-icon {
         --mdc-icon-size: 1.125rem;
@@ -1591,19 +1601,19 @@
         </div>
         </div>
       </div>
-    `}_renderRoomButtons(){if(!this._areaId)return ie;const e=this._roomConfigs.get(this._areaId),t=(e?.buttons??[]).filter(e=>(e.icon||e.label)&&e.service);return 0===t.length?ie:Z`
-      ${t.map((e,t)=>{const i=!!e.icon,a=!!e.label,r=`room-action-btn ${i&&!a?"icon-only":""} ${this._flashingBtnIdx===t?"flashing":""}`,s="string"==typeof e.data?.entity_id?e.data.entity_id:"",o=s&&this.hass?.states?.[s]?.attributes?.friendly_name||"",n=e.label||o||e.service;return Z`
+    `}_renderRoomButtons(){if(!this._areaId)return ie;const e=this._roomConfigs.get(this._areaId),t=/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/,i=(e?.buttons??[]).filter(e=>t.test(e.service));if(0===i.length)return ie;return Z`
+      ${i.map((e,t)=>{const i="string"==typeof e.data?.entity_id?e.data.entity_id:"",a=i?i.split(".")[0]:"",r=i?this.hass?.states?.[i]:void 0,s=r?.attributes?.friendly_name||"",o=e.icon||((e,t)=>{const i={light:"mdi:lightbulb",switch:"mdi:toggle-switch",vacuum:"mdi:robot-vacuum-variant",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:speaker",scene:"mdi:palette",script:"mdi:script-text",automation:"mdi:robot",input_boolean:"mdi:toggle-switch",button:"mdi:gesture-tap-button",lock:"mdi:lock",camera:"mdi:cctv",notify:"mdi:bell-outline",homeassistant:"mdi:home"};return i[t]||i[e.split(".")[0]]||"mdi:gesture-tap-button"})(e.service,a),n=e.label,l=!!n,c=`room-action-btn ${l?"":"icon-only"} ${this._flashingBtnIdx===t?"flashing":""}`,d=n||s||(a?`${a} action`:"Action");return Z`
           <button
-            class=${r}
+            class=${c}
             @click=${()=>this._invokeRoomButton(e,t)}
-            aria-label=${n}
-            title=${n}
+            aria-label=${d}
+            title=${d}
           >
-            ${i?Z`<ha-icon .icon=${e.icon}></ha-icon>`:ie}
-            ${a?Z`<span>${e.label}</span>`:ie}
+            <ha-icon .icon=${o}></ha-icon>
+            ${l?Z`<span>${n}</span>`:ie}
           </button>
         `})}
-    `}_invokeRoomButton(e,t){if(!this.hass||!e.service)return;const i=e.service.indexOf(".");if(i<0)return;const a=e.service.slice(0,i),r=e.service.slice(i+1);this.hass.callService(a,r,e.data??{}),this._flashingTimer&&clearTimeout(this._flashingTimer),this._flashingBtnIdx=t,this._flashingTimer=setTimeout(()=>{this._flashingBtnIdx=null,this._flashingTimer=null},400)}};xt([Ce({attribute:!1})],kt.prototype,"hass"),xt([Se()],kt.prototype,"_lang"),xt([Se()],kt.prototype,"_areaId"),xt([Se()],kt.prototype,"_open"),xt([Se()],kt.prototype,"_scenesOpen"),xt([Se()],kt.prototype,"_activeSceneId"),xt([Se()],kt.prototype,"_swipeClass"),xt([Se()],kt.prototype,"_flashingBtnIdx");let $t=kt;try{customElements.define("glass-room-popup",$t)}catch{}at("glass-navbar-card-editor");var Ct=Object.defineProperty,St=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ct(t,i,s),s};const Tt={weather:"glass-weather-card",light:"glass-light-card",cover:"glass-cover-card",fan:"glass-fan-card",title:"glass-title-card",spotify:"glass-spotify-card",media:"glass-media-card",presence:"glass-presence-card",climate:"glass-climate-card",camera_carousel:"glass-camera-carousel-card",calendar:"glass-calendar-card",vacuum:"glass-vacuum-card"},It=["title","weather","climate","light","media","fan","cover","spotify","presence","camera_carousel","calendar","vacuum"];class zt extends ot{constructor(){super(...arguments),this._items=[],this._activeArea=null,this._scrollMask="none",this._popup=null,this._ownsPopup=!1,this._areaStructure=[],this._lastAreaKeys="",this._cachedEntityFingerprint="",this._boundUpdateMask=this._updateNavMask.bind(this),this._scrollEl=null,this._navbarConfig=null,this._configLoaded=!1,this._configLoading=!1,this._dashboardLoading=!1,this._roomConfigs={},this._flipPositions=new Map,this._litTimestamps=new Map,this._configReady=!1,this._lastAmbientPeriod=null,this._editMode=!1,this._enabledCards=["weather"],this._cardOrder=It,this._dashboardCards=new Map,this._hideHeader=!1,this._hideSidebar=!1,this._headerStyleEl=null,this._sidebarStyleEl=null,this._loadingOverlay=null,this._bgIsLight=!1,this._bgIntersectingCards=new Set}_mergeCardOrder(e){const t=new Set(Object.keys(Tt)),i=(e??[]).filter(e=>t.has(e)),a=new Set(i),r=It.filter(e=>!a.has(e));return[...i,...r]}static getConfigElement(){return document.createElement("glass-navbar-card-editor")}static getStubConfig(){return{type:"custom:glass-navbar-card"}}static{this.styles=[Ae,Ee,Le,Me,m`
+    `}_invokeRoomButton(e,t){if(!this.hass||!e.service)return;const i=e.service.indexOf(".");if(i<0)return;const a=e.service.slice(0,i),r=e.service.slice(i+1),s=e.data&&"object"==typeof e.data&&!Array.isArray(e.data)?e.data:{};this.hass.callService(a,r,s),this._flashingTimer&&clearTimeout(this._flashingTimer),this._flashingBtnIdx=t,this._flashingTimer=setTimeout(()=>{this._flashingBtnIdx=null,this._flashingTimer=null},400)}};xt([Ce({attribute:!1})],kt.prototype,"hass"),xt([Se()],kt.prototype,"_lang"),xt([Se()],kt.prototype,"_areaId"),xt([Se()],kt.prototype,"_open"),xt([Se()],kt.prototype,"_scenesOpen"),xt([Se()],kt.prototype,"_activeSceneId"),xt([Se()],kt.prototype,"_swipeClass"),xt([Se()],kt.prototype,"_flashingBtnIdx");let $t=kt;try{customElements.define("glass-room-popup",$t)}catch{}at("glass-navbar-card-editor");var Ct=Object.defineProperty,St=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ct(t,i,s),s};const Tt={weather:"glass-weather-card",light:"glass-light-card",cover:"glass-cover-card",fan:"glass-fan-card",title:"glass-title-card",spotify:"glass-spotify-card",media:"glass-media-card",presence:"glass-presence-card",climate:"glass-climate-card",camera_carousel:"glass-camera-carousel-card",calendar:"glass-calendar-card",vacuum:"glass-vacuum-card"},It=["title","weather","climate","light","media","fan","cover","spotify","presence","camera_carousel","calendar","vacuum"];class zt extends ot{constructor(){super(...arguments),this._items=[],this._activeArea=null,this._scrollMask="none",this._popup=null,this._ownsPopup=!1,this._areaStructure=[],this._lastAreaKeys="",this._cachedEntityFingerprint="",this._boundUpdateMask=this._updateNavMask.bind(this),this._scrollEl=null,this._navbarConfig=null,this._configLoaded=!1,this._configLoading=!1,this._dashboardLoading=!1,this._roomConfigs={},this._flipPositions=new Map,this._litTimestamps=new Map,this._configReady=!1,this._lastAmbientPeriod=null,this._editMode=!1,this._enabledCards=["weather"],this._cardOrder=It,this._dashboardCards=new Map,this._hideHeader=!1,this._hideSidebar=!1,this._headerStyleEl=null,this._sidebarStyleEl=null,this._loadingOverlay=null,this._bgIsLight=!1,this._bgIntersectingCards=new Set}_mergeCardOrder(e){const t=new Set(Object.keys(Tt)),i=(e??[]).filter(e=>t.has(e)),a=new Set(i),r=It.filter(e=>!a.has(e));return[...i,...r]}static getConfigElement(){return document.createElement("glass-navbar-card-editor")}static getStubConfig(){return{type:"custom:glass-navbar-card"}}static{this.styles=[Ae,Ee,Le,Me,m`
       :host {
         width: 100%;
         padding: 0.375rem 0 5rem; /* top + space for fixed navbar */

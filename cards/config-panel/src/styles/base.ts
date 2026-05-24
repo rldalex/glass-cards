@@ -2469,9 +2469,6 @@ export const baseStyles = css`
       .room-button-advanced summary::-webkit-details-marker {
         display: none;
       }
-      .room-button-advanced > .room-button-field {
-        margin-top: 0.5rem;
-      }
       .room-button-add {
         display: inline-flex;
         align-items: center;

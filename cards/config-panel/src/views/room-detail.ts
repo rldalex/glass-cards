@@ -108,8 +108,11 @@ export class ConfigRoomDetail extends LitElement {
   @state() private _btnServiceSearch = '';
   @state() private _btnIconPortalIdx: number | null = null;
   @state() private _btnIconSearch = '';
+  @state() private _btnAdvancedOpen = new Set<number>();
   private _btnIconList: string[] = [];
   private _btnIconLoading = false;
+  private _entityCache: { hassRef: unknown; query: string; result: { id: string; name: string }[] } | null = null;
+  private _serviceCache: { hassRef: unknown; domain: string; query: string; result: string[] } | null = null;
 
   // Drag state for section reorder
   @state() private _dragIdx: number | null = null;
@@ -153,14 +156,17 @@ export class ConfigRoomDetail extends LitElement {
     document.removeEventListener('keydown', this._onDocKeyDown);
   }
 
+  private _lastIconTriggerEl: HTMLElement | null = null;
+
   private _onDocMouseDown = (e: MouseEvent): void => {
-    // Close entity/service dropdowns when clicking outside any .dropdown
-    if (this._btnEntityOpen !== null || this._btnServiceOpen !== null) {
-      const target = e.target as HTMLElement | null;
-      if (!target?.closest('.dropdown')) {
-        this._btnEntityOpen = null;
-        this._btnServiceOpen = null;
-      }
+    if (this._btnEntityOpen === null && this._btnServiceOpen === null) return;
+    // Use composedPath to walk the real event path (works in light DOM and through shadow boundaries).
+    // The portal lives on document.body, so a click inside it must also count as "outside the dropdown".
+    const path = e.composedPath();
+    const insideDropdown = path.some((n) => n instanceof HTMLElement && n.classList?.contains('dropdown'));
+    if (!insideDropdown) {
+      this._btnEntityOpen = null;
+      this._btnServiceOpen = null;
     }
   };
 
@@ -170,6 +176,11 @@ export class ConfigRoomDetail extends LitElement {
     if (this._btnIconPortalIdx !== null) {
       this._btnIconPortalIdx = null;
       this._removeIconPortal();
+      // WCAG 2.4.3: restore focus to the trigger that opened the portal
+      if (this._lastIconTriggerEl) {
+        try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
+        this._lastIconTriggerEl = null;
+      }
       return;
     }
     if (this._btnEntityOpen !== null || this._btnServiceOpen !== null) {
@@ -590,24 +601,35 @@ export class ConfigRoomDetail extends LitElement {
   private _filterEntities(query: string): { id: string; name: string }[] {
     if (!this.hass) return [];
     const q = query.toLowerCase().trim();
-    const all = Object.keys(this.hass.states);
-    const items = all
+    // Memoize on (hass.states identity, query). Re-runs only when hass changes or query changes.
+    if (this._entityCache && this._entityCache.hassRef === this.hass.states && this._entityCache.query === q) {
+      return this._entityCache.result;
+    }
+    const items = Object.keys(this.hass.states)
       .map((id) => ({
         id,
         name: (this.hass.states[id]?.attributes?.friendly_name as string) || id.split('.')[1] || id,
       }))
       .filter((e) => !q || e.id.includes(q) || e.name.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
-    return items.slice(0, 80);
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 80);
+    this._entityCache = { hassRef: this.hass.states, query: q, result: items };
+    return items;
   }
 
   private _filterServices(domain: string, query: string): string[] {
     if (!domain || !this.hass?.services?.[domain]) return [];
     const q = query.toLowerCase().trim();
-    return Object.keys(this.hass.services[domain])
+    if (this._serviceCache && this._serviceCache.hassRef === this.hass.services
+        && this._serviceCache.domain === domain && this._serviceCache.query === q) {
+      return this._serviceCache.result;
+    }
+    const result = Object.keys(this.hass.services[domain])
       .filter((s) => !q || s.includes(q))
       .sort()
       .slice(0, 40);
+    this._serviceCache = { hassRef: this.hass.services, domain, query: q, result };
+    return result;
   }
 
   private _renderButtonRow(btn: { icon: string; label: string; service: string; data_json: string }, idx: number): TemplateResult {
@@ -667,7 +689,7 @@ export class ConfigRoomDetail extends LitElement {
           <button
             type="button"
             class="room-button-icon-trigger"
-            @click=${() => this._openButtonIconPortal(idx)}
+            @click=${(e: Event) => { this._lastIconTriggerEl = e.currentTarget as HTMLElement; this._openButtonIconPortal(idx); }}
             aria-label="${t('config.room_button_icon_pick')}"
             title="${effectiveIcon ? (btn.icon ? btn.icon : t('config.room_button_icon_auto', { icon: effectiveIcon })) : t('config.room_button_icon_pick')}"
           >
@@ -691,7 +713,11 @@ export class ConfigRoomDetail extends LitElement {
           <span>${t('config.room_button_delete')}</span>
         </button>
 
-        <details class="room-button-advanced" ?open=${!currentEntity && (!!btn.service || !!btn.data_json)}>
+        <details
+          class="room-button-advanced"
+          ?open=${this._btnAdvancedOpen.has(idx) || (!currentEntity && (!!btn.service || !!btn.data_json))}
+          @toggle=${(e: Event) => this._onAdvancedToggle(idx, (e.target as HTMLDetailsElement).open)}
+        >
           <summary>${t('config.room_button_advanced')}</summary>
 
           <div class="dropdown ${serviceOpen ? 'open' : ''}">
@@ -775,13 +801,17 @@ export class ConfigRoomDetail extends LitElement {
   }
 
   private async _openButtonIconPortal(idx: number): Promise<void> {
+    // Close any open dropdowns so they don't linger behind the portal
+    this._btnEntityOpen = null;
+    this._btnServiceOpen = null;
     this._btnIconSearch = '';
     this._btnIconPortalIdx = idx;
     this._renderIconPortal();
     if (this._btnIconList.length === 0 && !this._btnIconLoading) {
       this._btnIconLoading = true;
+      let picker: (HTMLElement & { hass: unknown }) | null = null;
       try {
-        const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
+        picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
         picker.hass = this.hass;
         picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
         document.body.appendChild(picker);
@@ -791,10 +821,14 @@ export class ConfigRoomDetail extends LitElement {
           const items = await gp.getItems();
           if (items?.length) this._btnIconList = items.map((i) => i.id);
         }
-        document.body.removeChild(picker);
       } catch { /* ignore */ } finally {
         this._btnIconLoading = false;
-        if (this._btnIconPortalIdx !== null) this._renderIconPortal();
+        // Always cleanup the probe element, even if it was orphaned by disconnect
+        if (picker && picker.parentNode === document.body) {
+          document.body.removeChild(picker);
+        }
+        // Skip portal re-render if the component was disconnected mid-await (avoids orphan portal leak)
+        if (this.isConnected && this._btnIconPortalIdx !== null) this._renderIconPortal();
       }
     }
   }
@@ -813,17 +847,25 @@ export class ConfigRoomDetail extends LitElement {
       ? this._btnIconList.filter((i) => i.toLowerCase().includes(query)).slice(0, 120)
       : this._btnIconList.slice(0, 120);
 
-    const close = () => { this._btnIconPortalIdx = null; this._removeIconPortal(); };
+    const close = () => {
+      this._btnIconPortalIdx = null;
+      this._removeIconPortal();
+      if (this._lastIconTriggerEl) {
+        try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
+        this._lastIconTriggerEl = null;
+      }
+    };
     const select = (icon: string) => { this._updateButton(idx, 'icon', icon); close(); };
     const onSearch = (val: string) => {
       const inputEl = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
-      const caret = inputEl?.selectionStart ?? null;
+      const selStart = inputEl?.selectionStart ?? null;
+      const selEnd = inputEl?.selectionEnd ?? null;
       this._btnIconSearch = val;
       this._renderIconPortal();
-      if (caret !== null) {
+      if (selStart !== null) {
         const newInput = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
         if (newInput) {
-          try { newInput.setSelectionRange(caret, caret); } catch { /* ignore */ }
+          try { newInput.setSelectionRange(selStart, selEnd ?? selStart); } catch { /* ignore */ }
         }
       }
     };
@@ -838,6 +880,9 @@ export class ConfigRoomDetail extends LitElement {
     }
 
     this._btnIconPortalEl.replaceChildren();
+    this._btnIconPortalEl.setAttribute('role', 'dialog');
+    this._btnIconPortalEl.setAttribute('aria-modal', 'true');
+    this._btnIconPortalEl.setAttribute('aria-label', t('config.room_button_icon_pick'));
     Object.assign(this._btnIconPortalEl.style, {
       position: 'fixed', inset: '0', zIndex: '10000',
       background: 'rgba(0,0,0,0.5)',
@@ -896,7 +941,11 @@ export class ConfigRoomDetail extends LitElement {
     gridWrap.appendChild(grid);
     popup.appendChild(gridWrap);
     this._btnIconPortalEl.appendChild(popup);
-    searchInput.focus();
+    // Only focus the search on initial open or when no portal element currently has focus.
+    // Prevents IME composition break and mobile keyboard flicker on keystroke re-renders.
+    if (!this._btnIconPortalEl.contains(document.activeElement)) {
+      searchInput.focus();
+    }
   }
 
   private _createBtnIconCell(icon: string, selected: boolean, opacity: number): HTMLButtonElement {
@@ -931,24 +980,38 @@ export class ConfigRoomDetail extends LitElement {
     if (!domain) return;
     const state = this.hass?.states?.[entityId];
     const friendlyName = (state?.attributes?.friendly_name as string) || '';
+    // Pick a real service for the domain: default mapping, else first available service from hass.services,
+    // else empty (user will pick via the service dropdown). Never fabricate `<domain>.toggle`.
+    const domainServices = this.hass?.services?.[domain] ? Object.keys(this.hass.services[domain]) : [];
+    const defaultFromMap = DOMAIN_DEFAULT_SERVICE[domain];
+    const defaultServiceName = defaultFromMap && domainServices.includes(defaultFromMap.split('.')[1])
+      ? defaultFromMap
+      : (domainServices[0] ? `${domain}.${domainServices[0]}` : '');
 
     this._buttons = this._buttons.map((b, i) => {
       if (i !== idx) return b;
-      // Always inject the new entity_id in data_json (preserve other fields if user customized).
+
+      // Reset service if the current one's domain doesn't match the new entity (stale cross-domain).
+      const currentServiceDomain = b.service ? b.service.split('.')[0] : '';
+      const keepService = !!b.service && currentServiceDomain === domain;
+
+      // Strip area_id / device_id if a specific entity is now targeted (ambiguity guard).
       let nextData: Record<string, unknown> = { entity_id: entityId };
       if (b.data_json.trim()) {
         try {
           const parsed = JSON.parse(b.data_json);
           if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            nextData = { ...parsed, entity_id: entityId };
+            const { area_id: _a, device_id: _d, entity_id: _e, ...rest } = parsed as Record<string, unknown>;
+            nextData = { ...rest, entity_id: entityId };
           }
         } catch { /* keep minimal */ }
       }
-      // Autofill icon/label/service only if empty (don't overwrite user customisation).
+
+      // Autofill icon/label only if empty. Service: keep if domain matches, else use real service or empty.
       return {
         icon: b.icon || DOMAIN_ICONS[domain] || '',
         label: b.label || friendlyName,
-        service: b.service || DOMAIN_DEFAULT_SERVICE[domain] || `${domain}.toggle`,
+        service: keepService ? b.service : defaultServiceName,
         data_json: JSON.stringify(nextData, null, 2),
       };
     });
@@ -959,6 +1022,13 @@ export class ConfigRoomDetail extends LitElement {
     if (this._buttons.length >= 3) return;
     this._buttons = [...this._buttons, { icon: '', label: '', service: '', data_json: '' }];
     this._scheduleSave();
+  }
+
+  private _onAdvancedToggle(idx: number, open: boolean): void {
+    const next = new Set(this._btnAdvancedOpen);
+    if (open) next.add(idx);
+    else next.delete(idx);
+    this._btnAdvancedOpen = next;
   }
 
   private _removeButton(idx: number): void {
@@ -980,6 +1050,13 @@ export class ConfigRoomDetail extends LitElement {
         this._btnIconPortalIdx -= 1;
       }
     }
+    // Shift advanced-open set too
+    const nextAdvanced = new Set<number>();
+    this._btnAdvancedOpen.forEach((openIdx) => {
+      if (openIdx === idx) return;
+      nextAdvanced.add(openIdx > idx ? openIdx - 1 : openIdx);
+    });
+    this._btnAdvancedOpen = nextAdvanced;
     this._scheduleSave();
   }
 

@@ -292,6 +292,7 @@ export class GlassRoomPopup extends LitElement {
         text-overflow: ellipsis;
         white-space: nowrap;
         font-family: inherit;
+        font-family: inherit;
         font-size: var(--fz-sm);
         font-weight: 600;
         outline: none;
@@ -301,6 +302,15 @@ export class GlassRoomPopup extends LitElement {
       .room-action-btn.icon-only {
         width: var(--tap-lg);
         padding: 0;
+      }
+      /* On compact viewports (≤420px), collapse all action buttons to icon-only so the room name keeps space. */
+      @media (max-width: 420px) {
+        .room-action-btn {
+          max-width: var(--tap-lg);
+          width: var(--tap-lg);
+          padding: 0;
+        }
+        .room-action-btn span { display: none; }
       }
       .room-action-btn ha-icon {
         --mdc-icon-size: 1.125rem;
@@ -957,17 +967,32 @@ export class GlassRoomPopup extends LitElement {
   private _renderRoomButtons(): TemplateResult | typeof nothing {
     if (!this._areaId) return nothing;
     const roomCfg = this._roomConfigs.get(this._areaId);
-    const buttons = (roomCfg?.buttons ?? []).filter((b) => (b.icon || b.label) && b.service);
+    // Aligned with backend filter: only require a valid service. Icon/label have fallbacks.
+    const SERVICE_RE = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
+    const buttons = (roomCfg?.buttons ?? []).filter((b) => SERVICE_RE.test(b.service));
     if (buttons.length === 0) return nothing;
+    const fallbackIcon = (service: string, entityDomain: string): string => {
+      const map: Record<string, string> = {
+        light: 'mdi:lightbulb', switch: 'mdi:toggle-switch', vacuum: 'mdi:robot-vacuum-variant',
+        cover: 'mdi:window-shutter', climate: 'mdi:thermostat', fan: 'mdi:fan',
+        media_player: 'mdi:speaker', scene: 'mdi:palette', script: 'mdi:script-text',
+        automation: 'mdi:robot', input_boolean: 'mdi:toggle-switch', button: 'mdi:gesture-tap-button',
+        lock: 'mdi:lock', camera: 'mdi:cctv', notify: 'mdi:bell-outline', homeassistant: 'mdi:home',
+      };
+      return map[entityDomain] || map[service.split('.')[0]] || 'mdi:gesture-tap-button';
+    };
     return html`
       ${buttons.map((btn, idx) => {
-        const hasIcon = !!btn.icon;
-        const hasLabel = !!btn.label;
-        const cls = `room-action-btn ${hasIcon && !hasLabel ? 'icon-only' : ''} ${this._flashingBtnIdx === idx ? 'flashing' : ''}`;
-        // Prefer explicit label, then entity friendly_name, then service. Never expose the raw MDI slug to SR.
         const entityId = typeof btn.data?.entity_id === 'string' ? btn.data.entity_id : '';
-        const entityFriendly = entityId ? (this.hass?.states?.[entityId]?.attributes?.friendly_name as string) || '' : '';
-        const aria = btn.label || entityFriendly || btn.service;
+        const entityDomain = entityId ? entityId.split('.')[0] : '';
+        const entityState = entityId ? this.hass?.states?.[entityId] : undefined;
+        const entityFriendly = (entityState?.attributes?.friendly_name as string) || '';
+        const resolvedIcon = btn.icon || fallbackIcon(btn.service, entityDomain);
+        const resolvedLabel = btn.label;
+        const hasLabel = !!resolvedLabel;
+        const cls = `room-action-btn ${!hasLabel ? 'icon-only' : ''} ${this._flashingBtnIdx === idx ? 'flashing' : ''}`;
+        // Prefer explicit label, then entity friendly_name. Never expose raw MDI slug or service id to SR.
+        const aria = resolvedLabel || entityFriendly || (entityDomain ? `${entityDomain} action` : 'Action');
         return html`
           <button
             class=${cls}
@@ -975,8 +1000,8 @@ export class GlassRoomPopup extends LitElement {
             aria-label=${aria}
             title=${aria}
           >
-            ${hasIcon ? html`<ha-icon .icon=${btn.icon}></ha-icon>` : nothing}
-            ${hasLabel ? html`<span>${btn.label}</span>` : nothing}
+            <ha-icon .icon=${resolvedIcon}></ha-icon>
+            ${hasLabel ? html`<span>${resolvedLabel}</span>` : nothing}
           </button>
         `;
       })}
@@ -989,7 +1014,11 @@ export class GlassRoomPopup extends LitElement {
     if (dotIdx < 0) return;
     const domain = btn.service.slice(0, dotIdx);
     const service = btn.service.slice(dotIdx + 1);
-    void this.hass.callService(domain, service, btn.data ?? {});
+    // Guard: only forward plain objects (not arrays, not strings, not null) as service data.
+    const data = (btn.data && typeof btn.data === 'object' && !Array.isArray(btn.data))
+      ? btn.data
+      : {};
+    void this.hass.callService(domain, service, data);
 
     if (this._flashingTimer) clearTimeout(this._flashingTimer);
     this._flashingBtnIdx = idx;
