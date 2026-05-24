@@ -443,6 +443,13 @@ export const baseStyles = css`
         flex-shrink: 0;
         -webkit-tap-highlight-color: transparent;
       }
+      /* Hit-area extension: knob is 44×24 visual, tactile reaches 44×44 on
+         coarse pointers — required for mobile reach. */
+      .toggle::before {
+        content: '';
+        position: absolute;
+        inset: -0.625rem 0;
+      }
       .toggle::after {
         content: '';
         position: absolute;
@@ -476,7 +483,7 @@ export const baseStyles = css`
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 2.5rem; height: 2.5rem;
+        width: var(--tap-lg); height: var(--tap-lg);
         border-radius: var(--radius-lg);
         border: none; background: transparent;
         color: var(--t3); cursor: pointer;
@@ -749,6 +756,13 @@ export const baseStyles = css`
         padding: 0 0.5rem;
         font-size: var(--fz-base);
         border-radius: var(--radius-md);
+        position: relative;
+      }
+      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
+      .btn-sm::before {
+        content: '';
+        position: absolute;
+        inset: -0.5rem;
       }
       @media (hover: hover) and (pointer: fine) {
         .btn:hover {

@@ -352,8 +352,7 @@ class GlassWeatherCard extends BaseCard {
     .wc-metric-unit { font-size: var(--fz-xxs); font-weight: 400; color: var(--t4); }
     .wc-metric-dir { font-size: var(--fz-xxs); font-weight: 600; color: var(--t3); margin-left: 0.0625rem; }
 
-    /* ── Forecast tabs ── */
-    /* ── Fold separator ── */
+    /* ── Forecast tabs / Fold separator ── */
     .wc-fold-sep {
       height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
       background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
@@ -365,53 +364,6 @@ class GlassWeatherCard extends BaseCard {
       display: flex; flex-direction: column; gap: 0.375rem;
       margin-top: 0.125rem;
     }
-
-
-    /* Tab rail with sliding capsule (capsule hidden when no tab is active) */
-    .wc-fc-rail {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(var(--fc-tab-count, 2), 1fr);
-      padding: 0.1875rem;
-      border-radius: var(--radius-md);
-      background: var(--s1); border: 1px solid var(--b1);
-    }
-    .wc-fc-capsule {
-      position: absolute; top: 0.1875rem; bottom: 0.1875rem;
-      left: 0.1875rem;
-      width: calc((100% - 0.375rem) / var(--fc-tab-count, 2));
-      border-radius: calc(var(--radius-md) - 0.1875rem);
-      background: color-mix(in srgb, var(--c-accent) 18%, transparent);
-      border: 1px solid color-mix(in srgb, var(--c-accent) 30%, transparent);
-      box-shadow: 0 1px 6px color-mix(in srgb, var(--c-accent) 25%, transparent);
-      transform: translateX(calc(var(--fc-active-idx, 0) * 100%));
-      transition: transform var(--t-layout);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .wc-fc-tab {
-      position: relative; z-index: 1;
-      height: 1.875rem;
-      display: flex; align-items: center; justify-content: center; gap: 0.3125rem;
-      padding: 0;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      color: var(--t3);
-      font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-      cursor: pointer; outline: none;
-      transition: color var(--t-fast), transform var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .wc-fc-tab:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .wc-fc-tab:not(.active):hover { color: var(--t2); }
-      .wc-fc-tab:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .wc-fc-tab:active { animation: bounce 0.3s ease; }
-    }
-    .wc-fc-tab.active { color: rgb(var(--rgb-accent)); font-weight: 700; }
 
     /* ── Daily list ── */
     .wc-daily-list, .wc-hourly-list {
@@ -1306,28 +1258,19 @@ class GlassWeatherCard extends BaseCard {
     const showHourly = this._weatherConfig.show_hourly;
     if (!showDaily && !showHourly) return nothing;
 
-    const tabCount = (showDaily ? 1 : 0) + (showHourly ? 1 : 0);
-    const activeIdx = this._activeTab === null
-      ? -1
-      : showDaily && showHourly
-        ? (this._activeTab === 'daily' ? 0 : 1)
-        : 0;
+    const tabItems: { value: string; label: string }[] = [];
+    if (showDaily) tabItems.push({ value: 'daily', label: t('weather.daily_tab') });
+    if (showHourly) tabItems.push({ value: 'hourly', label: t('weather.hourly_tab') });
 
     return html`
       <div class="wc-forecast-zone">
-        <div class="wc-fc-rail" style="--fc-tab-count: ${tabCount}; --fc-active-idx: ${activeIdx};">
-          ${activeIdx >= 0 ? html`<div class="wc-fc-capsule" aria-hidden="true"></div>` : nothing}
-          ${showDaily ? html`<button class="wc-fc-tab ${this._activeTab === 'daily' ? 'active' : ''}"
-            @click="${() => this._switchTab('daily')}"
-            aria-pressed="${this._activeTab === 'daily' ? 'true' : 'false'}"
-            aria-controls="wc-daily-panel"
-            aria-label="${t('weather.daily_tab')}">${t('weather.daily_tab')}</button>` : nothing}
-          ${showHourly ? html`<button class="wc-fc-tab ${this._activeTab === 'hourly' ? 'active' : ''}"
-            @click="${() => this._switchTab('hourly')}"
-            aria-pressed="${this._activeTab === 'hourly' ? 'true' : 'false'}"
-            aria-controls="wc-hourly-panel"
-            aria-label="${t('weather.hourly_tab')}">${t('weather.hourly_tab')}</button>` : nothing}
-        </div>
+        <glass-tabs
+          layout="segmented"
+          .items=${tabItems}
+          .value=${this._activeTab ?? ''}
+          aria-label=${t('weather.title')}
+          @glass-tab-change=${(e: CustomEvent<{ value: string }>) => this._switchTab(e.detail.value as 'daily' | 'hourly')}
+        ></glass-tabs>
 
         <div class="wc-fold-sep ${(this._activeTab === 'daily' && this._forecastDaily.length > 0) || (this._activeTab === 'hourly' && this._forecastHourly.length > 0) ? 'visible' : ''}"></div>
 

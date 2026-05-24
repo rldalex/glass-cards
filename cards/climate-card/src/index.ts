@@ -702,8 +702,14 @@ export class GlassClimateCard extends BaseCard {
     const gesture = this._bindGesture({
       onTap: () => { if (!unavailable) this._toggle(entityId, entity, new Event('tap')); },
       onLongPress: () => { if (!unavailable) this._expanded = isExpanded ? null : entityId; },
-      exclude: '.cl-icon-btn',
+      exclude: 'glass-icon-button',
     });
+
+    const isHeating = hvacAction === 'heating' || hvacAction === 'preheating';
+    const isCooling = hvacAction === 'cooling';
+    const iconActiveColor = isHeating ? 'heat' : isCooling ? 'cool' : 'info';
+    const iconActive = isHeating || isCooling;
+    const pulseClass = isHeating ? 'pulse-heat' : isCooling ? 'pulse-cool' : '';
 
     return html`
       <div class="cl-row ${unavailable ? 'entity-unavailable' : ''}" data-action=${hvacAction}
@@ -713,14 +719,17 @@ export class GlassClimateCard extends BaseCard {
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
       >
-        <button
-          class="cl-icon-btn"
-          @click=${(e: Event) => this._toggle(entityId, entity, e)}
-          aria-label=${isOff ? t('climate.turn_on_aria') : t('climate.turn_off_aria')}
+        <glass-icon-button
+          ?active=${iconActive}
+          ?glow=${iconActive}
+          ?unavailable=${unavailable}
           ?disabled=${unavailable}
+          .activeColor=${iconActiveColor}
+          aria-label=${isOff ? t('climate.turn_on_aria') : t('climate.turn_off_aria')}
+          @click=${(e: Event) => this._toggle(entityId, entity, e)}
         >
-          <ha-icon .icon=${icon} style="--mdc-icon-size:18px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          <ha-icon class=${pulseClass} .icon=${icon}></ha-icon>
+        </glass-icon-button>
         <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'}>
           <div class="cl-info">
             <div class="cl-name">${name}</div>
@@ -797,12 +806,12 @@ export class GlassClimateCard extends BaseCard {
 
     return html`
       <div class="temp-control">
-        <button class="temp-stepper-btn"
-          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        <glass-stepper-button
+          .icon=${'mdi:minus'}
+          ?disabled=${target <= min}
           aria-label=${t('climate.temp_down_aria')}
-          ?disabled=${target <= min}>
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        ></glass-stepper-button>
         <div class="temp-display">
           <div class="temp-display-label">${t('climate.target')}</div>
           <div class="temp-display-value ${colorClass}">${target.toFixed(1)}<span class="unit">${unit}</span></div>
@@ -813,12 +822,12 @@ export class GlassClimateCard extends BaseCard {
             </div>
           ` : nothing}
         </div>
-        <button class="temp-stepper-btn"
-          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        <glass-stepper-button
+          .icon=${'mdi:plus'}
+          ?disabled=${target >= max}
           aria-label=${t('climate.temp_up_aria')}
-          ?disabled=${target >= max}>
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        ></glass-stepper-button>
       </div>
     `;
   }
@@ -941,7 +950,7 @@ export class GlassClimateCard extends BaseCard {
           : (curIdx - 1 + sorted.length) % sorted.length;
         this._selectedEntity = sorted[nextIdx].entity_id;
       },
-      exclude: 'button, .entity-tab, .temp-stepper-btn, .mode-tile, .preset-chip, .air-pill',
+      exclude: 'button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile, .air-pill',
     });
 
     return html`
@@ -1027,22 +1036,24 @@ export class GlassClimateCard extends BaseCard {
 
     return html`
       <div class="temp-control-panel">
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${'mdi:minus'}
+          ?disabled=${target <= min}
           aria-label=${t('climate.temp_down_aria')}
-          ?disabled=${target <= min}>
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        ></glass-stepper-button>
         <div class="target-display">
           <div class="target-label">${t('climate.target')}</div>
           <div class="target-value ${colorClass}">${target.toFixed(1)}<span class="unit">${this._tempUnit()}</span></div>
         </div>
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${'mdi:plus'}
+          ?disabled=${target >= max}
           aria-label=${t('climate.temp_up_aria')}
-          ?disabled=${target >= max}>
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        ></glass-stepper-button>
       </div>
     `;
   }
@@ -1164,50 +1175,14 @@ export class GlassClimateCard extends BaseCard {
       padding: 0.5rem 0.25rem; position: relative; flex-shrink: 0;
       transition: background var(--t-fast); border-radius: var(--radius-md);
     }
-    .entity-unavailable .cl-icon-btn { border-color: var(--c-alert); }
     /* No row-level hover: the row contains its own interactive buttons
        (icon-toggle + expand-area) which carry their own hover/active states. */
     @media (pointer: coarse) {
       .cl-row:active { animation: bounce 0.3s ease; }
     }
 
-    /* ── Icon Button ── */
-    .cl-icon-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b1);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); cursor: pointer; padding: 0; outline: none;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .cl-icon-btn ha-icon {
-      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
-    }
-    .cl-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .cl-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
-      .cl-icon-btn:hover ha-icon { color: var(--t2); }
-    }
-    @media (hover: hover) { .cl-icon-btn:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .cl-icon-btn:active { animation: bounce 0.3s ease; } }
-
-    /* Icon states */
-    .cl-row[data-action="heating"] .cl-icon-btn,
-    .cl-row[data-action="preheating"] .cl-icon-btn {
-      background: var(--cl-heat-bg); border-color: var(--cl-heat-border);
-    }
-    .cl-row[data-action="heating"] .cl-icon-btn ha-icon,
-    .cl-row[data-action="preheating"] .cl-icon-btn ha-icon {
-      color: var(--cl-heat); animation: pulse-heat 2s ease-in-out infinite; will-change: filter;
-    }
-    .cl-row[data-action="cooling"] .cl-icon-btn {
-      background: var(--cl-cool-bg); border-color: var(--cl-cool-border);
-    }
-    .cl-row[data-action="cooling"] .cl-icon-btn ha-icon {
-      color: var(--cl-cool); animation: pulse-cool 2s ease-in-out infinite; will-change: filter;
-    }
-    .cl-row[data-action="idle"] .cl-icon-btn { background: var(--s2); border-color: var(--b2); }
-    .cl-row[data-action="idle"] .cl-icon-btn ha-icon { color: var(--t2); }
-
+    /* Pulse animations applied to the <ha-icon> slotted into the
+       <glass-icon-button> when the climate is actively heating or cooling. */
     @keyframes pulse-heat {
       0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--rgb-heat), 0.6)); }
       50%      { filter: drop-shadow(0 0 2px rgba(var(--rgb-heat), 0.2)); }
@@ -1215,6 +1190,12 @@ export class GlassClimateCard extends BaseCard {
     @keyframes pulse-cool {
       0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--rgb-cool), 0.6)); }
       50%      { filter: drop-shadow(0 0 2px rgba(var(--rgb-cool), 0.2)); }
+    }
+    glass-icon-button ha-icon.pulse-heat {
+      animation: pulse-heat 2s ease-in-out infinite; will-change: filter;
+    }
+    glass-icon-button ha-icon.pulse-cool {
+      animation: pulse-cool 2s ease-in-out infinite; will-change: filter;
     }
 
     /* ── Expand Button ── */
@@ -1343,22 +1324,6 @@ export class GlassClimateCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; gap: 1rem;
       padding: 0.5rem 0;
     }
-    .temp-stepper-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); outline: none; padding: 0;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
-    @media (hover: hover) and (pointer: fine) {
-      .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .temp-stepper-btn:hover ha-icon { color: var(--t1); }
-    }
-    @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
-    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
 
     .temp-display {
       display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
@@ -1574,15 +1539,7 @@ export class GlassClimateCard extends BaseCard {
       border: 1px solid rgba(var(--rgb-white),0.08);
       box-shadow: 0 4px 16px rgba(var(--rgb-black),0.15), inset 0 1px 0 rgba(var(--rgb-white),0.04);
     }
-    .normal-stepper {
-      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
-      background: rgba(var(--rgb-white), 0.1);
-      border-color: rgba(var(--rgb-white), 0.18);
-    }
-    .normal-stepper ha-icon { color: var(--t1); }
-    @media (hover: hover) and (pointer: fine) {
-      .normal-stepper:hover { background: rgba(var(--rgb-white), 0.16); border-color: rgba(var(--rgb-white), 0.28); }
-    }
+    /* glass-stepper-button surface="dark" handles the normal-mode stepper */
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;
       min-width: 6.25rem;
@@ -1671,48 +1628,6 @@ export class GlassClimateCard extends BaseCard {
       scrollbar-width: none;
     }
     .preset-row::-webkit-scrollbar { display: none; }
-    .preset-chip {
-      position: relative;
-      display: inline-flex; align-items: center; gap: 0.375rem;
-      padding: 0.4375rem 0.875rem; border-radius: var(--radius-full);
-      background: color-mix(in srgb, var(--preset-color, var(--t3)) 8%, transparent);
-      border: 1px solid color-mix(in srgb, var(--preset-color, var(--t3)) 16%, transparent);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t2);
-      white-space: nowrap; flex-shrink: 0; outline: none;
-      cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
-    }
-    /* Hit-area vertical expansion to 44px on touch devices (no horizontal overlap) */
-    @media (pointer: coarse) {
-      .preset-chip::after {
-        content: ''; position: absolute; left: 0; right: 0; top: -0.4375rem; bottom: -0.4375rem;
-      }
-    }
-    .preset-chip-icon {
-      --mdc-icon-size: 0.875rem; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      color: color-mix(in srgb, var(--preset-color, var(--t3)) 75%, var(--t1));
-    }
-    .preset-chip:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: 2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .preset-chip:not(.active):hover {
-        background: color-mix(in srgb, var(--preset-color, var(--t3)) 14%, transparent);
-        color: var(--t1);
-      }
-    }
-    @media (hover: hover) { .preset-chip:active { transform: scale(0.97); } }
-    @media (pointer: coarse) { .preset-chip:active { animation: bounce 0.3s ease; } }
-    .preset-chip.active {
-      background: color-mix(in srgb, var(--preset-color, var(--t3)) 20%, transparent);
-      border-color: color-mix(in srgb, var(--preset-color, var(--t3)) 45%, transparent);
-      color: var(--t1);
-    }
-    .preset-chip.active .preset-chip-icon {
-      color: var(--preset-color, var(--t1));
-      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--preset-color, var(--t3)) 50%, transparent));
-    }
 
     /* ── Air section (Fan, Swing, Humidity, Aux) ── */
     .air-section { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -1767,7 +1682,6 @@ export class GlassClimateCard extends BaseCard {
     /* Reduced motion: kill all non-essential animations */
     @media (prefers-reduced-motion: reduce) {
       .mode-tile.active .mode-tile-icon { animation: none; }
-      .preset-chip.active .preset-chip-icon { filter: none; }
       .normal-fold-inner::after { transition: none; }
       .section-sep { transition: none; }
     }
@@ -1840,27 +1754,9 @@ export class GlassClimateCard extends BaseCard {
       box-shadow: 0 0 8px var(--cl-cool-glow);
     }
 
-    /* ── Aux heat toggle ── */
+    /* ── Aux heat row (toggle handled by <glass-toggle>) ── */
     .aux-row { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0; }
     .aux-label { font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1; }
-    .toggle {
-      position: relative; width: 2.5rem; height: 1.375rem; border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b2); cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast); padding: 0; outline: none;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .toggle .toggle-knob {
-      content: ''; position: absolute; top: 0.1875rem; left: 0.1875rem;
-      width: 0.875rem; height: 0.875rem; border-radius: 50%;
-      background: var(--t3);
-      transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
-    }
-    .toggle.on { background: rgba(var(--rgb-heat), 0.2); border-color: rgba(var(--rgb-heat), 0.3); }
-    .toggle.on .toggle-knob {
-      transform: translateX(18px); background: var(--cl-heat);
-      box-shadow: 0 0 8px var(--cl-heat-glow);
-    }
-    .toggle:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
   `];
 }
 

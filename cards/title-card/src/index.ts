@@ -63,6 +63,22 @@ function resolveColor(colorKey: string): { text: string; dot: string; glow: stri
   return COLOR_MAP.neutral;
 }
 
+/**
+ * Convert a colour key (semantic name or `#rrggbb` hex) to the format
+ * `<glass-chip active-color>` accepts: either a token name (`accent`,
+ * `success`, …) or a raw `R,G,B` triplet. Falls back to `accent`.
+ */
+function colorKeyForPrimitive(colorKey: string): string {
+  if (colorKey in COLOR_MAP && colorKey !== 'neutral') return colorKey;
+  if (colorKey.startsWith('#') && colorKey.length === 7) {
+    const r = parseInt(colorKey.slice(1, 3), 16);
+    const g = parseInt(colorKey.slice(3, 5), 16);
+    const b = parseInt(colorKey.slice(5, 7), 16);
+    return `${r},${g},${b}`;
+  }
+  return 'accent';
+}
+
 /** Default period visuals used when no period_options are configured. */
 const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = {
   'Matin':       { icon: 'mdi:weather-sunset-up',   color: '#f0a050' },
@@ -211,35 +227,13 @@ class GlassTitleCard extends BaseCard {
       gap: 0.375rem; padding: 0.25rem 0.25rem 0.5rem;
     }
 
-    /* ── Chip ── */
-    .chip {
-      display: inline-flex; align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
-      outline: none; -webkit-tap-highlight-color: transparent;
-      position: relative;
-    }
-    .chip::before { content: ''; position: absolute; inset: -6px -4px; }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-    }
-    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-    .chip ha-icon {
-      --mdc-icon-size: var(--icon-sm);
-      display: flex; align-items: center; justify-content: center;
-    }
-    @media (pointer: coarse) {
-      .chip:active { transform: scale(0.98); }
-    }
-
+    /* ── Chip pulse animation (applied to <glass-chip> on user click) ── */
     @keyframes chip-pulse {
       0%   { box-shadow: inset 0 0 0 0 currentColor; }
       50%  { box-shadow: inset 0 0 8px 1px currentColor; }
       100% { box-shadow: inset 0 0 0 0 currentColor; }
     }
-    .chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); }
+    glass-chip.pulsing { animation: chip-pulse 0.5s var(--ease-out); border-radius: var(--radius-md); }
 
     /* ── Period indicator (crossfade) ── */
     .period-indicator {
@@ -279,10 +273,10 @@ class GlassTitleCard extends BaseCard {
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .period-item, .chip, .dash-trigger, .fold-section, .fold-section-inner, .dash-line {
+      .period-item, glass-chip, .dash-trigger, .fold-section, .fold-section-inner, .dash-line {
         transition-duration: 0.01ms !important;
       }
-      .chip.pulsing { animation: none; }
+      glass-chip.pulsing { animation: none; }
     }
   `];
 
@@ -420,7 +414,7 @@ class GlassTitleCard extends BaseCard {
 
   private _pulseChip(dataId: string) {
     this.updateComplete.then(() => {
-      const chip = this.shadowRoot?.querySelector(`.chip[data-id="${dataId}"]`) as HTMLElement | null;
+      const chip = this.shadowRoot?.querySelector(`glass-chip[data-id="${dataId}"]`) as HTMLElement | null;
       if (chip) {
         chip.classList.add('pulsing');
         setTimeout(() => chip.classList.remove('pulsing'), 600);
@@ -575,18 +569,17 @@ class GlassTitleCard extends BaseCard {
         <div class="chips-row">
           ${src.modes.map((mode, idx) => {
             const isActive = this._isChipActive(src, mode, idx);
-            const mc = resolveColor(mode.color || 'neutral');
+            const ac = colorKeyForPrimitive(mode.color || 'accent');
             return html`
-              <button
-                class="chip"
+              <glass-chip
+                size="sm"
                 data-id=${mode.id}
-                style="${isActive ? `color:${mc.text};background:${mc.dot}14;border-color:${mc.dot}33;` : ''}"
+                ?active=${isActive}
+                active-color=${ac}
+                .icon=${mode.icon || ''}
                 aria-label=${mode.label || mode.id}
                 @click=${(e: Event) => { e.stopPropagation(); this._onChipClick(src, mode, idx); }}
-              >
-                ${mode.icon ? html`<ha-icon .icon=${mode.icon}></ha-icon>` : nothing}
-                ${mode.label || mode.id.split('.')[1] || mode.id}
-              </button>
+              >${mode.label || mode.id.split('.')[1] || mode.id}</glass-chip>
             `;
           })}
         </div>

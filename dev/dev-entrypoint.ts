@@ -18,6 +18,12 @@ interface SetupEntry {
 
 const SETUPS: SetupEntry[] = [
   {
+    id: 'primitives',
+    label: 'UI Primitives',
+    description: 'Showcase de tous les composants Glass standardisés (glass-icon-button, chip, toggle, …).',
+    load: () => import('./setup-primitives').then((m) => m.setupPrimitives),
+  },
+  {
     id: 'climate',
     label: 'Climate Card',
     description: 'Thermostat — list & normal modes, 8 scenarios, popup/dashboard contexts.',

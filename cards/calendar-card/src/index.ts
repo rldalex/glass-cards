@@ -1,7 +1,7 @@
 import { html, svg, css, nothing, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { BaseCard, BackendService } from '@glass-cards/base-card';
-import { glassTokens, hostMixin, glassMixin } from '@glass-cards/ui-core';
+import { glassTokens, hostMixin, glassMixin, tappableMixin } from '@glass-cards/ui-core';
 
 interface HaCalendarEvent {
   summary: string;
@@ -387,12 +387,12 @@ export class GlassCalendarCard extends BaseCard {
   }
 
   private _renderHeader(total: number, nowCount: number): TemplateResult {
-    const countClass = total === 0 ? 'none' : nowCount > 0 ? 'now' : 'some';
+    const tone: 'success' | 'neutral' | 'accent' = total === 0 ? 'neutral' : nowCount > 0 ? 'accent' : 'success';
     return html`
       <div class="card-header">
         <div class="card-header-left">
           <span class="card-title">Calendrier</span>
-          <span class="card-count ${countClass}">${total}</span>
+          <glass-pill tone=${tone} size="sm">${total}</glass-pill>
         </div>
       </div>
     `;
@@ -478,11 +478,9 @@ export class GlassCalendarCard extends BaseCard {
     const isToday = this._selectedDayOffset === 0;
     const sectionLabel = this._sectionLabelFor(this._selectedDayOffset);
     const eyebrow = html`
-      <div class="cal-eyebrow">
-        <span class="cal-eyebrow-dot"></span>
-        <span>${sectionLabel}</span>
-        ${events.length > 0 ? html`<span class="cal-eyebrow-count">${events.length}</span>` : nothing}
-      </div>
+      <glass-section-title label=${sectionLabel}>
+        ${events.length > 0 ? html`<glass-pill slot="end" size="sm">${events.length}</glass-pill>` : nothing}
+      </glass-section-title>
     `;
     const body = events.length === 0
       ? html`
@@ -575,7 +573,7 @@ export class GlassCalendarCard extends BaseCard {
 
   // ───────────── Styles ─────────────
 
-  static styles = [glassTokens, hostMixin, glassMixin, css`
+  static styles = [glassTokens, hostMixin, glassMixin, tappableMixin, css`
     :host { width: 100%; max-width: 31.25rem; margin: 0 auto; color: var(--t1); }
     .calendar-card { width: 100%; overflow: hidden; position: relative; }
 
@@ -591,17 +589,6 @@ export class GlassCalendarCard extends BaseCard {
       text-transform: uppercase; letter-spacing: 1.5px;
       color: var(--t4);
     }
-    .card-count {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
-      border-radius: var(--radius-full);
-      font-size: var(--fz-xs); font-weight: 600;
-      transition: background var(--t-med), color var(--t-med);
-    }
-    .card-count.some { background: var(--s2); color: var(--t3); }
-    .card-count.now  { background: rgba(var(--rgb-accent), 0.18); color: rgb(var(--rgb-accent)); }
-    .card-count.none { background: var(--s1); color: var(--t4); }
-
     /* ── Compact bar (matches presence-card height ~52px) ── */
     .v4-compact {
       display: flex; align-items: center; gap: 0.625rem;
@@ -747,26 +734,6 @@ export class GlassCalendarCard extends BaseCard {
 
     /* ── Event section (eyebrow + list) ── */
     .v4-event-section { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
-    .cal-eyebrow {
-      display: flex; align-items: center; gap: 0.4375rem;
-      padding: 0 0.125rem;
-      min-height: 1.625rem;
-      font-size: var(--fz-sm); font-weight: 700; color: var(--t2);
-      letter-spacing: 0.1px;
-    }
-    .cal-eyebrow-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: rgb(var(--rgb-accent));
-      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.55);
-    }
-    .cal-eyebrow-count {
-      margin-left: auto;
-      font-size: var(--fz-xs); font-weight: 600; color: var(--t4);
-      padding: 0 0.375rem; height: 1rem;
-      border-radius: var(--radius-full);
-      background: var(--s2);
-      display: inline-flex; align-items: center; line-height: 1;
-    }
 
     .v4-event-list { display: flex; flex-direction: column; gap: 0.1875rem; }
     .v4-event-row {
