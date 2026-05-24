@@ -488,7 +488,7 @@ export class ConfigRoomDetail extends LitElement {
               <ha-icon .icon=${sec.icon}></ha-icon>
             </div>
             <span class="section-title">${sec.label}</span>
-            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}></ha-icon>
+            <glass-chevron ?open=${isOpen} size="md" tone="muted"></glass-chevron>
           </button>
           <glass-toggle
             .checked=${sec.visible}
