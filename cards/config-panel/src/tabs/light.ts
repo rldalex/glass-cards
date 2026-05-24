@@ -574,13 +574,12 @@ export class ConfigTabLight extends BaseConfigTab {
             </div>
           </div>
         `)}
-        <button class="btn btn-sm schedule-add" @click=${() => this._addSchedulePeriod(entityId)}>
-          <ha-icon .icon=${'mdi:plus'}></ha-icon>
+        <glass-button class="schedule-add" variant="secondary" size="sm" .icon=${'mdi:plus'} @click=${() => this._addSchedulePeriod(entityId)}>
           ${t('config.light_schedule_add')}
-        </button>
-        <button class="btn btn-sm btn-accent schedule-save" @click=${() => this._saveSchedule(entityId)}>
+        </glass-button>
+        <glass-button class="schedule-save" variant="primary" size="sm" @click=${() => this._saveSchedule(entityId)}>
           ${t('common.save')}
-        </button>
+        </glass-button>
       </div>
     `;
   }
@@ -639,13 +638,11 @@ export class ConfigTabLight extends BaseConfigTab {
           >
             ${t(light.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
           </button>
-          <button
-            class="toggle ${light.visible ? 'on' : ''}"
-            @click=${() => this._toggleLightVisible(light.entityId)}
-            role="switch"
-            aria-checked=${light.visible ? 'true' : 'false'}
+          <glass-toggle
+            .checked=${light.visible}
             aria-label="${light.visible ? t('common.hide') : t('common.show')} ${light.name}"
-          ></button>
+            @glass-toggle-change=${() => this._toggleLightVisible(light.entityId)}
+          ></glass-toggle>
         </div>
         <div class="fold-sep ${isExpanded ? 'visible' : ''}"></div>
         <div class="schedule-fold ${isExpanded ? 'open' : ''}">
@@ -735,13 +732,15 @@ export class ConfigTabLight extends BaseConfigTab {
               </div>
             </div>
           </div>
-          <button
-            class="btn btn-sm btn-accent picker-confirm"
-            @click=${() => this._pickerConfirm()}
+          <glass-button
+            class="picker-confirm"
+            variant="primary"
+            size="sm"
             ?disabled=${!canConfirm}
+            @click=${() => this._pickerConfirm()}
           >
             ${t('config.light_schedule_confirm')}
-          </button>
+          </glass-button>
         </div>
       </div>
     `;
@@ -810,7 +809,7 @@ export class ConfigTabLight extends BaseConfigTab {
 
         ${hasRoom ? html`
           <div class="save-bar">
-            <button class="btn btn-ghost" @click=${() => this._loadRoomLights()}>${t('common.reset')}</button>
+            <glass-button variant="ghost" @click=${() => this._loadRoomLights()}>${t('common.reset')}</glass-button>
           </div>
         ` : nothing}
       </div>

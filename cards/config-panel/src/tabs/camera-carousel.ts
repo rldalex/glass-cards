@@ -359,13 +359,11 @@ export class ConfigTabCamera extends BaseConfigTab {
                         <span class="item-name">${name}</span>
                         <span class="item-meta">${entityId}</span>
                       </div>
-                      <button
-                        class="toggle ${isVisible ? 'on' : ''}"
-                        @click=${() => this._toggleCameraVisible(entityId)}
-                        role="switch"
-                        aria-checked=${isVisible ? 'true' : 'false'}
+                      <glass-toggle
+                        .checked=${isVisible}
                         aria-label="${isVisible ? t('common.hide') : t('common.show')} ${name}"
-                      ></button>
+                        @glass-toggle-change=${() => this._toggleCameraVisible(entityId)}
+                      ></glass-toggle>
                     </div>
                   </div>
                 `;
@@ -375,7 +373,7 @@ export class ConfigTabCamera extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;
@@ -418,13 +416,11 @@ export class ConfigTabCamera extends BaseConfigTab {
                       <span class="item-name">${e.name}</span>
                       <span class="item-meta">${e.entityId}</span>
                     </div>
-                    <button
-                      class="toggle ${e.visible ? 'on' : ''}"
-                      @click=${() => this._toggleRoomCameraVisibility(e.entityId)}
-                      role="switch"
-                      aria-checked=${e.visible ? 'true' : 'false'}
+                    <glass-toggle
+                      .checked=${e.visible}
                       aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                    ></button>
+                      @glass-toggle-change=${() => this._toggleRoomCameraVisibility(e.entityId)}
+                    ></glass-toggle>
                   </div>
                 </div>
               `;

@@ -137,7 +137,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
                       <div class="feature-name">${v.name}</div>
                       <div class="feature-desc">${v.entityId}</div>
                     </div>
-                    <span class="toggle ${isSelected ? 'on' : ''}"></span>
+                    <glass-toggle presentation .checked=${isSelected}></glass-toggle>
                   </button>
                 `;
               })}
@@ -146,7 +146,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;

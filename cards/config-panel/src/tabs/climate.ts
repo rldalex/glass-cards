@@ -346,13 +346,11 @@ export class ConfigTabClimate extends BaseConfigTab {
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>
                       </div>
-                      <button
-                        class="toggle ${e.visible ? 'on' : ''}"
-                        @click=${() => this._toggleEntityVisibility(e.entityId)}
-                        role="switch"
-                        aria-checked=${e.visible ? 'true' : 'false'}
+                      <glass-toggle
+                        .checked=${e.visible}
                         aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                      ></button>
+                        @glass-toggle-change=${() => this._toggleEntityVisibility(e.entityId)}
+                      ></glass-toggle>
                     </div>
                   </div>
                 `;
@@ -362,7 +360,7 @@ export class ConfigTabClimate extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;

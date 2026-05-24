@@ -517,29 +517,22 @@ export class ConfigRoomDetail extends LitElement {
               <ha-icon .icon=${sec.icon}></ha-icon>
             </div>
             <span class="section-title">${sec.label}</span>
+            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}></ha-icon>
           </button>
-          <button
-            class="toggle ${sec.visible ? 'on' : ''}"
-            @click=${(e: Event) => { e.stopPropagation(); this._toggleSectionVisible(sec.id); }}
-            role="switch"
-            aria-checked=${sec.visible ? 'true' : 'false'}
+          <glass-toggle
+            .checked=${sec.visible}
             aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
-          ></button>
-          ${sec.visible ? html`
-            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
-              @click=${() => this._toggleSection(sec.id)}></ha-icon>
-          ` : nothing}
+            @glass-toggle-change=${() => this._toggleSectionVisible(sec.id)}
+          ></glass-toggle>
         </div>
-        ${sec.visible ? html`
-          <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
-          <div class="section-fold ${isOpen ? 'open' : ''}">
-            <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
-              <div class="section-content">
-                ${isOpen ? this._renderSection(sec) : nothing}
-              </div>
+        <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
+        <div class="section-fold ${isOpen ? 'open' : ''}">
+          <div class="section-fold-inner" aria-hidden=${isOpen ? 'false' : 'true'}>
+            <div class="section-content">
+              ${isOpen ? this._renderSection(sec) : nothing}
             </div>
           </div>
-        ` : nothing}
+        </div>
       </div>
     `;
   }
@@ -1091,35 +1084,35 @@ export class ConfigRoomDetail extends LitElement {
             <div class="feature-text">
               <div class="feature-name">${t('config.room_show_lights')}</div>
             </div>
-            <span class="toggle ${this._showLights ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._showLights}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showTemperature ? 'true' : 'false'} @click=${() => { this._showTemperature = !this._showTemperature; this._scheduleSave(); }}>
             <div class="feature-icon"><ha-icon .icon=${'mdi:thermometer'}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${t('config.room_show_temperature')}</div>
             </div>
-            <span class="toggle ${this._showTemperature ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._showTemperature}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showHumidity ? 'true' : 'false'} @click=${() => { this._showHumidity = !this._showHumidity; this._scheduleSave(); }}>
             <div class="feature-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${t('config.room_show_humidity')}</div>
             </div>
-            <span class="toggle ${this._showHumidity ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._showHumidity}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._sortByLights ? 'true' : 'false'} @click=${() => { this._sortByLights = !this._sortByLights; this._scheduleSave(); }}>
             <div class="feature-icon"><ha-icon .icon=${'mdi:lightbulb-auto'}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${t('config.room_sort_by_lights')}</div>
             </div>
-            <span class="toggle ${this._sortByLights ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._sortByLights}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showPresence ? 'true' : 'false'} @click=${() => { this._showPresence = !this._showPresence; this._scheduleSave(); }}>
             <div class="feature-icon"><ha-icon .icon=${'mdi:motion-sensor'}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${t('config.room_sort_by_presence')}</div>
             </div>
-            <span class="toggle ${this._showPresence ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._showPresence}></glass-toggle>
           </button>
         </div>
       </section>

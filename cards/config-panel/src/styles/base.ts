@@ -396,58 +396,9 @@ export const baseStyles = css`
         flex-shrink: 0;
       }
 
-      /* ── Toggle ── */
-      .toggle {
-        position: relative;
-        width: 2.75rem;
-        height: 1.5rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast);
-        padding: 0;
-        outline: none;
-        font-size: 0;
-        flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      /* Hit-area extension: knob is 44×24 visual, tactile reaches 44×44 on
-         coarse pointers — required for mobile reach. */
-      .toggle::before {
-        content: '';
-        position: absolute;
-        inset: -0.625rem 0;
-      }
-      .toggle::after {
-        content: '';
-        position: absolute;
-        top: 0.1875rem;
-        left: 0.1875rem;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: var(--t3);
-        transition:
-          transform var(--t-fast),
-          background var(--t-fast),
-          box-shadow var(--t-fast);
-      }
-      .toggle.on {
-        background: rgba(var(--rgb-success), 0.2);
-        border-color: rgba(var(--rgb-success), 0.3);
-      }
-      .toggle.on::after {
-        transform: translateX(1.25rem);
-        background: var(--c-success);
-        box-shadow: 0 0 8px rgba(var(--rgb-success), 0.4);
-      }
-      .toggle:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
+      /* Toggle styles now live in <glass-toggle> (ui-core).
+         Interactive: <glass-toggle .checked .activeColor @glass-toggle-change>
+         Decorative (inside a clickable parent): <glass-toggle presentation .checked> */
 
       /* ── Icon button (from UI kit) ── */
       .btn-icon {
@@ -700,85 +651,9 @@ export const baseStyles = css`
         justify-content: flex-end;
         gap: 0.5rem;
       }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.375rem;
-        border: 1px solid var(--b2);
-        background: var(--s2);
-        color: var(--t2);
-        font-family: inherit;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast),
-          color var(--t-fast);
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        height: 2.25rem;
-        padding: 0 0.75rem;
-        border-radius: var(--radius-lg);
-        font-size: var(--fz-base);
-      }
-      .btn-sm {
-        height: 1.75rem;
-        padding: 0 0.5rem;
-        font-size: var(--fz-base);
-        border-radius: var(--radius-md);
-        position: relative;
-      }
-      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
-      .btn-sm::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn:hover {
-          background: var(--s4);
-          border-color: var(--b3);
-          color: var(--t1);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn:active { animation: bounce 0.3s ease; }
-      }
-      .btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
-      .btn-accent {
-        border-color: rgba(var(--rgb-accent), 0.25);
-        background: rgba(var(--rgb-accent), 0.12);
-        color: var(--c-accent);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-accent:hover {
-          background: rgba(var(--rgb-accent), 0.2);
-          border-color: rgba(var(--rgb-accent), 0.35);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-accent:active { animation: bounce 0.3s ease; }
-      }
-      .btn-accent:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .btn-ghost {
-        border-color: transparent;
-        background: transparent;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-ghost:hover {
-          background: var(--s2);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-ghost:active { animation: bounce 0.3s ease; }
-      }
+      /* .btn / .btn-sm / .btn-accent / .btn-ghost styles now live in
+         <glass-button> (ui-core). Local context overrides for .schedule-*,
+         .picker-confirm, .pw-sp-setup-btn target the host class directly. */
 
       /* ── Toast ── */
       .toast {
@@ -872,7 +747,12 @@ export const baseStyles = css`
       }
       .range-value {
         font-size: var(--fz-md); font-weight: 600; color: var(--t1);
-        min-width: 1.75rem; text-align: center;
+        /* Anchor at the right with a fixed-width slot wide enough for the
+           worst case ("35.5°C" or "99.5°C") + tabular-nums so digit width
+           stays constant. Prevents the range-input width from jumping
+           when the value changes between integer and .5 step. */
+        min-width: 3rem; text-align: right;
+        font-variant-numeric: tabular-nums;
       }
       /* Auto-close timer row variants */
       .autoclose-row { padding: 0.375rem 0.75rem; }

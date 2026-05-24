@@ -300,13 +300,13 @@
         ${this.icon?Z`<ha-icon .icon=${this.icon}></ha-icon>`:null}
         <slot></slot>
       </button>
-    `}}Oe([Ce({type:String})],Re.prototype,"icon"),Oe([Ce({type:Boolean,reflect:!0})],Re.prototype,"active"),Oe([Ce({type:String,attribute:"active-color"})],Re.prototype,"activeColor"),Oe([Ce({type:Boolean,reflect:!0})],Re.prototype,"disabled"),Oe([Ce({type:String,reflect:!0})],Re.prototype,"size"),Oe([Ce({type:String,attribute:"aria-label"})],Re.prototype,"ariaLabel");try{customElements.define("glass-chip",Re)}catch{}var De=Object.defineProperty,je=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&De(t,i,s),s};class Fe extends fe{constructor(){super(...arguments),this.checked=!1,this.disabled=!1,this.activeColor="accent",this.ariaLabel=null}static{this.styles=[m`
+    `}}Oe([Ce({type:String})],Re.prototype,"icon"),Oe([Ce({type:Boolean,reflect:!0})],Re.prototype,"active"),Oe([Ce({type:String,attribute:"active-color"})],Re.prototype,"activeColor"),Oe([Ce({type:Boolean,reflect:!0})],Re.prototype,"disabled"),Oe([Ce({type:String,reflect:!0})],Re.prototype,"size"),Oe([Ce({type:String,attribute:"aria-label"})],Re.prototype,"ariaLabel");try{customElements.define("glass-chip",Re)}catch{}var De=Object.defineProperty,je=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&De(t,i,s),s};class Fe extends fe{constructor(){super(...arguments),this.checked=!1,this.disabled=!1,this.presentation=!1,this.activeColor="accent",this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: inline-flex;
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
       }
-      button {
+      button, .visual {
         position: relative;
         box-sizing: border-box;
         display: inline-flex;
@@ -319,9 +319,15 @@
         background: transparent;
         border: none;
         outline: none;
-        cursor: pointer;
         font-family: inherit;
         -webkit-tap-highlight-color: transparent;
+      }
+      button { cursor: pointer; }
+      /* Presentation mode: shrink to knob track size, no tap area. */
+      :host([presentation]) .visual {
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
       }
       .track {
         position: relative;
@@ -371,11 +377,17 @@
       :host([checked]) button:active .knob {
         transform: translate(1.125rem, -50%) scale(0.92);
       }
-    `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}_onClick(e){e.stopPropagation(),this.disabled||(this.checked=!this.checked,this.dispatchEvent(new CustomEvent("glass-toggle-change",{detail:{checked:this.checked},bubbles:!0,composed:!0})))}render(){return Z`
+    `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}_onClick(e){e.stopPropagation(),this.disabled||(this.checked=!this.checked,this.dispatchEvent(new CustomEvent("glass-toggle-change",{detail:{checked:this.checked},bubbles:!0,composed:!0})))}render(){const e=`--_ac-rgb:${this._resolveColor()}`;return this.presentation?Z`
+        <span class="visual" style=${e} aria-hidden="true">
+          <span class="track">
+            <span class="knob"></span>
+          </span>
+        </span>
+      `:Z`
       <button
         type="button"
         role="switch"
-        style="--_ac-rgb:${this._resolveColor()}"
+        style=${e}
         ?disabled=${this.disabled}
         aria-checked=${this.checked?"true":"false"}
         aria-label=${this.ariaLabel??"toggle"}
@@ -385,7 +397,7 @@
           <span class="knob"></span>
         </span>
       </button>
-    `}}je([Ce({type:Boolean,reflect:!0})],Fe.prototype,"checked"),je([Ce({type:Boolean,reflect:!0})],Fe.prototype,"disabled"),je([Ce({type:String,attribute:"active-color"})],Fe.prototype,"activeColor"),je([Ce({type:String,attribute:"aria-label"})],Fe.prototype,"ariaLabel");try{customElements.define("glass-toggle",Fe)}catch{}var qe=Object.defineProperty,He=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&qe(t,i,s),s};class Ne extends fe{constructor(){super(...arguments),this.icon="",this.surface="light",this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
+    `}}je([Ce({type:Boolean,reflect:!0})],Fe.prototype,"checked"),je([Ce({type:Boolean,reflect:!0})],Fe.prototype,"disabled"),je([Ce({type:Boolean,reflect:!0})],Fe.prototype,"presentation"),je([Ce({type:String,attribute:"active-color"})],Fe.prototype,"activeColor"),je([Ce({type:String,attribute:"aria-label"})],Fe.prototype,"ariaLabel");try{customElements.define("glass-toggle",Fe)}catch{}var qe=Object.defineProperty,He=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&qe(t,i,s),s};class Ne extends fe{constructor(){super(...arguments),this.icon="",this.surface="light",this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: inline-flex;
         box-sizing: border-box;

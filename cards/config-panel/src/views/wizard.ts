@@ -62,39 +62,39 @@ export class ConfigWizard extends LitElement {
 
         <div class="wizard-actions">
           ${!isFirst
-            ? html`<button
-                class="btn"
+            ? html`<glass-button
+                variant="secondary"
                 @click=${() => this._prev()}
                 aria-label="Retour"
               >
                 Retour
-              </button>`
+              </glass-button>`
             : html`<span></span>`}
           <div class="wizard-actions-right">
             ${!isLast
-              ? html`<button
-                  class="btn btn-ghost"
+              ? html`<glass-button
+                  variant="ghost"
                   @click=${() => this._skip()}
                   aria-label="Passer cette étape"
                 >
                   Passer
-                </button>`
+                </glass-button>`
               : ''}
             ${isLast
-              ? html`<button
-                  class="btn btn-accent"
+              ? html`<glass-button
+                  variant="primary"
                   @click=${() => this._finish()}
                   aria-label="Commencer"
                 >
                   Commencer
-                </button>`
-              : html`<button
-                  class="btn btn-accent"
+                </glass-button>`
+              : html`<glass-button
+                  variant="primary"
                   @click=${() => this._next()}
                   aria-label="Étape suivante"
                 >
                   Suivant
-                </button>`}
+                </glass-button>`}
           </div>
         </div>
         </div>

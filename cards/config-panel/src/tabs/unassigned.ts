@@ -547,7 +547,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
         `}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this._loadEntities()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this._loadEntities()}>${t('common.reset')}</glass-button>
         </div>
       </div>
 

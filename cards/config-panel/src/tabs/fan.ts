@@ -253,13 +253,11 @@ export class ConfigTabFan extends BaseConfigTab {
                         >
                           ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
                         </button>
-                        <button
-                          class="toggle ${e.visible ? 'on' : ''}"
-                          @click=${() => this._toggleEntityVisibility(e.entityId)}
-                          role="switch"
-                          aria-checked=${e.visible ? 'true' : 'false'}
+                        <glass-toggle
+                          .checked=${e.visible}
                           aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                        ></button>
+                          @glass-toggle-change=${() => this._toggleEntityVisibility(e.entityId)}
+                        ></glass-toggle>
                       </div>
                     </div>
                   `;
@@ -270,7 +268,7 @@ export class ConfigTabFan extends BaseConfigTab {
         ` : nothing}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;
