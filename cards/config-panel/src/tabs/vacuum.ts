@@ -146,7 +146,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;

@@ -691,85 +691,9 @@
         justify-content: flex-end;
         gap: 0.5rem;
       }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.375rem;
-        border: 1px solid var(--b2);
-        background: var(--s2);
-        color: var(--t2);
-        font-family: inherit;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast),
-          color var(--t-fast);
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        height: 2.25rem;
-        padding: 0 0.75rem;
-        border-radius: var(--radius-lg);
-        font-size: var(--fz-base);
-      }
-      .btn-sm {
-        height: 1.75rem;
-        padding: 0 0.5rem;
-        font-size: var(--fz-base);
-        border-radius: var(--radius-md);
-        position: relative;
-      }
-      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
-      .btn-sm::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn:hover {
-          background: var(--s4);
-          border-color: var(--b3);
-          color: var(--t1);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn:active { animation: bounce 0.3s ease; }
-      }
-      .btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
-      .btn-accent {
-        border-color: rgba(var(--rgb-accent), 0.25);
-        background: rgba(var(--rgb-accent), 0.12);
-        color: var(--c-accent);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-accent:hover {
-          background: rgba(var(--rgb-accent), 0.2);
-          border-color: rgba(var(--rgb-accent), 0.35);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-accent:active { animation: bounce 0.3s ease; }
-      }
-      .btn-accent:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .btn-ghost {
-        border-color: transparent;
-        background: transparent;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-ghost:hover {
-          background: var(--s2);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-ghost:active { animation: bounce 0.3s ease; }
-      }
+      /* .btn / .btn-sm / .btn-accent / .btn-ghost styles now live in
+         <glass-button> (ui-core). Local context overrides for .schedule-*,
+         .picker-confirm, .pw-sp-setup-btn target the host class directly. */
 
       /* ── Toast ── */
       .toast {
@@ -6044,13 +5968,11 @@
                       ${si("compact"===(this._coverDashboardLayouts[i]??"compact")?"config.light_layout_compact":"config.light_layout_full")}
                     </button>
                   `:W}
-                  <button
-                    class="toggle ${s?"on":""}"
-                    @click=${()=>this._toggleDashboardEntity(i)}
-                    role="switch"
-                    aria-checked=${s?"true":"false"}
+                  <glass-toggle
+                    .checked=${s}
                     aria-label="${si(s?"common.hide":"common.show")} ${r.name}"
-                  ></button>
+                    @glass-toggle-change=${()=>this._toggleDashboardEntity(i)}
+                  ></glass-toggle>
                 </div>
               </div>
             `})}
@@ -6124,13 +6046,11 @@
                       >
                         ${si("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
                       </button>
-                      <button
-                        class="toggle ${e.visible?"on":""}"
-                        @click=${()=>this._toggleEntityVisibility(e.entityId)}
-                        role="switch"
-                        aria-checked=${e.visible?"true":"false"}
+                      <glass-toggle
+                        .checked=${e.visible}
                         aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-                      ></button>
+                        @glass-toggle-change=${()=>this._toggleEntityVisibility(e.entityId)}
+                      ></glass-toggle>
                     </div>
                     <div class="item-fold-sep ${r?"visible":""}"></div>
                     <div class="entity-presets-fold ${r?"open":""}">
@@ -6209,7 +6129,7 @@
         `:W}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `:N``}}Ii([ue()],Ei.prototype,"_coverShowHeader"),Ii([ue()],Ei.prototype,"_coverDashboardEntities"),Ii([ue()],Ei.prototype,"_coverDashboardOrder"),Ii([ue()],Ei.prototype,"_coverDashboardLayouts"),Ii([ue()],Ei.prototype,"_coverEntityPresets"),Ii([ue()],Ei.prototype,"_coverRoom"),Ii([ue()],Ei.prototype,"_coverRoomEntities"),Ii([ue()],Ei.prototype,"_coverEntityPresetInput"),Ii([ue()],Ei.prototype,"_coverPresetsExpandedEntity"),Ii([ue()],Ei.prototype,"_dragIdx"),Ii([ue()],Ei.prototype,"_dropIdx"),Ii([ue()],Ei.prototype,"_dragContext");try{customElements.define("config-tab-cover",Ei)}catch{}var zi=Object.defineProperty,Di=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&zi(t,i,s),s};class Pi extends Si{constructor(){super(...arguments),this._lights=[],this._lightRoom="",this._lightShowHeader=!0,this._scheduleExpandedEntity=null,this._scheduleEdits=new Map,this._schedulesLoaded={},this._pickerOpen=!1,this._pickerTarget=null,this._pickerYear=(new Date).getFullYear(),this._pickerMonth=(new Date).getMonth(),this._pickerStartDay=null,this._pickerStartMonth=0,this._pickerStartYear=(new Date).getFullYear(),this._pickerEndDay=null,this._pickerEndMonth=0,this._pickerEndYear=(new Date).getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerEndHour="23",this._pickerEndMinute="59",this._pickerPhase="start",this._dragIdx=null,this._dropIdx=null,this._suppressAutoSave=!1,this._mounted=!1}static{this._AUTO_SAVE_KEYS=new Set(["_lightShowHeader","_lights"])}connectedCallback(){super.connectedCallback(),this._mounted=!0}disconnectedCallback(){super.disconnectedCallback(),this._mounted=!1}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._lightRoom=this.areaId,this._loadRoomLights()),this._suppressAutoSave?this._suppressAutoSave=!1:this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._lightShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._lightShowHeader}}async _performSave(){if(await this.backend.send("set_light_config",{show_header:this._lightShowHeader}),this._lightRoom&&this._lights.length>0){const e=new Set(this._lights.map(e=>e.entityId)),t=this._lights.filter(e=>!e.visible).map(e=>e.entityId),i=this._lights.map(e=>e.entityId),a={};for(const r of this._lights)"full"===r.layout&&(a[r.entityId]=r.layout);await this._saveRoomEntities(this._lightRoom,e,t,i,a)}fe.emit("light-config-changed",void 0)}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.light_card&&this.loadFromConfig(e.light_card)}catch{}this._lightRoom&&await this._loadRoomLights()}}initRoom(){!this._lightRoom&&this.rooms.length>0&&(this._lightRoom=this.rooms[0].areaId,this._loadRoomLights())}async _loadRoomLights(){if(this._suppressAutoSave=!0,!this.hass||!this._lightRoom)return void(this._lights=[]);const e=this._lightRoom,t=_i(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("light."));let i=new Set,a=[],r={};try{if(!this.backend)throw new Error("No backend");const t=await this.backend.send("get_room",{area_id:e});if(this._lightRoom!==e)return;t&&(i=new Set(t.hidden_entities??[]),a=t.entity_order??[],r=t.entity_layouts??{})}catch{}const s=this.hass,o=new Map;a.forEach((e,t)=>o.set(e,t));const n=t.map(e=>{const t=s.states[e.entity_id],a="on"===t?.state,o=t?.attributes.brightness,n=a&&void 0!==o?Math.round(o/255*100):0;return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],isOn:a,brightnessPct:n,layout:r[e.entity_id]||"compact",visible:!i.has(e.entity_id)}});n.sort((e,t)=>{if(e.visible!==t.visible)return e.visible?-1:1;const i=o.get(e.entityId),a=o.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._lights=n;try{if(this.backend){const t=await this.backend.send("get_schedules");if(this._lightRoom!==e)return;this._schedulesLoaded=t??{},this._scheduleEdits=new Map;for(const e of n){const t=this._schedulesLoaded[e.entityId];this._scheduleEdits.set(e.entityId,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}}}catch{}}_toggleLightVisible(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLightLayout(e){this._lights=this._lights.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleScheduleExpand(e){if(this._scheduleExpandedEntity=this._scheduleExpandedEntity===e?null:e,!this._scheduleEdits.has(e)){const t=this._schedulesLoaded[e];this._scheduleEdits.set(e,t?.periods?.map(e=>({start:e.start,end:e.end,recurring:e.recurring??!1}))??[])}this.requestUpdate()}_addSchedulePeriod(e){const t=this._scheduleEdits.get(e)??[];t.push({start:"",end:"",recurring:!1}),this._scheduleEdits.set(e,[...t]),this.requestUpdate()}_removeSchedulePeriod(e,t){const i=this._scheduleEdits.get(e)??[];i.splice(t,1),this._scheduleEdits.set(e,[...i]),this.requestUpdate()}_updateSchedulePeriod(e,t,i,a){const r=this._scheduleEdits.get(e)??[];r[t]&&(r[t]={...r[t],[i]:a},this._scheduleEdits.set(e,[...r]),this.requestUpdate())}_toggleScheduleRecurring(e,t){const i=this._scheduleEdits.get(e)??[];i[t]&&(i[t]={...i[t],recurring:!i[t].recurring},this._scheduleEdits.set(e,[...i]),this.requestUpdate())}async _saveSchedule(e){if(!this.backend)return;const t=(this._scheduleEdits.get(e)??[]).filter(e=>e.start&&e.end);try{if(await this.backend.send("set_schedule",{entity_id:e,periods:t}),!this._mounted)return;this._fireToast(!0),fe.emit("schedule-changed",{entityId:e})}catch{if(!this._mounted)return;this._fireToast(!1)}}_formatDateTimeShort(e){if(!e)return"";const[t,i]=e.split("T");if(!t)return e;const[a,r,s]=t.split("-");return`${s}/${r}/${a} ${i??"00:00"}`}_formatPeriodDisplay(e){if(!e.start&&!e.end)return"";const t=this._formatDateTimeShort(e.start),i=this._formatDateTimeShort(e.end);return t&&i?`${t}  →  ${i}`:t?`${t}  → …`:`…  →  ${i}`}_parseDateTimeValue(e){if(!e)return null;const[t,i]=e.split("T");if(!t)return null;const a=t.split("-").map(Number);if(a.length<3||a.some(isNaN))return null;const[r,s,o]=a,[n,c]=(i??"00:00").split(":");return{year:r,month:s-1,day:o,hour:n??"00",minute:c??"00"}}_openRangePicker(e,t){this._pickerTarget={entityId:e,periodIdx:t};const i=(this._scheduleEdits.get(e)??[])[t],a=i?this._parseDateTimeValue(i.start):null,r=i?this._parseDateTimeValue(i.end):null,s=new Date;a?(this._pickerStartDay=a.day,this._pickerStartMonth=a.month,this._pickerStartYear=a.year,this._pickerStartHour=a.hour,this._pickerStartMinute=a.minute,this._pickerYear=a.year,this._pickerMonth=a.month):(this._pickerStartDay=null,this._pickerStartMonth=s.getMonth(),this._pickerStartYear=s.getFullYear(),this._pickerStartHour="00",this._pickerStartMinute="00",this._pickerYear=s.getFullYear(),this._pickerMonth=s.getMonth()),r?(this._pickerEndDay=r.day,this._pickerEndMonth=r.month,this._pickerEndYear=r.year,this._pickerEndHour=r.hour,this._pickerEndMinute=r.minute):(this._pickerEndDay=null,this._pickerEndMonth=s.getMonth(),this._pickerEndYear=s.getFullYear(),this._pickerEndHour="23",this._pickerEndMinute="59"),this._pickerPhase=a?r?"start":"end":"start",this._pickerOpen=!0}_closePicker(){this._pickerOpen=!1,this._pickerTarget=null}_pickerPrevMonth(){0===this._pickerMonth?(this._pickerMonth=11,this._pickerYear--):this._pickerMonth--}_pickerNextMonth(){11===this._pickerMonth?(this._pickerMonth=0,this._pickerYear++):this._pickerMonth++}_pickerSelectDay(e,t){if(!t)if("start"===this._pickerPhase){if(this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerPhase="end",null!==this._pickerEndDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,e).getTime();new Date(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay).getTime()<t&&(this._pickerEndDay=null)}}else{if(null!==this._pickerStartDay){const t=new Date(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay).getTime();if(new Date(this._pickerYear,this._pickerMonth,e).getTime()<t)return this._pickerStartDay=e,this._pickerStartMonth=this._pickerMonth,this._pickerStartYear=this._pickerYear,this._pickerEndDay=null,void(this._pickerPhase="start")}this._pickerEndDay=e,this._pickerEndMonth=this._pickerMonth,this._pickerEndYear=this._pickerYear}}_pickerSetTime(e,t){const i=t.target.value.replace(/\D/g,"").slice(0,2),a=e.includes("Hour"),r=Math.min(a?23:59,Math.max(0,parseInt(i,10)||0)),s=String(r).padStart(2,"0");t.target.value=s,"startHour"===e?this._pickerStartHour=s:"startMinute"===e?this._pickerStartMinute=s:"endHour"===e?this._pickerEndHour=s:this._pickerEndMinute=s,this.requestUpdate()}_pickerConfirm(){if(!this._pickerTarget||null===this._pickerStartDay||null===this._pickerEndDay)return;const{entityId:e,periodIdx:t}=this._pickerTarget,i=String(this._pickerStartMonth+1).padStart(2,"0"),a=String(this._pickerStartDay).padStart(2,"0"),r=String(this._pickerEndMonth+1).padStart(2,"0"),s=String(this._pickerEndDay).padStart(2,"0"),o=`${this._pickerStartYear}-${i}-${a}T${this._pickerStartHour}:${this._pickerStartMinute}`,n=`${this._pickerEndYear}-${r}-${s}T${this._pickerEndHour}:${this._pickerEndMinute}`;this._updateSchedulePeriod(e,t,"start",o),this._updateSchedulePeriod(e,t,"end",n),this._closePicker()}_toAbsDay(e,t,i){return new Date(e,t,i).getTime()}_getMonthDays(){const e=this._pickerYear,t=this._pickerMonth,i=(new Date(e,t,1).getDay()+6)%7,a=new Date(e,t+1,0).getDate(),r=new Date(e,t,0).getDate(),s=new Date,o=s.getFullYear()===e&&s.getMonth()===t,n=s.getDate(),c=null!==this._pickerStartDay?this._toAbsDay(this._pickerStartYear,this._pickerStartMonth,this._pickerStartDay):null,l=null!==this._pickerEndDay?this._toAbsDay(this._pickerEndYear,this._pickerEndMonth,this._pickerEndDay):null,d=[],h=(e,t,i,a)=>{const r=this._toAbsDay(i,a,e);return{day:e,otherMonth:t,today:!t&&o&&e===n,rangeStart:null!==c&&r===c,rangeEnd:null!==l&&r===l,inRange:null!==c&&null!==l&&r>c&&r<l}},p=0===t?11:t-1,u=0===t?e-1:e;for(let f=i-1;f>=0;f--)d.push(h(r-f,!0,u,p));for(let f=1;f<=a;f++)d.push(h(f,!1,e,t));const g=11===t?0:t+1,m=11===t?e+1:e,_=42-d.length;for(let f=1;f<=_;f++)d.push(h(f,!0,m,g));return d}_getMonthLabel(){const e=new Date(this._pickerYear,this._pickerMonth,1),t="fr"===this._lang?"fr-FR":"en-US",i=e.toLocaleDateString(t,{month:"long"});return`${i.charAt(0).toUpperCase()}${i.slice(1)} ${this._pickerYear}`}_getDayLabels(){return"fr"===this._lang?["Lu","Ma","Me","Je","Ve","Sa","Di"]:["Mo","Tu","We","Th","Fr","Sa","Su"]}_onLocalDragStart(e){this._dragIdx=e}_onLocalDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDropLight(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return void this._onLocalDragEnd();const i=[...this._lights],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._lights=i,this._onLocalDragEnd()}_renderScheduleContent(e){const t=this._scheduleEdits.get(e)??[];return N`
@@ -6245,13 +6165,12 @@
             </div>
           </div>
         `)}
-        <button class="btn btn-sm schedule-add" @click=${()=>this._addSchedulePeriod(e)}>
-          <ha-icon .icon=${"mdi:plus"}></ha-icon>
+        <glass-button class="schedule-add" variant="secondary" size="sm" .icon=${"mdi:plus"} @click=${()=>this._addSchedulePeriod(e)}>
           ${si("config.light_schedule_add")}
-        </button>
-        <button class="btn btn-sm btn-accent schedule-save" @click=${()=>this._saveSchedule(e)}>
+        </glass-button>
+        <glass-button class="schedule-save" variant="primary" size="sm" @click=${()=>this._saveSchedule(e)}>
           ${si("common.save")}
-        </button>
+        </glass-button>
       </div>
     `}_renderLightRow(e,t){const i=this._dragIdx===t,a=this._dropIdx===t,r=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" "),s=this._scheduleEdits.get(e.entityId),o=s?s.some(e=>e.start&&e.end):(this._schedulesLoaded[e.entityId]?.periods?.length??0)>0,n=this._scheduleExpandedEntity===e.entityId,c=["item-card",n?"expanded":""].filter(Boolean).join(" ");return N`
       <div class=${c}>
@@ -6289,13 +6208,11 @@
           >
             ${si("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
           </button>
-          <button
-            class="toggle ${e.visible?"on":""}"
-            @click=${()=>this._toggleLightVisible(e.entityId)}
-            role="switch"
-            aria-checked=${e.visible?"true":"false"}
+          <glass-toggle
+            .checked=${e.visible}
             aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-          ></button>
+            @glass-toggle-change=${()=>this._toggleLightVisible(e.entityId)}
+          ></glass-toggle>
         </div>
         <div class="fold-sep ${n?"visible":""}"></div>
         <div class="schedule-fold ${n?"open":""}">
@@ -6365,13 +6282,15 @@
               </div>
             </div>
           </div>
-          <button
-            class="btn btn-sm btn-accent picker-confirm"
-            @click=${()=>this._pickerConfirm()}
+          <glass-button
+            class="picker-confirm"
+            variant="primary"
+            size="sm"
             ?disabled=${!i}
+            @click=${()=>this._pickerConfirm()}
           >
             ${si("config.light_schedule_confirm")}
-          </button>
+          </glass-button>
         </div>
       </div>
     `}renderTab(){this._lang;const e=!!this._lightRoom,t=this._lights.length>0;return N`
@@ -6424,7 +6343,7 @@
 
         ${e?N`
           <div class="save-bar">
-            <button class="btn btn-ghost" @click=${()=>this._loadRoomLights()}>${si("common.reset")}</button>
+            <glass-button variant="ghost" @click=${()=>this._loadRoomLights()}>${si("common.reset")}</glass-button>
           </div>
         `:W}
       </div>
@@ -6481,13 +6400,11 @@
                           <span class="item-name">${e.name}</span>
                           <span class="item-meta">${e.entityId}${i?` · ${si("media.now_playing")}`:""}</span>
                         </div>
-                        <button
-                          class="toggle ${e.visible?"on":""}"
-                          @click=${()=>this._toggleMediaVisible(e.entityId)}
-                          role="switch"
-                          aria-checked=${e.visible?"true":"false"}
+                        <glass-toggle
+                          .checked=${e.visible}
                           aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-                        ></button>
+                          @glass-toggle-change=${()=>this._toggleMediaVisible(e.entityId)}
+                        ></glass-toggle>
                       </div>
                     </div>
                   `})}
@@ -6605,7 +6522,7 @@
         `:W}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}Li([ue()],Ai.prototype,"_mediaShowHeader"),Li([ue()],Ai.prototype,"_mediaExtraEntities"),Li([ue()],Ai.prototype,"_mediaHiddenEntities"),Li([ue()],Ai.prototype,"_mediaRoom"),Li([ue()],Ai.prototype,"_mediaRoomNativePlayers"),Li([ue()],Ai.prototype,"_mediaAddDropdownOpen"),Li([ue()],Ai.prototype,"_mediaEntitySearch"),Li([ue()],Ai.prototype,"_mediaDashboardPlayers");try{customElements.define("config-tab-media",Ai)}catch{}var Oi=Object.defineProperty,Mi=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Oi(t,i,s),s};class Ri extends Si{constructor(){super(...arguments),this._fanShowHeader=!0,this._fanRoom="",this._fanRoomEntities=[],this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_fanShowHeader","_fanRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._fanRoom=this.areaId,this._loadRoomFans()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._fanShowHeader=t.show_header??!0}collectSaveData(){return{show_header:this._fanShowHeader}}async _performSave(){if(await this.backend.send("set_fan_config",this.collectSaveData()),this._fanRoom&&this._fanRoomEntities.length>0){const e=new Set(this._fanRoomEntities.map(e=>e.entityId)),t=this._fanRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),i=this._fanRoomEntities.map(e=>e.entityId),a={};for(const r of this._fanRoomEntities)a[r.entityId]=r.layout;await this._saveRoomEntities(this._fanRoom,e,t,i,a)}fe.emit("fan-config-changed",void 0)}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.fan_card&&this.loadFromConfig(e.fan_card)}catch{}await this._loadRoomFans()}}async _loadRoomFans(){if(!this.backend||!this._fanRoom||!this.hass)return;const e=this._fanRoom,t=_i(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("fan.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._fanRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],s=i?.entity_layouts??{},o=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._fanRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:i,visible:!a.has(e),layout:s[e]||"compact"}})}_toggleEntityVisibility(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._fanRoomEntities=this._fanRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_onLocalDragStart(e){this._dragIdx=e,this._dragContext="fans"}_onLocalDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onLocalDragLeave(){this._dropIdx=null}_onLocalDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"fans"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._fanRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._fanRoomEntities=i,this._dragIdx=null,this._dropIdx=null}renderTab(){if(this._lang,!this.hass)return N``;const e=!!this._fanRoom,t=this._fanRoomEntities;return N`
@@ -6670,13 +6587,11 @@
                         >
                           ${si("compact"===e.layout?"config.light_layout_compact":"config.light_layout_full")}
                         </button>
-                        <button
-                          class="toggle ${e.visible?"on":""}"
-                          @click=${()=>this._toggleEntityVisibility(e.entityId)}
-                          role="switch"
-                          aria-checked=${e.visible?"true":"false"}
+                        <glass-toggle
+                          .checked=${e.visible}
                           aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-                        ></button>
+                          @glass-toggle-change=${()=>this._toggleEntityVisibility(e.entityId)}
+                        ></glass-toggle>
                       </div>
                     </div>
                   `})}
@@ -6686,7 +6601,7 @@
         `:W}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}Mi([ue()],Ri.prototype,"_fanShowHeader"),Mi([ue()],Ri.prototype,"_fanRoom"),Mi([ue()],Ri.prototype,"_fanRoomEntities"),Mi([ue()],Ri.prototype,"_dragIdx"),Mi([ue()],Ri.prototype,"_dropIdx"),Mi([ue()],Ri.prototype,"_dragContext");try{customElements.define("config-tab-fan",Ri)}catch{}var ji=Object.defineProperty,Hi=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ji(t,i,s),s};class Fi extends Si{constructor(){super(...arguments),this._presenceShowHeader=!0,this._presencePersonEntities=[],this._presenceSmartphoneSensors={},this._presenceNotifyServices={},this._presenceDrivingSensors={},this._presenceSleepSensors={},this._presenceDropdownOpen=null,this._presenceDropdownSearch="",this._personDragIdx=null,this._personDropIdx=null,this._boundCloseDropdowns=this._closeDropdownsOnOutsideClick.bind(this)}static{this._AUTO_SAVE_KEYS=new Set(["_presenceShowHeader","_presencePersonEntities","_presenceSmartphoneSensors","_presenceNotifyServices","_presenceDrivingSensors","_presenceSleepSensors"])}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._boundCloseDropdowns)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._boundCloseDropdowns)}updated(e){super.updated(e),this._checkAutoSave(e)}_closeDropdownsOnOutsideClick(e){if(!this._presenceDropdownOpen)return;const t=e.composedPath(),i=this.shadowRoot;if(!i)return;const a=i.querySelectorAll(".dropdown");for(const r of a)if(t.includes(r))return;this._presenceDropdownOpen=null,this._presenceDropdownSearch=""}loadFromConfig(e){const t=e;this._presenceShowHeader=t.show_header??!0,this._presencePersonEntities=t.person_entities??[],this._presenceSmartphoneSensors=t.smartphone_sensors??{},this._presenceNotifyServices=t.notify_services??{},this._presenceDrivingSensors=t.driving_sensors??{},this._presenceSleepSensors=t.sleep_sensors??{}}collectSaveData(){return{show_header:this._presenceShowHeader,person_entities:this._presencePersonEntities,smartphone_sensors:this._presenceSmartphoneSensors,notify_services:this._presenceNotifyServices,driving_sensors:this._presenceDrivingSensors,sleep_sensors:this._presenceSleepSensors}}async _performSave(){await this.backend.send("set_presence_config",this.collectSaveData()),fe.emit("presence-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.presence_card&&this.loadFromConfig(e.presence_card)}catch{}}_getAvailablePersonEntities(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("person.")).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableSmartphoneSensors(){return this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("sensor.")&&(e.includes("phone")||e.includes("mobile")||e.includes("smartphone")||e.includes("tablet")||e.includes("iphone")||e.includes("galaxy")||e.includes("pixel")||e.includes("oneplus"))).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_entitiesByDomain(e){return this.hass?Object.keys(this.hass.states).filter(t=>e.some(e=>t.startsWith(e))).map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1];return{entityId:e,name:i}}).sort((e,t)=>e.name.localeCompare(t.name)):[]}_getAvailableDrivingSensors(){return this._entitiesByDomain(["binary_sensor."])}_getAvailableSleepSensors(){return this._entitiesByDomain(["input_boolean.","binary_sensor."])}_getAvailableNotifyServices(){if(!this.hass)return[];const e=this.hass.services;return Object.keys(e?.notify??{}).map(e=>`notify.${e}`).sort()}_renderEntityDropdown(e){const t=this._presenceDropdownOpen===e.key,i=t?this._presenceDropdownSearch:"",a=i.toLowerCase(),r=a?e.items.filter(t=>e.itemLabel(t).toLowerCase().includes(a)||e.itemId(t).toLowerCase().includes(a)):e.items;return N`
@@ -6793,13 +6708,11 @@
                       <span class="item-name">${e.name}</span>
                       <span class="item-meta">${e.entityId}</span>
                     </div>
-                    <button
-                      class="toggle ${i||o?"on":""}"
-                      @click=${()=>this._togglePresencePerson(e.entityId)}
-                      role="switch"
-                      aria-checked=${i||o?"true":"false"}
+                    <glass-toggle
+                      .checked=${i||o}
                       aria-label="${e.name}"
-                    ></button>
+                      @glass-toggle-change=${()=>this._togglePresencePerson(e.entityId)}
+                    ></glass-toggle>
                   </div>
                 </div>
               `})}
@@ -6841,7 +6754,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}Hi([ue()],Fi.prototype,"_presenceShowHeader"),Hi([ue()],Fi.prototype,"_presencePersonEntities"),Hi([ue()],Fi.prototype,"_presenceSmartphoneSensors"),Hi([ue()],Fi.prototype,"_presenceNotifyServices"),Hi([ue()],Fi.prototype,"_presenceDrivingSensors"),Hi([ue()],Fi.prototype,"_presenceSleepSensors"),Hi([ue()],Fi.prototype,"_presenceDropdownOpen"),Hi([ue()],Fi.prototype,"_presenceDropdownSearch"),Hi([ue()],Fi.prototype,"_personDragIdx"),Hi([ue()],Fi.prototype,"_personDropIdx");try{customElements.define("config-tab-presence",Fi)}catch{}var qi=Object.defineProperty,Vi=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&qi(t,i,s),s};class Ni extends Si{constructor(){super(...arguments),this._spotifyShowHeader=!0,this._spotifyEntity="",this._spotifySortOrder="recent_first",this._spotifyDropdownOpen=!1,this._spotifyMaxItems=6,this._spotifyVisibleSpeakers=[],this._spotifyConfigured=null,this._localDragIdx=null,this._localDropIdx=null,this._localDragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_spotifyShowHeader","_spotifyEntity","_spotifySortOrder","_spotifyMaxItems","_spotifyVisibleSpeakers"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._spotifyShowHeader=t.show_header??!0,this._spotifyEntity=t.entity_id??"",this._spotifySortOrder="oldest_first"===t.sort_order?"oldest_first":"recent_first",this._spotifyMaxItems=t.max_items_per_section??6,this._spotifyVisibleSpeakers=t.visible_speakers??[],this._checkSpotifyStatus()}collectSaveData(){return{show_header:this._spotifyShowHeader,...this._spotifyEntity?{entity_id:this._spotifyEntity}:{},sort_order:this._spotifySortOrder,max_items_per_section:this._spotifyMaxItems,visible_speakers:this._spotifyVisibleSpeakers}}async _performSave(){await this.backend.send("set_spotify_config",this.collectSaveData()),fe.emit("spotify-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.spotify_card&&this.loadFromConfig(e.spotify_card)}catch{}}async _checkSpotifyStatus(){if(!this.backend)return this._spotifyStatusRetry&&clearTimeout(this._spotifyStatusRetry),void(this._spotifyStatusRetry=setTimeout(()=>this._checkSpotifyStatus(),500));try{const e=await this.backend.send("spotify_status");this._spotifyConfigured=e?.configured??!1}catch{this._spotifyConfigured=!1}}_selectEntity(e){this._spotifyEntity=e,this._spotifyDropdownOpen=!1}_toggleSpeaker(e){this._spotifyVisibleSpeakers.includes(e)?this._spotifyVisibleSpeakers=this._spotifyVisibleSpeakers.filter(t=>t!==e):this._spotifyVisibleSpeakers=[...this._spotifyVisibleSpeakers,e]}_onLocalDragStart(e){this._localDragIdx=e,this._localDragContext="speakers"}_onLocalDragOver(e,t){t.preventDefault(),this._localDropIdx=e,this.requestUpdate()}_onLocalDragLeave(){this._localDropIdx=null,this.requestUpdate()}_onLocalDragEnd(){this._localDragIdx=null,this._localDropIdx=null,this._localDragContext="",this.requestUpdate()}_onDropSpeaker(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e||"speakers"!==this._localDragContext)return this._localDragIdx=null,void(this._localDropIdx=null);const i=[...this._spotifyVisibleSpeakers];if(this._localDragIdx>=i.length||e>=i.length)return this._localDragIdx=null,void(this._localDropIdx=null);const[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._spotifyVisibleSpeakers=i,this._localDragIdx=null,this._localDropIdx=null}_renderSetupGuide(){return N`
@@ -6870,13 +6783,14 @@
             ${si("config.spotify_setup_note")}
           </div>
 
-          <button
-            class="btn btn-accent pw-sp-setup-btn"
+          <glass-button
+            class="pw-sp-setup-btn"
+            variant="primary"
+            .icon=${"mdi:cog"}
             @click=${()=>{window.open("/config/integrations/dashboard","_blank")}}
           >
-            <ha-icon .icon=${"mdi:cog"}></ha-icon>
             ${si("config.spotify_open_settings")}
-          </button>
+          </glass-button>
         </div>
       </div>
     `}renderTab(){if(this._lang,null===this._spotifyConfigured)return N`
@@ -6990,7 +6904,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}_renderSpeakerList(){const e=this.hass?Object.entries(this.hass.states).filter(([e])=>e.startsWith("media_player.")).map(([e,t])=>({entityId:e,name:t.attributes.friendly_name??e,visible:this._spotifyVisibleSpeakers.includes(e)})):[],t=[...this._spotifyVisibleSpeakers.map(t=>e.find(e=>e.entityId===t)).filter(e=>!!e),...e.filter(e=>!e.visible).sort((e,t)=>e.name.localeCompare(t.name))];return N`
@@ -7012,13 +6926,11 @@
                 <span class="item-name">${e.name}</span>
                 <span class="item-meta">${e.entityId}</span>
               </div>
-              <button
-                class="toggle ${t?"on":""}"
-                @click=${()=>this._toggleSpeaker(e.entityId)}
-                role="switch"
-                aria-checked=${t?"true":"false"}
+              <glass-toggle
+                .checked=${t}
                 aria-label="${si(t?"common.hide":"common.show")} ${e.name}"
-              ></button>
+                @glass-toggle-change=${()=>this._toggleSpeaker(e.entityId)}
+              ></glass-toggle>
             </div>
           `})}
       </div>
@@ -7426,7 +7338,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}Ui([ue()],Zi.prototype,"_titleText"),Ui([ue()],Zi.prototype,"_titleSources"),Ui([ue()],Zi.prototype,"_titlePeriodEntity"),Ui([ue()],Zi.prototype,"_titlePeriodOptions"),Ui([ue()],Zi.prototype,"_titleEditingSourceIdx"),Ui([ue()],Zi.prototype,"_titleAddSourceDropdownOpen"),Ui([ue()],Zi.prototype,"_titleAddEntityDropdownOpen"),Ui([ue()],Zi.prototype,"_titlePeriodDropdownOpen"),Ui([ue()],Zi.prototype,"_periodIconPopupIdx"),Ui([ue()],Zi.prototype,"_iconPopupModeIdx"),Ui([ue()],Zi.prototype,"_iconSearch"),Ui([ue()],Zi.prototype,"_periodEditingIdx"),Ui([ue()],Zi.prototype,"_dragIdx"),Ui([ue()],Zi.prototype,"_dropIdx"),Ui([ue()],Zi.prototype,"_dragContext"),Ui([ue()],Zi.prototype,"_dragModeSrcIdx");try{customElements.define("config-tab-title",Zi)}catch{}var ea=Object.defineProperty,ta=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ea(t,i,s),s};const ia=[{key:"humidity",icon:"mdi:water-percent",nameKey:"config.weather_metric_humidity",attr:"humidity"},{key:"wind",icon:"mdi:weather-windy",nameKey:"config.weather_metric_wind",attr:"wind_speed"},{key:"pressure",icon:"mdi:gauge",nameKey:"config.weather_metric_pressure",attr:"pressure"},{key:"uv",icon:"mdi:white-balance-sunny",nameKey:"config.weather_metric_uv",attr:"uv_index"},{key:"visibility",icon:"mdi:eye",nameKey:"config.weather_metric_visibility",attr:"visibility"},{key:"sunrise",icon:"mdi:weather-sunset-up",nameKey:"config.weather_metric_sunrise",attr:null},{key:"sunset",icon:"mdi:weather-sunset-down",nameKey:"config.weather_metric_sunset",attr:null}];class aa extends Si{constructor(){super(...arguments),this._weatherEntity="",this._weatherHiddenMetrics=[],this._weatherShowDaily=!0,this._weatherShowHourly=!0,this._weatherShowHeader=!0,this._weatherDropdownOpen=!1}static{this._AUTO_SAVE_KEYS=new Set(["_weatherEntity","_weatherHiddenMetrics","_weatherShowDaily","_weatherShowHourly","_weatherShowHeader"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._weatherEntity=t.entity_id??"",this._weatherHiddenMetrics=t.hidden_metrics??[],this._weatherShowDaily=t.show_daily??!0,this._weatherShowHourly=t.show_hourly??!0,this._weatherShowHeader=t.show_header??!0}collectSaveData(){return{...this._weatherEntity?{entity_id:this._weatherEntity}:{},hidden_metrics:this._weatherHiddenMetrics,show_daily:this._weatherShowDaily,show_hourly:this._weatherShowHourly,show_header:this._weatherShowHeader}}async _performSave(){await this.backend.send("set_weather",this.collectSaveData()),fe.emit("weather-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.weather&&this.loadFromConfig(e.weather)}catch{}}_selectEntity(e){this._weatherEntity=e,this._weatherDropdownOpen=!1}_toggleMetric(e){const t=new Set(this._weatherHiddenMetrics);t.has(e)?t.delete(e):t.add(e),this._weatherHiddenMetrics=[...t]}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("weather.")).sort():[],t=e.find(e=>e===this._weatherEntity),i=new Set(this._weatherHiddenMetrics),a=t&&this.hass?.states[t]?.attributes||{},r=ia.filter(e=>null===e.attr||null!=a[e.attr]),s=r.length-r.filter(e=>i.has(e.key)).length;return N`
@@ -7508,7 +7420,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}ta([ue()],aa.prototype,"_weatherEntity"),ta([ue()],aa.prototype,"_weatherHiddenMetrics"),ta([ue()],aa.prototype,"_weatherShowDaily"),ta([ue()],aa.prototype,"_weatherShowHourly"),ta([ue()],aa.prototype,"_weatherShowHeader"),ta([ue()],aa.prototype,"_weatherDropdownOpen");try{customElements.define("config-tab-weather",aa)}catch{}var ra=Object.defineProperty,sa=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ra(t,i,s),s};class oa extends Si{constructor(){super(...arguments),this._cameraShowHeader=!0,this._cameraAutoCycle=!1,this._cameraCycleInterval=10,this._cameraEntityOrder=[],this._cameraHiddenEntities=[],this._cameraRoom="",this._cameraRoomEntities=[],this._localDragIdx=null,this._localDropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_cameraShowHeader","_cameraAutoCycle","_cameraCycleInterval","_cameraEntityOrder","_cameraHiddenEntities","_cameraRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._cameraRoom=this.areaId,this._loadRoomCameras()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._cameraShowHeader=t.show_header??!0,this._cameraEntityOrder=t.entity_order??[],this._cameraHiddenEntities=t.hidden_entities??[],this._cameraAutoCycle=t.auto_cycle??!1,this._cameraCycleInterval=t.cycle_interval??10}collectSaveData(){return{show_header:this._cameraShowHeader,entity_order:this._cameraEntityOrder,hidden_entities:this._cameraHiddenEntities,auto_cycle:this._cameraAutoCycle,cycle_interval:this._cameraCycleInterval}}async _performSave(){if(await this.backend.send("set_camera_carousel_config",this.collectSaveData()),this._cameraRoom&&this._cameraRoomEntities.length>0){const e=new Set(this._cameraRoomEntities.map(e=>e.entityId)),t=this._cameraRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),i=this._cameraRoomEntities.map(e=>e.entityId);await this._saveRoomEntities(this._cameraRoom,e,t,i)}fe.emit("camera-carousel-config-changed",void 0)}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.camera_carousel&&this.loadFromConfig(e.camera_carousel)}catch{}await this._loadRoomCameras()}}async _loadRoomCameras(){if(!this.backend||!this._cameraRoom||!this.hass)return;const e=this._cameraRoom,t=_i(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("camera.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._cameraRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],s=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._cameraRoomEntities=s.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:i,visible:!a.has(e)}})}_toggleRoomCameraVisibility(e){this._cameraRoomEntities=this._cameraRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_onRoomCameraDragStart(e){this._localDragIdx=e,this._dragContext="room_cameras"}_onRoomCameraDragOver(e,t){t.preventDefault(),null!==this._localDragIdx&&this._localDragIdx!==e&&(this._localDropIdx=e)}_onRoomCameraDragEnd(){this._localDragIdx=null,this._localDropIdx=null,this._dragContext=""}_onRoomCameraDrop(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e||"room_cameras"!==this._dragContext)return void this._onRoomCameraDragEnd();const i=[...this._cameraRoomEntities],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._cameraRoomEntities=i,this._onRoomCameraDragEnd()}_initCameraEntityOrder(){if(!this.hass)return;const e=Object.keys(this.hass.states).filter(e=>e.startsWith("camera.")).sort(),t=new Set(e),i=this._cameraEntityOrder.filter(e=>t.has(e)),a=new Set(i);for(const r of e)a.has(r)||i.push(r);this._cameraEntityOrder=i}_localDragStart(e){this._localDragIdx=e}_localDragOver(e,t){t.preventDefault(),this._localDropIdx=e}_localDragLeave(){this._localDropIdx=null}_localDragEnd(){this._localDragIdx=null,this._localDropIdx=null}_toggleCameraVisible(e){const t=new Set(this._cameraHiddenEntities);t.has(e)?t.delete(e):t.add(e),this._cameraHiddenEntities=[...t]}_onDropCameraEntity(e,t){if(t.preventDefault(),null===this._localDragIdx||this._localDragIdx===e)return void this._localDragEnd();const i=[...this._cameraEntityOrder],[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._cameraEntityOrder=i,this._localDragEnd()}renderTab(){if(this._lang,this.areaId)return this._renderRoomTab();this.hass&&0===this._cameraEntityOrder.length&&this._initCameraEntityOrder();const e=this._cameraEntityOrder,t=new Set(this._cameraHiddenEntities),i=e.length-e.filter(e=>t.has(e)).length;return N`
@@ -7590,13 +7502,11 @@
                         <span class="item-name">${n}</span>
                         <span class="item-meta">${e}</span>
                       </div>
-                      <button
-                        class="toggle ${s?"on":""}"
-                        @click=${()=>this._toggleCameraVisible(e)}
-                        role="switch"
-                        aria-checked=${s?"true":"false"}
+                      <glass-toggle
+                        .checked=${s}
                         aria-label="${si(s?"common.hide":"common.show")} ${n}"
-                      ></button>
+                        @glass-toggle-change=${()=>this._toggleCameraVisible(e)}
+                      ></glass-toggle>
                     </div>
                   </div>
                 `})}
@@ -7605,7 +7515,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}_renderRoomTab(){const e=this._cameraRoomEntities;return N`
@@ -7632,13 +7542,11 @@
                       <span class="item-name">${e.name}</span>
                       <span class="item-meta">${e.entityId}</span>
                     </div>
-                    <button
-                      class="toggle ${e.visible?"on":""}"
-                      @click=${()=>this._toggleRoomCameraVisibility(e.entityId)}
-                      role="switch"
-                      aria-checked=${e.visible?"true":"false"}
+                    <glass-toggle
+                      .checked=${e.visible}
                       aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-                    ></button>
+                      @glass-toggle-change=${()=>this._toggleRoomCameraVisibility(e.entityId)}
+                    ></glass-toggle>
                   </div>
                 </div>
               `})}
@@ -7728,13 +7636,11 @@
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>
                       </div>
-                      <button
-                        class="toggle ${e.visible?"on":""}"
-                        @click=${()=>this._toggleEntityVisibility(e.entityId)}
-                        role="switch"
-                        aria-checked=${e.visible?"true":"false"}
+                      <glass-toggle
+                        .checked=${e.visible}
                         aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.name}"
-                      ></button>
+                        @glass-toggle-change=${()=>this._toggleEntityVisibility(e.entityId)}
+                      ></glass-toggle>
                     </div>
                   </div>
                 `})}
@@ -7743,7 +7649,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}ca([ue()],la.prototype,"_climateShowHeader"),ca([ue()],la.prototype,"_climateDisplayMode"),ca([ue()],la.prototype,"_climateDashboardDisplayMode"),ca([ue()],la.prototype,"_climateDashboardEntities"),ca([ue()],la.prototype,"_climateRoom"),ca([ue()],la.prototype,"_climateRoomEntities"),ca([ue()],la.prototype,"_localDragIdx"),ca([ue()],la.prototype,"_localDropIdx");try{customElements.define("config-tab-climate",la)}catch{}const da=["light","media_player","climate","fan","cover","camera","vacuum"],ha=new Set(["light","media_player","climate","cover","fan","camera"]),pa={light:"mdi:lightbulb-group",media_player:"mdi:speaker",climate:"mdi:thermostat",fan:"mdi:fan",cover:"mdi:blinds",camera:"mdi:cctv",vacuum:"mdi:robot-vacuum-variant"},ua={light:{name:"config.domain_light",desc:"config.domain_light_desc"},media_player:{name:"config.domain_media_player",desc:"config.domain_media_player_desc"},climate:{name:"config.domain_climate",desc:"config.domain_climate_desc"},fan:{name:"config.domain_fan",desc:"config.domain_fan_desc"},cover:{name:"config.domain_cover",desc:"config.domain_cover_desc"},camera:{name:"config.domain_camera",desc:"config.domain_camera_desc"},vacuum:{name:"config.domain_vacuum",desc:"config.domain_vacuum_desc"}};var ga=Object.defineProperty,ma=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ga(t,i,s),s};const _a=["light","cover","climate","fan","media_player","camera"];function fa(e){return pa[e]??"mdi:help-circle"}class ba extends Si{constructor(){super(...arguments),this._unassignedEntities=[],this._unassignedDropdownEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch="",this._unassignedEditingEntity=null,this._iconPopupEntity=null,this._iconSearch="",this._filter="all",this._collapsedDomains=new Set,this._iconList=[],this._iconLoading=!1,this._portalEl=null}updated(e){super.updated(e),e.has("hass")&&this.hass&&0===this._unassignedEntities.length&&this._loadEntities()}loadFromConfig(e){}collectSaveData(){return{}}_collectAllEntities(){if(!this.hass)return[];const e=this.hass.entities,t=this.hass.devices,i=this.hass.areas,a=[];for(const r of Object.values(e)){if(r.disabled_by||r.hidden_by)continue;const e=r.entity_id.split(".")[0];if(!_a.includes(e))continue;const s=mi(r,t),o=this.hass.states[r.entity_id],n=o?.attributes?.friendly_name??r.entity_id,c=s?i[s]?.name??null:null;a.push({entityId:r.entity_id,name:n,domain:e,areaId:s,areaName:c,icon:r.icon??null})}return a.sort((e,t)=>{const i=e.areaId?1:0,a=t.areaId?1:0;if(i!==a)return i-a;const r=_a.indexOf(e.domain)-_a.indexOf(t.domain);return 0!==r?r:e.name.localeCompare(t.name)}),a}_loadEntities(){this._unassignedEntities=this._collectAllEntities(),this._unassignedDropdownEntity=null,this._unassignedEditingEntity=null,this._unassignedEntitySearch="",this._unassignedAreaSearch=""}async _assignEntityArea(e,t){if(this.hass)try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,area_id:t}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===e?{...i,areaId:t,areaName:this.hass?.areas[t]?.name??null}:i),this._unassignedDropdownEntity=null,this._unassignedAreaSearch="",this.dispatchEvent(new CustomEvent("entities-assigned",{bubbles:!0,composed:!0}))}catch{this._fireToast(!1)}}async _renameEntity(e,t){if(!this.hass)return;const i=t.trim();if(!i)return void(this._unassignedEditingEntity=null);const a=this._unassignedEntities.find(t=>t.entityId===e);if(a&&a.name===i)this._unassignedEditingEntity=null;else{try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:e,name:i}),this._unassignedEntities=this._unassignedEntities.map(t=>t.entityId===e?{...t,name:i}:t)}catch{this._fireToast(!1)}this._unassignedEditingEntity=null}}async _openIconPopup(e){this._iconLoading||(0===this._iconList.length&&await this._loadIconList(),this._iconSearch="",this._iconPopupEntity=e)}async _loadIconList(){this._iconLoading=!0;const e=document.createElement("ha-icon-picker");e.hass=this.hass,e.style.cssText="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none";try{this.shadowRoot?.appendChild(e),await new Promise(e=>setTimeout(e,50));const t=e.shadowRoot?.querySelector("ha-generic-picker");if(t?.getItems){const e=await t.getItems();e?.length&&(this._iconList=e.map(e=>e.id))}}catch{}finally{this.shadowRoot?.contains(e)&&this.shadowRoot.removeChild(e),this._iconLoading=!1}}_getFilteredIcons(){const e=this._iconSearch.toLowerCase().trim();return e?this._iconList.filter(t=>t.toLowerCase().includes(e)).slice(0,120):this._iconList.slice(0,120)}async _selectIcon(e){const t=this._iconPopupEntity;if(this._iconPopupEntity=null,!t||!this.hass)return;const i=this._unassignedEntities.find(e=>e.entityId===t);if(!i||i.icon!==(e||null))try{await this.hass.connection.sendMessagePromise({type:"config/entity_registry/update",entity_id:t,icon:e||null}),this._unassignedEntities=this._unassignedEntities.map(i=>i.entityId===t?{...i,icon:e||null}:i)}catch{this._fireToast(!1)}}_showIconPortal(){if(!this._iconPopupEntity)return void this._removeIconPortal();const e=this._unassignedEntities.find(e=>e.entityId===this._iconPopupEntity),t=e?.icon??"",i=this._getFilteredIcons();this._portalEl||(this._portalEl=document.createElement("div"),document.body.appendChild(this._portalEl));const a=()=>{this._iconPopupEntity=null,this._removeIconPortal()},r=e=>{this._selectIcon(e),this._removeIconPortal()},s=e=>{this._iconSearch=e,this._showIconPortal()};this._portalEl.replaceChildren(),Object.assign(this._portalEl.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1.5rem"}),this._portalEl.addEventListener("click",e=>{e.target===this._portalEl&&a()},{once:!0});const o=document.createElement("div");Object.assign(o.style,{width:"100%",maxWidth:"25rem",maxHeight:"70vh",display:"flex",flexDirection:"column",borderRadius:"22px",background:"linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)",boxShadow:"inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)",overflow:"hidden"});const n=document.createElement("div");Object.assign(n.style,{padding:"0.875rem 1rem 0.625rem",display:"flex",flexDirection:"column",gap:"0.625rem",borderBottom:"1px solid rgba(255,255,255,0.06)"});const c=document.createElement("span");Object.assign(c.style,{fontSize:"11px",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.45)"}),c.textContent=si("config.unassigned_change_icon");const l=document.createElement("input");Object.assign(l.style,{width:"100%",padding:"0.5rem 0.75rem",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.88)",fontSize:"13px",outline:"none",boxSizing:"border-box"}),l.placeholder="mdi:...",l.value=this._iconSearch,l.addEventListener("input",()=>s(l.value)),n.appendChild(c),n.appendChild(l),o.appendChild(n);const d=document.createElement("div");Object.assign(d.style,{overflow:"auto",flex:"1",padding:"0.5rem",scrollbarWidth:"none"});const h=document.createElement("div");Object.assign(h.style,{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:"4px"});const p=this._createIconBtn("mdi:cancel",""===t,.4);p.addEventListener("click",()=>r("")),h.appendChild(p);for(const u of i){const e=this._createIconBtn(u,u===t,1);e.addEventListener("click",()=>r(u)),h.appendChild(e)}if(0===i.length&&this._iconSearch){const e=document.createElement("div");Object.assign(e.style,{gridColumn:"1/-1",textAlign:"center",padding:"2rem",color:"rgba(255,255,255,0.35)",fontSize:"13px"}),e.textContent=si("config.title_no_icons_found"),h.appendChild(e)}d.appendChild(h),o.appendChild(d),this._portalEl.appendChild(o),l.focus()}_createIconBtn(e,t,i){const a=document.createElement("button");Object.assign(a.style,{width:"100%",aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"10px",border:t?"2px solid rgba(129,140,248,0.6)":"1px solid rgba(255,255,255,0.06)",background:t?"rgba(129,140,248,0.15)":"rgba(255,255,255,0.04)",cursor:"pointer",color:"rgba(255,255,255,0.88)",padding:"0"});const r=document.createElement("ha-icon");return r.icon=e,r.style.cssText=`--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${i};`,a.appendChild(r),a}_removeIconPortal(){this._portalEl&&(this._portalEl.remove(),this._portalEl=null)}disconnectedCallback(){super.disconnectedCallback(),this._removeIconPortal()}closeDropdowns(){this._unassignedDropdownEntity=null}renderTab(){if(this._lang,!this.hass)return N`${W}`;const e=this._unassignedEntities,t=Object.values(this.hass.areas).sort((e,t)=>e.name.localeCompare(t.name)),i=this._unassignedEntitySearch.toLowerCase(),a=this._unassignedAreaSearch.toLowerCase(),r=e.filter(e=>!e.areaId).length,s=e.length,o="orphans"===this._filter?e.filter(e=>!e.areaId):e,n=i?o.filter(e=>e.name.toLowerCase().includes(i)||e.entityId.toLowerCase().includes(i)):o,c=new Map;for(const h of n){const e=c.get(h.domain)??[];e.push(h),c.set(h.domain,e)}const l=a?t.filter(e=>e.name.toLowerCase().includes(a)):t,d=r>0;return N`
@@ -7899,7 +7805,7 @@
         `}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this._loadEntities()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this._loadEntities()}>${si("common.reset")}</glass-button>
         </div>
       </div>
 
@@ -7967,7 +7873,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}ya([ue()],xa.prototype,"_calendarShowHeader"),ya([ue()],xa.prototype,"_calendarHiddenEntities");try{customElements.define("config-tab-calendar",xa)}catch{}var ka=Object.defineProperty,$a=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ka(t,i,s),s};class Sa extends Si{constructor(){super(...arguments),this._vacuumShowHeader=!0,this._vacuumEntity=""}static{this._AUTO_SAVE_KEYS=new Set(["_vacuumShowHeader","_vacuumEntity"])}updated(e){super.updated(e),this._checkAutoSave(e)}loadFromConfig(e){const t=e;this._vacuumShowHeader=t.show_header??!0,this._vacuumEntity=t.entity??""}collectSaveData(){return{show_header:this._vacuumShowHeader,entity:this._vacuumEntity}}async _performSave(){await this.backend.send("set_vacuum_card",this.collectSaveData()),fe.emit("vacuum-config-changed",void 0)}async reload(){if(this.backend)try{const e=await this.backend.send("get_config");e?.vacuum_card&&this.loadFromConfig(e.vacuum_card)}catch{}}_selectEntity(e){this._vacuumEntity=e===this._vacuumEntity?"":e}renderTab(){this._lang;const e=this.hass?Object.keys(this.hass.states).filter(e=>e.startsWith("vacuum.")).sort().map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return{entityId:e,name:i}}):[],t=this._vacuumEntity||(e[0]?.entityId??""),i=t||"vacuum.placeholder";return N`
@@ -8034,7 +7940,7 @@
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${()=>this.reload()}>${si("common.reset")}</button>
+          <glass-button variant="ghost" @click=${()=>this.reload()}>${si("common.reset")}</glass-button>
         </div>
       </div>
     `}}$a([ue()],Sa.prototype,"_vacuumShowHeader"),$a([ue()],Sa.prototype,"_vacuumEntity");try{customElements.define("config-tab-vacuum",Sa)}catch{}var Ca=Object.defineProperty,Ia=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ca(t,i,s),s};class Ea extends ne{constructor(){super(...arguments),this.rooms=[],this._dragIdx=null,this._dropIdx=null,this._popupAutoClose=0,this._configLoaded=!1,this._saveScheduler=wi()}createRenderRoot(){return this}updated(e){super.updated(e),!this._configLoaded&&this.backend&&(this._configLoaded=!0,this._loadConfig())}disconnectedCallback(){super.disconnectedCallback(),this._saveScheduler.cancel()}async _loadConfig(){if(this.backend)try{const e=await this.backend.send("get_config");this._popupAutoClose=e?.navbar?.popup_auto_close??0}catch{}}_onAutoCloseChange(e){this._popupAutoClose=parseInt(e.target.value,10),this._saveScheduler.schedule(()=>this._saveAutoClose())}async _saveAutoClose(){if(this.backend)try{await this.backend.send("set_navbar",{popup_auto_close:this._popupAutoClose}),fe.emit("navbar-config-changed",void 0),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this.rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this.dispatchEvent(new CustomEvent("rooms-reordered",{detail:{rooms:t},bubbles:!0,composed:!0}))}this._dragIdx=null,this._dropIdx=null}_toggleVisibility(e,t){t.stopPropagation(),t.preventDefault(),this.dispatchEvent(new CustomEvent("room-visibility-toggle",{detail:{areaId:e.areaId,visible:!e.visible},bubbles:!0,composed:!0}))}render(){if(!this.rooms.length)return N`
@@ -8205,13 +8111,11 @@
             </div>
             <span class="section-title">${e.label}</span>
           </button>
-          <button
-            class="toggle ${e.visible?"on":""}"
-            @click=${t=>{t.stopPropagation(),this._toggleSectionVisible(e.id)}}
-            role="switch"
-            aria-checked=${e.visible?"true":"false"}
+          <glass-toggle
+            .checked=${e.visible}
             aria-label="${e.visible?si("common.hide"):si("common.show")} ${e.label}"
-          ></button>
+            @glass-toggle-change=${()=>this._toggleSectionVisible(e.id)}
+          ></glass-toggle>
           ${e.visible?N`
             <ha-icon class="section-chevron ${i?"open":""}" .icon=${"mdi:chevron-down"}
               @click=${()=>this._toggleSection(e.id)}></ha-icon>
@@ -8897,34 +8801,34 @@
         <div class="wizard-content">${this._renderStep(e)}</div>
 
         <div class="wizard-actions">
-          ${i?N`<span></span>`:N`<button
-                class="btn"
+          ${i?N`<span></span>`:N`<glass-button
+                variant="secondary"
                 @click=${()=>this._prev()}
                 aria-label="Retour"
               >
                 Retour
-              </button>`}
+              </glass-button>`}
           <div class="wizard-actions-right">
-            ${t?"":N`<button
-                  class="btn btn-ghost"
+            ${t?"":N`<glass-button
+                  variant="ghost"
                   @click=${()=>this._skip()}
                   aria-label="Passer cette étape"
                 >
                   Passer
-                </button>`}
-            ${t?N`<button
-                  class="btn btn-accent"
+                </glass-button>`}
+            ${t?N`<glass-button
+                  variant="primary"
                   @click=${()=>this._finish()}
                   aria-label="Commencer"
                 >
                   Commencer
-                </button>`:N`<button
-                  class="btn btn-accent"
+                </glass-button>`:N`<glass-button
+                  variant="primary"
                   @click=${()=>this._next()}
                   aria-label="Étape suivante"
                 >
                   Suivant
-                </button>`}
+                </glass-button>`}
           </div>
         </div>
         </div>

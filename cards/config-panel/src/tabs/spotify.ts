@@ -183,13 +183,14 @@ export class ConfigTabSpotify extends BaseConfigTab {
             ${t('config.spotify_setup_note')}
           </div>
 
-          <button
-            class="btn btn-accent pw-sp-setup-btn"
+          <glass-button
+            class="pw-sp-setup-btn"
+            variant="primary"
+            .icon=${'mdi:cog'}
             @click=${() => { window.open('/config/integrations/dashboard', '_blank'); }}
           >
-            <ha-icon .icon=${'mdi:cog'}></ha-icon>
             ${t('config.spotify_open_settings')}
-          </button>
+          </glass-button>
         </div>
       </div>
     `;
@@ -331,7 +332,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;
@@ -386,13 +387,11 @@ export class ConfigTabSpotify extends BaseConfigTab {
                 <span class="item-name">${sp.name}</span>
                 <span class="item-meta">${sp.entityId}</span>
               </div>
-              <button
-                class="toggle ${isSelected ? 'on' : ''}"
-                @click=${() => this._toggleSpeaker(sp.entityId)}
-                role="switch"
-                aria-checked=${isSelected ? 'true' : 'false'}
+              <glass-toggle
+                .checked=${isSelected}
                 aria-label="${isSelected ? t('common.hide') : t('common.show')} ${sp.name}"
-              ></button>
+                @glass-toggle-change=${() => this._toggleSpeaker(sp.entityId)}
+              ></glass-toggle>
             </div>
           `;
         })}

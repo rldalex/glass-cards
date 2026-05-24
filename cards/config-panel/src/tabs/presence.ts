@@ -377,13 +377,11 @@ export class ConfigTabPresence extends BaseConfigTab {
                       <span class="item-name">${p.name}</span>
                       <span class="item-meta">${p.entityId}</span>
                     </div>
-                    <button
-                      class="toggle ${selected || autoMode ? 'on' : ''}"
-                      @click=${() => this._togglePresencePerson(p.entityId)}
-                      role="switch"
-                      aria-checked=${(selected || autoMode) ? 'true' : 'false'}
+                    <glass-toggle
+                      .checked=${selected || autoMode}
                       aria-label="${p.name}"
-                    ></button>
+                      @glass-toggle-change=${() => this._togglePresencePerson(p.entityId)}
+                    ></glass-toggle>
                   </div>
                 </div>
               `;
@@ -494,7 +492,7 @@ export class ConfigTabPresence extends BaseConfigTab {
         </section>
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;

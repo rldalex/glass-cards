@@ -700,85 +700,9 @@ export const baseStyles = css`
         justify-content: flex-end;
         gap: 0.5rem;
       }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.375rem;
-        border: 1px solid var(--b2);
-        background: var(--s2);
-        color: var(--t2);
-        font-family: inherit;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast),
-          color var(--t-fast);
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        height: 2.25rem;
-        padding: 0 0.75rem;
-        border-radius: var(--radius-lg);
-        font-size: var(--fz-base);
-      }
-      .btn-sm {
-        height: 1.75rem;
-        padding: 0 0.5rem;
-        font-size: var(--fz-base);
-        border-radius: var(--radius-md);
-        position: relative;
-      }
-      /* Hit-area extension: 28px visual reaches 44px tactile on coarse. */
-      .btn-sm::before {
-        content: '';
-        position: absolute;
-        inset: -0.5rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn:hover {
-          background: var(--s4);
-          border-color: var(--b3);
-          color: var(--t1);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn:active { animation: bounce 0.3s ease; }
-      }
-      .btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
-      .btn-accent {
-        border-color: rgba(var(--rgb-accent), 0.25);
-        background: rgba(var(--rgb-accent), 0.12);
-        color: var(--c-accent);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-accent:hover {
-          background: rgba(var(--rgb-accent), 0.2);
-          border-color: rgba(var(--rgb-accent), 0.35);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-accent:active { animation: bounce 0.3s ease; }
-      }
-      .btn-accent:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .btn-ghost {
-        border-color: transparent;
-        background: transparent;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .btn-ghost:hover {
-          background: var(--s2);
-        }
-      }
-      @media (pointer: coarse) {
-        .btn-ghost:active { animation: bounce 0.3s ease; }
-      }
+      /* .btn / .btn-sm / .btn-accent / .btn-ghost styles now live in
+         <glass-button> (ui-core). Local context overrides for .schedule-*,
+         .picker-confirm, .pw-sp-setup-btn target the host class directly. */
 
       /* ── Toast ── */
       .toast {

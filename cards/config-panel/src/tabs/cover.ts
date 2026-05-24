@@ -377,13 +377,11 @@ export class ConfigTabCover extends BaseConfigTab {
                       ${t((this._coverDashboardLayouts[id] ?? 'compact') === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
                     </button>
                   ` : nothing}
-                  <button
-                    class="toggle ${enabled ? 'on' : ''}"
-                    @click=${() => this._toggleDashboardEntity(id)}
-                    role="switch"
-                    aria-checked=${enabled ? 'true' : 'false'}
+                  <glass-toggle
+                    .checked=${enabled}
                     aria-label="${enabled ? t('common.hide') : t('common.show')} ${entity.name}"
-                  ></button>
+                    @glass-toggle-change=${() => this._toggleDashboardEntity(id)}
+                  ></glass-toggle>
                 </div>
               </div>
             `;
@@ -485,13 +483,11 @@ export class ConfigTabCover extends BaseConfigTab {
                       >
                         ${t(e.layout === 'compact' ? 'config.light_layout_compact' : 'config.light_layout_full')}
                       </button>
-                      <button
-                        class="toggle ${e.visible ? 'on' : ''}"
-                        @click=${() => this._toggleEntityVisibility(e.entityId)}
-                        role="switch"
-                        aria-checked=${e.visible ? 'true' : 'false'}
+                      <glass-toggle
+                        .checked=${e.visible}
                         aria-label="${e.visible ? t('common.hide') : t('common.show')} ${e.name}"
-                      ></button>
+                        @glass-toggle-change=${() => this._toggleEntityVisibility(e.entityId)}
+                      ></glass-toggle>
                     </div>
                     <div class="item-fold-sep ${isExpanded ? 'visible' : ''}"></div>
                     <div class="entity-presets-fold ${isExpanded ? 'open' : ''}">
@@ -574,7 +570,7 @@ export class ConfigTabCover extends BaseConfigTab {
         ` : nothing}
 
         <div class="save-bar">
-          <button class="btn btn-ghost" @click=${() => this.reload()}>${t('common.reset')}</button>
+          <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
     `;

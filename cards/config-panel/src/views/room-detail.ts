@@ -518,13 +518,11 @@ export class ConfigRoomDetail extends LitElement {
             </div>
             <span class="section-title">${sec.label}</span>
           </button>
-          <button
-            class="toggle ${sec.visible ? 'on' : ''}"
-            @click=${(e: Event) => { e.stopPropagation(); this._toggleSectionVisible(sec.id); }}
-            role="switch"
-            aria-checked=${sec.visible ? 'true' : 'false'}
+          <glass-toggle
+            .checked=${sec.visible}
             aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
-          ></button>
+            @glass-toggle-change=${() => this._toggleSectionVisible(sec.id)}
+          ></glass-toggle>
           ${sec.visible ? html`
             <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
               @click=${() => this._toggleSection(sec.id)}></ha-icon>
