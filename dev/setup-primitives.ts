@@ -417,6 +417,7 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-empty-state</h2>
+      <div class="sub">4 variants: <code>default</code> (vertical, icon-in-circle), <code>alert</code> (red tint), <code>compact</code> (smaller, in folds), <code>inline</code> (horizontal with dashed border, for admin lists).</div>
       <div class="row" style="flex-direction: column; align-items: stretch; gap: 1rem;">
         <glass-empty-state
           icon="mdi:music-off"
@@ -433,6 +434,11 @@ class PrimitivesShowcase extends LitElement {
           icon="mdi:calendar-blank"
           title="Pas d'événements"
           variant="compact"
+        ></glass-empty-state>
+        <glass-empty-state
+          icon="mdi:cctv"
+          title="Aucune caméra configurée"
+          variant="inline"
         ></glass-empty-state>
       </div>
 

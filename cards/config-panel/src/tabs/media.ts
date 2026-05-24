@@ -242,10 +242,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${dashPlayers.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-                <span>${t('media.no_players')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${dashPlayers.map((e) => {
@@ -282,10 +279,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${natives.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-                <span>${t('media.no_players')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${natives.map((id) => {
@@ -319,10 +313,7 @@ export class ConfigTabMedia extends BaseConfigTab {
             </header>
 
             ${extraEntities.length === 0 ? html`
-              <div class="cfg-empty">
-                <ha-icon .icon=${'mdi:speaker-multiple'}></ha-icon>
-                <span>${t('config.media_no_extra')}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${'mdi:speaker-multiple'} .title=${t('config.media_no_extra')}></glass-empty-state>
             ` : html`
               <div class="item-list">
                 ${extraEntities.map((id) => {

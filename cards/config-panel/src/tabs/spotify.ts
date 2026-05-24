@@ -235,10 +235,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
           </header>
 
           ${mediaPlayerEntities.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:speaker-off'}></ha-icon>
-              <span>${t('media.no_players')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:speaker-off'} .title=${t('media.no_players')}></glass-empty-state>
           ` : html`
             <div class="dropdown ${this._spotifyDropdownOpen ? 'open' : ''}">
               <button

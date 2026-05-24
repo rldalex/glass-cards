@@ -426,10 +426,7 @@ export class ConfigRoomDetail extends LitElement {
   protected render(): TemplateResult {
     if (!this._sections.length) {
       return html`
-        <div class="cfg-empty">
-          <ha-icon .icon=${'mdi:home-search-outline'}></ha-icon>
-          <span>${t('config.room_no_entities')}</span>
-        </div>
+        <glass-empty-state variant="inline" .icon=${'mdi:home-search-outline'} .title=${t('config.room_no_entities')}></glass-empty-state>
       `;
     }
 

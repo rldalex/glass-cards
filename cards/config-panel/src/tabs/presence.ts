@@ -349,10 +349,7 @@ export class ConfigTabPresence extends BaseConfigTab {
           </header>
 
         ${persons.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:account-off-outline'}></ha-icon>
-            <span>${t('config.presence_no_persons')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:account-off-outline'} .title=${t('config.presence_no_persons')}></glass-empty-state>
         ` : html`
           <div class="item-list">
             ${this._getOrderedPersons(persons).map((p, idx) => {
@@ -400,10 +397,7 @@ export class ConfigTabPresence extends BaseConfigTab {
           </header>
 
         ${selectedPersons.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:cellphone-off'}></ha-icon>
-            <span>${t('config.presence_no_persons')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:cellphone-off'} .title=${t('config.presence_no_persons')}></glass-empty-state>
         ` : nothing}
 
         ${selectedPersons.map((personId) => {

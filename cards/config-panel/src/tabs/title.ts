@@ -979,10 +979,7 @@ export class ConfigTabTitle extends BaseConfigTab {
           </header>
 
           ${sourcesEmpty ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:cursor-default-click-outline'}></ha-icon>
-              <span>${t('config.title_sources_empty')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:cursor-default-click-outline'} .title=${t('config.title_sources_empty')}></glass-empty-state>
           ` : sources.map((src, srcIdx) => this._renderSourceEditor(src, srcIdx))}
 
           <div class="cfg-add-wrap">

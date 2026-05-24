@@ -119,10 +119,7 @@ export class ConfigTabWeather extends BaseConfigTab {
           </header>
 
           ${weatherEntities.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${'mdi:weather-cloudy-alert'}></ha-icon>
-              <span>${t('config.weather_no_entity')}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${'mdi:weather-cloudy-alert'} .title=${t('config.weather_no_entity')}></glass-empty-state>
           ` : html`
             <div class="dropdown ${this._weatherDropdownOpen ? 'open' : ''}">
               <button

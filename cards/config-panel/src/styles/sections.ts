@@ -108,22 +108,9 @@ export const sectionStyles = css`
     color: var(--c-alert);
   }
 
-  /* ── Empty state ── */
-  .cfg-empty {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0.875rem 1rem;
-    border: 1px dashed var(--b2);
-    border-radius: var(--radius-md);
-    color: var(--t3);
-    font-size: var(--fz-sm);
-  }
-  .cfg-empty ha-icon {
-    --mdc-icon-size: 1.25rem;
-    --mdc-icon-color: var(--t4);
-    flex-shrink: 0;
-  }
+  /* .cfg-empty styles now provided by <glass-empty-state variant="inline">
+     (ui-core). The .reconfig-loading helper class is preserved for local
+     animation hooks (see views/advanced.ts). */
 
   /* ── Dashed "add" button (e.g. "+ Ajouter une source") ── */
   .cfg-add-wrap {

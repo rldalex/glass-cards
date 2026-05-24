@@ -1216,6 +1216,16 @@
         padding: 0.75rem 0.5rem;
         gap: 0.25rem;
       }
+      :host([variant='inline']) {
+        flex-direction: row;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+        font-size: var(--fz-sm);
+        text-align: left;
+      }
 
       .icon-wrap {
         width: 3.25rem;
@@ -1234,6 +1244,15 @@
         height: 2rem;
         margin-bottom: 0;
       }
+      :host([variant='inline']) .icon-wrap {
+        width: auto;
+        height: auto;
+        border: none;
+        background: transparent;
+        margin: 0;
+        color: var(--t4);
+      }
+      :host([variant='inline']) .icon-wrap ha-icon { --mdc-icon-size: 1.25rem; }
       :host([variant='alert']) .icon-wrap {
         background: rgba(var(--rgb-alert), 0.1);
         border-color: rgba(var(--rgb-alert), 0.25);
@@ -1255,6 +1274,11 @@
         line-height: 1.3;
       }
       :host([variant='compact']) .title { font-size: var(--fz-sm); }
+      :host([variant='inline']) .title {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+      }
 
       .subtitle {
         font-size: var(--fz-sm);

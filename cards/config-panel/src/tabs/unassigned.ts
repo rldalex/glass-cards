@@ -369,10 +369,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
         </div>
 
         ${entities.length === 0 ? html`
-          <div class="cfg-empty">
-            <ha-icon .icon=${'mdi:help-circle-outline'}></ha-icon>
-            <span>${t('config.unassigned_no_entities')}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${'mdi:help-circle-outline'} .title=${t('config.unassigned_no_entities')}></glass-empty-state>
         ` : html`
           <section class="cfg-section">
             <header class="cfg-section-head">
@@ -420,12 +417,13 @@ export class ConfigTabUnassigned extends BaseConfigTab {
           </div>
 
           ${filtered.length === 0 ? html`
-            <div class="cfg-empty">
-              <ha-icon .icon=${this._filter === 'orphans' && !entitySearch ? 'mdi:check-circle-outline' : 'mdi:magnify'}></ha-icon>
-              <span>${this._filter === 'orphans' && !entitySearch
+            <glass-empty-state
+              variant="inline"
+              .icon=${this._filter === 'orphans' && !entitySearch ? 'mdi:check-circle-outline' : 'mdi:magnify'}
+              .title=${this._filter === 'orphans' && !entitySearch
                 ? t('config.unassigned_all_assigned')
-                : t('config.unassigned_no_results')}</span>
-            </div>
+                : t('config.unassigned_no_results')}
+            ></glass-empty-state>
           ` : nothing}
 
           ${[...grouped.entries()].map(([domain, items]) => {

@@ -5056,6 +5056,16 @@
         padding: 0.75rem 0.5rem;
         gap: 0.25rem;
       }
+      :host([variant='inline']) {
+        flex-direction: row;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem;
+        border: 1px dashed var(--b2);
+        border-radius: var(--radius-md);
+        color: var(--t3);
+        font-size: var(--fz-sm);
+        text-align: left;
+      }
 
       .icon-wrap {
         width: 3.25rem;
@@ -5074,6 +5084,15 @@
         height: 2rem;
         margin-bottom: 0;
       }
+      :host([variant='inline']) .icon-wrap {
+        width: auto;
+        height: auto;
+        border: none;
+        background: transparent;
+        margin: 0;
+        color: var(--t4);
+      }
+      :host([variant='inline']) .icon-wrap ha-icon { --mdc-icon-size: 1.25rem; }
       :host([variant='alert']) .icon-wrap {
         background: rgba(var(--rgb-alert), 0.1);
         border-color: rgba(var(--rgb-alert), 0.25);
@@ -5095,6 +5114,11 @@
         line-height: 1.3;
       }
       :host([variant='compact']) .title { font-size: var(--fz-sm); }
+      :host([variant='inline']) .title {
+        font-size: var(--fz-sm);
+        font-weight: 500;
+        color: var(--t3);
+      }
 
       .subtitle {
         font-size: var(--fz-sm);
@@ -5881,10 +5905,7 @@
                   <span class="section-label">${ri("config.cover_list_title")}</span>
                 </div>
               </header>
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:blinds-open"}></ha-icon>
-                <span>${ri("config.cover_no_covers")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:blinds-open"} .title=${ri("config.cover_no_covers")}></glass-empty-state>
             </section>
           `}
         `:W}
@@ -6097,10 +6118,7 @@
                 ${ri("config.light_schedule_hint")}
               </div>
             `:N`
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:lightbulb-off-outline"}></ha-icon>
-                <span>${ri("config.light_no_lights")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:lightbulb-off-outline"} .title=${ri("config.light_no_lights")}></glass-empty-state>
             `}
           </section>
         `:W}
@@ -6151,10 +6169,7 @@
             </header>
 
             ${0===n.length?N`
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:speaker-off"}></ha-icon>
-                <span>${ri("media.no_players")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:speaker-off"} .title=${ri("media.no_players")}></glass-empty-state>
             `:N`
               <div class="item-list">
                 ${n.map(e=>{const t=this.hass?.states[e.entityId],i="playing"===t?.state;return N`
@@ -6187,10 +6202,7 @@
             </header>
 
             ${0===l.length?N`
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:speaker-off"}></ha-icon>
-                <span>${ri("media.no_players")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:speaker-off"} .title=${ri("media.no_players")}></glass-empty-state>
             `:N`
               <div class="item-list">
                 ${l.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return N`
@@ -6219,10 +6231,7 @@
             </header>
 
             ${0===t.length?N`
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:speaker-multiple"}></ha-icon>
-                <span>${ri("config.media_no_extra")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:speaker-multiple"} .title=${ri("config.media_no_extra")}></glass-empty-state>
             `:N`
               <div class="item-list">
                 ${t.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e;return N`
@@ -6320,10 +6329,7 @@
             </header>
 
             ${0===t.length?N`
-              <div class="cfg-empty">
-                <ha-icon .icon=${"mdi:fan-off"}></ha-icon>
-                <span>${ri("config.fan_no_fans")}</span>
-              </div>
+              <glass-empty-state variant="inline" .icon=${"mdi:fan-off"} .title=${ri("config.fan_no_fans")}></glass-empty-state>
             `:N`
               <div class="item-list">
                 ${t.map((e,t)=>{const i=this._dragIdx===t&&"fans"===this._dragContext,a=this._dropIdx===t&&"fans"===this._dragContext,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return N`
@@ -6447,10 +6453,7 @@
           </header>
 
         ${0===e.length?N`
-          <div class="cfg-empty">
-            <ha-icon .icon=${"mdi:account-off-outline"}></ha-icon>
-            <span>${ri("config.presence_no_persons")}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${"mdi:account-off-outline"} .title=${ri("config.presence_no_persons")}></glass-empty-state>
         `:N`
           <div class="item-list">
             ${this._getOrderedPersons(e).map((e,t)=>{const i=this._presencePersonEntities.includes(e.entityId),a=this._personDragIdx===t,s=this._personDropIdx===t&&null!==this._personDragIdx&&this._personDragIdx!==t;return N`
@@ -6493,10 +6496,7 @@
           </header>
 
         ${0===t.length?N`
-          <div class="cfg-empty">
-            <ha-icon .icon=${"mdi:cellphone-off"}></ha-icon>
-            <span>${ri("config.presence_no_persons")}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${"mdi:cellphone-off"} .title=${ri("config.presence_no_persons")}></glass-empty-state>
         `:W}
 
         ${t.map(t=>{const o=e.find(e=>e.entityId===t);if(!o)return W;const n=this._presenceSmartphoneSensors[t]||"",c=this._presenceNotifyServices[t]||"",l=this._presenceDrivingSensors[t]||"",d=this._presenceSleepSensors[t]||"",h=i.find(e=>e.entityId===n)?.name,p=a.find(e=>e.entityId===l)?.name,u=s.find(e=>e.entityId===d)?.name,g=`${t}:smartphone`,m=`${t}:notify`,_=`${t}:driving`,f=`${t}:sleep`;return N`
@@ -6578,10 +6578,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:speaker-off"}></ha-icon>
-              <span>${ri("media.no_players")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:speaker-off"} .title=${ri("media.no_players")}></glass-empty-state>
           `:N`
             <div class="dropdown ${this._spotifyDropdownOpen?"open":""}">
               <button
@@ -7051,10 +7048,7 @@
           </header>
 
           ${i?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:cursor-default-click-outline"}></ha-icon>
-              <span>${ri("config.title_sources_empty")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:cursor-default-click-outline"} .title=${ri("config.title_sources_empty")}></glass-empty-state>
           `:e.map((e,t)=>this._renderSourceEditor(e,t))}
 
           <div class="cfg-add-wrap">
@@ -7115,10 +7109,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:weather-cloudy-alert"}></ha-icon>
-              <span>${ri("config.weather_no_entity")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:weather-cloudy-alert"} .title=${ri("config.weather_no_entity")}></glass-empty-state>
           `:N`
             <div class="dropdown ${this._weatherDropdownOpen?"open":""}">
               <button
@@ -7240,10 +7231,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:cctv"}></ha-icon>
-              <span>${ri("config.camera_no_cameras")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:cctv"} .title=${ri("config.camera_no_cameras")}></glass-empty-state>
           `:N`
             <div class="item-list">
               ${e.map((e,i)=>{const a=this._localDragIdx===i,s=this._localDropIdx===i,r=!t.has(e),o=this.hass?.states[e],n=o?.attributes?.friendly_name||e.split(".")[1],c=["item-row",a?"dragging":"",s?"drop-target":"",r?"":"disabled"].filter(Boolean).join(" ");return N`
@@ -7370,10 +7358,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:thermostat"}></ha-icon>
-              <span>${ri("config.climate_no_entities")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:thermostat"} .title=${ri("config.climate_no_entities")}></glass-empty-state>
           `:N`
             <div class="item-list">
               ${e.map((e,t)=>{const i=this._localDragIdx===t,a=this._localDropIdx===t,s=["item-row",e.visible?"":"disabled",i?"dragging":"",a?"drop-target":""].filter(Boolean).join(" ");return N`
@@ -7416,10 +7401,7 @@
         </div>
 
         ${0===e.length?N`
-          <div class="cfg-empty">
-            <ha-icon .icon=${"mdi:help-circle-outline"}></ha-icon>
-            <span>${ri("config.unassigned_no_entities")}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${"mdi:help-circle-outline"} .title=${ri("config.unassigned_no_entities")}></glass-empty-state>
         `:N`
           <section class="cfg-section">
             <header class="cfg-section-head">
@@ -7467,10 +7449,11 @@
           </div>
 
           ${0===n.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"orphans"!==this._filter||i?"mdi:magnify":"mdi:check-circle-outline"}></ha-icon>
-              <span>${"orphans"!==this._filter||i?ri("config.unassigned_no_results"):ri("config.unassigned_all_assigned")}</span>
-            </div>
+            <glass-empty-state
+              variant="inline"
+              .icon=${"orphans"!==this._filter||i?"mdi:magnify":"mdi:check-circle-outline"}
+              .title=${"orphans"!==this._filter||i?ri("config.unassigned_no_results"):ri("config.unassigned_all_assigned")}
+            ></glass-empty-state>
           `:W}
 
           ${[...c.entries()].map(([e,t])=>{const i=this._collapsedDomains.has(e);return N`
@@ -7599,10 +7582,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:calendar-remove-outline"}></ha-icon>
-              <span>${ri("config.calendar_no_entities")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:calendar-remove-outline"} .title=${ri("config.calendar_no_entities")}></glass-empty-state>
           `:N`
             <div class="feature-list">
               ${e.map(e=>{const i=!t.has(e.entityId);return N`
@@ -7666,10 +7646,7 @@
           </header>
 
           ${0===e.length?N`
-            <div class="cfg-empty">
-              <ha-icon .icon=${"mdi:robot-vacuum-variant"}></ha-icon>
-              <span>${ri("config.vacuum_no_entities")}</span>
-            </div>
+            <glass-empty-state variant="inline" .icon=${"mdi:robot-vacuum-variant"} .title=${ri("config.vacuum_no_entities")}></glass-empty-state>
           `:N`
             <div class="feature-list">
               ${e.map(e=>{const i=e.entityId===t;return N`
@@ -7699,10 +7676,7 @@
         </div>
       </div>
     `}}$a([ue()],Sa.prototype,"_vacuumShowHeader"),$a([ue()],Sa.prototype,"_vacuumEntity");try{customElements.define("config-tab-vacuum",Sa)}catch{}var Ca=Object.defineProperty,Ia=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&Ca(t,i,r),r};class Ea extends ne{constructor(){super(...arguments),this.rooms=[],this._dragIdx=null,this._dropIdx=null,this._popupAutoClose=0,this._configLoaded=!1,this._saveScheduler=wi()}createRenderRoot(){return this}updated(e){super.updated(e),!this._configLoaded&&this.backend&&(this._configLoaded=!0,this._loadConfig())}disconnectedCallback(){super.disconnectedCallback(),this._saveScheduler.cancel()}async _loadConfig(){if(this.backend)try{const e=await this.backend.send("get_config");this._popupAutoClose=e?.navbar?.popup_auto_close??0}catch{}}_onAutoCloseChange(e){this._popupAutoClose=parseInt(e.target.value,10),this._saveScheduler.schedule(()=>this._saveAutoClose())}async _saveAutoClose(){if(this.backend)try{await this.backend.send("set_navbar",{popup_auto_close:this._popupAutoClose}),fe.emit("navbar-config-changed",void 0),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_onDragStart(e){this._dragIdx=e}_onDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null}_onDrop(e,t){if(t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e){const t=[...this.rooms],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this.dispatchEvent(new CustomEvent("rooms-reordered",{detail:{rooms:t},bubbles:!0,composed:!0}))}this._dragIdx=null,this._dropIdx=null}_toggleVisibility(e,t){t.stopPropagation(),t.preventDefault(),this.dispatchEvent(new CustomEvent("room-visibility-toggle",{detail:{areaId:e.areaId,visible:!e.visible},bubbles:!0,composed:!0}))}render(){if(!this.rooms.length)return N`
-        <div class="cfg-empty">
-          <ha-icon .icon=${"mdi:home-search-outline"}></ha-icon>
-          <span>${ri("config.no_rooms")}</span>
-        </div>
+        <glass-empty-state variant="inline" .icon=${"mdi:home-search-outline"} .title=${ri("config.no_rooms")}></glass-empty-state>
       `;const e=this.rooms.filter(e=>e.visible).length;let t=0;return N`
       <div class="cfg-info">
         <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
@@ -7787,10 +7761,7 @@
         </div>
       </section>
     `}}Ia([pe({attribute:!1})],Ea.prototype,"hass"),Ia([pe({attribute:!1})],Ea.prototype,"rooms"),Ia([pe({attribute:!1})],Ea.prototype,"backend"),Ia([ue()],Ea.prototype,"_dragIdx"),Ia([ue()],Ea.prototype,"_dropIdx"),Ia([ue()],Ea.prototype,"_popupAutoClose"),customElements.define("config-room-list",Ea);var za=Object.defineProperty,Da=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&za(t,i,r),r};const Pa="__none__",Ta={light:"mdi:lightbulb",switch:"mdi:toggle-switch",vacuum:"mdi:robot-vacuum-variant",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:speaker",scene:"mdi:palette",script:"mdi:script-text",automation:"mdi:robot",input_boolean:"mdi:toggle-switch",input_select:"mdi:form-dropdown",button:"mdi:gesture-tap-button",lock:"mdi:lock",camera:"mdi:cctv",alarm_control_panel:"mdi:shield-home"},La={light:"light.toggle",switch:"switch.toggle",vacuum:"vacuum.start",cover:"cover.toggle",climate:"climate.turn_on",fan:"fan.toggle",media_player:"media_player.media_play_pause",scene:"scene.turn_on",script:"script.turn_on",automation:"automation.trigger",input_boolean:"input_boolean.toggle",button:"button.press",lock:"lock.lock",camera:"camera.turn_on",alarm_control_panel:"alarm_control_panel.alarm_arm_home"},Aa=[{id:"light",label:"Lumières",icon:"mdi:lightbulb-group",domains:["light"],color:qt.rgb},{id:"cover",label:"Volets",icon:"mdi:window-shutter",domains:["cover"],color:Vt.rgb},{id:"climate",label:"Climat",icon:"mdi:thermostat",domains:["climate"],color:Nt.rgb},{id:"media",label:"Media",icon:"mdi:speaker",domains:["media_player"],color:Bt.rgb},{id:"fan",label:"Ventilateurs",icon:"mdi:fan",domains:["fan"],color:Ut.rgb},{id:"camera",label:"Caméras",icon:"mdi:cctv",domains:["camera"],color:Kt.rgb}];class Oa extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._openSections=new Set,this._sections=[],this._scenes=[],this._tempEntity="",this._humidityEntity="",this._tempHigh=null,this._tempLow=null,this._humidityThreshold=null,this._showLights=!0,this._showTemperature=!0,this._showHumidity=!0,this._presenceEntity="",this._showPresence=!1,this._sortByLights=!0,this._buttons=[],this._availableTempEntities=[],this._availableHumidityEntities=[],this._availablePresenceEntities=[],this._tempDropdownOpen=!1,this._humidityDropdownOpen=!1,this._presenceDropdownOpen=!1,this._btnEntityOpen=null,this._btnEntitySearch="",this._btnServiceOpen=null,this._btnServiceSearch="",this._btnIconPortalIdx=null,this._btnIconSearch="",this._btnAdvancedOpen=new Set,this._btnIconList=[],this._btnIconLoading=!1,this._entityCache=null,this._serviceCache=null,this._dragIdx=null,this._dropIdx=null,this._dragContext=null,this._loaded=!1,this._autoOpenDone=!1,this._saveScheduler=wi(),this._lastIconTriggerEl=null,this._onDocMouseDown=e=>{if(null===this._btnEntityOpen&&null===this._btnServiceOpen)return;e.composedPath().some(e=>e instanceof HTMLElement&&e.classList?.contains("dropdown"))||(this._btnEntityOpen=null,this._btnServiceOpen=null)},this._onDocKeyDown=e=>{if("Escape"===e.key)if(null===this._btnIconPortalIdx)null===this._btnEntityOpen&&null===this._btnServiceOpen||(this._btnEntityOpen=null,this._btnServiceOpen=null);else if(this._btnIconPortalIdx=null,this._removeIconPortal(),this._lastIconTriggerEl){try{this._lastIconTriggerEl.focus()}catch{}this._lastIconTriggerEl=null}},this._btnIconPortalEl=null,this._portalClickHandler=null}createRenderRoot(){return this}updated(e){super.updated(e),(e.has("areaId")||e.has("hass"))&&(this._loaded=!1,this._autoOpenDone=!1,this._openSections=new Set),!this._loaded&&this.hass&&this.areaId&&(this._loaded=!0,this._loadRoomConfig()),!this._autoOpenDone&&this._sections.length>0&&(this._autoOpenDone=!0)}connectedCallback(){super.connectedCallback(),document.addEventListener("mousedown",this._onDocMouseDown),document.addEventListener("keydown",this._onDocKeyDown)}disconnectedCallback(){super.disconnectedCallback(),this._saveScheduler.cancel(),this._removeIconPortal(),this._btnIconPortalIdx=null,document.removeEventListener("mousedown",this._onDocMouseDown),document.removeEventListener("keydown",this._onDocKeyDown)}async _loadRoomConfig(){if(!this.hass||!this.areaId)return;const e=_i(this.areaId,this.hass.entities,this.hass.devices);let t=null,i=new Set,a=[];try{if(!this.backend)throw new Error("No backend");const e=await this.backend.send("get_room",{area_id:this.areaId});e&&(t=e.card_order.length>0?e.card_order:null,i=new Set(e.hidden_scenes??[]),a=e.scene_order??[],this._tempEntity=e.temperature_entity??"",this._humidityEntity=e.humidity_entity??"",this._tempHigh=e.temp_high??null,this._tempLow=e.temp_low??null,this._humidityThreshold=e.humidity_threshold??null,this._showLights=e.show_lights??!0,this._showTemperature=e.show_temperature??!0,this._showHumidity=e.show_humidity??!0,this._presenceEntity=e.presence_entity??"",this._showPresence=e.show_presence??!1,this._sortByLights=e.sort_by_lights??!0,this._buttons=(e.buttons??[]).map(e=>({icon:e.icon??"",label:e.label??"",service:e.service??"",data_json:e.data&&Object.keys(e.data).length>0?JSON.stringify(e.data,null,2):""})))}catch{}const s=this.hass;this._availableTempEntities=[],this._availableHumidityEntities=[],this._availablePresenceEntities=[];for(const h of e){const e=s.states[h.entity_id],t=e?.attributes?.device_class,i=e?.attributes?.friendly_name||h.entity_id.split(".")[1];h.entity_id.startsWith("sensor.")&&("temperature"===t&&this._availableTempEntities.push({id:h.entity_id,name:i}),"humidity"===t&&this._availableHumidityEntities.push({id:h.entity_id,name:i})),!h.entity_id.startsWith("binary_sensor.")||"presence"!==t&&"occupancy"!==t&&"motion"!==t||this._availablePresenceEntities.push({id:h.entity_id,name:i})}const r=new Map;for(const h of e){const e=h.entity_id.split(".")[0];r.set(e,(r.get(e)||0)+1)}const o=t?[...t]:[...da],n=new Set(o);for(const h of r.keys())!n.has(h)&&pa[h]&&o.push(h);this._sections=o.map(e=>{const i=Aa.find(t=>t.domains.includes(e)||t.id===e);if(!i)return null;const a=i.domains.reduce((e,t)=>e+(r.get(t)||0),0);return 0!==a&&ha.has(e)?{...i,visible:!t||t.includes(e),count:a}:null}).filter(e=>null!==e);const c=e.filter(e=>e.entity_id.startsWith("scene.")),l=new Map;a.forEach((e,t)=>l.set(e,t));const d=c.map(e=>{const t=s.states[e.entity_id];return{entityId:e.entity_id,name:t?.attributes.friendly_name||e.entity_id.split(".")[1],visible:!i.has(e.entity_id)}});d.sort((e,t)=>{const i=l.get(e.entityId),a=l.get(t.entityId);return void 0!==i&&void 0!==a?i-a:void 0!==i?-1:void 0!==a?1:e.name.localeCompare(t.name)}),this._scenes=d}_scheduleSave(){this._saveScheduler.schedule(()=>this._save())}async _save(){if(!this.backend||!this.areaId)return;const e=/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/,t=this._buttons.filter(t=>e.test(t.service)).map(e=>{let t={};if(e.data_json.trim())try{const i=JSON.parse(e.data_json);i&&"object"==typeof i&&!Array.isArray(i)&&(t=i)}catch{}return{icon:e.icon,label:e.label,service:e.service,data:t}});try{await this.backend.send("set_room",{area_id:this.areaId,card_order:this._sections.filter(e=>e.visible).map(e=>e.id),hidden_scenes:this._scenes.filter(e=>!e.visible).map(e=>e.entityId),scene_order:this._scenes.map(e=>e.entityId),temperature_entity:this._tempEntity||null,humidity_entity:this._humidityEntity||null,temp_high:this._tempHigh,temp_low:this._tempLow,humidity_threshold:this._humidityThreshold,show_lights:this._showLights,show_temperature:this._showTemperature,show_humidity:this._showHumidity,presence_entity:this._presenceEntity||null,show_presence:this._showPresence,sort_by_lights:this._sortByLights,buttons:t}),fe.emit("room-config-changed",{areaId:this.areaId}),this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!0},bubbles:!0,composed:!0}))}catch{this.dispatchEvent(new CustomEvent("tab-toast",{detail:{success:!1},bubbles:!0,composed:!0}))}}_toggleSectionVisible(e){if(this._sections=this._sections.map(t=>t.id===e?{...t,visible:!t.visible}:t),!this._sections.find(t=>t.id===e)?.visible){const t=new Set(this._openSections);t.delete(e),this._openSections=t}this._scheduleSave()}_toggleSceneVisible(e){this._scenes=this._scenes.map(t=>t.entityId===e?{...t,visible:!t.visible}:t),this._scheduleSave()}_toggleSection(e){const t=new Set(this._openSections);t.has(e)?t.delete(e):t.add(e),this._openSections=t}_onDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onDragOver(e,t){t.preventDefault(),null!==this._dragIdx&&this._dragIdx!==e&&(this._dropIdx=e)}_onDragLeave(){this._dropIdx=null}_onDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=null}_onDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e)return this._dragIdx=null,void(this._dropIdx=null);if("sections"===this._dragContext){const t=[...this._sections],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._sections=t,this._scheduleSave()}else if("scenes"===this._dragContext){const t=[...this._scenes],[i]=t.splice(this._dragIdx,1);t.splice(e,0,i),this._scenes=t,this._scheduleSave()}this._dragIdx=null,this._dropIdx=null}render(){if(!this._sections.length)return N`
-        <div class="cfg-empty">
-          <ha-icon .icon=${"mdi:home-search-outline"}></ha-icon>
-          <span>${ri("config.room_no_entities")}</span>
-        </div>
+        <glass-empty-state variant="inline" .icon=${"mdi:home-search-outline"} .title=${ri("config.room_no_entities")}></glass-empty-state>
       `;const e=this._sections.filter(e=>e.visible).length;return N`
       <div class="cfg-info">
         <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
@@ -8283,10 +8254,7 @@
         </header>
 
         ${0===a.length?N`
-          <div class="cfg-empty">
-            <ha-icon .icon=${"mdi:view-dashboard-outline"}></ha-icon>
-            <span>${ri("config.dashboard_desc")}</span>
-          </div>
+          <glass-empty-state variant="inline" .icon=${"mdi:view-dashboard-outline"} .title=${ri("config.dashboard_desc")}></glass-empty-state>
         `:N`
           <ol class="dash-active-list" role="list" aria-label="${ri("config.dashboard_title")}">
             ${a.map((e,t)=>{const a=ja.find(t=>t.id===e);if(!a)return W;const s=i.indexOf(e),r=this._dragIdx===s,o=this._dropIdx===s&&null!==this._dragIdx&&this._dragIdx!==s;return N`
@@ -8391,10 +8359,7 @@
         </div>
       </section>
     `}_sliceFor(e){const t=Fa[e];return this.configData?.[t??""]??{}}_renderSubSection(e){const t=this._sliceFor(e);switch(e){case"title":return N`<config-tab-title .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-title>`;case"spotify":return N`<config-tab-spotify .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-spotify>`;case"presence":return N`<config-tab-presence .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-presence>`;case"camera":return N`<config-tab-camera .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-camera>`;case"weather":return N`<config-tab-weather .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-weather>`;case"light":return N`<config-tab-light .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-light>`;case"cover":return N`<config-tab-cover .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-cover>`;case"climate":return N`<config-tab-climate .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-climate>`;case"fan":return N`<config-tab-fan .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-fan>`;case"media":return N`<config-tab-media .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-media>`;case"calendar":return N`<config-tab-calendar .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-calendar>`;case"vacuum":return N`<config-tab-vacuum .hass=${this.hass} .configData=${t} .backend=${this.backend}></config-tab-vacuum>`;default:return N`<div class="placeholder"><ha-icon .icon=${"mdi:hammer-wrench"}></ha-icon><span>${e}</span></div>`}}}Ra([pe({attribute:!1})],qa.prototype,"hass"),Ra([pe({attribute:!1})],qa.prototype,"backend"),Ra([pe({attribute:!1})],qa.prototype,"configData"),Ra([pe({attribute:!1})],qa.prototype,"rooms"),Ra([pe()],qa.prototype,"subSection"),Ra([ue()],qa.prototype,"_enabledCards"),Ra([ue()],qa.prototype,"_cardOrder"),Ra([ue()],qa.prototype,"_hideHeader"),Ra([ue()],qa.prototype,"_hideSidebar"),Ra([ue()],qa.prototype,"_dynamicBackground"),Ra([ue()],qa.prototype,"_dragIdx"),Ra([ue()],qa.prototype,"_dropIdx");try{customElements.define("config-dashboard-view",qa)}catch{}var Va=Object.defineProperty,Na=(e,t,i,a)=>{for(var s,r=void 0,o=e.length-1;o>=0;o--)(s=e[o])&&(r=s(t,i,r)||r);return r&&Va(t,i,r),r};class Ba extends ne{constructor(){super(...arguments),this.configData={},this.rooms=[],this._autoSort=!0,this._reconfigDispatchedFor=null}createRenderRoot(){return this}updated(e){if(super.updated(e),e.has("configData")&&this.configData){const e=this.configData;this._autoSort=!1!==e.auto_sort}e.has("subSection")&&("reconfig"===this.subSection&&"reconfig"!==this._reconfigDispatchedFor?(this._reconfigDispatchedFor="reconfig",this.dispatchEvent(new CustomEvent("reconfig-wizard",{bubbles:!0,composed:!0}))):"reconfig"!==this.subSection&&(this._reconfigDispatchedFor=null))}render(){return this.subSection?"reconfig"===this.subSection?N`
-          <div class="cfg-empty reconfig-loading">
-            <ha-icon .icon=${"mdi:loading"}></ha-icon>
-            <span>${ri("config.advanced_reconfig_loading")}</span>
-          </div>
+          <glass-empty-state variant="inline" class="reconfig-loading" .icon=${"mdi:loading"} .title=${ri("config.advanced_reconfig_loading")}></glass-empty-state>
         `:this._renderSubSection(this.subSection):N`
       <div class="cfg-info">
         <ha-icon .icon=${"mdi:information-outline"}></ha-icon>
@@ -8447,7 +8412,7 @@
           .hass=${this.hass}
           .configData=${this.configData}
           .backend=${this.backend}
-        ></config-tab-unassigned>`;default:return N`<div class="cfg-empty">${e}</div>`}}_renderNavbarSettings(){return N`
+        ></config-tab-unassigned>`;default:return N`<glass-empty-state variant="inline" .title=${e}></glass-empty-state>`}}_renderNavbarSettings(){return N`
       <section class="cfg-section">
         <header class="cfg-section-head">
           <span class="cfg-section-num">1</span>

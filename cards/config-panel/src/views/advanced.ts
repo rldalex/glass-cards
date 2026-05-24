@@ -37,10 +37,7 @@ export class ConfigAdvancedView extends LitElement {
     if (this.subSection) {
       if (this.subSection === 'reconfig') {
         return html`
-          <div class="cfg-empty reconfig-loading">
-            <ha-icon .icon=${'mdi:loading'}></ha-icon>
-            <span>${t('config.advanced_reconfig_loading')}</span>
-          </div>
+          <glass-empty-state variant="inline" class="reconfig-loading" .icon=${'mdi:loading'} .title=${t('config.advanced_reconfig_loading')}></glass-empty-state>
         `;
       }
       return this._renderSubSection(this.subSection);
@@ -118,7 +115,7 @@ export class ConfigAdvancedView extends LitElement {
           .backend=${this.backend}
         ></config-tab-unassigned>`;
       default:
-        return html`<div class="cfg-empty">${id}</div>`;
+        return html`<glass-empty-state variant="inline" .title=${id}></glass-empty-state>`;
     }
   }
 
