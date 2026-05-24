@@ -1591,6 +1591,13 @@ export const baseStyles = css`
         color: var(--t2);
         --mdc-icon-color: var(--t2);
       }
+      /* When the section is disabled (toggle off), keep the chevron's
+         layout slot but hide it — prevents the toggle from shifting
+         horizontally on every on/off click. */
+      .section-header-wrap.off > .section-chevron {
+        visibility: hidden;
+        pointer-events: none;
+      }
 
       .section-header {
         display: flex;

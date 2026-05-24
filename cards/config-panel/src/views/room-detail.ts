@@ -523,10 +523,8 @@ export class ConfigRoomDetail extends LitElement {
             aria-label="${sec.visible ? t('common.hide') : t('common.show')} ${sec.label}"
             @glass-toggle-change=${() => this._toggleSectionVisible(sec.id)}
           ></glass-toggle>
-          ${sec.visible ? html`
-            <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
-              @click=${() => this._toggleSection(sec.id)}></ha-icon>
-          ` : nothing}
+          <ha-icon class="section-chevron ${isOpen ? 'open' : ''}" .icon=${'mdi:chevron-down'}
+            @click=${() => { if (sec.visible) this._toggleSection(sec.id); }}></ha-icon>
         </div>
         ${sec.visible ? html`
           <div class="fold-sep ${isOpen ? 'visible' : ''}" style="--fold-color:rgb(${sec.color})"></div>
