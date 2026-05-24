@@ -1853,6 +1853,8 @@ export class GlassMediaCard extends BaseCard {
       .speaker-vol-slider {
         position: relative; flex: 1;
         height: 2.25rem; min-height: 2.25rem;
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.5rem;
         background: var(--s1);
         border: 1px solid var(--b1);
         overflow: hidden;
@@ -1883,18 +1885,16 @@ export class GlassMediaCard extends BaseCard {
       }
       .speaker-vol-slider:active .speaker-vol-fill { transition: none; }
       .speaker-vol-name {
-        position: absolute; top: 50%; left: 0.625rem; transform: translateY(-50%);
+        position: relative; z-index: 1; pointer-events: none;
         font-size: var(--fz-sm); font-weight: 600; color: var(--t1);
-        z-index: 1; pointer-events: none;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        max-width: calc(100% - 4rem);
+        max-width: 60%;
         text-shadow: 0 1px 2px rgba(var(--rgb-black), 0.25);
       }
       .speaker-row:not(.master):not(.joined) .speaker-vol-name { color: var(--t3); text-shadow: none; }
       .speaker-vol-val {
-        position: absolute; top: 50%; right: 0.625rem; transform: translateY(-50%);
+        position: relative; z-index: 1; pointer-events: none;
         font-size: var(--fz-xs); font-weight: 700; color: var(--t2);
-        z-index: 1; pointer-events: none;
         font-variant-numeric: tabular-nums;
       }
       .speaker-row:is(.master, .joined) .speaker-vol-val { color: var(--t1); }
