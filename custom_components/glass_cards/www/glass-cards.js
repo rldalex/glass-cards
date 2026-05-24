@@ -1134,27 +1134,44 @@
       :host([glow][tone='cool']) .dot       { box-shadow: 0 0 8px rgba(var(--rgb-cool), 0.5); }
     `]}render(){return Z`<span class="dot" role="presentation"></span>`}}vt([Ce({type:String,reflect:!0})],bt.prototype,"tone"),vt([Ce({type:String,reflect:!0})],bt.prototype,"size"),vt([Ce({type:Boolean,reflect:!0})],bt.prototype,"glow");try{customElements.define("glass-status-dot",bt)}catch{}var yt=Object.defineProperty;class wt extends fe{constructor(){super(...arguments),this.size="md"}static{this.styles=[m`
       :host {
+        position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
         color: var(--t4);
         cursor: grab;
         flex-shrink: 0;
         transition: color var(--t-fast), opacity var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
+      :host([size='sm']) { width: 1rem; height: 1rem; }
       :host(:active) { cursor: grabbing; }
       @media (hover: hover) and (pointer: fine) {
         :host(:hover) { color: var(--t2); }
       }
+      /* Builtin hit-area: 20px visual → 44px tactile on coarse pointers. */
+      :host::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      @media (pointer: coarse) {
+        :host::before {
+          inset: calc((var(--tap-lg) - 100%) / -2);
+          min-width: var(--tap-lg);
+          min-height: var(--tap-lg);
+        }
+      }
       ha-icon {
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: 0.875rem;
         display: flex;
         align-items: center;
         justify-content: center;
         pointer-events: none;
       }
-      :host([size='sm']) ha-icon { --mdc-icon-size: 0.875rem; }
+      :host([size='sm']) ha-icon { --mdc-icon-size: 0.75rem; }
     `]}render(){return Z`<ha-icon .icon=${"mdi:drag"} aria-hidden="true"></ha-icon>`}}((e,t,i)=>{for(var a,r=void 0,s=e.length-1;s>=0;s--)(a=e[s])&&(r=a(t,i,r)||r);r&&yt(t,i,r)})([Ce({type:String,reflect:!0})],wt.prototype,"size");try{customElements.define("glass-drag-handle",wt)}catch{}var xt=Object.defineProperty,kt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&xt(t,i,s),s};class $t extends fe{constructor(){super(...arguments),this.icon="",this.title="",this.subtitle="",this.variant="default"}static{this.styles=[m`
       :host {
         display: flex;

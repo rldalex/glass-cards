@@ -380,9 +380,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
               @dragend=${() => this._onLocalDragEnd()}
             >
               ${isSelected ? html`
-                <span class="drag-handle">
-                  <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                </span>
+                <glass-drag-handle></glass-drag-handle>
               ` : html`<span class="pw-sp-drag-spacer"></span>`}
               <div class="item-info">
                 <span class="item-name">${sp.name}</span>

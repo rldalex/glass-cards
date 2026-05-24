@@ -217,7 +217,7 @@
       .item-row.disabled {
         opacity: 0.35;
       }
-      .empty-rooms .drag-handle {
+      .empty-rooms glass-drag-handle {
         visibility: hidden;
       }
       .empty-rooms .room-icon-btn {
@@ -237,37 +237,8 @@
         padding: 0.75rem;
       }
 
-      /* ── Drag handle ── */
-      .drag-handle {
-        width: 1.25rem;
-        height: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: grab;
-        color: var(--t4);
-        flex-shrink: 0;
-        border-radius: 4px;
-        transition: color var(--t-fast);
-        position: relative;
-      }
-      .drag-handle::before {
-        content: '';
-        position: absolute;
-        inset: -0.75rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .drag-handle:hover {
-          color: var(--t3);
-        }
-      }
-      .drag-handle:active {
-        cursor: grabbing;
-      }
-      .drag-handle ha-icon {
-        --mdc-icon-size: 0.875rem;
-        display: flex; align-items: center; justify-content: center;
-      }
+      /* Drag handle styles now live in <glass-drag-handle> (ui-core).
+         Local overrides for specific contexts target the tag name. */
 
       /* ── Room icon button ── */
       .room-icon-btn {
@@ -1704,23 +1675,12 @@
         min-height: 3rem;
         padding: 0.375rem 0.5rem 0.375rem 0.25rem;
       }
-      .section-header-wrap .drag-handle {
-        flex-shrink: 0;
-        cursor: grab;
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .section-header-wrap glass-drag-handle {
         width: 1.5rem;
         padding: 0.5rem 0;
       }
-      .section-header-wrap .drag-handle ha-icon {
-        --mdc-icon-size: 1rem;
-        --mdc-icon-color: var(--t4);
-      }
       @media (hover: hover) and (pointer: fine) {
-        .section-header-wrap .drag-handle:hover {
-          color: var(--t2);
+        .section-header-wrap glass-drag-handle:hover {
           background: var(--s2);
           border-radius: var(--radius-xs);
         }
@@ -2815,11 +2775,8 @@
       .title-mode-header {
         display: flex; align-items: center; gap: 0.375rem;
       }
-      .title-mode-header .drag-handle {
-        cursor: grab; opacity: 0.4; display: flex; align-items: center;
-        --mdc-icon-size: 1rem;
-      }
-      .title-mode-header .drag-handle:hover { opacity: 0.7; }
+      .title-mode-header glass-drag-handle { opacity: 0.4; }
+      .title-mode-header glass-drag-handle:hover { opacity: 0.7; }
       .title-mode-id {
         flex: 1;
         font-size: var(--fz-sm); font-weight: 700; color: var(--t3);
@@ -5363,27 +5320,44 @@
       :host([glow][tone='cool']) .dot       { box-shadow: 0 0 8px rgba(var(--rgb-cool), 0.5); }
     `]}render(){return N`<span class="dot" role="presentation"></span>`}}_t([pe({type:String,reflect:!0})],ft.prototype,"tone"),_t([pe({type:String,reflect:!0})],ft.prototype,"size"),_t([pe({type:Boolean,reflect:!0})],ft.prototype,"glow");try{customElements.define("glass-status-dot",ft)}catch{}var bt=Object.defineProperty;class vt extends ne{constructor(){super(...arguments),this.size="md"}static{this.styles=[s`
       :host {
+        position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
         color: var(--t4);
         cursor: grab;
         flex-shrink: 0;
         transition: color var(--t-fast), opacity var(--t-fast);
         -webkit-tap-highlight-color: transparent;
       }
+      :host([size='sm']) { width: 1rem; height: 1rem; }
       :host(:active) { cursor: grabbing; }
       @media (hover: hover) and (pointer: fine) {
         :host(:hover) { color: var(--t2); }
       }
+      /* Builtin hit-area: 20px visual → 44px tactile on coarse pointers. */
+      :host::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      @media (pointer: coarse) {
+        :host::before {
+          inset: calc((var(--tap-lg) - 100%) / -2);
+          min-width: var(--tap-lg);
+          min-height: var(--tap-lg);
+        }
+      }
       ha-icon {
-        --mdc-icon-size: 1.125rem;
+        --mdc-icon-size: 0.875rem;
         display: flex;
         align-items: center;
         justify-content: center;
         pointer-events: none;
       }
-      :host([size='sm']) ha-icon { --mdc-icon-size: 0.875rem; }
+      :host([size='sm']) ha-icon { --mdc-icon-size: 0.75rem; }
     `]}render(){return N`<ha-icon .icon=${"mdi:drag"} aria-hidden="true"></ha-icon>`}}((e,t,i)=>{for(var a,r=void 0,s=e.length-1;s>=0;s--)(a=e[s])&&(r=a(t,i,r)||r);r&&bt(t,i,r)})([pe({type:String,reflect:!0})],vt.prototype,"size");try{customElements.define("glass-drag-handle",vt)}catch{}var yt=Object.defineProperty,wt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&yt(t,i,s),s};class xt extends ne{constructor(){super(...arguments),this.icon="",this.title="",this.subtitle="",this.variant="default"}static{this.styles=[s`
       :host {
         display: flex;
@@ -6055,7 +6029,7 @@
                   @drop=${e=>this._onDropDashboardCover(a,e)}
                   @dragend=${()=>this._onCoverDragEnd()}
                 >
-                  <span class="drag-handle"><ha-icon .icon=${"mdi:drag"}></ha-icon></span>
+                  <glass-drag-handle></glass-drag-handle>
                   <div class="item-info">
                     <span class="item-name">${r.name}</span>
                     <span class="item-meta">${r.entityId}</span>
@@ -6128,9 +6102,7 @@
                       @drop=${e=>this._onLocalDrop(t,e)}
                       @dragend=${()=>this._onCoverDragEnd()}
                     >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                      </span>
+                      <glass-drag-handle></glass-drag-handle>
                       <div class="item-info">
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>
@@ -6292,9 +6264,7 @@
           @drop=${e=>this._onDropLight(t,e)}
           @dragend=${()=>this._onLocalDragEnd()}
         >
-          <span class="drag-handle">
-            <ha-icon .icon=${"mdi:drag"}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <div class="item-info">
             <span class="item-name">${e.name}</span>
             <span class="item-meta">${e.entityId}</span>
@@ -6687,9 +6657,7 @@
                         @drop=${e=>this._onLocalDrop(t,e)}
                         @dragend=${()=>this._onLocalDragEnd()}
                       >
-                        <span class="drag-handle">
-                          <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                        </span>
+                        <glass-drag-handle></glass-drag-handle>
                         <div class="item-info">
                           <span class="item-name">${e.name}</span>
                           <span class="item-meta">${e.entityId}</span>
@@ -6817,7 +6785,7 @@
                     @drop=${e=>{e.preventDefault(),this._onPersonDrop(t)}}
                     @dragend=${()=>{this._personDragIdx=null,this._personDropIdx=null}}
                   >
-                    <span class="drag-handle"><ha-icon .icon=${"mdi:drag"}></ha-icon></span>
+                    <glass-drag-handle></glass-drag-handle>
                     <div class="feature-icon">
                       <ha-icon .icon=${"mdi:account"}></ha-icon>
                     </div>
@@ -7038,9 +7006,7 @@
               @dragend=${()=>this._onLocalDragEnd()}
             >
               ${t?N`
-                <span class="drag-handle">
-                  <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                </span>
+                <glass-drag-handle></glass-drag-handle>
               `:N`<span class="pw-sp-drag-spacer"></span>`}
               <div class="item-info">
                 <span class="item-name">${e.name}</span>
@@ -7067,9 +7033,7 @@
         @dragend=${()=>this._localDragEnd()}
       >
         <div class="title-source-header">
-          <span class="drag-handle">
-            <ha-icon .icon=${"mdi:drag"}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <ha-icon .icon=${a?.icon||"mdi:help"}></ha-icon>
           <span class="title-source-type">${r}</span>
           <span class="title-source-badge">${e.modes.length}</span>
@@ -7210,9 +7174,7 @@
         @dragend=${()=>this._localDragEnd()}
       >
         <div class="title-mode-header">
-          <span class="drag-handle">
-            <ha-icon .icon=${"mdi:drag"}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <span class="title-mode-id">${i.id}</span>
           ${"scenes"===e.source_type||"booleans"===e.source_type?N`
             <button
@@ -7623,9 +7585,7 @@
                       @drop=${e=>this._onDropCameraEntity(i,e)}
                       @dragend=${()=>this._localDragEnd()}
                     >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                      </span>
+                      <glass-drag-handle></glass-drag-handle>
                       <div class="item-info">
                         <span class="item-name">${n}</span>
                         <span class="item-meta">${e}</span>
@@ -7667,7 +7627,7 @@
                     @drop=${e=>this._onRoomCameraDrop(t,e)}
                     @dragend=${()=>this._onRoomCameraDragEnd()}
                   >
-                    <span class="drag-handle"><ha-icon .icon=${"mdi:drag"}></ha-icon></span>
+                    <glass-drag-handle></glass-drag-handle>
                     <div class="item-info">
                       <span class="item-name">${e.name}</span>
                       <span class="item-meta">${e.entityId}</span>
@@ -7763,9 +7723,7 @@
                       @drop=${e=>this._onLocalDrop(t,e)}
                       @dragend=${()=>this._onLocalDragEnd()}
                     >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${"mdi:drag"}></ha-icon>
-                      </span>
+                      <glass-drag-handle></glass-drag-handle>
                       <div class="item-info">
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>
@@ -8239,7 +8197,7 @@
         @dragend=${()=>this._onDragEnd()}
       >
         <div class="section-header-wrap ${e.visible?"":"off"}">
-          <span class="drag-handle"><ha-icon .icon=${"mdi:drag"}></ha-icon></span>
+          <glass-drag-handle></glass-drag-handle>
           <button class="section-header" @click=${()=>{e.visible&&this._toggleSection(e.id)}}
             aria-expanded=${i?"true":"false"}>
             <div class="section-header-icon" style="--icon-color:${e.color};">

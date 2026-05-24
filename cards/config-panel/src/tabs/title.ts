@@ -521,9 +521,7 @@ export class ConfigTabTitle extends BaseConfigTab {
         @dragend=${() => this._localDragEnd()}
       >
         <div class="title-source-header">
-          <span class="drag-handle">
-            <ha-icon .icon=${'mdi:drag'}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <ha-icon .icon=${srcDef?.icon || 'mdi:help'}></ha-icon>
           <span class="title-source-type">${sourceLabel}</span>
           <span class="title-source-badge">${src.modes.length}</span>
@@ -706,9 +704,7 @@ export class ConfigTabTitle extends BaseConfigTab {
         @dragend=${() => this._localDragEnd()}
       >
         <div class="title-mode-header">
-          <span class="drag-handle">
-            <ha-icon .icon=${'mdi:drag'}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <span class="title-mode-id">${mode.id}</span>
           ${(src.source_type === 'scenes' || src.source_type === 'booleans') ? html`
             <button

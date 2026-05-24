@@ -614,9 +614,7 @@ export class ConfigTabLight extends BaseConfigTab {
           @drop=${(e: DragEvent) => this._onDropLight(idx, e)}
           @dragend=${() => this._onLocalDragEnd()}
         >
-          <span class="drag-handle">
-            <ha-icon .icon=${'mdi:drag'}></ha-icon>
-          </span>
+          <glass-drag-handle></glass-drag-handle>
           <div class="item-info">
             <span class="item-name">${light.name}</span>
             <span class="item-meta">${light.entityId}</span>

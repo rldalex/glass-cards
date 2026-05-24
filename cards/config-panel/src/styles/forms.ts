@@ -301,11 +301,8 @@ export const formStyles = css`
       .title-mode-header {
         display: flex; align-items: center; gap: 0.375rem;
       }
-      .title-mode-header .drag-handle {
-        cursor: grab; opacity: 0.4; display: flex; align-items: center;
-        --mdc-icon-size: 1rem;
-      }
-      .title-mode-header .drag-handle:hover { opacity: 0.7; }
+      .title-mode-header glass-drag-handle { opacity: 0.4; }
+      .title-mode-header glass-drag-handle:hover { opacity: 0.7; }
       .title-mode-id {
         flex: 1;
         font-size: var(--fz-sm); font-weight: 700; color: var(--t3);

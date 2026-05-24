@@ -354,9 +354,7 @@ export class ConfigTabCamera extends BaseConfigTab {
                       @drop=${(ev: DragEvent) => this._onDropCameraEntity(idx, ev)}
                       @dragend=${() => this._localDragEnd()}
                     >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                      </span>
+                      <glass-drag-handle></glass-drag-handle>
                       <div class="item-info">
                         <span class="item-name">${name}</span>
                         <span class="item-meta">${entityId}</span>
@@ -415,7 +413,7 @@ export class ConfigTabCamera extends BaseConfigTab {
                     @drop=${(ev: DragEvent) => this._onRoomCameraDrop(idx, ev)}
                     @dragend=${() => this._onRoomCameraDragEnd()}
                   >
-                    <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+                    <glass-drag-handle></glass-drag-handle>
                     <div class="item-info">
                       <span class="item-name">${e.name}</span>
                       <span class="item-meta">${e.entityId}</span>
