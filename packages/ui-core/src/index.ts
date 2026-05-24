@@ -647,9 +647,69 @@ export { BREAKPOINTS, type CardSize } from './breakpoints';
 export { ResizeMixin } from './resize-mixin';
 export { cardBase, gridResponsive } from './base-styles';
 
-// — Glass Slider Component —
+// — Tappable Mixin (hit-area for custom controls <44px) —
+
+/**
+ * Apply to any interactive element whose visual is smaller than --tap-lg.
+ * Adds a transparent ::after that widens the touchable region to 44px on
+ * coarse pointers (mobile/tablet) without affecting desktop layout.
+ *
+ * Use only when none of the glass-* primitive components fit. Prefer the
+ * primitives — they bake this in.
+ */
+export const tappableMixin: CSSResult = css`
+  .tappable {
+    position: relative;
+  }
+  .tappable::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  @media (pointer: coarse) {
+    .tappable::after {
+      min-width: var(--tap-lg);
+      min-height: var(--tap-lg);
+      left: 50%;
+      top: 50%;
+      width: max(100%, var(--tap-lg));
+      height: max(100%, var(--tap-lg));
+      transform: translate(-50%, -50%);
+      inset: auto;
+    }
+  }
+`;
+
+// — Glass Primitive Components —
 import './glass-slider';
+import './glass-icon-button';
+import './glass-chip';
+import './glass-toggle';
+import './glass-stepper-button';
+import './glass-transport-button';
+import './glass-pill';
+import './glass-tabs';
+import './glass-compact-bar';
+import './glass-section-title';
+import './glass-fold-separator';
+import './glass-color-swatch';
+import './glass-form-input';
+import './glass-button';
+
 export { GlassSlider } from './glass-slider';
+export { GlassIconButton } from './glass-icon-button';
+export { GlassChip } from './glass-chip';
+export { GlassToggle } from './glass-toggle';
+export { GlassStepperButton } from './glass-stepper-button';
+export { GlassTransportButton } from './glass-transport-button';
+export { GlassPill } from './glass-pill';
+export { GlassTabs, type GlassTabItem } from './glass-tabs';
+export { GlassCompactBar } from './glass-compact-bar';
+export { GlassSectionTitle } from './glass-section-title';
+export { GlassFoldSeparator } from './glass-fold-separator';
+export { GlassColorSwatch } from './glass-color-swatch';
+export { GlassFormInput } from './glass-form-input';
+export { GlassButton } from './glass-button';
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {
