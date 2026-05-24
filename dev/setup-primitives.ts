@@ -78,14 +78,42 @@ class PrimitivesShowcase extends LitElement {
         display: flex;
         align-items: center;
       }
-      /* A11y inspector — outlines <button> elements whose computed box is
-         under 44px in either axis, plus any host element with size attr. */
-      :host([inspector]) ::part(button),
+      /* Inspector — visualizes every primitive whose visual is smaller than
+         44px. Cyan outline = the visual box. Dashed red ::after = the
+         tactile envelope (44×44 via builtin hit-area on coarse pointers).
+         Useful to confirm a control is reachable even when it looks tiny. */
+      :host([inspector]) glass-icon-button[size='xs'],
       :host([inspector]) glass-icon-button[size='sm'],
       :host([inspector]) glass-chip[size='sm'],
-      :host([inspector]) glass-pill[interactive] {
-        outline: 2px dashed rgba(248, 113, 113, 0.7);
-        outline-offset: -2px;
+      :host([inspector]) glass-color-swatch,
+      :host([inspector]) glass-drag-handle,
+      :host([inspector]) glass-pill[interactive],
+      :host([inspector]) glass-chevron[interactive],
+      :host([inspector]) glass-progress-bar[interactive],
+      :host([inspector]) glass-button[size='sm'] {
+        outline: 1px solid rgba(56, 189, 248, 0.7);
+        outline-offset: 0;
+        position: relative;
+      }
+      :host([inspector]) glass-icon-button[size='xs']::after,
+      :host([inspector]) glass-icon-button[size='sm']::after,
+      :host([inspector]) glass-chip[size='sm']::after,
+      :host([inspector]) glass-color-swatch::after,
+      :host([inspector]) glass-drag-handle::after,
+      :host([inspector]) glass-pill[interactive]::after,
+      :host([inspector]) glass-chevron[interactive]::after,
+      :host([inspector]) glass-button[size='sm']::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
+        transform: translate(-50%, -50%);
+        border: 1px dashed rgba(248, 113, 113, 0.7);
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 999;
       }
       .sub {
         font-size: var(--fz-sm);
@@ -123,21 +151,29 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-icon-button</h2>
-      <div class="sub">Square rounded icon button. Default size = 44px tap target. <code>sm</code> visual at 32px with hit-area extension on coarse pointers.</div>
+      <div class="sub">Square rounded icon button. Sizes: <code>xs</code> 28px / <code>sm</code> 32px / <code>md</code> 44px (default) / <code>lg</code> 52px. Anything &lt;44px gets a transparent ::after extension on coarse pointers so the tactile area is always at least 44px.</div>
       <div class="row">
-        <span class="label">md (default)</span>
+        <span class="label">xs (28px)</span>
+        <glass-icon-button icon="mdi:close" size="xs" aria-label="close xs"></glass-icon-button>
+        <glass-icon-button icon="mdi:pencil" size="xs" aria-label="edit xs"></glass-icon-button>
+        <glass-icon-button icon="mdi:delete-outline" size="xs" active active-color="alert" aria-label="delete xs"></glass-icon-button>
+        <glass-icon-button icon="mdi:tune-vertical" size="xs" active active-color="purple" aria-label="presets xs"></glass-icon-button>
+        <glass-icon-button icon="mdi:calendar-clock" size="xs" active active-color="accent" aria-label="schedule xs"></glass-icon-button>
+      </div>
+      <div class="row">
+        <span class="label">sm (32px)</span>
+        <glass-icon-button icon="mdi:close" size="sm" aria-label="close"></glass-icon-button>
+        <glass-icon-button icon="mdi:heart" size="sm" active active-color="alert" aria-label="favorite"></glass-icon-button>
+      </div>
+      <div class="row">
+        <span class="label">md (44px, default)</span>
         <glass-icon-button icon="mdi:lightbulb" aria-label="lightbulb idle"></glass-icon-button>
         <glass-icon-button icon="mdi:lightbulb" active active-color="light-glow" glow aria-label="lightbulb on"></glass-icon-button>
         <glass-icon-button icon="mdi:lightbulb-off" disabled aria-label="lightbulb disabled"></glass-icon-button>
         <glass-icon-button icon="mdi:alert" unavailable aria-label="lightbulb unavailable"></glass-icon-button>
       </div>
       <div class="row">
-        <span class="label">sm (hit-area)</span>
-        <glass-icon-button icon="mdi:close" size="sm" aria-label="close"></glass-icon-button>
-        <glass-icon-button icon="mdi:heart" size="sm" active active-color="alert" aria-label="favorite"></glass-icon-button>
-      </div>
-      <div class="row">
-        <span class="label">lg (transport)</span>
+        <span class="label">lg (52px)</span>
         <glass-icon-button icon="mdi:play" size="lg" active active-color="accent" aria-label="play"></glass-icon-button>
       </div>
       <div class="row">
@@ -182,6 +218,19 @@ class PrimitivesShowcase extends LitElement {
           aria-label="controlled"
         ></glass-toggle>
         <span class="label">value = ${this.tableChecked ? 'on' : 'off'}</span>
+      </div>
+      <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.25rem;">
+        <span class="label">presentation mode (decorative — parent owns the click + role=switch)</span>
+        <button
+          style="display:flex;align-items:center;gap:0.625rem;width:100%;padding:0.5rem 0.75rem;background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius-md);color:inherit;font:inherit;text-align:left;cursor:pointer;"
+          role="switch"
+          aria-checked=${this.tableChecked ? 'true' : 'false'}
+          @click=${() => { this.tableChecked = !this.tableChecked; }}
+        >
+          <ha-icon .icon=${'mdi:lightbulb'}></ha-icon>
+          <span style="flex:1">Tap the whole row</span>
+          <glass-toggle presentation .checked=${this.tableChecked}></glass-toggle>
+        </button>
       </div>
 
       <h2>glass-stepper-button</h2>
@@ -259,8 +308,9 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-color-swatch</h2>
-      <div class="sub">Palette dot. Visual 26px, tactile 44px via hit-area on mobile. Selected highlight via white ring.</div>
+      <div class="sub">Palette dot. Visual 26px, tactile 44px via builtin hit-area. Default highlight = white ring. Pass <code>with-check</code> to also render a centered <code>mdi:check</code> icon — useful when swatches share similar semantic tones.</div>
       <div class="row">
+        <span class="label">ring only</span>
         <div class="swatches">
           ${this._swatches.map((c) => html`
             <glass-color-swatch
@@ -268,6 +318,20 @@ class PrimitivesShowcase extends LitElement {
               ?selected=${this.selectedColor === c}
               @click=${() => { this.selectedColor = c; }}
               aria-label="color ${c}"
+            ></glass-color-swatch>
+          `)}
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">with-check</span>
+        <div class="swatches">
+          ${['var(--c-success)', 'var(--c-warning)', 'var(--c-info)', 'var(--c-accent)', 'var(--c-alert)'].map((c) => html`
+            <glass-color-swatch
+              with-check
+              .color=${c}
+              ?selected=${this.selectedColor === c}
+              @click=${() => { this.selectedColor = c; }}
+              aria-label="semantic ${c}"
             ></glass-color-swatch>
           `)}
         </div>

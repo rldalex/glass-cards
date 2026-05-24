@@ -1928,14 +1928,13 @@
         --mdc-icon-size: 1rem;
         --mdc-icon-color: var(--t4);
         color: var(--t4);
-        opacity: 0;
-        transform: translateX(-0.25rem);
+        opacity: 0.5;
         transition: opacity var(--t-fast), transform var(--t-fast);
       }
       .dash-row:hover .dash-row-chev,
       .dash-row-main:focus-visible .dash-row-chev {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateX(0.125rem);
       }
 
       /* Hide button (×) — always visible, clear affordance, expands on interaction */
