@@ -1754,13 +1754,14 @@ class GlassSpotifyCard extends BaseCard {
             aria-label="${t('spotify.clear_search')}"
             @click=${this._clearSearch}
           ></glass-icon-button>
-          <glass-icon-button
-            class="search-toggle ${this._foldOpen ? 'open' : ''}"
+          <glass-chevron
+            class="search-toggle"
+            interactive
             size="sm"
-            .icon=${this._foldOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
+            ?open=${this._foldOpen}
             aria-label=${t('spotify.toggle_library')}
             @click=${() => { this._foldOpen = !this._foldOpen; }}
-          ></glass-icon-button>
+          ></glass-chevron>
         </div>
       </div>
     `;
@@ -1804,13 +1805,14 @@ class GlassSpotifyCard extends BaseCard {
           aria-label=${t('spotify.search_placeholder')}
           @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = true; this._focusSearchInput(); }}
         ></glass-icon-button>
-        <glass-icon-button
-          class="search-toggle ${this._foldOpen ? 'open' : ''}"
+        <glass-chevron
+          class="search-toggle"
+          interactive
           size="sm"
-          .icon=${this._foldOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
+          ?open=${this._foldOpen}
           aria-label=${t('spotify.toggle_library')}
           @click=${() => { this._foldOpen = !this._foldOpen; }}
-        ></glass-icon-button>
+        ></glass-chevron>
       </div>
     `;
   }

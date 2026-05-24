@@ -320,6 +320,12 @@ class PrimitivesShowcase extends LitElement {
         <glass-chevron size="md"></glass-chevron>
         <glass-chevron size="lg"></glass-chevron>
       </div>
+      <div class="row">
+        <span class="label">Interactive</span>
+        <glass-chevron interactive aria-label="toggle"></glass-chevron>
+        <glass-chevron interactive open tone="accent" aria-label="toggle open"></glass-chevron>
+        <span class="label">→ 44px hit-area builtin, focusable, click bubbles</span>
+      </div>
 
       <h2>glass-slider (existing)</h2>
       <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.75rem;">

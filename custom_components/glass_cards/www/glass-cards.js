@@ -1044,16 +1044,40 @@
         ${this.loading?Z`<span class="spinner" aria-hidden="true"></span>`:this.icon?Z`<ha-icon .icon=${this.icon}></ha-icon>`:null}
         <slot></slot>
       </button>
-    `}}pt([Ce({type:String})],ut.prototype,"icon"),pt([Ce({type:String,reflect:!0})],ut.prototype,"variant"),pt([Ce({type:String,reflect:!0})],ut.prototype,"size"),pt([Ce({type:Boolean,reflect:!0})],ut.prototype,"disabled"),pt([Ce({type:Boolean,reflect:!0})],ut.prototype,"loading"),pt([Ce({type:String,attribute:"aria-label"})],ut.prototype,"ariaLabel");try{customElements.define("glass-button",ut)}catch{}var gt=Object.defineProperty,mt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&gt(t,i,s),s};class _t extends fe{constructor(){super(...arguments),this.open=!1,this.size="md",this.tone="neutral"}static{this.styles=[m`
+    `}}pt([Ce({type:String})],ut.prototype,"icon"),pt([Ce({type:String,reflect:!0})],ut.prototype,"variant"),pt([Ce({type:String,reflect:!0})],ut.prototype,"size"),pt([Ce({type:Boolean,reflect:!0})],ut.prototype,"disabled"),pt([Ce({type:Boolean,reflect:!0})],ut.prototype,"loading"),pt([Ce({type:String,attribute:"aria-label"})],ut.prototype,"ariaLabel");try{customElements.define("glass-button",ut)}catch{}var gt=Object.defineProperty,mt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&gt(t,i,s),s};class _t extends fe{constructor(){super(...arguments),this.open=!1,this.size="md",this.tone="neutral",this.interactive=!1,this.ariaLabel=null,this.onKeyDown=e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),this.click())}}static{this.styles=[m`
       :host {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         color: var(--t2);
         transition: color var(--t-fast);
+        position: relative;
       }
       :host([tone='accent']) { color: var(--c-accent); }
       :host([tone='muted']) { color: var(--t4); }
+
+      :host([interactive]) {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Builtin 44px hit-area when the chevron is its own tap target. */
+      :host([interactive])::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      @media (pointer: coarse) {
+        :host([interactive])::after {
+          inset: calc((var(--tap-lg) - 100%) / -2);
+          min-width: var(--tap-lg);
+          min-height: var(--tap-lg);
+        }
+      }
+      :host([interactive]):focus-visible {
+        outline: 2px solid var(--c-accent);
+        outline-offset: 4px;
+        border-radius: var(--radius-sm);
+      }
 
       ha-icon {
         display: flex;
@@ -1069,7 +1093,7 @@
       :host([open]) ha-icon {
         transform: rotate(180deg);
       }
-    `]}render(){return Z`<ha-icon .icon=${"mdi:chevron-down"} aria-hidden="true"></ha-icon>`}}mt([Ce({type:Boolean,reflect:!0})],_t.prototype,"open"),mt([Ce({type:String,reflect:!0})],_t.prototype,"size"),mt([Ce({type:String,reflect:!0})],_t.prototype,"tone");try{customElements.define("glass-chevron",_t)}catch{}const ft=m`
+    `]}connectedCallback(){super.connectedCallback(),this.updateInteractiveAttrs()}updated(e){super.updated(e),e.has("interactive")&&this.updateInteractiveAttrs()}updateInteractiveAttrs(){this.interactive?(this.setAttribute("role","button"),this.hasAttribute("tabindex")||this.setAttribute("tabindex","0"),this.addEventListener("keydown",this.onKeyDown)):(this.removeAttribute("role"),this.removeAttribute("tabindex"),this.removeEventListener("keydown",this.onKeyDown))}render(){return Z`<ha-icon .icon=${"mdi:chevron-down"} aria-hidden="true"></ha-icon>`}}mt([Ce({type:Boolean,reflect:!0})],_t.prototype,"open"),mt([Ce({type:String,reflect:!0})],_t.prototype,"size"),mt([Ce({type:String,reflect:!0})],_t.prototype,"tone"),mt([Ce({type:Boolean,reflect:!0})],_t.prototype,"interactive"),mt([Ce({type:String,attribute:"aria-label"})],_t.prototype,"ariaLabel");try{customElements.define("glass-chevron",_t)}catch{}const ft=m`
   :host {
     --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -6064,13 +6088,14 @@
             aria-label="${qt("spotify.clear_search")}"
             @click=${this._clearSearch}
           ></glass-icon-button>
-          <glass-icon-button
-            class="search-toggle ${this._foldOpen?"open":""}"
+          <glass-chevron
+            class="search-toggle"
+            interactive
             size="sm"
-            .icon=${this._foldOpen?"mdi:chevron-up":"mdi:chevron-down"}
+            ?open=${this._foldOpen}
             aria-label=${qt("spotify.toggle_library")}
             @click=${()=>{this._foldOpen=!this._foldOpen}}
-          ></glass-icon-button>
+          ></glass-chevron>
         </div>
       </div>
     `}_renderNowPlayingBar(e){const t="playing"===e.state,i=e.title??qt("spotify.tab_tracks");return Z`
@@ -6106,13 +6131,14 @@
           aria-label=${qt("spotify.search_placeholder")}
           @click=${e=>{e.stopPropagation(),this._foldOpen=!0,this._focusSearchInput()}}
         ></glass-icon-button>
-        <glass-icon-button
-          class="search-toggle ${this._foldOpen?"open":""}"
+        <glass-chevron
+          class="search-toggle"
+          interactive
           size="sm"
-          .icon=${this._foldOpen?"mdi:chevron-up":"mdi:chevron-down"}
+          ?open=${this._foldOpen}
           aria-label=${qt("spotify.toggle_library")}
           @click=${()=>{this._foldOpen=!this._foldOpen}}
-        ></glass-icon-button>
+        ></glass-chevron>
       </div>
     `}_renderTabs(){const e=[{id:"all",labelKey:"spotify.tab_all",icon:"mdi:home"},{id:"tracks",labelKey:"spotify.tab_tracks",icon:"mdi:music-note"},{id:"playlists",labelKey:"spotify.tab_playlists",icon:"mdi:playlist-music"},{id:"podcasts",labelKey:"spotify.tab_podcasts",icon:"mdi:podcast"}],t=e.findIndex(e=>e.id===this._tab);return Z`
       <div class="tab-rail" style="--tab-active-idx: ${t};">
