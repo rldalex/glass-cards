@@ -669,7 +669,6 @@ export class GlassPresenceCard extends BaseCard {
                           }}
                         ></glass-form-input>
                         <glass-icon-button
-                          size="sm"
                           active
                           active-color="success"
                           .icon=${'mdi:send'}
@@ -1071,7 +1070,7 @@ export class GlassPresenceCard extends BaseCard {
 
       /* ── Notification zone ── */
       .notif-zone { display: flex; gap: 0.5rem; flex-direction: column; }
-      .notif-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+      .notif-row { display: flex; gap: 0.5rem; align-items: center; }
       .notif-row .notif-input { flex: 1; }
 
       .notif-toast {
