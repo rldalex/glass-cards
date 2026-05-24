@@ -510,7 +510,7 @@ export class ConfigRoomDetail extends LitElement {
         @dragend=${() => this._onDragEnd()}
       >
         <div class="section-header-wrap ${sec.visible ? '' : 'off'}">
-          <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+          <glass-drag-handle></glass-drag-handle>
           <button class="section-header" @click=${() => { if (sec.visible) this._toggleSection(sec.id); }}
             aria-expanded=${isOpen ? 'true' : 'false'}>
             <div class="section-header-icon" style="--icon-color:${sec.color};">

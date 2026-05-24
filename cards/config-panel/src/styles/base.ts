@@ -226,7 +226,7 @@ export const baseStyles = css`
       .item-row.disabled {
         opacity: 0.35;
       }
-      .empty-rooms .drag-handle {
+      .empty-rooms glass-drag-handle {
         visibility: hidden;
       }
       .empty-rooms .room-icon-btn {
@@ -246,37 +246,8 @@ export const baseStyles = css`
         padding: 0.75rem;
       }
 
-      /* ── Drag handle ── */
-      .drag-handle {
-        width: 1.25rem;
-        height: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: grab;
-        color: var(--t4);
-        flex-shrink: 0;
-        border-radius: 4px;
-        transition: color var(--t-fast);
-        position: relative;
-      }
-      .drag-handle::before {
-        content: '';
-        position: absolute;
-        inset: -0.75rem;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .drag-handle:hover {
-          color: var(--t3);
-        }
-      }
-      .drag-handle:active {
-        cursor: grabbing;
-      }
-      .drag-handle ha-icon {
-        --mdc-icon-size: 0.875rem;
-        display: flex; align-items: center; justify-content: center;
-      }
+      /* Drag handle styles now live in <glass-drag-handle> (ui-core).
+         Local overrides for specific contexts target the tag name. */
 
       /* ── Room icon button ── */
       .room-icon-btn {
@@ -1713,23 +1684,12 @@ export const baseStyles = css`
         min-height: 3rem;
         padding: 0.375rem 0.5rem 0.375rem 0.25rem;
       }
-      .section-header-wrap .drag-handle {
-        flex-shrink: 0;
-        cursor: grab;
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .section-header-wrap glass-drag-handle {
         width: 1.5rem;
         padding: 0.5rem 0;
       }
-      .section-header-wrap .drag-handle ha-icon {
-        --mdc-icon-size: 1rem;
-        --mdc-icon-color: var(--t4);
-      }
       @media (hover: hover) and (pointer: fine) {
-        .section-header-wrap .drag-handle:hover {
-          color: var(--t2);
+        .section-header-wrap glass-drag-handle:hover {
           background: var(--s2);
           border-radius: var(--radius-xs);
         }

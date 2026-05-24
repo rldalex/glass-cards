@@ -341,9 +341,7 @@ export class ConfigTabClimate extends BaseConfigTab {
                       @drop=${(ev: DragEvent) => this._onLocalDrop(idx, ev)}
                       @dragend=${() => this._onLocalDragEnd()}
                     >
-                      <span class="drag-handle">
-                        <ha-icon .icon=${'mdi:drag'}></ha-icon>
-                      </span>
+                      <glass-drag-handle></glass-drag-handle>
                       <div class="item-info">
                         <span class="item-name">${e.name}</span>
                         <span class="item-meta">${e.entityId}</span>

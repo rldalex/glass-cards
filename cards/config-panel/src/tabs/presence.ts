@@ -369,7 +369,7 @@ export class ConfigTabPresence extends BaseConfigTab {
                     @drop=${(e: DragEvent) => { e.preventDefault(); this._onPersonDrop(idx); }}
                     @dragend=${() => { this._personDragIdx = null; this._personDropIdx = null; }}
                   >
-                    <span class="drag-handle"><ha-icon .icon=${'mdi:drag'}></ha-icon></span>
+                    <glass-drag-handle></glass-drag-handle>
                     <div class="feature-icon">
                       <ha-icon .icon=${'mdi:account'}></ha-icon>
                     </div>
