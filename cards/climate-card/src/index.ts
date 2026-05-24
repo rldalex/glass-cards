@@ -806,12 +806,12 @@ export class GlassClimateCard extends BaseCard {
 
     return html`
       <div class="temp-control">
-        <button class="temp-stepper-btn"
-          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        <glass-stepper-button
+          .icon=${'mdi:minus'}
+          ?disabled=${target <= min}
           aria-label=${t('climate.temp_down_aria')}
-          ?disabled=${target <= min}>
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        ></glass-stepper-button>
         <div class="temp-display">
           <div class="temp-display-label">${t('climate.target')}</div>
           <div class="temp-display-value ${colorClass}">${target.toFixed(1)}<span class="unit">${unit}</span></div>
@@ -822,12 +822,12 @@ export class GlassClimateCard extends BaseCard {
             </div>
           ` : nothing}
         </div>
-        <button class="temp-stepper-btn"
-          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        <glass-stepper-button
+          .icon=${'mdi:plus'}
+          ?disabled=${target >= max}
           aria-label=${t('climate.temp_up_aria')}
-          ?disabled=${target >= max}>
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        ></glass-stepper-button>
       </div>
     `;
   }
@@ -950,7 +950,7 @@ export class GlassClimateCard extends BaseCard {
           : (curIdx - 1 + sorted.length) % sorted.length;
         this._selectedEntity = sorted[nextIdx].entity_id;
       },
-      exclude: 'button, glass-icon-button, glass-chip, glass-toggle, .entity-tab, .temp-stepper-btn, .mode-tile, .air-pill',
+      exclude: 'button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile, .air-pill',
     });
 
     return html`
@@ -1036,22 +1036,24 @@ export class GlassClimateCard extends BaseCard {
 
     return html`
       <div class="temp-control-panel">
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${'mdi:minus'}
+          ?disabled=${target <= min}
           aria-label=${t('climate.temp_down_aria')}
-          ?disabled=${target <= min}>
-          <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.max(min, target - step))}
+        ></glass-stepper-button>
         <div class="target-display">
           <div class="target-label">${t('climate.target')}</div>
           <div class="target-value ${colorClass}">${target.toFixed(1)}<span class="unit">${this._tempUnit()}</span></div>
         </div>
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${'mdi:plus'}
+          ?disabled=${target >= max}
           aria-label=${t('climate.temp_up_aria')}
-          ?disabled=${target >= max}>
-          <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${() => this._setTemperature(entityId, Math.min(max, target + step))}
+        ></glass-stepper-button>
       </div>
     `;
   }
@@ -1322,22 +1324,6 @@ export class GlassClimateCard extends BaseCard {
       display: flex; align-items: center; justify-content: center; gap: 1rem;
       padding: 0.5rem 0;
     }
-    .temp-stepper-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); outline: none; padding: 0;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
-    @media (hover: hover) and (pointer: fine) {
-      .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .temp-stepper-btn:hover ha-icon { color: var(--t1); }
-    }
-    @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
-    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
 
     .temp-display {
       display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
@@ -1553,15 +1539,7 @@ export class GlassClimateCard extends BaseCard {
       border: 1px solid rgba(var(--rgb-white),0.08);
       box-shadow: 0 4px 16px rgba(var(--rgb-black),0.15), inset 0 1px 0 rgba(var(--rgb-white),0.04);
     }
-    .normal-stepper {
-      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
-      background: rgba(var(--rgb-white), 0.1);
-      border-color: rgba(var(--rgb-white), 0.18);
-    }
-    .normal-stepper ha-icon { color: var(--t1); }
-    @media (hover: hover) and (pointer: fine) {
-      .normal-stepper:hover { background: rgba(var(--rgb-white), 0.16); border-color: rgba(var(--rgb-white), 0.28); }
-    }
+    /* glass-stepper-button surface="dark" handles the normal-mode stepper */
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;
       min-width: 6.25rem;

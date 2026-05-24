@@ -9394,12 +9394,12 @@
     </div>
   `}(t,this._tempUnit(),this._rangeDragEntity===e?this._rangeState:{dragging:null,lowTemp:0,highTemp:0},(t,i)=>this._setTemperatureRange(e,t,i),(t,i)=>this._onRangeDragStart(t,i,e))}if(!(i&Qa))return W;const a=this._pendingTemps.get(`temp_${e}`)??t.attributes.temperature,r=t.attributes.target_temp_step||.5,s=t.attributes.min_temp||7,o=t.attributes.max_temp||35,n=t.attributes.current_temperature,c=this._getHvacAction(t),l="heating"===c||"preheating"===c?"heat":"cooling"===c?"cool":"off",d=this._tempUnit();return null==a?W:V`
       <div class="temp-control">
-        <button class="temp-stepper-btn"
-          @click=${()=>this._setTemperature(e,Math.max(s,a-r))}
+        <glass-stepper-button
+          .icon=${"mdi:minus"}
+          ?disabled=${a<=s}
           aria-label=${Nt("climate.temp_down_aria")}
-          ?disabled=${a<=s}>
-          <ha-icon .icon=${"mdi:minus"} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${()=>this._setTemperature(e,Math.max(s,a-r))}
+        ></glass-stepper-button>
         <div class="temp-display">
           <div class="temp-display-label">${Nt("climate.target")}</div>
           <div class="temp-display-value ${l}">${a.toFixed(1)}<span class="unit">${d}</span></div>
@@ -9410,12 +9410,12 @@
             </div>
           `:W}
         </div>
-        <button class="temp-stepper-btn"
-          @click=${()=>this._setTemperature(e,Math.min(o,a+r))}
+        <glass-stepper-button
+          .icon=${"mdi:plus"}
+          ?disabled=${a>=o}
           aria-label=${Nt("climate.temp_up_aria")}
-          ?disabled=${a>=o}>
-          <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:22px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${()=>this._setTemperature(e,Math.min(o,a+r))}
+        ></glass-stepper-button>
       </div>
     `}_renderFoldControls(e,t){const i=this._getHvacAction(t),a="heating"===i||"preheating"===i?"heat":"cooling"===i?"cool":"",r=function(e,t){const i=e.attributes.hvac_modes||[];if(0===i.length)return W;const a=e.state;return V`
     <div class="mode-tile-grid">
@@ -9527,7 +9527,7 @@
     </div>
   `}(t,()=>this._toggleAuxHeat(e,t)):W}
       </div>
-    `}_renderNormalMode(e){const t=this._dashboardEntities.length>0||(this._roomConfig?.entity_order?.length??0)>0?e:[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(kr[i]??3)-(kr[a]??3)}),i=this._selectedEntity||t[0]?.entity_id,a=t.find(e=>e.entity_id===i)||t[0];if(!a)return V``;const r=this._getHvacAction(a),s="heating"===r||"preheating"===r?"heat":"cooling"===r?"cool":"auto"===a.state||"heat_cool"===a.state?"auto-tint":"",o="heating"===r||"preheating"===r?"heat-sep":"cooling"===r?"cool-sep":"",n=this._bindGesture({onTap:()=>{this._toggle(a.entity_id,a,new Event("tap"))},onLongPress:()=>{this._foldOpen=!this._foldOpen;const e=this.renderRoot.querySelector(".climate-card");e&&(e.classList.add("lp-pulse"),e.addEventListener("animationend",()=>e.classList.remove("lp-pulse"),{once:!0}))},onSwipe:e=>{if(t.length<=1)return;const a=t.findIndex(e=>e.entity_id===i),r="left"===e?(a+1)%t.length:(a-1+t.length)%t.length;this._selectedEntity=t[r].entity_id},exclude:"button, glass-icon-button, glass-chip, glass-toggle, .entity-tab, .temp-stepper-btn, .mode-tile, .air-pill"});return V`
+    `}_renderNormalMode(e){const t=this._dashboardEntities.length>0||(this._roomConfig?.entity_order?.length??0)>0?e:[...e].sort((e,t)=>{const i=this._getHvacAction(e),a=this._getHvacAction(t);return(kr[i]??3)-(kr[a]??3)}),i=this._selectedEntity||t[0]?.entity_id,a=t.find(e=>e.entity_id===i)||t[0];if(!a)return V``;const r=this._getHvacAction(a),s="heating"===r||"preheating"===r?"heat":"cooling"===r?"cool":"auto"===a.state||"heat_cool"===a.state?"auto-tint":"",o="heating"===r||"preheating"===r?"heat-sep":"cooling"===r?"cool-sep":"",n=this._bindGesture({onTap:()=>{this._toggle(a.entity_id,a,new Event("tap"))},onLongPress:()=>{this._foldOpen=!this._foldOpen;const e=this.renderRoot.querySelector(".climate-card");e&&(e.classList.add("lp-pulse"),e.addEventListener("animationend",()=>e.classList.remove("lp-pulse"),{once:!0}))},onSwipe:e=>{if(t.length<=1)return;const a=t.findIndex(e=>e.entity_id===i),r="left"===e?(a+1)%t.length:(a-1+t.length)%t.length;this._selectedEntity=t[r].entity_id},exclude:"button, glass-icon-button, glass-chip, glass-toggle, glass-stepper-button, .entity-tab, .mode-tile, .air-pill"});return V`
       ${this._showHeader?this._renderHeader(e):W}
       <div class="climate-wrap ${this._foldOpen?"fold-open":""}">
         <div class="glass climate-card normal-mode"
@@ -9568,22 +9568,24 @@
       </div>
     `}_renderNormalTempStepper(e){if("off"===e.state||"fan_only"===e.state)return W;const t=e.attributes.supported_features||0;if(!(t&Qa))return W;if("heat_cool"===e.state&&t&Ja)return W;const i=e.entity_id,a=this._pendingTemps.get(`temp_${i}`)??e.attributes.temperature,r=e.attributes.target_temp_step||.5,s=e.attributes.min_temp||7,o=e.attributes.max_temp||35,n=this._getHvacAction(e),c="heating"===n||"preheating"===n?"heat":"cooling"===n?"cool":"auto"===e.state||"heat_cool"===e.state?"auto-val":"off";return null==a?W:V`
       <div class="temp-control-panel">
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${()=>this._setTemperature(i,Math.max(s,a-r))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${"mdi:minus"}
+          ?disabled=${a<=s}
           aria-label=${Nt("climate.temp_down_aria")}
-          ?disabled=${a<=s}>
-          <ha-icon .icon=${"mdi:minus"} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${()=>this._setTemperature(i,Math.max(s,a-r))}
+        ></glass-stepper-button>
         <div class="target-display">
           <div class="target-label">${Nt("climate.target")}</div>
           <div class="target-value ${c}">${a.toFixed(1)}<span class="unit">${this._tempUnit()}</span></div>
         </div>
-        <button class="temp-stepper-btn normal-stepper"
-          @click=${()=>this._setTemperature(i,Math.min(o,a+r))}
+        <glass-stepper-button
+          surface="dark"
+          .icon=${"mdi:plus"}
+          ?disabled=${a>=o}
           aria-label=${Nt("climate.temp_up_aria")}
-          ?disabled=${a>=o}>
-          <ha-icon .icon=${"mdi:plus"} style="--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;"></ha-icon>
-        </button>
+          @click=${()=>this._setTemperature(i,Math.min(o,a+r))}
+        ></glass-stepper-button>
       </div>
     `}static{this.styles=[pt,ut,gt,bt,mt,_t,xt,s`
     :host {
@@ -9847,22 +9849,6 @@
       display: flex; align-items: center; justify-content: center; gap: 1rem;
       padding: 0.5rem 0;
     }
-    .temp-stepper-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-lg);
-      background: var(--s2); border: 1px solid var(--b2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), opacity var(--t-fast); outline: none; padding: 0;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .temp-stepper-btn ha-icon { color: var(--t2); transition: color var(--t-fast); }
-    @media (hover: hover) and (pointer: fine) {
-      .temp-stepper-btn:hover { background: var(--s3); border-color: var(--b3); }
-      .temp-stepper-btn:hover ha-icon { color: var(--t1); }
-    }
-    @media (hover: hover) { .temp-stepper-btn:active { transform: scale(0.96); } }
-    @media (pointer: coarse) { .temp-stepper-btn:active { animation: bounce 0.3s ease; } }
-    .temp-stepper-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    .temp-stepper-btn:disabled { opacity: 0.3; pointer-events: none; }
 
     .temp-display {
       display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
@@ -10078,15 +10064,7 @@
       border: 1px solid rgba(var(--rgb-white),0.08);
       box-shadow: 0 4px 16px rgba(var(--rgb-black),0.15), inset 0 1px 0 rgba(var(--rgb-white),0.04);
     }
-    .normal-stepper {
-      width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg);
-      background: rgba(var(--rgb-white), 0.1);
-      border-color: rgba(var(--rgb-white), 0.18);
-    }
-    .normal-stepper ha-icon { color: var(--t1); }
-    @media (hover: hover) and (pointer: fine) {
-      .normal-stepper:hover { background: rgba(var(--rgb-white), 0.16); border-color: rgba(var(--rgb-white), 0.28); }
-    }
+    /* glass-stepper-button surface="dark" handles the normal-mode stepper */
     .target-display {
       display: flex; flex-direction: column; align-items: center; gap: 0;
       min-width: 6.25rem;
