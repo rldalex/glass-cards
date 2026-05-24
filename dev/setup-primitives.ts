@@ -256,13 +256,24 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-tabs</h2>
-      <div class="sub">Segmented control / tabs. Each tab is 44px tall.</div>
+      <div class="sub">Segmented control / tabs. Default <code>size="md"</code> = 44px (primary nav). <code>size="sm"</code> = 32px visual / 44px tactile (utility strips inside cards).</div>
       <div class="row">
+        <span class="label">md (default)</span>
         <glass-tabs
           .items=${this._tabs1}
           .value=${this.tabValue}
           @glass-tab-change=${(e: CustomEvent) => { this.tabValue = e.detail.value; }}
           aria-label="forecast type"
+        ></glass-tabs>
+      </div>
+      <div class="row">
+        <span class="label">sm</span>
+        <glass-tabs
+          size="sm"
+          .items=${this._tabs1}
+          .value=${this.tabValue}
+          @glass-tab-change=${(e: CustomEvent) => { this.tabValue = e.detail.value; }}
+          aria-label="forecast type sm"
         ></glass-tabs>
       </div>
       <div class="row">

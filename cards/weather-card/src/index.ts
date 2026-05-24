@@ -1266,6 +1266,7 @@ class GlassWeatherCard extends BaseCard {
       <div class="wc-forecast-zone">
         <glass-tabs
           layout="segmented"
+          size="sm"
           .items=${tabItems}
           .value=${this._activeTab ?? ''}
           aria-label=${t('weather.title')}

@@ -12,7 +12,12 @@ export interface GlassTabItem {
  * `<glass-tabs>` — Segmented control / tabs for switching between views.
  *
  * Used for: forecast types (hourly/daily), entity tabs in rooms, library
- * categories. Each tab is 44px tall for tactile accessibility.
+ * categories.
+ *
+ * Sizes:
+ *   - `md` (default): 44px tall, primary navigation tap target
+ *   - `sm`: 32px visual, 44px tactile via hit-area extension on coarse
+ *     pointers. Use for secondary/utility tab strips inside cards.
  *
  * @fires glass-tab-change — { value: string }
  */
@@ -21,6 +26,7 @@ export class GlassTabs extends LitElement {
   @property({ type: String, reflect: true }) value = '';
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
   @property({ type: String, reflect: true }) layout: 'rail' | 'segmented' = 'rail';
+  @property({ type: String, reflect: true }) size: 'sm' | 'md' = 'md';
 
   static styles: CSSResult[] = [
     motionMixin,
@@ -68,6 +74,22 @@ export class GlassTabs extends LitElement {
           background var(--t-fast),
           border-color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+      }
+      /* Compact size: smaller visual but keep 44px tactile via ::after. */
+      :host([size='sm']) .tab {
+        min-height: 2rem;
+        padding: 0 0.625rem;
+        font-size: var(--fz-sm);
+      }
+      :host([size='sm']) .tab::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      @media (pointer: coarse) {
+        :host([size='sm']) .tab::after {
+          inset: calc((var(--tap-lg) - 2rem) / -2) 0;
+        }
       }
       :host([layout='rail']) .tab {
         border-color: var(--b2);

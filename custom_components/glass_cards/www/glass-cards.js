@@ -661,7 +661,7 @@
         >
           <slot></slot>
         </button>
-      `:Z`<span class="pill" role="status"><slot></slot></span>`}}Ge([Se({type:String,reflect:!0})],Xe.prototype,"tone"),Ge([Se({type:Boolean,reflect:!0})],Xe.prototype,"interactive"),Ge([Se({type:Boolean,reflect:!0})],Xe.prototype,"disabled"),Ge([Se({type:String,reflect:!0})],Xe.prototype,"size"),Ge([Se({type:String,attribute:"aria-label"})],Xe.prototype,"ariaLabel");try{customElements.define("glass-pill",Xe)}catch{}var Ye=Object.defineProperty,Qe=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ye(t,i,s),s};class Je extends fe{constructor(){super(...arguments),this.items=[],this.value="",this.ariaLabel=null,this.layout="rail"}static{this.styles=[be,m`
+      `:Z`<span class="pill" role="status"><slot></slot></span>`}}Ge([Se({type:String,reflect:!0})],Xe.prototype,"tone"),Ge([Se({type:Boolean,reflect:!0})],Xe.prototype,"interactive"),Ge([Se({type:Boolean,reflect:!0})],Xe.prototype,"disabled"),Ge([Se({type:String,reflect:!0})],Xe.prototype,"size"),Ge([Se({type:String,attribute:"aria-label"})],Xe.prototype,"ariaLabel");try{customElements.define("glass-pill",Xe)}catch{}var Ye=Object.defineProperty,Qe=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ye(t,i,s),s};class Je extends fe{constructor(){super(...arguments),this.items=[],this.value="",this.ariaLabel=null,this.layout="rail",this.size="md"}static{this.styles=[be,m`
       :host {
         display: block;
         box-sizing: border-box;
@@ -705,6 +705,22 @@
           background var(--t-fast),
           border-color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+      }
+      /* Compact size: smaller visual but keep 44px tactile via ::after. */
+      :host([size='sm']) .tab {
+        min-height: 2rem;
+        padding: 0 0.625rem;
+        font-size: var(--fz-sm);
+      }
+      :host([size='sm']) .tab::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      @media (pointer: coarse) {
+        :host([size='sm']) .tab::after {
+          inset: calc((var(--tap-lg) - 2rem) / -2) 0;
+        }
       }
       :host([layout='rail']) .tab {
         border-color: var(--b2);
@@ -750,7 +766,7 @@
           </button>
         `)}
       </div>
-    `}}Qe([Se({type:Array})],Je.prototype,"items"),Qe([Se({type:String,reflect:!0})],Je.prototype,"value"),Qe([Se({type:String,attribute:"aria-label"})],Je.prototype,"ariaLabel"),Qe([Se({type:String,reflect:!0})],Je.prototype,"layout");try{customElements.define("glass-tabs",Je)}catch{}var Ze=Object.defineProperty;class et extends fe{constructor(){super(...arguments),this.dense=!1}static{this.styles=[m`
+    `}}Qe([Se({type:Array})],Je.prototype,"items"),Qe([Se({type:String,reflect:!0})],Je.prototype,"value"),Qe([Se({type:String,attribute:"aria-label"})],Je.prototype,"ariaLabel"),Qe([Se({type:String,reflect:!0})],Je.prototype,"layout"),Qe([Se({type:String,reflect:!0})],Je.prototype,"size");try{customElements.define("glass-tabs",Je)}catch{}var Ze=Object.defineProperty;class et extends fe{constructor(){super(...arguments),this.dense=!1}static{this.styles=[m`
       :host {
         display: flex;
         align-items: center;
@@ -3592,6 +3608,7 @@
       <div class="wc-forecast-zone">
         <glass-tabs
           layout="segmented"
+          size="sm"
           .items=${a}
           .value=${this._activeTab??""}
           aria-label=${ti("weather.title")}
