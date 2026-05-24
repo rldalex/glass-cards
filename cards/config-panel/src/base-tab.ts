@@ -261,7 +261,7 @@ export abstract class BaseConfigTab extends LitElement {
           <div class="feature-name">${t(args.nameKey)}</div>
           ${args.descKey ? html`<div class="feature-desc">${t(args.descKey)}</div>` : nothing}
         </div>
-        <span class="toggle ${args.on ? 'on' : ''}"></span>
+        <glass-toggle presentation .checked=${args.on}></glass-toggle>
       </button>
     `;
   }

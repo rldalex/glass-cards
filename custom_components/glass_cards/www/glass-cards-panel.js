@@ -387,58 +387,9 @@
         flex-shrink: 0;
       }
 
-      /* ── Toggle ── */
-      .toggle {
-        position: relative;
-        width: 2.75rem;
-        height: 1.5rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast);
-        padding: 0;
-        outline: none;
-        font-size: 0;
-        flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      /* Hit-area extension: knob is 44×24 visual, tactile reaches 44×44 on
-         coarse pointers — required for mobile reach. */
-      .toggle::before {
-        content: '';
-        position: absolute;
-        inset: -0.625rem 0;
-      }
-      .toggle::after {
-        content: '';
-        position: absolute;
-        top: 0.1875rem;
-        left: 0.1875rem;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: var(--t3);
-        transition:
-          transform var(--t-fast),
-          background var(--t-fast),
-          box-shadow var(--t-fast);
-      }
-      .toggle.on {
-        background: rgba(var(--rgb-success), 0.2);
-        border-color: rgba(var(--rgb-success), 0.3);
-      }
-      .toggle.on::after {
-        transform: translateX(1.25rem);
-        background: var(--c-success);
-        box-shadow: 0 0 8px rgba(var(--rgb-success), 0.4);
-      }
-      .toggle:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
+      /* Toggle styles now live in <glass-toggle> (ui-core).
+         Interactive: <glass-toggle .checked .activeColor @glass-toggle-change>
+         Decorative (inside a clickable parent): <glass-toggle presentation .checked> */
 
       /* ── Icon button (from UI kit) ── */
       .btn-icon {
@@ -4410,13 +4361,13 @@
         ${this.icon?N`<ha-icon .icon=${this.icon}></ha-icon>`:null}
         <slot></slot>
       </button>
-    `}}Le([pe({type:String})],Ae.prototype,"icon"),Le([pe({type:Boolean,reflect:!0})],Ae.prototype,"active"),Le([pe({type:String,attribute:"active-color"})],Ae.prototype,"activeColor"),Le([pe({type:Boolean,reflect:!0})],Ae.prototype,"disabled"),Le([pe({type:String,reflect:!0})],Ae.prototype,"size"),Le([pe({type:String,attribute:"aria-label"})],Ae.prototype,"ariaLabel");try{customElements.define("glass-chip",Ae)}catch{}var Oe=Object.defineProperty,Me=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Oe(t,i,s),s};class Re extends ne{constructor(){super(...arguments),this.checked=!1,this.disabled=!1,this.activeColor="accent",this.ariaLabel=null}static{this.styles=[s`
+    `}}Le([pe({type:String})],Ae.prototype,"icon"),Le([pe({type:Boolean,reflect:!0})],Ae.prototype,"active"),Le([pe({type:String,attribute:"active-color"})],Ae.prototype,"activeColor"),Le([pe({type:Boolean,reflect:!0})],Ae.prototype,"disabled"),Le([pe({type:String,reflect:!0})],Ae.prototype,"size"),Le([pe({type:String,attribute:"aria-label"})],Ae.prototype,"ariaLabel");try{customElements.define("glass-chip",Ae)}catch{}var Oe=Object.defineProperty,Me=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Oe(t,i,s),s};class Re extends ne{constructor(){super(...arguments),this.checked=!1,this.disabled=!1,this.presentation=!1,this.activeColor="accent",this.ariaLabel=null}static{this.styles=[s`
       :host {
         display: inline-flex;
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
       }
-      button {
+      button, .visual {
         position: relative;
         box-sizing: border-box;
         display: inline-flex;
@@ -4429,9 +4380,15 @@
         background: transparent;
         border: none;
         outline: none;
-        cursor: pointer;
         font-family: inherit;
         -webkit-tap-highlight-color: transparent;
+      }
+      button { cursor: pointer; }
+      /* Presentation mode: shrink to knob track size, no tap area. */
+      :host([presentation]) .visual {
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
       }
       .track {
         position: relative;
@@ -4481,11 +4438,17 @@
       :host([checked]) button:active .knob {
         transform: translate(1.125rem, -50%) scale(0.92);
       }
-    `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}_onClick(e){e.stopPropagation(),this.disabled||(this.checked=!this.checked,this.dispatchEvent(new CustomEvent("glass-toggle-change",{detail:{checked:this.checked},bubbles:!0,composed:!0})))}render(){return N`
+    `]}_resolveColor(){const e=this.activeColor;return/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(e)?e:`var(--rgb-${e})`}_onClick(e){e.stopPropagation(),this.disabled||(this.checked=!this.checked,this.dispatchEvent(new CustomEvent("glass-toggle-change",{detail:{checked:this.checked},bubbles:!0,composed:!0})))}render(){const e=`--_ac-rgb:${this._resolveColor()}`;return this.presentation?N`
+        <span class="visual" style=${e} aria-hidden="true">
+          <span class="track">
+            <span class="knob"></span>
+          </span>
+        </span>
+      `:N`
       <button
         type="button"
         role="switch"
-        style="--_ac-rgb:${this._resolveColor()}"
+        style=${e}
         ?disabled=${this.disabled}
         aria-checked=${this.checked?"true":"false"}
         aria-label=${this.ariaLabel??"toggle"}
@@ -4495,7 +4458,7 @@
           <span class="knob"></span>
         </span>
       </button>
-    `}}Me([pe({type:Boolean,reflect:!0})],Re.prototype,"checked"),Me([pe({type:Boolean,reflect:!0})],Re.prototype,"disabled"),Me([pe({type:String,attribute:"active-color"})],Re.prototype,"activeColor"),Me([pe({type:String,attribute:"aria-label"})],Re.prototype,"ariaLabel");try{customElements.define("glass-toggle",Re)}catch{}var je=Object.defineProperty,He=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&je(t,i,s),s};class Fe extends ne{constructor(){super(...arguments),this.icon="",this.surface="light",this.disabled=!1,this.ariaLabel=null}static{this.styles=[s`
+    `}}Me([pe({type:Boolean,reflect:!0})],Re.prototype,"checked"),Me([pe({type:Boolean,reflect:!0})],Re.prototype,"disabled"),Me([pe({type:Boolean,reflect:!0})],Re.prototype,"presentation"),Me([pe({type:String,attribute:"active-color"})],Re.prototype,"activeColor"),Me([pe({type:String,attribute:"aria-label"})],Re.prototype,"ariaLabel");try{customElements.define("glass-toggle",Re)}catch{}var je=Object.defineProperty,He=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&je(t,i,s),s};class Fe extends ne{constructor(){super(...arguments),this.icon="",this.surface="light",this.disabled=!1,this.ariaLabel=null}static{this.styles=[s`
       :host {
         display: inline-flex;
         box-sizing: border-box;
@@ -5920,7 +5883,7 @@
           <div class="feature-name">${si(e.nameKey)}</div>
           ${e.descKey?N`<div class="feature-desc">${si(e.descKey)}</div>`:W}
         </div>
-        <span class="toggle ${e.on?"on":""}"></span>
+        <glass-toggle presentation .checked=${e.on}></glass-toggle>
       </button>
     `}}$i([pe({attribute:!1})],Si.prototype,"hass",2),$i([pe({attribute:!1})],Si.prototype,"backend",2),$i([pe({attribute:!1})],Si.prototype,"rooms",2),$i([pe({attribute:!1})],Si.prototype,"emptyRooms",2),$i([pe({attribute:!1})],Si.prototype,"dragState",2),$i([pe()],Si.prototype,"areaId",2),$i([pe({attribute:!1})],Si.prototype,"configData",1),$i([ue()],Si.prototype,"_lang",2);var Ci=Object.defineProperty,Ii=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&Ci(t,i,s),s};class Ei extends Si{constructor(){super(...arguments),this._coverShowHeader=!0,this._coverDashboardEntities=[],this._coverDashboardOrder=[],this._coverDashboardLayouts={},this._coverEntityPresets={},this._coverRoom="",this._coverRoomEntities=[],this._coverEntityPresetInput={},this._coverPresetsExpandedEntity=null,this._dragIdx=null,this._dropIdx=null,this._dragContext=""}static{this._AUTO_SAVE_KEYS=new Set(["_coverShowHeader","_coverDashboardEntities","_coverDashboardOrder","_coverDashboardLayouts","_coverEntityPresets","_coverRoomEntities"])}updated(e){super.updated(e),e.has("areaId")&&this.areaId&&(this._coverRoom=this.areaId,this._loadRoomCovers()),this._checkAutoSave(e)}loadFromConfig(e){const t=e;if(this._coverShowHeader=t.show_header??!0,this._coverDashboardEntities=t.dashboard_entities??[],t.dashboard_entity_layouts)this._coverDashboardLayouts=t.dashboard_entity_layouts;else{const e=t.dashboard_compact??1?"compact":"full",i={};for(const t of this._coverDashboardEntities)i[t]=e;this._coverDashboardLayouts=i}this._coverEntityPresets=t.entity_presets??{},this._initDashboardOrder()}collectSaveData(){const e=this._coverDashboardOrder.filter(e=>this._coverDashboardEntities.includes(e));return{show_header:this._coverShowHeader,dashboard_entities:e,dashboard_entity_layouts:this._coverDashboardLayouts,entity_presets:this._coverEntityPresets}}async _performSave(){if(await this.backend.send("set_cover_config",this.collectSaveData()),this._coverRoom&&this._coverRoomEntities.length>0){const e=new Set(this._coverRoomEntities.map(e=>e.entityId)),t=this._coverRoomEntities.filter(e=>!e.visible).map(e=>e.entityId),i=this._coverRoomEntities.map(e=>e.entityId),a={};for(const r of this._coverRoomEntities)a[r.entityId]=r.layout;await this._saveRoomEntities(this._coverRoom,e,t,i,a)}fe.emit("cover-config-changed",void 0)}async reload(){if(this.backend){try{const e=await this.backend.send("get_config");e?.cover_card&&this.loadFromConfig(e.cover_card)}catch{}this._coverEntityPresetInput={},await this._loadRoomCovers()}}async _loadRoomCovers(){if(!this.backend||!this._coverRoom||!this.hass)return;const e=this._coverRoom,t=_i(e,this.hass.entities,this.hass.devices).filter(e=>e.entity_id.startsWith("cover.")).map(e=>e.entity_id);let i=null;try{i=await this.backend.send("get_room",{area_id:e})}catch{}if(this._coverRoom!==e)return;const a=new Set(i?.hidden_entities??[]),r=i?.entity_order??[],s=i?.entity_layouts??{},o=[...t].sort((e,t)=>{const i=r.indexOf(e),a=r.indexOf(t);return-1!==i&&-1!==a?i-a:-1!==i?-1:-1!==a?1:0});this._coverRoomEntities=o.map(e=>{const t=this.hass?.states[e],i=t?.attributes?.friendly_name||e.split(".")[1]||e,r=t?.attributes?.device_class||"shutter";return{entityId:e,name:i,visible:!a.has(e),deviceClass:r,layout:s[e]||"compact"}})}_initDashboardOrder(){const e=new Set(this._getAllCoverEntities().map(e=>e.entityId)),t=this._coverDashboardEntities.filter(t=>e.has(t)),i=[...e].filter(e=>!this._coverDashboardEntities.includes(e));this._coverDashboardOrder=[...t,...i]}getAllCoverEntities(){return this._getAllCoverEntities()}_getAllCoverEntities(){if(!this.hass)return[];const e=[];for(const[t,i]of Object.entries(this.hass.states)){if(!t.startsWith("cover."))continue;const a=i.attributes?.friendly_name||t.split(".")[1]||t;e.push({entityId:t,name:a})}return e.sort((e,t)=>e.name.localeCompare(t.name))}_toggleEntityVisibility(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,visible:!t.visible}:t)}_cycleLayout(e){this._coverRoomEntities=this._coverRoomEntities.map(t=>t.entityId===e?{...t,layout:"full"===t.layout?"compact":"full"}:t)}_toggleDashboardEntity(e){const t=new Set(this._coverDashboardEntities);if(t.has(e)){t.delete(e),this._coverDashboardOrder=this._coverDashboardOrder.filter(t=>t!==e);const i={...this._coverDashboardLayouts};delete i[e],this._coverDashboardLayouts=i}else t.add(e),this._coverDashboardOrder.includes(e)||(this._coverDashboardOrder=[...this._coverDashboardOrder,e]),this._coverDashboardLayouts={...this._coverDashboardLayouts,[e]:"compact"};this._coverDashboardEntities=[...t]}_cycleDashboardLayout(e){const t=this._coverDashboardLayouts[e]??"compact";this._coverDashboardLayouts={...this._coverDashboardLayouts,[e]:"full"===t?"compact":"full"}}_onDropDashboardCover(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"dashboard_covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverDashboardOrder],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverDashboardOrder=i,this._dragIdx=null,this._dropIdx=null}_addEntityPreset(e){const t=this._coverEntityPresetInput[e]??"",i=parseInt(t,10);if(isNaN(i)||i<0||i>100)return;const a=this._coverEntityPresets[e]??[0,25,50,75,100];a.includes(i)?this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""}:(this._coverEntityPresets={...this._coverEntityPresets,[e]:[...a,i].sort((e,t)=>e-t)},this._coverEntityPresetInput={...this._coverEntityPresetInput,[e]:""})}_removeEntityPreset(e,t){const i=this._coverEntityPresets[e];if(!i)return;const a=i.filter(e=>e!==t);if(0===a.length){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}else this._coverEntityPresets={...this._coverEntityPresets,[e]:a}}_resetEntityPresets(e){const t={...this._coverEntityPresets};delete t[e],this._coverEntityPresets=t}_togglePresetsExpand(e){this._coverPresetsExpandedEntity=this._coverPresetsExpandedEntity===e?null:e}_onCoverDragStart(e,t){this._dragIdx=e,this._dragContext=t}_onCoverDragOver(e,t){t.preventDefault(),this._dropIdx=e}_onCoverDragLeave(){this._dropIdx=null}_onCoverDragEnd(){this._dragIdx=null,this._dropIdx=null,this._dragContext=""}_onLocalDrop(e,t){if(t.preventDefault(),null===this._dragIdx||this._dragIdx===e||"covers"!==this._dragContext)return this._dragIdx=null,void(this._dropIdx=null);const i=[...this._coverRoomEntities],[a]=i.splice(this._dragIdx,1);i.splice(e,0,a),this._coverRoomEntities=i,this._dragIdx=null,this._dropIdx=null}_renderDashboardEntities(){const e=this._getAllCoverEntities();if(0===e.length)return N`
         <div class="banner">
@@ -7865,7 +7828,7 @@
                       <div class="feature-name">${e.name}</div>
                       <div class="feature-desc">${e.entityId}</div>
                     </div>
-                    <span class="toggle ${i?"on":""}"></span>
+                    <glass-toggle presentation .checked=${i}></glass-toggle>
                   </button>
                 `})}
             </div>
@@ -7932,7 +7895,7 @@
                       <div class="feature-name">${e.name}</div>
                       <div class="feature-desc">${e.entityId}</div>
                     </div>
-                    <span class="toggle ${i?"on":""}"></span>
+                    <glass-toggle presentation .checked=${i}></glass-toggle>
                   </button>
                 `})}
             </div>
@@ -8289,35 +8252,35 @@
             <div class="feature-text">
               <div class="feature-name">${si("config.room_show_lights")}</div>
             </div>
-            <span class="toggle ${this._showLights?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._showLights}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showTemperature?"true":"false"} @click=${()=>{this._showTemperature=!this._showTemperature,this._scheduleSave()}}>
             <div class="feature-icon"><ha-icon .icon=${"mdi:thermometer"}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${si("config.room_show_temperature")}</div>
             </div>
-            <span class="toggle ${this._showTemperature?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._showTemperature}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showHumidity?"true":"false"} @click=${()=>{this._showHumidity=!this._showHumidity,this._scheduleSave()}}>
             <div class="feature-icon"><ha-icon .icon=${"mdi:water-percent"}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${si("config.room_show_humidity")}</div>
             </div>
-            <span class="toggle ${this._showHumidity?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._showHumidity}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._sortByLights?"true":"false"} @click=${()=>{this._sortByLights=!this._sortByLights,this._scheduleSave()}}>
             <div class="feature-icon"><ha-icon .icon=${"mdi:lightbulb-auto"}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${si("config.room_sort_by_lights")}</div>
             </div>
-            <span class="toggle ${this._sortByLights?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._sortByLights}></glass-toggle>
           </button>
           <button class="feature-row" role="switch" aria-checked=${this._showPresence?"true":"false"} @click=${()=>{this._showPresence=!this._showPresence,this._scheduleSave()}}>
             <div class="feature-icon"><ha-icon .icon=${"mdi:motion-sensor"}></ha-icon></div>
             <div class="feature-text">
               <div class="feature-name">${si("config.room_sort_by_presence")}</div>
             </div>
-            <span class="toggle ${this._showPresence?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._showPresence}></glass-toggle>
           </button>
         </div>
       </section>
@@ -8616,7 +8579,7 @@
               <div class="feature-name">${si("config.dashboard_hide_header")}</div>
               <div class="feature-desc">${si("config.dashboard_hide_header_desc")}</div>
             </div>
-            <span class="toggle ${this._hideHeader?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._hideHeader}></glass-toggle>
           </button>
 
           <button class="feature-row" role="switch" aria-checked=${this._hideSidebar?"true":"false"}
@@ -8626,7 +8589,7 @@
               <div class="feature-name">${si("config.dashboard_hide_sidebar")}</div>
               <div class="feature-desc">${si("config.dashboard_hide_sidebar_desc")}</div>
             </div>
-            <span class="toggle ${this._hideSidebar?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._hideSidebar}></glass-toggle>
           </button>
 
           <button class="feature-row" role="switch" aria-checked=${this._dynamicBackground?"true":"false"}
@@ -8636,7 +8599,7 @@
               <div class="feature-name">${si("config.dashboard_dynamic_bg")}</div>
               <div class="feature-desc">${si("config.dashboard_dynamic_bg_desc")}</div>
             </div>
-            <span class="toggle ${this._dynamicBackground?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._dynamicBackground}></glass-toggle>
           </button>
         </div>
       </section>
@@ -8712,7 +8675,7 @@
               <div class="feature-name">${si("config.navbar_auto_sort")}</div>
               <div class="feature-desc">${si("config.navbar_auto_sort_desc")}</div>
             </div>
-            <span class="toggle ${this._autoSort?"on":""}"></span>
+            <glass-toggle presentation .checked=${this._autoSort}></glass-toggle>
           </button>
         </div>
       </section>

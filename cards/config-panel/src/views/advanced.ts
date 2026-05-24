@@ -138,7 +138,7 @@ export class ConfigAdvancedView extends LitElement {
               <div class="feature-name">${t('config.navbar_auto_sort')}</div>
               <div class="feature-desc">${t('config.navbar_auto_sort_desc')}</div>
             </div>
-            <span class="toggle ${this._autoSort ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._autoSort}></glass-toggle>
           </button>
         </div>
       </section>

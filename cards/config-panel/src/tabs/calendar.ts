@@ -141,7 +141,7 @@ export class ConfigTabCalendar extends BaseConfigTab {
                       <div class="feature-name">${c.name}</div>
                       <div class="feature-desc">${c.entityId}</div>
                     </div>
-                    <span class="toggle ${visible ? 'on' : ''}"></span>
+                    <glass-toggle presentation .checked=${visible}></glass-toggle>
                   </button>
                 `;
               })}

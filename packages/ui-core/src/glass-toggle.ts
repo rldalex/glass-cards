@@ -8,11 +8,19 @@ import { property } from 'lit/decorators.js';
  * itself is the tap target and always reaches var(--tap-lg). Internally a
  * native `<button role="switch">` for keyboard + screen-reader support.
  *
+ * Set `presentation` when the toggle lives inside a clickable parent
+ * (e.g. `<button class="feature-row"><glass-toggle presentation>...`).
+ * In that mode the toggle renders a `<span>` instead of a `<button>` —
+ * no internal click handler, no stopPropagation, no role=switch. The
+ * parent owns interactivity; the toggle is purely visual, tracking
+ * `checked` to flip the knob.
+ *
  * @fires glass-toggle-change — { checked: boolean }
  */
 export class GlassToggle extends LitElement {
   @property({ type: Boolean, reflect: true }) checked = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ type: Boolean, reflect: true }) presentation = false;
   @property({ type: String, attribute: 'active-color' }) activeColor = 'accent';
   @property({ type: String, attribute: 'aria-label' }) ariaLabel: string | null = null;
 
@@ -23,7 +31,7 @@ export class GlassToggle extends LitElement {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
       }
-      button {
+      button, .visual {
         position: relative;
         box-sizing: border-box;
         display: inline-flex;
@@ -36,9 +44,15 @@ export class GlassToggle extends LitElement {
         background: transparent;
         border: none;
         outline: none;
-        cursor: pointer;
         font-family: inherit;
         -webkit-tap-highlight-color: transparent;
+      }
+      button { cursor: pointer; }
+      /* Presentation mode: shrink to knob track size, no tap area. */
+      :host([presentation]) .visual {
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
       }
       .track {
         position: relative;
@@ -109,11 +123,22 @@ export class GlassToggle extends LitElement {
   }
 
   protected render() {
+    const style = `--_ac-rgb:${this._resolveColor()}`;
+    if (this.presentation) {
+      // Purely visual — the parent owns role=switch + click handling.
+      return html`
+        <span class="visual" style=${style} aria-hidden="true">
+          <span class="track">
+            <span class="knob"></span>
+          </span>
+        </span>
+      `;
+    }
     return html`
       <button
         type="button"
         role="switch"
-        style="--_ac-rgb:${this._resolveColor()}"
+        style=${style}
         ?disabled=${this.disabled}
         aria-checked=${this.checked ? 'true' : 'false'}
         aria-label=${this.ariaLabel ?? 'toggle'}

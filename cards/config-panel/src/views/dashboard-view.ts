@@ -313,7 +313,7 @@ export class ConfigDashboardView extends LitElement {
               <div class="feature-name">${t('config.dashboard_hide_header')}</div>
               <div class="feature-desc">${t('config.dashboard_hide_header_desc')}</div>
             </div>
-            <span class="toggle ${this._hideHeader ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._hideHeader}></glass-toggle>
           </button>
 
           <button class="feature-row" role="switch" aria-checked=${this._hideSidebar ? 'true' : 'false'}
@@ -323,7 +323,7 @@ export class ConfigDashboardView extends LitElement {
               <div class="feature-name">${t('config.dashboard_hide_sidebar')}</div>
               <div class="feature-desc">${t('config.dashboard_hide_sidebar_desc')}</div>
             </div>
-            <span class="toggle ${this._hideSidebar ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._hideSidebar}></glass-toggle>
           </button>
 
           <button class="feature-row" role="switch" aria-checked=${this._dynamicBackground ? 'true' : 'false'}
@@ -333,7 +333,7 @@ export class ConfigDashboardView extends LitElement {
               <div class="feature-name">${t('config.dashboard_dynamic_bg')}</div>
               <div class="feature-desc">${t('config.dashboard_dynamic_bg_desc')}</div>
             </div>
-            <span class="toggle ${this._dynamicBackground ? 'on' : ''}"></span>
+            <glass-toggle presentation .checked=${this._dynamicBackground}></glass-toggle>
           </button>
         </div>
       </section>

@@ -396,58 +396,9 @@ export const baseStyles = css`
         flex-shrink: 0;
       }
 
-      /* ── Toggle ── */
-      .toggle {
-        position: relative;
-        width: 2.75rem;
-        height: 1.5rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        cursor: pointer;
-        transition:
-          background var(--t-fast),
-          border-color var(--t-fast);
-        padding: 0;
-        outline: none;
-        font-size: 0;
-        flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      /* Hit-area extension: knob is 44×24 visual, tactile reaches 44×44 on
-         coarse pointers — required for mobile reach. */
-      .toggle::before {
-        content: '';
-        position: absolute;
-        inset: -0.625rem 0;
-      }
-      .toggle::after {
-        content: '';
-        position: absolute;
-        top: 0.1875rem;
-        left: 0.1875rem;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: var(--t3);
-        transition:
-          transform var(--t-fast),
-          background var(--t-fast),
-          box-shadow var(--t-fast);
-      }
-      .toggle.on {
-        background: rgba(var(--rgb-success), 0.2);
-        border-color: rgba(var(--rgb-success), 0.3);
-      }
-      .toggle.on::after {
-        transform: translateX(1.25rem);
-        background: var(--c-success);
-        box-shadow: 0 0 8px rgba(var(--rgb-success), 0.4);
-      }
-      .toggle:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
+      /* Toggle styles now live in <glass-toggle> (ui-core).
+         Interactive: <glass-toggle .checked .activeColor @glass-toggle-change>
+         Decorative (inside a clickable parent): <glass-toggle presentation .checked> */
 
       /* ── Icon button (from UI kit) ── */
       .btn-icon {
