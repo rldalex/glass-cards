@@ -695,6 +695,7 @@ import './glass-fold-separator';
 import './glass-color-swatch';
 import './glass-form-input';
 import './glass-button';
+import './glass-chevron';
 
 export { GlassSlider } from './glass-slider';
 export { GlassIconButton } from './glass-icon-button';
@@ -710,6 +711,7 @@ export { GlassFoldSeparator } from './glass-fold-separator';
 export { GlassColorSwatch } from './glass-color-swatch';
 export { GlassFormInput } from './glass-form-input';
 export { GlassButton } from './glass-button';
+export { GlassChevron } from './glass-chevron';
 
 // HMR support — cleanup on module reload
 if (import.meta.hot) {

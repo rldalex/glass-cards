@@ -301,6 +301,26 @@ class PrimitivesShowcase extends LitElement {
         <glass-button loading variant="primary">Loading…</glass-button>
       </div>
 
+      <h2>glass-chevron</h2>
+      <div class="sub">Decorative chevron that rotates 180° when <code>open</code>. Use for fold indicators, dropdown triggers, expandable rows. Wrap in a button if you need it clickable.</div>
+      <div class="row">
+        <span class="label">Closed</span>
+        <glass-chevron></glass-chevron>
+        <span class="label">Open</span>
+        <glass-chevron open></glass-chevron>
+        <span class="label">Accent</span>
+        <glass-chevron tone="accent"></glass-chevron>
+        <glass-chevron open tone="accent"></glass-chevron>
+        <span class="label">Muted</span>
+        <glass-chevron tone="muted"></glass-chevron>
+      </div>
+      <div class="row">
+        <span class="label">Sizes</span>
+        <glass-chevron size="sm"></glass-chevron>
+        <glass-chevron size="md"></glass-chevron>
+        <glass-chevron size="lg"></glass-chevron>
+      </div>
+
       <h2>glass-slider (existing)</h2>
       <div class="row" style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
         <glass-slider value="40" min="0" max="100" step="1" label="40 %"></glass-slider>
