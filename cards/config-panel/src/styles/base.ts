@@ -1532,24 +1532,8 @@ export const baseStyles = css`
       .section-header-wrap.off .section-header { pointer-events: none; }
       /* Drag/drop visuals live on the outer wrapper now (.room-sections > div). */
 
-      /* Chevron in header-wrap */
-      .section-header-wrap > .section-chevron {
-        --mdc-icon-size: 1.125rem;
-        --mdc-icon-color: var(--t4);
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform var(--t-med), color var(--t-fast);
-        cursor: pointer;
-        flex-shrink: 0;
-        padding: 0.5rem 0.25rem;
-      }
-      .section-header-wrap > .section-chevron.open {
-        transform: rotate(180deg);
-        color: var(--t2);
-        --mdc-icon-color: var(--t2);
-      }
+      /* Chevron — now <glass-chevron ?open tone> inside .section-header.
+         Rotation animation owned by the primitive. */
 
       .section-header {
         display: flex;
@@ -1605,17 +1589,9 @@ export const baseStyles = css`
         letter-spacing: -0.2px;
         transition: color var(--t-fast);
       }
-      .section-header .section-chevron {
-        --mdc-icon-size: 1rem;
-        transition: transform var(--t-med), color var(--t-fast);
-        color: var(--t4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .section-header .section-chevron.open {
-        transform: rotate(180deg);
-        color: var(--t2);
+      .section-header glass-chevron {
+        margin-left: auto;
+        flex-shrink: 0;
       }
       @media (hover: hover) and (pointer: fine) {
         .section-header:hover {
