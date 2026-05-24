@@ -248,14 +248,6 @@ export class GlassVacuumCard extends BaseCard {
         gap: 0.375rem;
         padding: 0 1.5rem 0 0.875rem;
       }
-      .chip-accent {
-        background: rgba(var(--rgb-accent), 0.12) !important;
-        border-color: rgba(var(--rgb-accent), 0.3) !important;
-        color: var(--t1) !important;
-      }
-      .chip ha-icon {
-        --mdc-icon-size: 0.875rem;
-      }
       .rooms-sep-v {
         display: inline-block;
         width: 1px;
@@ -263,13 +255,6 @@ export class GlassVacuumCard extends BaseCard {
         background: var(--b1);
         flex-shrink: 0;
         margin: 0 0.125rem;
-      }
-      .rooms-sep {
-        display: inline-block;
-        width: 1px;
-        height: 1.5rem;
-        background: var(--b1);
-        flex-shrink: 0;
       }
       .dot.pulsing {
         animation: vac-dot-pulse 1.5s ease-in-out infinite;
@@ -287,84 +272,20 @@ export class GlassVacuumCard extends BaseCard {
       .transport-error {
         gap: 0.5rem;
       }
-      .t-btn {
-        position: relative;
-        flex: 0 0 auto;
-        width: var(--tap-lg);
-        height: var(--tap-lg);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        border-radius: var(--radius-md);
-        color: var(--t1);
-        cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .t-btn ha-icon {
-        --mdc-icon-size: 1.25rem;
-      }
-      .t-btn:hover {
-        background: var(--s3);
-        border-color: var(--b2);
-      }
-      .t-btn:active {
-        transform: scale(0.95);
-      }
-      .t-btn[aria-disabled='true'] {
-        opacity: 0.4;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
-      .t-btn.t-primary {
-        background: rgba(var(--rgb-info), 0.18);
-        border-color: rgba(var(--rgb-info), 0.4);
-      }
-      .t-btn.t-primary ha-icon {
-        color: var(--c-info);
-      }
-      .t-btn.confirming {
-        background: rgba(var(--rgb-warning), 0.22);
-        border-color: rgba(var(--rgb-warning), 0.5);
+      .transport-error glass-button {
         flex: 1 1 auto;
-        width: auto;
-        gap: 0.5rem;
-        padding: 0 0.75rem;
-        color: var(--c-warning);
       }
-      .t-btn.confirming .confirm-label {
-        font-size: var(--fz-sm);
-        font-weight: 600;
-      }
-      .t-btn.flashing ha-icon {
-        animation: vac-locate-flash 1.5s ease-out;
-        color: var(--c-info);
-      }
-      .t-btn.t-secondary {
+      .stop-confirm {
         flex: 1 1 auto;
-        width: auto;
-        gap: 0.5rem;
-        padding: 0 0.875rem;
-        font-size: var(--fz-md);
-        font-weight: 500;
-      }
-      .t-btn.t-secondary ha-icon {
-        --mdc-icon-size: 1.125rem;
-      }
-      .transport-error .t-primary {
-        flex: 1 1 auto;
-        width: auto;
-        padding: 0 0.875rem;
-        gap: 0.5rem;
-        font-size: var(--fz-md);
-        font-weight: 500;
       }
       @keyframes vac-locate-flash {
-        0% { color: var(--c-info); transform: scale(1); }
-        30% { color: var(--c-info); transform: scale(1.2); }
-        60% { color: var(--c-info); transform: scale(1); }
-        100% { color: var(--t1); transform: scale(1); }
+        0% { transform: scale(1); }
+        30% { transform: scale(1.2); }
+        60% { transform: scale(1); }
+        100% { transform: scale(1); }
+      }
+      .locate-flashing {
+        animation: vac-locate-flash 1.5s ease-out;
       }
       .compact {
         box-sizing: border-box;
@@ -418,13 +339,6 @@ export class GlassVacuumCard extends BaseCard {
         flex-direction: column;
         gap: 0.5rem;
       }
-      .eyebrow {
-        font-size: var(--fz-xs);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: var(--t4);
-      }
       .chips-row {
         display: flex;
         flex-wrap: nowrap;
@@ -436,31 +350,11 @@ export class GlassVacuumCard extends BaseCard {
       .chips-row::-webkit-scrollbar {
         display: none;
       }
-      .chip {
+      .chips-row glass-chip {
         flex-shrink: 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3125rem;
-        padding: 0.5rem 0.875rem;
-        background: var(--s1);
-        border: 1px solid var(--b2);
-        border-radius: var(--radius-md);
-        color: var(--t2);
-        font-size: var(--fz-sm);
-        font-weight: 600;
-        line-height: 1.4;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        font-family: inherit;
       }
-      .chip:hover {
-        background: var(--s2);
-      }
-      .chip.active {
-        background: rgba(var(--rgb-info), 0.18);
-        border-color: rgba(var(--rgb-info), 0.4);
-        color: var(--t1);
+      .rooms-track glass-chip {
+        flex-shrink: 0;
       }
       .status-row {
         display: flex;
@@ -561,9 +455,6 @@ export class GlassVacuumCard extends BaseCard {
         outline: 2px solid rgba(255, 255, 255, 0.35);
         outline-offset: 2px;
       }
-      .chip:focus-visible {
-        outline-offset: -2px;
-      }
       @media (prefers-reduced-motion: reduce) {
         .battery.charging ha-icon {
           animation: none;
@@ -571,7 +462,7 @@ export class GlassVacuumCard extends BaseCard {
         .dot.pulsing {
           animation: none;
         }
-        .t-btn.flashing ha-icon {
+        .locate-flashing {
           animation: none;
         }
         .glass.alert-pulse,
@@ -584,10 +475,6 @@ export class GlassVacuumCard extends BaseCard {
           transition: none;
         }
         .ctrl-fold-inner {
-          transition: none;
-        }
-        .t-btn,
-        .chip {
           transition: none;
         }
       }
@@ -748,19 +635,18 @@ export class GlassVacuumCard extends BaseCard {
     });
     return html`
       <span class="rooms-sep-v" aria-hidden="true"></span>
-      <button
-        type="button"
-        class="chip chip-accent ${showingConfirm ? 'confirming' : ''}"
+      <glass-chip
+        size="sm"
+        active
+        active-color=${showingConfirm ? 'warning' : 'cool'}
+        .icon=${'mdi:home-outline'}
         aria-label=${t('vacuum.all_house')}
         @pointerdown=${gesture.pointerdown}
         @pointerup=${gesture.pointerup}
         @pointermove=${gesture.pointermove}
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
-      >
-        <ha-icon .icon=${'mdi:home-outline'}></ha-icon>
-        <span>${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}</span>
-      </button>
+      >${showingConfirm ? t('vacuum.confirm_short') : t('vacuum.all_house')}</glass-chip>
     `;
   }
 
@@ -960,16 +846,14 @@ export class GlassVacuumCard extends BaseCard {
               const label = humanizeRoomSlug(slug);
               const isCurrent = this._isCurrentRoomButton(entityId, slug);
               return html`
-                <button
-                  type="button"
-                  class="chip ${isCurrent ? 'active' : ''}"
+                <glass-chip
+                  size="sm"
+                  active-color="cool"
+                  ?active=${isCurrent}
                   aria-label=${t('vacuum.clean_room_aria', { room: label })}
                   aria-pressed=${isCurrent}
                   @click=${() => this._onRoomChipTap(entityId, slug)}
-                >
-                  ${isCurrent ? html`<span class="dot dot-info pulsing"></span>` : nothing}
-                  <span>${label}</span>
-                </button>
+                >${label}</glass-chip>
               `;
             })}
             ${allHouseId
@@ -984,24 +868,19 @@ export class GlassVacuumCard extends BaseCard {
     if (vacuum.state === 'error') {
       return html`
         <div class="transport transport-error">
-          <button
-            type="button"
-            class="t-btn t-secondary"
+          <glass-button
+            size="sm"
+            .icon=${'mdi:crosshairs'}
             aria-label=${t('vacuum.transport_locate')}
             @click=${this._vacuumLocate}
-          >
-            <ha-icon .icon=${'mdi:crosshairs'}></ha-icon>
-            <span>${t('vacuum.transport_locate')}</span>
-          </button>
-          <button
-            type="button"
-            class="t-btn t-primary"
+          >${t('vacuum.transport_locate')}</glass-button>
+          <glass-button
+            size="sm"
+            variant="primary"
+            .icon=${'mdi:refresh'}
             aria-label=${t('vacuum.transport_retry')}
             @click=${this._vacuumStart}
-          >
-            <ha-icon .icon=${'mdi:refresh'}></ha-icon>
-            <span>${t('vacuum.transport_retry')}</span>
-          </button>
+          >${t('vacuum.transport_retry')}</glass-button>
         </div>
       `;
     }
@@ -1016,53 +895,54 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="transport">
-        <button
-          type="button"
-          class="t-btn t-primary"
+        <glass-icon-button
+          active
+          active-color="cool"
+          .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}
           aria-label=${isPlaying ? t('vacuum.transport_pause') : t('vacuum.transport_start')}
           @click=${isPlaying ? this._vacuumPause : this._vacuumStart}
-        >
-          <ha-icon .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
-        </button>
+        ></glass-icon-button>
         ${canStop
-          ? html`
-              <button
-                type="button"
-                class="t-btn ${showingStopConfirm ? 'confirming' : ''}"
-                aria-label=${t('vacuum.transport_stop')}
-                ?aria-disabled=${vacuum.state === 'docked'}
-                @click=${this._vacuumStop}
-              >
-                <ha-icon .icon=${'mdi:stop'}></ha-icon>
-                ${showingStopConfirm
-                  ? html`<span class="confirm-label">${t('vacuum.confirm_short')}</span>`
-                  : nothing}
-              </button>
-            `
+          ? showingStopConfirm
+            ? html`
+                <glass-button
+                  class="stop-confirm"
+                  size="sm"
+                  variant="danger"
+                  .icon=${'mdi:stop'}
+                  aria-label=${t('vacuum.transport_stop')}
+                  @click=${this._vacuumStop}
+                >${t('vacuum.confirm_short')}</glass-button>
+              `
+            : html`
+                <glass-icon-button
+                  .icon=${'mdi:stop'}
+                  aria-label=${t('vacuum.transport_stop')}
+                  ?disabled=${vacuum.state === 'docked'}
+                  @click=${this._vacuumStop}
+                ></glass-icon-button>
+              `
           : nothing}
         ${canLocate
           ? html`
-              <button
-                type="button"
-                class="t-btn ${this._locateFlashing ? 'flashing' : ''}"
+              <glass-icon-button
+                class=${this._locateFlashing ? 'locate-flashing' : ''}
+                ?active=${this._locateFlashing}
+                active-color="info"
+                .icon=${'mdi:crosshairs'}
                 aria-label=${t('vacuum.transport_locate')}
                 @click=${this._vacuumLocate}
-              >
-                <ha-icon .icon=${'mdi:crosshairs'}></ha-icon>
-              </button>
+              ></glass-icon-button>
             `
           : nothing}
         ${canReturn
           ? html`
-              <button
-                type="button"
-                class="t-btn"
+              <glass-icon-button
+                .icon=${'mdi:home-import-outline'}
                 aria-label=${t('vacuum.transport_return')}
-                ?aria-disabled=${vacuum.state === 'docked'}
+                ?disabled=${vacuum.state === 'docked'}
                 @click=${this._vacuumReturn}
-              >
-                <ha-icon .icon=${'mdi:home-import-outline'}></ha-icon>
-              </button>
+              ></glass-icon-button>
             `
           : nothing}
       </div>
@@ -1078,14 +958,15 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="fold-section">
-        <div class="eyebrow">${t('vacuum.section_suction')}</div>
+        <glass-section-title label=${t('vacuum.section_suction')}></glass-section-title>
         <div class="chips-row">
           ${list.map((opt) => html`
-            <button
-              type="button"
-              class="chip ${opt === current ? 'active' : ''}"
+            <glass-chip
+              size="sm"
+              active-color="cool"
+              ?active=${opt === current}
               @click=${() => this._setFanSpeed(opt)}
-            >${labelOf(FAN_SPEED_LABELS, opt)}</button>
+            >${labelOf(FAN_SPEED_LABELS, opt)}</glass-chip>
           `)}
         </div>
       </div>
@@ -1106,16 +987,17 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="fold-section">
-        <div class="eyebrow">${t('vacuum.section_mopping')}</div>
+        <glass-section-title label=${t('vacuum.section_mopping')}></glass-section-title>
         ${companions.mopIntensity && intensityList.length > 0
           ? html`
               <div class="chips-row">
                 ${intensityList.map((opt) => html`
-                  <button
-                    type="button"
-                    class="chip ${opt === currentIntensity ? 'active' : ''}"
+                  <glass-chip
+                    size="sm"
+                    active-color="cool"
+                    ?active=${opt === currentIntensity}
                     @click=${() => this._selectOption(companions.mopIntensity!, opt)}
-                  >${labelOf(MOP_INTENSITY_LABELS, opt)}</button>
+                  >${labelOf(MOP_INTENSITY_LABELS, opt)}</glass-chip>
                 `)}
               </div>
             `
@@ -1124,11 +1006,12 @@ export class GlassVacuumCard extends BaseCard {
           ? html`
               <div class="chips-row">
                 ${patternList.map((opt) => html`
-                  <button
-                    type="button"
-                    class="chip ${opt === currentPattern ? 'active' : ''}"
+                  <glass-chip
+                    size="sm"
+                    active-color="cool"
+                    ?active=${opt === currentPattern}
                     @click=${() => this._selectOption(companions.mopPattern!, opt)}
-                  >${labelOf(MOP_PATTERN_LABELS, opt)}</button>
+                  >${labelOf(MOP_PATTERN_LABELS, opt)}</glass-chip>
                 `)}
               </div>
             `
@@ -1207,7 +1090,7 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="fold-section">
-        <div class="eyebrow">${t('vacuum.section_dock')}</div>
+        <glass-section-title label=${t('vacuum.section_dock')}></glass-section-title>
         <div class="dock-grid">
           ${cells.map((c) => html`
             <div class="dock-cell ${c.variant === 'idle' ? '' : c.variant}" style="color:${variantColor[c.variant]}">
@@ -1233,7 +1116,7 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="fold-section">
-        <div class="eyebrow">${t('vacuum.section_consumables')}</div>
+        <glass-section-title label=${t('vacuum.section_consumables')}></glass-section-title>
         ${items.map((i) => {
           const hours = numericState(this.hass!, i.key, 0);
           let color = 'var(--c-success)';
@@ -1279,7 +1162,7 @@ export class GlassVacuumCard extends BaseCard {
 
     return html`
       <div class="fold-section">
-        <div class="eyebrow">${t('vacuum.section_stats')}</div>
+        <glass-section-title label=${t('vacuum.section_stats')}></glass-section-title>
         <div class="stats-row">${t('vacuum.stats_last_session', { when, duration, area: areaLabel })}</div>
         <div class="stats-row stats-totals">
           ${t('vacuum.stats_totals', { count: totalCount, area: `${totalArea} m²` })}
