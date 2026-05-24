@@ -34,6 +34,18 @@ import './editor';
 
 const ACTION_ORDER: Record<string, number> = { heating: 0, cooling: 1, idle: 2, off: 3 };
 
+/** Translate a fan_mode ('fm') or swing_mode ('sm') value to a user-facing
+ *  label. Falls back to the raw value with underscores → spaces when the
+ *  mode isn't a known HA standard (vendor-specific quirks like Daikin
+ *  "wind_free", Samsung "comfort", etc.). */
+function translateModeLabel(prefix: 'fm' | 'sm', mode: string): string {
+  const slug = mode.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  const key = `climate.${prefix}_${slug}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const translated = t(key as any);
+  return translated === key ? mode.replace(/_/g, ' ') : translated;
+}
+
 // — Backend config interfaces —
 
 interface ClimateBackendConfig {
@@ -880,7 +892,7 @@ export class GlassClimateCard extends BaseCard {
                   ?active=${m === currentFan}
                   aria-label="${t('climate.fan_mode')}: ${m}"
                   @click=${() => this._setFanMode(entityId, m)}
-                >${m.replace(/_/g, ' ')}</glass-chip>
+                >${translateModeLabel('fm', m)}</glass-chip>
               `)}
             </div>
           </div>
@@ -896,7 +908,7 @@ export class GlassClimateCard extends BaseCard {
                   ?active=${m === currentSwing}
                   aria-label="${t('climate.swing_mode')}: ${m}"
                   @click=${() => this._setSwingMode(entityId, m)}
-                >${m.replace(/_/g, ' ')}</glass-chip>
+                >${translateModeLabel('sm', m)}</glass-chip>
               `)}
             </div>
           </div>
