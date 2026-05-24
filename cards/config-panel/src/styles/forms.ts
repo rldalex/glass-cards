@@ -213,65 +213,6 @@ export const formStyles = css`
         outline: 2px solid var(--c-accent); outline-offset: -2px;
       }
 
-      /* ── Icon picker popup (glass) ── */
-      .icon-popup-overlay {
-        position: absolute; inset: 0; z-index: 10000;
-        background: rgba(var(--rgb-black), 0.5);
-        display: flex; align-items: center; justify-content: center;
-        padding: 1.5rem;
-        animation: fade-in 0.15s ease-out;
-      }
-      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-      .icon-popup {
-        width: 100%; max-width: 25rem; max-height: 70vh;
-        display: flex; flex-direction: column;
-        border-radius: var(--radius-xl);
-        background: linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%);
-        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.25);
-        border: 1px solid var(--b2);
-        overflow: hidden;
-        animation: popup-in 0.2s var(--ease-out);
-      }
-      @keyframes popup-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-      .icon-popup-header {
-        padding: 0.75rem 1rem 0.5rem;
-        display: flex; flex-direction: column; gap: 0.5rem;
-        border-bottom: 0.0625rem solid var(--b1);
-      }
-      .icon-popup-title {
-        font-size: var(--fz-base); font-weight: 600; text-transform: uppercase;
-        letter-spacing: 1px; color: var(--t3);
-      }
-      .icon-popup-search {
-        width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-lg);
-        border: 1px solid var(--b2); background: var(--s1);
-        color: var(--t1); font-family: inherit; font-size: var(--fz-md);
-        outline: none; transition: border-color var(--t-fast);
-        box-sizing: border-box;
-      }
-      .icon-popup-search:focus { border-color: var(--b3); }
-      .icon-popup-search::placeholder { color: var(--t4); }
-      .icon-popup-grid-wrap {
-        flex: 1; overflow-y: auto; padding: 0.5rem;
-        scrollbar-width: none;
-      }
-      .icon-popup-grid-wrap::-webkit-scrollbar { display: none; }
-      .icon-popup-grid {
-        display: grid; grid-template-columns: repeat(6, 1fr);
-        gap: 0.25rem;
-      }
-      .icon-popup-grid .icon-pick {
-        aspect-ratio: 1; width: 100%;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .icon-popup-grid .icon-pick ha-icon {
-        display: flex; align-items: center; justify-content: center;
-      }
-      .icon-popup-empty {
-        padding: 1.5rem; text-align: center;
-        font-size: var(--fz-base); color: var(--t4);
-      }
-
       /* ── Presence mapping cards ── */
       .presence-mapping-card {
         display: flex;
@@ -524,8 +465,7 @@ export const formStyles = css`
       }
 
       /* ── Hint & explanation texts ── */
-      .schedule-hint,
-      .dashboard-vs-room {
+      .schedule-hint {
         display: flex;
         align-items: flex-start;
         gap: 0.375rem;
@@ -539,8 +479,7 @@ export const formStyles = css`
         color: var(--t3);
         --mdc-icon-size: 0.875rem;
       }
-      .schedule-hint ha-icon,
-      .dashboard-vs-room ha-icon {
+      .schedule-hint ha-icon {
         flex-shrink: 0;
         margin-top: 0.0625rem;
         color: var(--c-info);
