@@ -2469,6 +2469,10 @@ export const baseStyles = css`
       .room-button-advanced summary::-webkit-details-marker {
         display: none;
       }
+      /* Spacing between direct children inside the open advanced panel (skip summary itself). */
+      .room-button-advanced[open] > *:not(summary) {
+        margin-top: 0.5rem;
+      }
       .room-button-add {
         display: inline-flex;
         align-items: center;

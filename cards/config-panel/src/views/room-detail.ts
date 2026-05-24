@@ -704,15 +704,6 @@ export class ConfigRoomDetail extends LitElement {
           />
         </div>
 
-        <button
-          type="button"
-          class="room-button-delete"
-          @click=${() => this._removeButton(idx)}
-        >
-          <ha-icon .icon=${'mdi:trash-can-outline'}></ha-icon>
-          <span>${t('config.room_button_delete')}</span>
-        </button>
-
         <details
           class="room-button-advanced"
           ?open=${this._btnAdvancedOpen.has(idx) || (!currentEntity && (!!btn.service || !!btn.data_json))}
@@ -772,6 +763,15 @@ export class ConfigRoomDetail extends LitElement {
             @input=${(e: Event) => this._updateButton(idx, 'data_json', (e.target as HTMLTextAreaElement).value)}
           ></textarea>
         </details>
+
+        <button
+          type="button"
+          class="room-button-delete"
+          @click=${() => this._removeButton(idx)}
+        >
+          <ha-icon .icon=${'mdi:trash-can-outline'}></ha-icon>
+          <span>${t('config.room_button_delete')}</span>
+        </button>
       </div>
     `;
   }
@@ -980,13 +980,23 @@ export class ConfigRoomDetail extends LitElement {
     if (!domain) return;
     const state = this.hass?.states?.[entityId];
     const friendlyName = (state?.attributes?.friendly_name as string) || '';
-    // Pick a real service for the domain: default mapping, else first available service from hass.services,
-    // else empty (user will pick via the service dropdown). Never fabricate `<domain>.toggle`.
+    // Pick a real service for the domain:
+    // 1. If hass.services has the domain AND our DOMAIN_DEFAULT_SERVICE entry exists there → use it.
+    // 2. Else if hass.services has the domain → use first service.
+    // 3. Else (hass.services unavailable / domain missing) → trust DOMAIN_DEFAULT_SERVICE map (curated common services).
+    // 4. Else empty (user picks manually).
     const domainServices = this.hass?.services?.[domain] ? Object.keys(this.hass.services[domain]) : [];
     const defaultFromMap = DOMAIN_DEFAULT_SERVICE[domain];
-    const defaultServiceName = defaultFromMap && domainServices.includes(defaultFromMap.split('.')[1])
-      ? defaultFromMap
-      : (domainServices[0] ? `${domain}.${domainServices[0]}` : '');
+    let defaultServiceName = '';
+    if (this.hass?.services?.[domain]) {
+      if (defaultFromMap && domainServices.includes(defaultFromMap.split('.')[1])) {
+        defaultServiceName = defaultFromMap;
+      } else if (domainServices[0]) {
+        defaultServiceName = `${domain}.${domainServices[0]}`;
+      }
+    } else if (defaultFromMap) {
+      defaultServiceName = defaultFromMap;
+    }
 
     this._buttons = this._buttons.map((b, i) => {
       if (i !== idx) return b;
