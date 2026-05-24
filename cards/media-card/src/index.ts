@@ -792,7 +792,7 @@ export class GlassMediaCard extends BaseCard {
           else this._swipeToRoom('right', (this._roomIndex - 1 + roomCount) % roomCount);
         }
       },
-      exclude: 'button',
+      exclude: 'button, glass-transport-button, glass-chip, glass-tabs, glass-icon-button',
     });
 
     return html`
@@ -888,41 +888,46 @@ export class GlassMediaCard extends BaseCard {
               <!-- Transport -->
               <div class="dash-transport">
                 ${hasFeature(master, F_SHUFFLE_SET) ? html`
-                  <button class="transport-btn ${master.shuffle ? 'active' : ''}"
+                  <glass-transport-button
+                    .icon=${'mdi:shuffle-variant'}
+                    ?active=${master.shuffle}
+                    active-color="accent"
                     aria-label=${t('media.shuffle_aria')}
-                    @click=${(e: Event) => { e.stopPropagation(); this._toggleShuffle(master); }}>
-                    <ha-icon .icon=${'mdi:shuffle-variant'}></ha-icon>
-                  </button>
+                    @click=${(e: Event) => { e.stopPropagation(); this._toggleShuffle(master); }}
+                  ></glass-transport-button>
                 ` : nothing}
 
                 ${hasFeature(master, F_PREVIOUS) ? html`
-                  <button class="transport-btn transport-skip"
+                  <glass-transport-button
+                    .icon=${'mdi:skip-previous'}
                     aria-label=${t('media.prev_aria', { name: master.name })}
-                    @click=${(e: Event) => { e.stopPropagation(); this._previous(master.entityId); }}>
-                    <ha-icon .icon=${'mdi:skip-previous'}></ha-icon>
-                  </button>
+                    @click=${(e: Event) => { e.stopPropagation(); this._previous(master.entityId); }}
+                  ></glass-transport-button>
                 ` : nothing}
 
-                <button class="transport-btn transport-main"
+                <glass-transport-button
+                  variant="main"
+                  .icon=${playing ? 'mdi:pause' : 'mdi:play'}
                   aria-label=${playing ? t('media.pause_aria', { name: master.name }) : t('media.play_aria', { name: master.name })}
-                  @click=${(e: Event) => { e.stopPropagation(); this._togglePlayPause(master); }}>
-                  <ha-icon .icon=${playing ? 'mdi:pause' : 'mdi:play'}></ha-icon>
-                </button>
+                  @click=${(e: Event) => { e.stopPropagation(); this._togglePlayPause(master); }}
+                ></glass-transport-button>
 
                 ${hasFeature(master, F_NEXT) ? html`
-                  <button class="transport-btn transport-skip"
+                  <glass-transport-button
+                    .icon=${'mdi:skip-next'}
                     aria-label=${t('media.next_aria', { name: master.name })}
-                    @click=${(e: Event) => { e.stopPropagation(); this._next(master.entityId); }}>
-                    <ha-icon .icon=${'mdi:skip-next'}></ha-icon>
-                  </button>
+                    @click=${(e: Event) => { e.stopPropagation(); this._next(master.entityId); }}
+                  ></glass-transport-button>
                 ` : nothing}
 
                 ${hasFeature(master, F_REPEAT_SET) ? html`
-                  <button class="transport-btn ${master.repeat !== 'off' ? 'active' : ''}"
+                  <glass-transport-button
+                    .icon=${master.repeat === 'one' ? 'mdi:repeat-once' : 'mdi:repeat'}
+                    ?active=${master.repeat !== 'off'}
+                    active-color="accent"
                     aria-label=${t('media.repeat_aria')}
-                    @click=${(e: Event) => { e.stopPropagation(); this._cycleRepeat(master); }}>
-                    <ha-icon .icon=${master.repeat === 'one' ? 'mdi:repeat-once' : 'mdi:repeat'}></ha-icon>
-                  </button>
+                    @click=${(e: Event) => { e.stopPropagation(); this._cycleRepeat(master); }}
+                  ></glass-transport-button>
                 ` : nothing}
               </div>
 
@@ -971,16 +976,18 @@ export class GlassMediaCard extends BaseCard {
   private _renderFoldContent(master: MediaPlayerInfo, coordinator: MediaPlayerInfo | null, allGroupable: MediaPlayerInfo[]): TemplateResult {
     const isQueue = this._foldTab === 'queue';
     return html`
-      <div class="segmented">
-        <button class="seg-btn ${!isQueue ? 'active' : ''}"
-                @click=${() => { this._foldTab = 'controls'; }}>
-          ${t('media.controls_tab')}
-        </button>
-        <button class="seg-btn ${isQueue ? 'active' : ''}"
-                @click=${() => { this._foldTab = 'queue'; this._loadQueue(); }}>
-          ${t('media.queue_tab')}
-        </button>
-      </div>
+      <glass-tabs
+        layout="segmented"
+        .value=${this._foldTab}
+        .items=${[
+          { value: 'controls', label: t('media.controls_tab') },
+          { value: 'queue', label: t('media.queue_tab') },
+        ]}
+        @glass-tab-change=${(e: CustomEvent<{ value: string }>) => {
+          this._foldTab = e.detail.value as 'controls' | 'queue';
+          if (this._foldTab === 'queue') this._loadQueue();
+        }}
+      ></glass-tabs>
       ${isQueue ? this._renderQueueTab() : this._renderControlsTab(master, coordinator, allGroupable)}
     `;
   }
@@ -1027,14 +1034,16 @@ export class GlassMediaCard extends BaseCard {
       ${hasFeature(master, F_SELECT_SOURCE) && master.sourceList.length > 0 ? html`
         <div class="dash-fold-sep"></div>
         <div class="media-section">
-          <div class="media-eyebrow"><span>${t('media.source_label')}</span></div>
+          <glass-section-title label=${t('media.source_label')}></glass-section-title>
           <div class="chips-row">
             ${master.sourceList.map((src) => html`
-              <button class="chip ${master.source === src ? 'active' : ''}"
-                @click=${(e: Event) => { e.stopPropagation(); this._selectSource(master.entityId, src); }}>
-                <ha-icon .icon=${SOURCE_ICONS[src] || 'mdi:import'}></ha-icon>
-                <span>${src}</span>
-              </button>
+              <glass-chip
+                size="sm"
+                active-color="accent"
+                ?active=${master.source === src}
+                .icon=${SOURCE_ICONS[src] || 'mdi:import'}
+                @click=${(e: Event) => { e.stopPropagation(); this._selectSource(master.entityId, src); }}
+              >${src}</glass-chip>
             `)}
           </div>
         </div>
@@ -1043,14 +1052,16 @@ export class GlassMediaCard extends BaseCard {
       ${hasFeature(master, F_SELECT_SOUND_MODE) && master.soundModeList.length > 0 ? html`
         <div class="dash-fold-sep"></div>
         <div class="media-section">
-          <div class="media-eyebrow"><span>${t('media.sound_mode_label')}</span></div>
+          <glass-section-title label=${t('media.sound_mode_label')}></glass-section-title>
           <div class="chips-row">
             ${master.soundModeList.map((mode) => html`
-              <button class="chip ${master.soundMode === mode ? 'active' : ''}"
-                @click=${(e: Event) => { e.stopPropagation(); this._selectSoundMode(master.entityId, mode); }}>
-                <ha-icon .icon=${'mdi:equalizer'}></ha-icon>
-                <span>${mode}</span>
-              </button>
+              <glass-chip
+                size="sm"
+                active-color="accent"
+                ?active=${master.soundMode === mode}
+                .icon=${'mdi:equalizer'}
+                @click=${(e: Event) => { e.stopPropagation(); this._selectSoundMode(master.entityId, mode); }}
+              >${mode}</glass-chip>
             `)}
           </div>
         </div>
@@ -1114,10 +1125,12 @@ export class GlassMediaCard extends BaseCard {
                 <span class="queue-artist">${artist}</span>
               </div>
               ${isRadio ? html`<span class="queue-badge">${t('media.radio_badge')}</span>` : nothing}
-              <button class="btn-icon xs queue-remove" aria-label="${t('media.remove_from_queue')}"
-                      @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(realIndex); }}>
-                <ha-icon .icon=${'mdi:close'}></ha-icon>
-              </button>
+              <glass-icon-button
+                size="sm"
+                .icon=${'mdi:close'}
+                aria-label="${t('media.remove_from_queue')}"
+                @click=${(e: Event) => { e.stopPropagation(); this._removeFromQueue(realIndex); }}
+              ></glass-icon-button>
             </div>
           `;
         })}
@@ -1182,10 +1195,9 @@ export class GlassMediaCard extends BaseCard {
     return html`
       <div class="dash-fold-sep"></div>
       <div class="speakers-section">
-        <div class="speakers-eyebrow">
-          <span>${t('media.speakers_label')}</span>
-          <span class="speakers-count">${joinedCount}/${totalCount}</span>
-        </div>
+        <glass-section-title label=${t('media.speakers_label')}>
+          <span slot="end" class="speakers-count">${joinedCount}/${totalCount}</span>
+        </glass-section-title>
         <div class="speakers-list">
           ${otherPlayers.map((speaker) => {
             const inGroup = groupSet.has(speaker.entityId);
@@ -1668,46 +1680,7 @@ export class GlassMediaCard extends BaseCard {
         display: flex; align-items: center; justify-content: center; gap: 0.5rem;
         margin-top: 0.125rem;
       }
-      .transport-btn {
-        width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
-        background: transparent; border: 1px solid transparent;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-        -webkit-tap-highlight-color: transparent;
-        color: rgba(var(--rgb-white),0.85);
-      }
-      .transport-btn ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: var(--icon-md);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .transport-btn:hover { background: rgba(var(--rgb-white),0.08); color: #fff; }
-      }
-      .transport-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      @media (pointer: coarse) { .transport-btn:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) and (pointer: fine) { .transport-btn:active { transform: scale(0.96); } }
-      .transport-btn.active {
-        color: #fff;
-        background: rgba(var(--rgb-white),0.12);
-        border-color: rgba(var(--rgb-white),0.25);
-      }
-
-      .transport-skip ha-icon { --mdc-icon-size: 1.625rem; }
-      .transport-skip { color: rgba(var(--rgb-white),0.85); }
-
-      .transport-main {
-        width: 3.25rem; height: 3.25rem; border-radius: var(--radius-lg);
-        background: rgba(var(--rgb-white),0.12); border: 1px solid rgba(var(--rgb-white),0.15);
-        color: #fff;
-      }
-      .transport-main ha-icon { --mdc-icon-size: 1.75rem; }
-      @media (hover: hover) and (pointer: fine) {
-        .transport-main:hover {
-          background: rgba(var(--rgb-white),0.2); border-color: rgba(var(--rgb-white),0.25);
-        }
-        .transport-main:active { transform: scale(0.96); }
-      }
-      @media (pointer: coarse) { .transport-main:active { animation: bounce 0.3s ease; } }
+      /* Transport buttons handled by <glass-transport-button>. */
 
       /* ── Idle state ── */
       .dash-idle {
@@ -1821,44 +1794,13 @@ export class GlassMediaCard extends BaseCard {
       /* ── Volume slider ── */
       glass-slider { flex: 1; }
 
-      /* ── Chips ── */
+      /* ── Chips row container (chips themselves are <glass-chip>) ── */
       .chips-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-      .chip {
-        display: inline-flex; align-items: center; gap: 0.3125rem;
-        padding: 0.3125rem 0.625rem; border-radius: var(--radius-md);
-        border: 1px solid var(--b2); background: var(--s1);
-        font-family: inherit; font-size: var(--fz-sm); font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.8px;
-        color: rgba(var(--rgb-white),0.7); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-        outline: none; -webkit-tap-highlight-color: transparent;
-      }
-      .chip ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: var(--icon-sm);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .chip:hover { background: var(--s3); color: #fff; border-color: var(--b3); }
-      }
-      .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      @media (pointer: coarse) { .chip:active { animation: bounce 0.3s ease; } }
-      @media (hover: hover) and (pointer: fine) { .chip:active { transform: scale(0.96); } }
-      .chip.active {
-        border-color: rgba(var(--rgb-white),0.25); background: rgba(var(--rgb-white),0.1);
-        color: #fff;
-      }
 
-      /* ── Speakers list (multiroom) ── */
-      /* Sections génériques + eyebrows partagés (source, sound mode, enceintes) */
+      /* ── Speakers list (multiroom) — sections container. Eyebrows now use
+         <glass-section-title>. ── */
       .speakers-section,
       .media-section { display: flex; flex-direction: column; gap: 0.4375rem; }
-      .speakers-eyebrow,
-      .media-eyebrow {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 0.125rem;
-        font-size: var(--fz-xxs); font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.8px;
-        color: var(--t4);
-      }
       .speakers-count {
         display: inline-flex; align-items: center; justify-content: center;
         height: 1rem; padding: 0 0.4375rem;
@@ -1955,31 +1897,7 @@ export class GlassMediaCard extends BaseCard {
         .speaker-row, .speaker-vol-fill, .speaker-vol-slider, .speaker-icon-btn { transition: none; }
       }
 
-      /* ── Segmented control ── */
-      .segmented {
-        display: inline-flex; gap: 0;
-        border-radius: var(--radius-lg); background: var(--s1);
-        border: 1px solid var(--b1); padding: 0.1875rem;
-        width: 100%;
-        box-sizing: border-box;
-      }
-      .seg-btn {
-        flex: 1;
-        padding: 0.4375rem 0; border-radius: var(--radius-sm);
-        font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-        color: rgba(var(--rgb-white),0.6); cursor: pointer;
-        transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
-        border: none; background: transparent; outline: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .seg-btn.active {
-        background: rgba(var(--rgb-white),0.12); color: #fff;
-        box-shadow: 0 1px 4px rgba(var(--rgb-black),0.2);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .seg-btn:hover:not(.active) { color: rgba(var(--rgb-white),0.85); }
-      }
-      .seg-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
+      /* ── Segmented control (Controls / Queue) handled by <glass-tabs>. ── */
 
       /* ── Queue tab ── */
       .queue-loading, .queue-empty {
@@ -2036,29 +1954,12 @@ export class GlassMediaCard extends BaseCard {
         color: rgba(var(--rgb-white),0.85);
         flex-shrink: 0;
       }
-      .queue-item .btn-icon {
-        width: 1.5rem; height: 1.5rem;
-        border-radius: var(--radius-sm);
-        background: transparent; border: none;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; padding: 0; outline: none;
-        color: rgba(var(--rgb-white),0.6); flex-shrink: 0;
-        transition: color var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .queue-item .btn-icon ha-icon {
-        display: flex; align-items: center; justify-content: center;
-        --mdc-icon-size: 1rem;
-      }
+      /* Queue row remove button uses <glass-icon-button size="sm">.
+         Dim it by default and reveal on hover. */
+      .queue-item glass-icon-button { opacity: 0.4; transition: opacity var(--t-fast); }
       @media (hover: hover) and (pointer: fine) {
-        .queue-item .btn-icon:hover { color: #fff; }
+        .queue-item:hover glass-icon-button { opacity: 1; }
       }
-      .queue-item .btn-icon:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-      .queue-remove { opacity: 0.4; --mdc-icon-size: var(--icon-sm); }
-      @media (hover: hover) and (pointer: fine) {
-        .queue-remove:hover { opacity: 1; color: var(--c-alert, #ef4444) !important; }
-      }
-      @media (pointer: coarse) { .queue-remove:active { animation: bounce 0.3s ease; } }
     `,
   ];
 }
