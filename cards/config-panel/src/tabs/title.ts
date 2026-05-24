@@ -36,7 +36,6 @@ const DEFAULT_PERIOD_VISUALS: Record<string, { icon: string; color: string }> = 
   'Nuit':        { icon: 'mdi:weather-night',        color: '#8b8ff0' },
 };
 const PERIOD_DEFAULT_VISUAL = { icon: 'mdi:clock-outline', color: 'var(--t3)' };
-const DEFAULT_PERIOD_ENTITY_ID = '';
 
 // — Component —
 
@@ -295,17 +294,16 @@ export class ConfigTabTitle extends BaseConfigTab {
 
   private _setTitlePeriodEntity(entityId: string): void {
     this._titlePeriodEntity = entityId;
-    // Auto-populate period options from input_select options
-    if (entityId && this.hass) {
-      const entity = this.hass.states[entityId];
-      if (entity) {
-        const options = (entity.attributes.options as string[] | undefined) ?? [];
-        const existingMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
-        this._titlePeriodOptions = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
-      }
-    } else if (!entityId) {
+    if (!entityId) {
       this._titlePeriodOptions = [];
+      return;
     }
+    // Auto-populate period options from input_select options
+    const entity = this.hass?.states[entityId];
+    if (!entity) return;
+    const options = (entity.attributes.options as string[] | undefined) ?? [];
+    const existingMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
+    this._titlePeriodOptions = options.map((opt) => existingMap.get(opt) ?? { id: opt, label: opt, icon: '', color: 'neutral' });
   }
 
   private _updateTitlePeriodOption(idx: number, field: 'icon' | 'color', value: string): void {
@@ -381,9 +379,12 @@ export class ConfigTabTitle extends BaseConfigTab {
     const icons = this._getFilteredIcons();
     const modeIdx = this._iconPopupModeIdx;
     const periodIdx = this._periodIconPopupIdx;
-    const currentIcon = isModePopup && modeIdx !== null
-      ? (this._titleModes[modeIdx]?.icon ?? '')
-      : periodIdx !== null ? (this._titlePeriodOptions[periodIdx]?.icon ?? '') : '';
+    let currentIcon = '';
+    if (isModePopup && modeIdx !== null) {
+      currentIcon = this._titleModes[modeIdx]?.icon ?? '';
+    } else if (periodIdx !== null) {
+      currentIcon = this._titlePeriodOptions[periodIdx]?.icon ?? '';
+    }
 
     if (!this._portalEl) {
       this._portalEl = document.createElement('div');
@@ -392,9 +393,9 @@ export class ConfigTabTitle extends BaseConfigTab {
 
     const close = () => { this._iconPopupModeIdx = null; this._periodIconPopupIdx = null; this._removeIconPortal(); };
     const select = (icon: string) => {
-      if (isModePopup && this._iconPopupModeIdx != null) {
+      if (isModePopup && this._iconPopupModeIdx !== null) {
         this._updateTitleMode(this._iconPopupModeIdx, 'icon', icon);
-      } else if (isPeriodPopup && this._periodIconPopupIdx != null) {
+      } else if (isPeriodPopup && this._periodIconPopupIdx !== null) {
         this._updateTitlePeriodOption(this._periodIconPopupIdx, 'icon', icon);
       }
       this._removeIconPortal();
@@ -708,8 +709,9 @@ export class ConfigTabTitle extends BaseConfigTab {
   // — Render: Period options as horizontal chip-row + inline editor —
 
   private _renderPeriodOptionsEditor(): TemplateResult | typeof nothing {
-    const periodEntityId = this._titlePeriodEntity || DEFAULT_PERIOD_ENTITY_ID;
-    const periodEntity = this.hass?.states[periodEntityId];
+    const periodEntity = this._titlePeriodEntity
+      ? this.hass?.states[this._titlePeriodEntity]
+      : undefined;
     const haOptions = (periodEntity?.attributes?.options as string[] | undefined) ?? [];
 
     if (haOptions.length === 0) {

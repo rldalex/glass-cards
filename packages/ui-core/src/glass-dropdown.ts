@@ -264,6 +264,7 @@ export class GlassDropdown extends LitElement {
     const filtered = this._filteredItems();
     const selected = this.items.find((it) => it.value === this.value);
     const displayLabel = selected?.label || this.label || this.placeholder || '';
+    const triggerIcon = selected?.icon || this.icon;
 
     return html`
       <button
@@ -277,8 +278,7 @@ export class GlassDropdown extends LitElement {
         @click=${this._toggleOpen}
         @keydown=${this._onKeyDown}
       >
-        ${selected?.icon ? html`<ha-icon .icon=${selected.icon}></ha-icon>`
-          : this.icon ? html`<ha-icon .icon=${this.icon}></ha-icon>` : nothing}
+        ${triggerIcon ? html`<ha-icon .icon=${triggerIcon}></ha-icon>` : nothing}
         <span class="label ${selected ? '' : 'empty'}" part="label">${displayLabel}</span>
         <glass-chevron ?open=${this._open} size="sm" tone="muted"></glass-chevron>
       </button>

@@ -113,7 +113,6 @@ export class ConfigRoomDetail extends LitElement {
   @state() private _dragContext: 'sections' | 'scenes' | null = null;
 
   private _loaded = false;
-  private _autoOpenDone = false;
   private _saveScheduler = createSaveScheduler();
 
   protected createRenderRoot() { return this; }
@@ -122,15 +121,11 @@ export class ConfigRoomDetail extends LitElement {
     super.updated(changedProps);
     if (changedProps.has('areaId') || changedProps.has('hass')) {
       this._loaded = false;
-      this._autoOpenDone = false;
       this._openSections = new Set();
     }
     if (!this._loaded && this.hass && this.areaId) {
       this._loaded = true;
       this._loadRoomConfig();
-    }
-    if (!this._autoOpenDone && this._sections.length > 0) {
-      this._autoOpenDone = true;
     }
   }
 
@@ -508,21 +503,6 @@ export class ConfigRoomDetail extends LitElement {
     `;
   }
 
-  private _selectTempEntity(id: string): void {
-    this._tempEntity = id;
-    this._scheduleSave();
-  }
-
-  private _selectHumidityEntity(id: string): void {
-    this._humidityEntity = id;
-    this._scheduleSave();
-  }
-
-  private _selectPresenceEntity(id: string): void {
-    this._presenceEntity = id;
-    this._scheduleSave();
-  }
-
   private _renderButtonsSection(): TemplateResult {
     const MAX = 3;
     return html`
@@ -628,7 +608,7 @@ export class ConfigRoomDetail extends LitElement {
           search-placeholder=${t('config.room_button_entity_search')}
           empty-text=${t('config.room_button_entity_empty')}
           aria-label=${t('config.room_button_entity')}
-          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectButtonEntity(idx, e.detail.value)}
+          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._pickEntity(idx, e.detail.value)}
         ></glass-dropdown>
 
         <div class="room-button-label-row">
@@ -667,7 +647,7 @@ export class ConfigRoomDetail extends LitElement {
             search-placeholder=${t('config.room_button_service_search')}
             empty-text=${t('config.room_button_service_empty')}
             aria-label=${t('config.room_button_service')}
-            @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectButtonService(idx, e.detail.value)}
+            @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._updateButton(idx, 'service', e.detail.value)}
           ></glass-dropdown>
 
           <glass-form-input
@@ -691,14 +671,6 @@ export class ConfigRoomDetail extends LitElement {
         </button>
       </div>
     `;
-  }
-
-  private _selectButtonEntity(idx: number, entityId: string): void {
-    this._pickEntity(idx, entityId);
-  }
-
-  private _selectButtonService(idx: number, service: string): void {
-    this._updateButton(idx, 'service', service);
   }
 
   private async _openButtonIconPortal(idx: number): Promise<void> {
@@ -1046,7 +1018,7 @@ export class ConfigRoomDetail extends LitElement {
         .items=${tempItems}
         .value=${this._tempEntity || ''}
         icon="mdi:thermometer"
-        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectTempEntity(e.detail.value)}
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => { this._tempEntity = e.detail.value; this._scheduleSave(); }}
       ></glass-dropdown>
 
       <div class="cfg-sublabel">${t('config.room_humidity_entity')}</div>
@@ -1054,7 +1026,7 @@ export class ConfigRoomDetail extends LitElement {
         .items=${humidityItems}
         .value=${this._humidityEntity || ''}
         icon="mdi:water-percent"
-        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectHumidityEntity(e.detail.value)}
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => { this._humidityEntity = e.detail.value; this._scheduleSave(); }}
       ></glass-dropdown>
 
       <div class="cfg-sublabel">${t('config.room_presence_entity')}</div>
@@ -1062,7 +1034,7 @@ export class ConfigRoomDetail extends LitElement {
         .items=${presenceItems}
         .value=${this._presenceEntity || ''}
         icon="mdi:motion-sensor"
-        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._selectPresenceEntity(e.detail.value)}
+        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => { this._presenceEntity = e.detail.value; this._scheduleSave(); }}
       ></glass-dropdown>
 
       </section>

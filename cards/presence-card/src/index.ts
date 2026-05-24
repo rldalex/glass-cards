@@ -656,8 +656,6 @@ export class GlassPresenceCard extends BaseCard {
                       <div class="notif-row">
                         <glass-form-input
                           class="notif-input"
-                          multiline
-                          rows="1"
                           placeholder=${t('presence.notify_placeholder', { name: person.name })}
                           .value=${this._notifText}
                           @glass-input=${(e: CustomEvent<{ value: string }>) => {

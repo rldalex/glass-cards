@@ -81,47 +81,38 @@ export class ConfigTabPresence extends BaseConfigTab {
 
   // — Helper: available entities —
 
-  private _getAvailablePersonEntities(): { entityId: string; name: string }[] {
+  private static readonly SMARTPHONE_HINTS = ['phone', 'mobile', 'smartphone', 'tablet', 'iphone', 'galaxy', 'pixel', 'oneplus'];
+
+  /** Build a sorted `{ entityId, name }` list of HA states matching `predicate`. */
+  private _collectEntities(predicate: (id: string) => boolean): { entityId: string; name: string }[] {
     if (!this.hass) return [];
-    return Object.keys(this.hass.states)
-      .filter((id) => id.startsWith('person.'))
+    const hass = this.hass;
+    return Object.keys(hass.states)
+      .filter(predicate)
       .map((id) => {
-        const entity = this.hass?.states[id];
-        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
+        const name = (hass.states[id]?.attributes?.friendly_name as string) || id.split('.')[1];
         return { entityId: id, name };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private _getAvailablePersonEntities(): { entityId: string; name: string }[] {
+    return this._collectEntities((id) => id.startsWith('person.'));
   }
 
   private _getAvailableSmartphoneSensors(): { entityId: string; name: string }[] {
-    if (!this.hass) return [];
-    return Object.keys(this.hass.states)
-      .filter((id) => id.startsWith('sensor.') && (
-        id.includes('phone') || id.includes('mobile') || id.includes('smartphone') ||
-        id.includes('tablet') || id.includes('iphone') || id.includes('galaxy') ||
-        id.includes('pixel') || id.includes('oneplus')
-      ))
-      .map((id) => {
-        const entity = this.hass?.states[id];
-        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
-        return { entityId: id, name };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
+    return this._collectEntities((id) =>
+      id.startsWith('sensor.') && ConfigTabPresence.SMARTPHONE_HINTS.some((h) => id.includes(h)),
+    );
   }
 
-  private _entitiesByDomain(prefixes: string[]): { entityId: string; name: string }[] {
-    if (!this.hass) return [];
-    return Object.keys(this.hass.states)
-      .filter((id) => prefixes.some((p) => id.startsWith(p)))
-      .map((id) => {
-        const entity = this.hass?.states[id];
-        const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1];
-        return { entityId: id, name };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
+  private _getAvailableDrivingSensors(): { entityId: string; name: string }[] {
+    return this._collectEntities((id) => id.startsWith('binary_sensor.'));
   }
-  private _getAvailableDrivingSensors() { return this._entitiesByDomain(['binary_sensor.']); }
-  private _getAvailableSleepSensors() { return this._entitiesByDomain(['input_boolean.', 'binary_sensor.']); }
+
+  private _getAvailableSleepSensors(): { entityId: string; name: string }[] {
+    return this._collectEntities((id) => id.startsWith('input_boolean.') || id.startsWith('binary_sensor.'));
+  }
 
   private _getAvailableNotifyServices(): string[] {
     if (!this.hass) return [];

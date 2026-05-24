@@ -1546,7 +1546,7 @@
         color: var(--t4);
         text-align: center;
       }
-    `]}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._onDocClick,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._onDocClick,!0)}updated(e){super.updated(e),e.has("_open")&&(this.toggleAttribute("open",this._open),this._open&&this.searchable&&requestAnimationFrame(()=>this._searchInput?.focus()))}_filteredItems(){if(!this._query)return this.items;const e=this._query.toLowerCase();return this.items.filter(t=>t.label.toLowerCase().includes(e)||t.value.toLowerCase().includes(e))}_open$(){this.disabled||(this._open=!0,this._activeIndex=-1)}_close(){this._open=!1,this._query=""}_toggleOpen(){this._open?this._close():this._open$()}_selectItem(e){this.value=e,this.dispatchEvent(new CustomEvent("glass-dropdown-change",{detail:{value:e},bubbles:!0,composed:!0})),this._close()}_onKeyDown(e){if(!this._open)return void("Enter"!==e.key&&" "!==e.key&&"ArrowDown"!==e.key||(e.preventDefault(),this._open$()));const t=this._filteredItems();switch(e.key){case"Escape":e.preventDefault(),this._close();break;case"ArrowDown":e.preventDefault(),this._activeIndex=Math.min(t.length-1,this._activeIndex+1);break;case"ArrowUp":e.preventDefault(),this._activeIndex=Math.max(0,this._activeIndex-1);break;case"Enter":e.preventDefault(),this._activeIndex>=0&&t[this._activeIndex]&&this._selectItem(t[this._activeIndex].value)}}render(){const e=this._filteredItems(),t=this.items.find(e=>e.value===this.value),i=t?.label||this.label||this.placeholder||"";return Z`
+    `]}connectedCallback(){super.connectedCallback(),document.addEventListener("click",this._onDocClick,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("click",this._onDocClick,!0)}updated(e){super.updated(e),e.has("_open")&&(this.toggleAttribute("open",this._open),this._open&&this.searchable&&requestAnimationFrame(()=>this._searchInput?.focus()))}_filteredItems(){if(!this._query)return this.items;const e=this._query.toLowerCase();return this.items.filter(t=>t.label.toLowerCase().includes(e)||t.value.toLowerCase().includes(e))}_open$(){this.disabled||(this._open=!0,this._activeIndex=-1)}_close(){this._open=!1,this._query=""}_toggleOpen(){this._open?this._close():this._open$()}_selectItem(e){this.value=e,this.dispatchEvent(new CustomEvent("glass-dropdown-change",{detail:{value:e},bubbles:!0,composed:!0})),this._close()}_onKeyDown(e){if(!this._open)return void("Enter"!==e.key&&" "!==e.key&&"ArrowDown"!==e.key||(e.preventDefault(),this._open$()));const t=this._filteredItems();switch(e.key){case"Escape":e.preventDefault(),this._close();break;case"ArrowDown":e.preventDefault(),this._activeIndex=Math.min(t.length-1,this._activeIndex+1);break;case"ArrowUp":e.preventDefault(),this._activeIndex=Math.max(0,this._activeIndex-1);break;case"Enter":e.preventDefault(),this._activeIndex>=0&&t[this._activeIndex]&&this._selectItem(t[this._activeIndex].value)}}render(){const e=this._filteredItems(),t=this.items.find(e=>e.value===this.value),i=t?.label||this.label||this.placeholder||"",a=t?.icon||this.icon;return Z`
       <button
         type="button"
         class="trigger"
@@ -1558,7 +1558,7 @@
         @click=${this._toggleOpen}
         @keydown=${this._onKeyDown}
       >
-        ${t?.icon?Z`<ha-icon .icon=${t.icon}></ha-icon>`:this.icon?Z`<ha-icon .icon=${this.icon}></ha-icon>`:ie}
+        ${a?Z`<ha-icon .icon=${a}></ha-icon>`:ie}
         <span class="label ${t?"":"empty"}" part="label">${i}</span>
         <glass-chevron ?open=${this._open} size="sm" tone="muted"></glass-chevron>
       </button>
@@ -8017,8 +8017,6 @@
                       <div class="notif-row">
                         <glass-form-input
                           class="notif-input"
-                          multiline
-                          rows="1"
                           placeholder=${ti("presence.notify_placeholder",{name:i.name})}
                           .value=${this._notifText}
                           @glass-input=${e=>{this._notifText=e.detail.value}}
