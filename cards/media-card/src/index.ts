@@ -1853,8 +1853,9 @@ export class GlassMediaCard extends BaseCard {
       .speaker-vol-slider {
         position: relative; flex: 1;
         height: 2.25rem; min-height: 2.25rem;
-        display: flex; align-items: center; justify-content: center;
+        display: flex; align-items: center; justify-content: space-between;
         gap: 0.5rem;
+        padding: 0 0.625rem;
         background: var(--s1);
         border: 1px solid var(--b1);
         overflow: hidden;
