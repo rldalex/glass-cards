@@ -763,7 +763,6 @@ export class GlassRoomPopup extends LitElement {
         <div class="header">
           <div class="header-left">
             <glass-icon-button
-              size="sm"
               class="header-icon ${meta.hasMusic ? 'has-music' : ''}"
               ?active=${meta.hasLight}
               ?glow=${meta.hasLight}

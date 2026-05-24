@@ -2737,7 +2737,6 @@
         <div class="header">
           <div class="header-left">
             <glass-icon-button
-              size="sm"
               class="header-icon ${e.hasMusic?"has-music":""}"
               ?active=${e.hasLight}
               ?glow=${e.hasLight}
