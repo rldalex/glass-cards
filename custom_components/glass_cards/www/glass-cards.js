@@ -887,7 +887,7 @@
         ?disabled=${this.disabled}
         aria-label=${this.ariaLabel??`color ${this.color}`}
         aria-pressed=${this.selected?"true":"false"}
-      >${this.withCheck?Z`<ha-icon class="check" .icon=${"mdi:check"}></ha-icon>`:""}</button>
+      >${this.withCheck?Z`<ha-icon class="check" .icon=${"mdi:check"}></ha-icon>`:ie}</button>
     `}}ot([Ce({type:String})],nt.prototype,"color"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"selected"),ot([Ce({type:Boolean,reflect:!0})],nt.prototype,"disabled"),ot([Ce({type:Boolean,reflect:!0,attribute:"with-check"})],nt.prototype,"withCheck"),ot([Ce({type:String,attribute:"aria-label"})],nt.prototype,"ariaLabel");try{customElements.define("glass-color-swatch",nt)}catch{}var lt=Object.defineProperty,ct=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&lt(t,i,s),s};class dt extends fe{constructor(){super(...arguments),this.value="",this.placeholder="",this.type="text",this.multiline=!1,this.rows=3,this.disabled=!1,this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: block;
@@ -937,21 +937,19 @@
         flex-shrink: 0;
         margin-right: 0.25rem;
       }
-    `]}focusInput(){this._input?.focus()}getValue(){return this._input?.value??this.value}_onInput(e){const t=e.target;this.value=t.value,this.dispatchEvent(new CustomEvent("glass-input",{detail:{value:this.value},bubbles:!0,composed:!0}))}_onKey(e){"Enter"!==e.key||this.multiline||e.shiftKey||(e.preventDefault(),this.dispatchEvent(new CustomEvent("glass-submit",{detail:{value:this.value},bubbles:!0,composed:!0})))}render(){return Z`
+    `]}focusInput(){this._input?.focus()}getValue(){return this._input?.value??this.value}_onInput(e){const t=e.target;this.value=t.value,this.dispatchEvent(new CustomEvent("glass-input",{detail:{value:this.value},bubbles:!0,composed:!0}))}_onKey(e){"Enter"!==e.key||this.multiline||e.shiftKey||(e.preventDefault(),this.dispatchEvent(new CustomEvent("glass-submit",{detail:{value:this.value},bubbles:!0,composed:!0})))}updated(e){super.updated(e),e.has("value")&&this._input&&this._input.value!==this.value&&(this._input.value=this.value)}render(){return Z`
       <div class="wrapper">
         ${this.multiline?Z`<textarea
               class="input"
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               rows=${this.rows}
               maxlength=${this.maxLength??""}
               aria-label=${this.ariaLabel??""}
               @input=${this._onInput}
-            ></textarea>`:Z`<input
+            >${this.value}</textarea>`:Z`<input
               class="input"
               type=${this.type}
-              .value=${this.value}
               placeholder=${this.placeholder}
               ?disabled=${this.disabled}
               maxlength=${this.maxLength??""}
@@ -961,7 +959,7 @@
             />`}
         <slot name="trailing"></slot>
       </div>
-    `}}ct([Ce({type:String})],dt.prototype,"value"),ct([Ce({type:String})],dt.prototype,"placeholder"),ct([Ce({type:String})],dt.prototype,"type"),ct([Ce({type:Boolean})],dt.prototype,"multiline"),ct([Ce({type:Number})],dt.prototype,"rows"),ct([Ce({type:Boolean})],dt.prototype,"disabled"),ct([Ce({type:Number,attribute:"max-length"})],dt.prototype,"maxLength"),ct([Ce({type:String,attribute:"aria-label"})],dt.prototype,"ariaLabel"),ct([Te(".input")],dt.prototype,"_input");try{customElements.define("glass-form-input",dt)}catch{}var ht=Object.defineProperty,pt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ht(t,i,s),s};class ut extends fe{constructor(){super(...arguments),this.icon="",this.variant="secondary",this.size="md",this.disabled=!1,this.loading=!1,this.ariaLabel=null}static{this.styles=[m`
+    `}firstUpdated(){this._input&&this._input.value!==this.value&&(this._input.value=this.value)}}ct([Ce({type:String})],dt.prototype,"value"),ct([Ce({type:String})],dt.prototype,"placeholder"),ct([Ce({type:String})],dt.prototype,"type"),ct([Ce({type:Boolean})],dt.prototype,"multiline"),ct([Ce({type:Number})],dt.prototype,"rows"),ct([Ce({type:Boolean})],dt.prototype,"disabled"),ct([Ce({type:Number,attribute:"max-length"})],dt.prototype,"maxLength"),ct([Ce({type:String,attribute:"aria-label"})],dt.prototype,"ariaLabel"),ct([Te(".input")],dt.prototype,"_input");try{customElements.define("glass-form-input",dt)}catch{}var ht=Object.defineProperty,pt=(e,t,i,a)=>{for(var r,s=void 0,o=e.length-1;o>=0;o--)(r=e[o])&&(s=r(t,i,s)||s);return s&&ht(t,i,s),s};class ut extends fe{constructor(){super(...arguments),this.icon="",this.variant="secondary",this.size="md",this.disabled=!1,this.loading=!1,this.ariaLabel=null}static{this.styles=[m`
       :host {
         display: inline-flex;
         box-sizing: border-box;
@@ -1112,7 +1110,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform var(--t-fast);
+        /* Use --t-med for a calmer rotation (matches the legacy
+           .section-chevron timing previously used in the config-panel). */
+        transition: transform var(--t-med);
         transform-origin: center;
       }
       :host([size='sm']) ha-icon { --mdc-icon-size: 0.75rem; }
@@ -1218,6 +1218,7 @@
       }
       :host([variant='inline']) {
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.625rem;
         padding: 0.875rem 1rem;
         border: 1px dashed var(--b2);
@@ -1225,6 +1226,21 @@
         color: var(--t3);
         font-size: var(--fz-sm);
         text-align: left;
+      }
+      :host([variant='inline']) .title {
+        flex: 1;
+        min-width: 0;
+      }
+      /* In inline mode, push action buttons to a new row so they don't
+         get crammed between title and the wrapper's right edge. */
+      :host([variant='inline']) .actions {
+        flex-basis: 100%;
+        margin-top: 0;
+      }
+      /* And collapse the actions container entirely when no slotted
+         children — prevents an empty row from adding spacing. */
+      :host([variant='inline']) .actions:empty {
+        display: none;
       }
 
       .icon-wrap {
@@ -1525,6 +1541,7 @@
       <button
         type="button"
         class="trigger"
+        part="trigger"
         ?disabled=${this.disabled}
         aria-haspopup="listbox"
         aria-expanded=${this._open?"true":"false"}
@@ -1532,14 +1549,15 @@
         @click=${this._toggleOpen}
         @keydown=${this._onKeyDown}
       >
-        ${t?.icon?Z`<ha-icon .icon=${t.icon}></ha-icon>`:this.icon?Z`<ha-icon .icon=${this.icon}></ha-icon>`:null}
-        <span class="label ${t?"":"empty"}">${i}</span>
+        ${t?.icon?Z`<ha-icon .icon=${t.icon}></ha-icon>`:this.icon?Z`<ha-icon .icon=${this.icon}></ha-icon>`:ie}
+        <span class="label ${t?"":"empty"}" part="label">${i}</span>
         <glass-chevron ?open=${this._open} size="sm" tone="muted"></glass-chevron>
       </button>
-      <div class="menu ${this._open?"open":""}" role="listbox">
+      <div class="menu ${this._open?"open":""}" part="menu" role="listbox">
         ${this.searchable?Z`
           <input
             class="dropdown-search"
+            part="search"
             type="text"
             .value=${this._query}
             placeholder=${this.searchPlaceholder}
@@ -1547,16 +1565,17 @@
             @keydown=${this._onKeyDown}
           />
         `:ie}
-        ${0===e.length?Z`<div class="empty">${this.emptyText}</div>`:e.map((e,t)=>Z`
+        ${0===e.length?Z`<div class="empty" part="empty">${this.emptyText}</div>`:e.map((e,t)=>Z`
               <button
                 type="button"
                 role="option"
                 class="item ${e.value===this.value?"selected":""} ${t===this._activeIndex?"active-row":""}"
+                part="item ${e.value===this.value?"item-selected":""}"
                 aria-selected=${e.value===this.value?"true":"false"}
                 @click=${()=>this._selectItem(e.value)}
                 @mouseenter=${()=>{this._activeIndex=t}}
               >
-                ${e.icon?Z`<ha-icon .icon=${e.icon}></ha-icon>`:null}
+                ${e.icon?Z`<ha-icon .icon=${e.icon}></ha-icon>`:ie}
                 <span>${e.label}</span>
               </button>
             `)}

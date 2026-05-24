@@ -65,7 +65,9 @@ export class GlassChevron extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform var(--t-fast);
+        /* Use --t-med for a calmer rotation (matches the legacy
+           .section-chevron timing previously used in the config-panel). */
+        transition: transform var(--t-med);
         transform-origin: center;
       }
       :host([size='sm']) ha-icon { --mdc-icon-size: 0.75rem; }

@@ -623,7 +623,7 @@ export class ConfigRoomDetail extends LitElement {
           .items=${entityItems}
           .value=${currentEntity}
           .label=${currentEntity ? (friendlyName || currentEntity) : t('config.room_button_entity_placeholder')}
-          icon=${entityTriggerIcon}
+          .icon=${entityTriggerIcon ?? ''}
           searchable
           search-placeholder=${t('config.room_button_entity_search')}
           empty-text=${t('config.room_button_entity_empty')}

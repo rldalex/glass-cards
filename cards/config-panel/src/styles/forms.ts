@@ -224,10 +224,10 @@ export const formStyles = css`
         border-radius: var(--radius-md);
         border: 1px solid var(--b1);
       }
-      .presence-mapping-card .presence-mapping-field .dropdown {
+      .presence-mapping-card .presence-mapping-field glass-dropdown {
         margin-bottom: 0;
       }
-      .presence-mapping-card .presence-mapping-field .dropdown-trigger {
+      .presence-mapping-card .presence-mapping-field glass-dropdown::part(trigger) {
         padding: 0.375rem 0.625rem;
         font-size: var(--fz-sm);
       }

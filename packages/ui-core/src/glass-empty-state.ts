@@ -40,6 +40,7 @@ export class GlassEmptyState extends LitElement {
       }
       :host([variant='inline']) {
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.625rem;
         padding: 0.875rem 1rem;
         border: 1px dashed var(--b2);
@@ -47,6 +48,21 @@ export class GlassEmptyState extends LitElement {
         color: var(--t3);
         font-size: var(--fz-sm);
         text-align: left;
+      }
+      :host([variant='inline']) .title {
+        flex: 1;
+        min-width: 0;
+      }
+      /* In inline mode, push action buttons to a new row so they don't
+         get crammed between title and the wrapper's right edge. */
+      :host([variant='inline']) .actions {
+        flex-basis: 100%;
+        margin-top: 0;
+      }
+      /* And collapse the actions container entirely when no slotted
+         children — prevents an empty row from adding spacing. */
+      :host([variant='inline']) .actions:empty {
+        display: none;
       }
 
       .icon-wrap {

@@ -440,6 +440,11 @@ class PrimitivesShowcase extends LitElement {
           title="Aucune caméra configurée"
           variant="inline"
         ></glass-empty-state>
+        <glass-empty-state
+          icon="mdi:wifi-off"
+          title="Spotify déconnecté"
+          variant="inline"
+        ><glass-button size="sm" variant="primary">Reconnecter</glass-button></glass-empty-state>
       </div>
 
       <h2>glass-progress-bar</h2>
@@ -454,7 +459,7 @@ class PrimitivesShowcase extends LitElement {
       </div>
 
       <h2>glass-dropdown</h2>
-      <div class="sub">Pass <code>search-placeholder</code> and <code>empty-text</code> to localise. English defaults so ui-core stays decoupled from i18n.</div>
+      <div class="sub">Pass <code>search-placeholder</code> and <code>empty-text</code> to localise. English defaults so ui-core stays decoupled from i18n. <strong>Theming:</strong> the trigger button is exposed as <code>::part(trigger)</code> (also <code>::part(label)</code>, <code>::part(menu)</code>, <code>::part(search)</code>, <code>::part(empty)</code>, <code>::part(item)</code>, <code>::part(item-selected)</code>) — consumers override styles through CSS shadow parts instead of trying to pierce the shadow DOM.</div>
       <div class="row" style="flex-direction: column; align-items: stretch;">
         <glass-dropdown
           .items=${[

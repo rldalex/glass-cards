@@ -267,6 +267,7 @@ export class GlassDropdown extends LitElement {
       <button
         type="button"
         class="trigger"
+        part="trigger"
         ?disabled=${this.disabled}
         aria-haspopup="listbox"
         aria-expanded=${this._open ? 'true' : 'false'}
@@ -275,14 +276,15 @@ export class GlassDropdown extends LitElement {
         @keydown=${this._onKeyDown}
       >
         ${selected?.icon ? html`<ha-icon .icon=${selected.icon}></ha-icon>`
-          : this.icon ? html`<ha-icon .icon=${this.icon}></ha-icon>` : null}
-        <span class="label ${selected ? '' : 'empty'}">${displayLabel}</span>
+          : this.icon ? html`<ha-icon .icon=${this.icon}></ha-icon>` : nothing}
+        <span class="label ${selected ? '' : 'empty'}" part="label">${displayLabel}</span>
         <glass-chevron ?open=${this._open} size="sm" tone="muted"></glass-chevron>
       </button>
-      <div class="menu ${this._open ? 'open' : ''}" role="listbox">
+      <div class="menu ${this._open ? 'open' : ''}" part="menu" role="listbox">
         ${this.searchable ? html`
           <input
             class="dropdown-search"
+            part="search"
             type="text"
             .value=${this._query}
             placeholder=${this.searchPlaceholder}
@@ -291,17 +293,18 @@ export class GlassDropdown extends LitElement {
           />
         ` : nothing}
         ${filtered.length === 0
-          ? html`<div class="empty">${this.emptyText}</div>`
+          ? html`<div class="empty" part="empty">${this.emptyText}</div>`
           : filtered.map((it, i) => html`
               <button
                 type="button"
                 role="option"
                 class="item ${it.value === this.value ? 'selected' : ''} ${i === this._activeIndex ? 'active-row' : ''}"
+                part="item ${it.value === this.value ? 'item-selected' : ''}"
                 aria-selected=${it.value === this.value ? 'true' : 'false'}
                 @click=${() => this._selectItem(it.value)}
                 @mouseenter=${() => { this._activeIndex = i; }}
               >
-                ${it.icon ? html`<ha-icon .icon=${it.icon}></ha-icon>` : null}
+                ${it.icon ? html`<ha-icon .icon=${it.icon}></ha-icon>` : nothing}
                 <span>${it.label}</span>
               </button>
             `)}
