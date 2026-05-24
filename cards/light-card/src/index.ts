@@ -204,45 +204,6 @@ export class GlassLightCard extends BaseCard {
         color: var(--c-light-glow);
       }
 
-      /* ── Toggle All ── */
-      .toggle-all {
-        position: relative;
-        width: 2.5rem;
-        height: 1.375rem;
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast);
-        padding: 0;
-        outline: none;
-        font-family: inherit;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .toggle-all::after {
-        content: '';
-        position: absolute;
-        top: 0.1875rem;
-        left: 0.1875rem;
-        width: 0.875rem;
-        height: 0.875rem;
-        border-radius: 50%;
-        background: var(--t3);
-        transition:
-          transform var(--t-fast),
-          background var(--t-fast),
-          box-shadow var(--t-fast);
-      }
-      .toggle-all.on {
-        background: rgba(var(--rgb-light-glow), 0.2);
-        border-color: rgba(var(--rgb-light-glow), 0.3);
-      }
-      .toggle-all.on::after {
-        transform: translateX(1.125rem);
-        background: var(--c-light-glow);
-        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.4);
-      }
-
       /* ── Card Body ── */
       .card {
         position: relative;
@@ -307,49 +268,6 @@ export class GlassLightCard extends BaseCard {
           rgba(var(--rgb-white), 0.08) 70%,
           transparent
         );
-      }
-
-      /* ── Icon Button ── */
-      .light-icon-btn {
-        width: var(--tap-lg);
-        height: var(--tap-lg);
-        border-radius: var(--radius-md);
-        background: var(--s2);
-        border: 1px solid var(--b1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        cursor: pointer;
-        padding: 0;
-        outline: none;
-        font-family: inherit;
-        color: var(--t3);
-        transition:
-          color var(--t-fast),
-          background var(--t-fast),
-          border-color var(--t-fast),
-          filter var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .light-icon-btn ha-icon {
-        --mdc-icon-size: var(--icon-md);
-        display: flex; align-items: center; justify-content: center;
-      }
-      .light-icon-btn.on {
-        background: rgba(var(--rgb-light-glow), 0.1);
-        border-color: rgba(var(--rgb-light-glow), 0.15);
-        color: var(--c-light-glow);
-        filter: drop-shadow(0 0 6px rgba(var(--rgb-light-glow), 0.4));
-      }
-      .light-icon-btn.on.rgb {
-        background: var(--light-rgb-bg);
-        border-color: var(--light-rgb-border);
-        color: var(--light-rgb);
-        filter: drop-shadow(0 0 6px var(--light-rgb-glow));
-      }
-      .entity-unavailable .light-icon-btn {
-        border-color: var(--c-alert);
       }
 
       /* ── Expand Button ── */
@@ -480,22 +398,12 @@ export class GlassLightCard extends BaseCard {
         flex-direction: column;
         gap: 0.625rem;
       }
-      /* ── Fold sections + eyebrow (Intensité / Température / Couleur / Effets) ── */
+      /* ── Fold sections (Intensité / Température / Couleur / Effets) ── */
       .ctrl-panel {
         gap: 0.75rem;
       }
       .light-section {
         display: flex; flex-direction: column; gap: 0.4375rem;
-      }
-      .light-eyebrow {
-        display: inline-flex; align-items: center; gap: 0.4375rem;
-        font-size: var(--fz-xxs); font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.8px;
-        color: rgba(var(--rgb-light-glow), 0.65);
-        padding-left: 0.125rem;
-      }
-      .ctrl-panel[data-rgb] .light-eyebrow {
-        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.65));
       }
 
       /* ── Slider ── */
@@ -518,84 +426,10 @@ export class GlassLightCard extends BaseCard {
         align-items: center;
         padding: 0.125rem 0;
       }
-      .cdot {
-        width: 1.625rem;
-        height: 1.625rem;
-        border-radius: 50%;
-        border: 2px solid transparent;
-        cursor: pointer;
-        transition: transform var(--t-fast), border-color var(--t-fast);
-        padding: 0;
-        outline: none;
-        background: none;
-        position: relative;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .cdot::before {
-        content: '';
-        position: absolute;
-        inset: 2px;
-        border-radius: 50%;
-        background: var(--cdot-color);
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .cdot:hover { transform: scale(1.15); }
-        .cdot:active { transform: scale(1.1); }
-      }
-      @media (pointer: coarse) {
-        .cdot:active { animation: bounce 0.3s ease; }
-      }
-      .cdot.active {
-        border-color: var(--light-tint, rgb(var(--rgb-light-glow)));
-        box-shadow: 0 0 0 1px var(--s4),
-                    0 0 10px var(--light-tint-glow, rgba(var(--rgb-light-glow), 0.45));
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .cdot { transition: none; }
-      }
-      /* ── Effect pills ── */
+      /* ── Effect pills row ── */
       .effect-row {
         display: flex; flex-wrap: wrap; gap: 0.375rem;
         padding: 0.125rem 0;
-      }
-      .effect-pill {
-        display: inline-flex; align-items: center; gap: 0.3125rem;
-        height: 1.75rem; padding: 0 0.625rem;
-        border-radius: var(--radius-full);
-        background: var(--s1); border: 1px solid var(--b1);
-        color: var(--t3);
-        font-family: inherit; font-weight: 600;
-        font-size: var(--fz-xs); letter-spacing: 0.4px;
-        cursor: pointer; outline: none;
-        transition: background var(--t-fast), border-color var(--t-fast),
-                    color var(--t-fast), transform var(--t-fast),
-                    box-shadow var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .effect-pill ha-icon {
-        --mdc-icon-size: 0.875rem;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t4);
-      }
-      .effect-pill.active {
-        background: color-mix(in srgb, var(--light-tint, rgb(var(--rgb-light-glow))) 22%, var(--s2));
-        border-color: var(--light-tint, rgb(var(--rgb-light-glow)));
-        color: var(--t1);
-        /* Inset glow stays within the pill — outer glow would be clipped by
-           the fold's overflow: hidden during the open animation. */
-        box-shadow: inset 0 0 12px var(--light-tint-glow, rgba(var(--rgb-light-glow), 0.35));
-      }
-      .effect-pill.active ha-icon { color: var(--light-tint, rgb(var(--rgb-light-glow))); }
-      @media (hover: hover) and (pointer: fine) {
-        .effect-pill:not(.active):hover { background: var(--s2); color: var(--t2); border-color: var(--b2); }
-        .effect-pill:active { transform: scale(0.96); }
-      }
-      @media (pointer: coarse) {
-        .effect-pill:active { animation: bounce 0.3s ease; }
-      }
-      .effect-pill:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: 2px; }
-      @media (prefers-reduced-motion: reduce) {
-        .effect-pill { transition: none; }
       }
       @media (hover: hover) and (pointer: fine) {
         .effect-chip:hover { transform: none; background: var(--s2); }
@@ -668,23 +502,8 @@ export class GlassLightCard extends BaseCard {
         max-width: 18.75rem;
         width: 90vw;
       }
-      /* Close icon top-right, 44×44 hit area via padding */
-      .cp-close-x {
-        position: absolute; top: 0.375rem; right: 0.375rem;
-        width: 2.25rem; height: 2.25rem;
-        border-radius: 50%;
-        background: transparent; border: none;
-        color: var(--t3); cursor: pointer; outline: none;
-        display: flex; align-items: center; justify-content: center;
-        transition: background var(--t-fast), color var(--t-fast);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .cp-close-x ha-icon { --mdc-icon-size: 1.125rem; display: flex; align-items: center; justify-content: center; }
-      @media (hover: hover) and (pointer: fine) {
-        .cp-close-x:hover { background: var(--s2); color: var(--t1); }
-      }
-      .cp-close-x:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.25); outline-offset: -2px; }
-      .cp-close-x:active { transform: scale(0.94); }
+      /* Close icon top-right (positioning only — visual handled by <glass-icon-button>) */
+      .cp-close-x { position: absolute; top: 0.375rem; right: 0.375rem; }
 
       .cp-wheel-wrap {
         position: relative;
@@ -736,11 +555,8 @@ export class GlassLightCard extends BaseCard {
         font-family: monospace; letter-spacing: 0.5px;
       }
 
-      /* Focus-visible ring */
-      .toggle-all:focus-visible,
-      .light-icon-btn:focus-visible,
+      /* Focus-visible ring (legacy non-primitive buttons) */
       .light-expand-btn:focus-visible,
-      .cdot:focus-visible,
       .color-picker-btn:focus-visible {
         outline: 2px solid var(--c-accent);
         outline-offset: 2px;
@@ -1430,18 +1246,14 @@ export class GlassLightCard extends BaseCard {
         ? `--light-rgb:${rgbToHex(info.rgbColor)};--light-rgb-bg:${rgbToRgba(info.rgbColor, 0.1)};--light-rgb-border:${rgbToRgba(info.rgbColor, 0.15)};--light-rgb-glow:${rgbToRgba(info.rgbColor, 0.4)};--light-rgb-sub:${rgbToRgba(info.rgbColor, 0.55)}`
         : '';
 
-    const iconClasses = [
-      'light-icon-btn',
-      info.isOn ? 'on' : '',
-      info.isOn && info.rgbColor ? 'rgb' : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
+    const iconActiveColor = info.isOn && info.rgbColor
+      ? `${info.rgbColor[0]},${info.rgbColor[1]},${info.rgbColor[2]}`
+      : 'light-glow';
 
     const gesture = this._bindGesture({
       onTap: () => this._toggleLight(info.entityId),
       onLongPress: () => this._expandFold(info.entityId, info.isOn, info),
-      exclude: '.light-icon-btn',
+      exclude: 'glass-icon-button',
     });
 
     return html`
@@ -1456,14 +1268,15 @@ export class GlassLightCard extends BaseCard {
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
       >
-        <button
-          class=${iconClasses}
-          style=${rgbStyle}
-          @click=${() => this._toggleLight(info.entityId)}
+        <glass-icon-button
+          .icon=${info.icon}
+          ?active=${info.isOn}
+          ?glow=${info.isOn}
+          ?unavailable=${unavailable}
+          .activeColor=${iconActiveColor}
           aria-label="${t('light.toggle_aria', { name: info.name })}"
-        >
-          <ha-icon .icon=${info.icon}></ha-icon>
-        </button>
+          @click=${() => this._toggleLight(info.entityId)}
+        ></glass-icon-button>
         <button
           class="light-expand-btn"
           aria-label="${info.isOn ? t('light.expand_aria', { name: info.name }) : info.name}"
@@ -1540,19 +1353,19 @@ export class GlassLightCard extends BaseCard {
           <div class="ctrl-panel" ?data-rgb=${isRgb}>
             ${info.type !== 'simple' ? html`
               <div class="light-section">
-                <div class="light-eyebrow"><span>${t('light.section_brightness')}</span></div>
+                <glass-section-title label=${t('light.section_brightness')}></glass-section-title>
                 ${this._renderBrightnessSlider(info, sliderColor)}
               </div>
             ` : nothing}
             ${info.type === 'color_temp' ? html`
               <div class="light-section">
-                <div class="light-eyebrow"><span>${t('light.section_temperature')}</span></div>
+                <glass-section-title label=${t('light.section_temperature')}></glass-section-title>
                 ${this._renderTempSlider(info)}
               </div>
             ` : nothing}
             ${info.type === 'rgb' ? html`
               <div class="light-section">
-                <div class="light-eyebrow"><span>${t('light.section_color')}</span></div>
+                <glass-section-title label=${t('light.section_color')}></glass-section-title>
                 ${this._renderColorRow(info)}
               </div>
             ` : nothing}
@@ -1568,7 +1381,7 @@ export class GlassLightCard extends BaseCard {
     if (chips === nothing) return nothing;
     return html`
       <div class="light-section">
-        <div class="light-eyebrow"><span>${t('light.section_effects')}</span></div>
+        <glass-section-title label=${t('light.section_effects')}></glass-section-title>
         ${chips}
       </div>
     `;
@@ -1581,13 +1394,14 @@ export class GlassLightCard extends BaseCard {
       <div class="color-row">
         ${COLOR_DOTS.map((rgb) => {
           const isActive = info.rgbColor ? hsClose(info.rgbColor, rgb) : false;
+          const hex = rgbToHex(rgb);
           return html`
-            <button
-              class="cdot ${isActive ? 'active' : ''}"
-              style="--cdot-color:${rgbToHex(rgb)}"
+            <glass-color-swatch
+              .color=${hex}
+              ?selected=${isActive}
+              aria-label="${t('light.color_aria', { hex })}"
               @click=${() => { const hs = rgbToHs(rgb); this._setHsColor(info.entityId, hs.h, hs.s); }}
-              aria-label="${t('light.color_aria', { hex: rgbToHex(rgb) })}"
-            ></button>
+            ></glass-color-swatch>
           `;
         })}
         <button
@@ -1613,15 +1427,14 @@ export class GlassLightCard extends BaseCard {
         ${available.map((effect) => {
           const isActive = currentEffect === effect || (!currentEffect && effect === 'off');
           return html`
-            <button
-              class="effect-pill ${isActive ? 'active' : ''}"
-              @click=${() => this._setEffect(info.entityId, effect)}
+            <glass-chip
+              size="sm"
+              active-color="light-glow"
+              ?active=${isActive}
+              .icon=${effectIcon(effect)}
               aria-label="${t(`light.effect_${effect}`)}"
-              aria-pressed=${isActive ? 'true' : 'false'}
-            >
-              <ha-icon .icon=${effectIcon(effect)}></ha-icon>
-              <span>${t(`light.effect_${effect}`)}</span>
-            </button>
+              @click=${() => this._setEffect(info.entityId, effect)}
+            >${t(`light.effect_${effect}`)}</glass-chip>
           `;
         })}
       </div>
@@ -1640,9 +1453,13 @@ export class GlassLightCard extends BaseCard {
         if ((e.target as HTMLElement).classList.contains('color-picker-overlay')) this._closeColorPicker();
       }}>
         <div class="color-picker-dialog" role="dialog" aria-modal="true" aria-label="${t('light.color_picker_title')}">
-          <button class="cp-close-x" @click=${() => this._closeColorPicker()} aria-label="${t('common.close')}">
-            <ha-icon .icon=${'mdi:close'}></ha-icon>
-          </button>
+          <glass-icon-button
+            class="cp-close-x"
+            size="sm"
+            .icon=${'mdi:close'}
+            aria-label="${t('common.close')}"
+            @click=${() => this._closeColorPicker()}
+          ></glass-icon-button>
           <div class="cp-wheel-wrap">
             <canvas
               @mousedown=${(e: MouseEvent) => {
@@ -1818,13 +1635,12 @@ export class GlassLightCard extends BaseCard {
             <span class="card-title">${t('light.dashboard_title')}</span>
             <span class="card-count ${countClass}">${onCount}/${totalLights}</span>
           </div>
-          <button
-            class="toggle-all on"
-            role="switch"
-            aria-checked="true"
-            @click=${() => this._turnAllOff()}
+          <glass-toggle
+            active-color="light-glow"
+            .checked=${true}
             aria-label="${t('light.dashboard_turn_all_off_aria')}"
-          ></button>
+            @glass-toggle-change=${() => this._turnAllOff()}
+          ></glass-toggle>
         </div>
       ` : nothing}
 
@@ -1879,13 +1695,12 @@ export class GlassLightCard extends BaseCard {
             <span class="card-title">${t('light.title')}</span>
             <span class="card-count ${countClass}">${onCount}/${total}</span>
           </div>
-          <button
-            class="toggle-all ${anyOn ? 'on' : ''}"
-            @click=${() => this._toggleAll()}
-            role="switch"
-            aria-checked=${anyOn ? 'true' : 'false'}
+          <glass-toggle
+            active-color="light-glow"
+            .checked=${anyOn}
             aria-label="${anyOn ? t('light.toggle_all_on_aria') : t('light.toggle_all_off_aria')}"
-          ></button>
+            @glass-toggle-change=${() => this._toggleAll()}
+          ></glass-toggle>
         </div>
       ` : nothing}
 
