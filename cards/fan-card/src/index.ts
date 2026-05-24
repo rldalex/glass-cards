@@ -211,46 +211,6 @@ class GlassFanCard extends BaseCard {
     .card-count.none { background: var(--s2); color: var(--t3); }
     .card-count.all  { background: rgba(var(--rgb-accent),0.2); color: var(--c-accent); }
 
-    /* ── Toggle All ── */
-    .toggle-all {
-      position: relative;
-      width: 2.5rem;
-      height: 1.375rem;
-      border-radius: var(--radius-md);
-      background: var(--s2);
-      border: 1px solid var(--b2);
-      cursor: pointer;
-      transition: background var(--t-fast), border-color var(--t-fast);
-      padding: 0;
-      outline: none;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .toggle-all::after {
-      content: '';
-      position: absolute;
-      top: 0.1875rem;
-      left: 0.1875rem;
-      width: 0.875rem;
-      height: 0.875rem;
-      border-radius: 50%;
-      background: var(--t3);
-      transition:
-        transform var(--t-fast),
-        background var(--t-fast),
-        box-shadow var(--t-fast);
-    }
-    .toggle-all.on {
-      background: rgba(var(--rgb-accent), 0.2);
-      border-color: rgba(var(--rgb-accent), 0.3);
-    }
-    .toggle-all.on::after {
-      transform: translateX(1.125rem);
-      background: var(--c-accent);
-      box-shadow: 0 0 8px rgba(var(--rgb-accent), 0.4);
-    }
-    .toggle-all:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
-
     /* ── Card Body ── */
     .fan-card { position: relative; padding: 0.125rem 0.875rem; }
     .card-inner {
@@ -280,39 +240,7 @@ class GlassFanCard extends BaseCard {
       .fan-row:active { animation: bounce 0.3s ease; }
     }
 
-    /* ── Icon Button ── */
-    .fan-icon-btn {
-      width: var(--tap-lg); height: var(--tap-lg); border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b1);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background var(--t-fast), border-color var(--t-fast); cursor: pointer; padding: 0; outline: none;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .fan-icon-btn ha-icon {
-      --mdc-icon-size: var(--icon-md);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3); transition: color var(--t-fast), filter var(--t-fast);
-    }
-    .fan-icon-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .fan-icon-btn:hover { background: var(--s3); border-color: var(--b2); }
-      .fan-icon-btn:hover ha-icon { color: var(--t2); }
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .fan-icon-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .fan-icon-btn:active { animation: bounce 0.3s ease; }
-    }
-    .fan-row.on .fan-icon-btn {
-      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
-    }
-    .fan-row.on .fan-icon-btn ha-icon {
-      color: var(--c-accent); filter: drop-shadow(0 0 6px rgba(var(--rgb-accent),0.4));
-    }
-    .entity-unavailable .fan-icon-btn { border-color: var(--c-alert); }
-
-    /* ── Spinning animation ── */
+    /* ── Spinning animation (applies to the icon inside <glass-icon-button>) ── */
     @keyframes spin-fan {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -321,11 +249,11 @@ class GlassFanCard extends BaseCard {
       from { transform: rotate(360deg); }
       to { transform: rotate(0deg); }
     }
-    .fan-row.on .fan-icon-btn ha-icon.spinning {
+    .fan-row.on glass-icon-button ha-icon.spinning {
       animation: spin-fan var(--spin-duration, 2s) linear infinite;
       will-change: transform;
     }
-    .fan-row.on .fan-icon-btn ha-icon.spinning.reverse {
+    .fan-row.on glass-icon-button ha-icon.spinning.reverse {
       animation: spin-fan-reverse var(--spin-duration, 2s) linear infinite;
       will-change: transform;
     }
@@ -411,16 +339,9 @@ class GlassFanCard extends BaseCard {
       padding: 0.375rem 0 0.25rem;
       display: flex; flex-direction: column; gap: 0.75rem;
     }
-    /* ── Fold sections + eyebrow (Vitesse / Mode / Direction / Oscillation) ── */
+    /* ── Fold sections (Vitesse / Mode / Direction / Oscillation) ── */
     .fan-section {
       display: flex; flex-direction: column; gap: 0.4375rem;
-    }
-    .fan-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4375rem;
-      font-size: var(--fz-xxs); font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: var(--t4);
-      padding-left: 0.125rem;
     }
 
     /* ── Speed steps ── */
@@ -468,32 +389,6 @@ class GlassFanCard extends BaseCard {
 
     /* ── Mode chips ── */
     .mode-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 0.3125rem;
-      padding: 0.3125rem 0.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1);
-      font-family: inherit; font-size: var(--fz-base); font-weight: 600;
-      color: var(--t3); cursor: pointer; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-      outline: none; -webkit-tap-highlight-color: transparent;
-    }
-    .chip ha-icon {
-      --mdc-icon-size: var(--icon-sm);
-      display: flex; align-items: center; justify-content: center;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:hover { background: var(--s3); color: var(--t2); border-color: var(--b3); }
-    }
-    .chip:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .chip:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .chip:active { animation: bounce 0.3s ease; }
-    }
-    .chip.active {
-      border-color: rgba(var(--rgb-accent),0.15); background: rgba(var(--rgb-accent),0.1);
-      color: rgba(var(--rgb-accent),0.8);
-    }
 
     /* ── Direction toggle ── */
     .direction-row { display: flex; align-items: center; gap: 0.625rem; }
@@ -506,33 +401,7 @@ class GlassFanCard extends BaseCard {
       display: flex; align-items: center; justify-content: center;
       opacity: 0.6;
     }
-    .direction-btns {
-      display: flex; gap: 0; border-radius: var(--radius-md);
-      border: 1px solid var(--b2); background: var(--s1); overflow: hidden;
-    }
-    .dir-btn {
-      width: 2.25rem; height: 1.75rem; display: flex;
-      align-items: center; justify-content: center;
-      background: transparent; border: none; color: var(--t3);
-      cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .dir-btn ha-icon {
-      --mdc-icon-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .dir-btn:hover { background: var(--s3); color: var(--t2); }
-    }
-    .dir-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .dir-btn:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .dir-btn:active { animation: bounce 0.3s ease; }
-    }
-    .dir-btn.active { background: rgba(var(--rgb-accent),0.1); color: var(--c-accent); }
-    .dir-btn + .dir-btn { border-left: 1px solid var(--b1); }
+    .direction-btns { display: flex; gap: 0.25rem; }
 
     /* ── Oscillation toggle ── */
     .osc-row { display: flex; align-items: center; gap: 0.625rem; }
@@ -545,24 +414,6 @@ class GlassFanCard extends BaseCard {
       display: flex; align-items: center; justify-content: center;
       opacity: 0.6;
     }
-    .toggle-sm {
-      position: relative; width: 2.375rem; height: 1.25rem; border-radius: var(--radius-md);
-      background: var(--s2); border: 1px solid var(--b2);
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast);
-      padding: 0; outline: none; font-family: inherit; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .toggle-sm::after {
-      content: ''; position: absolute; top: 0.125rem; left: 0.125rem;
-      width: 0.875rem; height: 0.875rem; border-radius: 50%;
-      background: var(--t3); transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
-    }
-    .toggle-sm.on { background: rgba(var(--rgb-accent),0.2); border-color: rgba(var(--rgb-accent),0.3); }
-    .toggle-sm.on::after {
-      transform: translateX(18px); background: var(--c-accent);
-      box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
-    }
-    .toggle-sm:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; }
 
     /* ── Ceiling light row ── */
     .ceiling-light-row {
@@ -1136,13 +987,12 @@ class GlassFanCard extends BaseCard {
           <span class="card-title">${t('fan.title')}</span>
           <span class="card-count ${countClass}">${onCount}/${total}</span>
         </div>
-        <button
-          class="toggle-all ${anyOn ? 'on' : ''}"
-          @click=${() => this._toggleAll()}
+        <glass-toggle
+          active-color="cool"
+          .checked=${anyOn}
           aria-label=${anyOn ? t('fan.toggle_all_on_aria') : t('fan.toggle_all_off_aria')}
-          role="switch"
-          aria-checked=${anyOn ? 'true' : 'false'}
-        ></button>
+          @glass-toggle-change=${() => this._toggleAll()}
+        ></glass-toggle>
       </div>
     `;
   }
@@ -1229,7 +1079,7 @@ class GlassFanCard extends BaseCard {
       onTap: () => this._toggleFan(fan),
       // Long-press expands controls only when the fan actually has some.
       onLongPress: hasControls ? () => this._toggleExpand(fan) : undefined,
-      exclude: '.fan-icon-btn',
+      exclude: 'glass-icon-button',
     });
 
     return html`
@@ -1241,17 +1091,20 @@ class GlassFanCard extends BaseCard {
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
       >
-        <button
-          class="fan-icon-btn"
-          @click=${(e: Event) => this._toggleFan(fan, e)}
+        <glass-icon-button
+          ?active=${fan.isOn}
+          ?glow=${fan.isOn}
+          ?unavailable=${unavailable}
+          active-color="cool"
           aria-label=${t('fan.toggle_aria', { name: fan.name })}
+          @click=${(e: Event) => this._toggleFan(fan, e)}
         >
           <ha-icon
             .icon=${fan.icon}
             class="${fan.isOn ? 'spinning' : ''} ${fan.isOn && fan.direction === 'reverse' ? 'reverse' : ''}"
             style="${fan.isOn ? `--spin-duration:${spinDuration(fan.percentage)}` : ''}"
           ></ha-icon>
-        </button>
+        </glass-icon-button>
         <button
           class="fan-expand-btn"
           aria-expanded=${hasControls && isExpanded ? 'true' : 'false'}
@@ -1306,7 +1159,7 @@ class GlassFanCard extends BaseCard {
       <div class="ctrl-panel">
         ${hasSpeed ? html`
           <div class="fan-section">
-            <div class="fan-eyebrow"><span>${t('fan.section_speed')}</span></div>
+            <glass-section-title label=${t('fan.section_speed')}></glass-section-title>
             <div class="speed-steps">
               ${Array.from({ length: fan.speedCount }, (_, i) => {
                 const step = i + 1;
@@ -1342,17 +1195,17 @@ class GlassFanCard extends BaseCard {
 
         ${hasPreset ? html`
           <div class="fan-section">
-            <div class="fan-eyebrow"><span>${t('fan.section_mode')}</span></div>
+            <glass-section-title label=${t('fan.section_mode')}></glass-section-title>
             <div class="mode-row">
               ${fan.presetModes.map((mode) => html`
-                <button
-                  class="chip ${fan.presetMode === mode ? 'active' : ''}"
-                  @click=${(e: Event) => this._setPresetMode(fan, mode, e)}
+                <glass-chip
+                  size="sm"
+                  active-color="cool"
+                  ?active=${fan.presetMode === mode}
+                  .icon=${PRESET_MODE_ICONS[mode.toLowerCase()] || 'mdi:cog'}
                   aria-label=${presetLabel(mode)}
-                >
-                  <ha-icon .icon=${PRESET_MODE_ICONS[mode.toLowerCase()] || 'mdi:cog'}></ha-icon>
-                  <span>${presetLabel(mode)}</span>
-                </button>
+                  @click=${(e: Event) => this._setPresetMode(fan, mode, e)}
+                >${presetLabel(mode)}</glass-chip>
               `)}
             </div>
           </div>
@@ -1360,27 +1213,29 @@ class GlassFanCard extends BaseCard {
 
         ${hasDirection ? html`
           <div class="fan-section">
-            <div class="fan-eyebrow"><span>${t('fan.section_direction')}</span></div>
+            <glass-section-title label=${t('fan.section_direction')}></glass-section-title>
             <div class="direction-row">
               <div class="direction-label">
                 <ha-icon .icon=${'mdi:rotate-3d-variant'}></ha-icon>
                 ${t('fan.direction')}
               </div>
               <div class="direction-btns">
-                <button
-                  class="dir-btn ${fan.direction === 'forward' ? 'active' : ''}"
-                  @click=${(e: Event) => this._setDirection(fan, 'forward', e)}
+                <glass-icon-button
+                  size="sm"
+                  active-color="cool"
+                  ?active=${fan.direction === 'forward'}
+                  .icon=${'mdi:rotate-right'}
                   aria-label=${t('fan.direction_forward_aria')}
-                >
-                  <ha-icon .icon=${'mdi:rotate-right'}></ha-icon>
-                </button>
-                <button
-                  class="dir-btn ${fan.direction === 'reverse' ? 'active' : ''}"
-                  @click=${(e: Event) => this._setDirection(fan, 'reverse', e)}
+                  @click=${(e: Event) => this._setDirection(fan, 'forward', e)}
+                ></glass-icon-button>
+                <glass-icon-button
+                  size="sm"
+                  active-color="cool"
+                  ?active=${fan.direction === 'reverse'}
+                  .icon=${'mdi:rotate-left'}
                   aria-label=${t('fan.direction_reverse_aria')}
-                >
-                  <ha-icon .icon=${'mdi:rotate-left'}></ha-icon>
-                </button>
+                  @click=${(e: Event) => this._setDirection(fan, 'reverse', e)}
+                ></glass-icon-button>
               </div>
             </div>
           </div>
@@ -1388,19 +1243,18 @@ class GlassFanCard extends BaseCard {
 
         ${hasOscillate ? html`
           <div class="fan-section">
-            <div class="fan-eyebrow"><span>${t('fan.section_oscillation')}</span></div>
+            <glass-section-title label=${t('fan.section_oscillation')}></glass-section-title>
             <div class="osc-row">
               <div class="osc-label">
                 <ha-icon .icon=${'mdi:arrow-left-right'}></ha-icon>
                 ${t('fan.oscillation')}
               </div>
-              <button
-                class="toggle-sm ${fan.oscillating ? 'on' : ''}"
-                @click=${(e: Event) => this._toggleOscillation(fan, e)}
-                role="switch"
-                aria-checked=${fan.oscillating ? 'true' : 'false'}
+              <glass-toggle
+                active-color="cool"
+                .checked=${fan.oscillating}
                 aria-label=${t('fan.oscillation_aria')}
-              ></button>
+                @glass-toggle-change=${(e: Event) => this._toggleOscillation(fan, e)}
+              ></glass-toggle>
             </div>
           </div>
         ` : nothing}
@@ -1428,13 +1282,12 @@ class GlassFanCard extends BaseCard {
           <ha-icon .icon=${'mdi:lightbulb-outline'}></ha-icon>
           ${t('fan.ceiling_light')}
         </div>
-        <button
-          class="toggle-sm ${lightIsOn ? 'on' : ''}"
-          @click=${(e: Event) => this._toggleCeilingLight(fan, e)}
-          role="switch"
-          aria-checked=${lightIsOn ? 'true' : 'false'}
+        <glass-toggle
+          active-color="light-glow"
+          .checked=${lightIsOn}
           aria-label=${t('fan.ceiling_light_aria')}
-        ></button>
+          @glass-toggle-change=${(e: Event) => this._toggleCeilingLight(fan, e)}
+        ></glass-toggle>
       </div>
       ${lightIsOn ? html`
         <div class="slider-wrap">
