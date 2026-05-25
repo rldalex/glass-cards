@@ -13,6 +13,10 @@ interface RoomButton {
   data?: Record<string, unknown>;
 }
 
+/** Stable empty `data` reference for action buttons without service_data,
+ *  so Lit's identity check doesn't re-fire `updated()` every hass tick. */
+const EMPTY_BUTTON_DATA: Record<string, unknown> = {};
+
 interface RoomConfig {
   icon?: string | null;
   card_order?: string[];
@@ -837,7 +841,7 @@ export class GlassRoomPopup extends LitElement {
           size="sm"
           .hass=${this.hass}
           .service=${btn.service}
-          .data=${(btn.data && typeof btn.data === 'object' && !Array.isArray(btn.data)) ? btn.data : {}}
+          .data=${btn.data ?? EMPTY_BUTTON_DATA}
           .label=${btn.label ?? ''}
           .icon=${btn.icon ?? ''}
           .iconCleared=${btn.icon === ''}
