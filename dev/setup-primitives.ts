@@ -95,6 +95,11 @@ class PrimitivesShowcase extends LitElement {
         outline-offset: 0;
         position: relative;
       }
+      :host([inspector]) glass-action-button {
+        outline: 1px solid rgba(56, 189, 248, 0.7);
+        outline-offset: 0;
+        position: relative;
+      }
       :host([inspector]) glass-icon-button[size='xs']::after,
       :host([inspector]) glass-icon-button[size='sm']::after,
       :host([inspector]) glass-chip[size='sm']::after,
@@ -103,6 +108,19 @@ class PrimitivesShowcase extends LitElement {
       :host([inspector]) glass-pill[interactive]::after,
       :host([inspector]) glass-chevron[interactive]::after,
       :host([inspector]) glass-button[size='sm']::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
+        transform: translate(-50%, -50%);
+        border: 1px dashed rgba(248, 113, 113, 0.7);
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 999;
+      }
+      :host([inspector]) glass-action-button::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -138,6 +156,17 @@ class PrimitivesShowcase extends LitElement {
     { value: 'cuisine', label: 'Cuisine' },
   ];
   private _swatches = ['#fbbf24', '#f87171', '#60a5fa', '#4ade80', '#a78bfa', '#f97316', '#ffffff'];
+  private _mockHass = {
+    states: {
+      'light.salon':              { state: 'off',  attributes: { friendly_name: 'Salon' } },
+      'light.cuisine':            { state: 'on',   attributes: { friendly_name: 'Cuisine' } },
+      'climate.salon':            { state: 'heat', attributes: { friendly_name: 'Climat Salon' } },
+      'cover.chambre':            { state: 'open', attributes: { friendly_name: 'Volet chambre' } },
+      'script.morning_routine':   { state: 'off',  attributes: { friendly_name: 'Routine matin' } },
+      'vacuum.roborock':          { state: 'unavailable', attributes: { friendly_name: 'Roborock' } },
+    },
+    callService: async (_d: string, _s: string, _data?: Record<string, unknown>) => { /* showcase no-op */ },
+  };
 
   protected render() {
     return html`
@@ -511,6 +540,63 @@ class PrimitivesShowcase extends LitElement {
             <glass-toggle slot="end" checked aria-label="lamp"></glass-toggle>
           </glass-compact-bar>
         </div>
+      </div>
+
+      <h2>glass-action-button</h2>
+      <div class="sub">
+        Single-tap action button. Reflects entity ON/OFF state for togglable
+        domains (light/switch/cover/...) with the domain colour. One-shot
+        domains (script/scene/button) render at fixed mid intensity. No hover.
+      </div>
+      <div class="row">
+        <span class="label">light off</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="light.toggle"
+          .data=${{ entity_id: 'light.salon' }}
+          label="Salon"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">light on (glow)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="light.toggle"
+          .data=${{ entity_id: 'light.cuisine' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">climate on</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="climate.toggle"
+          .data=${{ entity_id: 'climate.salon' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">cover open</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="cover.toggle"
+          .data=${{ entity_id: 'cover.chambre' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">script (one-shot)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="script.morning_routine"
+          .data=${{ entity_id: 'script.morning_routine' }}
+          label="Routine matin"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">unavailable</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="vacuum.start"
+          .data=${{ entity_id: 'vacuum.roborock' }}
+        ></glass-action-button>
       </div>
     `;
   }

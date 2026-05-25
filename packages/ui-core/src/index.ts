@@ -644,6 +644,20 @@ export const DOMAIN_COLORS: Record<string, DomainColor> = {
   weather:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
   calendar: { cssVar: '#4ade80',  rgb: '74,222,128' },
   vacuum:   { cssVar: '#60a5fa',  rgb: '96,165,250' },
+  switch:        { cssVar: '#818cf8', rgb: '129,140,248' },
+  lock:          { cssVar: '#a78bfa', rgb: '167,139,250' },
+  humidifier:    { cssVar: '#60a5fa', rgb: '96,165,250' },
+  valve:         { cssVar: '#a78bfa', rgb: '167,139,250' },
+  siren:         { cssVar: '#f87171', rgb: '248,113,113' },
+  input_boolean: { cssVar: '#818cf8', rgb: '129,140,248' },
+  water_heater:  { cssVar: '#f97316', rgb: '249,115,22' },
+  scene:         { cssVar: '#a78bfa', rgb: '167,139,250' },
+  script:        { cssVar: '#818cf8', rgb: '129,140,248' },
+  button:        { cssVar: '#818cf8', rgb: '129,140,248' },
+  input_button:  { cssVar: '#818cf8', rgb: '129,140,248' },
+  automation:    { cssVar: '#4ade80', rgb: '74,222,128' },
+  remote:        { cssVar: '#818cf8', rgb: '129,140,248' },
+  lawn_mower:    { cssVar: '#4ade80', rgb: '74,222,128' },
 };
 
 // — Responsive system —
@@ -705,6 +719,7 @@ import './glass-drag-handle';
 import './glass-empty-state';
 import './glass-progress-bar';
 import './glass-dropdown';
+import './glass-action-button';
 
 export { GlassSlider } from './glass-slider';
 export { GlassIconButton } from './glass-icon-button';
@@ -726,6 +741,7 @@ export { GlassDragHandle } from './glass-drag-handle';
 export { GlassEmptyState } from './glass-empty-state';
 export { GlassProgressBar } from './glass-progress-bar';
 export { GlassDropdown, type GlassDropdownItem } from './glass-dropdown';
+export { GlassActionButton } from './glass-action-button';
 // motionMixin is exported above the imports — re-export for clarity not needed,
 // but ensure consumers can import { motionMixin } alongside.
 
