@@ -25,31 +25,59 @@ const DOMAIN_ICONS: Record<string, string> = {
   script: 'mdi:script-text',
   automation: 'mdi:robot',
   input_boolean: 'mdi:toggle-switch',
+  input_button: 'mdi:gesture-tap-button',
   input_select: 'mdi:form-dropdown',
   button: 'mdi:gesture-tap-button',
   lock: 'mdi:lock',
   camera: 'mdi:cctv',
   alarm_control_panel: 'mdi:shield-home',
+  remote: 'mdi:remote',
+  humidifier: 'mdi:air-humidifier',
+  water_heater: 'mdi:water-boiler',
+  siren: 'mdi:bullhorn',
+  valve: 'mdi:valve',
+  lawn_mower: 'mdi:robot-mower',
 };
 
-/** Default service suggestion per HA domain — pre-fills the service field on entity pick. */
-const DOMAIN_DEFAULT_SERVICE: Record<string, string> = {
-  light: 'light.toggle',
-  switch: 'switch.toggle',
-  vacuum: 'vacuum.start',
-  cover: 'cover.toggle',
-  climate: 'climate.turn_on',
-  fan: 'fan.toggle',
-  media_player: 'media_player.media_play_pause',
-  scene: 'scene.turn_on',
-  script: 'script.turn_on',
-  automation: 'automation.trigger',
-  input_boolean: 'input_boolean.toggle',
-  button: 'button.press',
-  lock: 'lock.lock',
-  camera: 'camera.turn_on',
-  alarm_control_panel: 'alarm_control_panel.alarm_arm_home',
-};
+/**
+ * Pick a sensible default service for any HA domain by scanning what the
+ * domain actually exposes. Priority list covers the common "fire once with
+ * no parameters" actions, in order of usefulness for a single-tap button:
+ *   - toggle (light, switch, fan, cover, remote, automation, input_boolean…)
+ *   - turn_on (climate, camera, script, scene, water_heater…)
+ *   - turn_off (paired domains that don't have toggle)
+ *   - press (button, input_button)
+ *   - start (vacuum, lawn_mower, timer)
+ *   - trigger (automation alt, script alt)
+ *   - lock (lock domain)
+ *   - alarm_arm_home (alarm_control_panel)
+ *   - open / close (valve alt)
+ *
+ * Falls back to the first service the domain exposes — at worst the user
+ * picks something else manually, but the button is never wired to a
+ * destructive default like `delete_command`.
+ */
+const SERVICE_PRIORITY = [
+  'toggle', 'turn_on', 'turn_off', 'press', 'start',
+  'trigger', 'lock', 'alarm_arm_home', 'open', 'close',
+];
+
+function pickDefaultServiceForDomain(
+  domain: string,
+  services: Record<string, unknown> | undefined,
+): string {
+  if (!domain) return '';
+  const available = services ? Object.keys(services) : [];
+  if (available.length === 0) return '';
+  for (const action of SERVICE_PRIORITY) {
+    if (available.includes(action)) return `${domain}.${action}`;
+  }
+  // Skip destructive/parameterised actions if a safer one is later in the
+  // alphabet (e.g. avoid `delete_command` when `send_command` exists).
+  const SKIP_FIRST = ['delete_command', 'learn_command'];
+  const safe = available.find((s) => !SKIP_FIRST.includes(s));
+  return `${domain}.${safe ?? available[0]}`;
+}
 
 interface SectionDef {
   id: string;
@@ -607,7 +635,8 @@ export class ConfigRoomDetail extends LitElement {
     const triggerEntityIcon = entityState?.attributes?.icon as string | undefined;
     const entityTriggerIcon = triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline';
     const serviceFallback = entityDomain
-      ? `${entityDomain}.${DOMAIN_DEFAULT_SERVICE[entityDomain]?.split('.')[1] ?? 'toggle'}`
+      ? pickDefaultServiceForDomain(entityDomain, this.hass?.services?.[entityDomain])
+        || `${entityDomain}.toggle`
       : t('config.room_button_service_disabled');
 
     return html`
@@ -868,23 +897,12 @@ export class ConfigRoomDetail extends LitElement {
     if (!domain) return;
     const state = this.hass?.states?.[entityId];
     const friendlyName = (state?.attributes?.friendly_name as string) || '';
-    // Pick a real service for the domain:
-    // 1. If hass.services has the domain AND our DOMAIN_DEFAULT_SERVICE entry exists there → use it.
-    // 2. Else if hass.services has the domain → use first service.
-    // 3. Else (hass.services unavailable / domain missing) → trust DOMAIN_DEFAULT_SERVICE map (curated common services).
-    // 4. Else empty (user picks manually).
-    const domainServices = this.hass?.services?.[domain] ? Object.keys(this.hass.services[domain]) : [];
-    const defaultFromMap = DOMAIN_DEFAULT_SERVICE[domain];
-    let defaultServiceName = '';
-    if (this.hass?.services?.[domain]) {
-      if (defaultFromMap && domainServices.includes(defaultFromMap.split('.')[1])) {
-        defaultServiceName = defaultFromMap;
-      } else if (domainServices[0]) {
-        defaultServiceName = `${domain}.${domainServices[0]}`;
-      }
-    } else if (defaultFromMap) {
-      defaultServiceName = defaultFromMap;
-    }
+    // Pick a sensible default service from whatever the domain actually
+    // exposes — works for any HA domain (no hardcoded per-domain list).
+    const defaultServiceName = pickDefaultServiceForDomain(
+      domain,
+      this.hass?.services?.[domain],
+    );
 
     this._buttons = this._buttons.map((b, i) => {
       if (i !== idx) return b;
@@ -905,9 +923,13 @@ export class ConfigRoomDetail extends LitElement {
         } catch { /* keep minimal */ }
       }
 
-      // Autofill icon/label only if empty. Service: keep if domain matches, else use real service or empty.
+      // Autofill icon/label only if empty. The entity's own `icon` attribute
+      // is HA's standard hint and works for any domain (the curated
+      // DOMAIN_ICONS map is just a fallback for entities that don't expose
+      // one). Service: keep if domain matches, else use real service or empty.
+      const entityIcon = state?.attributes?.icon as string | undefined;
       return {
-        icon: b.icon || DOMAIN_ICONS[domain] || '',
+        icon: b.icon || entityIcon || DOMAIN_ICONS[domain] || '',
         label: b.label || friendlyName,
         service: keepService ? b.service : defaultServiceName,
         data_json: JSON.stringify(nextData, null, 2),

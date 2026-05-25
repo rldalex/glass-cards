@@ -839,8 +839,12 @@ export class GlassRoomPopup extends LitElement {
         light: 'mdi:lightbulb', switch: 'mdi:toggle-switch', vacuum: 'mdi:robot-vacuum-variant',
         cover: 'mdi:window-shutter', climate: 'mdi:thermostat', fan: 'mdi:fan',
         media_player: 'mdi:speaker', scene: 'mdi:palette', script: 'mdi:script-text',
-        automation: 'mdi:robot', input_boolean: 'mdi:toggle-switch', button: 'mdi:gesture-tap-button',
-        lock: 'mdi:lock', camera: 'mdi:cctv', notify: 'mdi:bell-outline', homeassistant: 'mdi:home',
+        automation: 'mdi:robot', input_boolean: 'mdi:toggle-switch', input_button: 'mdi:gesture-tap-button',
+        button: 'mdi:gesture-tap-button', lock: 'mdi:lock', camera: 'mdi:cctv',
+        notify: 'mdi:bell-outline', homeassistant: 'mdi:home',
+        remote: 'mdi:remote', humidifier: 'mdi:air-humidifier',
+        water_heater: 'mdi:water-boiler', siren: 'mdi:bullhorn',
+        valve: 'mdi:valve', lawn_mower: 'mdi:robot-mower',
       };
       return map[entityDomain] || map[service.split('.')[0]] || 'mdi:gesture-tap-button';
     };
@@ -852,13 +856,15 @@ export class GlassRoomPopup extends LitElement {
         const entityFriendly = (entityState?.attributes?.friendly_name as string) || '';
         // btn.icon === '' is the explicit "Aucune icône" pick. Preserve that intent for
         // label-bearing buttons (label-only render). Icon-only buttons still need a glyph
-        // to be visible, so they fall back regardless.
+        // to be visible, so they fall back to the entity's own HA icon hint (works for any
+        // domain) before the curated domain map's generic icon.
         const resolvedLabel = btn.label;
         const hasLabel = !!resolvedLabel;
         const userClearedIcon = btn.icon === '';
+        const entityIcon = (entityState?.attributes?.icon as string | undefined) ?? '';
         const resolvedIcon = hasLabel && userClearedIcon
           ? ''
-          : (btn.icon || fallbackIcon(btn.service, entityDomain));
+          : (btn.icon || entityIcon || fallbackIcon(btn.service, entityDomain));
         const flashing = this._flashingBtnIdx === idx;
         // Prefer explicit label, then entity friendly_name. Never expose raw MDI slug or service id to SR.
         const aria = resolvedLabel || entityFriendly || (entityDomain ? `${entityDomain} action` : 'Action');
