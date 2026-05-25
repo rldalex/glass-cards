@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing, type CSSResult, type TemplateResult } from 'lit';
+import { LitElement, html, css, nothing, type CSSResult, type TemplateResult, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { motionMixin } from './motion-mixin';
 import { DOMAIN_COLORS } from './domain-colors';
@@ -62,11 +62,29 @@ export class GlassActionButton extends LitElement {
   @state() private _phase: 'idle' | 'pending' | 'flash-success' | 'flash-error' = 'idle';
   private _pendingTimer: ReturnType<typeof setTimeout> | null = null;
   private _flashTimer: ReturnType<typeof setTimeout> | null = null;
+  private _stateAtTap: string | null = null;
 
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
     if (this._flashTimer) { clearTimeout(this._flashTimer); this._flashTimer = null; }
+  }
+
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    // Only resolve if we're waiting AND a hass tick brought us a different state
+    // for the target entity than the one we captured at tap time. This is the
+    // honest signal for togglable entities. NEVER touch _phase based on
+    // changedProps.has('hass') alone — that would wipe pending state every
+    // hass tick. See feedback_hass_tick_resets memory.
+    if (this._phase !== 'pending') return;
+    if (!changedProps.has('hass') || !this.hass) return;
+    const entityId = this._resolveEntityId();
+    if (!entityId) return;
+    const currentState = this.hass.states[entityId]?.state ?? null;
+    if (currentState !== null && currentState !== this._stateAtTap) {
+      this._resolveSuccess('state-changed');
+    }
   }
 
   private _resolveDomain(): string {
@@ -177,6 +195,9 @@ export class GlassActionButton extends LitElement {
       bubbles: true, composed: true,
     }));
 
+    // Snapshot the entity state at tap time so updated() below can detect
+    // when HA echoes the change back and resolve early.
+    this._stateAtTap = entityId ? (hass.states[entityId]?.state ?? null) : null;
     this._phase = 'pending';
 
     // 1.5s safety net — one-shot services (script.turn_on) and services
@@ -197,8 +218,13 @@ export class GlassActionButton extends LitElement {
       detail: { success: true, reason },
       bubbles: true, composed: true,
     }));
-    // Flash phase added in Task 3.
-    this._phase = 'idle';
+    this._phase = 'flash-success';
+    this._stateAtTap = null;
+    if (this._flashTimer) clearTimeout(this._flashTimer);
+    this._flashTimer = setTimeout(() => {
+      this._phase = 'idle';
+      this._flashTimer = null;
+    }, 200);
   }
 
   private _resolveError(): void {
@@ -207,8 +233,13 @@ export class GlassActionButton extends LitElement {
       detail: { success: false, reason: 'error' },
       bubbles: true, composed: true,
     }));
-    // Flash phase added in Task 3.
-    this._phase = 'idle';
+    this._phase = 'flash-error';
+    this._stateAtTap = null;
+    if (this._flashTimer) clearTimeout(this._flashTimer);
+    this._flashTimer = setTimeout(() => {
+      this._phase = 'idle';
+      this._flashTimer = null;
+    }, 200);
   }
 
   static styles: CSSResult[] = [
@@ -306,6 +337,16 @@ export class GlassActionButton extends LitElement {
       }
       :host([size='md']) .spinner { width: 1.25rem; height: 1.25rem; border-width: 3px; }
       @keyframes glass-action-spin { to { transform: rotate(360deg); } }
+
+      /* flash phases — 200ms confirmation pulse after pending resolves. */
+      button[data-phase='flash-success'] {
+        background: rgba(var(--rgb-success), 0.25);
+        border-color: var(--c-success);
+      }
+      button[data-phase='flash-error'] {
+        background: rgba(var(--rgb-alert), 0.25);
+        border-color: var(--c-alert);
+      }
     `,
   ];
 }

@@ -165,7 +165,30 @@ class PrimitivesShowcase extends LitElement {
       'script.morning_routine':   { state: 'off',  attributes: { friendly_name: 'Routine matin' } },
       'vacuum.roborock':          { state: 'unavailable', attributes: { friendly_name: 'Roborock' } },
     },
-    callService: async (_d: string, _s: string, _data?: Record<string, unknown>) => { /* showcase no-op */ },
+    callService: async (domain: string, service: string, data?: Record<string, unknown>) => {
+      // Mock toggle/turn_on/turn_off semantics so the showcase can demo the
+      // pending → state-changed resolution path. Mutate after a 300ms simulated
+      // round trip so we can SEE the spinner before the flash.
+      const entityId = typeof data?.entity_id === 'string' ? data.entity_id : '';
+      if (!entityId) return;
+      setTimeout(() => {
+        const cur = this._mockHass.states[entityId as keyof typeof this._mockHass.states];
+        if (!cur) return;
+        const next = service === 'toggle'
+          ? (cur.state === 'on' || cur.state === 'open' || cur.state === 'heat' ? 'off' : 'on')
+          : service === 'turn_on' ? 'on'
+          : service === 'turn_off' ? 'off'
+          : cur.state;
+        if (next === cur.state) return;
+        // Spread to trigger Lit's change detection on the .hass property.
+        (this._mockHass as { states: Record<string, { state: string; attributes: Record<string, unknown> }> }).states = {
+          ...this._mockHass.states,
+          [entityId]: { ...cur, state: next },
+        };
+        this.requestUpdate();
+      }, 300);
+      void domain;
+    },
   };
 
   protected render() {
