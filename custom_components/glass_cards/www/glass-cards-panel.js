@@ -7777,7 +7777,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${oi("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${oi("config.title")}</span>
-          <span class="page-subtitle">${oi("config.brand")} <span class="page-version">v${"0.0.226"}</span></span>
+          <span class="page-subtitle">${oi("config.brand")} <span class="page-version">v${"0.0.227"}</span></span>
         </div>
 
         <div class="glass config-panel">
