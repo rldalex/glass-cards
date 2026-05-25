@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing, type CSSResult, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { motionMixin } from './motion-mixin';
-import { DOMAIN_COLORS } from './index';
+import { DOMAIN_COLORS } from './domain-colors';
 
 /**
  * Minimal Home Assistant surface this primitive consumes. We avoid importing
@@ -79,10 +79,6 @@ export class GlassActionButton extends LitElement {
     return '';
   }
 
-  private _isToggable(domain: string): boolean {
-    return TOGGABLE_DOMAINS.has(domain);
-  }
-
   /** Map entity state to "is this on?" per domain. Returns null if not applicable. */
   private _isEntityOn(domain: string, state: string | undefined): boolean | null {
     if (!state || state === 'unavailable' || state === 'unknown') return null;
@@ -124,9 +120,9 @@ export class GlassActionButton extends LitElement {
     if (!domain) return nothing;
     const entityId = this._resolveEntityId();
     const entityState = entityId ? this.hass?.states?.[entityId] : undefined;
-    const isToggable = this._isToggable(domain);
+    const isToggable = TOGGABLE_DOMAINS.has(domain);
     const onOff = isToggable ? this._isEntityOn(domain, entityState?.state) : null;
-    const unavailable = !!entityId && entityState && (entityState.state === 'unavailable' || entityState.state === 'unknown');
+    const unavailable = !!(entityId && entityState && (entityState.state === 'unavailable' || entityState.state === 'unknown'));
     const rgb = this._resolveDomainRgb(domain);
     const iconName = unavailable ? 'mdi:alert-circle-outline' : this._resolveIcon(domain, entityState);
     const friendlyName = (entityState?.attributes?.friendly_name as string) || '';
