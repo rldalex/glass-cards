@@ -58,8 +58,6 @@ export class GlassRoomPopup extends LitElement {
   private _backend?: BackendService;
   private _busCleanups: (() => void)[] = [];
   @state() private _swipeClass = '';
-  @state() private _flashingBtnIdx: number | null = null;
-  private _flashingTimer: ReturnType<typeof setTimeout> | null = null;
   private _swipeAnimating = false;
   private _swipeAnimTimer?: ReturnType<typeof setTimeout>;
   private _currentRoomIndex?: number;
@@ -252,22 +250,9 @@ export class GlassRoomPopup extends LitElement {
         font-size: var(--fz-sm);
         font-style: italic;
       }
-      /* Cap labelled room-action buttons so the room name keeps space. */
-      glass-button.room-action-btn { max-width: 8rem; }
-      /* Match the 32px height of the icon-only siblings (glass-icon-button
-         size=sm) so the header reads as a single compact action row. */
-      glass-button.room-action-btn::part(button) {
-        min-height: 2rem;
-        padding: 0 0.625rem;
-      }
-      glass-button.room-action-btn.flashing,
-      glass-icon-button.room-action-btn.flashing {
-        animation: room-btn-flash 0.4s ease;
-      }
-      @keyframes room-btn-flash {
-        0%, 100% { background: var(--s2); }
-        50%      { background: rgba(var(--rgb-accent), 0.25); }
-      }
+      /* Cap labelled action buttons so the room name keeps space. Icon-only
+         buttons are intrinsically square ~32px and not affected. */
+      glass-action-button { max-width: 8rem; }
 
       /* Scene grid fold */
       .scenes-wrapper {
@@ -394,11 +379,6 @@ export class GlassRoomPopup extends LitElement {
       clearTimeout(this._autoCloseTimeout);
       this._autoCloseTimeout = undefined;
     }
-    if (this._flashingTimer !== null) {
-      clearTimeout(this._flashingTimer);
-      this._flashingTimer = null;
-    }
-    this._flashingBtnIdx = null;
     this._peekedRooms.clear();
     this._loadingRooms.clear();
     this._busCleanups.forEach((cleanup) => cleanup());
@@ -848,88 +828,22 @@ export class GlassRoomPopup extends LitElement {
   private _renderRoomButtons(): TemplateResult | typeof nothing {
     if (!this._areaId) return nothing;
     const roomCfg = this._roomConfigs.get(this._areaId);
-    // Aligned with backend filter: only require a valid service. Icon/label have fallbacks.
     const SERVICE_RE = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
     const buttons = (roomCfg?.buttons ?? []).filter((b) => SERVICE_RE.test(b.service));
     if (buttons.length === 0) return nothing;
-    const fallbackIcon = (service: string, entityDomain: string): string => {
-      const map: Record<string, string> = {
-        light: 'mdi:lightbulb', switch: 'mdi:toggle-switch', vacuum: 'mdi:robot-vacuum-variant',
-        cover: 'mdi:window-shutter', climate: 'mdi:thermostat', fan: 'mdi:fan',
-        media_player: 'mdi:speaker', scene: 'mdi:palette', script: 'mdi:script-text',
-        automation: 'mdi:robot', input_boolean: 'mdi:toggle-switch', input_button: 'mdi:gesture-tap-button',
-        button: 'mdi:gesture-tap-button', lock: 'mdi:lock', camera: 'mdi:cctv',
-        notify: 'mdi:bell-outline', homeassistant: 'mdi:home',
-        remote: 'mdi:remote', humidifier: 'mdi:air-humidifier',
-        water_heater: 'mdi:water-boiler', siren: 'mdi:bullhorn',
-        valve: 'mdi:valve', lawn_mower: 'mdi:robot-mower',
-      };
-      return map[entityDomain] || map[service.split('.')[0]] || 'mdi:gesture-tap-button';
-    };
     return html`
-      ${buttons.map((btn, idx) => {
-        const entityId = typeof btn.data?.entity_id === 'string' ? btn.data.entity_id : '';
-        const entityDomain = entityId ? entityId.split('.')[0] : '';
-        const entityState = entityId ? this.hass?.states?.[entityId] : undefined;
-        const entityFriendly = (entityState?.attributes?.friendly_name as string) || '';
-        // btn.icon === '' is the explicit "Aucune icône" pick. Preserve that intent for
-        // label-bearing buttons (label-only render). Icon-only buttons still need a glyph
-        // to be visible, so they fall back to the entity's own HA icon hint (works for any
-        // domain) before the curated domain map's generic icon.
-        const resolvedLabel = btn.label;
-        const hasLabel = !!resolvedLabel;
-        const userClearedIcon = btn.icon === '';
-        const entityIcon = (entityState?.attributes?.icon as string | undefined) ?? '';
-        const resolvedIcon = hasLabel && userClearedIcon
-          ? ''
-          : (btn.icon || entityIcon || fallbackIcon(btn.service, entityDomain));
-        const flashing = this._flashingBtnIdx === idx;
-        // Prefer explicit label, then entity friendly_name. Never expose raw MDI slug or service id to SR.
-        const aria = resolvedLabel || entityFriendly || (entityDomain ? `${entityDomain} action` : 'Action');
-        return hasLabel
-          ? html`
-              <glass-button
-                size="sm"
-                variant="secondary"
-                class="room-action-btn ${flashing ? 'flashing' : ''}"
-                .icon=${resolvedIcon}
-                aria-label=${aria}
-                title=${aria}
-                @click=${() => this._invokeRoomButton(btn, idx)}
-              >${resolvedLabel}</glass-button>
-            `
-          : html`
-              <glass-icon-button
-                size="sm"
-                class="room-action-btn icon-only ${flashing ? 'flashing' : ''}"
-                .icon=${resolvedIcon}
-                aria-label=${aria}
-                title=${aria}
-                @click=${() => this._invokeRoomButton(btn, idx)}
-              ></glass-icon-button>
-            `;
-      })}
+      ${buttons.map((btn) => html`
+        <glass-action-button
+          size="sm"
+          .hass=${this.hass}
+          .service=${btn.service}
+          .data=${(btn.data && typeof btn.data === 'object' && !Array.isArray(btn.data)) ? btn.data : {}}
+          .label=${btn.label ?? ''}
+          .icon=${btn.icon ?? ''}
+          .iconCleared=${btn.icon === ''}
+        ></glass-action-button>
+      `)}
     `;
-  }
-
-  private _invokeRoomButton(btn: RoomButton, idx: number): void {
-    if (!this.hass || !btn.service) return;
-    const dotIdx = btn.service.indexOf('.');
-    if (dotIdx < 0) return;
-    const domain = btn.service.slice(0, dotIdx);
-    const service = btn.service.slice(dotIdx + 1);
-    // Guard: only forward plain objects (not arrays, not strings, not null) as service data.
-    const data = (btn.data && typeof btn.data === 'object' && !Array.isArray(btn.data))
-      ? btn.data
-      : {};
-    void this.hass.callService(domain, service, data);
-
-    if (this._flashingTimer) clearTimeout(this._flashingTimer);
-    this._flashingBtnIdx = idx;
-    this._flashingTimer = setTimeout(() => {
-      this._flashingBtnIdx = null;
-      this._flashingTimer = null;
-    }, 400);
   }
 }
 
