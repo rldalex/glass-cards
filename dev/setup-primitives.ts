@@ -174,20 +174,36 @@ class PrimitivesShowcase extends LitElement {
       setTimeout(() => {
         const cur = this._mockHass.states[entityId as keyof typeof this._mockHass.states];
         if (!cur) return;
-        const next = service === 'toggle'
-          ? (cur.state === 'on' || cur.state === 'open' || cur.state === 'heat' ? 'off' : 'on')
-          : service === 'turn_on' ? 'on'
-          : service === 'turn_off' ? 'off'
-          : cur.state;
+        let next = cur.state;
+        if (service === 'toggle') {
+          if (domain === 'cover' || domain === 'valve') {
+            next = cur.state === 'open' ? 'closed' : 'open';
+          } else if (domain === 'lock') {
+            next = cur.state === 'unlocked' ? 'locked' : 'unlocked';
+          } else if (domain === 'climate') {
+            next = cur.state === 'off' ? 'heat' : 'off';
+          } else if (domain === 'media_player') {
+            next = cur.state === 'playing' ? 'paused' : 'playing';
+          } else {
+            next = cur.state === 'on' ? 'off' : 'on';
+          }
+        } else if (service === 'turn_on') {
+          next = 'on';
+        } else if (service === 'turn_off') {
+          next = 'off';
+        }
         if (next === cur.state) return;
-        // Spread to trigger Lit's change detection on the .hass property.
-        (this._mockHass as { states: Record<string, { state: string; attributes: Record<string, unknown> }> }).states = {
-          ...this._mockHass.states,
-          [entityId]: { ...cur, state: next },
+        // Re-assign _mockHass to a NEW object so Lit's strict-equality
+        // hasChanged() detects the change on the child's .hass property.
+        this._mockHass = {
+          ...this._mockHass,
+          states: {
+            ...this._mockHass.states,
+            [entityId]: { ...cur, state: next },
+          },
         };
         this.requestUpdate();
       }, 300);
-      void domain;
     },
   };
 
