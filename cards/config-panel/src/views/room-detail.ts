@@ -923,15 +923,31 @@ export class ConfigRoomDetail extends LitElement {
         } catch { /* keep minimal */ }
       }
 
-      // Autofill icon/label only if empty. The entity's own `icon` attribute
-      // is HA's standard hint and works for any domain (the curated
-      // DOMAIN_ICONS map is just a fallback for entities that don't expose
-      // one). Service: keep if domain matches, else use real service or empty.
+      // Icon resolution:
+      //  - If the user explicitly cleared the icon ('' / "Aucune icône") AND we're
+      //    staying in the same domain (currentServiceDomain), respect that intent
+      //    — they edited an existing button. Domain change = fresh start → autofill.
+      //  - Otherwise prefer the user's explicit icon, then HA's per-entity hint, then
+      //    the curated domain map.
       const entityIcon = state?.attributes?.icon as string | undefined;
+      const preserveEmptyIcon = b.icon === '' && currentServiceDomain === domain && !!b.service;
+      const nextIcon = preserveEmptyIcon
+        ? ''
+        : (b.icon || entityIcon || DOMAIN_ICONS[domain] || '');
+
+      // Service resolution: prefer the user's existing service if its domain
+      // matches the new entity. Otherwise use the picker, but never leave the
+      // service blank — a blank service would be filtered out at save time and
+      // the button would silently vanish on the next reload. `${domain}.toggle`
+      // is the same optimistic fallback the UI placeholder already shows.
+      const nextService = keepService
+        ? b.service
+        : (defaultServiceName || `${domain}.toggle`);
+
       return {
-        icon: b.icon || entityIcon || DOMAIN_ICONS[domain] || '',
+        icon: nextIcon,
         label: b.label || friendlyName,
-        service: keepService ? b.service : defaultServiceName,
+        service: nextService,
         data_json: JSON.stringify(nextData, null, 2),
       };
     });
