@@ -550,14 +550,17 @@ export class ConfigRoomDetail extends LitElement {
     if (this._entityCache && this._entityCache.hassRef === this.hass.states && this._entityCache.query === q) {
       return this._entityCache.result;
     }
+    // No slice cap: glass-dropdown's internal search filters this list, so we
+    // need to pass *every* entity for the user to find anything beyond the
+    // first 80 alphabetical. A typical HA install has 100–500 entities; the
+    // dropdown handles that without trouble.
     const items = Object.keys(this.hass.states)
       .map((id) => ({
         id,
         name: (this.hass.states[id]?.attributes?.friendly_name as string) || id.split('.')[1] || id,
       }))
       .filter((e) => !q || e.id.includes(q) || e.name.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(0, 80);
+      .sort((a, b) => a.name.localeCompare(b.name));
     this._entityCache = { hassRef: this.hass.states, query: q, result: items };
     return items;
   }
