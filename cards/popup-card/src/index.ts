@@ -67,6 +67,7 @@ export class GlassRoomPopup extends LitElement {
   private _autoCloseTimeout?: ReturnType<typeof setTimeout>;
   private _popupAutoClose = 0;
   private _globalConfigLoaded = false;
+  private _lockedHaMain: HTMLElement | null = null;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
@@ -370,6 +371,13 @@ export class GlassRoomPopup extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Release scroll lock if the popup is torn down while still open
+    // (e.g. navbar-card disconnect during a view change or HA reload).
+    if (this._open) {
+      this._lockScroll(false);
+      this._open = false;
+      this.removeAttribute('open');
+    }
     if (this._pendingRaf !== undefined) {
       cancelAnimationFrame(this._pendingRaf);
       this._pendingRaf = undefined;
@@ -557,13 +565,23 @@ export class GlassRoomPopup extends LitElement {
 
   private _lockScroll(lock: boolean) {
     document.body.style.overflow = lock ? 'hidden' : '';
-    // HA uses a scrollable container inside shadow DOM — find and lock it too
-    const haMain = document.querySelector('home-assistant')
-      ?.shadowRoot?.querySelector('home-assistant-main')
-      ?.shadowRoot?.querySelector('ha-panel-lovelace')
-      ?.shadowRoot?.querySelector('hui-root')
-      ?.shadowRoot?.querySelector('.container') as HTMLElement | null;
-    if (haMain) haMain.style.overflow = lock ? 'hidden' : '';
+    // HA uses a scrollable container inside shadow DOM — find and lock it too.
+    // Cache the ref at lock time so the unlock targets the same element even if
+    // HA re-renders hui-root between open and close (WS reconnect, edit mode, etc.).
+    if (lock) {
+      const haMain = document.querySelector('home-assistant')
+        ?.shadowRoot?.querySelector('home-assistant-main')
+        ?.shadowRoot?.querySelector('ha-panel-lovelace')
+        ?.shadowRoot?.querySelector('hui-root')
+        ?.shadowRoot?.querySelector('.container') as HTMLElement | null;
+      if (haMain) {
+        haMain.style.overflow = 'hidden';
+        this._lockedHaMain = haMain;
+      }
+    } else if (this._lockedHaMain) {
+      this._lockedHaMain.style.overflow = '';
+      this._lockedHaMain = null;
+    }
   }
 
   private async _loadGlobalConfig() {
