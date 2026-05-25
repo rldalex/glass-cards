@@ -46,6 +46,9 @@ const DOMAIN_FALLBACK_ICON: Record<string, string> = {
  *   on the next observed state-change of the target entity (or after 1.5s).
  * - No `:hover` at all — affordance is the `idle-on` saturation + `:active`
  *   scale-down on press.
+ *
+ * @fires glass-action-invoke — { service: string, data: Record<string, unknown> } — fired before callService
+ * @fires glass-action-result — { success: boolean, reason: 'state-changed' | 'timeout' | 'error' }
  */
 export class GlassActionButton extends LitElement {
   @property({ attribute: false }) hass?: HassLike;
@@ -57,7 +60,6 @@ export class GlassActionButton extends LitElement {
   @property({ type: String, reflect: true }) size: 'sm' | 'md' = 'sm';
 
   @state() private _phase: 'idle' | 'pending' | 'flash-success' | 'flash-error' = 'idle';
-  private _stateAtTap: string | null = null;
   private _pendingTimer: ReturnType<typeof setTimeout> | null = null;
   private _flashTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -170,10 +172,6 @@ export class GlassActionButton extends LitElement {
       : false;
     if (unavailable) return;
 
-    // Snapshot the entity state at tap time so a later updated() pass can
-    // compare and resolve early when HA echoes the change back.
-    this._stateAtTap = entityId ? (hass.states[entityId]?.state ?? null) : null;
-
     this.dispatchEvent(new CustomEvent('glass-action-invoke', {
       detail: { service: this.service, data: this.data ?? {} },
       bubbles: true, composed: true,
@@ -190,7 +188,7 @@ export class GlassActionButton extends LitElement {
     const safeData = (this.data && typeof this.data === 'object' && !Array.isArray(this.data))
       ? this.data
       : {};
-    this.hass.callService(domain, action, safeData).catch((_err) => this._resolveError());
+    hass.callService(domain, action, safeData).catch((_err) => this._resolveError());
   };
 
   private _resolveSuccess(reason: 'state-changed' | 'timeout'): void {
@@ -201,9 +199,6 @@ export class GlassActionButton extends LitElement {
     }));
     // Flash phase added in Task 3.
     this._phase = 'idle';
-    // noUnusedLocals bridge — _stateAtTap is read by the change detector in Task 3.
-    void this._stateAtTap;
-    this._stateAtTap = null;
   }
 
   private _resolveError(): void {
@@ -214,7 +209,6 @@ export class GlassActionButton extends LitElement {
     }));
     // Flash phase added in Task 3.
     this._phase = 'idle';
-    this._stateAtTap = null;
   }
 
   static styles: CSSResult[] = [
@@ -310,7 +304,7 @@ export class GlassActionButton extends LitElement {
         border-radius: 50%;
         animation: glass-action-spin 0.8s linear infinite;
       }
-      :host([size='md']) .spinner { width: 1.25rem; height: 1.25rem; border-width: 2.5px; }
+      :host([size='md']) .spinner { width: 1.25rem; height: 1.25rem; border-width: 3px; }
       @keyframes glass-action-spin { to { transform: rotate(360deg); } }
     `,
   ];
