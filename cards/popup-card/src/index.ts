@@ -850,9 +850,15 @@ export class GlassRoomPopup extends LitElement {
         const entityDomain = entityId ? entityId.split('.')[0] : '';
         const entityState = entityId ? this.hass?.states?.[entityId] : undefined;
         const entityFriendly = (entityState?.attributes?.friendly_name as string) || '';
-        const resolvedIcon = btn.icon || fallbackIcon(btn.service, entityDomain);
+        // btn.icon === '' is the explicit "Aucune icône" pick. Preserve that intent for
+        // label-bearing buttons (label-only render). Icon-only buttons still need a glyph
+        // to be visible, so they fall back regardless.
         const resolvedLabel = btn.label;
         const hasLabel = !!resolvedLabel;
+        const userClearedIcon = btn.icon === '';
+        const resolvedIcon = hasLabel && userClearedIcon
+          ? ''
+          : (btn.icon || fallbackIcon(btn.service, entityDomain));
         const flashing = this._flashingBtnIdx === idx;
         // Prefer explicit label, then entity friendly_name. Never expose raw MDI slug or service id to SR.
         const aria = resolvedLabel || entityFriendly || (entityDomain ? `${entityDomain} action` : 'Action');

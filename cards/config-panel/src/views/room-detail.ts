@@ -589,7 +589,14 @@ export class ConfigRoomDetail extends LitElement {
           return { value: full, label: full };
         })
       : [];
-    const effectiveIcon = btn.icon || (entityDomain && DOMAIN_ICONS[entityDomain]) || '';
+    // btn.icon === '' is the explicit "Aucune icône" pick (also the backend default for
+    // a brand-new button). Distinguish "user cleared an entity-bound button" (show the
+    // mdi:cancel preview to match the picker cell) from "no entity yet" (show the
+    // generic mdi:image-plus-outline placeholder).
+    const userClearedIcon = btn.icon === '' && !!entityDomain;
+    const autoDomainIcon = (entityDomain && DOMAIN_ICONS[entityDomain]) || '';
+    const effectiveIcon = userClearedIcon ? '' : (btn.icon || autoDomainIcon);
+    const previewIcon = userClearedIcon ? 'mdi:cancel' : (effectiveIcon || 'mdi:image-plus-outline');
     const triggerEntityIcon = entityState?.attributes?.icon as string | undefined;
     const entityTriggerIcon = triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline';
     const serviceFallback = entityDomain
@@ -614,12 +621,16 @@ export class ConfigRoomDetail extends LitElement {
         <div class="room-button-label-row">
           <button
             type="button"
-            class="room-button-icon-trigger"
+            class="room-button-icon-trigger ${userClearedIcon ? 'is-none' : ''}"
             @click=${(e: Event) => { this._lastIconTriggerEl = e.currentTarget as HTMLElement; this._openButtonIconPortal(idx); }}
             aria-label="${t('config.room_button_icon_pick')}"
-            title="${effectiveIcon ? (btn.icon ? btn.icon : t('config.room_button_icon_auto', { icon: effectiveIcon })) : t('config.room_button_icon_pick')}"
+            title="${userClearedIcon
+              ? t('config.room_button_icon_none')
+              : (effectiveIcon
+                  ? (btn.icon ? btn.icon : t('config.room_button_icon_auto', { icon: effectiveIcon }))
+                  : t('config.room_button_icon_pick'))}"
           >
-            <ha-icon class="room-button-icon-preview" .icon=${effectiveIcon || 'mdi:image-plus-outline'}></ha-icon>
+            <ha-icon class="room-button-icon-preview" .icon=${previewIcon}></ha-icon>
           </button>
           <glass-form-input
             type="text"

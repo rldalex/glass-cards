@@ -1851,8 +1851,10 @@ export const baseStyles = css`
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        /* Width is intrinsic to the icon; height is driven by align-items:stretch
+           on .room-button-label-row so it matches the glass-form-input sibling
+           (which is min-height: var(--tap-lg) + 1px wrapper border = 40.5px). */
         width: var(--tap-lg);
-        height: var(--tap-lg);
         flex-shrink: 0;
         padding: 0;
         background: rgba(var(--rgb-accent), 0.10);
@@ -1863,6 +1865,11 @@ export const baseStyles = css`
         outline: none;
         transition: background var(--t-fast), border-color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+      }
+      .room-button-icon-trigger.is-none {
+        background: rgba(var(--rgb-white), 0.04);
+        border-color: rgba(var(--rgb-white), 0.18);
+        color: var(--t3);
       }
       .room-button-icon-trigger .room-button-icon-preview { --mdc-icon-size: 1.125rem; }
       @media (hover: hover) and (pointer: fine) {
@@ -1912,27 +1919,14 @@ export const baseStyles = css`
       }
       /* glass-dropdown already applies opacity 0.5 + pointer-events:none on
          :host([disabled]) via its internal styles. */
+      /* glass-form-input owns its own glass-recipe wrapper (background, border,
+         radius, focus state). We only need to size the host and let flex absorb
+         the rest. Avoid layering an outer padding/border on top of the
+         primitive's internal wrapper (causes a ~20px height mismatch with the
+         icon trigger sibling). */
       .room-button-input {
         flex: 1;
         min-width: 0;
-        min-height: var(--tap-lg);
-        padding: 0.5rem 0.75rem;
-        background: var(--s2);
-        border: 1px solid var(--b2);
-        border-radius: var(--radius-lg);
-        color: var(--t1);
-        font-family: inherit;
-        font-size: var(--fz-base);
-        outline: none;
-        transition: border-color var(--t-fast), background var(--t-fast);
-        box-sizing: border-box;
-      }
-      .room-button-input:focus {
-        border-color: var(--b3);
-        background: var(--s3);
-      }
-      .room-button-input::placeholder {
-        color: var(--t4);
       }
       .room-button-textarea {
         width: 100%;

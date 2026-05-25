@@ -566,6 +566,7 @@
     "room_button_service_search": "Rechercher un service…",
     "room_button_service_empty": "Aucun service",
     "room_button_icon_auto": "Auto · {icon}",
+    "room_button_icon_none": "Aucune icône",
     "room_button_icon_pick": "Choisir une icône",
     "room_button_icon": "Icône (mdi:...)",
     "room_button_label": "Texte",
