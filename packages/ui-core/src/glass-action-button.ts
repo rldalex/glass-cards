@@ -213,6 +213,7 @@ export class GlassActionButton extends LitElement {
   };
 
   private _resolveSuccess(reason: 'state-changed' | 'timeout'): void {
+    if (this._phase !== 'pending') return;
     if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
     this.dispatchEvent(new CustomEvent('glass-action-result', {
       detail: { success: true, reason },
@@ -228,6 +229,7 @@ export class GlassActionButton extends LitElement {
   }
 
   private _resolveError(): void {
+    if (this._phase !== 'pending') return;
     if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
     this.dispatchEvent(new CustomEvent('glass-action-result', {
       detail: { success: false, reason: 'error' },
