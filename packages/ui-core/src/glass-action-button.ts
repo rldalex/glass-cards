@@ -155,12 +155,67 @@ export class GlassActionButton extends LitElement {
     `;
   }
 
-  /** Tap handler — placeholder for Task 2. */
   private _onClick = (_e: Event): void => {
-    // Filled in Task 2. Reference fields so TS noUnusedLocals stays quiet
-    // until Tasks 2/3 actually use them.
-    void this._stateAtTap;
+    if (!this.hass || !this.service || this._phase !== 'idle') return;
+    const hass = this.hass;
+    const domain = this._resolveDomain();
+    if (!domain) return;
+    const action = this.service.slice(domain.length + 1);
+    const entityId = this._resolveEntityId();
+    const unavailable = entityId
+      ? (() => {
+          const st = hass.states[entityId]?.state;
+          return st === 'unavailable' || st === 'unknown';
+        })()
+      : false;
+    if (unavailable) return;
+
+    // Snapshot the entity state at tap time so a later updated() pass can
+    // compare and resolve early when HA echoes the change back.
+    this._stateAtTap = entityId ? (hass.states[entityId]?.state ?? null) : null;
+
+    this.dispatchEvent(new CustomEvent('glass-action-invoke', {
+      detail: { service: this.service, data: this.data ?? {} },
+      bubbles: true, composed: true,
+    }));
+
+    this._phase = 'pending';
+
+    // 1.5s safety net — one-shot services (script.turn_on) and services
+    // without observable state changes resolve here as 'timeout' success.
+    this._pendingTimer = setTimeout(() => this._resolveSuccess('timeout'), 1500);
+
+    // Fire-and-forget: we do NOT await the WS round trip. The state-change
+    // observer in updated() (Task 3) is the honest signal for togglables.
+    const safeData = (this.data && typeof this.data === 'object' && !Array.isArray(this.data))
+      ? this.data
+      : {};
+    this.hass.callService(domain, action, safeData).catch((_err) => this._resolveError());
   };
+
+  private _resolveSuccess(reason: 'state-changed' | 'timeout'): void {
+    if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
+    this.dispatchEvent(new CustomEvent('glass-action-result', {
+      detail: { success: true, reason },
+      bubbles: true, composed: true,
+    }));
+    // Flash phase added in Task 3.
+    this._phase = 'idle';
+    // noUnusedLocals bridge — _stateAtTap is read by the change detector in Task 3.
+    void this._stateAtTap;
+    this._stateAtTap = null;
+  }
+
+  private _resolveError(): void {
+    if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
+    this.dispatchEvent(new CustomEvent('glass-action-result', {
+      detail: { success: false, reason: 'error' },
+      bubbles: true, composed: true,
+    }));
+    // Flash phase added in Task 3.
+    this._phase = 'idle';
+    this._stateAtTap = null;
+  }
 
   static styles: CSSResult[] = [
     motionMixin,
@@ -242,7 +297,21 @@ export class GlassActionButton extends LitElement {
         outline-offset: 2px;
       }
 
-      .spinner { display: none; }
+      /* pending state — disable taps, scale down, swap icon for spinner. */
+      button[data-phase='pending'] {
+        transform: scale(0.97);
+        pointer-events: none;
+      }
+      .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(var(--_d-rgb), 0.25);
+        border-top-color: rgb(var(--_d-rgb));
+        border-radius: 50%;
+        animation: glass-action-spin 0.8s linear infinite;
+      }
+      :host([size='md']) .spinner { width: 1.25rem; height: 1.25rem; border-width: 2.5px; }
+      @keyframes glass-action-spin { to { transform: rotate(360deg); } }
     `,
   ];
 }
