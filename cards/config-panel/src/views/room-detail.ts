@@ -119,7 +119,11 @@ export class ConfigRoomDetail extends LitElement {
 
   override updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
-    if (changedProps.has('areaId') || changedProps.has('hass')) {
+    // Reset only when the room actually changes (areaId). Resetting on every
+    // hass tick would re-fetch over the user's in-flight edits — a freshly
+    // added (empty-service) button row would vanish before save catches up,
+    // and any expanded sections would collapse.
+    if (changedProps.has('areaId')) {
       this._loaded = false;
       this._openSections = new Set();
     }
