@@ -95,6 +95,11 @@ class PrimitivesShowcase extends LitElement {
         outline-offset: 0;
         position: relative;
       }
+      :host([inspector]) glass-action-button {
+        outline: 1px solid rgba(56, 189, 248, 0.7);
+        outline-offset: 0;
+        position: relative;
+      }
       :host([inspector]) glass-icon-button[size='xs']::after,
       :host([inspector]) glass-icon-button[size='sm']::after,
       :host([inspector]) glass-chip[size='sm']::after,
@@ -103,6 +108,19 @@ class PrimitivesShowcase extends LitElement {
       :host([inspector]) glass-pill[interactive]::after,
       :host([inspector]) glass-chevron[interactive]::after,
       :host([inspector]) glass-button[size='sm']::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--tap-lg);
+        height: var(--tap-lg);
+        transform: translate(-50%, -50%);
+        border: 1px dashed rgba(248, 113, 113, 0.7);
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 999;
+      }
+      :host([inspector]) glass-action-button::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -138,6 +156,56 @@ class PrimitivesShowcase extends LitElement {
     { value: 'cuisine', label: 'Cuisine' },
   ];
   private _swatches = ['#fbbf24', '#f87171', '#60a5fa', '#4ade80', '#a78bfa', '#f97316', '#ffffff'];
+  private _mockHass = {
+    states: {
+      'light.salon':              { state: 'off',  attributes: { friendly_name: 'Salon' } },
+      'light.cuisine':            { state: 'on',   attributes: { friendly_name: 'Cuisine' } },
+      'climate.salon':            { state: 'heat', attributes: { friendly_name: 'Climat Salon' } },
+      'cover.chambre':            { state: 'open', attributes: { friendly_name: 'Volet chambre' } },
+      'script.morning_routine':   { state: 'off',  attributes: { friendly_name: 'Routine matin' } },
+      'vacuum.roborock':          { state: 'unavailable', attributes: { friendly_name: 'Roborock' } },
+    },
+    callService: async (domain: string, service: string, data?: Record<string, unknown>) => {
+      // Mock toggle/turn_on/turn_off semantics so the showcase can demo the
+      // pending → state-changed resolution path. Mutate after a 300ms simulated
+      // round trip so we can SEE the spinner before the flash.
+      const entityId = typeof data?.entity_id === 'string' ? data.entity_id : '';
+      if (!entityId) return;
+      setTimeout(() => {
+        const cur = this._mockHass.states[entityId as keyof typeof this._mockHass.states];
+        if (!cur) return;
+        let next = cur.state;
+        if (service === 'toggle') {
+          if (domain === 'cover' || domain === 'valve') {
+            next = cur.state === 'open' ? 'closed' : 'open';
+          } else if (domain === 'lock') {
+            next = cur.state === 'unlocked' ? 'locked' : 'unlocked';
+          } else if (domain === 'climate') {
+            next = cur.state === 'off' ? 'heat' : 'off';
+          } else if (domain === 'media_player') {
+            next = cur.state === 'playing' ? 'paused' : 'playing';
+          } else {
+            next = cur.state === 'on' ? 'off' : 'on';
+          }
+        } else if (service === 'turn_on') {
+          next = 'on';
+        } else if (service === 'turn_off') {
+          next = 'off';
+        }
+        if (next === cur.state) return;
+        // Re-assign _mockHass to a NEW object so Lit's strict-equality
+        // hasChanged() detects the change on the child's .hass property.
+        this._mockHass = {
+          ...this._mockHass,
+          states: {
+            ...this._mockHass.states,
+            [entityId]: { ...cur, state: next },
+          },
+        };
+        this.requestUpdate();
+      }, 300);
+    },
+  };
 
   protected render() {
     return html`
@@ -511,6 +579,63 @@ class PrimitivesShowcase extends LitElement {
             <glass-toggle slot="end" checked aria-label="lamp"></glass-toggle>
           </glass-compact-bar>
         </div>
+      </div>
+
+      <h2>glass-action-button</h2>
+      <div class="sub">
+        Single-tap action button. Reflects entity ON/OFF state for togglable
+        domains (light/switch/cover/...) with the domain colour. One-shot
+        domains (script/scene/button) render at fixed mid intensity. No hover.
+      </div>
+      <div class="row">
+        <span class="label">light off</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="light.toggle"
+          .data=${{ entity_id: 'light.salon' }}
+          label="Salon"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">light on (glow)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="light.toggle"
+          .data=${{ entity_id: 'light.cuisine' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">climate on</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="climate.toggle"
+          .data=${{ entity_id: 'climate.salon' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">cover open</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="cover.toggle"
+          .data=${{ entity_id: 'cover.chambre' }}
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">script (one-shot)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="script.morning_routine"
+          .data=${{ entity_id: 'script.morning_routine' }}
+          label="Routine matin"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">unavailable</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="vacuum.start"
+          .data=${{ entity_id: 'vacuum.roborock' }}
+        ></glass-action-button>
       </div>
     `;
   }

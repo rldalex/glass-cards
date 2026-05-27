@@ -623,28 +623,7 @@ export function isEntityUnavailable(state: string | undefined): boolean {
 }
 
 // — Domain colors —
-
-export interface DomainColor {
-  /** CSS variable reference, e.g. 'var(--c-info)' */
-  cssVar: string;
-  /** RGB triplet string, e.g. '96,165,250' */
-  rgb: string;
-}
-
-export const DOMAIN_COLORS: Record<string, DomainColor> = {
-  light:    { cssVar: '#fbbf24',  rgb: '251,191,36' },
-  cover:    { cssVar: '#a78bfa',  rgb: '167,139,250' },
-  climate:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
-  media:    { cssVar: '#818cf8',  rgb: '129,140,248' },
-  fan:      { cssVar: '#2dd4bf',  rgb: '45,212,191' },
-  spotify:  { cssVar: '#1DB954', rgb: '29,185,84' },
-  camera:   { cssVar: '#f87171',  rgb: '248,113,113' },
-  presence: { cssVar: '#818cf8',  rgb: '129,140,248' },
-  title:    { cssVar: '#818cf8',  rgb: '129,140,248' },
-  weather:  { cssVar: '#60a5fa',  rgb: '96,165,250' },
-  calendar: { cssVar: '#4ade80',  rgb: '74,222,128' },
-  vacuum:   { cssVar: '#60a5fa',  rgb: '96,165,250' },
-};
+export { type DomainColor, DOMAIN_COLORS } from './domain-colors';
 
 // — Responsive system —
 export { BREAKPOINTS, type CardSize } from './breakpoints';
@@ -705,6 +684,7 @@ import './glass-drag-handle';
 import './glass-empty-state';
 import './glass-progress-bar';
 import './glass-dropdown';
+import './glass-action-button';
 
 export { GlassSlider } from './glass-slider';
 export { GlassIconButton } from './glass-icon-button';
@@ -726,6 +706,7 @@ export { GlassDragHandle } from './glass-drag-handle';
 export { GlassEmptyState } from './glass-empty-state';
 export { GlassProgressBar } from './glass-progress-bar';
 export { GlassDropdown, type GlassDropdownItem } from './glass-dropdown';
+export { GlassActionButton } from './glass-action-button';
 // motionMixin is exported above the imports — re-export for clarity not needed,
 // but ensure consumers can import { motionMixin } alongside.
 

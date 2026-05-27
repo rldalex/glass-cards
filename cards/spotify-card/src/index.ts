@@ -248,7 +248,7 @@ class GlassSpotifyCard extends BaseCard {
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .np-transport {
-      display: inline-flex; align-items: center; gap: 0.0625rem;
+      display: inline-flex; align-items: center; gap: 0.25rem;
       flex-shrink: 0;
     }
     /* np-bar transport buttons (prev/next/search) handled by
@@ -1053,7 +1053,11 @@ class GlassSpotifyCard extends BaseCard {
     const id = this._getEntityId();
     if (!id) return;
     fireHaptic(this, 'light');
-    this._safeCallService('media_player', 'media_play_pause', {}, { entity_id: id });
+    // Spotify integration n'expose pas toujours media_play_pause; on route
+    // explicitement via l'état pour rester compatible.
+    const state = this.hass?.states[id]?.state;
+    const service = state === 'playing' ? 'media_pause' : 'media_play';
+    this._safeCallService('media_player', service, {}, { entity_id: id });
   }
 
   private _mediaNext(e: Event): void {
@@ -1805,14 +1809,6 @@ class GlassSpotifyCard extends BaseCard {
           aria-label=${t('spotify.search_placeholder')}
           @click=${(e: Event) => { e.stopPropagation(); this._foldOpen = true; this._focusSearchInput(); }}
         ></glass-icon-button>
-        <glass-chevron
-          class="search-toggle"
-          interactive
-          size="sm"
-          ?open=${this._foldOpen}
-          aria-label=${t('spotify.toggle_library')}
-          @click=${() => { this._foldOpen = !this._foldOpen; }}
-        ></glass-chevron>
       </div>
     `;
   }
