@@ -43,25 +43,58 @@ const AI_ICONS: Record<string, string> = {
 
 // — Companion entity patterns (Reolink-style) —
 
-// Patterns support both EN (Reolink EN) and FR (Reolink FR) entity names
+// Patterns support EN, FR, plus Frigate (_recordings/_detect/_snapshots/_audio),
+// Unifi Protect (_motion_detected/_is_dark/_doorbell_chime/_smart_detections),
+// Eufy Security (_person_detected/_motion_detected), Tapo, Wyze.
+// Anchored on entity_id WITHOUT domain prefix (we test against eid directly).
 const COMPANION_PATTERNS = {
-  motion: /_(motion|mouvement)$/,
-  record: /_(record|enregistrer)$/,
+  // Reolink _motion / Frigate _motion / Unifi _motion_detected / Eufy _motion_detected.
+  motion: /_(motion|mouvement|motion_detected)$/,
+  // Reolink _record (singular) / Frigate _recordings (plural).
+  record: /_(record|enregistrer|recordings)$/,
   siren: /^siren\./,
   floodlight: /_(floodlight|projecteur)$/,
   auto_tracking: /_(auto_tracking|suivi_automatique)$/,
+  // Doorbell press : Reolink _visitor / Unifi _doorbell_chime.
+  visitor: /_(visitor|visiteur|doorbell_chime)$/,
+  // Privacy : Reolink _privacy_mode / Unifi Protect _privacy_mode.
+  privacy: /_(privacy_mode|mode_confidentialite)$/,
+  // Frigate object-detection toggle (separate from motion).
+  detect: /_detect$/,
+  // Frigate snapshot capture toggle.
+  snapshots: /_snapshots$/,
+  // Unifi Protect: brightness sensor — true at night.
+  is_dark: /_is_dark$/,
+  // Battery level (Reolink Argus/Solar/Eufy).
+  battery: /_battery(_percentage|_level)?$/,
+  // Battery low binary sensor.
+  battery_low: /_battery_low$/,
+  // Camera sleep state (Reolink solar cams power-save).
+  sleep_status: /_sleep_status$/,
+  // PTZ button entities (Reolink). Tested on button.<cam>_ptz_*.
+  ptz_up: /_ptz_up$/,
+  ptz_down: /_ptz_down$/,
+  ptz_left: /_ptz_left$/,
+  ptz_right: /_ptz_right$/,
+  ptz_zoom_in: /_ptz_zoom_(?:in|plus)$/,
+  ptz_zoom_out: /_ptz_zoom_(?:out|minus)$/,
 } as const;
 
-// AI detection: [regex on entity_id, canonical name]
+// Window during which a doorbell ring is shown as "active" (ms).
+const RING_WINDOW_MS = 30_000;
+
+// AI detection: [regex on entity_id, canonical name].
+// Patterns cover Reolink (_person / _personne), Unifi Protect (_person_detected),
+// Frigate (_person_occupancy), Eufy (_person_detected).
 const AI_DETECTION: [RegExp, string][] = [
-  [/_person(ne)?$/, 'person'],
-  [/_vehicu?le$/, 'vehicle'],
-  [/_pet$|_animal_domestique$/, 'pet'],
-  [/_animal$/, 'animal'],
-  [/_face$|_visage$/, 'face'],
-  [/_package$|_colis$/, 'package'],
-  [/_baby_crying$|_pleur_bebe$/, 'baby_crying'],
-  [/_bicycl?e$|_velo$/, 'bicycle'],
+  [/_person(ne)?(_detected|_occupancy)?$/, 'person'],
+  [/_vehicu?le(_detected|_occupancy)?$/, 'vehicle'],
+  [/_(pet|animal_domestique)(_detected|_occupancy)?$/, 'pet'],
+  [/_animal(_detected|_occupancy)?$/, 'animal'],
+  [/_(face|visage)(_detected|_occupancy)?$/, 'face'],
+  [/_(package|colis)(_detected|_occupancy)?$/, 'package'],
+  [/_(baby_crying|pleur_bebe)$/, 'baby_crying'],
+  [/_(bicycl?e|velo)(_detected|_occupancy)?$/, 'bicycle'],
 ];
 
 // — Interfaces —
@@ -86,6 +119,39 @@ interface CameraInfo {
   autoTrackId: string | null;
   aiDetected: string[];
   icon: string;
+  // Doorbell (event entity or Reolink _visitor binary_sensor)
+  isDoorbell: boolean;
+  doorbellEventId: string | null;
+  visitorSensorId: string | null;
+  isRinging: boolean;
+  ringExpiresInMs: number; // 0 if not ringing
+  // Privacy mode (switch _privacy_mode)
+  privacySwitchId: string | null;
+  isPrivacyOn: boolean;
+  // Frigate object-detection toggle (orthogonal to motion).
+  detectSwitchId: string | null;
+  isDetectOn: boolean;
+  // Frigate snapshot toggle.
+  snapshotsSwitchId: string | null;
+  isSnapshotsOn: boolean;
+  // Unifi Protect: night/dark sensor.
+  isDarkSensorId: string | null;
+  isDark: boolean;
+  // Battery (Reolink Argus/Solar, Eufy battery cams).
+  batterySensorId: string | null;
+  batteryLevel: number | null;       // 0-100, null if unavailable
+  isBatteryLow: boolean;              // from binary_sensor _battery_low OR level < 20
+  // Sleep state (Reolink solar power-save).
+  sleepSensorId: string | null;
+  isSleeping: boolean;
+  // PTZ controls (Reolink motorized cams).
+  hasPtz: boolean;
+  ptzUpId: string | null;
+  ptzDownId: string | null;
+  ptzLeftId: string | null;
+  ptzRightId: string | null;
+  ptzZoomInId: string | null;
+  ptzZoomOutId: string | null;
 }
 
 interface CameraBackendConfig {
@@ -110,50 +176,102 @@ type CompanionResult = {
   floodlightId: string | null;
   autoTrackId: string | null;
   aiDetected: string[];
+  doorbellEventId: string | null;
+  visitorSensorId: string | null;
+  privacySwitchId: string | null;
+  detectSwitchId: string | null;
+  snapshotsSwitchId: string | null;
+  isDarkSensorId: string | null;
+  batterySensorId: string | null;
+  batteryLowSensorId: string | null;
+  sleepSensorId: string | null;
+  ptzUpId: string | null;
+  ptzDownId: string | null;
+  ptzLeftId: string | null;
+  ptzRightId: string | null;
+  ptzZoomInId: string | null;
+  ptzZoomOutId: string | null;
 };
 
-const _companionCache = new Map<string, { key: string; result: CompanionResult }>();
-
-function discoverCompanions(
-  cameraEntityId: string,
-  states: Record<string, HassEntity>,
-  entities: Record<string, EntityRegistryEntry>,
-): CompanionResult {
-  // Cache key: device_id + AI binary sensor states (the only volatile part)
-  const camEntry = entities[cameraEntityId];
-  if (!camEntry?.device_id) {
-    return { motionSensorId: null, recordSwitchId: null, sirenId: null, floodlightId: null, autoTrackId: null, aiDetected: [] };
-  }
-
-  const deviceId = camEntry.device_id;
-
-  // Build invalidation key from AI binary_sensor states on this device
-  let aiKey = deviceId;
-  for (const eid of Object.keys(entities)) {
-    if (entities[eid].device_id === deviceId && eid.startsWith('binary_sensor.') && states[eid]) {
-      aiKey += `:${eid}=${states[eid].state}`;
-    }
-  }
-
-  const cached = _companionCache.get(cameraEntityId);
-  if (cached && cached.key === aiKey) return cached.result;
-
-  // Collect all entity_ids for this device
-  const deviceEntities: string[] = [];
-  for (const [eid, entry] of Object.entries(entities)) {
-    if (entry.device_id === deviceId) {
-      deviceEntities.push(eid);
-    }
-  }
-
-  const result: CompanionResult = {
+function emptyCompanions(): CompanionResult {
+  return {
     motionSensorId: null,
     recordSwitchId: null,
     sirenId: null,
     floodlightId: null,
     autoTrackId: null,
     aiDetected: [],
+    doorbellEventId: null,
+    visitorSensorId: null,
+    privacySwitchId: null,
+    detectSwitchId: null,
+    snapshotsSwitchId: null,
+    isDarkSensorId: null,
+    batterySensorId: null,
+    batteryLowSensorId: null,
+    sleepSensorId: null,
+    ptzUpId: null,
+    ptzDownId: null,
+    ptzLeftId: null,
+    ptzRightId: null,
+    ptzZoomInId: null,
+    ptzZoomOutId: null,
   };
+}
+
+const _companionCache = new Map<string, { key: string; result: CompanionResult }>();
+
+/** Detect a HA event entity acting as a doorbell (device_class=doorbell or event_types includes 'ring'). */
+function isDoorbellEventEntity(state: HassEntity): boolean {
+  if (!state.entity_id.startsWith('event.')) return false;
+  const attrs = state.attributes ?? {};
+  if (attrs.device_class === 'doorbell') return true;
+  const types = attrs.event_types;
+  if (Array.isArray(types) && types.includes('ring')) return true;
+  // Common naming fallback (Unifi Protect, generic doorbells)
+  if (/doorbell|sonnette|chime/i.test(state.entity_id)) return true;
+  return false;
+}
+
+function discoverCompanions(
+  cameraEntityId: string,
+  states: Record<string, HassEntity>,
+  entities: Record<string, EntityRegistryEntry>,
+): CompanionResult {
+  // Cache key: device_id + all volatile states we read (binary_sensor for AI/visitor/sleep/battery_low,
+  // event for doorbell ring timestamp, switch for privacy, sensor for battery level)
+  const camEntry = entities[cameraEntityId];
+  if (!camEntry?.device_id) return emptyCompanions();
+
+  const deviceId = camEntry.device_id;
+
+  let stateKey = deviceId;
+  for (const eid of Object.keys(entities)) {
+    if (entities[eid].device_id !== deviceId) continue;
+    const st = states[eid];
+    if (!st) continue;
+    // Only volatile states need to bust the cache: aiDetected[] is derived from
+    // binary_sensor states, doorbell rings from event state, and battery level from
+    // sensor state. All other companion IDs (detect/snapshots/record/privacy switches)
+    // are read fresh in _getCameraInfo without going through this cache.
+    if (
+      eid.startsWith('binary_sensor.') ||
+      eid.startsWith('event.') ||
+      (eid.startsWith('sensor.') && COMPANION_PATTERNS.battery.test(eid))
+    ) {
+      stateKey += `:${eid}=${st.state}`;
+    }
+  }
+
+  const cached = _companionCache.get(cameraEntityId);
+  if (cached && cached.key === stateKey) return cached.result;
+
+  const deviceEntities: string[] = [];
+  for (const [eid, entry] of Object.entries(entities)) {
+    if (entry.device_id === deviceId) deviceEntities.push(eid);
+  }
+
+  const result: CompanionResult = emptyCompanions();
 
   for (const eid of deviceEntities) {
     const st = states[eid];
@@ -174,6 +292,41 @@ function discoverCompanions(
     if (eid.startsWith('switch.') && COMPANION_PATTERNS.auto_tracking.test(eid)) {
       result.autoTrackId = eid;
     }
+    if (eid.startsWith('switch.') && COMPANION_PATTERNS.privacy.test(eid)) {
+      result.privacySwitchId = eid;
+    }
+    if (eid.startsWith('binary_sensor.') && COMPANION_PATTERNS.visitor.test(eid)) {
+      result.visitorSensorId = eid;
+    }
+    if (eid.startsWith('switch.') && COMPANION_PATTERNS.detect.test(eid)) {
+      result.detectSwitchId = eid;
+    }
+    if (eid.startsWith('switch.') && COMPANION_PATTERNS.snapshots.test(eid)) {
+      result.snapshotsSwitchId = eid;
+    }
+    if (eid.startsWith('binary_sensor.') && COMPANION_PATTERNS.is_dark.test(eid)) {
+      result.isDarkSensorId = eid;
+    }
+    if (eid.startsWith('sensor.') && COMPANION_PATTERNS.battery.test(eid)) {
+      result.batterySensorId = eid;
+    }
+    if (eid.startsWith('binary_sensor.') && COMPANION_PATTERNS.battery_low.test(eid)) {
+      result.batteryLowSensorId = eid;
+    }
+    if (eid.startsWith('binary_sensor.') && COMPANION_PATTERNS.sleep_status.test(eid)) {
+      result.sleepSensorId = eid;
+    }
+    if (eid.startsWith('button.')) {
+      if (COMPANION_PATTERNS.ptz_up.test(eid)) result.ptzUpId = eid;
+      else if (COMPANION_PATTERNS.ptz_down.test(eid)) result.ptzDownId = eid;
+      else if (COMPANION_PATTERNS.ptz_left.test(eid)) result.ptzLeftId = eid;
+      else if (COMPANION_PATTERNS.ptz_right.test(eid)) result.ptzRightId = eid;
+      else if (COMPANION_PATTERNS.ptz_zoom_in.test(eid)) result.ptzZoomInId = eid;
+      else if (COMPANION_PATTERNS.ptz_zoom_out.test(eid)) result.ptzZoomOutId = eid;
+    }
+    if (isDoorbellEventEntity(st)) {
+      result.doorbellEventId = eid;
+    }
     if (eid.startsWith('binary_sensor.') && st.state === 'on') {
       for (const [pattern, name] of AI_DETECTION) {
         if (pattern.test(eid) && !result.aiDetected.includes(name)) {
@@ -183,31 +336,101 @@ function discoverCompanions(
     }
   }
 
-  _companionCache.set(cameraEntityId, { key: aiKey, result });
+  _companionCache.set(cameraEntityId, { key: stateKey, result });
   return result;
+}
+
+/** Dedupe camera entities that share the same device.
+ *  Reolink commonly exposes Fluent/Balanced/Clear + Snapshots Fluent/Clear for ONE camera.
+ *  We drop *_snapshots* (JPEG-only) and keep the shortest entity_id per device — the primary
+ *  stream is the one without a quality suffix. Entities with no device_id pass through. */
+function dedupeCamerasPerDevice(
+  ids: string[],
+  entities: Record<string, EntityRegistryEntry>,
+): string[] {
+  const withoutSnapshots = ids.filter((eid) => !/_snapshots(_|$)/.test(eid));
+
+  const perDevice = new Map<string, string>();
+  const noDevice = new Set<string>();
+  for (const eid of withoutSnapshots) {
+    const deviceId = entities[eid]?.device_id;
+    if (!deviceId) {
+      noDevice.add(eid);
+      continue;
+    }
+    const current = perDevice.get(deviceId);
+    if (!current || eid.length < current.length) {
+      perDevice.set(deviceId, eid);
+    }
+  }
+
+  const kept = new Set([...perDevice.values(), ...noDevice]);
+  // Preserve original order.
+  return ids.filter((eid) => kept.has(eid));
+}
+
+/** Compute remaining ring window in ms (0 if not ringing).
+ *  Clamps `now - ts` to ≥ 0 so a future timestamp (clock skew) doesn't extend the window;
+ *  returns 0 when the sensor is stuck ON beyond RING_WINDOW_MS so the badge actually fades. */
+function ringExpiry(
+  doorbellEventId: string | null,
+  visitorSensorId: string | null,
+  states: Record<string, HassEntity>,
+  now: number,
+): number {
+  // Event entity : state is the last-ring ISO timestamp, attributes.event_type === 'ring'.
+  if (doorbellEventId) {
+    const st = states[doorbellEventId];
+    if (st && st.attributes?.event_type === 'ring' && st.state && st.state !== 'unknown' && st.state !== 'unavailable') {
+      const ts = new Date(st.state).getTime();
+      if (Number.isFinite(ts)) {
+        const elapsed = Math.max(0, now - ts);
+        const remaining = RING_WINDOW_MS - elapsed;
+        if (remaining > 0) return remaining;
+      }
+    }
+  }
+  // Reolink binary_sensor _visitor : pulses ON for a few seconds.
+  if (visitorSensorId) {
+    const st = states[visitorSensorId];
+    if (st?.state === 'on') {
+      const ts = new Date(st.last_changed).getTime();
+      if (Number.isFinite(ts)) {
+        const elapsed = Math.max(0, now - ts);
+        const remaining = RING_WINDOW_MS - elapsed;
+        if (remaining > 0) return remaining;
+      }
+      // Sensor stuck ON beyond the ring window — stop showing the badge so the user isn't
+      // misled by a missed MQTT OFF. The hero pulse already de-emphasizes when ring expires.
+    }
+  }
+  return 0;
 }
 
 // — State text helper —
 
-function cameraStateText(camState: string, isOn: boolean): string {
-  if (!isOn) return t('camera.off');
-  switch (camState) {
+function cameraStateText(cam: CameraInfo): string {
+  if (!cam.isOn) return t('camera.off');
+  if (cam.isPrivacyOn) return t('camera.privacy_on');
+  if (cam.isRinging) return t('camera.ringing');
+  switch (cam.state) {
     case 'idle': return t('camera.idle');
     case 'streaming': return t('camera.streaming');
     case 'recording': return t('camera.recording');
-    default: return camState;
+    default: return cam.state;
   }
 }
 
 // — Icon from entity attributes —
 
-function cameraIcon(entity: HassEntity): string {
+function cameraIcon(entity: HassEntity, isDoorbell: boolean): string {
   const icon = entity.attributes?.icon as string | undefined;
   if (icon) return icon;
+  if (isDoorbell) return CAM_ICONS.doorbell;
 
   // Guess from entity_id
   const eid = entity.entity_id;
-  if (eid.includes('doorbell')) return CAM_ICONS.doorbell;
+  if (eid.includes('doorbell') || eid.includes('sonnette')) return CAM_ICONS.doorbell;
   if (eid.includes('indoor') || eid.includes('salon') || eid.includes('chambre')) return CAM_ICONS.indoor;
   return CAM_ICONS.outdoor;
 }
@@ -230,6 +453,8 @@ class GlassCameraCarouselCard extends BaseCard {
   @state() private _carouselIndex = 0;
   @state() private _liveIds = new Set<string>();
   @state() private _foldOpen = false;
+  /** Dev-only : forces the fullscreen overlay rendering without requesting native fullscreen. */
+  @property({ type: Boolean, attribute: 'preview-fullscreen' }) previewFullscreen = false;
 
   private _backend: BackendService | undefined;
   private _camConfig: CameraBackendConfig | null = null;
@@ -250,6 +475,8 @@ class GlassCameraCarouselCard extends BaseCard {
   private _cycleTimer?: ReturnType<typeof setInterval>;
   // Timestamp refresh (stream overlay clock)
   private _timestampTimer?: ReturnType<typeof setInterval>;
+  // Doorbell ring fade-out (one-shot)
+  private _ringTimer?: ReturnType<typeof setTimeout>;
 
   // Camera cache
   private _cachedCameraIds: string[] = [];
@@ -279,7 +506,10 @@ class GlassCameraCarouselCard extends BaseCard {
     this._backend = undefined;
     this._clearCycleTimer();
     this._clearTimestampTimer();
-    _companionCache.clear();
+    this._clearRingTimer();
+    // NOTE: _companionCache is module-scoped and shared across card instances.
+    // Don't clear it here — would wipe entries for other cards still mounted.
+    // Entries auto-invalidate via stateKey (states change → cache miss).
   }
 
   getTrackedEntityIds(): string[] {
@@ -295,6 +525,21 @@ class GlassCameraCarouselCard extends BaseCard {
         companions.sirenId,
         companions.floodlightId,
         companions.autoTrackId,
+        companions.doorbellEventId,
+        companions.visitorSensorId,
+        companions.privacySwitchId,
+        companions.detectSwitchId,
+        companions.snapshotsSwitchId,
+        companions.isDarkSensorId,
+        companions.batterySensorId,
+        companions.batteryLowSensorId,
+        companions.sleepSensorId,
+        companions.ptzUpId,
+        companions.ptzDownId,
+        companions.ptzLeftId,
+        companions.ptzRightId,
+        companions.ptzZoomInId,
+        companions.ptzZoomOutId,
       ].filter(Boolean) as string[];
     });
   }
@@ -387,6 +632,9 @@ class GlassCameraCarouselCard extends BaseCard {
     }
     if (hiddenSet.size) ids = ids.filter((eid) => !hiddenSet.has(eid));
 
+    // Dedupe multiple streams per device (Reolink Fluent/Clear/Balanced/Snapshots).
+    ids = dedupeCamerasPerDevice(ids, this.hass.entities);
+
     // Cheap fingerprint: skip expensive sort if camera set + alert states unchanged
     const cheapKey = ids.length + ':' + ids.map((eid) => {
       const s = this.hass?.states[eid];
@@ -458,6 +706,13 @@ class GlassCameraCarouselCard extends BaseCard {
     const isOn = entity.state !== 'unavailable' && entity.attributes?.is_on !== false;
     const companions = discoverCompanions(entityId, this.hass.states, this.hass.entities);
 
+    const isDoorbell = !!(companions.doorbellEventId || companions.visitorSensorId);
+    const ringMs = isDoorbell
+      ? ringExpiry(companions.doorbellEventId, companions.visitorSensorId, this.hass.states, Date.now())
+      : 0;
+    const privacyState = companions.privacySwitchId ? this.hass.states[companions.privacySwitchId]?.state : undefined;
+    const isPrivacyOn = privacyState === 'on';
+
     return {
       entityId,
       entity,
@@ -476,8 +731,58 @@ class GlassCameraCarouselCard extends BaseCard {
       floodlightId: companions.floodlightId,
       autoTrackId: companions.autoTrackId,
       aiDetected: companions.aiDetected,
-      icon: cameraIcon(entity),
+      icon: cameraIcon(entity, isDoorbell),
+      isDoorbell,
+      doorbellEventId: companions.doorbellEventId,
+      visitorSensorId: companions.visitorSensorId,
+      isRinging: ringMs > 0,
+      ringExpiresInMs: ringMs,
+      privacySwitchId: companions.privacySwitchId,
+      isPrivacyOn,
+      detectSwitchId: companions.detectSwitchId,
+      isDetectOn: companions.detectSwitchId ? this.hass.states[companions.detectSwitchId]?.state === 'on' : false,
+      snapshotsSwitchId: companions.snapshotsSwitchId,
+      isSnapshotsOn: companions.snapshotsSwitchId ? this.hass.states[companions.snapshotsSwitchId]?.state === 'on' : false,
+      isDarkSensorId: companions.isDarkSensorId,
+      isDark: companions.isDarkSensorId ? this.hass.states[companions.isDarkSensorId]?.state === 'on' : false,
+      batterySensorId: companions.batterySensorId,
+      batteryLevel: this._readBatteryLevel(companions.batterySensorId),
+      isBatteryLow: this._readBatteryLow(companions.batteryLowSensorId, companions.batterySensorId),
+      sleepSensorId: companions.sleepSensorId,
+      isSleeping: companions.sleepSensorId ? this.hass.states[companions.sleepSensorId]?.state === 'on' : false,
+      hasPtz: !!(companions.ptzUpId || companions.ptzDownId || companions.ptzLeftId || companions.ptzRightId),
+      ptzUpId: companions.ptzUpId,
+      ptzDownId: companions.ptzDownId,
+      ptzLeftId: companions.ptzLeftId,
+      ptzRightId: companions.ptzRightId,
+      ptzZoomInId: companions.ptzZoomInId,
+      ptzZoomOutId: companions.ptzZoomOutId,
     };
+  }
+
+  /** mdi icon matching the battery level — empty/20/30/.../full + alert variants. */
+  private _batteryIcon(level: number): string {
+    if (level <= 10) return 'mdi:battery-alert-variant-outline';
+    if (level >= 95) return 'mdi:battery';
+    // mdi:battery-{10..90} in 10-step increments — round down to nearest 10.
+    const step = Math.max(10, Math.min(90, Math.floor(level / 10) * 10));
+    return `mdi:battery-${step}`;
+  }
+
+  /** Parse battery level (0-100) or null if unavailable / unknown. */
+  private _readBatteryLevel(sensorId: string | null): number | null {
+    if (!sensorId || !this.hass) return null;
+    const raw = this.hass.states[sensorId]?.state;
+    if (!raw || raw === 'unknown' || raw === 'unavailable') return null;
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null;
+  }
+
+  /** True if dedicated _battery_low sensor is ON, OR if battery level < 20%. */
+  private _readBatteryLow(lowId: string | null, levelId: string | null): boolean {
+    if (lowId && this.hass?.states[lowId]?.state === 'on') return true;
+    const lvl = this._readBatteryLevel(levelId);
+    return lvl !== null && lvl < 20;
   }
 
   // — Auto-cycle —
@@ -509,6 +814,22 @@ class GlassCameraCarouselCard extends BaseCard {
       clearInterval(this._timestampTimer);
       this._timestampTimer = undefined;
     }
+  }
+
+  private _clearRingTimer() {
+    if (this._ringTimer) {
+      clearTimeout(this._ringTimer);
+      this._ringTimer = undefined;
+    }
+  }
+
+  /** Schedule a one-shot re-render to fade out the visitor badge when the ring window closes. */
+  private _scheduleRingFadeOut(ms: number) {
+    if (this._ringTimer) clearTimeout(this._ringTimer);
+    this._ringTimer = setTimeout(() => {
+      this._ringTimer = undefined;
+      this.requestUpdate();
+    }, Math.max(200, ms + 200));
   }
 
   // — Navigation —
@@ -621,6 +942,37 @@ class GlassCameraCarouselCard extends BaseCard {
     this._safeCallService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: cam.autoTrackId });
   }
 
+  private _togglePrivacy(cam: CameraInfo) {
+    if (!this.hass || !cam.privacySwitchId) return;
+    this._safeCallService('switch', cam.isPrivacyOn ? 'turn_off' : 'turn_on', { entity_id: cam.privacySwitchId });
+  }
+
+  private _toggleDetect(cam: CameraInfo) {
+    if (!this.hass || !cam.detectSwitchId) return;
+    this._safeCallService('switch', cam.isDetectOn ? 'turn_off' : 'turn_on', { entity_id: cam.detectSwitchId });
+  }
+
+  private _toggleSnapshots(cam: CameraInfo) {
+    if (!this.hass || !cam.snapshotsSwitchId) return;
+    this._safeCallService('switch', cam.isSnapshotsOn ? 'turn_off' : 'turn_on', { entity_id: cam.snapshotsSwitchId });
+  }
+
+  private _ptzPress(entityId: string | null) {
+    if (!this.hass || !entityId) return;
+    this._safeCallService('button', 'press', { entity_id: entityId });
+  }
+
+  /** Toggle fullscreen on the hero element. */
+  private _toggleFullscreen() {
+    const hero = this.shadowRoot?.querySelector('.carousel-hero') as HTMLElement | null;
+    if (!hero) return;
+    if (document.fullscreenElement === hero) {
+      document.exitFullscreen().catch(() => { /* noop */ });
+    } else {
+      hero.requestFullscreen?.().catch(() => { /* noop */ });
+    }
+  }
+
   private _startStream(entityId: string) {
     const next = new Set(this._liveIds);
     next.add(entityId);
@@ -641,6 +993,21 @@ class GlassCameraCarouselCard extends BaseCard {
     const showHeader = this._camConfig?.show_header !== false;
     const currentCam = this._getCameraInfo(ids[this._carouselIndex]);
 
+    // Schedule a fade-out re-render when any ring window is about to close.
+    // We pick the soonest expiry across all cams so badges drop in time.
+    let earliestRingMs = Infinity;
+    for (const eid of ids) {
+      const info = this._getCameraInfo(eid);
+      if (info?.isRinging && info.ringExpiresInMs < earliestRingMs) {
+        earliestRingMs = info.ringExpiresInMs;
+      }
+    }
+    if (earliestRingMs !== Infinity) {
+      this._scheduleRingFadeOut(earliestRingMs);
+    } else if (this._ringTimer) {
+      this._clearRingTimer();
+    }
+
     const heroGesture = this._bindGesture({
       onTap: () => {
         const eid = ids[this._carouselIndex];
@@ -658,8 +1025,8 @@ class GlassCameraCarouselCard extends BaseCard {
           </div>
         </div>
       ` : nothing}
-      <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''}">
-        <div class="carousel-hero"
+      <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''} ${this._heroPulseClass(currentCam)}">
+        <div class="carousel-hero ${currentCam?.isDoorbell ? 'aspect-portrait' : ''} ${this.previewFullscreen ? 'fs-preview' : ''}"
           @pointerdown=${(e: PointerEvent) => { heroGesture.pointerdown(e); this._onPointerDown(e); }}
           @pointermove=${(e: PointerEvent) => { heroGesture.pointermove(e); this._onPointerMove(e); }}
           @pointerup=${(e: PointerEvent) => { heroGesture.pointerup(e); this._onPointerUp(e); }}
@@ -691,6 +1058,7 @@ class GlassCameraCarouselCard extends BaseCard {
               ${ids.map((eid, idx) => this._renderDot(eid, idx))}
             </div>
           ` : nothing}
+          ${currentCam ? this._renderFullscreenOverlay(currentCam) : nothing}
         </div>
 
         <!-- Connected fold -->
@@ -707,8 +1075,22 @@ class GlassCameraCarouselCard extends BaseCard {
     `;
   }
 
+  /** Border pulse class — visually flags ongoing events on the hero card. */
+  private _heroPulseClass(cam: CameraInfo | null): string {
+    if (!cam || !cam.isOn || cam.isPrivacyOn) return '';
+    if (cam.isRinging) return 'pulse-ring';
+    if (cam.isBatteryLow) return 'pulse-alert';
+    if (cam.aiDetected.length > 0) return 'pulse-ai';
+    if (cam.hasMotion) return 'pulse-motion';
+    return '';
+  }
+
   private _tintStyle(cam: CameraInfo | null): string {
-    if (!cam || !cam.isOn || cam.state === 'idle') return 'opacity:0';
+    if (!cam) return 'opacity:0';
+    if (cam.isRinging) {
+      return `background:radial-gradient(ellipse at 50% 50%,var(--c-accent),transparent 70%);opacity:0.22`;
+    }
+    if (!cam.isOn || cam.state === 'idle') return 'opacity:0';
     const color = cam.aiDetected.length > 0 ? 'var(--c-warning)' : 'var(--cam-color)';
     return `background:radial-gradient(ellipse at 50% 50%,${color},transparent 70%);opacity:0.12`;
   }
@@ -716,6 +1098,28 @@ class GlassCameraCarouselCard extends BaseCard {
   private _renderSlide(entityId: string, isVisible: boolean): TemplateResult {
     const cam = this._getCameraInfo(entityId);
     if (!cam) return html`<div class="carousel-slide"><div class="carousel-slide-inner off-feed"></div></div>`;
+
+    // Privacy mode short-circuits everything: hide the feed entirely.
+    if (cam.isOn && cam.isPrivacyOn) {
+      return html`
+        <div class="carousel-slide">
+          <div class="carousel-slide-inner privacy-feed">
+            <div class="stream-overlay-top">
+              <div class="stream-cam-name">
+                <ha-icon .icon=${cam.icon} style="--mdc-icon-size:12px"></ha-icon>
+                <span>${cam.name}</span>
+              </div>
+              <div class="stream-time">${new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+            <div class="privacy-placeholder">
+              <ha-icon .icon=${'mdi:eye-off-outline'} style="--mdc-icon-size:42px;color:var(--t3)"></ha-icon>
+              <span class="privacy-label">${t('camera.privacy_on')}</span>
+              <span class="privacy-sub">${t('camera.privacy_sub')}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     const isLive = this._liveIds.has(entityId) || cam.state === 'streaming' || cam.state === 'recording';
     const showStream = cam.isOn && isLive && isVisible;
@@ -740,13 +1144,35 @@ class GlassCameraCarouselCard extends BaseCard {
               <div class="stream-cam-name">
                 <ha-icon .icon=${cam.icon} style="--mdc-icon-size:12px"></ha-icon>
                 <span>${cam.name}</span>
+                ${cam.isRinging ? html`
+                  <span class="ring-indicator">
+                    <span class="ring-circle"></span> ${t('camera.ringing')}
+                  </span>
+                ` : nothing}
                 ${isLive && cam.isRecording ? html`
                   <span class="rec-indicator">
                     <span class="rec-circle"></span> REC
                   </span>
                 ` : nothing}
               </div>
-              <div class="stream-time">${new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</div>
+              <div class="stream-time">
+                ${cam.batteryLevel !== null ? html`
+                  <span class="battery-badge ${cam.isBatteryLow ? 'low' : ''}">
+                    <ha-icon .icon=${this._batteryIcon(cam.batteryLevel)} style="--mdc-icon-size:12px"></ha-icon>
+                    ${cam.batteryLevel}%
+                  </span>
+                ` : nothing}
+                ${cam.isSleeping ? html`
+                  <ha-icon class="sleep-icon" .icon=${'mdi:sleep'} style="--mdc-icon-size:12px"></ha-icon>
+                ` : nothing}
+                ${cam.isDark ? html`<ha-icon class="night-icon" .icon=${'mdi:weather-night'} style="--mdc-icon-size:12px"></ha-icon>` : nothing}
+                ${new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                <button class="fs-toggle-btn"
+                  aria-label="${t('camera.fullscreen_aria')}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._toggleFullscreen(); }}>
+                  <ha-icon .icon=${'mdi:fullscreen'} style="--mdc-icon-size:14px"></ha-icon>
+                </button>
+              </div>
             </div>
             <div class="stream-overlay-bottom">
               ${cam.aiDetected.length > 0 ? html`
@@ -804,7 +1230,7 @@ class GlassCameraCarouselCard extends BaseCard {
         <div class="carousel-info-text">
           <div class="carousel-cam-name">${cam.name}</div>
           <div class="carousel-cam-sub">
-            <span class="carousel-state ${isLive ? 'live' : ''}">${cameraStateText(cam.state, cam.isOn)}</span>
+            <span class="carousel-state ${cam.isRinging ? 'ringing' : isLive ? 'live' : ''} ${cam.isPrivacyOn ? 'privacy' : ''}">${cameraStateText(cam)}</span>
             ${cam.aiDetected.length > 0 && cam.isOn ? html`
               <div class="carousel-ai-mini">
                 ${cam.aiDetected.map((ai) => html`
@@ -816,6 +1242,124 @@ class GlassCameraCarouselCard extends BaseCard {
             ` : nothing}
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  /** Overlay visible ONLY when the hero is fullscreen (CSS :fullscreen).
+   *  Layout inspired by mobile PTZ apps (Reolink, Frigate, Foscam) :
+   *  – top-left : floating action chips (snapshot, motion)
+   *  – top-right : close button
+   *  – bottom-left : pan/tilt joystick (4 directions)
+   *  – bottom-right : zoom joystick (+/−) */
+  private _renderFullscreenOverlay(cam: CameraInfo): TemplateResult {
+    if (!cam.isOn) return html`<div class="fs-overlay"></div>`;
+    const hasPan = cam.ptzUpId || cam.ptzDownId || cam.ptzLeftId || cam.ptzRightId;
+    const hasZoom = cam.ptzZoomInId || cam.ptzZoomOutId;
+    return html`
+      <div class="fs-overlay">
+        <div class="fs-top-chips">
+          <button class="fs-chip" aria-label="${t('camera.snapshot')}"
+            @click=${() => this._snapshot(cam)}>
+            <ha-icon .icon=${'mdi:camera'} style="--mdc-icon-size:18px"></ha-icon>
+          </button>
+          ${cam.motionDetectionSupported ? html`
+            <button class="fs-chip ${cam.motionDetectionEnabled ? 'active' : ''}"
+              aria-label="${cam.motionDetectionEnabled ? t('camera.motion_on_aria') : t('camera.motion_off_aria')}"
+              @click=${() => this._toggleMotion(cam)}>
+              <ha-icon .icon=${cam.motionDetectionEnabled ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off'} style="--mdc-icon-size:18px"></ha-icon>
+            </button>
+          ` : nothing}
+        </div>
+        <button class="fs-back-btn"
+          aria-label="${t('camera.exit_fullscreen_aria')}"
+          @click=${this._toggleFullscreen}>
+          <ha-icon .icon=${'mdi:close'} style="--mdc-icon-size:20px"></ha-icon>
+        </button>
+        ${hasPan ? html`
+          <div class="joystick joystick-pan" role="group" aria-label="Pan/Tilt">
+            <div class="joystick-center"></div>
+            ${cam.ptzUpId ? html`
+              <button class="jp jp-up" aria-label="${t('camera.ptz_up_aria')}"
+                @click=${() => this._ptzPress(cam.ptzUpId)}>
+                <ha-icon .icon=${'mdi:chevron-up'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+            ${cam.ptzDownId ? html`
+              <button class="jp jp-down" aria-label="${t('camera.ptz_down_aria')}"
+                @click=${() => this._ptzPress(cam.ptzDownId)}>
+                <ha-icon .icon=${'mdi:chevron-down'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+            ${cam.ptzLeftId ? html`
+              <button class="jp jp-left" aria-label="${t('camera.ptz_left_aria')}"
+                @click=${() => this._ptzPress(cam.ptzLeftId)}>
+                <ha-icon .icon=${'mdi:chevron-left'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+            ${cam.ptzRightId ? html`
+              <button class="jp jp-right" aria-label="${t('camera.ptz_right_aria')}"
+                @click=${() => this._ptzPress(cam.ptzRightId)}>
+                <ha-icon .icon=${'mdi:chevron-right'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+          </div>
+        ` : nothing}
+        ${hasZoom ? html`
+          <div class="joystick joystick-zoom" role="group" aria-label="Zoom">
+            <div class="joystick-center"></div>
+            ${cam.ptzZoomInId ? html`
+              <button class="jp jp-up" aria-label="${t('camera.ptz_zoom_in_aria')}"
+                @click=${() => this._ptzPress(cam.ptzZoomInId)}>
+                <ha-icon .icon=${'mdi:plus'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+            ${cam.ptzZoomOutId ? html`
+              <button class="jp jp-down" aria-label="${t('camera.ptz_zoom_out_aria')}"
+                @click=${() => this._ptzPress(cam.ptzZoomOutId)}>
+                <ha-icon .icon=${'mdi:minus'} style="--mdc-icon-size:22px"></ha-icon>
+              </button>
+            ` : nothing}
+          </div>
+        ` : nothing}
+      </div>
+    `;
+  }
+
+  /** Compact PTZ D-pad : 4 direction arrows + zoom in/out. */
+  private _renderPtzDpad(cam: CameraInfo, ctx: 'fold' | 'fs'): TemplateResult {
+    return html`
+      <div class="ptz-dpad ptz-dpad-${ctx}">
+        ${cam.ptzLeftId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-left'}
+            aria-label="${t('camera.ptz_left_aria')}"
+            @click=${() => this._ptzPress(cam.ptzLeftId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzUpId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-up'}
+            aria-label="${t('camera.ptz_up_aria')}"
+            @click=${() => this._ptzPress(cam.ptzUpId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzDownId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-down'}
+            aria-label="${t('camera.ptz_down_aria')}"
+            @click=${() => this._ptzPress(cam.ptzDownId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzRightId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-right'}
+            aria-label="${t('camera.ptz_right_aria')}"
+            @click=${() => this._ptzPress(cam.ptzRightId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzZoomOutId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:magnify-minus-outline'}
+            aria-label="${t('camera.ptz_zoom_out_aria')}"
+            @click=${() => this._ptzPress(cam.ptzZoomOutId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzZoomInId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:magnify-plus-outline'}
+            aria-label="${t('camera.ptz_zoom_in_aria')}"
+            @click=${() => this._ptzPress(cam.ptzZoomInId)}></glass-icon-button>
+        ` : nothing}
       </div>
     `;
   }
@@ -909,7 +1453,38 @@ class GlassCameraCarouselCard extends BaseCard {
             @click=${() => this._toggleAutoTrack(cam)}
           ></glass-icon-button>
         ` : nothing}
+        ${cam.detectSwitchId ? html`
+          <glass-button
+            size="sm"
+            variant="ghost"
+            .icon=${'mdi:brain'}
+            class=${cam.isDetectOn ? 'detect-active' : ''}
+            aria-label="${cam.isDetectOn ? t('camera.detect_off_aria') : t('camera.detect_on_aria')}"
+            @click=${() => this._toggleDetect(cam)}
+          >${t('camera.detect')}</glass-button>
+        ` : nothing}
+        ${cam.snapshotsSwitchId ? html`
+          <glass-button
+            size="sm"
+            variant="ghost"
+            .icon=${'mdi:image-multiple-outline'}
+            class=${cam.isSnapshotsOn ? 'snapshots-active' : ''}
+            aria-label="${cam.isSnapshotsOn ? t('camera.snapshots_off_aria') : t('camera.snapshots_on_aria')}"
+            @click=${() => this._toggleSnapshots(cam)}
+          >${t('camera.snapshots')}</glass-button>
+        ` : nothing}
+        ${cam.privacySwitchId ? html`
+          <glass-button
+            size="sm"
+            variant="ghost"
+            .icon=${cam.isPrivacyOn ? 'mdi:eye-off' : 'mdi:eye'}
+            class=${cam.isPrivacyOn ? 'privacy-active' : ''}
+            aria-label="${cam.isPrivacyOn ? t('camera.privacy_off_aria') : t('camera.privacy_on_aria')}"
+            @click=${() => this._togglePrivacy(cam)}
+          >${t('camera.privacy_on')}</glass-button>
+        ` : nothing}
       </div>
+      ${cam.hasPtz ? this._renderPtzDpad(cam, 'fold') : nothing}
     `;
   }
 
@@ -957,6 +1532,9 @@ class GlassCameraCarouselCard extends BaseCard {
       /* — Hero — */
       .carousel-hero {
         position: relative; width: 100%; aspect-ratio: 16 / 9;
+        /* border-box so the 1px border doesn't push hero 2px wider than .cam-wrap
+           (would create the visible right-edge offset between hero and fold). */
+        box-sizing: border-box;
         border-radius: var(--radius-xl);
         overflow: hidden;
         background: #0a0f18;
@@ -964,19 +1542,70 @@ class GlassCameraCarouselCard extends BaseCard {
         box-shadow:
           0 8px 32px rgba(var(--rgb-black),0.3),
           0 2px 8px rgba(var(--rgb-black),0.2),
-          inset 0 1px 0 rgba(var(--rgb-white),0.04),
-          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
+          inset 0 1px 0 rgba(var(--rgb-white),0.04);
         touch-action: pan-y;
         -webkit-tap-highlight-color: transparent;
         transition: border-radius var(--t-layout), border-color var(--t-fast);
       }
       @media (hover: hover) and (pointer: fine) { .carousel-hero:hover { border-color: var(--b3); } }
 
-      /* Connected fold: hero loses bottom radius when fold is open */
+      /* Event pulse on the card outline — a single ::after overlay on .cam-wrap so the
+         contour stays unified whether the fold is open or closed. The hero + fold each keep
+         their static borders underneath; the overlay draws ONE continuous ring around both. */
+      .cam-wrap::after {
+        content: '';
+        position: absolute; inset: 0;
+        border-radius: var(--radius-xl);
+        pointer-events: none;
+        border: 1.5px solid transparent;
+        opacity: 0;
+        transition: opacity 0.2s ease-out;
+        z-index: 6;
+      }
+      .cam-wrap.pulse-ring::after,
+      .cam-wrap.pulse-alert::after,
+      .cam-wrap.pulse-ai::after,
+      .cam-wrap.pulse-motion::after { opacity: 1; }
+
+      @keyframes cam-pulse-ring {
+        0%, 100% { border-color: rgba(var(--rgb-accent), 0.4);
+                   box-shadow: 0 0 0 0 rgba(var(--rgb-accent), 0); }
+        50%      { border-color: rgba(var(--rgb-accent), 1);
+                   box-shadow: 0 0 18px 2px rgba(var(--rgb-accent), 0.5); }
+      }
+      @keyframes cam-pulse-ai {
+        0%, 100% { border-color: rgba(var(--rgb-warning), 0.4);
+                   box-shadow: 0 0 0 0 rgba(var(--rgb-warning), 0); }
+        50%      { border-color: rgba(var(--rgb-warning), 1);
+                   box-shadow: 0 0 14px 1px rgba(var(--rgb-warning), 0.4); }
+      }
+      @keyframes cam-pulse-motion {
+        0%, 100% { border-color: rgba(var(--rgb-info), 0.35); }
+        50%      { border-color: rgba(var(--rgb-info), 0.85); }
+      }
+      @keyframes cam-pulse-alert {
+        0%, 100% { border-color: rgba(var(--rgb-alert), 0.4);
+                   box-shadow: 0 0 0 0 rgba(var(--rgb-alert), 0); }
+        50%      { border-color: rgba(var(--rgb-alert), 1);
+                   box-shadow: 0 0 16px 2px rgba(var(--rgb-alert), 0.45); }
+      }
+      .cam-wrap.pulse-ring::after   { animation: cam-pulse-ring 1.2s ease-in-out infinite; }
+      .cam-wrap.pulse-alert::after  { animation: cam-pulse-alert 1.6s ease-in-out infinite; }
+      .cam-wrap.pulse-ai::after     { animation: cam-pulse-ai 2s ease-in-out infinite; }
+      .cam-wrap.pulse-motion::after { animation: cam-pulse-motion 2.4s ease-in-out infinite; }
+
+      /* Connected fold: hero loses bottom radius when fold is open (mirrors media-card).
+         The inset bottom shadow is only added when fold is open so the closed-state hero
+         doesn't show a useless dark inner line. */
       .cam-wrap.fold-open .carousel-hero {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         border-bottom-color: transparent;
+        box-shadow:
+          0 8px 32px rgba(var(--rgb-black),0.3),
+          0 2px 8px rgba(var(--rgb-black),0.2),
+          inset 0 1px 0 rgba(var(--rgb-white),0.04),
+          inset 0 -1px 0 rgba(var(--rgb-black),0.1);
       }
 
       .tint {
@@ -1014,6 +1643,27 @@ class GlassCameraCarouselCard extends BaseCard {
       .carousel-slide-inner.off-feed {
         background: linear-gradient(135deg, #0a0e14 0%, #080c12 100%);
       }
+      /* Privacy feed: dim, neutral, with eye-off centerpiece. */
+      .carousel-slide-inner.privacy-feed {
+        background:
+          radial-gradient(circle at 50% 50%, rgba(var(--rgb-warning),0.08) 0%, transparent 60%),
+          linear-gradient(135deg, #14110a 0%, #0c0a07 100%);
+      }
+      .privacy-placeholder {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 0.375rem; z-index: 3;
+        padding: 0 1rem;
+        text-align: center;
+      }
+      .privacy-label {
+        font-size: var(--fz-sm); font-weight: 700; color: var(--c-warning);
+        letter-spacing: 0.5px; text-transform: uppercase;
+      }
+      .privacy-sub {
+        font-size: var(--fz-xs); font-weight: 500; color: var(--t4);
+        max-width: 16rem;
+      }
 
       .cam-thumbnail {
         position: absolute; inset: 0; width: 100%; height: 100%;
@@ -1030,11 +1680,11 @@ class GlassCameraCarouselCard extends BaseCard {
         position: absolute; top: 0; left: 0; right: 0; z-index: 2;
         display: flex; align-items: center; justify-content: space-between;
         padding: 0.5rem 0.625rem;
-        background: linear-gradient(180deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
       }
       .stream-cam-name {
-        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.7);
+        font-size: var(--fz-sm); font-weight: 600; color: rgba(var(--rgb-white),0.85);
         display: flex; align-items: center; gap: 0.3125rem;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.55);
       }
       .stream-cam-name ha-icon { display: flex; align-items: center; justify-content: center; }
       .rec-indicator {
@@ -1050,15 +1700,207 @@ class GlassCameraCarouselCard extends BaseCard {
         0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--c-alert); }
         50% { opacity: 0.4; box-shadow: 0 0 0px var(--c-alert); }
       }
+      .ring-indicator {
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        padding: 0.0625rem 0.375rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-xs); font-weight: 700; color: var(--c-accent);
+        letter-spacing: 0.5px;
+        background: rgba(var(--rgb-accent),0.18);
+        border: 1px solid rgba(var(--rgb-accent),0.35);
+        animation: ring-flash 0.9s ease-in-out infinite;
+      }
+      .ring-circle {
+        width: 0.375rem; height: 0.375rem; border-radius: 50%;
+        background: var(--c-accent);
+        box-shadow: 0 0 6px var(--c-accent);
+      }
+      @keyframes ring-flash {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(var(--rgb-accent),0); }
+        50% { transform: scale(1.04); box-shadow: 0 0 10px rgba(var(--rgb-accent),0.4); }
+      }
       .stream-time {
         font-size: var(--fz-xs); font-weight: 500; color: rgba(var(--rgb-white),0.5);
         font-variant-numeric: tabular-nums;
+        display: inline-flex; align-items: center; gap: 0.25rem;
+      }
+      .night-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        color: rgba(var(--rgb-info),0.85);
+      }
+      .sleep-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        color: rgba(var(--rgb-white),0.6);
+      }
+      .battery-badge {
+        display: inline-flex; align-items: center; gap: 0.1875rem;
+        padding: 0 0.25rem; border-radius: var(--radius-sm);
+        font-size: var(--fz-xs); font-weight: 600;
+        background: rgba(var(--rgb-white),0.08);
+        color: rgba(var(--rgb-white),0.75);
+      }
+      .battery-badge.low {
+        background: rgba(var(--rgb-alert),0.18);
+        color: var(--c-alert);
+        animation: battery-low-pulse 2s ease-in-out infinite;
+      }
+      @keyframes battery-low-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.55; }
+      }
+      .battery-badge ha-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+      /* Doorbell-shaped aspect — portrait 3/4 for typical doorbell cameras. */
+      .carousel-hero.aspect-portrait { aspect-ratio: 3 / 4; }
+
+      /* Fullscreen toggle button — compact, in the stream overlay clock area. */
+      .fs-toggle-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: none; border: none; padding: 0.125rem;
+        color: rgba(var(--rgb-white),0.6);
+        cursor: pointer; border-radius: var(--radius-sm);
+        margin-left: 0.125rem;
+        transition: color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fs-toggle-btn:hover { color: rgba(var(--rgb-white),0.95); }
+      .fs-toggle-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 1px; }
+      .fs-toggle-btn ha-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+      /* When natively fullscreen, drop the aspect-ratio + radius so the hero fills
+         the whole viewport. fs-preview keeps its inline layout (it's just a CSS preview). */
+      .carousel-hero:fullscreen {
+        width: 100vw; height: 100vh; max-width: none; max-height: none;
+        aspect-ratio: auto; border-radius: 0; border: none;
+        box-shadow: none; background: #000;
+      }
+      .carousel-hero:fullscreen .cam-stream,
+      .carousel-hero:fullscreen .cam-thumbnail {
+        width: 100%; height: 100%;
+        object-fit: contain; /* preserve full image — no crop in fullscreen */
+      }
+
+      /* Fullscreen overlay — hidden by default, visible only when hero is :fullscreen
+         OR when .fs-preview class is set (dev harness preview mode). */
+      .fs-overlay { display: none; }
+      .carousel-hero:fullscreen .fs-overlay,
+      .carousel-hero.fs-preview .fs-overlay {
+        display: block;
+        position: absolute; inset: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+      /* Drop the carousel arrows / dots when fullscreen — controls live in fs-overlay. */
+      .carousel-hero:fullscreen .carousel-nav,
+      .carousel-hero:fullscreen .carousel-dots,
+      .carousel-hero:fullscreen .stream-overlay-top,
+      .carousel-hero:fullscreen .stream-overlay-bottom,
+      .carousel-hero.fs-preview .carousel-nav,
+      .carousel-hero.fs-preview .carousel-dots,
+      .carousel-hero.fs-preview .stream-overlay-top,
+      .carousel-hero.fs-preview .stream-overlay-bottom { display: none; }
+
+      .fs-back-btn {
+        position: absolute; top: 1rem; right: 1rem;
+        width: 2.5rem; height: 2.5rem; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: var(--blur-lg, blur(12px));
+        -webkit-backdrop-filter: var(--blur-lg, blur(12px));
+        border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.9); cursor: pointer;
+        pointer-events: auto;
+        transition: background var(--t-fast), transform var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fs-back-btn:hover { background: rgba(0,0,0,0.6); transform: scale(1.05); }
+      .fs-back-btn ha-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+      /* Top-left floating action chips (snapshot, motion toggle). */
+      .fs-top-chips {
+        position: absolute; top: 1rem; left: 1rem;
+        display: flex; gap: 0.5rem;
+        pointer-events: auto;
+      }
+      .fs-chip {
+        width: 2.5rem; height: 2.5rem; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: var(--blur-lg, blur(12px));
+        -webkit-backdrop-filter: var(--blur-lg, blur(12px));
+        border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.9); cursor: pointer;
+        transition: background var(--t-fast), transform var(--t-fast), color var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fs-chip:hover { background: rgba(0,0,0,0.6); transform: scale(1.05); }
+      .fs-chip.active {
+        background: rgba(var(--rgb-alert), 0.3);
+        border-color: rgba(var(--rgb-alert), 0.5);
+        color: var(--c-alert);
+      }
+      .fs-chip ha-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+      /* Joysticks — circular floating PTZ controls (Reolink/Frigate-style). */
+      .joystick {
+        position: absolute;
+        width: 8rem; height: 8rem;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), rgba(0,0,0,0.55) 70%);
+        backdrop-filter: var(--blur-lg, blur(16px));
+        -webkit-backdrop-filter: var(--blur-lg, blur(16px));
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        pointer-events: auto;
+      }
+      .joystick-pan  { bottom: 1.5rem; left: 1.5rem; }
+      .joystick-zoom { bottom: 1.5rem; right: 1.5rem; width: 5.5rem; height: 5.5rem; }
+      .joystick-center {
+        position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        width: 0.625rem; height: 0.625rem; border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        pointer-events: none;
+      }
+      .jp {
+        position: absolute;
+        width: 2.5rem; height: 2.5rem; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.88); cursor: pointer;
+        /* Explicit pointer-events override — some WebKit builds (iOS 15-16) don't propagate
+           the parent's pointer-events:auto to non-positioned descendants reliably. */
+        pointer-events: auto;
+        transition: background var(--t-fast), transform var(--t-fast);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .jp:hover { background: rgba(255,255,255,0.18); transform: scale(1.08); }
+      .jp:active { background: rgba(var(--rgb-accent), 0.35); }
+      .jp ha-icon { display: inline-flex; align-items: center; justify-content: center; }
+      .jp-up    { top: 0.375rem; left: 50%; transform: translateX(-50%); }
+      .jp-down  { bottom: 0.375rem; left: 50%; transform: translateX(-50%); }
+      .jp-left  { left: 0.375rem; top: 50%; transform: translateY(-50%); }
+      .jp-right { right: 0.375rem; top: 50%; transform: translateY(-50%); }
+      .joystick-zoom .jp { width: 2rem; height: 2rem; }
+      /* Hover/active retain centering — re-apply transform with scale. */
+      .jp-up:hover    { transform: translateX(-50%) scale(1.08); }
+      .jp-down:hover  { transform: translateX(-50%) scale(1.08); }
+      .jp-left:hover  { transform: translateY(-50%) scale(1.08); }
+      .jp-right:hover { transform: translateY(-50%) scale(1.08); }
+
+      /* PTZ D-pad — compact horizontal row (left/up/down/right + zoom). */
+      .ptz-dpad {
+        display: inline-flex; gap: 0.25rem; align-items: center;
+      }
+      .ptz-dpad-fold {
+        display: flex; gap: 0.25rem; flex-wrap: wrap;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(var(--rgb-white),0.06);
       }
       .stream-overlay-bottom {
         position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
         display: flex; align-items: center; justify-content: space-between;
         padding: 0.5rem 0.625rem;
-        background: linear-gradient(0deg, rgba(var(--rgb-black),0.5) 0%, transparent 100%);
       }
       .stream-ai-tags { display: flex; gap: 0.25rem; }
       .stream-ai-tag {
@@ -1130,6 +1972,7 @@ class GlassCameraCarouselCard extends BaseCard {
       .ctrl-fold.open { grid-template-rows: 1fr; }
       .ctrl-fold-inner {
         overflow: hidden;
+        box-sizing: border-box;
         opacity: 0; transition: opacity 0.25s;
         background: linear-gradient(135deg, rgba(var(--rgb-white),0.03), rgba(var(--rgb-white),0.01));
         backdrop-filter: var(--blur-lg);
@@ -1178,6 +2021,8 @@ class GlassCameraCarouselCard extends BaseCard {
       }
       .carousel-state { font-size: var(--fz-sm); font-weight: 500; color: var(--t3); }
       .carousel-state.live { color: var(--cam-sub); }
+      .carousel-state.ringing { color: var(--c-accent); font-weight: 600; }
+      .carousel-state.privacy { color: var(--c-warning); font-weight: 600; }
       .carousel-ai-mini { display: flex; gap: 0.125rem; align-items: center; }
       .ai-badge {
         display: inline-flex; align-items: center; justify-content: center;
@@ -1194,6 +2039,8 @@ class GlassCameraCarouselCard extends BaseCard {
       .carousel-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; align-items: center; }
       /* Recording-active <glass-button>: tint the label red to match the alert active state. */
       glass-button.rec-active { color: var(--c-alert); }
+      /* Privacy-active <glass-button>: tint warning to match the privacy overlay. */
+      glass-button.privacy-active { color: var(--c-warning); }
     `,
   ];
 }

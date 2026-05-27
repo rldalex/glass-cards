@@ -1,6 +1,6 @@
 {
   "name": "@glass-cards/camera-carousel",
-  "version": "0.0.139",
+  "version": "0.0.144",
   "private": true,
   "type": "module",
   "main": "src/index.ts"
