@@ -91,6 +91,13 @@ function typeIcon(type: string): string {
   }
 }
 
+function formatTime(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 function typeBadgeKey(type: string): string {
   switch (type) {
     case 'track': return 'spotify.type_track';
@@ -247,37 +254,34 @@ class GlassSpotifyCard extends BaseCard {
       font-size: var(--fz-sm); font-weight: 500; color: var(--t3); line-height: 1.2;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .np-transport {
-      display: inline-flex; align-items: center; gap: 0.25rem;
-      flex-shrink: 0;
+    /* Progress display (read-only) — Spotify HA n'expose pas de transport
+       fiable, on affiche juste position / durée + barre statique. */
+    .np-progress {
+      display: flex; flex-direction: column; gap: 0.1875rem;
+      margin-top: 0.25rem;
     }
-    /* np-bar transport buttons (prev/next/search) handled by
-       <glass-icon-button size="sm">. Only the branded play stays as
-       a real <button>. */
-    .np-btn-play {
-      position: relative;
-      width: 2.125rem; height: 2.125rem; border-radius: 50%;
-      background: var(--c-spotify); color: var(--c-spotify-on);
-      border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; padding: 0; outline: none;
-      transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 14px rgba(var(--rgb-spotify), 0.35);
+    .np-progress-track {
+      height: 0.125rem; border-radius: var(--radius-full);
+      background: rgba(var(--rgb-white), 0.08);
+      overflow: hidden;
     }
-    .np-btn-play ha-icon { --mdc-icon-size: 1.25rem; display: flex; align-items: center; justify-content: center; }
-    @media (hover: hover) and (pointer: fine) {
-      .np-btn-play:hover {
-        background: var(--c-spotify-hover);
-        box-shadow: 0 6px 18px rgba(var(--rgb-spotify), 0.5);
-      }
+    .np-progress-fill {
+      height: 100%; border-radius: inherit;
+      background: var(--c-spotify);
+      box-shadow: 0 0 6px rgba(var(--rgb-spotify), 0.4);
+      transition: width 1s linear;
     }
-    @media (hover: hover) { .np-btn-play:active { transform: scale(0.94); } }
-    @media (pointer: coarse) { .np-btn-play:active { animation: bounce 0.3s ease; } }
-    .np-btn-play:focus-visible { outline: 2px solid rgba(var(--rgb-white), 0.4); outline-offset: 2px; }
+    .np-progress-time {
+      display: flex; justify-content: space-between;
+      font-size: var(--fz-xxs); font-weight: 500;
+      color: var(--t4); font-variant-numeric: tabular-nums;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .np-progress-fill { transition: none; }
+    }
 
     /* Search affordance in np-bar — small magnify icon button */
-    .np-btn-search { margin-left: 0.25rem; }
+    .np-btn-search { margin-left: 0.25rem; align-self: center; }
 
     /* Search-clear (visible only when query non-empty) — absolute positioning
        inside the input wrapper. The button styling itself is handled by
@@ -979,8 +983,8 @@ class GlassSpotifyCard extends BaseCard {
       .picker-speaker:hover { transform: none; }
       .drilldown-play-cta { transition: none; }
       .drilldown-play-cta:active { transform: none; }
-      .np-btn-play, .setup-banner-cta { transition: none; }
-      .np-btn-play:active, .setup-banner-cta:active { transform: none; }
+      .setup-banner-cta { transition: none; }
+      .setup-banner-cta:active { transform: none; }
     }
 
     /* Now playing indicator */
@@ -1033,47 +1037,33 @@ class GlassSpotifyCard extends BaseCard {
     return (entity.attributes.media_content_id as string ?? '') === uri;
   }
 
-  private _getPlaybackEntity(): { entityId: string; state: string; title: string | null; artist: string | null; art: string | null } | null {
+  private _getPlaybackEntity(): {
+    entityId: string;
+    state: string;
+    title: string | null;
+    artist: string | null;
+    art: string | null;
+    position: number | null;
+    duration: number | null;
+    positionUpdatedAt: number | null;
+  } | null {
     const entityId = this._getEntityId();
     if (!entityId) return null;
     const entity = this.hass?.states[entityId];
     if (!entity) return null;
     if (entity.state !== 'playing' && entity.state !== 'paused') return null;
+    const updatedAtIso = entity.attributes.media_position_updated_at as string | undefined;
+    const updatedAtMs = updatedAtIso ? Date.parse(updatedAtIso) : NaN;
     return {
       entityId,
       state: entity.state,
       title: (entity.attributes.media_title as string | undefined) ?? null,
       artist: (entity.attributes.media_artist as string | undefined) ?? null,
       art: (entity.attributes.entity_picture as string | undefined) ?? null,
+      position: (entity.attributes.media_position as number | undefined) ?? null,
+      duration: (entity.attributes.media_duration as number | undefined) ?? null,
+      positionUpdatedAt: Number.isFinite(updatedAtMs) ? updatedAtMs : null,
     };
-  }
-
-  private _mediaPlayPause(e: Event): void {
-    e.stopPropagation();
-    const id = this._getEntityId();
-    if (!id) return;
-    fireHaptic(this, 'light');
-    // Spotify integration n'expose pas toujours media_play_pause; on route
-    // explicitement via l'état pour rester compatible.
-    const state = this.hass?.states[id]?.state;
-    const service = state === 'playing' ? 'media_pause' : 'media_play';
-    this._safeCallService('media_player', service, {}, { entity_id: id });
-  }
-
-  private _mediaNext(e: Event): void {
-    e.stopPropagation();
-    const id = this._getEntityId();
-    if (!id) return;
-    fireHaptic(this, 'light');
-    this._safeCallService('media_player', 'media_next_track', {}, { entity_id: id });
-  }
-
-  private _mediaPrev(e: Event): void {
-    e.stopPropagation();
-    const id = this._getEntityId();
-    if (!id) return;
-    fireHaptic(this, 'light');
-    this._safeCallService('media_player', 'media_previous_track', {}, { entity_id: id });
   }
 
   private _focusSearchInput(): void {
@@ -1771,9 +1761,34 @@ class GlassSpotifyCard extends BaseCard {
     `;
   }
 
-  private _renderNowPlayingBar(playback: { state: string; title: string | null; artist: string | null; art: string | null }): TemplateResult {
-    const isPlaying = playback.state === 'playing';
+  private _renderNowPlayingBar(playback: {
+    state: string;
+    title: string | null;
+    artist: string | null;
+    art: string | null;
+    position: number | null;
+    duration: number | null;
+    positionUpdatedAt: number | null;
+  }): TemplateResult {
     const titleText = playback.title ?? t('spotify.tab_tracks');
+    // Calcul de la position live : HA met à jour media_position de façon
+    // ponctuelle ; pour un affichage à jour, on extrapole depuis
+    // media_position_updated_at quand l'entité est en lecture.
+    let livePos = playback.position;
+    if (
+      playback.state === 'playing' &&
+      playback.position != null &&
+      playback.positionUpdatedAt != null
+    ) {
+      const elapsed = (Date.now() - playback.positionUpdatedAt) / 1000;
+      livePos = playback.position + elapsed;
+      if (playback.duration != null) livePos = Math.min(livePos, playback.duration);
+    }
+    const progressPct =
+      livePos != null && playback.duration != null && playback.duration > 0
+        ? Math.max(0, Math.min(100, (livePos / playback.duration) * 100))
+        : 0;
+    const hasProgress = livePos != null && playback.duration != null && playback.duration > 0;
     return html`
       <div class="np-bar" role="region" aria-label=${t('spotify.now_playing_aria')}>
         <div class="np-art">
@@ -1784,23 +1799,19 @@ class GlassSpotifyCard extends BaseCard {
         <div class="np-meta">
           <div class="np-title">${titleText}</div>
           ${playback.artist ? html`<div class="np-artist">${playback.artist}</div>` : nothing}
-        </div>
-        <div class="np-transport">
-          <glass-icon-button
-            size="sm"
-            .icon=${'mdi:skip-previous'}
-            aria-label=${t('spotify.previous_track')}
-            @click=${(e: Event) => this._mediaPrev(e)}
-          ></glass-icon-button>
-          <button class="np-btn np-btn-play ${isPlaying ? 'is-playing' : 'is-paused'}" aria-label=${isPlaying ? t('spotify.pause') : t('spotify.play')} @click=${(e: Event) => this._mediaPlayPause(e)}>
-            <ha-icon .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}></ha-icon>
-          </button>
-          <glass-icon-button
-            size="sm"
-            .icon=${'mdi:skip-next'}
-            aria-label=${t('spotify.next_track')}
-            @click=${(e: Event) => this._mediaNext(e)}
-          ></glass-icon-button>
+          ${hasProgress
+            ? html`
+                <div class="np-progress" aria-hidden="true">
+                  <div class="np-progress-track">
+                    <div class="np-progress-fill" style=${`width:${progressPct}%`}></div>
+                  </div>
+                  <div class="np-progress-time">
+                    <span>${formatTime(livePos ?? 0)}</span>
+                    <span>${formatTime(playback.duration ?? 0)}</span>
+                  </div>
+                </div>
+              `
+            : nothing}
         </div>
         <glass-icon-button
           class="np-btn-search"
