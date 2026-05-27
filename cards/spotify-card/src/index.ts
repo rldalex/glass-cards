@@ -156,6 +156,7 @@ class GlassSpotifyCard extends BaseCard {
   private _loadVersion = 0;
   private _radioQueueVersion = 0;
   private _debounceTimer = 0;
+  private _progressTimer = 0;
 
   // — Styles —
 
@@ -1104,6 +1105,7 @@ class GlassSpotifyCard extends BaseCard {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     if (this._debounceTimer) clearTimeout(this._debounceTimer);
+    if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
     this._backend = undefined;
     this._configLoaded = false;
     this._configLoadingInProgress = false;
@@ -1127,6 +1129,26 @@ class GlassSpotifyCard extends BaseCard {
         this._backend = new BackendService(this.hass);
         this._loadConfig();
       }
+      this._syncProgressTimer();
+    }
+  }
+
+  private _syncProgressTimer(): void {
+    // L'intégration Spotify HA push media_position de façon ponctuelle (5-30s).
+    // Pour que la barre de progression du np-bar tick visuellement, on lance
+    // un setInterval(1s) qui force un re-render et fait avancer l'extrapolation
+    // depuis media_position_updated_at. On arrête dès que rien n'est en lecture.
+    const playback = this._getPlaybackEntity();
+    const needsTimer =
+      playback?.state === 'playing' &&
+      playback.duration != null &&
+      playback.duration > 0 &&
+      playback.positionUpdatedAt != null;
+    if (needsTimer && !this._progressTimer) {
+      this._progressTimer = window.setInterval(() => this.requestUpdate(), 1000);
+    } else if (!needsTimer && this._progressTimer) {
+      clearInterval(this._progressTimer);
+      this._progressTimer = 0;
     }
   }
 
