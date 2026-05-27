@@ -59,25 +59,26 @@ const COMPANION_PATTERNS = {
   visitor: /_(visitor|visiteur|doorbell_chime)$/,
   // Privacy : Reolink _privacy_mode / Unifi Protect _privacy_mode.
   privacy: /_(privacy_mode|mode_confidentialite)$/,
-  // Frigate object-detection toggle (separate from motion).
-  detect: /_detect$/,
-  // Frigate snapshot capture toggle.
-  snapshots: /_snapshots$/,
-  // Unifi Protect: brightness sensor — true at night.
-  is_dark: /_is_dark$/,
-  // Battery level (Reolink Argus/Solar/Eufy).
-  battery: /_battery(_percentage|_level)?$/,
-  // Battery low binary sensor.
-  battery_low: /_battery_low$/,
-  // Camera sleep state (Reolink solar cams power-save).
-  sleep_status: /_sleep_status$/,
-  // PTZ button entities (Reolink). Tested on button.<cam>_ptz_*.
-  ptz_up: /_ptz_up$/,
-  ptz_down: /_ptz_down$/,
-  ptz_left: /_ptz_left$/,
-  ptz_right: /_ptz_right$/,
-  ptz_zoom_in: /_ptz_zoom_(?:in|plus)$/,
-  ptz_zoom_out: /_ptz_zoom_(?:out|minus)$/,
+  // Frigate object-detection toggle. EN: _detect / FR Reolink: _detection_ia.
+  detect: /_(detect|detection_ia)$/,
+  // Frigate snapshot capture toggle. EN: _snapshots / FR Reolink: _instantanes_*.
+  snapshots: /_(?:snapshots|instantanes)(?:_|$)/,
+  // Unifi Protect: brightness sensor — true at night. EN: _is_dark / FR: _il_fait_nuit / _obscurite.
+  is_dark: /_(is_dark|il_fait_nuit|obscurite)$/,
+  // Battery level (Reolink Argus/Solar/Eufy). EN: _battery_percentage / FR: _batterie / _pourcentage_batterie.
+  battery: /_(battery(_percentage|_level)?|batterie|pourcentage_batterie|niveau_batterie)$/,
+  // Battery low binary sensor. EN: _battery_low / FR: _batterie_faible.
+  battery_low: /_(battery_low|batterie_faible)$/,
+  // Camera sleep state. EN: _sleep_status / FR Reolink: _etat_de_veille / _veille.
+  sleep_status: /_(sleep_status|etat_de_veille|veille)$/,
+  // PTZ button entities (Reolink). EN + FR variants : up/haut, down/bas, left/gauche,
+  // right/droite, zoom_in/zoom_plus/zoom_avant, zoom_out/zoom_minus/zoom_arriere.
+  ptz_up: /_ptz_(up|haut)$/,
+  ptz_down: /_ptz_(down|bas)$/,
+  ptz_left: /_ptz_(left|gauche)$/,
+  ptz_right: /_ptz_(right|droite)$/,
+  ptz_zoom_in: /_ptz_zoom_(in|plus|avant)$/,
+  ptz_zoom_out: /_ptz_zoom_(out|minus|arriere)$/,
 } as const;
 
 // Window during which a doorbell ring is shown as "active" (ms).
@@ -341,14 +342,31 @@ function discoverCompanions(
 }
 
 /** Dedupe camera entities that share the same device.
- *  Reolink commonly exposes Fluent/Balanced/Clear + Snapshots Fluent/Clear for ONE camera.
- *  We drop *_snapshots* (JPEG-only) and keep the shortest entity_id per device — the primary
- *  stream is the one without a quality suffix. Entities with no device_id pass through. */
+ *  Reolink commonly exposes Fluent/Balanced/Clear + Snapshots Fluent/Clear for ONE camera
+ *  (FR: _fluide / _net / _instantanes). We drop snapshot/still streams, then prefer
+ *  primary > Fluent/Fluide > shortest entity_id. Entities with no device_id pass through. */
 function dedupeCamerasPerDevice(
   ids: string[],
   entities: Record<string, EntityRegistryEntry>,
 ): string[] {
-  const withoutSnapshots = ids.filter((eid) => !/_snapshots(_|$)/.test(eid));
+  // Drop pure-snapshot streams (still images) — covers EN "_snapshots" and FR "_instantanes".
+  const withoutSnapshots = ids.filter((eid) => !/_(?:snapshots|instantanes)(?:_|$)/.test(eid));
+
+  const QUALITY_SUFFIX = /_(fluide|fluent|net|clear|balanced)(_|$)/;
+  const FLUENT_SUFFIX = /_(fluide|fluent)(_|$)/;
+
+  const preferOver = (a: string, b: string): boolean => {
+    // Primary (no quality suffix) wins over any qualified variant.
+    const aPrim = !QUALITY_SUFFIX.test(a);
+    const bPrim = !QUALITY_SUFFIX.test(b);
+    if (aPrim !== bPrim) return aPrim;
+    // Fluent (default Reolink stream) wins over Clear / Net / Balanced.
+    const aFluent = FLUENT_SUFFIX.test(a);
+    const bFluent = FLUENT_SUFFIX.test(b);
+    if (aFluent !== bFluent) return aFluent;
+    // Tie-break : shortest entity_id (fewer suffixes ≈ more canonical).
+    return a.length < b.length;
+  };
 
   const perDevice = new Map<string, string>();
   const noDevice = new Set<string>();
@@ -359,13 +377,12 @@ function dedupeCamerasPerDevice(
       continue;
     }
     const current = perDevice.get(deviceId);
-    if (!current || eid.length < current.length) {
+    if (!current || preferOver(eid, current)) {
       perDevice.set(deviceId, eid);
     }
   }
 
   const kept = new Set([...perDevice.values(), ...noDevice]);
-  // Preserve original order.
   return ids.filter((eid) => kept.has(eid));
 }
 
@@ -453,8 +470,10 @@ class GlassCameraCarouselCard extends BaseCard {
   @state() private _carouselIndex = 0;
   @state() private _liveIds = new Set<string>();
   @state() private _foldOpen = false;
+  @state() private _isFullscreen = false;
   /** Dev-only : forces the fullscreen overlay rendering without requesting native fullscreen. */
   @property({ type: Boolean, attribute: 'preview-fullscreen' }) previewFullscreen = false;
+  private _fsEscHandler?: (e: KeyboardEvent) => void;
 
   private _backend: BackendService | undefined;
   private _camConfig: CameraBackendConfig | null = null;
@@ -507,6 +526,15 @@ class GlassCameraCarouselCard extends BaseCard {
     this._clearCycleTimer();
     this._clearTimestampTimer();
     this._clearRingTimer();
+    if (this._fsEscHandler) {
+      document.removeEventListener('keydown', this._fsEscHandler);
+      this._fsEscHandler = undefined;
+    }
+    if (this._isFullscreen) {
+      document.body.style.overflow = this._prevBodyOverflow ?? '';
+      this._prevBodyOverflow = null;
+      this._isFullscreen = false;
+    }
     // NOTE: _companionCache is module-scoped and shared across card instances.
     // Don't clear it here — would wipe entries for other cards still mounted.
     // Entries auto-invalidate via stateKey (states change → cache miss).
@@ -560,6 +588,7 @@ class GlassCameraCarouselCard extends BaseCard {
       this._configLoaded = false;
       this._roomConfig = null;
       this._liveIds = new Set();
+      this._reolinkCamCache.clear();
     }
 
     if (!this._configLoaded && !this._configLoading) {
@@ -750,7 +779,8 @@ class GlassCameraCarouselCard extends BaseCard {
       isBatteryLow: this._readBatteryLow(companions.batteryLowSensorId, companions.batterySensorId),
       sleepSensorId: companions.sleepSensorId,
       isSleeping: companions.sleepSensorId ? this.hass.states[companions.sleepSensorId]?.state === 'on' : false,
-      hasPtz: !!(companions.ptzUpId || companions.ptzDownId || companions.ptzLeftId || companions.ptzRightId),
+      hasPtz: !!(companions.ptzUpId || companions.ptzDownId || companions.ptzLeftId || companions.ptzRightId)
+        || this._isReolinkCam(entityId),
       ptzUpId: companions.ptzUpId,
       ptzDownId: companions.ptzDownId,
       ptzLeftId: companions.ptzLeftId,
@@ -962,14 +992,68 @@ class GlassCameraCarouselCard extends BaseCard {
     this._safeCallService('button', 'press', { entity_id: entityId });
   }
 
-  /** Toggle fullscreen on the hero element. */
+  /** Call reolink.ptz_move with directional payload — used when the cam exposes no PTZ
+   *  button entities but the reolink integration's continuous-move service is available. */
+  private _ptzMoveReolink(
+    entityId: string,
+    pan: number, // -1 left, 0 none, 1 right
+    tilt: number, // -1 down, 0 none, 1 up
+    zoom: number, // -1 out, 0 none, 1 in
+  ) {
+    if (!this.hass) return;
+    this._safeCallService('reolink', 'ptz_move', {
+      entity_id: entityId,
+      pan, tilt, zoom,
+      speed: 32,
+    });
+  }
+
+  /** Heuristic detection of a Reolink-integration camera (used to enable the ptz_move D-pad).
+   *  Cached per device_id so we don't sweep entities on every render. */
+  private _reolinkCamCache = new Map<string, boolean>();
+  private _isReolinkCam(entityId: string): boolean {
+    if (!this.hass?.services?.reolink?.ptz_move) return false;
+    const camEntry = this.hass.entities[entityId];
+    const deviceId = camEntry?.device_id;
+    if (!deviceId) return false;
+    const cached = this._reolinkCamCache.get(deviceId);
+    if (cached !== undefined) return cached;
+
+    // Fingerprint Reolink entities on the same device — EN + FR variants.
+    // EN: _bitrate / _day_night_mode / _floodlight_mode / _post_recording / _doorbell_button_sound
+    // FR: _debit_fluide / _mode_jour_nuit / _mode_projecteur / _post_recording / _son_du_bouton_de_sonnette
+    const REOLINK_FINGERPRINT = /_(debit_(fluide|net)|bitrate_(main|sub)|mode_(jour_nuit|projecteur)|day_night_mode|floodlight_mode|post_recording|doorbell_button_sound|son_du_bouton_de_sonnette)/;
+    let found = false;
+    for (const eid of Object.keys(this.hass.entities)) {
+      if (this.hass.entities[eid].device_id === deviceId && REOLINK_FINGERPRINT.test(eid)) {
+        found = true;
+        break;
+      }
+    }
+    this._reolinkCamCache.set(deviceId, found);
+    return found;
+  }
+
+  /** Pseudo-fullscreen — bypasses Shadow DOM quirks of the native Fullscreen API.
+   *  Adds .fs-active class which pins the hero with position:fixed and z-index:99999.
+   *  Saves/restores body.overflow so a parent dialog (HA more-info) still works after exit. */
+  private _prevBodyOverflow: string | null = null;
   private _toggleFullscreen() {
-    const hero = this.shadowRoot?.querySelector('.carousel-hero') as HTMLElement | null;
-    if (!hero) return;
-    if (document.fullscreenElement === hero) {
-      document.exitFullscreen().catch(() => { /* noop */ });
+    this._isFullscreen = !this._isFullscreen;
+    if (this._isFullscreen) {
+      this._prevBodyOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+      this._fsEscHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') this._toggleFullscreen();
+      };
+      document.addEventListener('keydown', this._fsEscHandler);
     } else {
-      hero.requestFullscreen?.().catch(() => { /* noop */ });
+      document.body.style.overflow = this._prevBodyOverflow ?? '';
+      this._prevBodyOverflow = null;
+      if (this._fsEscHandler) {
+        document.removeEventListener('keydown', this._fsEscHandler);
+        this._fsEscHandler = undefined;
+      }
     }
   }
 
@@ -1014,7 +1098,7 @@ class GlassCameraCarouselCard extends BaseCard {
         if (eid && !this._liveIds.has(eid)) this._startStream(eid);
       },
       onLongPress: () => { this._isSwiping = false; this._trackEl = null; this._foldOpen = !this._foldOpen; },
-      exclude: 'glass-icon-button',
+      exclude: 'glass-icon-button, .fs-chip, .fs-back-btn, .fs-toggle-btn, .joystick, .jp',
     });
 
     return html`
@@ -1026,7 +1110,7 @@ class GlassCameraCarouselCard extends BaseCard {
         </div>
       ` : nothing}
       <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''} ${this._heroPulseClass(currentCam)}">
-        <div class="carousel-hero ${currentCam?.isDoorbell ? 'aspect-portrait' : ''} ${this.previewFullscreen ? 'fs-preview' : ''}"
+        <div class="carousel-hero ${currentCam?.isDoorbell ? 'aspect-portrait' : ''} ${this.previewFullscreen ? 'fs-preview' : ''} ${this._isFullscreen ? 'fs-active' : ''}"
           @pointerdown=${(e: PointerEvent) => { heroGesture.pointerdown(e); this._onPointerDown(e); }}
           @pointermove=${(e: PointerEvent) => { heroGesture.pointermove(e); this._onPointerMove(e); }}
           @pointerup=${(e: PointerEvent) => { heroGesture.pointerup(e); this._onPointerUp(e); }}
@@ -1225,7 +1309,7 @@ class GlassCameraCarouselCard extends BaseCard {
     return html`
       <div class="carousel-info">
         <div class="carousel-cam-icon ${isLive ? 'on' : ''}">
-          <ha-icon .icon=${cam.icon} style="--mdc-icon-size:16px"></ha-icon>
+          <ha-icon .icon=${cam.icon} style="--mdc-icon-size:20px"></ha-icon>
         </div>
         <div class="carousel-info-text">
           <div class="carousel-cam-name">${cam.name}</div>
@@ -1326,40 +1410,47 @@ class GlassCameraCarouselCard extends BaseCard {
     `;
   }
 
-  /** Compact PTZ D-pad : 4 direction arrows + zoom in/out. */
+  /** Dispatch a PTZ direction tap to the right backend : legacy button.press if a button
+   *  entity exists, otherwise reolink.ptz_move with directional payload. */
+  private _ptzGo(cam: CameraInfo, dir: 'up' | 'down' | 'left' | 'right' | 'zoom_in' | 'zoom_out') {
+    const buttonId =
+      dir === 'up' ? cam.ptzUpId
+      : dir === 'down' ? cam.ptzDownId
+      : dir === 'left' ? cam.ptzLeftId
+      : dir === 'right' ? cam.ptzRightId
+      : dir === 'zoom_in' ? cam.ptzZoomInId
+      : dir === 'zoom_out' ? cam.ptzZoomOutId
+      : null;
+    if (buttonId) { this._ptzPress(buttonId); return; }
+    // Fallback : reolink.ptz_move service for cams that don't expose PTZ buttons.
+    const pan = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+    const tilt = dir === 'up' ? 1 : dir === 'down' ? -1 : 0;
+    const zoom = dir === 'zoom_in' ? 1 : dir === 'zoom_out' ? -1 : 0;
+    this._ptzMoveReolink(cam.entityId, pan, tilt, zoom);
+  }
+
+  /** Compact PTZ D-pad : 4 direction arrows + zoom in/out. Shown when cam.hasPtz. */
   private _renderPtzDpad(cam: CameraInfo, ctx: 'fold' | 'fs'): TemplateResult {
     return html`
       <div class="ptz-dpad ptz-dpad-${ctx}">
-        ${cam.ptzLeftId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:chevron-left'}
-            aria-label="${t('camera.ptz_left_aria')}"
-            @click=${() => this._ptzPress(cam.ptzLeftId)}></glass-icon-button>
-        ` : nothing}
-        ${cam.ptzUpId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:chevron-up'}
-            aria-label="${t('camera.ptz_up_aria')}"
-            @click=${() => this._ptzPress(cam.ptzUpId)}></glass-icon-button>
-        ` : nothing}
-        ${cam.ptzDownId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:chevron-down'}
-            aria-label="${t('camera.ptz_down_aria')}"
-            @click=${() => this._ptzPress(cam.ptzDownId)}></glass-icon-button>
-        ` : nothing}
-        ${cam.ptzRightId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:chevron-right'}
-            aria-label="${t('camera.ptz_right_aria')}"
-            @click=${() => this._ptzPress(cam.ptzRightId)}></glass-icon-button>
-        ` : nothing}
-        ${cam.ptzZoomOutId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:magnify-minus-outline'}
-            aria-label="${t('camera.ptz_zoom_out_aria')}"
-            @click=${() => this._ptzPress(cam.ptzZoomOutId)}></glass-icon-button>
-        ` : nothing}
-        ${cam.ptzZoomInId ? html`
-          <glass-icon-button size="md" .icon=${'mdi:magnify-plus-outline'}
-            aria-label="${t('camera.ptz_zoom_in_aria')}"
-            @click=${() => this._ptzPress(cam.ptzZoomInId)}></glass-icon-button>
-        ` : nothing}
+        <glass-icon-button size="md" .icon=${'mdi:chevron-left'}
+          aria-label="${t('camera.ptz_left_aria')}"
+          @click=${() => this._ptzGo(cam, 'left')}></glass-icon-button>
+        <glass-icon-button size="md" .icon=${'mdi:chevron-up'}
+          aria-label="${t('camera.ptz_up_aria')}"
+          @click=${() => this._ptzGo(cam, 'up')}></glass-icon-button>
+        <glass-icon-button size="md" .icon=${'mdi:chevron-down'}
+          aria-label="${t('camera.ptz_down_aria')}"
+          @click=${() => this._ptzGo(cam, 'down')}></glass-icon-button>
+        <glass-icon-button size="md" .icon=${'mdi:chevron-right'}
+          aria-label="${t('camera.ptz_right_aria')}"
+          @click=${() => this._ptzGo(cam, 'right')}></glass-icon-button>
+        <glass-icon-button size="md" .icon=${'mdi:magnify-minus-outline'}
+          aria-label="${t('camera.ptz_zoom_out_aria')}"
+          @click=${() => this._ptzGo(cam, 'zoom_out')}></glass-icon-button>
+        <glass-icon-button size="md" .icon=${'mdi:magnify-plus-outline'}
+          aria-label="${t('camera.ptz_zoom_in_aria')}"
+          @click=${() => this._ptzGo(cam, 'zoom_in')}></glass-icon-button>
       </div>
     `;
   }
@@ -1368,13 +1459,12 @@ class GlassCameraCarouselCard extends BaseCard {
     if (!cam.isOn) {
       return html`
         <div class="carousel-actions">
-          <glass-button
-            size="sm"
-            variant="ghost"
+          <glass-icon-button
+            size="md"
             .icon=${'mdi:power'}
             aria-label="${t('camera.power_on')}"
             @click=${() => this._togglePower(cam)}
-          >${t('camera.power_on')}</glass-button>
+          ></glass-icon-button>
         </div>
       `;
     }
@@ -1396,22 +1486,21 @@ class GlassCameraCarouselCard extends BaseCard {
             @click=${() => this._togglePower(cam)}
           ></glass-icon-button>
         ` : nothing}
-        <glass-button
-          size="sm"
-          variant="ghost"
+        <glass-icon-button
+          size="md"
           .icon=${'mdi:camera'}
           aria-label="${t('camera.snapshot')}"
           @click=${() => this._snapshot(cam)}
-        >${t('camera.snapshot')}</glass-button>
+        ></glass-icon-button>
         ${cam.recordSwitchId ? html`
-          <glass-button
-            size="sm"
-            variant="ghost"
+          <glass-icon-button
+            size="md"
             .icon=${cam.isRecording ? 'mdi:record-circle' : 'mdi:record'}
-            class=${cam.isRecording ? 'rec-active' : ''}
+            ?active=${cam.isRecording}
+            active-color="alert"
             aria-label="${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}"
             @click=${() => this._toggleRecord(cam)}
-          >${cam.isRecording ? t('camera.record_stop') : t('camera.record_start')}</glass-button>
+          ></glass-icon-button>
         ` : nothing}
         ${cam.motionDetectionSupported ? html`
           <glass-icon-button
@@ -1454,34 +1543,34 @@ class GlassCameraCarouselCard extends BaseCard {
           ></glass-icon-button>
         ` : nothing}
         ${cam.detectSwitchId ? html`
-          <glass-button
-            size="sm"
-            variant="ghost"
+          <glass-icon-button
+            size="md"
             .icon=${'mdi:brain'}
-            class=${cam.isDetectOn ? 'detect-active' : ''}
+            ?active=${cam.isDetectOn}
+            active-color="info"
             aria-label="${cam.isDetectOn ? t('camera.detect_off_aria') : t('camera.detect_on_aria')}"
             @click=${() => this._toggleDetect(cam)}
-          >${t('camera.detect')}</glass-button>
+          ></glass-icon-button>
         ` : nothing}
         ${cam.snapshotsSwitchId ? html`
-          <glass-button
-            size="sm"
-            variant="ghost"
+          <glass-icon-button
+            size="md"
             .icon=${'mdi:image-multiple-outline'}
-            class=${cam.isSnapshotsOn ? 'snapshots-active' : ''}
+            ?active=${cam.isSnapshotsOn}
+            active-color="info"
             aria-label="${cam.isSnapshotsOn ? t('camera.snapshots_off_aria') : t('camera.snapshots_on_aria')}"
             @click=${() => this._toggleSnapshots(cam)}
-          >${t('camera.snapshots')}</glass-button>
+          ></glass-icon-button>
         ` : nothing}
         ${cam.privacySwitchId ? html`
-          <glass-button
-            size="sm"
-            variant="ghost"
+          <glass-icon-button
+            size="md"
             .icon=${cam.isPrivacyOn ? 'mdi:eye-off' : 'mdi:eye'}
-            class=${cam.isPrivacyOn ? 'privacy-active' : ''}
+            ?active=${cam.isPrivacyOn}
+            active-color="warning"
             aria-label="${cam.isPrivacyOn ? t('camera.privacy_off_aria') : t('camera.privacy_on_aria')}"
             @click=${() => this._togglePrivacy(cam)}
-          >${t('camera.privacy_on')}</glass-button>
+          ></glass-icon-button>
         ` : nothing}
       </div>
       ${cam.hasPtz ? this._renderPtzDpad(cam, 'fold') : nothing}
@@ -1766,34 +1855,36 @@ class GlassCameraCarouselCard extends BaseCard {
       .fs-toggle-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.3); outline-offset: 1px; }
       .fs-toggle-btn ha-icon { display: inline-flex; align-items: center; justify-content: center; }
 
-      /* When natively fullscreen, drop the aspect-ratio + radius so the hero fills
-         the whole viewport. fs-preview keeps its inline layout (it's just a CSS preview). */
-      .carousel-hero:fullscreen {
+      /* Pseudo-fullscreen — bypasses Shadow DOM limitations of the native API.
+         Position fixed at viewport, escapes ALL ancestor constraints (max-width, overflow…). */
+      .carousel-hero.fs-active {
+        position: fixed; inset: 0;
         width: 100vw; height: 100vh; max-width: none; max-height: none;
         aspect-ratio: auto; border-radius: 0; border: none;
         box-shadow: none; background: #000;
+        z-index: 99999;
       }
-      .carousel-hero:fullscreen .cam-stream,
-      .carousel-hero:fullscreen .cam-thumbnail {
+      .carousel-hero.fs-active .cam-stream,
+      .carousel-hero.fs-active .cam-thumbnail {
         width: 100%; height: 100%;
         object-fit: contain; /* preserve full image — no crop in fullscreen */
       }
 
-      /* Fullscreen overlay — hidden by default, visible only when hero is :fullscreen
-         OR when .fs-preview class is set (dev harness preview mode). */
+      /* Fullscreen overlay — hidden by default, visible only when .fs-active (real) or
+         .fs-preview (dev harness simulation). */
       .fs-overlay { display: none; }
-      .carousel-hero:fullscreen .fs-overlay,
+      .carousel-hero.fs-active .fs-overlay,
       .carousel-hero.fs-preview .fs-overlay {
         display: block;
         position: absolute; inset: 0;
         pointer-events: none;
         z-index: 10;
       }
-      /* Drop the carousel arrows / dots when fullscreen — controls live in fs-overlay. */
-      .carousel-hero:fullscreen .carousel-nav,
-      .carousel-hero:fullscreen .carousel-dots,
-      .carousel-hero:fullscreen .stream-overlay-top,
-      .carousel-hero:fullscreen .stream-overlay-bottom,
+      /* Drop the carousel arrows / dots / stream overlays in fullscreen — fs-overlay has its own. */
+      .carousel-hero.fs-active .carousel-nav,
+      .carousel-hero.fs-active .carousel-dots,
+      .carousel-hero.fs-active .stream-overlay-top,
+      .carousel-hero.fs-active .stream-overlay-bottom,
       .carousel-hero.fs-preview .carousel-nav,
       .carousel-hero.fs-preview .carousel-dots,
       .carousel-hero.fs-preview .stream-overlay-top,
@@ -1811,6 +1902,7 @@ class GlassCameraCarouselCard extends BaseCard {
         pointer-events: auto;
         transition: background var(--t-fast), transform var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
       .fs-back-btn:hover { background: rgba(0,0,0,0.6); transform: scale(1.05); }
       .fs-back-btn ha-icon { display: inline-flex; align-items: center; justify-content: center; }
@@ -1829,8 +1921,10 @@ class GlassCameraCarouselCard extends BaseCard {
         -webkit-backdrop-filter: var(--blur-lg, blur(12px));
         border: 1px solid rgba(255,255,255,0.12);
         color: rgba(255,255,255,0.9); cursor: pointer;
+        pointer-events: auto; /* explicit override — parent fs-overlay has pointer-events:none */
         transition: background var(--t-fast), transform var(--t-fast), color var(--t-fast);
         -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
       .fs-chip:hover { background: rgba(0,0,0,0.6); transform: scale(1.05); }
       .fs-chip.active {
@@ -2001,7 +2095,7 @@ class GlassCameraCarouselCard extends BaseCard {
         display: flex; align-items: center; gap: 0.625rem; padding: 0 0.125rem;
       }
       .carousel-cam-icon {
-        width: 2rem; height: 2rem; border-radius: var(--radius-md);
+        width: 2.5rem; height: 2.5rem; border-radius: var(--radius-md);
         background: var(--s2); border: 1px solid var(--b1);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         transition: background 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1);
