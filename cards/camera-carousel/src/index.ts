@@ -73,12 +73,13 @@ const COMPANION_PATTERNS = {
   sleep_status: /_(sleep_status|etat_de_veille|veille)$/,
   // PTZ button entities (Reolink). EN + FR variants : up/haut, down/bas, left/gauche,
   // right/droite, zoom_in/zoom_plus/zoom_avant, zoom_out/zoom_minus/zoom_arriere.
-  ptz_up: /_ptz_(up|haut)$/,
-  ptz_down: /_ptz_(down|bas)$/,
-  ptz_left: /_ptz_(left|gauche)$/,
-  ptz_right: /_ptz_(right|droite)$/,
-  ptz_zoom_in: /_ptz_zoom_(in|plus|avant)$/,
-  ptz_zoom_out: /_ptz_zoom_(out|minus|arriere)$/,
+  // (_|$) at the end accepts suffix variants like _ptz_droite_2 on multi-channel cams.
+  ptz_up: /_ptz_(?:up|haut)(?:_|$)/,
+  ptz_down: /_ptz_(?:down|bas)(?:_|$)/,
+  ptz_left: /_ptz_(?:left|gauche)(?:_|$)/,
+  ptz_right: /_ptz_(?:right|droite)(?:_|$)/,
+  ptz_zoom_in: /_ptz_zoom_(?:in|plus|avant)(?:_|$)/,
+  ptz_zoom_out: /_ptz_zoom_(?:out|minus|arriere)(?:_|$)/,
 } as const;
 
 // Window during which a doorbell ring is shown as "active" (ms).
@@ -234,6 +235,13 @@ function isDoorbellEventEntity(state: HassEntity): boolean {
   return false;
 }
 
+/** Extract the camera object key from an entity_id : the slug before quality suffixes.
+ *  'camera.cour_fluide' → 'cour' ; 'camera.entree_net_2' → 'entree' ; 'camera.cuisine' → 'cuisine'. */
+function cameraNamePrefix(eid: string): string {
+  const slug = eid.replace(/^camera\./, '');
+  return slug.replace(/_(?:fluide|fluent|net|clear|balanced|main|sub|stream|instantanes_.+)(?:_\d+)?$/, '');
+}
+
 function discoverCompanions(
   cameraEntityId: string,
   states: Record<string, HassEntity>,
@@ -245,10 +253,16 @@ function discoverCompanions(
   if (!camEntry?.device_id) return emptyCompanions();
 
   const deviceId = camEntry.device_id;
+  // Name-prefix match : Reolink multi-channel cams sometimes split companions onto a separate
+  // device_id from the camera. Companions sharing the same `<prefix>_` token are also collected.
+  const namePrefix = cameraNamePrefix(cameraEntityId);
+  const prefixPattern = namePrefix ? new RegExp(`^[a-z_]+\\.${namePrefix}_`) : null;
 
   let stateKey = deviceId;
   for (const eid of Object.keys(entities)) {
-    if (entities[eid].device_id !== deviceId) continue;
+    const sameDevice = entities[eid].device_id === deviceId;
+    const samePrefix = prefixPattern?.test(eid) ?? false;
+    if (!sameDevice && !samePrefix) continue;
     const st = states[eid];
     if (!st) continue;
     // Only volatile states need to bust the cache: aiDetected[] is derived from
@@ -268,8 +282,21 @@ function discoverCompanions(
   if (cached && cached.key === stateKey) return cached.result;
 
   const deviceEntities: string[] = [];
+  const seen = new Set<string>();
   for (const [eid, entry] of Object.entries(entities)) {
-    if (entry.device_id === deviceId) deviceEntities.push(eid);
+    if (entry.device_id === deviceId) {
+      deviceEntities.push(eid);
+      seen.add(eid);
+    }
+  }
+  // Also pull entities sharing the camera's name-prefix (handles multi-channel devices).
+  if (prefixPattern) {
+    for (const eid of Object.keys(entities)) {
+      if (!seen.has(eid) && prefixPattern.test(eid)) {
+        deviceEntities.push(eid);
+        seen.add(eid);
+      }
+    }
   }
 
   const result: CompanionResult = emptyCompanions();
@@ -779,8 +806,7 @@ class GlassCameraCarouselCard extends BaseCard {
       isBatteryLow: this._readBatteryLow(companions.batteryLowSensorId, companions.batterySensorId),
       sleepSensorId: companions.sleepSensorId,
       isSleeping: companions.sleepSensorId ? this.hass.states[companions.sleepSensorId]?.state === 'on' : false,
-      hasPtz: !!(companions.ptzUpId || companions.ptzDownId || companions.ptzLeftId || companions.ptzRightId)
-        || this._isReolinkCam(entityId),
+      hasPtz: !!(companions.ptzUpId || companions.ptzDownId || companions.ptzLeftId || companions.ptzRightId),
       ptzUpId: companions.ptzUpId,
       ptzDownId: companions.ptzDownId,
       ptzLeftId: companions.ptzLeftId,
@@ -992,47 +1018,9 @@ class GlassCameraCarouselCard extends BaseCard {
     this._safeCallService('button', 'press', { entity_id: entityId });
   }
 
-  /** Call reolink.ptz_move with directional payload — used when the cam exposes no PTZ
-   *  button entities but the reolink integration's continuous-move service is available. */
-  private _ptzMoveReolink(
-    entityId: string,
-    pan: number, // -1 left, 0 none, 1 right
-    tilt: number, // -1 down, 0 none, 1 up
-    zoom: number, // -1 out, 0 none, 1 in
-  ) {
-    if (!this.hass) return;
-    this._safeCallService('reolink', 'ptz_move', {
-      entity_id: entityId,
-      pan, tilt, zoom,
-      speed: 32,
-    });
-  }
-
-  /** Heuristic detection of a Reolink-integration camera (used to enable the ptz_move D-pad).
-   *  Cached per device_id so we don't sweep entities on every render. */
+  // Cleared at area change; retained for name-prefix fallback bookkeeping (currently unused
+  // but kept as a hook in case we re-enable service-based PTZ later).
   private _reolinkCamCache = new Map<string, boolean>();
-  private _isReolinkCam(entityId: string): boolean {
-    if (!this.hass?.services?.reolink?.ptz_move) return false;
-    const camEntry = this.hass.entities[entityId];
-    const deviceId = camEntry?.device_id;
-    if (!deviceId) return false;
-    const cached = this._reolinkCamCache.get(deviceId);
-    if (cached !== undefined) return cached;
-
-    // Fingerprint Reolink entities on the same device — EN + FR variants.
-    // EN: _bitrate / _day_night_mode / _floodlight_mode / _post_recording / _doorbell_button_sound
-    // FR: _debit_fluide / _mode_jour_nuit / _mode_projecteur / _post_recording / _son_du_bouton_de_sonnette
-    const REOLINK_FINGERPRINT = /_(debit_(fluide|net)|bitrate_(main|sub)|mode_(jour_nuit|projecteur)|day_night_mode|floodlight_mode|post_recording|doorbell_button_sound|son_du_bouton_de_sonnette)/;
-    let found = false;
-    for (const eid of Object.keys(this.hass.entities)) {
-      if (this.hass.entities[eid].device_id === deviceId && REOLINK_FINGERPRINT.test(eid)) {
-        found = true;
-        break;
-      }
-    }
-    this._reolinkCamCache.set(deviceId, found);
-    return found;
-  }
 
   /** Pseudo-fullscreen — bypasses Shadow DOM quirks of the native Fullscreen API.
    *  Adds .fs-active class which pins the hero with position:fixed and z-index:99999.
@@ -1410,47 +1398,42 @@ class GlassCameraCarouselCard extends BaseCard {
     `;
   }
 
-  /** Dispatch a PTZ direction tap to the right backend : legacy button.press if a button
-   *  entity exists, otherwise reolink.ptz_move with directional payload. */
-  private _ptzGo(cam: CameraInfo, dir: 'up' | 'down' | 'left' | 'right' | 'zoom_in' | 'zoom_out') {
-    const buttonId =
-      dir === 'up' ? cam.ptzUpId
-      : dir === 'down' ? cam.ptzDownId
-      : dir === 'left' ? cam.ptzLeftId
-      : dir === 'right' ? cam.ptzRightId
-      : dir === 'zoom_in' ? cam.ptzZoomInId
-      : dir === 'zoom_out' ? cam.ptzZoomOutId
-      : null;
-    if (buttonId) { this._ptzPress(buttonId); return; }
-    // Fallback : reolink.ptz_move service for cams that don't expose PTZ buttons.
-    const pan = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
-    const tilt = dir === 'up' ? 1 : dir === 'down' ? -1 : 0;
-    const zoom = dir === 'zoom_in' ? 1 : dir === 'zoom_out' ? -1 : 0;
-    this._ptzMoveReolink(cam.entityId, pan, tilt, zoom);
-  }
-
-  /** Compact PTZ D-pad : 4 direction arrows + zoom in/out. Shown when cam.hasPtz. */
+  /** Compact PTZ D-pad : direction arrows + zoom — only renders buttons whose
+   *  underlying entity exists. No fallback service (reolink.ptz_move only accepts
+   *  speed, directions live on the per-direction button entities). */
   private _renderPtzDpad(cam: CameraInfo, ctx: 'fold' | 'fs'): TemplateResult {
     return html`
       <div class="ptz-dpad ptz-dpad-${ctx}">
-        <glass-icon-button size="md" .icon=${'mdi:chevron-left'}
-          aria-label="${t('camera.ptz_left_aria')}"
-          @click=${() => this._ptzGo(cam, 'left')}></glass-icon-button>
-        <glass-icon-button size="md" .icon=${'mdi:chevron-up'}
-          aria-label="${t('camera.ptz_up_aria')}"
-          @click=${() => this._ptzGo(cam, 'up')}></glass-icon-button>
-        <glass-icon-button size="md" .icon=${'mdi:chevron-down'}
-          aria-label="${t('camera.ptz_down_aria')}"
-          @click=${() => this._ptzGo(cam, 'down')}></glass-icon-button>
-        <glass-icon-button size="md" .icon=${'mdi:chevron-right'}
-          aria-label="${t('camera.ptz_right_aria')}"
-          @click=${() => this._ptzGo(cam, 'right')}></glass-icon-button>
-        <glass-icon-button size="md" .icon=${'mdi:magnify-minus-outline'}
-          aria-label="${t('camera.ptz_zoom_out_aria')}"
-          @click=${() => this._ptzGo(cam, 'zoom_out')}></glass-icon-button>
-        <glass-icon-button size="md" .icon=${'mdi:magnify-plus-outline'}
-          aria-label="${t('camera.ptz_zoom_in_aria')}"
-          @click=${() => this._ptzGo(cam, 'zoom_in')}></glass-icon-button>
+        ${cam.ptzLeftId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-left'}
+            aria-label="${t('camera.ptz_left_aria')}"
+            @click=${() => this._ptzPress(cam.ptzLeftId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzUpId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-up'}
+            aria-label="${t('camera.ptz_up_aria')}"
+            @click=${() => this._ptzPress(cam.ptzUpId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzDownId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-down'}
+            aria-label="${t('camera.ptz_down_aria')}"
+            @click=${() => this._ptzPress(cam.ptzDownId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzRightId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:chevron-right'}
+            aria-label="${t('camera.ptz_right_aria')}"
+            @click=${() => this._ptzPress(cam.ptzRightId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzZoomOutId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:magnify-minus-outline'}
+            aria-label="${t('camera.ptz_zoom_out_aria')}"
+            @click=${() => this._ptzPress(cam.ptzZoomOutId)}></glass-icon-button>
+        ` : nothing}
+        ${cam.ptzZoomInId ? html`
+          <glass-icon-button size="md" .icon=${'mdi:magnify-plus-outline'}
+            aria-label="${t('camera.ptz_zoom_in_aria')}"
+            @click=${() => this._ptzPress(cam.ptzZoomInId)}></glass-icon-button>
+        ` : nothing}
       </div>
     `;
   }
