@@ -569,6 +569,9 @@ class CoverCardConfig:
         )
 
 
+VALID_CAMERA_ASPECT_RATIOS = frozenset({"auto", "16:9", "4:3", "1:1", "3:4"})
+
+
 @dataclass
 class CameraCarouselConfig:
     """Configuration for the camera carousel card."""
@@ -578,6 +581,9 @@ class CameraCarouselConfig:
     hidden_entities: list[str] = field(default_factory=list)
     auto_cycle: bool = False
     cycle_interval: int = DEFAULT_CAMERA_CYCLE_INTERVAL
+    # Per-camera aspect ratio override : "auto" | "16:9" | "4:3" | "1:1" | "3:4".
+    # When absent or "auto" → frontend uses heuristic (doorbell → 3:4 else 16:9).
+    entity_aspect_ratios: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
@@ -587,6 +593,7 @@ class CameraCarouselConfig:
             "hidden_entities": self.hidden_entities,
             "auto_cycle": self.auto_cycle,
             "cycle_interval": self.cycle_interval,
+            "entity_aspect_ratios": self.entity_aspect_ratios,
         }
 
     @classmethod
@@ -595,15 +602,26 @@ class CameraCarouselConfig:
         raw_order = data.get("entity_order", [])
         raw_hidden = data.get("hidden_entities", [])
         raw_interval = data.get("cycle_interval", DEFAULT_CAMERA_CYCLE_INTERVAL)
+        raw_aspects = data.get("entity_aspect_ratios", {})
         interval = DEFAULT_CAMERA_CYCLE_INTERVAL
         if isinstance(raw_interval, int) and not isinstance(raw_interval, bool):
             interval = max(3, min(60, raw_interval))
+        aspect_map: dict[str, str] = {}
+        if isinstance(raw_aspects, dict):
+            for eid, ratio in raw_aspects.items():
+                if (
+                    isinstance(eid, str)
+                    and isinstance(ratio, str)
+                    and ratio in VALID_CAMERA_ASPECT_RATIOS
+                ):
+                    aspect_map[eid] = ratio
         return cls(
             show_header=bool(data.get("show_header", True)),
             entity_order=[str(x) for x in raw_order if isinstance(x, str)],
             hidden_entities=[str(x) for x in raw_hidden if isinstance(x, str)],
             auto_cycle=bool(data.get("auto_cycle", False)),
             cycle_interval=interval,
+            entity_aspect_ratios=aspect_map,
         )
 
 

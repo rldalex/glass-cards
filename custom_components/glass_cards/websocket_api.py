@@ -892,6 +892,11 @@ async def ws_set_presence_config(
         vol.Optional("cycle_interval"): vol.All(
             _strict_int, vol.Range(min=3, max=60)
         ),
+        vol.Optional("entity_aspect_ratios"): {
+            vol.All(str, vol.Match(r"^camera\.[\w-]+$")): vol.In(
+                {"auto", "16:9", "4:3", "1:1", "3:4"}
+            )
+        },
     }
 )
 @websocket_api.async_response
@@ -916,6 +921,10 @@ async def ws_set_camera_carousel_config(
         store.data.camera_carousel.auto_cycle = msg["auto_cycle"]
     if "cycle_interval" in msg:
         store.data.camera_carousel.cycle_interval = msg["cycle_interval"]
+    if "entity_aspect_ratios" in msg:
+        store.data.camera_carousel.entity_aspect_ratios = {
+            str(k): str(v) for k, v in msg["entity_aspect_ratios"].items()
+        }
 
     try:
         await store.async_save()

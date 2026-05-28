@@ -15,12 +15,16 @@ interface CameraRoomEntity {
 
 // — Component —
 
+type CameraAspectRatio = 'auto' | '16:9' | '4:3' | '1:1' | '3:4';
+const ASPECT_RATIO_OPTIONS: CameraAspectRatio[] = ['auto', '16:9', '4:3', '1:1', '3:4'];
+
 export class ConfigTabCamera extends BaseConfigTab {
   @state() _cameraShowHeader = true;
   @state() _cameraAutoCycle = false;
   @state() _cameraCycleInterval = 10;
   @state() _cameraEntityOrder: string[] = [];
   @state() _cameraHiddenEntities: string[] = [];
+  @state() _cameraAspectRatios: Record<string, CameraAspectRatio> = {};
 
   // Room-mode state
   @state() _cameraRoom = '';
@@ -33,7 +37,7 @@ export class ConfigTabCamera extends BaseConfigTab {
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_cameraShowHeader', '_cameraAutoCycle', '_cameraCycleInterval', '_cameraEntityOrder', '_cameraHiddenEntities',
-    '_cameraRoomEntities',
+    '_cameraAspectRatios', '_cameraRoomEntities',
   ]);
 
   // — Lifecycle —
@@ -56,12 +60,14 @@ export class ConfigTabCamera extends BaseConfigTab {
       hidden_entities?: string[];
       auto_cycle?: boolean;
       cycle_interval?: number;
+      entity_aspect_ratios?: Record<string, CameraAspectRatio>;
     };
     this._cameraShowHeader = c.show_header ?? true;
     this._cameraEntityOrder = c.entity_order ?? [];
     this._cameraHiddenEntities = c.hidden_entities ?? [];
     this._cameraAutoCycle = c.auto_cycle ?? false;
     this._cameraCycleInterval = c.cycle_interval ?? 10;
+    this._cameraAspectRatios = c.entity_aspect_ratios ?? {};
   }
 
   collectSaveData(): Record<string, unknown> {
@@ -71,6 +77,7 @@ export class ConfigTabCamera extends BaseConfigTab {
       hidden_entities: this._cameraHiddenEntities,
       auto_cycle: this._cameraAutoCycle,
       cycle_interval: this._cameraCycleInterval,
+      entity_aspect_ratios: this._cameraAspectRatios,
     };
   }
 
@@ -97,6 +104,7 @@ export class ConfigTabCamera extends BaseConfigTab {
           hidden_entities?: string[];
           auto_cycle?: boolean;
           cycle_interval?: number;
+          entity_aspect_ratios?: Record<string, CameraAspectRatio>;
         };
       }>('get_config');
       if (result?.camera_carousel) this.loadFromConfig(result.camera_carousel);
@@ -220,6 +228,26 @@ export class ConfigTabCamera extends BaseConfigTab {
       hiddenSet.add(entityId);
     }
     this._cameraHiddenEntities = [...hiddenSet];
+  }
+
+  private _setCameraAspectRatio(entityId: string, ratio: CameraAspectRatio): void {
+    const next = { ...this._cameraAspectRatios };
+    if (ratio === 'auto') {
+      delete next[entityId];
+    } else {
+      next[entityId] = ratio;
+    }
+    this._cameraAspectRatios = next;
+  }
+
+  private _aspectLabel(ratio: CameraAspectRatio): string {
+    switch (ratio) {
+      case '16:9': return t('config.camera_aspect_16_9');
+      case '4:3':  return t('config.camera_aspect_4_3');
+      case '1:1':  return t('config.camera_aspect_1_1');
+      case '3:4':  return t('config.camera_aspect_3_4');
+      default:     return t('config.camera_aspect_auto');
+    }
   }
 
   private _onDropCameraEntity(idx: number, e: DragEvent): void {
@@ -361,6 +389,54 @@ export class ConfigTabCamera extends BaseConfigTab {
                         aria-label="${isVisible ? t('common.hide') : t('common.show')} ${name}"
                         @glass-toggle-change=${() => this._toggleCameraVisible(entityId)}
                       ></glass-toggle>
+                    </div>
+                  </div>
+                `;
+              })}
+            </div>
+          `}
+        </section>
+
+        <section class="cfg-section">
+          <header class="cfg-section-head">
+            <span class="cfg-section-num">3</span>
+            <div class="cfg-section-text">
+              <span class="section-label">${t('config.camera_aspect_title')}</span>
+              <span class="section-desc">${t('config.camera_aspect_desc')}</span>
+            </div>
+          </header>
+
+          ${entityIds.length === 0 ? html`
+            <glass-empty-state variant="inline" .icon=${'mdi:image-aspect-ratio'} .title=${t('config.camera_no_cameras')}></glass-empty-state>
+          ` : html`
+            <div class="item-list">
+              ${entityIds.map((entityId) => {
+                const entity = this.hass?.states[entityId];
+                const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
+                const current: CameraAspectRatio = this._cameraAspectRatios[entityId] ?? 'auto';
+                return html`
+                  <div class="item-card">
+                    <div class="item-row static-row">
+                      <div class="feature-icon">
+                        <ha-icon .icon=${'mdi:image-aspect-ratio'}></ha-icon>
+                      </div>
+                      <div class="item-info">
+                        <span class="item-name">${name}</span>
+                        <span class="item-meta">${entityId}</span>
+                      </div>
+                      <select
+                        class="input aspect-select"
+                        aria-label="${t('config.camera_aspect_aria', { name })}"
+                        .value=${current}
+                        @change=${(e: Event) => {
+                          const val = (e.target as HTMLSelectElement).value as CameraAspectRatio;
+                          this._setCameraAspectRatio(entityId, val);
+                        }}
+                      >
+                        ${ASPECT_RATIO_OPTIONS.map((opt) => html`
+                          <option value=${opt} ?selected=${opt === current}>${this._aspectLabel(opt)}</option>
+                        `)}
+                      </select>
                     </div>
                   </div>
                 `;

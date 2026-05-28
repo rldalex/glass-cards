@@ -156,12 +156,15 @@ interface CameraInfo {
   ptzZoomOutId: string | null;
 }
 
+type CameraAspectRatio = 'auto' | '16:9' | '4:3' | '1:1' | '3:4';
+
 interface CameraBackendConfig {
   show_header: boolean;
   entity_order: string[];
   hidden_entities: string[];
   auto_cycle: boolean;
   cycle_interval: number;
+  entity_aspect_ratios: Record<string, CameraAspectRatio>;
 }
 
 interface CameraRoomConfig {
@@ -223,15 +226,15 @@ function emptyCompanions(): CompanionResult {
 
 const _companionCache = new Map<string, { key: string; result: CompanionResult }>();
 
-/** Detect a HA event entity acting as a doorbell (device_class=doorbell or event_types includes 'ring'). */
+/** Detect a HA event entity acting as a doorbell.
+ *  Only trust strict signals (device_class or event_types) — the regex fallback
+ *  caused false positives on generic camera integrations (Action no-name, etc.). */
 function isDoorbellEventEntity(state: HassEntity): boolean {
   if (!state.entity_id.startsWith('event.')) return false;
   const attrs = state.attributes ?? {};
   if (attrs.device_class === 'doorbell') return true;
   const types = attrs.event_types;
   if (Array.isArray(types) && types.includes('ring')) return true;
-  // Common naming fallback (Unifi Protect, generic doorbells)
-  if (/doorbell|sonnette|chime/i.test(state.entity_id)) return true;
   return false;
 }
 
@@ -633,7 +636,14 @@ class GlassCameraCarouselCard extends BaseCard {
     try {
       const resp = await this._backend.send<{ camera_carousel: CameraBackendConfig }>('get_config');
       if (version !== this._loadVersion) return;
-      this._camConfig = resp.camera_carousel || { show_header: true, entity_order: [], hidden_entities: [], auto_cycle: false, cycle_interval: 10 };
+      this._camConfig = {
+        show_header: resp.camera_carousel?.show_header ?? true,
+        entity_order: resp.camera_carousel?.entity_order ?? [],
+        hidden_entities: resp.camera_carousel?.hidden_entities ?? [],
+        auto_cycle: resp.camera_carousel?.auto_cycle ?? false,
+        cycle_interval: resp.camera_carousel?.cycle_interval ?? 10,
+        entity_aspect_ratios: resp.camera_carousel?.entity_aspect_ratios ?? {},
+      };
       this._configLoaded = true;
       this._setupCycleTimer();
       this.requestUpdate();
@@ -1098,7 +1108,7 @@ class GlassCameraCarouselCard extends BaseCard {
         </div>
       ` : nothing}
       <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''} ${this._heroPulseClass(currentCam)}">
-        <div class="carousel-hero ${currentCam?.isDoorbell ? 'aspect-portrait' : ''} ${this.previewFullscreen ? 'fs-preview' : ''} ${this._isFullscreen ? 'fs-active' : ''}"
+        <div class="carousel-hero ${this._aspectClass(currentCam)} ${this.previewFullscreen ? 'fs-preview' : ''} ${this._isFullscreen ? 'fs-active' : ''}"
           @pointerdown=${(e: PointerEvent) => { heroGesture.pointerdown(e); this._onPointerDown(e); }}
           @pointermove=${(e: PointerEvent) => { heroGesture.pointermove(e); this._onPointerMove(e); }}
           @pointerup=${(e: PointerEvent) => { heroGesture.pointerup(e); this._onPointerUp(e); }}
@@ -1145,6 +1155,20 @@ class GlassCameraCarouselCard extends BaseCard {
         </div>
       </div>
     `;
+  }
+
+  /** Resolve aspect-ratio class for the hero. Config override wins over the doorbell heuristic. */
+  private _aspectClass(cam: CameraInfo | null): string {
+    if (!cam) return '';
+    const override = this._camConfig?.entity_aspect_ratios?.[cam.entityId];
+    switch (override) {
+      case '16:9': return 'aspect-landscape';
+      case '4:3':  return 'aspect-classic';
+      case '1:1':  return 'aspect-square';
+      case '3:4':  return 'aspect-portrait';
+      // 'auto' or undefined → fall through to the doorbell heuristic
+    }
+    return cam.isDoorbell ? 'aspect-portrait' : '';
   }
 
   /** Border pulse class — visually flags ongoing events on the hero card. */
@@ -1821,8 +1845,11 @@ class GlassCameraCarouselCard extends BaseCard {
       }
       .battery-badge ha-icon { display: inline-flex; align-items: center; justify-content: center; }
 
-      /* Doorbell-shaped aspect — portrait 3/4 for typical doorbell cameras. */
-      .carousel-hero.aspect-portrait { aspect-ratio: 3 / 4; }
+      /* Aspect ratio overrides — user-selectable per camera from the config panel. */
+      .carousel-hero.aspect-landscape { aspect-ratio: 16 / 9; }
+      .carousel-hero.aspect-classic   { aspect-ratio: 4 / 3; }
+      .carousel-hero.aspect-square    { aspect-ratio: 1 / 1; }
+      .carousel-hero.aspect-portrait  { aspect-ratio: 3 / 4; }
 
       /* Fullscreen toggle button — compact, in the stream overlay clock area. */
       .fs-toggle-btn {
