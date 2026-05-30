@@ -7143,12 +7143,7 @@
         </div>
 
         <section class="cfg-section">
-          <header class="cfg-section-head">
-            <span class="cfg-section-num">1</span>
-            <div class="cfg-section-text">
-              <span class="section-label">${ei("config.display")}</span>
-            </div>
-          </header>
+          <glass-section-title label=${ei("config.display")}></glass-section-title>
           <div class="feature-list">
             ${this._renderFeatureRow({icon:"mdi:page-layout-header",nameKey:"config.vacuum_show_header",descKey:"config.vacuum_show_header_desc",on:this._vacuumShowHeader,onToggle:()=>{this._vacuumShowHeader=!this._vacuumShowHeader}})}
           </div>
@@ -7171,13 +7166,8 @@
       </div>
     `}_renderPrimarySection(e,t){return B`
       <section class="cfg-section">
-        <header class="cfg-section-head">
-          <span class="cfg-section-num">2</span>
-          <div class="cfg-section-text">
-            <span class="section-label">${ei("config.vacuum_entity")}</span>
-            <span class="section-desc">${ei("config.vacuum_entity_desc")}</span>
-          </div>
-        </header>
+        <glass-section-title label=${ei("config.vacuum_entity")}></glass-section-title>
+        <div class="section-desc">${ei("config.vacuum_entity_desc")}</div>
         ${0===e.length?B`
           <glass-empty-state variant="inline" .icon=${"mdi:robot-vacuum-variant"} .title=${ei("config.vacuum_no_entities")}></glass-empty-state>
         `:B`
@@ -7192,33 +7182,36 @@
     `}_renderRoleSection(e,t,i){const a=Ia.filter(t=>t.section===e),s=!!this._openSections[e],r=a.filter(e=>e.key in this._overrides).length;return B`
       <section class="cfg-section">
         <button class="section-header" @click=${()=>this._toggleSection(e)} aria-expanded=${s?"true":"false"}>
-          <ha-icon .icon=${Ma[e]}></ha-icon>
+          <div class="section-header-icon"><ha-icon .icon=${Ma[e]}></ha-icon></div>
           <span class="section-title">${ei(Aa[e])}</span>
-          ${r>0?B`<span class="cfg-section-count">${r}</span>`:U}
-          <glass-chevron ?open=${s} size="sm" tone="muted"></glass-chevron>
+          ${r>0?B`<glass-pill tone="accent">${r}</glass-pill>`:U}
+          <glass-chevron ?open=${s} size="md" tone="muted"></glass-chevron>
         </button>
+        <div class="fold-sep ${s?"visible":""}"></div>
         <div class="section-fold ${s?"open":""}">
           <div class="section-fold-inner">
-            <div class="item-list">
-              ${a.map(e=>{const a=i?i[e.key]:void 0;return B`
-                  <div class="item-card">
-                    <div class="item-row static-row">
-                      <div class="feature-icon"><ha-icon .icon=${e.icon}></ha-icon></div>
-                      <div class="item-info">
-                        <span class="item-name">${ei(`config.vacuum_role_${e.key}`)}</span>
+            <div class="section-content">
+              <div class="item-list">
+                ${a.map(e=>{const a=i?i[e.key]:void 0;return B`
+                    <div class="item-card">
+                      <div class="item-row static-row">
+                        <div class="feature-icon"><ha-icon .icon=${e.icon}></ha-icon></div>
+                        <div class="item-info">
+                          <span class="item-name">${ei(`config.vacuum_role_${e.key}`)}</span>
+                        </div>
+                        <glass-dropdown
+                          searchable
+                          search-placeholder=${ei("config.vacuum_search_entity")}
+                          empty-text=${ei("config.vacuum_no_match")}
+                          .items=${this._roleItems(e,t,a)}
+                          .value=${this._roleValue(e.key)}
+                          aria-label=${ei(`config.vacuum_role_${e.key}`)}
+                          @glass-dropdown-change=${t=>this._onRoleChange(e.key,t.detail.value)}
+                        ></glass-dropdown>
                       </div>
-                      <glass-dropdown
-                        searchable
-                        search-placeholder=${ei("config.vacuum_search_entity")}
-                        empty-text=${ei("config.vacuum_no_match")}
-                        .items=${this._roleItems(e,t,a)}
-                        .value=${this._roleValue(e.key)}
-                        aria-label=${ei(`config.vacuum_role_${e.key}`)}
-                        @glass-dropdown-change=${t=>this._onRoleChange(e.key,t.detail.value)}
-                      ></glass-dropdown>
                     </div>
-                  </div>
-                `})}
+                  `})}
+              </div>
             </div>
           </div>
         </div>
@@ -7226,13 +7219,15 @@
     `}_orderedRoomButtons(e,t){const i=new Map;for(const r of e?.roomButtons??[])i.set(r.entityId,r);for(const r of this._roomButtonsExtra)i.has(r)||i.set(r,{entityId:r,slug:Ca(r,t)});const a=[...i.values()];if(0===this._roomButtonsOrder.length)return a;const s=new Map(this._roomButtonsOrder.map((e,t)=>[e,t]));return a.sort((e,t)=>(s.has(e.entityId)?s.get(e.entityId):1/0)-(s.has(t.entityId)?s.get(t.entityId):1/0))}_toggleRoomButtonVisible(e){const t=new Set(this._roomButtonsHidden);t.has(e)?t.delete(e):t.add(e),this._roomButtonsHidden=[...t]}_onRoomDrop(e,t){if(null===this._localDragIdx||this._localDragIdx===e)return this._localDragIdx=null,void(this._localDropIdx=null);const i=t.map(e=>e.entityId),[a]=i.splice(this._localDragIdx,1);i.splice(e,0,a),this._roomButtonsOrder=i,this._localDragIdx=null,this._localDropIdx=null}_addRoomButton(e,t){e&&!this._roomButtonsExtra.includes(e)&&(this._roomButtonsExtra=[...this._roomButtonsExtra,e],this._roomButtonsOrder=[...t.map(e=>e.entityId),e])}_renderRoomsSection(e,t){const i=!!this._openSections.rooms,a=this._orderedRoomButtons(t,e),s=new Set(this._roomButtonsHidden),r=new Set(a.map(e=>e.entityId)),o=Object.keys(this.hass?.states??{}).filter(e=>e.startsWith("button.")&&!r.has(e)).sort().map(e=>({value:e,label:this.hass?.states[e]?.attributes?.friendly_name||e})),n=t?.allHouseButton,c={key:"allHouseButton",section:"state",domains:["button"],icon:"mdi:home-outline"};return B`
       <section class="cfg-section">
         <button class="section-header" @click=${()=>this._toggleSection("rooms")} aria-expanded=${i?"true":"false"}>
-          <ha-icon .icon=${"mdi:floor-plan"}></ha-icon>
+          <div class="section-header-icon"><ha-icon .icon=${"mdi:floor-plan"}></ha-icon></div>
           <span class="section-title">${ei("config.vacuum_section_rooms")}</span>
-          ${a.length>0?B`<span class="cfg-section-count">${a.length-s.size}/${a.length}</span>`:U}
-          <glass-chevron ?open=${i} size="sm" tone="muted"></glass-chevron>
+          ${a.length>0?B`<glass-pill tone=${s.size>0?"accent":"neutral"}>${a.length-s.size}/${a.length}</glass-pill>`:U}
+          <glass-chevron ?open=${i} size="md" tone="muted"></glass-chevron>
         </button>
+        <div class="fold-sep ${i?"visible":""}"></div>
         <div class="section-fold ${i?"open":""}">
           <div class="section-fold-inner">
+            <div class="section-content">
             <div class="section-desc">${ei("config.vacuum_rooms_desc")}</div>
             ${0===a.length?B`
               <glass-empty-state variant="inline" .icon=${"mdi:gesture-tap-button"} .title=${ei("config.vacuum_no_room_buttons")}></glass-empty-state>
@@ -7299,6 +7294,7 @@
                   ></glass-dropdown>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -8076,7 +8072,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${ei("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${ei("config.title")}</span>
-          <span class="page-subtitle">${ei("config.brand")} <span class="page-version">v${"0.0.234"}</span></span>
+          <span class="page-subtitle">${ei("config.brand")} <span class="page-version">v${"0.0.235"}</span></span>
         </div>
 
         <div class="glass config-panel">
