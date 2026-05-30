@@ -831,6 +831,28 @@ class DashboardConfig:
 
 _CALENDAR_ENTITY_RE = re.compile(r"^calendar\.[\w-]+$")
 _VACUUM_ENTITY_RE = re.compile(r"^vacuum\.[\w-]+$")
+_ENTITY_RE = re.compile(r"^[a-z_]+\.[\w-]+$")
+_BUTTON_ENTITY_RE = re.compile(r"^button\.[\w-]+$")
+
+# Companion roles whose backing entity the user may override from the config
+# panel. Mirror of VACUUM_ROLES in cards/vacuum-card/src/roles.ts, plus
+# allHouseButton (rendered in the rooms section but stored like a normal role).
+# Keys are the camelCase field names of the frontend VacuumCompanions object.
+VALID_VACUUM_ROLES = frozenset({
+    # state
+    "battery", "currentRoom", "errorMessage",
+    # mopping
+    "mopIntensity", "mopPattern", "mopAttached", "tankAttached", "waterShortage",
+    # dock
+    "charging", "dockDrying", "dockDryingTimeLeft",
+    "dirtyWaterBox", "cleanWaterBox", "cleaningFluid",
+    # consumables
+    "consoBrushMain", "consoBrushSide", "consoFilter", "consoSensors",
+    # stats
+    "durationCurrent", "areaCurrent", "totalCleanings", "areaTotal", "lastEnd",
+    # rooms (single-entity role)
+    "allHouseButton",
+})
 
 
 @dataclass
@@ -867,30 +889,67 @@ class CalendarCardConfig:
 class VacuumCardConfig:
     """Configuration for the vacuum card (dashboard only).
 
-    The card auto-discovers all its companion entities from a single
-    vacuum.* entity, so the only persisted state is the visual header
-    toggle and the chosen primary entity (useful when several vacuums
-    are present — first match would otherwise be arbitrary).
+    The card auto-discovers companion entities from a single vacuum.* entity.
+    Persisted state: header toggle, chosen primary robot, per-role entity
+    overrides (role -> entity_id; "" = hidden; key absent = auto-detect), and
+    the room-button list controls (hidden / order / manually added).
     """
 
     show_header: bool = True
-    entity: str = ""  # empty = auto-pick the first vacuum.* entity at render time
+    entity: str = ""  # empty = auto-pick the first vacuum.* at render time
+    entity_overrides: dict[str, str] = field(default_factory=dict)
+    room_buttons_hidden: list[str] = field(default_factory=list)
+    room_buttons_order: list[str] = field(default_factory=list)
+    room_buttons_extra: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
             "show_header": self.show_header,
             "entity": self.entity,
+            "entity_overrides": self.entity_overrides,
+            "room_buttons_hidden": self.room_buttons_hidden,
+            "room_buttons_order": self.room_buttons_order,
+            "room_buttons_extra": self.room_buttons_extra,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> VacuumCardConfig:
-        """Deserialize from dict."""
+        """Deserialize from dict, validating every field."""
         raw_entity = data.get("entity", "")
-        entity = raw_entity if isinstance(raw_entity, str) and _VACUUM_ENTITY_RE.match(raw_entity) else ""
+        entity = (
+            raw_entity
+            if isinstance(raw_entity, str) and _VACUUM_ENTITY_RE.match(raw_entity)
+            else ""
+        )
+
+        raw_overrides = data.get("entity_overrides", {})
+        overrides: dict[str, str] = {}
+        if isinstance(raw_overrides, dict):
+            for key, val in raw_overrides.items():
+                if not isinstance(key, str) or key not in VALID_VACUUM_ROLES:
+                    continue
+                if not isinstance(val, str):
+                    continue
+                if val == "" or _ENTITY_RE.match(val):
+                    overrides[key] = val
+
+        def _clean_buttons(raw: Any) -> list[str]:
+            if not isinstance(raw, list):
+                return []
+            cleaned = [
+                x for x in raw
+                if isinstance(x, str) and _BUTTON_ENTITY_RE.match(x)
+            ]
+            return list(dict.fromkeys(cleaned))
+
         return cls(
             show_header=bool(data.get("show_header", True)),
             entity=entity,
+            entity_overrides=overrides,
+            room_buttons_hidden=_clean_buttons(data.get("room_buttons_hidden", [])),
+            room_buttons_order=_clean_buttons(data.get("room_buttons_order", [])),
+            room_buttons_extra=_clean_buttons(data.get("room_buttons_extra", [])),
         )
 
 
