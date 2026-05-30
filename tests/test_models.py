@@ -6,6 +6,8 @@ from custom_components.glass_cards.models import (
     GlassCardsData,
     NavbarConfig,
     RoomConfig,
+    VacuumCardConfig,
+    VALID_VACUUM_ROLES,
     VisibilityPeriod,
 )
 
@@ -289,8 +291,6 @@ class TestVacuumCardConfig:
 
     def test_default_values(self):
         """Defaults: header on, no entity, empty overrides + button lists."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         cfg = VacuumCardConfig()
         assert cfg.show_header is True
         assert cfg.entity == ""
@@ -301,14 +301,10 @@ class TestVacuumCardConfig:
 
     def test_roundtrip_defaults(self):
         """Constructor and from_dict({}) must agree."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         assert VacuumCardConfig().to_dict() == VacuumCardConfig.from_dict({}).to_dict()
 
     def test_from_dict_full(self):
-        """A complete valid payload round-trips intact."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
+        """A complete valid payload is deserialized correctly."""
         cfg = VacuumCardConfig.from_dict({
             "show_header": False,
             "entity": "vacuum.saros_10r",
@@ -324,10 +320,21 @@ class TestVacuumCardConfig:
         assert cfg.room_buttons_order == ["button.saros_10r_nettoyage_cuisine"]
         assert cfg.room_buttons_extra == ["button.saros_10r_nettoyage_garage"]
 
+    def test_roundtrip_full(self):
+        """A fully-populated config survives a to_dict -> from_dict round-trip."""
+        original = VacuumCardConfig(
+            show_header=False,
+            entity="vacuum.saros_10r",
+            entity_overrides={"battery": "sensor.robot_bat", "currentRoom": ""},
+            room_buttons_hidden=["button.saros_10r_nettoyage_sdb"],
+            room_buttons_order=["button.saros_10r_nettoyage_cuisine"],
+            room_buttons_extra=["button.saros_10r_nettoyage_garage"],
+        )
+        restored = VacuumCardConfig.from_dict(original.to_dict())
+        assert restored.to_dict() == original.to_dict()
+
     def test_from_dict_rejects_unknown_role_key(self):
         """Keys outside VALID_VACUUM_ROLES are dropped."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         cfg = VacuumCardConfig.from_dict({
             "entity_overrides": {"battery": "sensor.ok", "bogusRole": "sensor.x"},
         })
@@ -335,8 +342,6 @@ class TestVacuumCardConfig:
 
     def test_from_dict_rejects_invalid_override_value(self):
         """An override value must be '' or a valid entity_id."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         cfg = VacuumCardConfig.from_dict({
             "entity_overrides": {"battery": "not an entity", "currentRoom": ""},
         })
@@ -344,21 +349,15 @@ class TestVacuumCardConfig:
 
     def test_from_dict_empty_override_means_hidden(self):
         """'' is a legal value (role hidden), not stripped."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         cfg = VacuumCardConfig.from_dict({"entity_overrides": {"errorMessage": ""}})
         assert cfg.entity_overrides == {"errorMessage": ""}
 
     def test_from_dict_invalid_entity_rejected(self):
         """A non-vacuum primary entity falls back to ''."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         assert VacuumCardConfig.from_dict({"entity": "light.kitchen"}).entity == ""
 
     def test_from_dict_dedupes_and_filters_button_lists(self):
         """Button lists keep only button.* ids, deduped order-preserving."""
-        from custom_components.glass_cards.models import VacuumCardConfig
-
         cfg = VacuumCardConfig.from_dict({
             "room_buttons_order": [
                 "button.saros_10r_nettoyage_cuisine",
@@ -374,7 +373,5 @@ class TestVacuumCardConfig:
 
     def test_all_house_button_is_a_valid_role(self):
         """allHouseButton is overridable like a normal role."""
-        from custom_components.glass_cards.models import VALID_VACUUM_ROLES
-
         assert "allHouseButton" in VALID_VACUUM_ROLES
         assert len(VALID_VACUUM_ROLES) == 24

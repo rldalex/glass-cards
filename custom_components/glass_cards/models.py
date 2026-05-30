@@ -831,6 +831,9 @@ class DashboardConfig:
 
 _CALENDAR_ENTITY_RE = re.compile(r"^calendar\.[\w-]+$")
 _VACUUM_ENTITY_RE = re.compile(r"^vacuum\.[\w-]+$")
+# Generic entity validator for vacuum role override values — any domain is
+# valid (battery may map to sensor.*, allHouseButton to button.*, etc.), so
+# this is intentionally broader than the domain-specific patterns above.
 _ENTITY_RE = re.compile(r"^[a-z_]+\.[\w-]+$")
 _BUTTON_ENTITY_RE = re.compile(r"^button\.[\w-]+$")
 
