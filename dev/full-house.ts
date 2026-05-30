@@ -163,6 +163,7 @@ interface BackendStore {
   presence_card: Record<string, unknown>;
   climate_card: Record<string, unknown>;
   camera_carousel: Record<string, unknown>;
+  vacuum_card: Record<string, unknown>;
   schedules: Record<string, unknown>;
   wizard_completed: boolean;
 }
@@ -242,6 +243,7 @@ function defaultStore(): BackendStore {
     },
     climate_card: { show_header: true, display_mode: 'list', dashboard_display_mode: 'list', dashboard_entities: [], hidden_entities: [] },
     camera_carousel: { show_header: true, entity_order: [], hidden_entities: [], auto_cycle: false, cycle_interval: 10 },
+    vacuum_card: { show_header: true, entity: '', entity_overrides: {}, room_buttons_hidden: [], room_buttons_order: [], room_buttons_extra: [] },
     schedules: {},
     wizard_completed: true,
   };
@@ -372,6 +374,7 @@ function makeBackendConnection(store: BackendStore, onChange: () => void): HassC
         presence_card: store.presence_card,
         climate_card: store.climate_card,
         camera_carousel: store.camera_carousel,
+        vacuum_card: store.vacuum_card,
         dashboard: store.dashboard,
         wizard_completed: store.wizard_completed,
       };
@@ -393,6 +396,11 @@ function makeBackendConnection(store: BackendStore, onChange: () => void): HassC
     }
     if (type === 'glass_cards/set_dashboard') {
       store.dashboard = { ...store.dashboard, ...data } as BackendStore['dashboard'];
+      onChange();
+      return { ok: true };
+    }
+    if (type === 'glass_cards/set_vacuum_card') {
+      store.vacuum_card = { ...(store.vacuum_card as object), ...data };
       onChange();
       return { ok: true };
     }
