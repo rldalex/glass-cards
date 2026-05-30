@@ -25,6 +25,11 @@ import {
   type VacuumCompanions,
 } from './companions';
 import { FAN_SPEED_LABELS, MOP_INTENSITY_LABELS, MOP_PATTERN_LABELS, labelOf, humanizeRoomSlug } from './labels';
+import {
+  applyVacuumOverrides,
+  emptyVacuumOverrides,
+  type VacuumOverrides,
+} from './roles';
 
 function relativeTime(isoString: string): string {
   if (!isoString) return '';
@@ -59,6 +64,8 @@ export class GlassVacuumCard extends BaseCard {
   @state() private _locateFlashing = false;
   @state() private _optimisticRoom: string | null = null;
   @state() private _showHeader = true;
+  @state() private _configEntity = '';
+  private _overrides: VacuumOverrides = emptyVacuumOverrides();
   private _optimisticTimer: ReturnType<typeof setTimeout> | null = null;
 
   private _locateTimer: ReturnType<typeof setTimeout> | null = null;
@@ -89,10 +96,26 @@ export class GlassVacuumCard extends BaseCard {
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
-        vacuum_card?: { show_header?: boolean };
+        vacuum_card?: {
+          show_header?: boolean;
+          entity?: string;
+          entity_overrides?: Record<string, string>;
+          room_buttons_hidden?: string[];
+          room_buttons_order?: string[];
+          room_buttons_extra?: string[];
+        };
       }>('get_config');
-      if (result?.vacuum_card) {
-        this._showHeader = result.vacuum_card.show_header ?? true;
+      const vc = result?.vacuum_card;
+      if (vc) {
+        this._showHeader = vc.show_header ?? true;
+        this._configEntity = vc.entity ?? '';
+        this._overrides = {
+          entityOverrides: vc.entity_overrides ?? {},
+          roomButtonsHidden: vc.room_buttons_hidden ?? [],
+          roomButtonsOrder: vc.room_buttons_order ?? [],
+          roomButtonsExtra: vc.room_buttons_extra ?? [],
+        };
+        this.requestUpdate();
       }
     } catch {
       // Backend not available
@@ -121,6 +144,8 @@ export class GlassVacuumCard extends BaseCard {
     this._optimisticRoom = null;
     this._backend = undefined;
     this._vacuumConfigLoaded = false;
+    this._configEntity = '';
+    this._overrides = emptyVacuumOverrides();
   }
 
   static styles = [
@@ -473,7 +498,9 @@ export class GlassVacuumCard extends BaseCard {
     if (!this.hass) return null;
     const configEntity = this.config?.entity as string | undefined;
     if (configEntity && this.hass.states[configEntity]) return configEntity;
-    // Auto-pick first vacuum.* entity (the Config Panel may override later).
+    // Primary robot chosen in the Config Panel (backend), if it still exists.
+    if (this._configEntity && this.hass.states[this._configEntity]) return this._configEntity;
+    // Auto-pick first vacuum.* entity.
     for (const id of Object.keys(this.hass.states)) {
       if (id.startsWith('vacuum.')) return id;
     }
@@ -489,7 +516,8 @@ export class GlassVacuumCard extends BaseCard {
   private _companions(): VacuumCompanions | null {
     const entityId = this._resolveEntityId();
     if (!entityId) return null;
-    return discoverVacuumCompanions(this.hass!, entityId);
+    const auto = discoverVacuumCompanions(this.hass!, entityId);
+    return applyVacuumOverrides(auto, this._overrides);
   }
 
   private _statusLabel(): string {
