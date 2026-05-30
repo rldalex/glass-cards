@@ -38,6 +38,7 @@ from .models import (
     RoomConfig,
     TitleModeEntry,
     TitleSourceEntry,
+    VacuumCardConfig,
     VisibilityPeriod,
     VALID_DASHBOARD_CARDS,
     VALID_MEDIA_VARIANTS,
@@ -441,6 +442,10 @@ async def ws_set_calendar_card(
         vol.Required("type"): "glass_cards/set_vacuum_card",
         vol.Optional("show_header"): bool,
         vol.Optional("entity"): vol.Any("", vol.All(str, vol.Match(r"^vacuum\.[\w-]+$"))),
+        vol.Optional("entity_overrides"): {str: str},
+        vol.Optional("room_buttons_hidden"): [str],
+        vol.Optional("room_buttons_order"): [str],
+        vol.Optional("room_buttons_extra"): [str],
     }
 )
 @websocket_api.async_response
@@ -454,11 +459,30 @@ async def ws_set_vacuum_card(
         raise Unauthorized()
 
     store = _get_store(hass)
+    vac = store.data.vacuum_card
 
     if "show_header" in msg:
-        store.data.vacuum_card.show_header = msg["show_header"]
+        vac.show_header = msg["show_header"]
     if "entity" in msg:
-        store.data.vacuum_card.entity = msg["entity"]
+        vac.entity = msg["entity"]
+    # Reuse the model's validation for the structured fields (DRY): build a
+    # throwaway config from just that field and copy the cleaned result.
+    if "entity_overrides" in msg:
+        vac.entity_overrides = VacuumCardConfig.from_dict(
+            {"entity_overrides": msg["entity_overrides"]}
+        ).entity_overrides
+    if "room_buttons_hidden" in msg:
+        vac.room_buttons_hidden = VacuumCardConfig.from_dict(
+            {"room_buttons_hidden": msg["room_buttons_hidden"]}
+        ).room_buttons_hidden
+    if "room_buttons_order" in msg:
+        vac.room_buttons_order = VacuumCardConfig.from_dict(
+            {"room_buttons_order": msg["room_buttons_order"]}
+        ).room_buttons_order
+    if "room_buttons_extra" in msg:
+        vac.room_buttons_extra = VacuumCardConfig.from_dict(
+            {"room_buttons_extra": msg["room_buttons_extra"]}
+        ).room_buttons_extra
 
     try:
         await store.async_save()

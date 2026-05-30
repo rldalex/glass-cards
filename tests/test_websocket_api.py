@@ -24,6 +24,7 @@ from custom_components.glass_cards.websocket_api import (
     ws_set_schedule,
     ws_set_spotify_config,
     ws_set_title_config,
+    ws_set_vacuum_card,
     ws_set_weather,
     ws_set_wizard_completed,
 )
@@ -875,4 +876,90 @@ class TestSetWizardCompleted:
             await ws_set_wizard_completed(
                 hass_with_store, mock_connection,
                 {"id": 173, "type": "glass_cards/set_wizard_completed", "completed": True},
+            )
+
+
+class TestSetVacuumCard:
+    """Tests for ws_set_vacuum_card."""
+
+    @pytest.mark.asyncio
+    async def test_set_show_header_broadcasts(self, hass_with_store, mock_connection, mock_store):
+        """Should update show_header AND broadcast on the HA bus."""
+        await ws_set_vacuum_card(
+            hass_with_store, mock_connection,
+            {"id": 200, "type": "glass_cards/set_vacuum_card", "show_header": False},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["show_header"] is False
+        mock_store._store.async_save.assert_called()
+        hass_with_store.bus.async_fire.assert_called_with(
+            "glass_cards_config_changed", {"section": "vacuum_card"}
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_entity(self, hass_with_store, mock_connection, mock_store):
+        """Should store a valid primary vacuum entity."""
+        await ws_set_vacuum_card(
+            hass_with_store, mock_connection,
+            {"id": 201, "type": "glass_cards/set_vacuum_card", "entity": "vacuum.saros_10r"},
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity"] == "vacuum.saros_10r"
+
+    @pytest.mark.asyncio
+    async def test_set_entity_overrides(self, hass_with_store, mock_connection, mock_store):
+        """Should store valid overrides and hidden ('') values."""
+        await ws_set_vacuum_card(
+            hass_with_store, mock_connection,
+            {
+                "id": 202, "type": "glass_cards/set_vacuum_card",
+                "entity_overrides": {"battery": "sensor.bat", "currentRoom": ""},
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_overrides"] == {"battery": "sensor.bat", "currentRoom": ""}
+
+    @pytest.mark.asyncio
+    async def test_set_entity_overrides_filters_unknown_keys(self, hass_with_store, mock_connection, mock_store):
+        """Unknown role keys must be dropped server-side."""
+        await ws_set_vacuum_card(
+            hass_with_store, mock_connection,
+            {
+                "id": 203, "type": "glass_cards/set_vacuum_card",
+                "entity_overrides": {"battery": "sensor.bat", "bogus": "sensor.x"},
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["entity_overrides"] == {"battery": "sensor.bat"}
+
+    @pytest.mark.asyncio
+    async def test_set_room_button_lists(self, hass_with_store, mock_connection, mock_store):
+        """Should store + dedupe the room-button lists."""
+        await ws_set_vacuum_card(
+            hass_with_store, mock_connection,
+            {
+                "id": 204, "type": "glass_cards/set_vacuum_card",
+                "room_buttons_hidden": ["button.saros_10r_nettoyage_sdb"],
+                "room_buttons_order": [
+                    "button.saros_10r_nettoyage_cuisine",
+                    "button.saros_10r_nettoyage_cuisine",
+                ],
+                "room_buttons_extra": ["button.saros_10r_nettoyage_garage"],
+            },
+        )
+        result = mock_connection.send_result.call_args[0][1]
+        assert result["room_buttons_hidden"] == ["button.saros_10r_nettoyage_sdb"]
+        assert result["room_buttons_order"] == ["button.saros_10r_nettoyage_cuisine"]
+        assert result["room_buttons_extra"] == ["button.saros_10r_nettoyage_garage"]
+
+    @pytest.mark.asyncio
+    async def test_unauthorized_user(self, hass_with_store, mock_connection, mock_regular_user):
+        """Non-editable user should raise Unauthorized."""
+        mock_connection.user = mock_regular_user
+        from homeassistant.exceptions import Unauthorized
+
+        with pytest.raises(Unauthorized):
+            await ws_set_vacuum_card(
+                hass_with_store, mock_connection,
+                {"id": 205, "type": "glass_cards/set_vacuum_card", "show_header": False},
             )
