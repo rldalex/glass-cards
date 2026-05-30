@@ -282,39 +282,42 @@ export class ConfigTabVacuum extends BaseConfigTab {
     return html`
       <section class="cfg-section">
         <button class="section-header" @click=${() => this._toggleSection(section)} aria-expanded=${open ? 'true' : 'false'}>
-          <ha-icon .icon=${SECTION_ICON[section]}></ha-icon>
+          <div class="section-header-icon"><ha-icon .icon=${SECTION_ICON[section]}></ha-icon></div>
           <span class="section-title">${t(SECTION_LABEL[section])}</span>
           ${overriddenCount > 0 ? html`<span class="cfg-section-count">${overriddenCount}</span>` : nothing}
-          <glass-chevron ?open=${open} size="sm" tone="muted"></glass-chevron>
+          <glass-chevron ?open=${open} size="md" tone="muted"></glass-chevron>
         </button>
+        <div class="fold-sep ${open ? 'visible' : ''}"></div>
         <div class="section-fold ${open ? 'open' : ''}">
           <div class="section-fold-inner">
-            <div class="item-list">
-              ${roles.map((role) => {
-                const autoEntity = auto
-                  ? (auto[role.key] as string | undefined)
-                  : undefined;
-                return html`
-                  <div class="item-card">
-                    <div class="item-row static-row">
-                      <div class="feature-icon"><ha-icon .icon=${role.icon}></ha-icon></div>
-                      <div class="item-info">
-                        <span class="item-name">${t(`config.vacuum_role_${role.key}` as TranslationKey)}</span>
+            <div class="section-content">
+              <div class="item-list">
+                ${roles.map((role) => {
+                  const autoEntity = auto
+                    ? (auto[role.key] as string | undefined)
+                    : undefined;
+                  return html`
+                    <div class="item-card">
+                      <div class="item-row static-row">
+                        <div class="feature-icon"><ha-icon .icon=${role.icon}></ha-icon></div>
+                        <div class="item-info">
+                          <span class="item-name">${t(`config.vacuum_role_${role.key}` as TranslationKey)}</span>
+                        </div>
+                        <glass-dropdown
+                          searchable
+                          search-placeholder=${t('config.vacuum_search_entity')}
+                          empty-text=${t('config.vacuum_no_match')}
+                          .items=${this._roleItems(role, prefix, autoEntity)}
+                          .value=${this._roleValue(role.key as string)}
+                          aria-label=${t(`config.vacuum_role_${role.key}` as TranslationKey)}
+                          @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) =>
+                            this._onRoleChange(role.key as string, e.detail.value)}
+                        ></glass-dropdown>
                       </div>
-                      <glass-dropdown
-                        searchable
-                        search-placeholder=${t('config.vacuum_search_entity')}
-                        empty-text=${t('config.vacuum_no_match')}
-                        .items=${this._roleItems(role, prefix, autoEntity)}
-                        .value=${this._roleValue(role.key as string)}
-                        aria-label=${t(`config.vacuum_role_${role.key}` as TranslationKey)}
-                        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) =>
-                          this._onRoleChange(role.key as string, e.detail.value)}
-                      ></glass-dropdown>
                     </div>
-                  </div>
-                `;
-              })}
+                  `;
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -387,13 +390,15 @@ export class ConfigTabVacuum extends BaseConfigTab {
     return html`
       <section class="cfg-section">
         <button class="section-header" @click=${() => this._toggleSection('rooms')} aria-expanded=${open ? 'true' : 'false'}>
-          <ha-icon .icon=${'mdi:floor-plan'}></ha-icon>
+          <div class="section-header-icon"><ha-icon .icon=${'mdi:floor-plan'}></ha-icon></div>
           <span class="section-title">${t('config.vacuum_section_rooms')}</span>
           ${ordered.length > 0 ? html`<span class="cfg-section-count">${ordered.length - hiddenSet.size}/${ordered.length}</span>` : nothing}
-          <glass-chevron ?open=${open} size="sm" tone="muted"></glass-chevron>
+          <glass-chevron ?open=${open} size="md" tone="muted"></glass-chevron>
         </button>
+        <div class="fold-sep ${open ? 'visible' : ''}"></div>
         <div class="section-fold ${open ? 'open' : ''}">
           <div class="section-fold-inner">
+            <div class="section-content">
             <div class="section-desc">${t('config.vacuum_rooms_desc')}</div>
             ${ordered.length === 0 ? html`
               <glass-empty-state variant="inline" .icon=${'mdi:gesture-tap-button'} .title=${t('config.vacuum_no_room_buttons')}></glass-empty-state>
@@ -472,6 +477,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
                   ></glass-dropdown>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
