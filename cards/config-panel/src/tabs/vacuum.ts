@@ -1,20 +1,64 @@
 import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
-import { t } from '@glass-cards/i18n';
+import { t, type TranslationKey } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import { BaseConfigTab } from '../base-tab';
+import {
+  discoverVacuumCompanions,
+  deriveVacuumPrefix,
+  type VacuumCompanions,
+} from '../../../vacuum-card/src/companions';
+import {
+  VACUUM_ROLES,
+  VACUUM_ROLE_SECTIONS,
+  type VacuumRoleDef,
+  type VacuumRoleSection,
+} from '../../../vacuum-card/src/roles';
 
 interface VacuumEntity {
   entityId: string;
   name: string;
 }
 
+interface DropdownItem {
+  value: string;
+  label: string;
+}
+
+const AUTO_VALUE = '__auto__';
+const NONE_VALUE = '__none__';
+
+const SECTION_LABEL: Record<VacuumRoleSection, TranslationKey> = {
+  state: 'config.vacuum_section_state',
+  mopping: 'config.vacuum_section_mopping',
+  dock: 'config.vacuum_section_dock',
+  consumables: 'config.vacuum_section_consumables',
+  stats: 'config.vacuum_section_stats',
+};
+
+const SECTION_ICON: Record<VacuumRoleSection, string> = {
+  state: 'mdi:robot-vacuum-variant',
+  mopping: 'mdi:water',
+  dock: 'mdi:home-import-outline',
+  consumables: 'mdi:broom',
+  stats: 'mdi:chart-box-outline',
+};
+
 export class ConfigTabVacuum extends BaseConfigTab {
   @state() _vacuumShowHeader = true;
   @state() _vacuumEntity = '';
+  @state() _overrides: Record<string, string> = {};
+  @state() _roomButtonsHidden: string[] = [];
+  @state() _roomButtonsOrder: string[] = [];
+  @state() _roomButtonsExtra: string[] = [];
+  /** Which collapsible sections are open. Not auto-saved. */
+  @state() _openSections: Record<string, boolean> = {};
+  @state() protected override _localDragIdx: number | null = null;
+  @state() protected override _localDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
-    '_vacuumShowHeader', '_vacuumEntity',
+    '_vacuumShowHeader', '_vacuumEntity', '_overrides',
+    '_roomButtonsHidden', '_roomButtonsOrder', '_roomButtonsExtra',
   ]);
 
   protected override updated(changedProps: PropertyValues): void {
@@ -23,15 +67,30 @@ export class ConfigTabVacuum extends BaseConfigTab {
   }
 
   loadFromConfig(config: Record<string, unknown>): void {
-    const c = config as { show_header?: boolean; entity?: string };
+    const c = config as {
+      show_header?: boolean;
+      entity?: string;
+      entity_overrides?: Record<string, string>;
+      room_buttons_hidden?: string[];
+      room_buttons_order?: string[];
+      room_buttons_extra?: string[];
+    };
     this._vacuumShowHeader = c.show_header ?? true;
     this._vacuumEntity = c.entity ?? '';
+    this._overrides = c.entity_overrides ?? {};
+    this._roomButtonsHidden = c.room_buttons_hidden ?? [];
+    this._roomButtonsOrder = c.room_buttons_order ?? [];
+    this._roomButtonsExtra = c.room_buttons_extra ?? [];
   }
 
   collectSaveData(): Record<string, unknown> {
     return {
       show_header: this._vacuumShowHeader,
       entity: this._vacuumEntity,
+      entity_overrides: this._overrides,
+      room_buttons_hidden: this._roomButtonsHidden,
+      room_buttons_order: this._roomButtonsOrder,
+      room_buttons_extra: this._roomButtonsExtra,
     };
   }
 
@@ -44,36 +103,97 @@ export class ConfigTabVacuum extends BaseConfigTab {
     if (!this.backend) return;
     try {
       const result = await this.backend.send<{
-        vacuum_card?: { show_header: boolean; entity: string };
+        vacuum_card?: Record<string, unknown>;
       }>('get_config');
       if (result?.vacuum_card) this.loadFromConfig(result.vacuum_card);
     } catch { /* ignore */ }
   }
 
-  private _selectEntity(entityId: string): void {
-    this._vacuumEntity = entityId === this._vacuumEntity ? '' : entityId;
+  // — Helpers —
+
+  private _vacuums(): VacuumEntity[] {
+    if (!this.hass) return [];
+    return Object.keys(this.hass.states)
+      .filter((id) => id.startsWith('vacuum.'))
+      .sort()
+      .map((id) => {
+        const name = (this.hass?.states[id]?.attributes?.friendly_name as string) || id.split('.')[1] || id;
+        return { entityId: id, name };
+      });
   }
+
+  /** Effective robot id (chosen entity, else first vacuum.*). */
+  private _robotId(): string {
+    if (this._vacuumEntity && this.hass?.states[this._vacuumEntity]) return this._vacuumEntity;
+    return this._vacuums()[0]?.entityId ?? '';
+  }
+
+  private _autoCompanions(robotId: string): VacuumCompanions | null {
+    if (!robotId || !this.hass) return null;
+    return discoverVacuumCompanions(this.hass, robotId);
+  }
+
+  private _roleValue(roleKey: string): string {
+    if (!(roleKey in this._overrides)) return AUTO_VALUE;
+    return this._overrides[roleKey] === '' ? NONE_VALUE : this._overrides[roleKey];
+  }
+
+  private _onRoleChange(roleKey: string, value: string): void {
+    const next = { ...this._overrides };
+    if (value === AUTO_VALUE) delete next[roleKey];
+    else if (value === NONE_VALUE) next[roleKey] = '';
+    else next[roleKey] = value;
+    this._overrides = next;
+  }
+
+  private _roleItems(role: VacuumRoleDef, prefix: string, autoEntity: string | undefined): DropdownItem[] {
+    const items: DropdownItem[] = [
+      {
+        value: AUTO_VALUE,
+        label: autoEntity
+          ? t('config.vacuum_opt_auto', { entity: autoEntity })
+          : t('config.vacuum_opt_auto_none'),
+      },
+      { value: NONE_VALUE, label: t('config.vacuum_opt_none') },
+    ];
+    const ids = Object.keys(this.hass?.states ?? {})
+      .filter((id) => role.domains.includes(id.split('.')[0]));
+    ids.sort((a, b) => {
+      const ap = a.slice(a.indexOf('.') + 1).startsWith(prefix + '_') ? 0 : 1;
+      const bp = b.slice(b.indexOf('.') + 1).startsWith(prefix + '_') ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return a.localeCompare(b);
+    });
+    for (const id of ids) {
+      const name = (this.hass?.states[id]?.attributes?.friendly_name as string) || id;
+      items.push({ value: id, label: name });
+    }
+    // Ghost option: a current override pointing to a now-missing entity.
+    const current = this._overrides[role.key as string];
+    if (current && current !== '' && !this.hass?.states[current]) {
+      items.push({ value: current, label: current });
+    }
+    return items;
+  }
+
+  private _toggleSection(key: string): void {
+    this._openSections = { ...this._openSections, [key]: !this._openSections[key] };
+  }
+
+  // — Render —
 
   renderTab(): TemplateResult {
     void this._lang;
 
-    const vacuums: VacuumEntity[] = this.hass
-      ? Object.keys(this.hass.states)
-          .filter((id) => id.startsWith('vacuum.'))
-          .sort()
-          .map((id) => {
-            const entity = this.hass?.states[id];
-            const name = (entity?.attributes?.friendly_name as string) || id.split('.')[1] || id;
-            return { entityId: id, name };
-          })
-      : [];
-
-    const effective = this._vacuumEntity || (vacuums[0]?.entityId ?? '');
-    const previewEntity = effective || 'vacuum.placeholder';
+    const vacuums = this._vacuums();
+    const robotId = this._robotId();
+    const previewEntity = robotId || 'vacuum.placeholder';
+    const auto = this._autoCompanions(robotId);
+    const prefix = robotId ? deriveVacuumPrefix(robotId) : '';
 
     return html`
       <div class="tab-panel vacuum-tab" id="panel-vacuum">
-        ${effective
+        ${robotId
           ? html`<glass-vacuum-card
               .hass=${this.hass}
               .config=${{ type: 'custom:glass-vacuum-card', entity: previewEntity }}
@@ -104,48 +224,98 @@ export class ConfigTabVacuum extends BaseConfigTab {
           </div>
         </section>
 
-        <section class="cfg-section">
-          <header class="cfg-section-head">
-            <span class="cfg-section-num">2</span>
-            <div class="cfg-section-text">
-              <span class="section-label">${t('config.vacuum_entity')}</span>
-              <span class="section-desc">${t('config.vacuum_entity_desc')}</span>
-            </div>
-          </header>
+        ${this._renderPrimarySection(vacuums, robotId)}
 
-          ${vacuums.length === 0 ? html`
-            <glass-empty-state variant="inline" .icon=${'mdi:robot-vacuum-variant'} .title=${t('config.vacuum_no_entities')}></glass-empty-state>
-          ` : html`
-            <div class="feature-list">
-              ${vacuums.map((v) => {
-                const isSelected = v.entityId === effective;
-                return html`
-                  <button
-                    class="feature-row"
-                    role="radio"
-                    aria-checked=${isSelected ? 'true' : 'false'}
-                    aria-label="${v.name}"
-                    @click=${() => this._selectEntity(v.entityId)}
-                  >
-                    <div class="feature-icon">
-                      <ha-icon .icon=${'mdi:robot-vacuum-variant'}></ha-icon>
-                    </div>
-                    <div class="feature-text">
-                      <div class="feature-name">${v.name}</div>
-                      <div class="feature-desc">${v.entityId}</div>
-                    </div>
-                    <glass-toggle presentation .checked=${isSelected}></glass-toggle>
-                  </button>
-                `;
-              })}
-            </div>
-          `}
-        </section>
+        ${vacuums.length === 0 ? nothing : html`
+          <div class="cfg-info">
+            <ha-icon .icon=${'mdi:information-outline'}></ha-icon>
+            <span>${t('config.vacuum_overrides_info')}</span>
+          </div>
+          ${VACUUM_ROLE_SECTIONS.map((section) =>
+            this._renderRoleSection(section, prefix, auto))}
+        `}
 
         <div class="save-bar">
           <glass-button variant="ghost" @click=${() => this.reload()}>${t('common.reset')}</glass-button>
         </div>
       </div>
+    `;
+  }
+
+  private _renderPrimarySection(vacuums: VacuumEntity[], robotId: string): TemplateResult {
+    return html`
+      <section class="cfg-section">
+        <header class="cfg-section-head">
+          <span class="cfg-section-num">2</span>
+          <div class="cfg-section-text">
+            <span class="section-label">${t('config.vacuum_entity')}</span>
+            <span class="section-desc">${t('config.vacuum_entity_desc')}</span>
+          </div>
+        </header>
+        ${vacuums.length === 0 ? html`
+          <glass-empty-state variant="inline" .icon=${'mdi:robot-vacuum-variant'} .title=${t('config.vacuum_no_entities')}></glass-empty-state>
+        ` : html`
+          <glass-dropdown
+            .items=${vacuums.map((v) => ({ value: v.entityId, label: v.name }))}
+            .value=${robotId}
+            aria-label=${t('config.vacuum_entity')}
+            @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => {
+              this._vacuumEntity = e.detail.value;
+            }}
+          ></glass-dropdown>
+        `}
+      </section>
+    `;
+  }
+
+  private _renderRoleSection(
+    section: VacuumRoleSection,
+    prefix: string,
+    auto: VacuumCompanions | null,
+  ): TemplateResult {
+    const roles = VACUUM_ROLES.filter((r) => r.section === section);
+    const open = !!this._openSections[section];
+    const overriddenCount = roles.filter((r) => (r.key as string) in this._overrides).length;
+    return html`
+      <section class="cfg-section">
+        <button class="section-header" @click=${() => this._toggleSection(section)} aria-expanded=${open ? 'true' : 'false'}>
+          <ha-icon .icon=${SECTION_ICON[section]}></ha-icon>
+          <span class="section-title">${t(SECTION_LABEL[section])}</span>
+          ${overriddenCount > 0 ? html`<span class="cfg-section-count">${overriddenCount}</span>` : nothing}
+          <glass-chevron ?open=${open} size="sm" tone="muted"></glass-chevron>
+        </button>
+        <div class="section-fold ${open ? 'open' : ''}">
+          <div class="section-fold-inner">
+            <div class="item-list">
+              ${roles.map((role) => {
+                const autoEntity = auto
+                  ? (auto[role.key] as string | undefined)
+                  : undefined;
+                return html`
+                  <div class="item-card">
+                    <div class="item-row static-row">
+                      <div class="feature-icon"><ha-icon .icon=${role.icon}></ha-icon></div>
+                      <div class="item-info">
+                        <span class="item-name">${t(`config.vacuum_role_${role.key}` as TranslationKey)}</span>
+                      </div>
+                      <glass-dropdown
+                        searchable
+                        search-placeholder=${t('config.vacuum_search_entity')}
+                        empty-text=${t('config.vacuum_no_match')}
+                        .items=${this._roleItems(role, prefix, autoEntity)}
+                        .value=${this._roleValue(role.key as string)}
+                        aria-label=${t(`config.vacuum_role_${role.key}` as TranslationKey)}
+                        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) =>
+                          this._onRoleChange(role.key as string, e.detail.value)}
+                      ></glass-dropdown>
+                    </div>
+                  </div>
+                `;
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
     `;
   }
 }
