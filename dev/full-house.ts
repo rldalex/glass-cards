@@ -76,6 +76,19 @@ const ENTITIES: EntitySpec[] = [
   { state: entity('sensor.salon_temperature', '20.5', { friendly_name: 'Température Salon', device_class: 'temperature', unit_of_measurement: '°C', state_class: 'measurement' }), area: 'salon' },
   { state: entity('sensor.salon_humidity', '48', { friendly_name: 'Humidité Salon', device_class: 'humidity', unit_of_measurement: '%', state_class: 'measurement' }), area: 'salon' },
   { state: entity('binary_sensor.salon_presence', 'on', { friendly_name: 'Présence Salon', device_class: 'occupancy' }), area: 'salon' },
+  // Vacuum (Saros 10R) + a representative subset of companions for the config panel
+  { state: entity('vacuum.saros_10r', 'docked', { friendly_name: 'Saros 10R', fan_speed: 'turbo', fan_speed_list: ['quiet', 'balanced', 'turbo', 'max'], supported_features: 30524 }), area: 'salon' },
+  { state: entity('sensor.saros_10r_batterie', '100', { friendly_name: 'Batterie' }), area: 'salon' },
+  { state: entity('sensor.saros_10r_current_room', '', { friendly_name: 'Pièce courante' }), area: 'salon' },
+  { state: entity('sensor.saros_10r_erreur_de_l_aspirateur', 'none', { friendly_name: 'Erreur' }), area: 'salon' },
+  { state: entity('select.saros_10r_intensite_de_frottement', 'moderate', { friendly_name: 'Intensité', options: ['off', 'low', 'medium', 'moderate', 'high'] }), area: 'salon' },
+  { state: entity('select.saros_10r_parcours_de_lavage_de_sol', 'standard', { friendly_name: 'Parcours', options: ['standard', 'deep', 'fast'] }), area: 'salon' },
+  { state: entity('binary_sensor.saros_10r_en_charge', 'on', { friendly_name: 'En charge' }), area: 'salon' },
+  { state: entity('binary_sensor.saros_10r_serpilliere_fixee', 'on', { friendly_name: 'Serpillière' }), area: 'salon' },
+  { state: entity('sensor.saros_10r_temps_restant_filtre', '104', { friendly_name: 'Filtre' }), area: 'salon' },
+  { state: entity('button.saros_10r_nettoyage_cuisine', '2026-05-01T10:00:00+00:00', { friendly_name: 'Nettoyage cuisine' }), area: 'salon' },
+  { state: entity('button.saros_10r_nettoyage_sam', '2026-05-01T10:00:00+00:00', { friendly_name: 'Nettoyage séjour' }), area: 'salon' },
+  { state: entity('button.saros_10r_nettoyage_complet', '2026-05-01T10:00:00+00:00', { friendly_name: 'Nettoyage complet' }), area: 'salon' },
 
   // ════════════════════ CHAMBRE ════════════════════
   { state: entity('light.chambre_plafond', 'off', { friendly_name: 'Plafond Chambre', supported_color_modes: ['brightness'], color_mode: 'brightness', brightness: 0 }), area: 'chambre' },
