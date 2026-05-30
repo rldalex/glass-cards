@@ -415,7 +415,7 @@ export class ConfigTabCamera extends BaseConfigTab {
                 const name = (entity?.attributes?.friendly_name as string) || entityId.split('.')[1];
                 const current: CameraAspectRatio = this._cameraAspectRatios[entityId] ?? 'auto';
                 return html`
-                  <div class="item-card">
+                  <div class="item-card aspect-card">
                     <div class="item-row static-row">
                       <div class="feature-icon">
                         <ha-icon .icon=${'mdi:image-aspect-ratio'}></ha-icon>
@@ -424,19 +424,14 @@ export class ConfigTabCamera extends BaseConfigTab {
                         <span class="item-name">${name}</span>
                         <span class="item-meta">${entityId}</span>
                       </div>
-                      <select
-                        class="input aspect-select"
-                        aria-label="${t('config.camera_aspect_aria', { name })}"
+                      <glass-dropdown
+                        class="aspect-dropdown"
+                        .items=${ASPECT_RATIO_OPTIONS.map((opt) => ({ value: opt, label: this._aspectLabel(opt) }))}
                         .value=${current}
-                        @change=${(e: Event) => {
-                          const val = (e.target as HTMLSelectElement).value as CameraAspectRatio;
-                          this._setCameraAspectRatio(entityId, val);
-                        }}
-                      >
-                        ${ASPECT_RATIO_OPTIONS.map((opt) => html`
-                          <option value=${opt} ?selected=${opt === current}>${this._aspectLabel(opt)}</option>
-                        `)}
-                      </select>
+                        aria-label=${t('config.camera_aspect_aria', { name })}
+                        @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) =>
+                          this._setCameraAspectRatio(entityId, e.detail.value as CameraAspectRatio)}
+                      ></glass-dropdown>
                     </div>
                   </div>
                 `;

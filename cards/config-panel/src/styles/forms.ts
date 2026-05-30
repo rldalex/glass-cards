@@ -391,6 +391,18 @@ export const formStyles = css`
         width: 3.75rem;
         text-align: center;
       }
+      /* Per-camera aspect-ratio picker — glass-dropdown sits at the row end.
+         Fixed width keeps a clean column; longest label "Auto (détection)". */
+      .item-row .aspect-dropdown {
+        flex: 0 0 auto;
+        width: 12rem;
+      }
+      /* The wrapping .item-card defaults to overflow:hidden (rounded clip for
+         draggable rows). The aspect rows host an open dropdown menu, which that
+         clip would cut off — so opt these cards out. */
+      .item-card.aspect-card {
+        overflow: visible;
+      }
       /* schedule-input removed — replaced by .datetime-display */
 
       /* ── Check item (from kit) ── */

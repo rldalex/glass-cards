@@ -592,38 +592,59 @@ export const baseStyles = css`
          Navigation (ex nav.ts)
          ═══════════════════════════════════════════════ */
 
-      /* ── Panel layout — vertical stack ── */
+      /* ── Panel layout — vertical stack ──
+         No enforced viewport height and no inner scroll: the content grows
+         naturally and the PAGE (:host, min-height:100vh) is the only scroller.
+         Avoids the double vertical scrollbar (panel-content used to scroll
+         inside a viewport-tall box on top of the page scroll). */
       .panel-layout {
         display: flex;
         flex-direction: column;
-        min-height: calc(100vh - 4rem);
+        min-height: 0;
       }
 
-      /* ── Top nav (horizontal) ── */
+      /* ── Top nav — segmented control ──
+         Same recipe as .segmented (WIDTH toggle): glass container with the
+         tabs framed inside, active tab = a filled --s4 pill that reads as one
+         solid block instead of three floating buttons.
+         Sticky so the tabs stay reachable while the page scrolls underneath;
+         the container background keeps content from showing through as it
+         passes under. A wrapper margin gives breathing room above. */
       .panel-sidebar {
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0 0.25rem 0.75rem;
-        border-bottom: 1px solid var(--b1);
+        gap: 0;
+        padding: 0.25rem;
+        border: 1px solid var(--b1);
+        border-radius: var(--radius-lg);
+        /* Frosted, near-opaque surface (the #1e2433 family used by the
+           glass-dropdown menu). The translucent --s1 of the base .segmented
+           recipe would let scrolled content bleed through while sticky, so we
+           use an opaque backdrop here + blur for the glass feel. */
+        background: rgba(30, 36, 51, 0.92);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
         margin-bottom: 0.75rem;
         flex-shrink: 0;
+        position: sticky;
+        top: 0.5rem;
+        z-index: 10;
       }
       .panel-sidebar .nav-btn {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.25rem;
+        gap: 0.375rem;
         padding: 0.5rem 0.75rem;
-        border-radius: var(--radius-md);
-        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        border: none;
         background: transparent;
         color: var(--t3);
         cursor: pointer;
-        transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
-        font-size: var(--fz-sm);
+        transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+        font-size: var(--fz-base);
         font-family: inherit;
         font-weight: 600;
         outline: none;
@@ -638,38 +659,37 @@ export const baseStyles = css`
         transition: color var(--t-fast);
       }
       .panel-sidebar .nav-btn.active {
-        background: var(--s3);
-        border-color: var(--b2);
+        background: var(--s4);
         color: var(--t1);
+        box-shadow: 0 1px 4px rgba(var(--rgb-black), 0.2);
       }
       .panel-sidebar .nav-btn.active ha-icon {
         color: var(--c-accent);
       }
       @media (hover: hover) and (pointer: fine) {
         .panel-sidebar .nav-btn:not(.active):hover {
-          background: var(--s1);
-          color: var(--t1);
-          border-color: var(--b1);
+          color: var(--t2);
         }
       }
       @media (pointer: coarse) {
         .panel-sidebar .nav-btn:active { animation: bounce 0.3s ease; }
       }
       .panel-sidebar .nav-btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
+        outline: 2px solid rgba(var(--rgb-white), 0.25);
+        outline-offset: -2px;
       }
 
-      /* ── Content area ── */
+      /* ── Content area ──
+         overflow-y:visible so this no longer creates a second scroll region;
+         the page scrolls instead (see .panel-layout). overflow-x stays clipped
+         to contain wide children (card preview carousel). */
       .panel-content {
         flex: 1;
-        overflow-y: auto;
+        overflow-y: visible;
         overflow-x: clip;
         min-width: 0;
-        scrollbar-width: none;
         padding: 0 1rem;
       }
-      .panel-content::-webkit-scrollbar { display: none; }
 
       /* ── Breadcrumb ── */
       .breadcrumb {
