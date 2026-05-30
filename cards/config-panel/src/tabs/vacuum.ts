@@ -355,10 +355,14 @@ export class ConfigTabVacuum extends BaseConfigTab {
     this._localDragIdx = null; this._localDropIdx = null;
   }
 
-  private _addRoomButton(entityId: string): void {
+  private _addRoomButton(entityId: string, ordered: { entityId: string }[]): void {
     if (!entityId || this._roomButtonsExtra.includes(entityId)) return;
     this._roomButtonsExtra = [...this._roomButtonsExtra, entityId];
-    this._roomButtonsOrder = [...this._roomButtonsOrder, entityId];
+    // Seed the order with the current full display order so the new button is
+    // appended at the end. Otherwise, when _roomButtonsOrder was still empty,
+    // storing just [entityId] would sort it to the front (detected buttons fall
+    // back to Infinity in _orderedRoomButtons).
+    this._roomButtonsOrder = [...ordered.map((b) => b.entityId), entityId];
   }
 
   private _renderRoomsSection(prefix: string, auto: VacuumCompanions | null): TemplateResult {
@@ -423,7 +427,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
                         </div>
                         <glass-toggle
                           .checked=${visible}
-                          aria-label="${visible ? t('common.hide') : t('common.show')} ${b.entityId}"
+                          aria-label="${visible ? t('common.hide') : t('common.show')} ${b.slug ? humanizeRoomSlug(b.slug) : b.entityId}"
                           @glass-toggle-change=${() => this._toggleRoomButtonVisible(b.entityId)}
                         ></glass-toggle>
                       </div>
@@ -444,7 +448,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
                   .items=${addItems}
                   .value=${''}
                   aria-label=${t('config.vacuum_add_room')}
-                  @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._addRoomButton(e.detail.value)}
+                  @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._addRoomButton(e.detail.value, ordered)}
                 ></glass-dropdown>
               </div>
             ` : nothing}
