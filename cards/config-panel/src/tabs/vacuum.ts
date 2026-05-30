@@ -209,12 +209,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
         </div>
 
         <section class="cfg-section">
-          <header class="cfg-section-head">
-            <span class="cfg-section-num">1</span>
-            <div class="cfg-section-text">
-              <span class="section-label">${t('config.display')}</span>
-            </div>
-          </header>
+          <glass-section-title label=${t('config.display')}></glass-section-title>
           <div class="feature-list">
             ${this._renderFeatureRow({
               icon: 'mdi:page-layout-header',
@@ -248,13 +243,8 @@ export class ConfigTabVacuum extends BaseConfigTab {
   private _renderPrimarySection(vacuums: VacuumEntity[], robotId: string): TemplateResult {
     return html`
       <section class="cfg-section">
-        <header class="cfg-section-head">
-          <span class="cfg-section-num">2</span>
-          <div class="cfg-section-text">
-            <span class="section-label">${t('config.vacuum_entity')}</span>
-            <span class="section-desc">${t('config.vacuum_entity_desc')}</span>
-          </div>
-        </header>
+        <glass-section-title label=${t('config.vacuum_entity')}></glass-section-title>
+        <div class="section-desc">${t('config.vacuum_entity_desc')}</div>
         ${vacuums.length === 0 ? html`
           <glass-empty-state variant="inline" .icon=${'mdi:robot-vacuum-variant'} .title=${t('config.vacuum_no_entities')}></glass-empty-state>
         ` : html`
@@ -284,7 +274,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
         <button class="section-header" @click=${() => this._toggleSection(section)} aria-expanded=${open ? 'true' : 'false'}>
           <div class="section-header-icon"><ha-icon .icon=${SECTION_ICON[section]}></ha-icon></div>
           <span class="section-title">${t(SECTION_LABEL[section])}</span>
-          ${overriddenCount > 0 ? html`<span class="cfg-section-count">${overriddenCount}</span>` : nothing}
+          ${overriddenCount > 0 ? html`<glass-pill tone="accent">${overriddenCount}</glass-pill>` : nothing}
           <glass-chevron ?open=${open} size="md" tone="muted"></glass-chevron>
         </button>
         <div class="fold-sep ${open ? 'visible' : ''}"></div>
@@ -392,7 +382,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
         <button class="section-header" @click=${() => this._toggleSection('rooms')} aria-expanded=${open ? 'true' : 'false'}>
           <div class="section-header-icon"><ha-icon .icon=${'mdi:floor-plan'}></ha-icon></div>
           <span class="section-title">${t('config.vacuum_section_rooms')}</span>
-          ${ordered.length > 0 ? html`<span class="cfg-section-count">${ordered.length - hiddenSet.size}/${ordered.length}</span>` : nothing}
+          ${ordered.length > 0 ? html`<glass-pill tone=${hiddenSet.size > 0 ? 'accent' : 'neutral'}>${ordered.length - hiddenSet.size}/${ordered.length}</glass-pill>` : nothing}
           <glass-chevron ?open=${open} size="md" tone="muted"></glass-chevron>
         </button>
         <div class="fold-sep ${open ? 'visible' : ''}"></div>
