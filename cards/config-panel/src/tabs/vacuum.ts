@@ -11,9 +11,11 @@ import {
 import {
   VACUUM_ROLES,
   VACUUM_ROLE_SECTIONS,
+  slugFromButtonEntity,
   type VacuumRoleDef,
   type VacuumRoleSection,
 } from '../../../vacuum-card/src/roles';
+import { humanizeRoomSlug } from '../../../vacuum-card/src/labels';
 
 interface VacuumEntity {
   entityId: string;
@@ -233,6 +235,7 @@ export class ConfigTabVacuum extends BaseConfigTab {
           </div>
           ${VACUUM_ROLE_SECTIONS.map((section) =>
             this._renderRoleSection(section, prefix, auto))}
+          ${this._renderRoomsSection(prefix, auto)}
         `}
 
         <div class="save-bar">
@@ -312,6 +315,159 @@ export class ConfigTabVacuum extends BaseConfigTab {
                   </div>
                 `;
               })}
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  private _orderedRoomButtons(auto: VacuumCompanions | null, prefix: string): { entityId: string; slug: string }[] {
+    const map = new Map<string, { entityId: string; slug: string }>();
+    for (const b of auto?.roomButtons ?? []) map.set(b.entityId, b);
+    for (const id of this._roomButtonsExtra) {
+      if (!map.has(id)) map.set(id, { entityId: id, slug: slugFromButtonEntity(id, prefix) });
+    }
+    const all = [...map.values()];
+    if (this._roomButtonsOrder.length === 0) return all;
+    const orderMap = new Map(this._roomButtonsOrder.map((id, i) => [id, i]));
+    return all.sort((a, b) => {
+      const ai = orderMap.has(a.entityId) ? orderMap.get(a.entityId)! : Infinity;
+      const bi = orderMap.has(b.entityId) ? orderMap.get(b.entityId)! : Infinity;
+      return ai - bi;
+    });
+  }
+
+  private _toggleRoomButtonVisible(entityId: string): void {
+    const set = new Set(this._roomButtonsHidden);
+    if (set.has(entityId)) set.delete(entityId); else set.add(entityId);
+    this._roomButtonsHidden = [...set];
+  }
+
+  private _onRoomDrop(idx: number, ordered: { entityId: string }[]): void {
+    if (this._localDragIdx === null || this._localDragIdx === idx) {
+      this._localDragIdx = null; this._localDropIdx = null; return;
+    }
+    const arr = ordered.map((b) => b.entityId);
+    const [moved] = arr.splice(this._localDragIdx, 1);
+    arr.splice(idx, 0, moved);
+    this._roomButtonsOrder = arr;
+    this._localDragIdx = null; this._localDropIdx = null;
+  }
+
+  private _addRoomButton(entityId: string): void {
+    if (!entityId || this._roomButtonsExtra.includes(entityId)) return;
+    this._roomButtonsExtra = [...this._roomButtonsExtra, entityId];
+    this._roomButtonsOrder = [...this._roomButtonsOrder, entityId];
+  }
+
+  private _renderRoomsSection(prefix: string, auto: VacuumCompanions | null): TemplateResult {
+    const open = !!this._openSections['rooms'];
+    const ordered = this._orderedRoomButtons(auto, prefix);
+    const hiddenSet = new Set(this._roomButtonsHidden);
+
+    // Candidates for the "+ add" dropdown: button.* not already listed.
+    const present = new Set(ordered.map((b) => b.entityId));
+    const addItems: DropdownItem[] = Object.keys(this.hass?.states ?? {})
+      .filter((id) => id.startsWith('button.') && !present.has(id))
+      .sort()
+      .map((id) => ({
+        value: id,
+        label: (this.hass?.states[id]?.attributes?.friendly_name as string) || id,
+      }));
+
+    // allHouseButton role dropdown (single entity, domain button).
+    const allHouseAuto = auto?.allHouseButton;
+    const allHouseRole: VacuumRoleDef = { key: 'allHouseButton', section: 'state', domains: ['button'], icon: 'mdi:home-outline' };
+
+    return html`
+      <section class="cfg-section">
+        <button class="section-header" @click=${() => this._toggleSection('rooms')} aria-expanded=${open ? 'true' : 'false'}>
+          <ha-icon .icon=${'mdi:floor-plan'}></ha-icon>
+          <span class="section-title">${t('config.vacuum_section_rooms')}</span>
+          ${ordered.length > 0 ? html`<span class="cfg-section-count">${ordered.length - hiddenSet.size}/${ordered.length}</span>` : nothing}
+          <glass-chevron ?open=${open} size="sm" tone="muted"></glass-chevron>
+        </button>
+        <div class="section-fold ${open ? 'open' : ''}">
+          <div class="section-fold-inner">
+            <div class="section-desc">${t('config.vacuum_rooms_desc')}</div>
+            ${ordered.length === 0 ? html`
+              <glass-empty-state variant="inline" .icon=${'mdi:gesture-tap-button'} .title=${t('config.vacuum_no_room_buttons')}></glass-empty-state>
+            ` : html`
+              <div class="item-list">
+                ${ordered.map((b, idx) => {
+                  const visible = !hiddenSet.has(b.entityId);
+                  const isDragging = this._localDragIdx === idx;
+                  const isDropTarget = this._localDropIdx === idx;
+                  const rowClasses = [
+                    'item-row',
+                    isDragging ? 'dragging' : '',
+                    isDropTarget ? 'drop-target' : '',
+                    !visible ? 'disabled' : '',
+                  ].filter(Boolean).join(' ');
+                  return html`
+                    <div class="item-card">
+                      <div
+                        class=${rowClasses}
+                        draggable="true"
+                        @dragstart=${() => { this._localDragIdx = idx; }}
+                        @dragover=${(ev: DragEvent) => { ev.preventDefault(); this._localDropIdx = idx; }}
+                        @dragleave=${() => { this._localDropIdx = null; }}
+                        @drop=${(ev: DragEvent) => { ev.preventDefault(); this._onRoomDrop(idx, ordered); }}
+                        @dragend=${() => { this._localDragIdx = null; this._localDropIdx = null; }}
+                      >
+                        <glass-drag-handle></glass-drag-handle>
+                        <div class="item-info">
+                          <span class="item-name">${b.slug ? humanizeRoomSlug(b.slug) : b.entityId}</span>
+                          <span class="item-meta">${b.entityId}</span>
+                        </div>
+                        <glass-toggle
+                          .checked=${visible}
+                          aria-label="${visible ? t('common.hide') : t('common.show')} ${b.entityId}"
+                          @glass-toggle-change=${() => this._toggleRoomButtonVisible(b.entityId)}
+                        ></glass-toggle>
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
+            `}
+
+            ${addItems.length > 0 ? html`
+              <div class="cfg-add-wrap">
+                <glass-dropdown
+                  searchable
+                  class="cfg-add-btn"
+                  placeholder=${t('config.vacuum_add_room')}
+                  search-placeholder=${t('config.vacuum_search_entity')}
+                  empty-text=${t('config.vacuum_no_match')}
+                  .items=${addItems}
+                  .value=${''}
+                  aria-label=${t('config.vacuum_add_room')}
+                  @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) => this._addRoomButton(e.detail.value)}
+                ></glass-dropdown>
+              </div>
+            ` : nothing}
+
+            <div class="item-list" style="margin-top:0.75rem">
+              <div class="item-card">
+                <div class="item-row static-row">
+                  <div class="feature-icon"><ha-icon .icon=${allHouseRole.icon}></ha-icon></div>
+                  <div class="item-info">
+                    <span class="item-name">${t('config.vacuum_role_allHouseButton')}</span>
+                  </div>
+                  <glass-dropdown
+                    searchable
+                    search-placeholder=${t('config.vacuum_search_entity')}
+                    empty-text=${t('config.vacuum_no_match')}
+                    .items=${this._roleItems(allHouseRole, prefix, allHouseAuto)}
+                    .value=${this._roleValue('allHouseButton')}
+                    aria-label=${t('config.vacuum_role_allHouseButton')}
+                    @glass-dropdown-change=${(e: CustomEvent<{ value: string }>) =>
+                      this._onRoleChange('allHouseButton', e.detail.value)}
+                  ></glass-dropdown>
+                </div>
+              </div>
             </div>
           </div>
         </div>
