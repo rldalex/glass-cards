@@ -8072,7 +8072,7 @@
         <div class="page-header">
           <button class="page-back" @click=${()=>this._goBack()} aria-label="${ei("common.back")}"><ha-icon .icon=${"mdi:chevron-left"}></ha-icon></button>
           <span class="page-title">${ei("config.title")}</span>
-          <span class="page-subtitle">${ei("config.brand")} <span class="page-version">v${"0.0.235"}</span></span>
+          <span class="page-subtitle">${ei("config.brand")} <span class="page-version">v${"0.0.236"}</span></span>
         </div>
 
         <div class="glass config-panel">
