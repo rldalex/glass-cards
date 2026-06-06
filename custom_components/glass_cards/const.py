@@ -4,7 +4,6 @@ import hashlib
 import os
 
 DOMAIN = "glass_cards"
-VERSION = "0.0.175"
 
 # Server-side bus event fired after any WS config save, so other tabs / devices
 # can reload the affected section. Frontend bridges this to the local event bus.

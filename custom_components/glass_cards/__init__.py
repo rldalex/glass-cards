@@ -43,28 +43,55 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     return True
 
 
-async def _register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
-    """Register JS as a Lovelace resource for companion app cache resilience.
+async def _register_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
+    """Register the JS bundle as a Lovelace resource (storage mode).
 
-    The companion app caches the HTML page served by HA. Scripts loaded via
-    add_extra_js_url are embedded in that HTML, so they may not load on cold
-    starts. Lovelace resources are fetched via WebSocket and survive the cache.
+    Returns True when the bundle is now registered through the Lovelace resource
+    store, False when that path is unavailable (no lovelace data, or YAML-mode
+    dashboards whose collection is read-only) so the caller can fall back to
+    add_extra_js_url.
+
+    The companion app caches the HTML page served by HA, so scripts added via
+    add_extra_js_url may not load on cold starts; Lovelace resources are fetched
+    over WebSocket and survive that cache. We also purge duplicate registrations:
+    an earlier version created a new entry on every setup before the resource
+    store had finished loading, leaving one duplicate per reboot.
     """
+    lovelace_data = hass.data.get("lovelace")
+    if lovelace_data is None:
+        return False
+    resources = getattr(lovelace_data, "resources", None)
+    # YAML-mode resource collections are read-only (no mutation API).
+    if resources is None or not hasattr(resources, "async_create_item"):
+        return False
+
     try:
-        lovelace_data = hass.data.get("lovelace")
-        if lovelace_data is None:
-            return
-        resources = getattr(lovelace_data, "resources", None)
-        if resources is None:
-            return
-        # Check if already registered
-        for item in resources.async_items():
-            if JS_PATH in item.get("url", ""):
-                return
-        await resources.async_create_item({"res_type": "js", "url": url})
-        _LOGGER.debug("Registered glass-cards as Lovelace resource: %s", url)
+        # Ensure the store is loaded so async_items() reflects persisted state,
+        # even when this runs at startup before the frontend first reads it.
+        if hasattr(resources, "loaded") and not resources.loaded:
+            await resources.async_load()
+            resources.loaded = True
+
+        existing = [
+            item for item in resources.async_items() if JS_PATH in item.get("url", "")
+        ]
+        if existing:
+            keep, *dupes = existing
+            for dupe in dupes:
+                await resources.async_delete_item(dupe["id"])
+            if keep.get("url") != url:
+                await resources.async_update_item(keep["id"], {"url": url})
+            _LOGGER.debug(
+                "glass-cards Lovelace resource normalized (%d duplicate(s) removed)",
+                len(dupes),
+            )
+        else:
+            await resources.async_create_item({"res_type": "js", "url": url})
+            _LOGGER.debug("Registered glass-cards as Lovelace resource: %s", url)
+        return True
     except Exception:  # noqa: BLE001
-        _LOGGER.debug("Could not register Lovelace resource, falling back to add_extra_js_url")
+        _LOGGER.exception("Failed to register glass-cards Lovelace resource")
+        return False
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -89,12 +116,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     )
 
-    # Serve the main JS bundle
+    # Serve the main JS bundle through a single load path. Prefer the Lovelace
+    # resource (survives the companion-app HTML cache, and is dashboard-scoped so
+    # it never loads on system panels like HACS/Settings); fall back to a global
+    # extra_js_url only when the resource store is unavailable (e.g. YAML mode).
+    # Loading via both paths would double-`customElements.define` and crash.
     if js_exists:
         static_paths.append(StaticPathConfig(JS_PATH, js_path, cache_headers=False))
-        add_extra_js_url(hass, js_url)
-        # Also register as Lovelace resource for companion app compatibility
-        await _register_lovelace_resource(hass, js_url)
+        if not await _register_lovelace_resource(hass, js_url):
+            add_extra_js_url(hass, js_url)
 
     # Serve the config panel JS bundle
     if panel_exists:
