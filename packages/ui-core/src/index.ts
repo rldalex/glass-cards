@@ -410,19 +410,49 @@ const AMBIENT_STYLES = `
   html { scrollbar-width: none; }
 `;
 
+// HA panels that are NOT glass surfaces. The ambient backdrop is a positioned,
+// fixed div; these system panels don't establish their own stacking context, so
+// the backdrop would paint over them and hide them entirely (the HACS / Settings
+// "invisible page" bug). The ambient must be scoped to glass routes only.
+const NON_GLASS_PANELS: ReadonlySet<string> = new Set([
+  'config',
+  'developer-tools',
+  'history',
+  'logbook',
+  'profile',
+  'energy',
+  'map',
+  'media-browser',
+  'todo',
+  'calendar',
+  'hacs',
+]);
+
+/** True on Lovelace dashboards (incl. custom url_paths) and the glass panel.
+ *  The first path segment is the HA panel url_path ('' for '/', which redirects
+ *  to the default dashboard). A blacklist is used rather than a '/lovelace'
+ *  whitelist so dashboards with custom url_paths keep the ambient backdrop. */
+function isGlassRoute(): boolean {
+  const seg = window.location.pathname.split('/')[1] ?? '';
+  return !NON_GLASS_PANELS.has(seg);
+}
+
 export class ThemeManager {
   private period: AmbientPeriod = 'day';
-  private cleanup?: () => void;
+  private cleanupAmbient?: () => void;
+  private cleanupLocation?: () => void;
   private ambientEl: HTMLElement | null = null;
   private styleEl: HTMLStyleElement | null = null;
 
   constructor() {
-    this.cleanup = bus.on('ambient-update', (payload) => {
+    this.cleanupAmbient = bus.on('ambient-update', (payload) => {
       this.period = payload.period;
       this.applyAmbient();
     });
-    this._injectAmbientBg();
-    this.applyAmbient();
+    // Re-evaluate on every SPA navigation so the backdrop is added on glass
+    // routes and removed on system panels (HACS, Settings, …).
+    this.cleanupLocation = bus.on('location-changed', () => this._syncAmbientToPanel());
+    this._syncAmbientToPanel();
   }
 
   get currentPeriod(): AmbientPeriod {
@@ -438,6 +468,16 @@ export class ThemeManager {
     root.style.setProperty('--ambient-blob-bottom', config.blobBottom);
     if (this.ambientEl) {
       this.ambientEl.style.background = config.body;
+    }
+  }
+
+  /** Show the ambient backdrop on glass routes, remove it everywhere else. */
+  private _syncAmbientToPanel(): void {
+    if (isGlassRoute()) {
+      this._injectAmbientBg();
+      this.applyAmbient();
+    } else {
+      this._removeAmbientBg();
     }
   }
 
@@ -464,13 +504,19 @@ export class ThemeManager {
     document.body.prepend(this.ambientEl);
   }
 
-  destroy(): void {
-    this.cleanup?.();
+  /** Remove the ambient backdrop and restore HA's default page background. */
+  private _removeAmbientBg(): void {
     this.ambientEl?.remove();
     this.ambientEl = null;
     this.styleEl?.remove();
     this.styleEl = null;
     document.documentElement.style.removeProperty('background');
+  }
+
+  destroy(): void {
+    this.cleanupAmbient?.();
+    this.cleanupLocation?.();
+    this._removeAmbientBg();
     if (_themeManager === this) _themeManager = null;
   }
 }
