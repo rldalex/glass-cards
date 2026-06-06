@@ -410,10 +410,22 @@ const AMBIENT_STYLES = `
   html { scrollbar-width: none; }
 `;
 
-// HA panels that are NOT glass surfaces. The ambient backdrop is a positioned,
-// fixed div; these system panels don't establish their own stacking context, so
-// the backdrop would paint over them and hide them entirely (the HACS / Settings
-// "invisible page" bug). The ambient must be scoped to glass routes only.
+// Minimal view of HA's root element / hass object — just enough to resolve the
+// active panel's component_name.
+interface HaPanel {
+  component_name?: string;
+}
+interface HaHass {
+  panels?: Record<string, HaPanel | undefined>;
+  defaultPanel?: string;
+}
+interface HaRootElement extends Element {
+  hass?: HaHass;
+}
+
+// Fallback only: system panels to keep the backdrop off when hass isn't ready
+// yet (e.g. very first paint). The primary check is component_name below; this
+// list is a best-effort guard and does not need to be exhaustive.
 const NON_GLASS_PANELS: ReadonlySet<string> = new Set([
   'config',
   'developer-tools',
@@ -426,14 +438,29 @@ const NON_GLASS_PANELS: ReadonlySet<string> = new Set([
   'todo',
   'calendar',
   'hacs',
+  'hassio',
+  'glass-cards',
 ]);
 
-/** True on Lovelace dashboards (incl. custom url_paths) and the glass panel.
- *  The first path segment is the HA panel url_path ('' for '/', which redirects
- *  to the default dashboard). A blacklist is used rather than a '/lovelace'
- *  whitelist so dashboards with custom url_paths keep the ambient backdrop. */
+/** True only on Lovelace dashboards (any url_path, incl. custom ones like a
+ *  dashboard named "map"). The ambient backdrop is a fixed, positioned div that
+ *  paints over panels without their own stacking context (the HACS/Settings
+ *  "invisible page" bug), so it must be scoped to dashboards only.
+ *
+ *  We key off the active panel's `component_name` rather than a path blacklist:
+ *  a blacklist is fragile both ways — too permissive (misses add-on ingress at
+ *  /hassio/...) and too strict (a dashboard whose url_path collides with a
+ *  system panel name loses the backdrop). `component_name === 'lovelace'`
+ *  identifies every dashboard and nothing else. The glass-cards config panel is
+ *  a `custom` panel that renders its own self-contained ambient, so it is
+ *  intentionally excluded here. */
 function isGlassRoute(): boolean {
-  const seg = window.location.pathname.split('/')[1] ?? '';
+  const hass = (document.querySelector('home-assistant') as HaRootElement | null)?.hass;
+  // First path segment = panel url_path; '' (root '/') resolves to the default.
+  const seg = window.location.pathname.split('/')[1] || hass?.defaultPanel || 'lovelace';
+  const componentName = hass?.panels?.[seg]?.component_name;
+  if (componentName !== undefined) return componentName === 'lovelace';
+  // hass/panels not available yet — fall back to the system-panel blacklist.
   return !NON_GLASS_PANELS.has(seg);
 }
 
