@@ -129,6 +129,12 @@ export class GlassCalendarCard extends BaseCard {
   protected willUpdate(changedProps: Map<string, unknown>): void {
     super.willUpdate(changedProps as never);
     if (changedProps.has('hass') && this.hass && !this.configPreview) {
+      // Invalidate backend on WS reconnect so config + events reload fresh.
+      if (this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._configLoaded = false;
+        this._configLoadInFlight = false;
+      }
       if (!this._configLoaded) this._loadConfigAndFetch();
     }
   }
@@ -265,11 +271,16 @@ export class GlassCalendarCard extends BaseCard {
     // Timed event (possibly spanning midnight, but HA splits at midnight in most integrations).
     const startIso = ev.start.dateTime ?? '';
     const endIso = ev.end.dateTime ?? '';
-    const startHM = startIso ? startIso.slice(11, 16) : '';
-    const endHM = endIso ? endIso.slice(11, 16) : '';
-    const time = endHM && endHM !== startHM ? `${startHM} - ${endHM}` : startHM || null;
     const startDate = startIso ? new Date(startIso) : null;
     const endDate = endIso ? new Date(endIso) : null;
+    // Format in the browser's local timezone — backends may return UTC ISO
+    // strings ("...Z"), so slicing the raw string would show the wrong hour.
+    const fmtHM = (d: Date | null) => d
+      ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+      : '';
+    const startHM = fmtHM(startDate);
+    const endHM = fmtHM(endDate);
+    const time = endHM && endHM !== startHM ? `${startHM} - ${endHM}` : startHM || null;
     const now = new Date();
     const isNow = !!(startDate && endDate && startDate <= now && endDate >= now);
     let dayOffset = 0;
