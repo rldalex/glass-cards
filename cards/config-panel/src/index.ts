@@ -58,6 +58,9 @@ export class GlassConfigPanel extends LitElement {
   @state() _selectedRoom = '';
   @state() _toast = false;
   @state() _saving = false;
+  /** Gate for the panel content: tabs must never render interactively on
+   *  default configs (an auto-save would overwrite the real, unloaded one). */
+  @state() _loadState: 'loading' | 'error' | 'ready' = 'loading';
 
   // Navbar config — room ordering, visibility, auto_sort
   _navbarConfig: Record<string, unknown> = {};
@@ -335,6 +338,27 @@ export class GlassConfigPanel extends LitElement {
   // ─── Content router ───
 
   private _renderContent(): TemplateResult | typeof nothing {
+    if (this._loadState !== 'ready') {
+      if (this._loadState === 'error') {
+        return html`
+          <div class="panel-load-state">
+            <glass-empty-state
+              variant="inline"
+              .icon=${'mdi:cloud-alert-outline'}
+              .title=${t('config.load_error')}
+            ></glass-empty-state>
+            <glass-button variant="secondary" @click=${() => this._loadConfig()}>
+              ${t('config.load_retry')}
+            </glass-button>
+          </div>
+        `;
+      }
+      return html`
+        <div class="panel-load-state">
+          <glass-empty-state variant="inline" .icon=${'mdi:loading'} .title=${t('config.load_loading')}></glass-empty-state>
+        </div>
+      `;
+    }
     switch (this._nav.section) {
       case 'wizard':
         return html`<config-wizard

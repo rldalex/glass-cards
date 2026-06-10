@@ -948,6 +948,9 @@
     "unassigned_count": "{count} unassigned entity(ies)",
     "unassigned_no_results": "No results.",
     "unassigned_rename": "Rename entity",
-    "unassigned_change_icon": "Change icon"
+    "unassigned_change_icon": "Change icon",
+    "load_error": "Could not load the configuration",
+    "load_retry": "Retry",
+    "load_loading": "Loading…"
   }
 }

@@ -14,8 +14,12 @@ export async function loadConfig(self: GlassConfigPanel): Promise<void> {
   try {
     await loadConfigInner(self);
     self._loaded = true;
+    self._loadState = 'ready';
   } catch {
     self._loaded = false;
+    // Fail safe: surface the error instead of rendering interactive tabs on
+    // default configs — any auto-save would overwrite the user's real config.
+    self._loadState = 'error';
   } finally {
     self._loading = false;
   }
@@ -106,7 +110,10 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     entity: '',
   };
   const roomConfigs: Record<string, { icon?: string | null }> = {};
-  try {
+  // No inner catch: a failed get_config must propagate to loadConfig() so the
+  // panel shows its error state. Loading "defaults" on failure looked like a
+  // wiped config and let the next auto-save persist those defaults for real.
+  {
     if (!self._backend) throw new Error('No backend');
     const result = await self._backend.send<{
       navbar: typeof navbarConfig;
@@ -142,8 +149,6 @@ async function loadConfigInner(self: GlassConfigPanel): Promise<void> {
     if (result.vacuum_card) vacuumCardConfig = result.vacuum_card;
     if (result.dashboard) dashboardConfig = result.dashboard;
     if (result.wizard_completed !== undefined) self._wizardCompleted = result.wizard_completed;
-  } catch {
-    // Backend not available
   }
 
   self._navbarConfig = navbarConfig;
