@@ -147,7 +147,6 @@ class GlassWeatherCard extends BaseCard {
   private _unsubHourly: (() => void) | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
-  private _configLoadingInProgress = false;
 
   // — Styles —
 
@@ -560,7 +559,6 @@ class GlassWeatherCard extends BaseCard {
     this._ctx = null;
     this._backend = undefined;
     this._configLoaded = false;
-    this._configLoadingInProgress = false;
   }
 
   protected _collapseExpanded(): void {
@@ -574,11 +572,9 @@ class GlassWeatherCard extends BaseCard {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._configLoaded = false;
-        this._configLoadingInProgress = false;
-        this._unsubForecasts();
+            this._unsubForecasts();
       }
-      if (!this._configLoaded && !this._configLoadingInProgress) {
-        this._backend = new BackendService(this.hass);
+      if (!this._configLoaded) {
         this._loadConfig();
       }
       // Cache condition for animation loop (avoid Object.keys scan at 60fps)
@@ -608,22 +604,22 @@ class GlassWeatherCard extends BaseCard {
   // — Backend config —
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend || this._configLoadingInProgress) return;
-    this._configLoadingInProgress = true;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
         weather: WeatherBackendConfig;
       }>('get_config');
       if (result?.weather) {
         this._weatherConfig = result.weather;
       }
-      this._configLoaded = true;
-      this._configLoadingInProgress = false;
       this._subscribedEntity = '';
       this._subscribeForecasts();
       this.requestUpdate();
     } catch {
-      this._configLoadingInProgress = false;
+      // Retry on the next hass tick.
+      this._configLoaded = false;
     }
   }
 
@@ -649,24 +645,31 @@ class GlassWeatherCard extends BaseCard {
     this._subscribedShowHourly = this._weatherConfig.show_hourly;
     const version = ++this._subVersion;
 
-    // Daily forecast
-    if (this._weatherConfig.show_daily) {
-      const unsub = await this.hass.connection.subscribeMessage<{ forecast: DailyForecast[] }>(
-        (msg) => { this._forecastDaily = msg.forecast ?? []; },
-        { type: 'weather/subscribe_forecast', forecast_type: 'daily', entity_id: eid },
-      );
-      if (this._subVersion !== version) { unsub(); return; }
-      this._unsubDaily = unsub;
-    }
+    try {
+      // Daily forecast
+      if (this._weatherConfig.show_daily) {
+        const unsub = await this.hass.connection.subscribeMessage<{ forecast: DailyForecast[] }>(
+          (msg) => { this._forecastDaily = msg.forecast ?? []; },
+          { type: 'weather/subscribe_forecast', forecast_type: 'daily', entity_id: eid },
+        );
+        if (this._subVersion !== version) { unsub(); return; }
+        this._unsubDaily = unsub;
+      }
 
-    // Hourly forecast
-    if (this._weatherConfig.show_hourly) {
-      const unsub = await this.hass.connection.subscribeMessage<{ forecast: HourlyForecast[] }>(
-        (msg) => { this._forecastHourly = msg.forecast ?? []; },
-        { type: 'weather/subscribe_forecast', forecast_type: 'hourly', entity_id: eid },
-      );
-      if (this._subVersion !== version) { unsub(); return; }
-      this._unsubHourly = unsub;
+      // Hourly forecast
+      if (this._weatherConfig.show_hourly) {
+        const unsub = await this.hass.connection.subscribeMessage<{ forecast: HourlyForecast[] }>(
+          (msg) => { this._forecastHourly = msg.forecast ?? []; },
+          { type: 'weather/subscribe_forecast', forecast_type: 'hourly', entity_id: eid },
+        );
+        if (this._subVersion !== version) { unsub(); return; }
+        this._unsubHourly = unsub;
+      }
+    } catch {
+      // Transient WS failure: clear the marker so the next hass tick retries
+      // the subscription (otherwise forecasts would stay empty until a full
+      // reconnect).
+      if (this._subVersion === version) this._subscribedEntity = '';
     }
   }
 
@@ -1088,7 +1091,9 @@ class GlassWeatherCard extends BaseCard {
     const windSpeedUnit = (attrs.wind_speed_unit as string | undefined) ?? 'km/h';
     const windBearing = attrs.wind_bearing as number | undefined;
     const pressure = attrs.pressure as number | undefined;
+    const pressureUnit = (attrs.pressure_unit as string | undefined) ?? 'hPa';
     const visibility = attrs.visibility as number | undefined;
+    const visibilityUnit = (attrs.visibility_unit as string | undefined) ?? 'km';
     const uvIndex = attrs.uv_index as number | undefined;
     const friendlyName = attrs.friendly_name as string ?? '';
     const tempUnit = (attrs.temperature_unit as string | undefined) ?? '°C';
@@ -1170,7 +1175,7 @@ class GlassWeatherCard extends BaseCard {
             ` : nothing}
 
             <!-- Metrics -->
-            ${this._renderMetrics(hidden, humidity, windSpeed, windSpeedUnit, windBearing, pressure, uvIndex, visibility, sunrise, sunset)}
+            ${this._renderMetrics(hidden, humidity, windSpeed, windSpeedUnit, windBearing, pressure, pressureUnit, uvIndex, visibility, visibilityUnit, sunrise, sunset)}
 
             <!-- Forecast -->
             ${this._renderForecasts(tempUnit)}
@@ -1188,8 +1193,10 @@ class GlassWeatherCard extends BaseCard {
     windSpeedUnit: string,
     windBearing: number | undefined,
     pressure: number | undefined,
+    pressureUnit: string,
     uvIndex: number | undefined,
     visibility: number | undefined,
+    visibilityUnit: string,
     sunrise: string,
     sunset: string,
   ): TemplateResult | typeof nothing {
@@ -1211,7 +1218,7 @@ class GlassWeatherCard extends BaseCard {
     if (!hidden.has('pressure') && pressure != null) {
       cells.push({
         cls: 'pressure', icon: 'mdi:gauge', label: t('weather.metric_pressure'),
-        val: html`<span class="wc-metric-val">${Math.round(pressure)}<span class="wc-metric-unit">hPa</span></span>`,
+        val: html`<span class="wc-metric-val">${Math.round(pressure)}<span class="wc-metric-unit">${pressureUnit}</span></span>`,
       });
     }
     if (!hidden.has('uv') && uvIndex != null) {
@@ -1223,7 +1230,7 @@ class GlassWeatherCard extends BaseCard {
     if (!hidden.has('visibility') && visibility != null) {
       cells.push({
         cls: 'visibility', icon: 'mdi:eye-outline', label: t('weather.metric_visibility'),
-        val: html`<span class="wc-metric-val">${visibility}<span class="wc-metric-unit">km</span></span>`,
+        val: html`<span class="wc-metric-val">${visibility}<span class="wc-metric-unit">${visibilityUnit}</span></span>`,
       });
     }
     if (!hidden.has('sunrise') && sunrise) {
