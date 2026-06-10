@@ -28,9 +28,10 @@
     "active": "Active",
     "count_visible": "{count} of {total} visible",
     "search": "Search…",
-    "no_results": "No results"
+    "no_results": "No results",
+    "skip": "Skip",
+    "start": "Start"
   },
-
   "light": {
     "title": "LIGHTS",
     "intensity": "Intensity",
@@ -58,14 +59,12 @@
     "section_color": "Color",
     "section_effects": "Effects"
   },
-
   "popup": {
     "close_aria": "Close",
     "toggle_scenes_aria": "Toggle scenes",
     "activate_scene_aria": "Activate {name}",
     "sensor_unavailable": "Sensor unavailable"
   },
-
   "weather": {
     "title": "WEATHER",
     "feels_like": "Feels like {temp}°",
@@ -119,7 +118,6 @@
     "compass_NW": "NW",
     "compass_NNW": "NNW"
   },
-
   "cover": {
     "title": "COVERS",
     "open": "Open",
@@ -153,7 +151,6 @@
     "dc_window": "Window",
     "dc_damper": "Damper"
   },
-
   "climate": {
     "title": "Climate",
     "target": "Target",
@@ -224,7 +221,6 @@
     "section_preset": "Preset",
     "section_air": "Air"
   },
-
   "fan": {
     "title": "Fans",
     "off": "Off",
@@ -258,7 +254,6 @@
     "section_direction": "Direction",
     "section_oscillation": "Oscillation"
   },
-
   "title_card": {
     "mode_label": "Mode:",
     "scene_label": "Scene:",
@@ -275,7 +270,6 @@
     "group_scenes": "Scenes",
     "group_toggles": "Toggles"
   },
-
   "vacuum": {
     "title": "Vacuum",
     "status_docked": "Docked",
@@ -332,7 +326,6 @@
     "stats_last_session": "{when} · {duration} · {area}",
     "stats_totals": "{count} cleanings · {area} total"
   },
-
   "spotify": {
     "title": "Spotify",
     "search_placeholder": "Search for a track, artist, podcast…",
@@ -387,7 +380,6 @@
     "items_count": "{current} / {total}",
     "clear_search": "Clear search"
   },
-
   "media": {
     "title": "MEDIA",
     "now_playing": "Now playing",
@@ -438,7 +430,6 @@
     "extra_entities": "Extra entities",
     "add_entity": "Add entity"
   },
-
   "presence": {
     "title": "PRESENCES",
     "title_single": "PRESENCE",
@@ -467,7 +458,6 @@
     "distance_m": "m",
     "distance_km": "km"
   },
-
   "camera": {
     "title": "CAMERAS",
     "idle": "Idle",
@@ -521,12 +511,10 @@
     "dashboard_title": "CAMERAS",
     "dashboard_title_one": "1 CAMERA"
   },
-
   "editor": {
     "redirect_message": "Glass Cards configuration is managed from the dedicated panel.",
     "open_config": "Open Glass Cards Config"
   },
-
   "config": {
     "title": "Configuration",
     "brand": "GLASS CARDS",
@@ -537,14 +525,12 @@
     "tab_popup": "Room Popup",
     "tab_light": "Lights",
     "preview": "Preview",
-
     "behavior": "Behavior",
     "display": "Display",
     "navbar_settings": "Behavior",
     "navbar_auto_sort": "Auto sort",
     "navbar_auto_sort_desc": "Active rooms move to the top",
     "no_rooms": "No rooms configured",
-
     "popup_room": "Room",
     "popup_room_desc": "Select a room to configure the order and visibility of its internal cards.",
     "popup_internal_cards": "Internal cards",
@@ -558,7 +544,7 @@
     "room_auto_detect": "Auto-detect",
     "room_no_sensor": "No sensor",
     "room_thresholds": "Alert thresholds",
-    "room_thresholds_desc": "Values above which indicators turn red.",
+    "room_thresholds_desc": "Above these values, the indicator switches to alert color.",
     "room_temp_high": "High temperature",
     "room_temp_low": "Low temperature",
     "room_humidity_threshold": "Humidity threshold",
@@ -600,7 +586,6 @@
     "popup_auto_close_duration": "Delay",
     "popup_auto_close_off": "Disabled",
     "popup_select_room": "Select a room",
-
     "light_room": "Room",
     "light_room_desc": "Select a room to configure its lights: order, visibility and display mode.",
     "light_list_title": "Lights",
@@ -626,7 +611,6 @@
     "light_show_header": "Show header",
     "light_show_header_desc": "Title, counter and toggle all button above the card",
     "light_dashboard_vs_room": "On the dashboard, only active lights from visible rooms are shown. In each room, all lights are displayed with full controls.",
-
     "domain_light": "Lights",
     "domain_light_desc": "Light control",
     "domain_media_player": "Media",
@@ -641,7 +625,6 @@
     "domain_camera_desc": "Security cameras",
     "domain_vacuum": "Vacuum",
     "domain_vacuum_desc": "Robot vacuums",
-
     "tab_weather": "Weather",
     "weather_entity": "Weather entity",
     "weather_entity_desc": "Select the weather entity to display on the card.",
@@ -666,7 +649,6 @@
     "weather_display": "Display",
     "weather_display_desc": "What appears on the card.",
     "weather_no_entity": "No weather.* entity detected. Add a weather integration in Home Assistant.",
-
     "tab_title": "Title",
     "title_title": "Title text",
     "title_title_desc": "Main text displayed on the card.",
@@ -704,10 +686,8 @@
     "title_no_modes": "Select a mode entity first.",
     "title_no_icons_found": "No icons found",
     "title_no_icon": "None",
-
     "dashboard_card_title": "Title",
     "dashboard_card_title_desc": "Title text with optional mode selector",
-
     "tab_dashboard": "Dashboard",
     "dashboard_display": "Display",
     "dashboard_display_desc": "Customize the Home Assistant interface appearance.",
@@ -728,7 +708,6 @@
     "dashboard_card_cover_desc": "Shows selected covers with position controls",
     "dashboard_card_spotify": "Spotify",
     "dashboard_card_spotify_desc": "Music library, search and Spotify playback",
-
     "tab_media": "Media",
     "media_variant": "Display variant",
     "media_variant_desc": "Choose between list view (compact) or hero view (artwork).",
@@ -751,10 +730,8 @@
     "media_dashboard_players_desc": "Enable or disable media players visible on the dashboard.",
     "media_dashboard_variant": "Dashboard variant",
     "media_dashboard_variant_desc": "Variant used for the media card on the dashboard.",
-
     "dashboard_card_media": "Media",
     "dashboard_card_media_desc": "Shows media players with transport controls",
-
     "tab_climate": "Climate",
     "climate_desc": "Configure climate entities per room",
     "climate_no_entities": "No climate entities in this room",
@@ -774,12 +751,10 @@
     "climate_dashboard_entities_desc": "Select which to display on the dashboard.",
     "dashboard_card_climate": "Climate",
     "dashboard_card_climate_desc": "Thermostats and HVAC",
-
     "dashboard_card_fan": "Fans",
     "dashboard_card_fan_desc": "Shows fans with speed controls",
     "dashboard_card_presence": "Presence",
     "dashboard_card_presence_desc": "Shows household members presence",
-
     "tab_presence": "Presence",
     "presence_show_header": "Show header",
     "presence_show_header_desc": "Title and counter above the card",
@@ -800,7 +775,6 @@
     "presence_auto_detect": "Auto-detect",
     "search_entity": "Search...",
     "presence_select_entity": "Select an entity",
-
     "tab_fan": "Fans",
     "fan_show_header": "Show header",
     "fan_show_header_desc": "Title, counter and toggle all button above the card",
@@ -843,7 +817,6 @@
     "room_cards_title": "Room cards",
     "room_cards_desc": "Drag to reorder, tap the chevron to configure.",
     "room_thresholds_title": "Alert thresholds",
-    "room_thresholds_desc": "Above these values, the indicator switches to alert color.",
     "room_no_entities": "No entity detected in this room.",
     "unassigned_info_warn": "{count} entity(ies) without a room. Assign them below to make them appear on the dashboard.",
     "unassigned_info_ok": "All entities are assigned. You can still rename them or change their icon here.",
@@ -865,7 +838,6 @@
     "cover_entity_presets": "Positions",
     "cover_preset_add": "Add",
     "cover_preset_placeholder": "0–100",
-
     "tab_camera_carousel": "Cameras",
     "camera_show_header": "Show header",
     "camera_show_header_desc": "Title and counter above the card",
@@ -943,7 +915,6 @@
     "calendar_entities_desc": "Disable the ones you don't want to see in the card.",
     "calendar_no_entities": "No calendar detected. Add a calendar integration in Home Assistant.",
     "dashboard_card_camera_carousel_desc": "Surveillance carousel with quick actions",
-
     "tab_spotify": "Spotify",
     "tab_calendar": "Calendar",
     "spotify_show_header": "Show header",
@@ -968,7 +939,6 @@
     "spotify_setup_note": "A Spotify Premium account is required for playback controls.",
     "spotify_checking": "Checking Spotify connection…",
     "spotify_open_settings": "Open settings",
-
     "tab_unassigned": "Orphan entities",
     "unassigned_desc": "Assign or reassign your entities to a room so they appear in the corresponding popups.",
     "unassigned_none": "All entities are assigned to a room.",

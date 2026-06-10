@@ -811,8 +811,11 @@ export class GlassRoomPopup extends LitElement {
     const roomCfg = this._areaId ? this._roomConfigs.get(this._areaId) : undefined;
     const cardOrder = roomCfg?.card_order;
     if (cardOrder && cardOrder.length > 0) {
-      // card_order contains only visible cards in order
-      return cardOrder.filter((d) => domains.includes(d));
+      // card_order contains only visible cards in order. Normalize the legacy
+      // 'media' section id (saved by older config panels) to its domain.
+      return cardOrder
+        .map((d) => (d === 'media' ? 'media_player' : d))
+        .filter((d) => domains.includes(d));
     }
     // No config — show all available domains in default order
     return GlassRoomPopup.DEFAULT_CARD_ORDER.filter((d) => domains.includes(d));

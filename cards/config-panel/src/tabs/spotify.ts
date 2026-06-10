@@ -78,9 +78,19 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   private _spotifyStatusRetry?: ReturnType<typeof setTimeout>;
 
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._spotifyStatusRetry) {
+      clearTimeout(this._spotifyStatusRetry);
+      this._spotifyStatusRetry = undefined;
+    }
+  }
+
   private async _checkSpotifyStatus(): Promise<void> {
     if (!this.backend) {
-      // Backend not ready yet — retry shortly
+      // Backend not ready yet — retry shortly. Stop when detached, otherwise
+      // a panel closed before the backend arrives loops forever at 500ms.
+      if (!this.isConnected) return;
       if (this._spotifyStatusRetry) clearTimeout(this._spotifyStatusRetry);
       this._spotifyStatusRetry = setTimeout(() => this._checkSpotifyStatus(), 500);
       return;
@@ -116,6 +126,7 @@ export class ConfigTabSpotify extends BaseConfigTab {
 
   protected override _onLocalDragOver(idx: number, e: DragEvent): void {
     e.preventDefault();
+    if (this._localDragIdx === null || this._localDragIdx === idx) return;
     this._localDropIdx = idx;
     this.requestUpdate();
   }

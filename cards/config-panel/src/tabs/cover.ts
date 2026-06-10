@@ -154,6 +154,9 @@ export class ConfigTabCover extends BaseConfigTab {
   // — Dashboard order helpers —
 
   private _initDashboardOrder(): void {
+    // Without hass the entity list is empty and the filter below would wipe
+    // the stored dashboard order — keep it untouched until hass is available.
+    if (!this.hass) return;
     const all = new Set(this._getAllCoverEntities().map((c) => c.entityId));
     const ordered = this._coverDashboardEntities.filter((id) => all.has(id));
     const remaining = [...all].filter((id) => !this._coverDashboardEntities.includes(id));

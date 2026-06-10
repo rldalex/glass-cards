@@ -28,9 +28,10 @@
     "active": "Actif",
     "count_visible": "{count} sur {total} visibles",
     "search": "Rechercher…",
-    "no_results": "Aucun résultat"
+    "no_results": "Aucun résultat",
+    "skip": "Passer",
+    "start": "Commencer"
   },
-
   "light": {
     "title": "LUMIÈRES",
     "intensity": "Intensité",
@@ -58,14 +59,12 @@
     "section_color": "Couleur",
     "section_effects": "Effets"
   },
-
   "popup": {
     "close_aria": "Fermer",
     "toggle_scenes_aria": "Afficher/masquer les scènes",
     "activate_scene_aria": "Activer {name}",
     "sensor_unavailable": "Capteur indisponible"
   },
-
   "weather": {
     "title": "MÉTÉO",
     "feels_like": "Ressenti {temp}°",
@@ -119,7 +118,6 @@
     "compass_NW": "NO",
     "compass_NNW": "NNO"
   },
-
   "cover": {
     "title": "VOLETS",
     "open": "Ouvert",
@@ -153,7 +151,6 @@
     "dc_window": "Fenêtre",
     "dc_damper": "Clapet"
   },
-
   "climate": {
     "title": "Thermostat",
     "target": "Consigne",
@@ -224,7 +221,6 @@
     "section_preset": "Preset",
     "section_air": "Air"
   },
-
   "fan": {
     "title": "Ventilation",
     "off": "Éteint",
@@ -258,7 +254,6 @@
     "section_direction": "Direction",
     "section_oscillation": "Oscillation"
   },
-
   "title_card": {
     "mode_label": "Mode :",
     "scene_label": "Scène :",
@@ -275,7 +270,6 @@
     "group_scenes": "Scènes",
     "group_toggles": "Toggles"
   },
-
   "vacuum": {
     "title": "Aspirateur",
     "status_docked": "Au dock",
@@ -332,7 +326,6 @@
     "stats_last_session": "{when} · {duration} · {area}",
     "stats_totals": "{count} nettoyages · {area} cumulés"
   },
-
   "spotify": {
     "title": "Spotify",
     "search_placeholder": "Rechercher un titre, artiste, podcast…",
@@ -387,7 +380,6 @@
     "items_count": "{current} / {total}",
     "clear_search": "Effacer la recherche"
   },
-
   "media": {
     "title": "MÉDIAS",
     "now_playing": "En lecture",
@@ -438,7 +430,6 @@
     "extra_entities": "Entités supplémentaires",
     "add_entity": "Ajouter une entité"
   },
-
   "presence": {
     "title": "PRÉSENCES",
     "title_single": "PRÉSENCE",
@@ -467,7 +458,6 @@
     "distance_m": "m",
     "distance_km": "km"
   },
-
   "camera": {
     "title": "CAMÉRAS",
     "idle": "Veille",
@@ -521,12 +511,10 @@
     "dashboard_title": "CAMÉRAS",
     "dashboard_title_one": "1 CAMÉRA"
   },
-
   "editor": {
     "redirect_message": "La configuration de Glass Cards se fait depuis le panneau dédié.",
     "open_config": "Ouvrir Glass Cards Config"
   },
-
   "config": {
     "title": "Configuration",
     "brand": "GLASS CARDS",
@@ -537,14 +525,12 @@
     "tab_popup": "Popup Pièce",
     "tab_light": "Lumières",
     "preview": "Aperçu",
-
     "behavior": "Comportement",
     "display": "Affichage",
     "navbar_settings": "Comportement",
     "navbar_auto_sort": "Tri automatique",
     "navbar_auto_sort_desc": "Les pièces actives remontent en premier",
     "no_rooms": "Aucune pièce configurée",
-
     "popup_room": "Pièce",
     "popup_room_desc": "Sélectionnez une pièce pour configurer l'ordre et la visibilité de ses cartes internes.",
     "popup_internal_cards": "Cartes internes",
@@ -558,7 +544,7 @@
     "room_auto_detect": "Auto-détection",
     "room_no_sensor": "Aucun capteur",
     "room_thresholds": "Seuils d'alerte",
-    "room_thresholds_desc": "Valeurs au-delà desquelles les indicateurs passent en rouge.",
+    "room_thresholds_desc": "Au-delà de ces valeurs, l'indicateur passe en couleur d'alerte.",
     "room_temp_high": "Température haute",
     "room_temp_low": "Température basse",
     "room_humidity_threshold": "Seuil d'humidité",
@@ -600,7 +586,6 @@
     "popup_auto_close_duration": "Délai",
     "popup_auto_close_off": "Désactivé",
     "popup_select_room": "Sélectionnez une pièce",
-
     "light_room": "Pièce",
     "light_room_desc": "Sélectionnez une pièce pour configurer ses lumières : ordre, visibilité et mode d'affichage.",
     "light_list_title": "Lumières",
@@ -626,7 +611,6 @@
     "light_show_header": "Afficher l'en-tête",
     "light_show_header_desc": "Titre, compteur et bouton tout allumer/éteindre au-dessus de la carte",
     "light_dashboard_vs_room": "Sur le tableau de bord, seules les lumières allumées des pièces visibles sont affichées. Dans chaque pièce, toutes les lumières sont affichées avec leurs contrôles complets.",
-
     "domain_light": "Lumières",
     "domain_light_desc": "Contrôle des lumières",
     "domain_media_player": "Média",
@@ -641,7 +625,6 @@
     "domain_camera_desc": "Caméras de surveillance",
     "domain_vacuum": "Aspirateur",
     "domain_vacuum_desc": "Robots aspirateurs",
-
     "tab_weather": "Météo",
     "weather_entity": "Entité météo",
     "weather_entity_desc": "Sélectionnez l'entité météo à afficher sur la carte.",
@@ -666,7 +649,6 @@
     "weather_display": "Affichage",
     "weather_display_desc": "Ce qui apparaît sur la carte.",
     "weather_no_entity": "Aucune entité weather.* détectée. Ajoute une intégration météo dans Home Assistant.",
-
     "tab_title": "Titre",
     "title_title": "Texte du titre",
     "title_title_desc": "Texte principal affiché sur la carte.",
@@ -704,10 +686,8 @@
     "title_no_modes": "Sélectionnez d'abord une entité mode.",
     "title_no_icons_found": "Aucune icône trouvée",
     "title_no_icon": "Aucune",
-
     "dashboard_card_title": "Titre",
     "dashboard_card_title_desc": "Texte titre avec sélecteur de mode optionnel",
-
     "tab_dashboard": "Tableau de bord",
     "dashboard_display": "Affichage",
     "dashboard_display_desc": "Personnalisez l'apparence de l'interface Home Assistant.",
@@ -728,7 +708,6 @@
     "dashboard_card_cover_desc": "Affiche les volets sélectionnés avec contrôle de position",
     "dashboard_card_spotify": "Spotify",
     "dashboard_card_spotify_desc": "Bibliothèque musicale, recherche et lecture Spotify",
-
     "tab_media": "Média",
     "media_variant": "Variante d'affichage",
     "media_variant_desc": "Choisissez entre la vue liste (compacte) ou la vue héros (artwork).",
@@ -751,10 +730,8 @@
     "media_dashboard_players_desc": "Activez ou désactivez les lecteurs médias visibles sur le tableau de bord.",
     "media_dashboard_variant": "Variante dashboard",
     "media_dashboard_variant_desc": "Variante utilisée pour la carte média sur le tableau de bord.",
-
     "dashboard_card_media": "Média",
     "dashboard_card_media_desc": "Affiche les lecteurs médias avec contrôles de transport",
-
     "tab_climate": "Thermostat",
     "climate_desc": "Configurez les entités climat par pièce",
     "climate_no_entities": "Aucune entité climat dans cette pièce",
@@ -774,12 +751,10 @@
     "climate_dashboard_entities_desc": "Sélectionnez ceux à afficher sur le tableau de bord.",
     "dashboard_card_climate": "Thermostat",
     "dashboard_card_climate_desc": "Thermostats et climatiseurs",
-
     "dashboard_card_fan": "Ventilation",
     "dashboard_card_fan_desc": "Affiche les ventilateurs avec contrôle de vitesse",
     "dashboard_card_presence": "Présence",
     "dashboard_card_presence_desc": "Affiche la présence des membres du foyer",
-
     "tab_presence": "Présence",
     "presence_show_header": "Afficher l'en-tête",
     "presence_show_header_desc": "Titre et compteur au-dessus de la carte",
@@ -800,7 +775,6 @@
     "presence_auto_detect": "Auto-détection",
     "search_entity": "Rechercher...",
     "presence_select_entity": "Sélectionnez une entité",
-
     "tab_fan": "Ventilation",
     "fan_show_header": "Afficher l'en-tête",
     "fan_show_header_desc": "Titre, compteur et bouton tout basculer au-dessus de la carte",
@@ -843,7 +817,6 @@
     "room_cards_title": "Cartes de la pièce",
     "room_cards_desc": "Glisse pour réordonner, touche le chevron pour configurer.",
     "room_thresholds_title": "Seuils d'alerte",
-    "room_thresholds_desc": "Au-delà de ces valeurs, l'indicateur passe en couleur d'alerte.",
     "room_no_entities": "Aucune entité détectée dans cette pièce.",
     "unassigned_info_warn": "{count} entité(s) sans pièce. Assigne-les ci-dessous pour qu'elles apparaissent sur le tableau de bord.",
     "unassigned_info_ok": "Toutes les entités sont assignées. Tu peux toujours les renommer ou changer leur icône ici.",
@@ -865,7 +838,6 @@
     "cover_entity_presets": "Positions",
     "cover_preset_add": "Ajouter",
     "cover_preset_placeholder": "0–100",
-
     "tab_camera_carousel": "Caméras",
     "camera_show_header": "Afficher l'en-tête",
     "camera_show_header_desc": "Titre et compteur au-dessus de la carte",
@@ -943,7 +915,6 @@
     "calendar_entities_desc": "Désactive ceux que tu ne veux pas voir dans la carte.",
     "calendar_no_entities": "Aucun calendrier détecté. Ajoute une intégration de calendrier dans Home Assistant.",
     "dashboard_card_camera_carousel_desc": "Carrousel de surveillance avec actions rapides",
-
     "tab_spotify": "Spotify",
     "tab_calendar": "Calendrier",
     "spotify_show_header": "Afficher l'en-tête",
@@ -968,7 +939,6 @@
     "spotify_setup_note": "Un compte Spotify Premium est requis pour les contrôles de lecture.",
     "spotify_checking": "Vérification de la connexion Spotify…",
     "spotify_open_settings": "Ouvrir les paramètres",
-
     "tab_unassigned": "Entités orphelines",
     "unassigned_desc": "Assignez ou réassignez vos entités à une pièce pour qu'elles apparaissent dans les popups correspondants. Vous pouvez également renommer vos entités directement depuis cet onglet.",
     "unassigned_none": "Toutes les entités sont assignées à une pièce.",

@@ -1,5 +1,6 @@
 import { LitElement, html, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { t } from '@glass-cards/i18n';
 import type { HomeAssistant } from '@glass-cards/base-card';
 import './wizard-steps/welcome.js';
 import './wizard-steps/rooms.js';
@@ -65,9 +66,9 @@ export class ConfigWizard extends LitElement {
             ? html`<glass-button
                 variant="secondary"
                 @click=${() => this._prev()}
-                aria-label="Retour"
+                aria-label=${t('common.back')}
               >
-                Retour
+                ${t('common.back')}
               </glass-button>`
             : html`<span></span>`}
           <div class="wizard-actions-right">
@@ -75,25 +76,25 @@ export class ConfigWizard extends LitElement {
               ? html`<glass-button
                   variant="ghost"
                   @click=${() => this._skip()}
-                  aria-label="Passer cette étape"
+                  aria-label=${t('common.skip')}
                 >
-                  Passer
+                  ${t('common.skip')}
                 </glass-button>`
               : ''}
             ${isLast
               ? html`<glass-button
                   variant="primary"
                   @click=${() => this._finish()}
-                  aria-label="Commencer"
+                  aria-label=${t('common.start')}
                 >
-                  Commencer
+                  ${t('common.start')}
                 </glass-button>`
               : html`<glass-button
                   variant="primary"
                   @click=${() => this._next()}
-                  aria-label="Étape suivante"
+                  aria-label=${t('common.next')}
                 >
-                  Suivant
+                  ${t('common.next')}
                 </glass-button>`}
           </div>
         </div>

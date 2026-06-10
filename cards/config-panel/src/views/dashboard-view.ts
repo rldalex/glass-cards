@@ -156,11 +156,20 @@ export class ConfigDashboardView extends LitElement {
   private _onDrop(idx: number, e: DragEvent): void {
     e.preventDefault();
     if (this._dragIdx !== null && this._dragIdx !== idx) {
-      const arr = [...this._cardOrder];
+      // Operate on the same normalized list the render uses: _cardOrder can be
+      // empty (configData never arrived) or shorter than the displayed list,
+      // and a splice on it would move the wrong card or insert `undefined`.
+      const allIds = new Set(DASH_CARD_META.map(c => c.id));
+      const arr = this._cardOrder.filter(id => allIds.has(id));
+      for (const c of DASH_CARD_META) {
+        if (!arr.includes(c.id)) arr.push(c.id);
+      }
       const [moved] = arr.splice(this._dragIdx, 1);
-      arr.splice(idx, 0, moved);
-      this._cardOrder = arr;
-      this._scheduleSave();
+      if (moved !== undefined) {
+        arr.splice(idx, 0, moved);
+        this._cardOrder = arr;
+        this._scheduleSave();
+      }
     }
     this._dragIdx = null;
     this._dropIdx = null;

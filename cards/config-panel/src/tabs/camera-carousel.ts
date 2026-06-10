@@ -68,6 +68,10 @@ export class ConfigTabCamera extends BaseConfigTab {
     this._cameraAutoCycle = c.auto_cycle ?? false;
     this._cameraCycleInterval = c.cycle_interval ?? 10;
     this._cameraAspectRatios = c.entity_aspect_ratios ?? {};
+    // Merge new cameras into the stored order here, under the _loading window.
+    // Doing it from renderTab() mutated an _AUTO_SAVE_KEYS state mid-render and
+    // persisted an order the user never asked for on first open.
+    this._initCameraEntityOrder();
   }
 
   collectSaveData(): Record<string, unknown> {
@@ -270,12 +274,11 @@ export class ConfigTabCamera extends BaseConfigTab {
 
     if (this.areaId) return this._renderRoomTab();
 
-    // Ensure entity order is initialized
-    if (this.hass && this._cameraEntityOrder.length === 0) {
-      this._initCameraEntityOrder();
-    }
-
-    const entityIds = this._cameraEntityOrder;
+    // Pure fallback if the order is still empty (e.g. hass arrived after the
+    // config) — display only, no state mutation in the render path.
+    const entityIds = this._cameraEntityOrder.length > 0
+      ? this._cameraEntityOrder
+      : Object.keys(this.hass?.states ?? {}).filter((id) => id.startsWith('camera.')).sort();
     const hiddenSet = new Set(this._cameraHiddenEntities);
     const visibleCount = entityIds.length - entityIds.filter((id) => hiddenSet.has(id)).length;
 

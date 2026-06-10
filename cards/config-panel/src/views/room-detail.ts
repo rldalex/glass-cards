@@ -340,7 +340,10 @@ export class ConfigRoomDetail extends LitElement {
     try {
       await this.backend.send('set_room', {
         area_id: this.areaId,
-        card_order: this._sections.filter(s => s.visible).map(s => s.id),
+        // Save entity DOMAINS, not section ids: the popup filters card_order
+        // against entity domains ('media_player'), so saving the section id
+        // 'media' would silently drop the media card from the popup.
+        card_order: this._sections.filter(s => s.visible).map(s => s.domains[0]),
         hidden_scenes: this._scenes.filter(s => !s.visible).map(s => s.entityId),
         scene_order: this._scenes.map(s => s.entityId),
         temperature_entity: this._tempEntity || null,

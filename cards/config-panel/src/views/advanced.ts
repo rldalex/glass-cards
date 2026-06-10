@@ -143,11 +143,16 @@ export class ConfigAdvancedView extends LitElement {
   }
 
   private async _toggleAutoSort() {
-    this._autoSort = !this._autoSort;
-    if (this.backend) {
-      try {
-        await this.backend.send('set_navbar', { auto_sort: this._autoSort });
-      } catch { /* error handled by parent */ }
+    const prev = this._autoSort;
+    this._autoSort = !prev;
+    if (!this.backend) return;
+    try {
+      await this.backend.send('set_navbar', { auto_sort: this._autoSort });
+      this.dispatchEvent(new CustomEvent('tab-toast', { detail: { success: true }, bubbles: true, composed: true }));
+    } catch {
+      // Revert the optimistic toggle so the UI reflects the persisted state
+      this._autoSort = prev;
+      this.dispatchEvent(new CustomEvent('tab-toast', { detail: { success: false }, bubbles: true, composed: true }));
     }
   }
 }

@@ -205,6 +205,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
   }
 
   private _portalEl: HTMLDivElement | null = null;
+  private _portalClickHandler: ((e: MouseEvent) => void) | null = null;
 
   private _showIconPortal(): void {
     if (!this._iconPopupEntity) { this._removeIconPortal(); return; }
@@ -212,23 +213,29 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     const currentIcon = entity?.icon ?? '';
     const icons = this._getFilteredIcons();
 
-    if (!this._portalEl) {
-      this._portalEl = document.createElement('div');
-      document.body.appendChild(this._portalEl);
-    }
-
     const close = () => { this._iconPopupEntity = null; this._removeIconPortal(); };
     const select = (icon: string) => { this._selectIcon(icon); this._removeIconPortal(); };
     const onSearch = (val: string) => { this._iconSearch = val; this._showIconPortal(); };
 
+    if (!this._portalEl) {
+      this._portalEl = document.createElement('div');
+      // Attach the backdrop listener ONCE at creation — this method re-runs on
+      // every search keystroke, and re-adding here used to stack one listener
+      // per keystroke.
+      this._portalClickHandler = (e: MouseEvent) => { if (e.target === this._portalEl) close(); };
+      this._portalEl.addEventListener('click', this._portalClickHandler);
+      document.body.appendChild(this._portalEl);
+    }
+
     this._portalEl.replaceChildren();
+    this._portalEl.setAttribute('role', 'dialog');
+    this._portalEl.setAttribute('aria-modal', 'true');
     Object.assign(this._portalEl.style, {
       position: 'fixed', inset: '0', zIndex: '10000',
       background: 'rgba(0,0,0,0.5)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '1.5rem',
     });
-    this._portalEl.addEventListener('click', (e) => { if (e.target === this._portalEl) close(); }, { once: true });
 
     const popup = document.createElement('div');
     Object.assign(popup.style, {
@@ -300,6 +307,10 @@ export class ConfigTabUnassigned extends BaseConfigTab {
 
   private _removeIconPortal(): void {
     if (this._portalEl) {
+      if (this._portalClickHandler) {
+        this._portalEl.removeEventListener('click', this._portalClickHandler);
+        this._portalClickHandler = null;
+      }
       this._portalEl.remove();
       this._portalEl = null;
     }

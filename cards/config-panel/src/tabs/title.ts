@@ -821,18 +821,29 @@ export class ConfigTabTitle extends BaseConfigTab {
           </div>
         </div>
 
-        ${haOptions.length > 1 ? html`
+        ${haOptions.length > 1 ? (() => {
+          // Cycle through the DISPLAYED chips. `idx` indexes _titlePeriodOptions,
+          // which may hold extra entries from a previously selected entity — a
+          // raw modulo on either length would edit the wrong option.
+          const displayed = haOptions
+            .map((id) => this._titlePeriodOptions.findIndex((o) => o.id === id))
+            .filter((i) => i !== -1);
+          const pos = Math.max(0, displayed.indexOf(idx));
+          const prev = displayed[(pos - 1 + displayed.length) % displayed.length];
+          const next = displayed[(pos + 1) % displayed.length];
+          return html`
           <div class="title-period-editor-nav">
-            <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx - 1 + haOptions.length) % haOptions.length; }}>
+            <button class="btn-link" @click=${() => { this._periodEditingIdx = prev; }}>
               <ha-icon .icon=${'mdi:chevron-left'}></ha-icon>
               <span>${t('common.previous')}</span>
             </button>
-            <button class="btn-link" @click=${() => { this._periodEditingIdx = (idx + 1) % haOptions.length; }}>
+            <button class="btn-link" @click=${() => { this._periodEditingIdx = next; }}>
               <span>${t('common.next')}</span>
               <ha-icon .icon=${'mdi:chevron-right'}></ha-icon>
             </button>
           </div>
-        ` : nothing}
+        `;
+        })() : nothing}
       </div>
     `;
   }
