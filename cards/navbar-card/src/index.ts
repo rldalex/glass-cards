@@ -1262,6 +1262,7 @@ export class GlassNavbarCard extends BaseCard {
         @click=${(e: Event) => this._handleNavClick(item, e)}
         aria-label=${item.name}
         aria-pressed=${isActive ? 'true' : 'false'}
+        aria-current=${isActive ? 'page' : nothing}
       >
         <span class="nav-temp-badge">
           <ha-icon .icon=${hasTempHot ? 'mdi:thermometer-high' : 'mdi:snowflake'}></ha-icon>
