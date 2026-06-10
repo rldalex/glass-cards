@@ -15,8 +15,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "pnpm test:frontend && pnpm test:backend",
+    "test:frontend": "vitest run",
+    "test:watch": "vitest",
     "test:backend": "python -m pytest tests/ -v",
-    "test": "pnpm test:backend",
     "check": "pnpm typecheck && pnpm lint"
   },
   "engines": {
@@ -36,6 +38,7 @@
     "agentation": "^3.0.2",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
+    "happy-dom": "^20.10.2",
     "lit": "^3.2.1",
     "prettier": "^3.8.1",
     "react": "^19.2.6",
@@ -43,6 +46,7 @@
     "terser": "^5.46.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.8"
   }
 }
