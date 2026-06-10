@@ -154,15 +154,17 @@ export class GlassPresenceCard extends BaseCard {
     sleep_sensors: {},
   };
   @state() private _activePerson: string | null = null;
+  /** Persons whose entity_picture failed to load — fall back to the gradient avatar. */
+  @state() private _brokenPictures = new Set<string>();
   @state() private _notifText = '';
   @state() private _notifSent = false;
   private _notifSentTimer = 0;
 
   private _backend?: BackendService;
   private _configLoaded = false;
-  private _configLoadingInProgress = false;
   private _clockInterval?: ReturnType<typeof setInterval>;
-  private _prevActivePerson: string | null = null;
+  /** Last person shown in the fold — kept so the close animation has content. */
+  private _lastFoldPersonId: string | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -181,7 +183,6 @@ export class GlassPresenceCard extends BaseCard {
     super.disconnectedCallback();
     this._backend = undefined;
     this._configLoaded = false;
-    this._configLoadingInProgress = false;
     clearInterval(this._clockInterval);
     this._clockInterval = undefined;
     if (this._notifSentTimer) { clearTimeout(this._notifSentTimer); this._notifSentTimer = 0; }
@@ -194,29 +195,18 @@ export class GlassPresenceCard extends BaseCard {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._configLoaded = false;
-        this._configLoadingInProgress = false;
       }
-      if (!this._configLoaded && !this._configLoadingInProgress) {
-        this._backend = new BackendService(this.hass);
+      if (!this._configLoaded) {
         this._loadConfig();
       }
     }
-    // Double rAF for fold animation
-    if (changedProps.has('_activePerson') && this._activePerson && this._activePerson !== this._prevActivePerson) {
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          this.shadowRoot?.querySelectorAll('.fold-sep').forEach((el) => el.classList.add('visible'));
-          this.shadowRoot?.querySelector('.ctrl-fold')?.classList.add('open');
-        }),
-      );
-    }
-    this._prevActivePerson = this._activePerson;
   }
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend || this._configLoadingInProgress) return;
-    this._configLoadingInProgress = true;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
         presence_card: PresenceBackendConfig;
       }>('get_config');
@@ -233,11 +223,10 @@ export class GlassPresenceCard extends BaseCard {
           sleep_sensors: cfg.sleep_sensors ?? {},
         };
       }
-      this._configLoaded = true;
-      this._configLoadingInProgress = false;
       this.requestUpdate();
     } catch {
-      this._configLoadingInProgress = false;
+      // Retry on the next hass tick.
+      this._configLoaded = false;
     }
   }
 
@@ -495,8 +484,9 @@ export class GlassPresenceCard extends BaseCard {
           ${unavailable
             ? html`<div class="avatar avatar-fallback avatar-unavailable"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></div>`
             : html`
-                ${p.entityPicture
-                  ? html`<img class="avatar ${p.isSleeping ? 'sleeping' : ''}" src=${p.entityPicture} alt=${p.name} />`
+                ${p.entityPicture && !this._brokenPictures.has(p.entityId)
+                  ? html`<img class="avatar ${p.isSleeping ? 'sleeping' : ''}" src=${p.entityPicture} alt=${p.name}
+                      @error=${() => { this._brokenPictures = new Set(this._brokenPictures).add(p.entityId); }} />`
                   : html`
                       <div
                         class="avatar avatar-fallback ${p.isSleeping ? 'sleeping' : ''}"
@@ -568,29 +558,38 @@ export class GlassPresenceCard extends BaseCard {
   }
 
   private _renderFold(persons: PersonData[], presClass: string): TemplateResult | typeof nothing {
-    if (!this._activePerson) return nothing;
-    const person = persons.find((p) => p.entityId === this._activePerson);
-    if (!person) return nothing;
+    // Always render the fold so the 0fr->1fr grid transition can animate in
+    // BOTH directions; only the .open/.visible classes follow _activePerson.
+    const person = persons.find((p) => p.entityId === this._activePerson) ?? null;
+    const isOpen = person !== null;
+    if (person) this._lastFoldPersonId = person.entityId;
+    // Fall back to the first person so the (closed, invisible) fold exists in
+    // the DOM before the very first expand — required for the open animation.
+    const display = person
+      ?? persons.find((p) => p.entityId === this._lastFoldPersonId)
+      ?? persons[0]
+      ?? null;
+    if (!display) return nothing;
 
     // In solo mode (1 person), health chips are already shown beside the avatar
     // (see _renderSoloChips) and notifying oneself is pointless. Show only the
     // address / battery / last-seen row in the fold.
     const isSolo = persons.length === 1;
-    const hasHealth = !isSolo && (person.heartRate != null || person.spo2 != null || person.steps != null);
-    const showNotif = !isSolo && !!person.notifyService;
+    const hasHealth = !isSolo && (display.heartRate != null || display.spo2 != null || display.steps != null);
+    const showNotif = !isSolo && !!display.notifyService;
 
     return html`
-      <div class="fold-sep ${presClass}"></div>
-      <div class="ctrl-fold">
+      <div class="fold-sep ${presClass} ${isOpen ? 'visible' : ''}"></div>
+      <div class="ctrl-fold ${isOpen ? 'open' : ''}">
         <div class="ctrl-fold-inner">
           <div class="fold-content">
             <div class="loc-row">
               ${(() => {
-                const diff = elapsedSeconds(person.lastUpdated);
+                const diff = elapsedSeconds(display.lastUpdated);
                 return html`
                   <span class="loc-address">
                     <ha-icon .icon=${'mdi:map-marker-radius'}></ha-icon>
-                    ${person.geocodedLocation ? html`<span class="loc-address-text">${person.geocodedLocation}</span>` : nothing}
+                    ${display.geocodedLocation ? html`<span class="loc-address-text">${display.geocodedLocation}</span>` : nothing}
                     <span class="loc-address-time lastseen-${lastSeenClassFromDiff(diff)}"
                           title=${t('presence.last_seen_label')}>
                       ${seenAgoFromDiff(diff)}
@@ -598,44 +597,44 @@ export class GlassPresenceCard extends BaseCard {
                   </span>
                 `;
               })()}
-              ${person.batteryLevel != null ? html`
-                <span class="meta-chip battery-${batteryClass(person.batteryLevel)} ${person.isCharging ? 'charging' : ''}">
-                  <ha-icon .icon=${batteryIcon(person.batteryLevel, person.isCharging)}></ha-icon>
-                  <span>${person.batteryLevel}%</span>
+              ${display.batteryLevel != null ? html`
+                <span class="meta-chip battery-${batteryClass(display.batteryLevel)} ${display.isCharging ? 'charging' : ''}">
+                  <ha-icon .icon=${batteryIcon(display.batteryLevel, display.isCharging)}></ha-icon>
+                  <span>${display.batteryLevel}%</span>
                 </span>
               ` : nothing}
             </div>
             ${hasHealth
               ? html`
                   <div class="health-pills">
-                    ${person.heartRate != null
+                    ${display.heartRate != null
                       ? html`
                           <div class="health-pill bpm">
                             <div class="health-pill-icon"><ha-icon .icon=${'mdi:heart-pulse'}></ha-icon></div>
                             <div class="health-pill-data">
-                              <span class="health-pill-value">${person.heartRate}</span>
+                              <span class="health-pill-value">${display.heartRate}</span>
                               <span class="health-pill-label">${t('presence.bpm')}</span>
                             </div>
                           </div>
                         `
                       : nothing}
-                    ${person.spo2 != null
+                    ${display.spo2 != null
                       ? html`
                           <div class="health-pill spo2">
                             <div class="health-pill-icon"><ha-icon .icon=${'mdi:water-percent'}></ha-icon></div>
                             <div class="health-pill-data">
-                              <span class="health-pill-value">${person.spo2}%</span>
+                              <span class="health-pill-value">${display.spo2}%</span>
                               <span class="health-pill-label">${t('presence.spo2')}</span>
                             </div>
                           </div>
                         `
                       : nothing}
-                    ${person.steps != null
+                    ${display.steps != null
                       ? html`
                           <div class="health-pill steps">
                             <div class="health-pill-icon"><ha-icon .icon=${'mdi:walk'}></ha-icon></div>
                             <div class="health-pill-data">
-                              <span class="health-pill-value">${person.steps.toLocaleString()}</span>
+                              <span class="health-pill-value">${display.steps.toLocaleString()}</span>
                               <span class="health-pill-label">${t('presence.steps')}</span>
                             </div>
                           </div>
@@ -656,7 +655,7 @@ export class GlassPresenceCard extends BaseCard {
                       <div class="notif-row">
                         <glass-form-input
                           class="notif-input"
-                          placeholder=${t('presence.notify_placeholder', { name: person.name })}
+                          placeholder=${t('presence.notify_placeholder', { name: display.name })}
                           .value=${this._notifText}
                           @glass-input=${(e: CustomEvent<{ value: string }>) => {
                             this._notifText = e.detail.value;
@@ -675,7 +674,7 @@ export class GlassPresenceCard extends BaseCard {
                           aria-label=${t('presence.send_aria')}
                           @click=${(e: Event) => {
                             e.stopPropagation();
-                            this._sendNotification(person);
+                            this._sendNotification(display);
                           }}
                         ></glass-icon-button>
                       </div>
@@ -962,11 +961,12 @@ export class GlassPresenceCard extends BaseCard {
       .fold-sep.bottom { margin: 0 0.75rem 0.25rem; }
 
       .ctrl-fold {
+        pointer-events: none;
         display: grid; grid-template-rows: 0fr;
         transition: grid-template-rows var(--t-layout);
         position: relative; z-index: 1;
       }
-      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
       .ctrl-fold-inner { overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease-std); }
       .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
 
