@@ -1,4 +1,4 @@
-import { html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
+import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
@@ -14,93 +14,17 @@ import {
 import {
   glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin,
   unavailableMixin, isEntityUnavailable,
-  rgbToHs, rgbToHex, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
+  rgbToHs, rgbToHex, hexToRgb, rgbToWheelPos, drawColorWheel, colorFromWheelEvent,
 } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
+import {
+  type LightInfo,
+  COLOR_DOTS, ALLOWED_EFFECTS,
+  detectLightType, getTempInfo, rgbToRgba, hsClose, effectIcon,
+  buildLayout, computeTint, sliderColor, foldColor, lightTintStyle,
+} from './light-utils';
+import { lightCardStyles } from './styles';
 import './editor';
-
-// — Types & Constants —
-
-type LightType = 'simple' | 'dimmable' | 'color_temp' | 'rgb';
-
-interface LightInfo {
-  entity: HassEntity;
-  entityId: string;
-  name: string;
-  icon: string;
-  isOn: boolean;
-  type: LightType;
-  brightnessPct: number;
-  colorTempKelvin: number | null;
-  minKelvin: number;
-  maxKelvin: number;
-  rgbColor: [number, number, number] | null;
-}
-
-type LayoutItem =
-  | { kind: 'full'; light: LightInfo }
-  | { kind: 'compact-pair'; left: LightInfo; right: LightInfo | null };
-
-const TEMP_RANGES: [number, 'light.temp_warm' | 'light.temp_neutral' | 'light.temp_cold', string][] = [
-  [3000, 'light.temp_warm', '#ffd4a3'],
-  [4000, 'light.temp_warm', '#ffedb3'],
-  [4800, 'light.temp_neutral', '#fff5e6'],
-  [9999, 'light.temp_cold', '#e0ecf5'],
-];
-
-// — Helpers —
-
-function detectLightType(entity: HassEntity): LightType {
-  const modes = entity.attributes.supported_color_modes as string[] | undefined;
-  if (!modes || modes.length === 0) {
-    return entity.attributes.brightness !== undefined ? 'dimmable' : 'simple';
-  }
-  if (modes.some((m) => ['hs', 'rgb', 'rgbw', 'rgbww', 'xy'].includes(m))) return 'rgb';
-  if (modes.includes('color_temp')) return 'color_temp';
-  if (modes.includes('brightness')) return 'dimmable';
-  return 'simple';
-}
-
-function getTempInfo(kelvin: number): { label: string; color: string } {
-  for (const [max, key, color] of TEMP_RANGES) {
-    if (kelvin < max) return { label: t(key), color };
-  }
-  return { label: t('light.temp_cold'), color: '#e0ecf5' };
-}
-
-function rgbToRgba(rgb: [number, number, number], alpha: number): string {
-  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-}
-
-const COLOR_DOTS: [number, number, number][] = [
-  [251, 191, 36],
-  [248, 113, 113],
-  [244, 114, 182],
-  [167, 139, 250],
-  [129, 140, 248],
-  [96, 165, 250],
-  [74, 222, 128],
-  [240, 240, 240],
-];
-
-/** Compare two colors by HS (hue ±5°, sat ±0.08) — tolerant to HA normalization. */
-function hsClose(a: [number, number, number], b: [number, number, number]): boolean {
-  const ha = rgbToHs(a), hb = rgbToHs(b);
-  const hueDiff = Math.abs(ha.h - hb.h);
-  const hueOk = hueDiff < 5 || hueDiff > 355; // wrap-around at 360
-  return hueOk && Math.abs(ha.s - hb.s) < 0.08;
-}
-
-const ALLOWED_EFFECTS = ['off', 'candle', 'fire'] as const;
-
-function effectIcon(effect: string): string {
-  switch (effect) {
-    case 'off': return 'mdi:flash-off';
-    case 'candle': return 'mdi:candle';
-    case 'fire': return 'mdi:fire';
-    default: return 'mdi:auto-fix';
-  }
-}
 
 // — Component —
 
@@ -117,7 +41,7 @@ export class GlassLightCard extends BaseCard {
   @state() private _colorPickerRgb: [number, number, number] | null = null;
   @state() private _colorPickerPos: { x: number; y: number } | null = null;
   private _colorPickerHs: { h: number; s: number } | null = null;
-@state() private _showHeader = true;
+  @state() private _showHeader = true;
   private _lightConfigLoaded = false;
   private _throttleTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private _roomConfig: {
@@ -149,442 +73,10 @@ export class GlassLightCard extends BaseCard {
     marqueeMixin,
     bounceMixin,
     unavailableMixin,
-    css`
-      :host {
-        width: 100%;
-        max-width: 31.25rem;
-        margin: 0 auto;
-        user-select: none;
-        -webkit-user-select: none;
-      }
-
-      /* ── Card Header ── */
-      .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.375rem;
-        padding: 0 0.375rem;
-        min-height: 1.375rem;
-      }
-      .card-header-left {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .card-title {
-        font-size: var(--fz-xs);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: var(--t4);
-      }
-      .card-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 0.875rem;
-        height: 0.875rem;
-        padding: 0 0.25rem;
-        border-radius: var(--radius-full);
-        font-size: var(--fz-xs);
-        font-weight: 600;
-        transition: background var(--t-med), color var(--t-med);
-      }
-      .card-count.none {
-        background: var(--s2);
-        color: var(--t3);
-      }
-      .card-count.some {
-        background: rgba(var(--rgb-light-glow), 0.15);
-        color: var(--c-light-glow);
-      }
-      .card-count.all {
-        background: rgba(var(--rgb-light-glow), 0.2);
-        color: var(--c-light-glow);
-      }
-
-      /* ── Card Body ── */
-      .card {
-        position: relative;
-        padding: 0.125rem 0.875rem;
-      }
-      .card-inner {
-        position: relative;
-        z-index: 1;
-      }
-
-      /* ── Tint (dynamic) ── */
-      .tint {
-        transition:
-          opacity var(--t-slow),
-          background var(--t-slow);
-      }
-
-      /* ── Lights Grid ── */
-      .lights-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-      }
-
-      /* ── Light Row ── */
-      .light-row {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        grid-column: 1 / -1;
-        padding: 0.5rem 0.25rem;
-        position: relative;
-        transition: background var(--t-fast);
-        border-radius: var(--radius-md);
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-      }
-      /* No row-level hover: the row contains its own interactive buttons
-         (icon-toggle + expand) which carry their own hover/active states. */
-      @media (pointer: coarse) {
-        .light-row:active { animation: bounce 0.3s ease; }
-      }
-      .light-row.compact {
-        grid-column: span 1;
-        min-width: 0;
-        overflow: hidden;
-      }
-      .light-row.compact-right {
-        padding-left: 0.625rem;
-      }
-      .light-row.compact-right::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 20%;
-        bottom: 20%;
-        width: 0.0625rem;
-        background: linear-gradient(
-          to bottom,
-          transparent,
-          rgba(var(--rgb-white), 0.08) 30%,
-          rgba(var(--rgb-white), 0.08) 70%,
-          transparent
-        );
-      }
-
-      /* ── Expand Button ── */
-      .light-expand-btn {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        background: transparent;
-        border: none;
-        padding: 0;
-        font-family: inherit;
-        outline: none;
-        text-align: left;
-        color: inherit;
-        cursor: pointer;
-      }
-
-      /* ── Light Info ── */
-      .light-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .light-name {
-        font-size: var(--fz-md);
-        font-weight: 600;
-        color: var(--t1);
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .light-sub {
-        display: flex;
-        align-items: center;
-        gap: 0.3125rem;
-        margin-top: 0.125rem;
-      }
-      .light-brightness-text {
-        font-size: var(--fz-sm);
-        font-weight: 500;
-        color: var(--t3);
-        transition: color var(--t-med);
-      }
-      .light-row[data-on='true'] .light-brightness-text {
-        color: rgba(var(--rgb-light-glow), 0.55);
-      }
-      .light-row[data-on='true'][data-rgb] .light-brightness-text {
-        color: var(--light-rgb-sub, rgba(var(--rgb-light-glow), 0.55));
-      }
-      .light-temp-dot {
-        width: 0.25rem;
-        height: 0.25rem;
-        border-radius: 50%;
-        transition: background var(--t-med);
-      }
-      .light-temp-text {
-        font-size: var(--fz-sm);
-        font-weight: 400;
-        color: var(--t4);
-      }
-
-      /* ── Status Dot ── */
-      .light-dot {
-        width: 0.375rem;
-        height: 0.375rem;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: var(--t4);
-        transition: background var(--t-med), box-shadow var(--t-med);
-      }
-      .light-row[data-on='true'] .light-dot {
-        background: var(--c-light-glow);
-        box-shadow: 0 0 8px rgba(var(--rgb-light-glow), 0.5);
-      }
-      .light-row[data-on='true'][data-rgb] .light-dot {
-        background: var(--light-rgb);
-        box-shadow: 0 0 8px var(--light-rgb-glow);
-      }
-
-      /* Unavailable badge inline (replaces dot) */
-      .light-expand-btn .unavailable-badge {
-        position: static;
-        flex-shrink: 0;
-        --mdc-icon-size: 0.75rem;
-        color: var(--c-warning);
-      }
-
-      /* ── Control Fold ── */
-      .ctrl-fold {
-        display: grid;
-        grid-template-rows: 0fr;
-        transition: grid-template-rows var(--t-layout);
-        grid-column: 1 / -1;
-        pointer-events: none;
-      }
-      .ctrl-fold.open {
-        grid-template-rows: 1fr;
-        pointer-events: auto;
-      }
-      .ctrl-fold-inner {
-        overflow: hidden;
-        opacity: 0;
-        transition: opacity var(--t-fast);
-      }
-      .ctrl-fold.open .ctrl-fold-inner {
-        opacity: 1;
-        transition-delay: 0.1s;
-      }
-      .fold-sep {
-        height: 0.0625rem;
-        margin: 0 0.75rem;
-        overflow: hidden;
-        background: linear-gradient(90deg, transparent, var(--fold-color, rgba(var(--rgb-light-glow),0.25)), transparent);
-        opacity: 0;
-        transition: opacity var(--t-layout);
-        grid-column: 1 / -1;
-      }
-      /* In a compact pair, anchor the separator under the opened light only
-         so the user can tell which fold belongs to which lamp. */
-      .fold-sep.fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
-      .fold-sep.fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
-      .fold-sep.visible { opacity: 1; }
-      .ctrl-panel {
-        padding: 0.375rem 0 0.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-      }
-      /* ── Fold sections (Intensité / Température / Couleur / Effets) ── */
-      .ctrl-panel {
-        gap: 0.75rem;
-      }
-      .light-section {
-        display: flex; flex-direction: column; gap: 0.4375rem;
-      }
-
-      /* ── Slider ── */
-      .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
-      .slider-icon {
-        display: flex; align-items: center; justify-content: center;
-        width: 1.75rem; height: 1.75rem; flex-shrink: 0;
-      }
-      .slider-icon ha-icon {
-        --mdc-icon-size: 1.125rem;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--t3);
-      }
-      glass-slider { flex: 1; }
-
-      /* ── Color Controls ── */
-      .color-row {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        padding: 0.125rem 0;
-      }
-      /* ── Effect pills row ── */
-      .effect-row {
-        display: flex; flex-wrap: wrap; gap: 0.375rem;
-        padding: 0.125rem 0;
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .effect-chip:hover { transform: none; background: var(--s2); }
-        .effect-chip:active { transform: none; }
-      }
-      @media (pointer: coarse) {
-        .effect-chip:active { animation: none; transform: scale(0.96); }
-      }
-      .color-picker-btn {
-        width: 1.625rem;
-        height: 1.625rem;
-        border-radius: 50%;
-        border: 2px solid transparent;
-        cursor: pointer;
-        padding: 0;
-        outline: none;
-        background: none;
-        -webkit-tap-highlight-color: transparent;
-        transition: transform var(--t-fast);
-        flex-shrink: 0;
-        position: relative;
-      }
-      .color-picker-btn::before {
-        content: '';
-        position: absolute;
-        inset: 2px;
-        border-radius: 50%;
-        background: conic-gradient(
-          hsl(0,80%,60%), hsl(60,80%,55%), hsl(120,70%,50%),
-          hsl(180,75%,50%), hsl(240,75%,60%), hsl(300,75%,55%), hsl(360,80%,60%)
-        );
-      }
-      @media (hover: hover) and (pointer: fine) {
-        .color-picker-btn:hover { transform: scale(1.15); }
-      }
-      @media (pointer: coarse) {
-        .color-picker-btn:active { animation: bounce 0.3s ease; }
-      }
-
-      /* ── Color Picker Popup ── */
-      .color-picker-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(var(--rgb-black), 0.4);
-        backdrop-filter: var(--blur-sm);
-        -webkit-backdrop-filter: var(--blur-sm);
-        animation: cpFadeIn 0.2s ease;
-      }
-      @keyframes cpFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      .color-picker-dialog {
-        position: relative;
-        background: linear-gradient(135deg, rgba(var(--rgb-white),0.08) 0%, rgba(var(--rgb-white),0.03) 50%, rgba(var(--rgb-white),0.06) 100%);
-        backdrop-filter: blur(40px) saturate(1.4);
-        -webkit-backdrop-filter: blur(40px) saturate(1.4);
-        border: 1px solid var(--b2);
-        border-radius: var(--radius-xl);
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.875rem;
-        box-shadow: inset 0 1px 0 0 rgba(var(--rgb-white),0.1), 0 8px 32px rgba(var(--rgb-black),0.4), 0 2px 8px rgba(var(--rgb-black),0.15);
-        max-width: 18.75rem;
-        width: 90vw;
-      }
-      /* Close icon top-right (positioning only — visual handled by <glass-icon-button>) */
-      .cp-close-x { position: absolute; top: 0.375rem; right: 0.375rem; }
-
-      .cp-wheel-wrap {
-        position: relative;
-        width: 13.75rem;
-        height: 13.75rem;
-      }
-      .cp-wheel-wrap canvas {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        cursor: crosshair;
-      }
-      .cp-cursor {
-        position: absolute;
-        width: 1.5rem;
-        height: 1.5rem;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 0 6px rgba(var(--rgb-black),0.6), 0 0 0 1px rgba(var(--rgb-black),0.2);
-        pointer-events: none;
-        transform: translate(-50%, calc(-50% - 28px));
-        transition: left 0.05s, top 0.05s;
-      }
-      .cp-cursor::after {
-        content: '';
-        position: absolute;
-        bottom: -0.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0.125rem;
-        height: 0.625rem;
-        background: rgba(var(--rgb-white),0.5);
-        border-radius: 1px;
-      }
-      /* Compact preview row: swatch + hex code on one line */
-      .cp-preview-row {
-        display: inline-flex; align-items: center; gap: 0.625rem;
-        padding: 0.375rem 0.5rem;
-        border-radius: var(--radius-md);
-        background: var(--s1); border: 1px solid var(--b1);
-      }
-      .cp-swatch {
-        width: 1.625rem; height: 1.625rem; border-radius: var(--radius-sm);
-        border: 1px solid rgba(var(--rgb-white), 0.15);
-        box-shadow: inset 0 0 0 1px rgba(var(--rgb-black), 0.15);
-      }
-      .cp-hex {
-        font-size: var(--fz-base); font-weight: 600; color: var(--t2);
-        font-family: monospace; letter-spacing: 0.5px;
-      }
-
-      /* Focus-visible ring (legacy non-primitive buttons) */
-      .light-expand-btn:focus-visible,
-      .color-picker-btn:focus-visible {
-        outline: 2px solid var(--c-accent);
-        outline-offset: 2px;
-      }
-
-      /* ── Dashboard Mode ── */
-      .dashboard-row {
-        display: contents;
-        animation: dashRowIn 0.4s var(--ease-std) both;
-      }
-      .dashboard-row:nth-child(1) { animation-delay: 0ms; }
-      .dashboard-row:nth-child(2) { animation-delay: 50ms; }
-      .dashboard-row:nth-child(3) { animation-delay: 100ms; }
-      @keyframes dashRowIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .dashboard-overflow {
-        font-size: var(--fz-sm);
-        font-weight: 500;
-        color: var(--t3);
-        text-align: center;
-        padding: 0.375rem 0 0.125rem;
-        letter-spacing: 0.3px;
-        grid-column: 1 / -1;
-      }
-    `,
+    lightCardStyles,
   ];
+
+
 
   setConfig(config: LovelaceCardConfig) {
     super.setConfig(config);
@@ -1164,57 +656,6 @@ export class GlassLightCard extends BaseCard {
     return this._getEntityLayout(light.entityId) === 'compact';
   }
 
-  private _buildLayout(lights: LightInfo[]): LayoutItem[] {
-    const items: LayoutItem[] = [];
-    let i = 0;
-    while (i < lights.length) {
-      const light = lights[i];
-      if (this._isCompact(light)) {
-        const next =
-          i + 1 < lights.length && this._isCompact(lights[i + 1]) ? lights[i + 1] : null;
-        if (next) {
-          items.push({ kind: 'compact-pair', left: light, right: next });
-          i += 2;
-        } else {
-          items.push({ kind: 'full', light });
-          i++;
-        }
-      } else {
-        items.push({ kind: 'full', light });
-        i++;
-      }
-    }
-    return items;
-  }
-
-  // — Tint —
-
-  private _computeTint(lights: LightInfo[]): { background: string; opacity: string } | null {
-    const onLights = lights.filter((l) => l.isOn);
-    if (onLights.length === 0) return null;
-
-    // Halo intensity reflects how much light is actually emitted: combine the
-    // count ratio with the average brightness of the lamps that are on so a
-    // single lamp at 100% glows brighter than three lamps at 10%.
-    const ratio = onLights.length / lights.length;
-    const avgBri = onLights.reduce((sum, l) => sum + (l.brightnessPct ?? 100), 0) / onLights.length;
-    const intensity = (avgBri / 100) * (0.55 + ratio * 0.45) * 0.22;
-
-    // Dominant colour: brightest RGB lamp first, else the brightest kelvin,
-    // else a warm fallback. The halo borrows the lamp's own colour.
-    let color = '#fbbf24';
-    const sorted = [...onLights].sort((a, b) => (b.brightnessPct ?? 0) - (a.brightnessPct ?? 0));
-    const rgbTop = sorted.find((l) => l.type === 'rgb' && l.rgbColor);
-    const tempTop = sorted.find((l) => l.type === 'color_temp' && l.colorTempKelvin);
-    if (rgbTop?.rgbColor) color = rgbToHex(rgbTop.rgbColor);
-    else if (tempTop?.colorTempKelvin) color = getTempInfo(tempTop.colorTempKelvin).color;
-
-    return {
-      background: `radial-gradient(ellipse at 30% 30%, ${color}, transparent 70%)`,
-      opacity: intensity.toFixed(3),
-    };
-  }
-
   // — Sub text —
 
   private _renderSubText(info: LightInfo): TemplateResult | TemplateResult[] | typeof nothing {
@@ -1232,7 +673,7 @@ export class GlassLightCard extends BaseCard {
     if (info.type === 'color_temp' && info.colorTempKelvin) {
       const ti = getTempInfo(info.colorTempKelvin);
       parts.push(html`<span class="light-temp-dot" style="background:${ti.color}"></span>`);
-      parts.push(html`<span class="light-temp-text">${ti.label}</span>`);
+      parts.push(html`<span class="light-temp-text">${t(ti.labelKey)}</span>`);
     }
 
     if (info.type === 'rgb' && info.rgbColor) {
@@ -1312,65 +753,20 @@ export class GlassLightCard extends BaseCard {
 
   // — Render: Control Fold —
 
-  private _getSliderColor(info: LightInfo): string {
-    if (info.type === 'rgb' && info.rgbColor) {
-      const [r, g, b] = info.rgbColor;
-      return `${r},${g},${b}`;
-    }
-    if (info.type === 'color_temp' && info.colorTempKelvin) {
-      const hex = getTempInfo(info.colorTempKelvin).color;
-      return `${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)}`;
-    }
-    return 'var(--rgb-light-glow)';
-  }
-
-  private _getFoldColor(info: LightInfo): string {
-    if (info.rgbColor) return `rgba(${info.rgbColor[0]},${info.rgbColor[1]},${info.rgbColor[2]},0.3)`;
-    if (info.type === 'color_temp' && info.colorTempKelvin) {
-      const { color } = getTempInfo(info.colorTempKelvin);
-      // Parse hex to rgba
-      const r = parseInt(color.slice(1, 3), 16);
-      const g = parseInt(color.slice(3, 5), 16);
-      const b = parseInt(color.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},0.3)`;
-    }
-    return 'rgba(var(--rgb-light-glow),0.25)';
-  }
-
-  /** Returns CSS custom properties `--light-tint` (solid) + `--light-tint-glow`
-   * (rgba 0.4) reflecting the light's current colour. Used by the fold to
-   * colour the active cdot / effect chip with the lamp's own colour. */
-  private _getLightTintStyle(info: LightInfo): string {
-    if (info.type === 'rgb' && info.rgbColor) {
-      const [r, g, b] = info.rgbColor;
-      return `--light-tint:rgb(${r},${g},${b});--light-tint-glow:rgba(${r},${g},${b},0.45)`;
-    }
-    if (info.type === 'color_temp' && info.colorTempKelvin) {
-      const hex = getTempInfo(info.colorTempKelvin).color;
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `--light-tint:${hex};--light-tint-glow:rgba(${r},${g},${b},0.45)`;
-    }
-    return '';
-  }
-
   private _renderControlFold(info: LightInfo, position: 'full' | 'left' | 'right' = 'full'): TemplateResult {
     const isExpanded = this._expandedEntity === info.entityId && info.isOn;
     const isRgb = info.type === 'rgb';
-    const sliderColor = this._getSliderColor(info);
-    const foldColor = this._getFoldColor(info);
-    const tintStyle = this._getLightTintStyle(info);
+    const tintStyle = lightTintStyle(info);
 
     return html`
-      <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor}"></div>
+      <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}" style="--fold-color:${foldColor(info)}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}" style=${tintStyle}>
         <div class="ctrl-fold-inner">
           <div class="ctrl-panel" ?data-rgb=${isRgb}>
             ${info.type !== 'simple' ? html`
               <div class="light-section">
                 <glass-section-title label=${t('light.section_brightness')}></glass-section-title>
-                ${this._renderBrightnessSlider(info, sliderColor)}
+                ${this._renderBrightnessSlider(info, sliderColor(info))}
               </div>
             ` : nothing}
             ${info.type === 'color_temp' ? html`
@@ -1560,7 +956,7 @@ export class GlassLightCard extends BaseCard {
     const kelvin = info.colorTempKelvin || info.minKelvin;
     const localKelvin = this._dragValues.get(tempKey) ?? kelvin;
     const tempHex = getTempInfo(localKelvin).color;
-    const tempColor = `${parseInt(tempHex.slice(1, 3), 16)},${parseInt(tempHex.slice(3, 5), 16)},${parseInt(tempHex.slice(5, 7), 16)}`;
+    const tempColor = hexToRgb(tempHex).join(',');
 
     return html`
       <div class="slider-wrap">
@@ -1581,7 +977,7 @@ export class GlassLightCard extends BaseCard {
   // — Render: Grid —
 
   private _renderGrid(lights: LightInfo[]): TemplateResult[] {
-    const layout = this._buildLayout(lights);
+    const layout = buildLayout(lights, (l) => this._isCompact(l));
     const results: TemplateResult[] = [];
 
     for (const item of layout) {
@@ -1639,7 +1035,7 @@ export class GlassLightCard extends BaseCard {
     const maxVisible = 6;
     const visible = infos.slice(0, maxVisible);
     const overflow = infos.length - maxVisible;
-    const tint = this._computeTint(infos);
+    const tint = computeTint(infos);
     const onCount = infos.length;
     const totalLights = Math.max(this._getDashboardLightTotal(), onCount);
     const countClass = onCount === totalLights ? 'all' : 'some';
@@ -1702,7 +1098,7 @@ export class GlassLightCard extends BaseCard {
     const anyOn = onCount > 0;
     const countClass = onCount === 0 ? 'none' : onCount === total ? 'all' : 'some';
 
-    const tint = this._computeTint(infos);
+    const tint = computeTint(infos);
 
     return html`
       ${this._showHeader ? html`
