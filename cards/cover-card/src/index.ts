@@ -4,7 +4,9 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  isEntityVisibleNow,
   fireHaptic,
+  type EntityScheduleMap,
   type HassEntity,
 } from '@glass-cards/base-card';
 import './editor';
@@ -142,14 +144,16 @@ class GlassCoverCard extends BaseCard {
   @property() areaId?: string;
 
   @state() private _expanded: string | null = null;
+  @state() private _dragValues = new Map<string, number>();
 
   @state() private _coverConfig: CoverBackendConfig = { show_header: true, dashboard_entities: [], entity_presets: {} };
   private _roomConfig: RoomCoverConfig | null = null;
   private _backend: BackendService | undefined;
   private _configLoaded = false;
-  private _configLoading = false;
-  private _roomLoading = false;
-  private _lastAreaId: string | undefined;
+  private _roomConfigLoaded = false;
+  private _lastLoadedAreaId: string | undefined;
+  private _schedules: EntityScheduleMap | null = null;
+  private _schedulesLoaded = false;
   private _throttleTimers = new Map<string, number>();
   private _lastDirection = new Map<string, 'opening' | 'closing'>();
 
@@ -281,8 +285,9 @@ class GlassCoverCard extends BaseCard {
       grid-column: 1 / -1;
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
+      pointer-events: none;
     }
-    .ctrl-fold.open { grid-template-rows: 1fr; }
+    .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
     .ctrl-fold-inner {
       overflow: hidden; opacity: 0;
       transition: opacity var(--t-fast);
@@ -322,13 +327,22 @@ class GlassCoverCard extends BaseCard {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._listen('cover-config-changed', () => { this._coversCacheKey = ''; this._loadConfig(); });
+    this._listen('cover-config-changed', () => {
+      this._configLoaded = false;
+      this._coversCacheKey = '';
+      this._loadConfig();
+    });
     this._listen('room-config-changed', (payload) => {
       if (this.areaId && payload.areaId === this.areaId) {
-        this._roomConfig = null;
+        this._roomConfigLoaded = false;
         this._coversCacheKey = '';
-        this._loadRoomConfig(this.areaId);
+        this._loadRoomConfig();
       }
+    });
+    this._listen('schedule-changed', () => {
+      this._schedulesLoaded = false;
+      this._coversCacheKey = '';
+      this._loadSchedules();
     });
   }
 
@@ -336,10 +350,11 @@ class GlassCoverCard extends BaseCard {
     super.disconnectedCallback();
     this._backend = undefined;
     this._configLoaded = false;
-    this._configLoading = false;
-    this._roomLoading = false;
+    this._roomConfigLoaded = false;
+    this._schedulesLoaded = false;
     for (const timer of this._throttleTimers.values()) clearTimeout(timer);
     this._throttleTimers.clear();
+    this._lastDirection.clear();
   }
 
   protected _collapseExpanded(): void {
@@ -349,24 +364,49 @@ class GlassCoverCard extends BaseCard {
   protected updated(changedProps: PropertyValues): void {
     super.updated(changedProps);
 
-    if (changedProps.has('hass') && this.hass) {
-      if (this._backend && this._backend.connection !== this.hass.connection) {
-        this._backend = undefined;
-        this._configLoaded = false;
-        this._configLoading = false;
-        this._roomConfig = null;
-        this._roomLoading = false;
-      }
-      if (!this._configLoaded && !this._configLoading) {
-        this._backend = new BackendService(this.hass);
-        this._loadConfig();
-      }
+    // Invalidate backend on WS reconnect
+    if (changedProps.has('hass') && this.hass && this._backend && this._backend.connection !== this.hass.connection) {
+      this._backend = undefined;
+      this._configLoaded = false;
+      this._roomConfigLoaded = false;
+      this._schedulesLoaded = false;
     }
-    if (changedProps.has('areaId') && this.areaId !== this._lastAreaId) {
-      this._lastAreaId = this.areaId;
+
+    if (this.hass && !this._configLoaded) this._loadConfig();
+    if (this.hass && !this._schedulesLoaded) this._loadSchedules();
+
+    // Room config: reset on area change, (re)load whenever it is missing —
+    // covers the in-flight-load-during-area-change case (the stale load bails
+    // out and the next tick retries here).
+    if (this.areaId !== this._lastLoadedAreaId) {
+      this._lastLoadedAreaId = this.areaId;
       this._roomConfig = null;
+      this._roomConfigLoaded = false;
       this._expanded = null;
-      if (this.areaId) this._loadRoomConfig(this.areaId);
+      this._dragValues = new Map();
+      this._lastDirection.clear();
+      this._coversCacheKey = '';
+    }
+    if (this.hass && this.areaId && !this._roomConfigLoaded) this._loadRoomConfig();
+
+    // Clear stale drag values once HA state catches up
+    if (changedProps.has('hass') && this._dragValues.size > 0) {
+      let changed = false;
+      const next = new Map(this._dragValues);
+      for (const cv of this._getCovers()) {
+        const posDrag = next.get(cv.entityId);
+        if (posDrag !== undefined && cv.position !== null && Math.abs(cv.position - posDrag) <= 2) {
+          next.delete(cv.entityId);
+          changed = true;
+        }
+        const tiltKey = `${cv.entityId}_tilt`;
+        const tiltDrag = next.get(tiltKey);
+        if (tiltDrag !== undefined && cv.tiltPosition !== null && Math.abs(cv.tiltPosition - tiltDrag) <= 2) {
+          next.delete(tiltKey);
+          changed = true;
+        }
+      }
+      if (changed) this._dragValues = next;
     }
   }
 
@@ -377,37 +417,49 @@ class GlassCoverCard extends BaseCard {
   // — Config loading —
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend || this._configLoading) return;
-    this._configLoading = true;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
         cover_card?: CoverBackendConfig;
       }>('get_config');
       if (result?.cover_card) {
         this._coverConfig = result.cover_card;
       }
-      this._configLoaded = true;
-      this._configLoading = false;
-      if (this.areaId) this._loadRoomConfig(this.areaId);
+      this._coversCacheKey = '';
       this.requestUpdate();
     } catch {
-      this._configLoading = false;
+      this._configLoaded = false;
     }
   }
 
-  private async _loadRoomConfig(areaId: string): Promise<void> {
-    if (!this._backend || this._roomLoading) return;
-    this._roomLoading = true;
+  private async _loadRoomConfig(): Promise<void> {
+    const areaId = this.areaId;
+    if (!areaId || !this.hass || this._roomConfigLoaded) return;
+    this._roomConfigLoaded = true;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<RoomCoverConfig | null>('get_room', { area_id: areaId });
-      if (this.areaId === areaId) {
-        this._roomConfig = result ? { ...result, entity_layouts: result.entity_layouts ?? {} } : null;
-        this.requestUpdate();
-      }
+      if (this.areaId !== areaId) return;
+      this._roomConfig = result ? { ...result, entity_layouts: result.entity_layouts ?? {} } : null;
+      this._coversCacheKey = '';
+      this.requestUpdate();
     } catch {
-      // ignore
-    } finally {
-      this._roomLoading = false;
+      this._roomConfigLoaded = false;
+    }
+  }
+
+  private async _loadSchedules(): Promise<void> {
+    if (!this.hass || this._schedulesLoaded) return;
+    this._schedulesLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      this._schedules = await this._backend.send<EntityScheduleMap>('get_schedules');
+      this._coversCacheKey = '';
+      this.requestUpdate();
+    } catch {
+      this._schedulesLoaded = false;
     }
   }
 
@@ -422,7 +474,7 @@ class GlassCoverCard extends BaseCard {
       // Room mode: get covers from area
       const areaEntities = getAreaEntities(this.areaId, this.hass.entities, this.hass.devices);
       entityIds = areaEntities
-        .filter((e) => e.entity_id.startsWith('cover.'))
+        .filter((e) => e.entity_id.startsWith('cover.') && isEntityVisibleNow(e.entity_id, this._schedules))
         .map((e) => e.entity_id);
 
       // Apply room config (order + hidden)
@@ -443,13 +495,15 @@ class GlassCoverCard extends BaseCard {
       }
     } else {
       // Dashboard mode: use selected entities
-      entityIds = this._coverConfig.dashboard_entities;
+      entityIds = (this._coverConfig.dashboard_entities ?? [])
+        .filter((id) => isEntityVisibleNow(id, this._schedules));
     }
 
-    // Build fingerprint to cache results
+    // Build fingerprint to cache results (last_updated covers attribute-only
+    // changes: rename, supported_features, device_class…)
     const fp = entityIds.map((id) => {
       const e = this.hass?.states[id];
-      return e ? `${id}:${e.state}:${e.attributes.current_position}:${e.attributes.current_tilt_position}` : id;
+      return e ? `${id}:${e.state}:${e.last_updated}` : id;
     }).join('|');
 
     if (fp === this._coversCacheKey && this._coversCache) return this._coversCache;
@@ -472,6 +526,8 @@ class GlassCoverCard extends BaseCard {
     if (!this.hass) return;
     const state = cv.entity.state;
     if (state === 'opening' || state === 'closing') {
+      // No STOP feature (doors, dampers…): let the movement finish
+      if (!(cv.features & F.STOP)) return;
       this._lastDirection.set(cv.entityId, state);
       this._safeCallService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
     } else if (state === 'closed') {
@@ -512,26 +568,37 @@ class GlassCoverCard extends BaseCard {
     this._safeCallService('cover', 'stop_cover', {}, { entity_id: cv.entityId });
   }
 
-  private _setPosition(cv: CoverInfo, position: number) {
+  /** Track the dragged value locally (prevents the slider/label bouncing back
+   * to the not-yet-confirmed HA position) and send throttled (during drag)
+   * or immediately (on release). */
+  private _onSliderValue(key: string, value: number, isFinal: boolean, send: (v: number) => void) {
     if (!this.hass) return;
-    // Throttle position updates (50ms)
-    const existing = this._throttleTimers.get(cv.entityId);
-    if (existing) clearTimeout(existing);
-    this._throttleTimers.set(cv.entityId, window.setTimeout(() => {
-      this._throttleTimers.delete(cv.entityId);
-      this._safeCallService('cover', 'set_cover_position', { position }, { entity_id: cv.entityId });
-    }, 50));
-  }
+    const next = new Map(this._dragValues);
+    next.set(key, value);
+    this._dragValues = next;
 
-  private _setTiltPosition(cv: CoverInfo, tiltPosition: number) {
-    if (!this.hass) return;
-    const key = `${cv.entityId}_tilt`;
     const existing = this._throttleTimers.get(key);
     if (existing) clearTimeout(existing);
-    this._throttleTimers.set(key, window.setTimeout(() => {
+    if (isFinal) {
+      fireHaptic(this, 'light');
       this._throttleTimers.delete(key);
-      this._safeCallService('cover', 'set_cover_tilt_position', { tilt_position: tiltPosition }, { entity_id: cv.entityId });
-    }, 50));
+      send(value);
+    } else {
+      this._throttleTimers.set(key, window.setTimeout(() => {
+        this._throttleTimers.delete(key);
+        send(this._dragValues.get(key) ?? value);
+      }, 50));
+    }
+  }
+
+  private _setPosition(cv: CoverInfo, position: number, isFinal: boolean) {
+    this._onSliderValue(cv.entityId, position, isFinal, (v) =>
+      this._safeCallService('cover', 'set_cover_position', { position: v }, { entity_id: cv.entityId }));
+  }
+
+  private _setTiltPosition(cv: CoverInfo, tiltPosition: number, isFinal: boolean) {
+    this._onSliderValue(`${cv.entityId}_tilt`, tiltPosition, isFinal, (v) =>
+      this._safeCallService('cover', 'set_cover_tilt_position', { tilt_position: v }, { entity_id: cv.entityId }));
   }
 
   private _openAll() {
@@ -716,6 +783,11 @@ class GlassCoverCard extends BaseCard {
           class="cv-expand-btn"
           aria-expanded=${isExpanded ? 'true' : 'false'}
           aria-label=${t('cover.expand_aria', { name: cv.name })}
+          @click=${(e: MouseEvent) => {
+            // detail === 0 → synthetic click from Enter/Space; pointer taps are
+            // handled by the row gesture (tap = toggle, long-press = expand).
+            if (e.detail === 0) this._toggleExpand(cv.entityId);
+          }}
         >
           <div class="cv-info">
             <div class="cv-name">${cv.name}</div>
@@ -740,7 +812,7 @@ class GlassCoverCard extends BaseCard {
       <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
-          ${isExpanded ? this._renderControls(cv) : nothing}
+          ${this._renderControls(cv)}
         </div>
       </div>
     `;
@@ -815,11 +887,11 @@ class GlassCoverCard extends BaseCard {
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, false)}></ha-icon></div>
               <glass-slider
-                .value=${cv.position ?? 0}
+                .value=${this._dragValues.get(cv.entityId) ?? cv.position ?? 0}
                 color="var(--rgb-purple)"
-                .label=${`${cv.position ?? 0}%`}
-                @glass-slider-input=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
-                @glass-slider-change=${(e: CustomEvent) => this._setPosition(cv, e.detail.value)}
+                .label=${`${this._dragValues.get(cv.entityId) ?? cv.position ?? 0}%`}
+                @glass-slider-input=${(e: CustomEvent) => this._setPosition(cv, e.detail.value, false)}
+                @glass-slider-change=${(e: CustomEvent) => this._setPosition(cv, e.detail.value, true)}
               ></glass-slider>
               <div class="slider-icon"><ha-icon .icon=${coverIcon(cv.deviceClass, true)}></ha-icon></div>
             </div>
@@ -832,11 +904,11 @@ class GlassCoverCard extends BaseCard {
             <div class="slider-wrap">
               <div class="slider-icon"><ha-icon .icon=${'mdi:blinds'}></ha-icon></div>
               <glass-slider
-                .value=${cv.tiltPosition ?? 0}
+                .value=${this._dragValues.get(`${cv.entityId}_tilt`) ?? cv.tiltPosition ?? 0}
                 color="var(--rgb-purple)"
-                .label=${`${cv.tiltPosition ?? 0}%`}
-                @glass-slider-input=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
-                @glass-slider-change=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value)}
+                .label=${`${this._dragValues.get(`${cv.entityId}_tilt`) ?? cv.tiltPosition ?? 0}%`}
+                @glass-slider-input=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value, false)}
+                @glass-slider-change=${(e: CustomEvent) => this._setTiltPosition(cv, e.detail.value, true)}
               ></glass-slider>
               <div class="slider-icon"><ha-icon .icon=${'mdi:blinds-open'}></ha-icon></div>
             </div>
