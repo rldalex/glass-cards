@@ -166,7 +166,6 @@ class GlassFanCard extends BaseCard {
   private _fanConfigLoaded = false;
   private _roomConfig: RoomFanConfig | null = null;
   private _roomConfigLoaded = false;
-  private _roomConfigLoading = false;
   private _lastLoadedAreaId?: string;
   private _backend?: BackendService;
   private _cachedFanIds?: string[];
@@ -327,8 +326,9 @@ class GlassFanCard extends BaseCard {
       grid-column: 1 / -1;
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
+      pointer-events: none;
     }
-    .ctrl-fold.open { grid-template-rows: 1fr; }
+    .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
     .ctrl-fold-inner {
       overflow: hidden;
       opacity: 0; transition: opacity var(--t-fast);
@@ -507,6 +507,7 @@ class GlassFanCard extends BaseCard {
     // Load room config when areaId available or changes
     if (this.areaId && this.hass) {
       if (this._lastLoadedAreaId !== this.areaId) {
+        this._lastLoadedAreaId = this.areaId;
         this._resetForNewArea();
       }
       if (!this._roomConfigLoaded) {
@@ -583,27 +584,23 @@ class GlassFanCard extends BaseCard {
         this._showHeader = result.fan_card.show_header ?? true;
       }
     } catch {
-      // Backend not available
+      this._fanConfigLoaded = false;
     }
   }
 
   private async _loadRoomConfig(): Promise<void> {
-    if (!this.hass || !this.areaId || this._roomConfigLoaded || this._roomConfigLoading) return;
-    this._roomConfigLoading = true;
-    this._lastLoadedAreaId = this.areaId;
+    if (!this.hass || !this.areaId || this._roomConfigLoaded) return;
+    this._roomConfigLoaded = true;
+    const areaId = this.areaId;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
-      const result = await this._backend.send<RoomFanConfig | null>('get_room', { area_id: this.areaId });
-      if (this.areaId === this._lastLoadedAreaId) {
-        this._roomConfig = result;
-        this._roomConfigLoaded = true;
-        this._cachedFanIds = undefined; this._fansFingerprint = '';
-        this.requestUpdate();
-      }
+      const result = await this._backend.send<RoomFanConfig | null>('get_room', { area_id: areaId });
+      if (this.areaId !== areaId) return;
+      this._roomConfig = result;
+      this._cachedFanIds = undefined; this._fansFingerprint = '';
+      this.requestUpdate();
     } catch {
-      // ignore
-    } finally {
-      this._roomConfigLoading = false;
+      if (this.areaId === areaId) this._roomConfigLoaded = false;
     }
   }
 
@@ -624,12 +621,14 @@ class GlassFanCard extends BaseCard {
   private async _loadDashboardHidden(): Promise<void> {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    const capturedAreaIds = this.visibleAreaIds;
+    const areas = capturedAreaIds?.length ? capturedAreaIds : Object.keys(this.hass.areas ?? {});
     if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const hidden = new Set<string>();
       for (const aId of areas) {
+        if (this.visibleAreaIds !== capturedAreaIds) return;
         const result = await this._backend.send<{
           hidden_entities: string[];
         } | null>('get_room', { area_id: aId });
@@ -637,18 +636,18 @@ class GlassFanCard extends BaseCard {
           for (const id of result.hidden_entities) hidden.add(id);
         }
       }
+      if (this.visibleAreaIds !== capturedAreaIds) return;
       this._dashboardHiddenEntities = hidden;
       this._cachedFanIds = undefined; this._fansFingerprint = '';
       this.requestUpdate();
     } catch {
-      // Backend not available
+      if (this.visibleAreaIds === capturedAreaIds) this._dashboardHiddenLoaded = false;
     }
   }
 
   private _resetForNewArea(): void {
     this._roomConfig = null;
     this._roomConfigLoaded = false;
-    this._roomConfigLoading = false;
     this._expandedEntity = null;
     this._dragValues = new Map();
     this._cachedFanIds = undefined; this._fansFingerprint = '';
@@ -694,7 +693,7 @@ class GlassFanCard extends BaseCard {
       const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('fan.') && !this._dashboardHiddenEntities.has(e.entity_id)) ids.push(e.entity_id);
+          if (e.entity_id.startsWith('fan.') && !this._dashboardHiddenEntities.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules)) ids.push(e.entity_id);
         }
       }
       return ids;
@@ -899,8 +898,10 @@ class GlassFanCard extends BaseCard {
   private _onSpeedSliderChange(fan: FanInfo, value: number): void {
     const snapped = snapPct(value, fan.speedCount);
     this._setSpeed(fan, snapped);
+    // Keep the committed value as drag state; the stale-clear in updated()
+    // drops it once HA confirms (±2), avoiding a visual bounce meanwhile.
     const next = new Map(this._dragValues);
-    next.delete(`speed:${fan.entityId}`);
+    next.set(`speed:${fan.entityId}`, snapped);
     this._dragValues = next;
   }
 
@@ -925,10 +926,13 @@ class GlassFanCard extends BaseCard {
 
   private _onLightSliderChange(fan: FanInfo, value: number): void {
     if (!fan.lightEntityId || !this.hass) return;
+    const key = `light:${fan.entityId}`;
+    const pending = this._throttleTimers.get(key);
+    if (pending) { clearTimeout(pending); this._throttleTimers.delete(key); }
     const brightness = Math.round((value / 100) * 255);
     this._safeCallService('light', 'turn_on', { brightness }, { entity_id: fan.lightEntityId });
     const next = new Map(this._dragValues);
-    next.delete(`light:${fan.entityId}`);
+    next.set(key, value);
     this._dragValues = next;
   }
 
@@ -1096,18 +1100,25 @@ class GlassFanCard extends BaseCard {
           ?unavailable=${unavailable}
           active-color="cool"
           aria-label=${t('fan.toggle_aria', { name: fan.name })}
+          style="${fan.isOn ? `--spin-duration:${spinDuration(fan.percentage)}` : ''}"
           @click=${(e: Event) => this._toggleFan(fan, e)}
         >
           <ha-icon
             .icon=${fan.icon}
             class="${fan.isOn ? 'spinning' : ''} ${fan.isOn && fan.direction === 'reverse' ? 'reverse' : ''}"
-            style="${fan.isOn ? `--spin-duration:${spinDuration(fan.percentage)}` : ''}"
           ></ha-icon>
         </glass-icon-button>
         <button
           class="fan-expand-btn"
-          aria-expanded=${hasControls && isExpanded ? 'true' : 'false'}
+          aria-expanded=${hasControls ? (isExpanded ? 'true' : 'false') : nothing}
           aria-label=${hasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
+          @click=${(e: MouseEvent) => {
+            // detail === 0 → synthetic click from Enter/Space; pointer taps are
+            // handled by the row gesture (tap = toggle, long-press = expand).
+            if (e.detail !== 0) return;
+            if (hasControls) this._toggleExpand(fan);
+            else this._toggleFan(fan);
+          }}
         >
           <div class="fan-info">
             <div class="fan-name">${fan.name}</div>
@@ -1137,7 +1148,7 @@ class GlassFanCard extends BaseCard {
       <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}"></div>
       <div class="ctrl-fold ${isExpanded ? 'open' : ''}">
         <div class="ctrl-fold-inner">
-          ${isExpanded ? this._renderControls(fan) : nothing}
+          ${this._renderControls(fan)}
         </div>
       </div>
     `;
