@@ -282,7 +282,10 @@ class GlassTitleCard extends BaseCard {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._listen('title-config-changed', () => this._loadConfig());
+    this._listen('title-config-changed', () => {
+      this._configLoaded = false;
+      this._loadConfig();
+    });
     document.addEventListener('click', this._boundClickOutside);
   }
 
@@ -338,7 +341,15 @@ class GlassTitleCard extends BaseCard {
       }>('get_config');
       if (version !== this._loadVersion) return;
       if (result?.title_card) {
-        this._titleConfig = result.title_card;
+        // Merge with explicit defaults — a partial payload from the store
+        // must not leave sources/period_options undefined (crashes later).
+        const cfg = result.title_card;
+        this._titleConfig = {
+          title: cfg.title ?? '',
+          sources: cfg.sources ?? [],
+          period_entity: cfg.period_entity ?? '',
+          period_options: cfg.period_options ?? [],
+        };
       }
       this._configLoaded = true;
       this._configLoading = false;
