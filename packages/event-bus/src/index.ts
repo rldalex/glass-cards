@@ -164,17 +164,23 @@ interface HassLike {
 }
 
 let attachedConnection: HassLike['connection'] | null = null;
+// Most recent connection handed to attachHass — lets a subscribe that was in
+// flight when a newer connection arrived hand over to it on settle, instead
+// of leaving the bridge bound to the dead one until the next hass tick.
+let latestConnection: HassLike['connection'] | null = null;
 let unsubscribe: (() => void) | null = null;
 let pending: Promise<void> | null = null;
 
 export function attachHass(hass: HassLike | undefined | null): void {
   if (!hass || !hass.connection) return;
+  latestConnection = hass.connection;
   if (hass.connection === attachedConnection) return;
-  if (pending) return;
+  if (pending) return; // re-checked when the in-flight subscribe settles
 
   // Tear down any previous subscription (HA reconnect rebuilds the connection).
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   attachedConnection = hass.connection;
+  const tried = hass.connection;
 
   pending = (async () => {
     try {
@@ -198,6 +204,12 @@ export function attachHass(hass: HassLike | undefined | null): void {
       attachedConnection = null;
     } finally {
       pending = null;
+      // Hand over to a connection that arrived mid-flight. Guarded on
+      // `!== tried` so a failed subscribe for the SAME connection waits for
+      // the next hass tick instead of retrying in a tight loop.
+      if (latestConnection && latestConnection !== tried && latestConnection !== attachedConnection) {
+        attachHass({ connection: latestConnection });
+      }
     }
   })();
 }
@@ -205,4 +217,5 @@ export function attachHass(hass: HassLike | undefined | null): void {
 export function detachHass(): void {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   attachedConnection = null;
+  latestConnection = null;
 }

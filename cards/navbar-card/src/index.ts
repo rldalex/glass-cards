@@ -1338,7 +1338,7 @@ export class GlassNavbarCard extends BaseCard {
                 ${this._items.map((item) => this._renderNavItem(item))}
                 ${this.hass?.user?.is_admin ? html`<button
                   class="nav-item nav-settings"
-                  @click=${() => { history.pushState(null, '', '/glass-cards'); window.dispatchEvent(new Event('location-changed')); }}
+                  @click=${() => { history.pushState(null, '', '/glass-cards'); }}
                   aria-label=${t('config.title')}
                 >
                   <span class="nav-content">

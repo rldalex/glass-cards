@@ -107,7 +107,9 @@ export abstract class BaseCard extends LitElement {
   protected _busCleanups: (() => void)[] = [];
   private _marqueeCleanup: (() => void) | null = null;
   private _ro?: ResizeObserver;
-  private _cardSize: CardSize = 'md';
+  // '' sentinel: the first measurement must always set the size attribute,
+  // even when it lands on the most common bucket.
+  private _cardSize: CardSize | '' = '';
   private _gestureTimer = 0;
   private _gestureFired = false;
   private _gestureStart: { x: number; y: number; t: number } | null = null;

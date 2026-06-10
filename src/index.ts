@@ -20,23 +20,7 @@ import '../cards/vacuum-card/src/index';
 installHistoryIntercept();
 getThemeManager();
 
-// Tell Lovelace to re-render now that our custom elements are defined.
-function fireRebuild() {
-  window.dispatchEvent(new Event('ll-rebuild'));
-}
-
-// Fire rebuild after a short delay to let Lovelace initialize
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(fireRebuild));
-} else {
-  requestAnimationFrame(fireRebuild);
-}
-
-// Re-fire rebuild when HA reconnects (mobile app resume from background).
-// The 'connection-status' event is dispatched by the HA frontend on WS reconnect.
-window.addEventListener('connection-status', (e: Event) => {
-  const detail = (e as CustomEvent).detail;
-  if (detail === 'connected') {
-    setTimeout(fireRebuild, 500);
-  }
-});
+// No manual ll-rebuild needed: Lovelace's create-element-base watches
+// customElements.whenDefined(tag) for unknown card types and fires
+// ll-rebuild on the placeholder element itself once the definition lands.
+// (A window-level dispatch was never listened to by HA anyway.)

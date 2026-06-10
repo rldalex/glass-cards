@@ -148,7 +148,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             StaticPathConfig(PANEL_JS_PATH, panel_js_path, cache_headers=False)
         )
 
-    # Serve Hue icons (bundled from hass-hue-icons)
+    # Serve Hue icons (bundled from hass-hue-icons). Deliberately global via
+    # add_extra_js_url (NOT a Lovelace resource like the main bundle): the
+    # /glass-cards custom panel needs these icon sets too, and custom panels
+    # never load Lovelace resources. The script only registers icon sets —
+    # safe to load on system panels, unlike the main bundle.
     if hue_exists:
         static_paths.append(
             StaticPathConfig(HUE_ICONS_PATH, hue_icons_path, cache_headers=False)
