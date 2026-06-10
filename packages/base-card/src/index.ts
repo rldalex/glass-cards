@@ -197,6 +197,7 @@ export abstract class BaseCard extends LitElement {
     this._ro?.disconnect();
     this._ro = undefined;
     clearTimeout(this._gestureTimer);
+    this._removeGestureGlobalListeners();
   }
 
   private _handleDocumentClick(e: Event): void {
@@ -252,7 +253,26 @@ export abstract class BaseCard extends LitElement {
         fireHaptic(this, 'light');
         cb.onLongPress!();
       }, 500);
+      // A mouse released outside the element never delivers pointerup here
+      // (touch pointers get implicit capture, mouse does not), leaving the
+      // timer to fire a phantom long-press. Cancel from the window instead;
+      // bubble phase guarantees the element's own handler ran first.
+      window.addEventListener('pointerup', this._boundGestureGlobalCancel);
+      window.addEventListener('pointercancel', this._boundGestureGlobalCancel);
     }
+  }
+
+  private _boundGestureGlobalCancel = this._onGestureGlobalCancel.bind(this);
+
+  private _onGestureGlobalCancel(): void {
+    clearTimeout(this._gestureTimer);
+    this._gestureStart = null;
+    this._removeGestureGlobalListeners();
+  }
+
+  private _removeGestureGlobalListeners(): void {
+    window.removeEventListener('pointerup', this._boundGestureGlobalCancel);
+    window.removeEventListener('pointercancel', this._boundGestureGlobalCancel);
   }
 
   private _onGestureUp(e: PointerEvent, cb: GestureCallbacks): void {
