@@ -694,7 +694,7 @@ class GlassCameraCarouselCard extends BaseCard {
     // Filter out hidden entities (global + per-room)
     const hiddenSet = new Set(this._camConfig?.hidden_entities ?? []);
     if (this.areaId && this._roomConfig) {
-      for (const id of this._roomConfig.hidden_entities) hiddenSet.add(id);
+      for (const id of this._roomConfig.hidden_entities ?? []) hiddenSet.add(id);
     }
     if (hiddenSet.size) ids = ids.filter((eid) => !hiddenSet.has(eid));
 

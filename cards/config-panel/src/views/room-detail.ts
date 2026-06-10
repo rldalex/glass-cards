@@ -5,8 +5,9 @@ import { bus } from '@glass-cards/event-bus';
 import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
 import { getAreaEntities } from '@glass-cards/base-card';
 import { DOMAIN_COLORS } from '@glass-cards/ui-core';
+import { ROOM_CARDS, normalizeRoomCardId, staticTag, staticHtml } from '@glass-cards/base-card';
 import type { SceneEntry } from '../types';
-import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS } from '../types';
+import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS, getCardMeta } from '../types';
 import { createSaveScheduler } from '../utils/save-scheduler';
 
 /** Explicit "no sensor" sentinel — distinguishes user choice from undecided auto-detect. */
@@ -80,23 +81,28 @@ function pickDefaultServiceForDomain(
 }
 
 interface SectionDef {
+  /** Entity domain — also what room card_order persists. */
   id: string;
   label: string;
   icon: string;
   domains: string[];
   color: string;
+  panelTag: string;
   visible: boolean;
   count: number;
 }
 
-const SECTION_DEFS: Omit<SectionDef, 'visible' | 'count'>[] = [
-  { id: 'light', label: 'Lumières', icon: 'mdi:lightbulb-group', domains: ['light'], color: DOMAIN_COLORS.light.rgb },
-  { id: 'cover', label: 'Volets', icon: 'mdi:window-shutter', domains: ['cover'], color: DOMAIN_COLORS.cover.rgb },
-  { id: 'climate', label: 'Climat', icon: 'mdi:thermostat', domains: ['climate'], color: DOMAIN_COLORS.climate.rgb },
-  { id: 'media', label: 'Media', icon: 'mdi:speaker', domains: ['media_player'], color: DOMAIN_COLORS.media.rgb },
-  { id: 'fan', label: 'Ventilateurs', icon: 'mdi:fan', domains: ['fan'], color: DOMAIN_COLORS.fan.rgb },
-  { id: 'camera', label: 'Caméras', icon: 'mdi:cctv', domains: ['camera'], color: DOMAIN_COLORS.camera.rgb },
-];
+/** Section defs derive from the shared card registry; labels resolve through
+ *  i18n at build time (they used to be hardcoded French strings, and the
+ *  hand-written id 'media' here is what diverged from the popup's
+ *  'media_player' and silently hid the media card). */
+const SECTION_DEFS: Omit<SectionDef, 'visible' | 'count' | 'label'>[] = ROOM_CARDS.map((c) => ({
+  id: c.domain as string,
+  icon: c.icon,
+  domains: [c.domain as string],
+  color: DOMAIN_COLORS[c.colorKey].rgb,
+  panelTag: c.panelTag,
+}));
 
 export class ConfigRoomDetail extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
@@ -270,8 +276,10 @@ export class ConfigRoomDetail extends LitElement {
       domainCounts.set(d, (domainCounts.get(d) || 0) + 1);
     }
 
-    // Build ordered sections — only domains that have entities
-    const orderedIds = storedOrder ? [...storedOrder] : [...DEFAULT_CARD_ORDER];
+    // Build ordered sections — only domains that have entities. Stored orders
+    // may contain legacy ids from older panels ('media') — normalize first.
+    const normalizedStored = storedOrder ? storedOrder.map(normalizeRoomCardId) : null;
+    const orderedIds = normalizedStored ? [...normalizedStored] : [...DEFAULT_CARD_ORDER];
     const orderedSet = new Set(orderedIds);
     for (const domain of domainCounts.keys()) {
       if (!orderedSet.has(domain) && CARD_ICONS[domain]) orderedIds.push(domain);
@@ -283,9 +291,11 @@ export class ConfigRoomDetail extends LitElement {
         if (!def) return null;
         const count = def.domains.reduce((sum, d) => sum + (domainCounts.get(d) || 0), 0);
         if (count === 0 || !IMPLEMENTED_CARDS.has(id)) return null;
+        const { nameKey } = getCardMeta(def.id);
         return {
           ...def,
-          visible: storedOrder ? storedOrder.includes(id) : true,
+          label: nameKey ? t(nameKey) : def.id,
+          visible: normalizedStored ? normalizedStored.includes(id) : true,
           count,
         };
       })
@@ -1155,15 +1165,9 @@ export class ConfigRoomDetail extends LitElement {
   }
 
   private _renderSection(sec: SectionDef): TemplateResult {
-    switch (sec.id) {
-      case 'light': return html`<config-tab-light .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-light>`;
-      case 'cover': return html`<config-tab-cover .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-cover>`;
-      case 'climate': return html`<config-tab-climate .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-climate>`;
-      case 'media': return html`<config-tab-media .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-media>`;
-      case 'fan': return html`<config-tab-fan .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-fan>`;
-      case 'camera': return html`<config-tab-camera .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></config-tab-camera>`;
-      default: return html``;
-    }
+    const tag = staticTag(sec.panelTag);
+    // Static template cached per panel tag — fixed set from the registry
+    return staticHtml`<${tag} .hass=${this.hass} .areaId=${this.areaId} .configData=${this.configData} .backend=${this.backend} .rooms=${this.rooms}></${tag}>`;
   }
 }
 

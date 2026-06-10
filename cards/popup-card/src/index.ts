@@ -2,7 +2,17 @@ import { LitElement, html, css, nothing, type PropertyValues, type TemplateResul
 import { property, state } from 'lit/decorators.js';
 import { bus, type GlassEventMap } from '@glass-cards/event-bus';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
-import { BackendService, getAreaEntities, type HomeAssistant, type HassEntity } from '@glass-cards/base-card';
+import {
+  BackendService,
+  getAreaEntities,
+  ROOM_CARD_ORDER,
+  cardByDomain,
+  normalizeRoomCardId,
+  staticTag,
+  staticHtml,
+  type HomeAssistant,
+  type HassEntity,
+} from '@glass-cards/base-card';
 import { t, setLanguage, getLanguage } from '@glass-cards/i18n';
 import './editor';
 
@@ -803,41 +813,26 @@ export class GlassRoomPopup extends LitElement {
     this.hass?.callService('scene', 'turn_on', {}, { entity_id: entityId });
   }
 
-  // Keep in sync with _renderDomainCard — only domains that actually render
-  // in the popup belong here ('vacuum' has no room mode yet).
-  private static readonly DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera'];
-
   private _getVisibleCards(domains: string[]): string[] {
     const roomCfg = this._areaId ? this._roomConfigs.get(this._areaId) : undefined;
     const cardOrder = roomCfg?.card_order;
     if (cardOrder && cardOrder.length > 0) {
-      // card_order contains only visible cards in order. Normalize the legacy
-      // 'media' section id (saved by older config panels) to its domain.
+      // card_order contains only visible cards in order. Normalize legacy ids
+      // persisted by older config panels (e.g. 'media' → 'media_player').
       return cardOrder
-        .map((d) => (d === 'media' ? 'media_player' : d))
+        .map(normalizeRoomCardId)
         .filter((d) => domains.includes(d));
     }
     // No config — show all available domains in default order
-    return GlassRoomPopup.DEFAULT_CARD_ORDER.filter((d) => domains.includes(d));
+    return ROOM_CARD_ORDER.filter((d) => domains.includes(d));
   }
 
   private _renderDomainCard(domain: string): TemplateResult | typeof nothing {
-    switch (domain) {
-      case 'light':
-        return html`<glass-light-card .hass=${this.hass} .areaId=${this._areaId}></glass-light-card>`;
-      case 'cover':
-        return html`<glass-cover-card .hass=${this.hass} .areaId=${this._areaId}></glass-cover-card>`;
-      case 'media_player':
-        return html`<glass-media-card .hass=${this.hass} .areaId=${this._areaId}></glass-media-card>`;
-      case 'fan':
-        return html`<glass-fan-card .hass=${this.hass} .areaId=${this._areaId}></glass-fan-card>`;
-      case 'climate':
-        return html`<glass-climate-card .hass=${this.hass} .areaId=${this._areaId}></glass-climate-card>`;
-      case 'camera':
-        return html`<glass-camera-carousel-card .hass=${this.hass} .areaId=${this._areaId}></glass-camera-carousel-card>`;
-      default:
-        return nothing;
-    }
+    const def = cardByDomain(domain);
+    if (!def || def.roomOrder === null) return nothing;
+    const tag = staticTag(def.tag);
+    // Static template cached per tag — fixed card set, stable cache (see registry)
+    return staticHtml`<${tag} .hass=${this.hass} .areaId=${this._areaId}></${tag}>`;
   }
 
   render() {

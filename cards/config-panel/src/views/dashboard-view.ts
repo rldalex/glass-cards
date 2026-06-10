@@ -2,7 +2,15 @@ import { LitElement, html, nothing, type TemplateResult, type PropertyValues } f
 import { property, state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
-import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
+import {
+  GLASS_CARDS,
+  cardById,
+  cardBySub,
+  staticTag,
+  staticHtml,
+  type HomeAssistant,
+  type BackendService,
+} from '@glass-cards/base-card';
 import { DOMAIN_COLORS } from '@glass-cards/ui-core';
 import type { RoomEntry } from '../types';
 import { createSaveScheduler } from '../utils/save-scheduler';
@@ -15,38 +23,15 @@ interface DashCardMeta {
   color: string;
 }
 
-/** `color` is an RGB triplet string ("251,191,36") used as `rgb(var(--icon-color))`
- *  and `rgba(var(--icon-color), x)` for tints. Falls back to accent in the CSS. */
-const DASH_CARD_META: DashCardMeta[] = [
-  { id: 'title', icon: 'mdi:format-title', nameKey: 'config.dashboard_card_title', color: DOMAIN_COLORS.title.rgb },
-  { id: 'light', icon: 'mdi:lightbulb-group', nameKey: 'config.dashboard_card_light', color: DOMAIN_COLORS.light.rgb },
-  { id: 'weather', icon: 'mdi:weather-partly-cloudy', nameKey: 'config.dashboard_card_weather', color: DOMAIN_COLORS.weather.rgb },
-  { id: 'cover', icon: 'mdi:blinds', nameKey: 'config.dashboard_card_cover', color: DOMAIN_COLORS.cover.rgb },
-  { id: 'climate', icon: 'mdi:thermostat', nameKey: 'config.dashboard_card_climate', color: DOMAIN_COLORS.climate.rgb },
-  { id: 'fan', icon: 'mdi:fan', nameKey: 'config.dashboard_card_fan', color: DOMAIN_COLORS.fan.rgb },
-  { id: 'media', icon: 'mdi:speaker', nameKey: 'config.dashboard_card_media', color: DOMAIN_COLORS.media.rgb },
-  { id: 'spotify', icon: 'mdi:spotify', nameKey: 'config.dashboard_card_spotify', color: DOMAIN_COLORS.spotify.rgb },
-  { id: 'presence', icon: 'mdi:account-group', nameKey: 'config.dashboard_card_presence', color: DOMAIN_COLORS.presence.rgb },
-  { id: 'camera_carousel', icon: 'mdi:cctv', nameKey: 'config.dashboard_card_camera_carousel', color: DOMAIN_COLORS.camera.rgb },
-  { id: 'calendar', icon: 'mdi:calendar-month', nameKey: 'config.dashboard_card_calendar', color: DOMAIN_COLORS.calendar.rgb },
-  { id: 'vacuum', icon: 'mdi:robot-vacuum-variant', nameKey: 'config.dashboard_card_vacuum', color: DOMAIN_COLORS.vacuum.rgb },
-];
-
-// Map card IDs to sub-section IDs used by tabs
-const SUB_MAP: Record<string, string> = {
-  title: 'title', light: 'light', weather: 'weather',
-  cover: 'cover', climate: 'climate', fan: 'fan', media: 'media',
-  spotify: 'spotify', presence: 'presence', camera_carousel: 'camera',
-  calendar: 'calendar', vacuum: 'vacuum',
-};
-
-// Map sub-section IDs to backend config keys (used by _sliceFor)
-const CONFIG_KEYS: Record<string, string> = {
-  title: 'title_card', weather: 'weather', light: 'light_card', cover: 'cover_card',
-  climate: 'climate_card', fan: 'fan_card', media: 'media_card',
-  spotify: 'spotify_card', presence: 'presence_card', camera: 'camera_carousel',
-  calendar: 'calendar_card', vacuum: 'vacuum_card',
-};
+/** Grid metadata derived from the shared card registry. `color` is an RGB
+ *  triplet string ("251,191,36") used as `rgb(var(--icon-color))` and
+ *  `rgba(var(--icon-color), x)` for tints. */
+const DASH_CARD_META: DashCardMeta[] = GLASS_CARDS.map((c) => ({
+  id: c.id,
+  icon: c.icon,
+  nameKey: `config.dashboard_card_${c.id}` as Parameters<typeof t>[0],
+  color: DOMAIN_COLORS[c.colorKey].rgb,
+}));
 
 export class ConfigDashboardView extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
@@ -178,7 +163,7 @@ export class ConfigDashboardView extends LitElement {
   // ── Navigate to card config ──
 
   private _navigateToCard(cardId: string): void {
-    const sub = SUB_MAP[cardId] ?? cardId;
+    const sub = cardById(cardId)?.sub ?? cardId;
     this.dispatchEvent(new CustomEvent('sub-select', { detail: sub, bubbles: true, composed: true }));
   }
 
@@ -346,42 +331,15 @@ export class ConfigDashboardView extends LitElement {
     `;
   }
 
-  /** Extract the config slice for a specific card tab from the full config. */
-  private _sliceFor(key: string): Record<string, unknown> {
-    const configKey = CONFIG_KEYS[key];
-    return ((this.configData as Record<string, unknown>)?.[configKey ?? ''] ?? {}) as Record<string, unknown>;
-  }
-
   private _renderSubSection(id: string): TemplateResult {
-    const slice = this._sliceFor(id);
-    switch (id) {
-      case 'title':
-        return html`<config-tab-title .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-title>`;
-      case 'spotify':
-        return html`<config-tab-spotify .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-spotify>`;
-      case 'presence':
-        return html`<config-tab-presence .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-presence>`;
-      case 'camera':
-        return html`<config-tab-camera .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-camera>`;
-      case 'weather':
-        return html`<config-tab-weather .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-weather>`;
-      case 'light':
-        return html`<config-tab-light .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-light>`;
-      case 'cover':
-        return html`<config-tab-cover .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-cover>`;
-      case 'climate':
-        return html`<config-tab-climate .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-climate>`;
-      case 'fan':
-        return html`<config-tab-fan .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-fan>`;
-      case 'media':
-        return html`<config-tab-media .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-media>`;
-      case 'calendar':
-        return html`<config-tab-calendar .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-calendar>`;
-      case 'vacuum':
-        return html`<config-tab-vacuum .hass=${this.hass} .configData=${slice} .backend=${this.backend}></config-tab-vacuum>`;
-      default:
-        return html`<div class="placeholder"><ha-icon .icon=${'mdi:hammer-wrench'}></ha-icon><span>${id}</span></div>`;
+    const def = cardBySub(id);
+    if (!def) {
+      return html`<div class="placeholder"><ha-icon .icon=${'mdi:hammer-wrench'}></ha-icon><span>${id}</span></div>`;
     }
+    const slice = ((this.configData as Record<string, unknown>)?.[def.configKey] ?? {}) as Record<string, unknown>;
+    const tag = staticTag(def.panelTag);
+    // Static template cached per panel tag — fixed set, see registry notes
+    return staticHtml`<${tag} .hass=${this.hass} .configData=${slice} .backend=${this.backend}></${tag}>`;
   }
 }
 

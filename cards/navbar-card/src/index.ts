@@ -5,6 +5,8 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  DASHBOARD_CARD_ORDER,
+  DASHBOARD_CARD_TAGS,
   type HomeAssistant,
   type LovelaceCardConfig,
 } from '@glass-cards/base-card';
@@ -46,24 +48,10 @@ function computeAmbientPeriod(hass: HomeAssistant): AmbientPeriod {
   return 'night';
 }
 
-/** Maps dashboard config keys to custom element tag names */
-const DASHBOARD_CARD_MAP: Record<string, string> = {
-  weather: 'glass-weather-card',
-  light: 'glass-light-card',
-  cover: 'glass-cover-card',
-  fan: 'glass-fan-card',
-  title: 'glass-title-card',
-  spotify: 'glass-spotify-card',
-  media: 'glass-media-card',
-  presence: 'glass-presence-card',
-  climate: 'glass-climate-card',
-  camera_carousel: 'glass-camera-carousel-card',
-  calendar: 'glass-calendar-card',
-  vacuum: 'glass-vacuum-card',
-};
-
-/** Default render order for dashboard cards */
-const DEFAULT_CARD_ORDER = ['title', 'weather', 'climate', 'light', 'media', 'fan', 'cover', 'spotify', 'presence', 'camera_carousel', 'calendar', 'vacuum'];
+// Dashboard id → tag map and default order both derive from the shared
+// card registry (packages/base-card/src/card-registry.ts).
+const DASHBOARD_CARD_MAP = DASHBOARD_CARD_TAGS;
+const DEFAULT_CARD_ORDER = DASHBOARD_CARD_ORDER;
 
 const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
@@ -130,7 +118,7 @@ export class GlassNavbarCard extends BaseCard {
   private _lastAmbientPeriod: AmbientPeriod | null = null;
   @state() private _editMode = false;
   @state() private _enabledCards: string[] = ['weather'];
-  private _cardOrder: string[] = DEFAULT_CARD_ORDER;
+  private _cardOrder: string[] = [...DEFAULT_CARD_ORDER];
   /** Merge a stored card_order with DEFAULT_CARD_ORDER so cards added in
    *  newer releases (calendar, etc.) still appear when the user's stored
    *  order predates them. Unknown ids are dropped. */

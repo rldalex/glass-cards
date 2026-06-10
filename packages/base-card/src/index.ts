@@ -1,4 +1,18 @@
 export { GlassCardEditor, defineEditor } from './editor';
+export {
+  GLASS_CARDS,
+  DASHBOARD_CARD_ORDER,
+  DASHBOARD_CARD_TAGS,
+  ROOM_CARDS,
+  ROOM_CARD_ORDER,
+  cardById,
+  cardByDomain,
+  cardBySub,
+  normalizeRoomCardId,
+  staticTag,
+  staticHtml,
+  type GlassCardDef,
+} from './card-registry';
 import { LitElement, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { bus, attachHass, type GlassEventMap } from '@glass-cards/event-bus';

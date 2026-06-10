@@ -427,9 +427,11 @@ class GlassCoverCard extends BaseCard {
 
       // Apply room config (order + hidden)
       if (this._roomConfig) {
-        const hidden = new Set(this._roomConfig.hidden_entities);
+        // Defensive defaults: a partial get_room payload without these fields
+        // crashed the sort below (undefined.indexOf)
+        const hidden = new Set(this._roomConfig.hidden_entities ?? []);
         entityIds = entityIds.filter((id) => !hidden.has(id));
-        const order = this._roomConfig.entity_order;
+        const order = this._roomConfig.entity_order ?? [];
         entityIds.sort((a, b) => {
           const ai = order.indexOf(a);
           const bi = order.indexOf(b);

@@ -3,7 +3,7 @@ import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { resolveEntityAreaId } from '@glass-cards/base-card';
 import { BaseConfigTab } from '../base-tab';
-import { CARD_ICONS, DOMAIN_I18N_KEYS } from '../types';
+import { CARD_ICONS, getCardMeta } from '../types';
 
 // — Types —
 
@@ -26,8 +26,8 @@ function domainIcon(domain: string): string {
 }
 
 function domainLabel(domain: string): string {
-  const keys = DOMAIN_I18N_KEYS[domain as keyof typeof DOMAIN_I18N_KEYS];
-  return keys ? t(keys.name) : domain;
+  const { nameKey } = getCardMeta(domain);
+  return nameKey ? t(nameKey) : domain;
 }
 
 // — Component —

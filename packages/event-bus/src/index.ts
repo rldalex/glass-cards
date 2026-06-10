@@ -137,7 +137,10 @@ export function removeHistoryIntercept(): void {
 
 const HA_EVENT = 'glass_cards_config_changed';
 
-const SECTION_TO_EVENT: Partial<Record<string, keyof GlassEventMap>> = {
+// Exported for the registry coherence test (tests/frontend/card-registry.test.ts):
+// event-bus sits below base-card and cannot import the card registry, so the
+// test cross-checks that every registry configKey has its bridge entry here.
+export const SECTION_TO_EVENT: Partial<Record<string, keyof GlassEventMap>> = {
   navbar: 'navbar-config-changed',
   weather: 'weather-config-changed',
   light_card: 'light-config-changed',

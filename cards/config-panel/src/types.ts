@@ -52,38 +52,25 @@ export interface SchedulePeriodEdit {
   recurring: boolean;
 }
 
-export const DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera', 'vacuum'];
+// Room-card tables derive from the shared card registry — keep NO hand-copied
+// per-card data here (diverging copies caused the 'media'/'media_player' bug).
+import { GLASS_CARDS, ROOM_CARD_ORDER } from '@glass-cards/base-card';
 
-export const IMPLEMENTED_CARDS = new Set(['light', 'media_player', 'climate', 'cover', 'fan', 'camera']);
+export const DEFAULT_CARD_ORDER: readonly string[] = ROOM_CARD_ORDER;
 
-export const CARD_ICONS: Record<string, string> = {
-  light: 'mdi:lightbulb-group',
-  media_player: 'mdi:speaker',
-  climate: 'mdi:thermostat',
-  fan: 'mdi:fan',
-  cover: 'mdi:blinds',
-  camera: 'mdi:cctv',
-  vacuum: 'mdi:robot-vacuum-variant',
-};
+export const IMPLEMENTED_CARDS = new Set(ROOM_CARD_ORDER);
 
-type DomainKey = 'light' | 'media_player' | 'climate' | 'fan' | 'cover' | 'camera' | 'vacuum';
-
-export const DOMAIN_I18N_KEYS: Record<DomainKey, { name: TranslationKey; desc: TranslationKey }> = {
-  light: { name: 'config.domain_light', desc: 'config.domain_light_desc' },
-  media_player: { name: 'config.domain_media_player', desc: 'config.domain_media_player_desc' },
-  climate: { name: 'config.domain_climate', desc: 'config.domain_climate_desc' },
-  fan: { name: 'config.domain_fan', desc: 'config.domain_fan_desc' },
-  cover: { name: 'config.domain_cover', desc: 'config.domain_cover_desc' },
-  camera: { name: 'config.domain_camera', desc: 'config.domain_camera_desc' },
-  vacuum: { name: 'config.domain_vacuum', desc: 'config.domain_vacuum_desc' },
-};
+/** Entity domain → icon, for every registry card that has a domain. */
+export const CARD_ICONS: Record<string, string> = Object.fromEntries(
+  GLASS_CARDS.filter((c) => c.domain).map((c) => [c.domain as string, c.icon]),
+);
 
 export function getCardMeta(domain: string): { nameKey: TranslationKey | null; icon: string; descKey: TranslationKey | null } {
-  const keys = DOMAIN_I18N_KEYS[domain as DomainKey];
+  const known = domain in CARD_ICONS;
   return {
-    nameKey: keys ? keys.name : null,
+    nameKey: known ? (`config.domain_${domain}` as TranslationKey) : null,
     icon: CARD_ICONS[domain] || 'mdi:help-circle',
-    descKey: keys ? keys.desc : null,
+    descKey: known ? (`config.domain_${domain}_desc` as TranslationKey) : null,
   };
 }
 
