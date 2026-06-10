@@ -29,37 +29,37 @@ const ACTION_ICONS: Record<string, string> = {
 
 // — Geometry helpers —
 
-function toRad(angle: number): number {
+export function toRad(angle: number): number {
   return ((angle - 90) * Math.PI) / 180;
 }
 
-function pointOnArc(cx: number, cy: number, r: number, angle: number): { x: number; y: number } {
+export function pointOnArc(cx: number, cy: number, r: number, angle: number): { x: number; y: number } {
   const rad = toRad(angle);
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
-function arcPath(startAngle: number, endAngle: number): string {
+export function arcPath(startAngle: number, endAngle: number): string {
   const p1 = pointOnArc(CX, CY, R, startAngle);
   const p2 = pointOnArc(CX, CY, R, endAngle);
   const largeArc = endAngle - startAngle > 180 ? 1 : 0;
   return `M ${p1.x} ${p1.y} A ${R} ${R} 0 ${largeArc} 1 ${p2.x} ${p2.y}`;
 }
 
-function tempToAngle(temp: number, min: number, max: number): number {
+export function tempToAngle(temp: number, min: number, max: number): number {
   const ratio = Math.max(0, Math.min(1, (temp - min) / (max - min)));
   return START_ANGLE + ratio * TOTAL_ANGLE;
 }
 
 // — Color class helpers —
 
-function getArcColorClass(hvacAction: string, hvacMode: string): string {
+export function getArcColorClass(hvacAction: string, hvacMode: string): string {
   if (hvacAction === 'heating' || hvacAction === 'preheating') return 'heat';
   if (hvacAction === 'cooling') return 'cool';
   if (hvacMode === 'auto' || hvacMode === 'heat_cool') return 'auto-arc';
   return 'off';
 }
 
-function getActionColorClass(hvacAction: string): string {
+export function getActionColorClass(hvacAction: string): string {
   if (hvacAction === 'heating' || hvacAction === 'preheating') return 'heat';
   if (hvacAction === 'cooling') return 'cool';
   if (hvacAction === 'idle') return 'idle';
