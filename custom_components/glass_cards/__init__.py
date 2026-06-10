@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.frontend import (
     add_extra_js_url,
     async_register_built_in_panel,
+    async_remove_panel,
+    remove_extra_js_url,
 )
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
@@ -46,10 +48,14 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 async def _register_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
     """Register the JS bundle as a Lovelace resource (storage mode).
 
-    Returns True when the bundle is now registered through the Lovelace resource
-    store, False when that path is unavailable (no lovelace data, or YAML-mode
-    dashboards whose collection is read-only) so the caller can fall back to
-    add_extra_js_url.
+    Returns True when the caller must NOT fall back to add_extra_js_url:
+    either the bundle is now registered through the Lovelace resource store,
+    or the store exists but errored mid-normalization (a resource persisted by
+    a previous boot may still load the bundle — adding the global script on
+    top would execute the bundle twice: double history patch, double
+    ThemeManager). Returns False only when the resource path is structurally
+    unavailable (no lovelace data, or YAML-mode dashboards whose collection is
+    read-only), where no persisted resource can exist.
 
     The companion app caches the HTML page served by HA, so scripts added via
     add_extra_js_url may not load on cold starts; Lovelace resources are fetched
@@ -90,8 +96,13 @@ async def _register_lovelace_resource(hass: HomeAssistant, url: str) -> bool:
             _LOGGER.debug("Registered glass-cards as Lovelace resource: %s", url)
         return True
     except Exception:  # noqa: BLE001
-        _LOGGER.exception("Failed to register glass-cards Lovelace resource")
-        return False
+        _LOGGER.exception(
+            "Failed to normalize the glass-cards Lovelace resource; NOT falling "
+            "back to add_extra_js_url (a persisted resource may already load the "
+            "bundle — loading it twice would break the frontend). If cards are "
+            "missing, restart Home Assistant."
+        )
+        return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -102,6 +113,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN]["store"] = store
     hass.data[DOMAIN]["spotify_cache"] = SpotifyCache()
+    # URLs registered via add_extra_js_url this run, so unload can remove
+    # exactly them (an entry reload would otherwise stack a new ?v= hash on
+    # top of the old one and load the same script twice).
+    extra_js_urls: list[str] = hass.data[DOMAIN].setdefault("extra_js_urls", [])
 
     www_dir = os.path.join(os.path.dirname(__file__), "www")
     static_paths: list[StaticPathConfig] = []
@@ -125,6 +140,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         static_paths.append(StaticPathConfig(JS_PATH, js_path, cache_headers=False))
         if not await _register_lovelace_resource(hass, js_url):
             add_extra_js_url(hass, js_url)
+            extra_js_urls.append(js_url)
 
     # Serve the config panel JS bundle
     if panel_exists:
@@ -138,6 +154,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             StaticPathConfig(HUE_ICONS_PATH, hue_icons_path, cache_headers=False)
         )
         add_extra_js_url(hass, hue_icons_url)
+        extra_js_urls.append(hue_icons_url)
 
     if static_paths:
         try:
@@ -168,6 +185,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    hass.data.pop(DOMAIN, None)
+    """Unload a config entry — undo the in-memory frontend registrations.
+
+    The Lovelace resource is intentionally kept: it is persistent storage and
+    async_setup_entry re-normalizes it, so removing it here would just churn
+    on every entry reload. Permanent removal happens in async_remove_entry.
+    """
+    data = hass.data.pop(DOMAIN, None) or {}
+    for url in data.get("extra_js_urls", []):
+        remove_extra_js_url(hass, url)
+    async_remove_panel(hass, "glass-cards", warn_if_unknown=False)
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Clean up persistent artifacts when the integration is removed.
+
+    Without this, the persisted Lovelace resource outlives the uninstall and
+    404s on every dashboard load (the most common HACS-removal leftover).
+    """
+    lovelace_data = hass.data.get("lovelace")
+    resources = getattr(lovelace_data, "resources", None) if lovelace_data else None
+    if resources is None or not hasattr(resources, "async_delete_item"):
+        return
+    try:
+        if hasattr(resources, "loaded") and not resources.loaded:
+            await resources.async_load()
+            resources.loaded = True
+        for item in list(resources.async_items()):
+            if JS_PATH in item.get("url", ""):
+                await resources.async_delete_item(item["id"])
+    except Exception:  # noqa: BLE001
+        _LOGGER.exception("Failed to remove the glass-cards Lovelace resource")

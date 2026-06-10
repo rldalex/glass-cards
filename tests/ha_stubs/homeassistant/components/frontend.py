@@ -9,6 +9,18 @@ def add_extra_js_url(hass: Any, url: str) -> None:
     pass
 
 
+def remove_extra_js_url(hass: Any, url: str, es5: bool = False) -> None:
+    """No-op stub."""
+    pass
+
+
+def async_remove_panel(
+    hass: Any, frontend_url_path: str, *, warn_if_unknown: bool = True
+) -> None:
+    """No-op stub."""
+    pass
+
+
 def async_register_built_in_panel(
     hass: Any,
     component_name: str = "",

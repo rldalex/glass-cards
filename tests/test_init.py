@@ -7,6 +7,7 @@ import pytest
 
 from custom_components.glass_cards import (
     _register_lovelace_resource,
+    async_remove_entry,
     async_setup,
     async_setup_entry,
     async_unload_entry,
@@ -235,6 +236,23 @@ class TestRegisterLovelaceResource:
         assert resources.created == []
 
     @pytest.mark.asyncio
+    async def test_error_during_normalization_does_not_fall_back(self, mock_hass):
+        """A store error must return True (skip fallback): a resource persisted
+        by a previous boot may already load the bundle, and stacking
+        add_extra_js_url on top would execute it twice."""
+        resources = FakeResources([{"id": "a", "type": "js", "url": f"{JS_PATH}?v=old"}])
+
+        async def boom(*_a, **_k):
+            raise RuntimeError("storage exploded")
+
+        resources.async_update_item = boom  # normalization step fails
+        mock_hass.data["lovelace"] = _lovelace(resources)
+
+        result = await _register_lovelace_resource(mock_hass, f"{JS_PATH}?v=new")
+
+        assert result is True
+
+    @pytest.mark.asyncio
     async def test_ignores_panel_bundle_url(self, mock_hass):
         """The panel bundle must not be mistaken for the main bundle."""
         panel_url = "/glass_cards/glass-cards-panel.js?v=xyz"
@@ -317,12 +335,84 @@ class TestAsyncUnloadEntry:
     async def test_clears_hass_data(self, mock_hass, mock_entry):
         """Should remove DOMAIN from hass.data."""
         mock_hass.data[DOMAIN] = {"store": MagicMock()}
-        result = await async_unload_entry(mock_hass, mock_entry)
+        with (
+            patch("custom_components.glass_cards.async_remove_panel"),
+            patch("custom_components.glass_cards.remove_extra_js_url"),
+        ):
+            result = await async_unload_entry(mock_hass, mock_entry)
         assert result is True
         assert DOMAIN not in mock_hass.data
 
     @pytest.mark.asyncio
     async def test_unload_when_not_setup(self, mock_hass, mock_entry):
         """Should handle unload when domain not in data."""
-        result = await async_unload_entry(mock_hass, mock_entry)
+        with (
+            patch("custom_components.glass_cards.async_remove_panel"),
+            patch("custom_components.glass_cards.remove_extra_js_url"),
+        ):
+            result = await async_unload_entry(mock_hass, mock_entry)
         assert result is True
+
+    @pytest.mark.asyncio
+    async def test_removes_panel_and_extra_js(self, mock_hass, mock_entry):
+        """Should undo the in-memory frontend registrations of this run."""
+        mock_hass.data[DOMAIN] = {
+            "store": MagicMock(),
+            "extra_js_urls": ["/glass_cards/hass-hue-icons.js?v=abc"],
+        }
+        with (
+            patch("custom_components.glass_cards.async_remove_panel") as mock_panel,
+            patch("custom_components.glass_cards.remove_extra_js_url") as mock_js,
+        ):
+            await async_unload_entry(mock_hass, mock_entry)
+        mock_panel.assert_called_once_with(
+            mock_hass, "glass-cards", warn_if_unknown=False
+        )
+        mock_js.assert_called_once_with(
+            mock_hass, "/glass_cards/hass-hue-icons.js?v=abc"
+        )
+
+
+class TestAsyncRemoveEntry:
+    """async_remove_entry must delete the persisted Lovelace resource."""
+
+    @pytest.mark.asyncio
+    async def test_deletes_matching_resource(self, mock_hass, mock_entry):
+        """The main-bundle resource is removed; unrelated entries are kept."""
+        resources = FakeResources(
+            [
+                {"id": "a", "type": "js", "url": f"{JS_PATH}?v=abc"},
+                {"id": "other", "type": "js", "url": "/other/card.js"},
+            ]
+        )
+        mock_hass.data["lovelace"] = _lovelace(resources)
+
+        await async_remove_entry(mock_hass, mock_entry)
+
+        assert resources.deleted == ["a"]
+        assert [i["id"] for i in resources.async_items()] == ["other"]
+
+    @pytest.mark.asyncio
+    async def test_loads_store_before_deleting(self, mock_hass, mock_entry):
+        """An unloaded store must be loaded so the persisted entry is visible."""
+        resources = FakeResources(
+            [{"id": "a", "type": "js", "url": f"{JS_PATH}?v=abc"}], loaded=False
+        )
+        mock_hass.data["lovelace"] = _lovelace(resources)
+
+        await async_remove_entry(mock_hass, mock_entry)
+
+        assert resources.load_called is True
+        assert resources.deleted == ["a"]
+
+    @pytest.mark.asyncio
+    async def test_no_lovelace_is_noop(self, mock_hass, mock_entry):
+        """Removal without a resource store must not raise."""
+        await async_remove_entry(mock_hass, mock_entry)
+
+    @pytest.mark.asyncio
+    async def test_yaml_mode_is_noop(self, mock_hass, mock_entry):
+        """YAML-mode collections (no mutation API) are left untouched."""
+        yaml_resources = SimpleNamespace(async_items=lambda: [])
+        mock_hass.data["lovelace"] = _lovelace(yaml_resources)
+        await async_remove_entry(mock_hass, mock_entry)
