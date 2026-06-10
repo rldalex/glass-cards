@@ -341,6 +341,13 @@ export class GlassRoomPopup extends LitElement {
     }
     this._listen('popup-open', (payload) => this._handleOpen(payload));
     this._listen('popup-close', () => this._handleClose());
+    // The popup is a persistent document.body singleton: it survives panel
+    // navigation, so it must close itself when the route changes (settings
+    // button, back button, sidebar link). Emit on the bus rather than calling
+    // _handleClose() directly so the navbar resets _activeArea too.
+    this._listen('location-changed', () => {
+      if (this._open) bus.emit('popup-close', undefined);
+    });
     this._listen('room-config-changed', (payload) => {
       if (this._peekTimeout !== undefined) { clearTimeout(this._peekTimeout); this._peekTimeout = undefined; }
       this._roomConfigs.delete(payload.areaId);

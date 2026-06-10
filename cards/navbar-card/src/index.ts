@@ -95,7 +95,6 @@ export class GlassNavbarCard extends BaseCard {
   @state() private _activeArea: string | null = null;
   @state() private _scrollMask: 'none' | 'mask-right' | 'mask-left' | 'mask-both' = 'none';
   private _popup: HTMLElement | null = null;
-  private _ownsPopup = false;
   private _areaStructure: AreaStructure[] = [];
   private _lastAreaKeys = '';
   private _lastEntitiesRef?: Record<string, unknown>;
@@ -471,20 +470,24 @@ export class GlassNavbarCard extends BaseCard {
 
   connectedCallback() {
     super.connectedCallback();
-    // Singleton popup — reuse existing if another navbar instance created one
+    // Persistent popup singleton — created once, appended to document.body and
+    // never removed (same pattern as the window-global event bus). An ownership
+    // model (owner navbar removing it on disconnect) breaks when a second
+    // navbar reuses the popup before the owner disconnects: the popup is torn
+    // down under the survivor and clicks silently stop opening anything. The
+    // element is inert while closed (pointer-events none, renders nothing) and
+    // it only retains the latest hass snapshot, so persisting it is cheap.
     const existing = document.querySelector('glass-room-popup') as HTMLElement | null;
     if (existing) {
       this._popup = existing;
-      this._ownsPopup = false;
     } else {
       // Wait for custom element to be defined before creating
       customElements.whenDefined('glass-room-popup').then(() => {
         if (!this.isConnected) return;
         const el = document.querySelector('glass-room-popup') as HTMLElement | null;
-        if (el) { this._popup = el; this._ownsPopup = false; return; }
+        if (el) { this._popup = el; return; }
         this._popup = document.createElement('glass-room-popup');
         document.body.appendChild(this._popup);
-        this._ownsPopup = true;
         // Propagate hass immediately if already available
         if (this.hass && this._popup) {
           (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
@@ -518,9 +521,9 @@ export class GlassNavbarCard extends BaseCard {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    if (this._ownsPopup) this._popup?.remove();
+    // The popup singleton intentionally stays in document.body (see
+    // connectedCallback) — only drop our reference.
     this._popup = null;
-    this._ownsPopup = false;
     if (this._scrollEl) {
       this._scrollEl.removeEventListener('scroll', this._boundUpdateMask);
       this._scrollEl = null;
@@ -654,6 +657,10 @@ export class GlassNavbarCard extends BaseCard {
     if (changedProps.has('hass') && this.hass) {
       // Always propagate hass to child cards even if navbar itself doesn't need re-render
       if (this._popup) {
+        // Safety net: if something external removed the popup from the DOM,
+        // re-append it so its bus listeners come back (appendChild on a
+        // connected element is a no-op move, so this is cheap and idempotent).
+        if (!this._popup.isConnected) document.body.appendChild(this._popup);
         (this._popup as unknown as { hass: HomeAssistant }).hass = this.hass;
       }
       for (const card of this._dashboardCards.values()) {
@@ -1170,6 +1177,8 @@ export class GlassNavbarCard extends BaseCard {
   private _handleNavClick(item: NavItem, e: Event) {
     const button = e.currentTarget as HTMLElement;
     const rect = button.getBoundingClientRect();
+    // Heal a detached popup before emitting, so the open event has a listener
+    if (this._popup && !this._popup.isConnected) document.body.appendChild(this._popup);
 
     if (this._activeArea === item.areaId) {
       bus.emit('popup-close', undefined);
