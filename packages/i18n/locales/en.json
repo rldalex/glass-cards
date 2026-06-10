@@ -433,7 +433,8 @@
     "skip_track": "Skip track",
     "remove_from_queue": "Remove from queue",
     "extra_entities": "Extra entities",
-    "add_entity": "Add entity"
+    "add_entity": "Add entity",
+    "fold_toggle_aria": "Toggle advanced controls"
   },
   "presence": {
     "title": "PRESENCES",

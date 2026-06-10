@@ -4,7 +4,9 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  isEntityVisibleNow,
   fireHaptic,
+  type EntityScheduleMap,
   type LovelaceCardConfig,
   type HassEntity,
 } from '@glass-cards/base-card';
@@ -152,10 +154,13 @@ export class GlassMediaCard extends BaseCard {
   private _lastArtworkUrl = '';
   private _samplingCanvas?: HTMLCanvasElement;
   private _samplingCtx?: CanvasRenderingContext2D | null;
-  private _configLoadingInProgress = false;
+  private _schedules: EntityScheduleMap | null = null;
+  private _schedulesLoaded = false;
   private _playersCache: MediaPlayerInfo[] | null = null;
   private _playersCacheKey = '';
   private _volumeThrottles = new Map<string, number>();
+  /** Pending volume drags (entityId -> 0-100); cleared once HA confirms. */
+  private _dragVolumes = new Map<string, number>();
   private _progressTimer = 0;
   private _swipeAnimating = false;
   private _swipeAnimTimer = 0;
@@ -179,10 +184,15 @@ export class GlassMediaCard extends BaseCard {
     super.connectedCallback();
     this._listen('media-config-changed', () => {
       this._playersCache = null;
+      this._configLoaded = false;
       this._loadConfig();
     });
     this._listen('room-config-changed', () => {
       this._playersCache = null;
+    });
+    this._listen('schedule-changed', () => {
+      this._schedulesLoaded = false;
+      this._loadSchedules();
     });
     this._listen('radio-queue-started', () => { this._radioTracks = []; });
     this._listen('radio-queue-track-added', (ev) => {
@@ -198,6 +208,7 @@ export class GlassMediaCard extends BaseCard {
     super.disconnectedCallback();
     this._backend = undefined;
     this._volumeThrottles.clear();
+    this._dragVolumes.clear();
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
     if (this._swipeAnimTimer) { clearTimeout(this._swipeAnimTimer); this._swipeAnimTimer = 0; }
     if (this._queueRefreshTimer) { clearTimeout(this._queueRefreshTimer); this._queueRefreshTimer = 0; }
@@ -207,8 +218,8 @@ export class GlassMediaCard extends BaseCard {
     this._swipeAnimating = false;
     this._swipeClass = '';
     this._prevPlayingSet = '';
-    ++this._loadVersion;
-    this._configLoadingInProgress = false;
+    this._configLoaded = false;
+    this._schedulesLoaded = false;
     this._lastArtworkUrl = '';
     this._samplingCanvas = undefined;
     this._samplingCtx = undefined;
@@ -235,11 +246,7 @@ export class GlassMediaCard extends BaseCard {
       if (this._backend && this._backend.connection !== this.hass.connection) {
         this._backend = undefined;
         this._configLoaded = false;
-        this._configLoadingInProgress = false;
-      }
-      if (!this._backend) {
-        this._backend = new BackendService(this.hass);
-        this._loadConfig();
+        this._schedulesLoaded = false;
       }
       // Invalidate players cache when entity registry changes
       const oldHass = changedProps.get('hass') as { entities?: unknown } | undefined;
@@ -247,6 +254,22 @@ export class GlassMediaCard extends BaseCard {
         this._playersCache = null;
         this._playersCacheKey = '';
       }
+    }
+    if (this.hass && !this._configLoaded) this._loadConfig();
+    if (this.hass && !this._schedulesLoaded) this._loadSchedules();
+    // Clear stale volume drags once HA state catches up (tolerance ±2)
+    if (changedProps.has('hass') && this.hass && this._dragVolumes.size > 0) {
+      let changed = false;
+      for (const [entityId, drag] of this._dragVolumes) {
+        const entity = this.hass.states[entityId];
+        if (!entity) continue;
+        const haVol = Math.round(((entity.attributes.volume_level as number) ?? 0) * 100);
+        if (Math.abs(haVol - drag) <= 2) {
+          this._dragVolumes.delete(entityId);
+          changed = true;
+        }
+      }
+      if (changed) this.requestUpdate();
     }
     // Auto-switch to newly playing room in dashboard mode
     if (changedProps.has('hass') && this.isDashboard && this.hass) {
@@ -392,12 +415,11 @@ export class GlassMediaCard extends BaseCard {
   }
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend || this._configLoadingInProgress) return;
-    this._configLoadingInProgress = true;
-    const version = ++this._loadVersion;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{ media_card: MediaBackendConfig }>('get_config');
-      if (version !== this._loadVersion) return;
       if (result?.media_card) {
         this._mediaConfig = {
           extra_entities: result.media_card.extra_entities ?? {},
@@ -405,10 +427,25 @@ export class GlassMediaCard extends BaseCard {
           show_header: result.media_card.show_header ?? true,
         };
       }
-      this._configLoaded = true;
       this.requestUpdate();
-    } catch { /* ignore */ } finally {
-      if (version === this._loadVersion) this._configLoadingInProgress = false;
+    } catch {
+      // Retry on the next hass tick.
+      this._configLoaded = false;
+    }
+  }
+
+  private async _loadSchedules(): Promise<void> {
+    if (!this.hass || this._schedulesLoaded) return;
+    this._schedulesLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<EntityScheduleMap>('get_schedules');
+      this._schedules = result;
+      this._playersCache = null;
+      this._playersCacheKey = '';
+      this.requestUpdate();
+    } catch {
+      this._schedulesLoaded = false;
     }
   }
 
@@ -418,7 +455,7 @@ export class GlassMediaCard extends BaseCard {
     if (this.isDashboard) {
       const hiddenSet = new Set(this._mediaConfig.hidden_entities);
       return Object.values(this.hass.states)
-        .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id))
+        .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules))
         .map(getMediaInfo)
         .sort((a, b) => {
           const priority = (s: string) => (s === 'playing' ? 0 : s === 'buffering' ? 1 : 2);
@@ -444,7 +481,8 @@ export class GlassMediaCard extends BaseCard {
       .filter((e) => e.entity_id.startsWith('media_player.'))
       .map((e) => e.entity_id);
 
-    const allIds = [...new Set([...areaPlayerIds, ...extraIds])];
+    const allIds = [...new Set([...areaPlayerIds, ...extraIds])]
+      .filter((id) => isEntityVisibleNow(id, this._schedules));
     const players = allIds
       .map((id) => this.hass?.states[id])
       .filter((e): e is HassEntity => !!e)
@@ -479,7 +517,7 @@ export class GlassMediaCard extends BaseCard {
     if (!this.hass) return [];
     const hiddenSet = new Set(this._mediaConfig.hidden_entities);
     const allPlaying = Object.values(this.hass.states)
-      .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id))
+      .filter((e) => e.entity_id.startsWith('media_player.') && isActive(e.state) && !hiddenSet.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules))
       .map(getMediaInfo);
 
     // Sort: coordinators first, then by most recently updated
@@ -724,11 +762,16 @@ export class GlassMediaCard extends BaseCard {
     const fill = bar.querySelector('.speaker-vol-fill') as HTMLElement;
     const val = bar.querySelector('.speaker-vol-val') as HTMLElement;
 
+    let lastPct = 0;
     const update = (evt: PointerEvent) => {
       const r = bar.getBoundingClientRect();
       const pct = Math.max(0, Math.min(100, ((evt.clientX - r.left) / r.width) * 100));
+      lastPct = pct;
+      // Imperative feedback for smooth dragging; _dragVolumes keeps Lit
+      // re-renders (hass ticks) from snapping the bar back to the HA value.
       fill.style.width = pct + '%';
       if (val) val.textContent = Math.round(pct) + '%';
+      this._dragVolumes.set(entityId, Math.round(pct));
       this._setVolume(entityId, pct / 100);
     };
     update(e);
@@ -736,6 +779,12 @@ export class GlassMediaCard extends BaseCard {
     const onMove = (evt: PointerEvent) => update(evt);
     const cleanup = () => {
       fireHaptic(this, 'light');
+      // Send the final value immediately (the leading throttle may have
+      // dropped it); keep it as drag state until HA confirms (stale-clear
+      // in updated()).
+      this._dragVolumes.set(entityId, Math.round(lastPct));
+      this._volumeThrottles.delete(entityId);
+      this._setVolume(entityId, lastPct / 100);
       bar.removeEventListener('pointermove', onMove);
       bar.removeEventListener('pointerup', cleanup);
       bar.removeEventListener('pointercancel', cleanup);
@@ -849,14 +898,25 @@ export class GlassMediaCard extends BaseCard {
 
             <!-- Bottom glass panel: track info + progress + transport -->
             <div class="dash-info-panel glass-panel">
-              <div class="dash-track">
+              <button
+                class="dash-track"
+                aria-expanded=${this._foldOpen ? 'true' : 'false'}
+                aria-label=${t('media.fold_toggle_aria')}
+                @click=${(e: MouseEvent) => {
+                  // detail === 0 → synthetic click from Enter/Space; pointer
+                  // interactions are handled by the hero gesture (long-press).
+                  if (e.detail !== 0) return;
+                  this._foldOpen = !this._foldOpen;
+                  if (this._foldOpen) this._loadQueue();
+                }}
+              >
                 ${master.title ? html`
                   <div class="dash-track-title">${master.title}</div>
                 ` : nothing}
                 ${master.artist ? html`
                   <div class="dash-track-artist">${master.artist}</div>
                 ` : nothing}
-              </div>
+              </button>
 
               <!-- Progress bar -->
               ${master.duration > 0 && hasFeature(master, F_SEEK) ? html`
@@ -866,8 +926,27 @@ export class GlassMediaCard extends BaseCard {
                     <span class="dash-track-time">${formatTime(master.duration)}</span>
                   </div>
                   <div class="dash-progress"
+                    role="slider"
+                    tabindex="0"
                     aria-label=${t('media.seek_aria')}
+                    aria-valuenow=${Math.round(progress)}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
                     @pointerdown=${(e: PointerEvent) => this._onProgressPointerDown(e, master.entityId, master.duration)}
+                    @keydown=${(e: KeyboardEvent) => {
+                      let pct: number;
+                      switch (e.key) {
+                        case 'ArrowLeft': case 'ArrowDown': pct = Math.max(0, progress - 5); break;
+                        case 'ArrowRight': case 'ArrowUp': pct = Math.min(100, progress + 5); break;
+                        case 'PageDown': pct = Math.max(0, progress - 10); break;
+                        case 'PageUp': pct = Math.min(100, progress + 10); break;
+                        case 'Home': pct = 0; break;
+                        case 'End': pct = 100; break;
+                        default: return;
+                      }
+                      e.preventDefault();
+                      this._seekProgress(master.entityId, master.duration, pct);
+                    }}
                   >
                     <div class="dash-progress-fill" style="width:${progress}%"></div>
                     <div class="dash-progress-thumb" style="left:${progress}%"></div>
@@ -958,12 +1037,12 @@ export class GlassMediaCard extends BaseCard {
           ` : nothing}
         </div>
 
-        <!-- Connected fold -->
+        <!-- Connected fold (content always rendered so the grid transition animates) -->
         <div class="ctrl-fold ${this._foldOpen ? 'open' : ''}">
           <div class="ctrl-fold-inner">
             <div class="dash-fold-sep-top"></div>
             <div class="dash-fold-panel">
-              ${this._foldOpen ? this._renderFoldContent(master, coordinator, allGroupable) : nothing}
+              ${this._renderFoldContent(master, coordinator, allGroupable)}
             </div>
           </div>
         </div>
@@ -997,7 +1076,7 @@ export class GlassMediaCard extends BaseCard {
     return html`
       <!-- Volume (master) — same bar pattern as the speakers below -->
       ${hasFeature(master, F_VOLUME_SET) ? (() => {
-        const masterVol = Math.round((master.isMuted ? 0 : master.volume) * 100);
+        const masterVol = this._dragVolumes.get(master.entityId) ?? Math.round((master.isMuted ? 0 : master.volume) * 100);
         const muteIcon = master.isMuted || master.volume === 0
           ? 'mdi:volume-off'
           : master.volume >= 0.67 ? 'mdi:volume-high'
@@ -1203,7 +1282,7 @@ export class GlassMediaCard extends BaseCard {
         <div class="speakers-list">
           ${otherPlayers.map((speaker) => {
             const inGroup = groupSet.has(speaker.entityId);
-            const vol = Math.round(speaker.volume * 100);
+            const vol = this._dragVolumes.get(speaker.entityId) ?? Math.round(speaker.volume * 100);
             return html`
               <div class="speaker-row ${inGroup ? 'joined' : ''}">
                 <button class="speaker-icon-btn"
@@ -1608,6 +1687,14 @@ export class GlassMediaCard extends BaseCard {
       .dash-track {
         display: flex; flex-direction: column; gap: 0.125rem;
         min-width: 0;
+        background: none; border: none; padding: 0; margin: 0;
+        font-family: inherit; text-align: left; color: inherit;
+        cursor: pointer; outline: none; width: 100%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .dash-track:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white),0.35); outline-offset: 2px;
+        border-radius: var(--radius-sm);
       }
       .dash-track-title {
         font-size: var(--fz-lg); font-weight: 700; color: #fff; line-height: 1.2;
@@ -1750,8 +1837,9 @@ export class GlassMediaCard extends BaseCard {
       .ctrl-fold {
         display: grid; grid-template-rows: 0fr;
         transition: grid-template-rows var(--t-layout);
+        pointer-events: none;
       }
-      .ctrl-fold.open { grid-template-rows: 1fr; }
+      .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
       .ctrl-fold-inner {
         overflow: hidden;
         opacity: 0; transition: opacity 0.25s;

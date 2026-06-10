@@ -433,7 +433,8 @@
     "skip_track": "Passer le morceau",
     "remove_from_queue": "Retirer de la liste de lecture",
     "extra_entities": "Entités supplémentaires",
-    "add_entity": "Ajouter une entité"
+    "add_entity": "Ajouter une entité",
+    "fold_toggle_aria": "Afficher/masquer les contrôles avancés"
   },
   "presence": {
     "title": "PRÉSENCES",
