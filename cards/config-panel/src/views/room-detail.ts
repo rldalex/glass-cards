@@ -917,7 +917,10 @@ export class ConfigRoomDetail extends LitElement {
         try {
           const parsed = JSON.parse(b.data_json);
           if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            const { area_id: _a, device_id: _d, entity_id: _e, ...rest } = parsed as Record<string, unknown>;
+            const rest = { ...(parsed as Record<string, unknown>) };
+            delete rest.area_id;
+            delete rest.device_id;
+            delete rest.entity_id;
             nextData = { ...rest, entity_id: entityId };
           }
         } catch { /* keep minimal */ }

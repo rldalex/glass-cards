@@ -701,7 +701,7 @@ export class GlassMediaCard extends BaseCard {
 
   /** Keyboard a11y on the custom slider: arrows ±5, Home/End jump to 0/100. */
   private _onVolKey(e: KeyboardEvent, entityId: string, currentVol: number): void {
-    let next: number | null = null;
+    let next: number;
     switch (e.key) {
       case 'ArrowLeft':
       case 'ArrowDown': next = Math.max(0, currentVol - 5); break;
