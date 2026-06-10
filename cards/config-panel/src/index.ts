@@ -12,7 +12,7 @@ import {
   type DragContext,
 } from './types';
 
-import { type NavState, DEFAULT_NAV, pushNav, readNavFromHistory, navEquals } from './nav-state.js';
+import { type NavState, DEFAULT_NAV, pushNav, replaceNav, readCurrentNav, readNavFromHistory, navEquals } from './nav-state.js';
 
 // Tab renderers (still needed — views render them)
 import './tabs/cover';
@@ -139,7 +139,15 @@ export class GlassConfigPanel extends LitElement {
     this.addEventListener('rooms-reordered', this._onRoomsReordered as EventListener);
     this.addEventListener('room-visibility-toggle', this._onRoomVisibilityToggle as EventListener);
 
+    // Every panel history entry carries its own glassNav state: adopt the
+    // current entry's state when returning to the panel, otherwise stamp it
+    // (HA's navigate() pushes state:null, so nothing is overwritten).
+    const existing = readCurrentNav();
+    if (existing) this._nav = existing;
+    else replaceNav(this._nav);
+
     this._popstateHandler = (e: PopStateEvent) => {
+      // null state = an entry outside the panel — HA handles that navigation
       const nav = readNavFromHistory(e);
       if (nav) this._nav = nav;
     };
@@ -176,7 +184,11 @@ export class GlassConfigPanel extends LitElement {
     if (!this._loaded || this._loading || this._saving) return;
     if (!this._configReady) {
       this._configReady = true;
-      if (!this._wizardCompleted) this._nav = { section: 'wizard' };
+      if (!this._wizardCompleted) {
+        // replaceNav keeps the history entry in sync with the redirect
+        this._nav = { section: 'wizard' };
+        replaceNav(this._nav);
+      }
       return;
     }
     if (this._suppressAutoSave) { this._suppressAutoSave = false; return; }
@@ -226,12 +238,18 @@ export class GlassConfigPanel extends LitElement {
 
   private _navigateTo(nav: NavState) {
     if (navEquals(this._nav, nav)) return;
-    pushNav(this._nav);
+    // Push the NEW state: popstate restores the state of the entry it lands
+    // on. Pushing the old state (previous behavior) shifted back/forward by
+    // one entry — back from a room detail jumped to the dashboard.
+    pushNav(nav);
     this._nav = nav;
   }
 
   _goBack() {
-    window.location.href = '/';
+    // Leave the panel as an SPA navigation (same pattern the navbar uses to
+    // enter it) — a full location.href reload restarts the whole HA frontend.
+    history.pushState(null, '', '/');
+    window.dispatchEvent(new Event('location-changed'));
   }
 
   // ─── Persistence delegates ───
