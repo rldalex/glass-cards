@@ -31,8 +31,6 @@ export class ConfigTabCamera extends BaseConfigTab {
   @state() _cameraRoomEntities: CameraRoomEntity[] = [];
 
   // Internal drag state for entity reorder
-  @state() protected override _localDragIdx: number | null = null;
-  @state() protected override _localDropIdx: number | null = null;
   @state() _dragContext = '';
 
   protected static override _AUTO_SAVE_KEYS = new Set([

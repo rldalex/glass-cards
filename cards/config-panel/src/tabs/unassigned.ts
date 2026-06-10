@@ -2,6 +2,7 @@ import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
 import { resolveEntityAreaId } from '@glass-cards/base-card';
+import { openIconPortal } from '@glass-cards/ui-core';
 import { BaseConfigTab } from '../base-tab';
 import { CARD_ICONS, getCardMeta } from '../types';
 
@@ -37,11 +38,8 @@ export class ConfigTabUnassigned extends BaseConfigTab {
   @state() _unassignedEntitySearch = '';
   @state() _unassignedEditingEntity: string | null = null;
   @state() _iconPopupEntity: string | null = null;
-  @state() _iconSearch = '';
   @state() _filter: 'all' | 'orphans' = 'all';
   @state() _collapsedDomains = new Set<string>();
-  _iconList: string[] = [];
-  _iconLoading = false;
 
   // — Lifecycle —
 
@@ -152,36 +150,20 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     this._unassignedEditingEntity = null;
   }
 
-  private async _openIconPopup(entityId: string): Promise<void> {
-    if (this._iconLoading) return;
-    if (this._iconList.length === 0) await this._loadIconList();
-    this._iconSearch = '';
+  private _closeIconPortal: (() => void) | null = null;
+
+  private _openIconPopup(entityId: string): void {
     this._iconPopupEntity = entityId;
-  }
-
-  private async _loadIconList(): Promise<void> {
-    this._iconLoading = true;
-    const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
-    picker.hass = this.hass;
-    picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
-    try {
-      this.shadowRoot?.appendChild(picker);
-      await new Promise((r) => setTimeout(r, 50));
-      const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
-      if (gp?.getItems) {
-        const items = await gp.getItems();
-        if (items?.length) this._iconList = items.map((i) => i.id);
-      }
-    } catch { /* ignore */ } finally {
-      if (this.shadowRoot?.contains(picker)) this.shadowRoot.removeChild(picker);
-      this._iconLoading = false;
-    }
-  }
-
-  private _getFilteredIcons(): string[] {
-    const query = this._iconSearch.toLowerCase().trim();
-    if (!query) return this._iconList.slice(0, 120);
-    return this._iconList.filter((icon) => icon.toLowerCase().includes(query)).slice(0, 120);
+    const entity = this._unassignedEntities.find((e) => e.entityId === entityId);
+    this._closeIconPortal = openIconPortal({
+      hass: this.hass,
+      value: entity?.icon ?? '',
+      allowNone: true,
+      headerText: t('config.unassigned_change_icon'),
+      emptyText: t('config.title_no_icons_found'),
+      onSelect: (icon) => void this._selectIcon(icon),
+      onClose: () => { this._iconPopupEntity = null; this._closeIconPortal = null; },
+    });
   }
 
   private async _selectIcon(icon: string): Promise<void> {
@@ -204,121 +186,10 @@ export class ConfigTabUnassigned extends BaseConfigTab {
     }
   }
 
-  private _portalEl: HTMLDivElement | null = null;
-  private _portalClickHandler: ((e: MouseEvent) => void) | null = null;
-
-  private _showIconPortal(): void {
-    if (!this._iconPopupEntity) { this._removeIconPortal(); return; }
-    const entity = this._unassignedEntities.find((e) => e.entityId === this._iconPopupEntity);
-    const currentIcon = entity?.icon ?? '';
-    const icons = this._getFilteredIcons();
-
-    const close = () => { this._iconPopupEntity = null; this._removeIconPortal(); };
-    const select = (icon: string) => { this._selectIcon(icon); this._removeIconPortal(); };
-    const onSearch = (val: string) => { this._iconSearch = val; this._showIconPortal(); };
-
-    if (!this._portalEl) {
-      this._portalEl = document.createElement('div');
-      // Attach the backdrop listener ONCE at creation — this method re-runs on
-      // every search keystroke, and re-adding here used to stack one listener
-      // per keystroke.
-      this._portalClickHandler = (e: MouseEvent) => { if (e.target === this._portalEl) close(); };
-      this._portalEl.addEventListener('click', this._portalClickHandler);
-      document.body.appendChild(this._portalEl);
-    }
-
-    this._portalEl.replaceChildren();
-    this._portalEl.setAttribute('role', 'dialog');
-    this._portalEl.setAttribute('aria-modal', 'true');
-    Object.assign(this._portalEl.style, {
-      position: 'fixed', inset: '0', zIndex: '10000',
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1.5rem',
-    });
-
-    const popup = document.createElement('div');
-    Object.assign(popup.style, {
-      width: '100%', maxWidth: '25rem', maxHeight: '70vh',
-      display: 'flex', flexDirection: 'column',
-      borderRadius: '22px',
-      background: 'linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)',
-      boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      overflow: 'hidden',
-    });
-
-    const header = document.createElement('div');
-    Object.assign(header.style, { padding: '0.875rem 1rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.625rem', borderBottom: '1px solid rgba(255,255,255,0.06)' });
-    const titleEl = document.createElement('span');
-    Object.assign(titleEl.style, { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.45)' });
-    titleEl.textContent = t('config.unassigned_change_icon');
-    const searchInput = document.createElement('input');
-    Object.assign(searchInput.style, { width: '100%', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontSize: '13px', outline: 'none', boxSizing: 'border-box' });
-    searchInput.placeholder = 'mdi:...';
-    searchInput.value = this._iconSearch;
-    searchInput.addEventListener('input', () => onSearch(searchInput.value));
-    header.appendChild(titleEl);
-    header.appendChild(searchInput);
-    popup.appendChild(header);
-
-    const gridWrap = document.createElement('div');
-    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem', scrollbarWidth: 'none' });
-    const grid = document.createElement('div');
-    Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' });
-
-    const noIconBtn = this._createIconBtn('mdi:cancel', currentIcon === '', 0.4);
-    noIconBtn.addEventListener('click', () => select(''));
-    grid.appendChild(noIconBtn);
-
-    for (const icon of icons) {
-      const btn = this._createIconBtn(icon, icon === currentIcon, 1);
-      btn.addEventListener('click', () => select(icon));
-      grid.appendChild(btn);
-    }
-
-    if (icons.length === 0 && this._iconSearch) {
-      const empty = document.createElement('div');
-      Object.assign(empty.style, { gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '13px' });
-      empty.textContent = t('config.title_no_icons_found');
-      grid.appendChild(empty);
-    }
-
-    gridWrap.appendChild(grid);
-    popup.appendChild(gridWrap);
-    this._portalEl.appendChild(popup);
-    searchInput.focus();
-  }
-
-  private _createIconBtn(icon: string, selected: boolean, opacity: number): HTMLButtonElement {
-    const btn = document.createElement('button');
-    Object.assign(btn.style, {
-      width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '10px', border: selected ? '2px solid rgba(129,140,248,0.6)' : '1px solid rgba(255,255,255,0.06)',
-      background: selected ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.04)',
-      cursor: 'pointer', color: 'rgba(255,255,255,0.88)', padding: '0',
-    });
-    const haIcon = document.createElement('ha-icon');
-    (haIcon as unknown as { icon: string }).icon = icon;
-    haIcon.style.cssText = `--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${opacity};`;
-    btn.appendChild(haIcon);
-    return btn;
-  }
-
-  private _removeIconPortal(): void {
-    if (this._portalEl) {
-      if (this._portalClickHandler) {
-        this._portalEl.removeEventListener('click', this._portalClickHandler);
-        this._portalClickHandler = null;
-      }
-      this._portalEl.remove();
-      this._portalEl = null;
-    }
-  }
-
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._removeIconPortal();
+    this._closeIconPortal?.();
+    this._closeIconPortal = null;
   }
 
   // — Render —
@@ -452,7 +323,7 @@ export class ConfigTabUnassigned extends BaseConfigTab {
                         .icon=${e.icon || domainIcon(e.domain)}
                         title="${t('config.unassigned_change_icon')}"
                         aria-label="${t('config.unassigned_change_icon')}: ${e.name}"
-                        @click=${async () => { await this._openIconPopup(e.entityId); this._showIconPortal(); }}
+                        @click=${() => this._openIconPopup(e.entityId)}
                       ></glass-icon-button>
                       <div class="item-info">
                         ${isEditing ? html`

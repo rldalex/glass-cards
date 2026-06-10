@@ -19,8 +19,6 @@ export class ConfigTabClimate extends BaseConfigTab {
   private _saving = false;
 
   // Local drag state
-  @state() _localDragIdx: number | null = null;
-  @state() _localDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_climateShowHeader', '_climateDisplayMode', '_climateDashboardDisplayMode', '_climateDashboardEntities', '_climateRoomEntities',

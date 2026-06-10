@@ -161,8 +161,11 @@ export abstract class BaseConfigTab extends LitElement {
 
   // — Drag/drop helpers —
 
-  protected _localDragIdx: number | null = null;
-  protected _localDropIdx: number | null = null;
+  // Reactive: they drive the .dragging/.drop-target CSS classes in every tab.
+  // Subclasses must NOT re-declare them (@state shadowing made base methods
+  // write to a different field than the one the templates read).
+  @state() protected _localDragIdx: number | null = null;
+  @state() protected _localDropIdx: number | null = null;
 
   protected _onLocalDragStart(idx: number): void { this._localDragIdx = idx; }
   protected _onLocalDragOver(idx: number, e: DragEvent): void {

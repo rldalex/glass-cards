@@ -6,6 +6,7 @@ import {
   glassTokens,
   glassMixin,
   hostMixin,
+  openIconPortal,
   type GlassTabItem,
 } from '@glass-cards/ui-core';
 import { LitElement, css, html } from 'lit';
@@ -561,6 +562,38 @@ class PrimitivesShowcase extends LitElement {
           empty-text="Aucune pièce"
           aria-label="room"
         ></glass-dropdown>
+      </div>
+
+      <h2>glass-icon-portal</h2>
+      <div class="sub">
+        Fullscreen MDI icon picker (backdrop + search + grid). Open via the
+        <code>openIconPortal()</code> helper — the element is appended to
+        <code>document.body</code> to escape backdrop-filter stacking contexts.
+        Props: <code>value</code>, <code>allow-none</code> ("no icon" cell selecting ''),
+        <code>header-text</code>, <code>empty-text</code>, <code>search-placeholder</code>,
+        <code>icons</code> (injectable list; defaults to probing HA via
+        <code>loadMdiIconList(hass)</code>, cached for the session). Events:
+        <code>glass-icon-select</code> ({ icon }), <code>glass-icon-close</code>.
+        Escape + backdrop close, focus restored to the invoker on close.
+      </div>
+      <div class="row">
+        <glass-button
+          variant="secondary"
+          @click=${() => {
+            openIconPortal({
+              value: 'mdi:sofa',
+              allowNone: true,
+              headerText: 'Choisir une icône',
+              emptyText: 'Aucune icône trouvée',
+              icons: [
+                'mdi:sofa', 'mdi:bed', 'mdi:desk', 'mdi:shower', 'mdi:silverware-fork-knife',
+                'mdi:lightbulb', 'mdi:fan', 'mdi:thermostat', 'mdi:window-shutter', 'mdi:cctv',
+                'mdi:speaker', 'mdi:robot-vacuum-variant', 'mdi:palette', 'mdi:home', 'mdi:flower',
+              ],
+              onSelect: (icon) => console.log('[showcase] icon selected:', icon || '(none)'),
+            });
+          }}
+        >Ouvrir le picker d'icônes</glass-button>
       </div>
 
       <h2>glass-slider (existing)</h2>

@@ -55,8 +55,6 @@ export class ConfigTabVacuum extends BaseConfigTab {
   @state() _roomButtonsExtra: string[] = [];
   /** Which collapsible sections are open. Not auto-saved. */
   @state() _openSections: Record<string, boolean> = {};
-  @state() protected override _localDragIdx: number | null = null;
-  @state() protected override _localDropIdx: number | null = null;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
     '_vacuumShowHeader', '_vacuumEntity', '_overrides',

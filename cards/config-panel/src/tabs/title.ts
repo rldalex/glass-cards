@@ -2,6 +2,7 @@ import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t, type TranslationKey } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
+import { openIconPortal } from '@glass-cards/ui-core';
 import { BaseConfigTab } from '../base-tab';
 
 // — Types —
@@ -47,14 +48,8 @@ export class ConfigTabTitle extends BaseConfigTab {
   @state() _titleEditingSourceIdx: number | null = null;
   @state() _periodIconPopupIdx: number | null = null;
   @state() _iconPopupModeIdx: number | null = null;
-  @state() _iconSearch = '';
   /** Index of the period option currently being edited inline (under the chip row). */
   @state() _periodEditingIdx: number | null = null;
-
-  // Non-reactive state
-  _iconList: string[] = [];
-  _iconLoading = false;
-  private _portalEl: HTMLDivElement | null = null;
 
   // Local drag state
   @state() _dragIdx: number | null = null;
@@ -329,177 +324,45 @@ export class ConfigTabTitle extends BaseConfigTab {
     this._titlePeriodOptions = opts;
   }
 
-  // — Icon popup —
+  // — Icon popup (shared glass-icon-portal primitive) —
 
-  private async _openIconPopup(modeIdx: number): Promise<void> {
-    if (this._iconLoading) return;
-    if (this._iconList.length === 0) {
-      await this._loadIconList();
-    }
-    if (modeIdx < this._titleModes.length) {
-      this._iconSearch = '';
-      this._iconPopupModeIdx = modeIdx;
-      this._showIconPortal();
-    }
-  }
+  private _closeIconPortal: (() => void) | null = null;
 
-  private async _openPeriodIconPopup(periodIdx: number): Promise<void> {
-    if (this._iconLoading) return;
-    if (this._iconList.length === 0) {
-      await this._loadIconList();
-    }
-    if (periodIdx < this._titlePeriodOptions.length) {
-      this._iconSearch = '';
-      this._periodIconPopupIdx = periodIdx;
-      this._showIconPortal();
-    }
-  }
-
-  private async _loadIconList(): Promise<void> {
-    this._iconLoading = true;
-    const picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
-    picker.hass = this.hass;
-    picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
-    try {
-      this.shadowRoot?.appendChild(picker);
-      await new Promise((r) => setTimeout(r, 50));
-      const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
-      if (gp?.getItems) {
-        const items = await gp.getItems();
-        if (items?.length) {
-          this._iconList = items.map((i) => i.id);
-        }
-      }
-    } catch { /* ignore */ } finally {
-      if (this.shadowRoot?.contains(picker)) {
-        this.shadowRoot.removeChild(picker);
-      }
-      this._iconLoading = false;
-    }
-  }
-
-  private _getFilteredIcons(): string[] {
-    const query = this._iconSearch.toLowerCase().trim();
-    const list = this._iconList;
-    if (!query) return list.slice(0, 120);
-    return list.filter((icon) => icon.toLowerCase().includes(query)).slice(0, 120);
-  }
-
-  // — Icon portal (renders into document.body for viewport centering) —
-
-  private _showIconPortal(): void {
-    const isModePopup = this._iconPopupModeIdx !== null;
-    const isPeriodPopup = this._periodIconPopupIdx !== null;
-    if (!isModePopup && !isPeriodPopup) { this._removeIconPortal(); return; }
-
-    const icons = this._getFilteredIcons();
-    const modeIdx = this._iconPopupModeIdx;
-    const periodIdx = this._periodIconPopupIdx;
-    let currentIcon = '';
-    if (isModePopup && modeIdx !== null) {
-      currentIcon = this._titleModes[modeIdx]?.icon ?? '';
-    } else if (periodIdx !== null) {
-      currentIcon = this._titlePeriodOptions[periodIdx]?.icon ?? '';
-    }
-
-    if (!this._portalEl) {
-      this._portalEl = document.createElement('div');
-      document.body.appendChild(this._portalEl);
-    }
-
-    const close = () => { this._iconPopupModeIdx = null; this._periodIconPopupIdx = null; this._removeIconPortal(); };
-    const select = (icon: string) => {
-      if (isModePopup && this._iconPopupModeIdx !== null) {
-        this._updateTitleMode(this._iconPopupModeIdx, 'icon', icon);
-      } else if (isPeriodPopup && this._periodIconPopupIdx !== null) {
-        this._updateTitlePeriodOption(this._periodIconPopupIdx, 'icon', icon);
-      }
-      this._removeIconPortal();
-    };
-    const onSearch = (val: string) => { this._iconSearch = val; this._showIconPortal(); };
-
-    this._portalEl.replaceChildren();
-    Object.assign(this._portalEl.style, {
-      position: 'fixed', inset: '0', zIndex: '10000',
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1.5rem',
+  private _openIconPopup(modeIdx: number): void {
+    if (modeIdx >= this._titleModes.length) return;
+    this._iconPopupModeIdx = modeIdx;
+    this._closeIconPortal = openIconPortal({
+      hass: this.hass,
+      value: this._titleModes[modeIdx]?.icon ?? '',
+      allowNone: true,
+      headerText: t('config.title_mode_icon'),
+      emptyText: t('config.title_no_icons_found'),
+      onSelect: (icon) => {
+        if (this._iconPopupModeIdx !== null) this._updateTitleMode(this._iconPopupModeIdx, 'icon', icon);
+      },
+      onClose: () => { this._iconPopupModeIdx = null; this._closeIconPortal = null; },
     });
-    this._portalEl.addEventListener('click', (e) => { if (e.target === this._portalEl) close(); }, { once: true });
-
-    const popup = document.createElement('div');
-    Object.assign(popup.style, {
-      width: '100%', maxWidth: '25rem', maxHeight: '70vh',
-      display: 'flex', flexDirection: 'column',
-      borderRadius: '22px',
-      background: 'linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)',
-      boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      overflow: 'hidden',
-    });
-
-    const header = document.createElement('div');
-    Object.assign(header.style, { padding: '0.875rem 1rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.625rem', borderBottom: '1px solid rgba(255,255,255,0.06)' });
-    const titleEl = document.createElement('span');
-    Object.assign(titleEl.style, { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.45)' });
-    titleEl.textContent = t('config.title_mode_icon');
-    const searchInput = document.createElement('input');
-    Object.assign(searchInput.style, { width: '100%', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontSize: '13px', outline: 'none', boxSizing: 'border-box' });
-    searchInput.placeholder = 'mdi:...';
-    searchInput.value = this._iconSearch;
-    searchInput.addEventListener('input', () => onSearch(searchInput.value));
-    header.appendChild(titleEl);
-    header.appendChild(searchInput);
-    popup.appendChild(header);
-
-    const gridWrap = document.createElement('div');
-    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem', scrollbarWidth: 'none' });
-    const grid = document.createElement('div');
-    Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' });
-
-    const noIconBtn = this._createIconBtn('mdi:cancel', currentIcon === '', 0.4);
-    noIconBtn.addEventListener('click', () => select(''));
-    grid.appendChild(noIconBtn);
-
-    for (const icon of icons) {
-      const btn = this._createIconBtn(icon, icon === currentIcon, 1);
-      btn.addEventListener('click', () => select(icon));
-      grid.appendChild(btn);
-    }
-
-    if (icons.length === 0 && this._iconSearch) {
-      const empty = document.createElement('div');
-      Object.assign(empty.style, { gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '13px' });
-      empty.textContent = t('config.title_no_icons_found');
-      grid.appendChild(empty);
-    }
-
-    gridWrap.appendChild(grid);
-    popup.appendChild(gridWrap);
-    this._portalEl.appendChild(popup);
-    searchInput.focus();
   }
 
-  private _createIconBtn(icon: string, selected: boolean, opacity: number): HTMLButtonElement {
-    const btn = document.createElement('button');
-    Object.assign(btn.style, {
-      width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '10px', border: selected ? '2px solid rgba(129,140,248,0.6)' : '1px solid rgba(255,255,255,0.06)',
-      background: selected ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.04)',
-      cursor: 'pointer', color: 'rgba(255,255,255,0.88)', padding: '0',
+  private _openPeriodIconPopup(periodIdx: number): void {
+    if (periodIdx >= this._titlePeriodOptions.length) return;
+    this._periodIconPopupIdx = periodIdx;
+    this._closeIconPortal = openIconPortal({
+      hass: this.hass,
+      value: this._titlePeriodOptions[periodIdx]?.icon ?? '',
+      allowNone: true,
+      headerText: t('config.title_mode_icon'),
+      emptyText: t('config.title_no_icons_found'),
+      onSelect: (icon) => {
+        if (this._periodIconPopupIdx !== null) this._updateTitlePeriodOption(this._periodIconPopupIdx, 'icon', icon);
+      },
+      onClose: () => { this._periodIconPopupIdx = null; this._closeIconPortal = null; },
     });
-    const haIcon = document.createElement('ha-icon');
-    (haIcon as unknown as { icon: string }).icon = icon;
-    haIcon.style.cssText = `--mdc-icon-size:20px;display:flex;align-items:center;justify-content:center;opacity:${opacity};`;
-    btn.appendChild(haIcon);
-    return btn;
   }
 
   private _removeIconPortal(): void {
-    if (this._portalEl) {
-      this._portalEl.remove();
-      this._portalEl = null;
-    }
+    this._closeIconPortal?.();
+    this._closeIconPortal = null;
   }
 
   override disconnectedCallback(): void {

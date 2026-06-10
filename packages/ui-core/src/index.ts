@@ -758,6 +758,7 @@ import './glass-empty-state';
 import './glass-progress-bar';
 import './glass-dropdown';
 import './glass-action-button';
+import './glass-icon-portal';
 
 export { GlassSlider } from './glass-slider';
 export { GlassIconButton } from './glass-icon-button';
@@ -780,6 +781,7 @@ export { GlassEmptyState } from './glass-empty-state';
 export { GlassProgressBar } from './glass-progress-bar';
 export { GlassDropdown, type GlassDropdownItem } from './glass-dropdown';
 export { GlassActionButton } from './glass-action-button';
+export { GlassIconPortal, openIconPortal, loadMdiIconList, type IconPortalOptions } from './glass-icon-portal';
 // motionMixin is exported above the imports — re-export for clarity not needed,
 // but ensure consumers can import { motionMixin } alongside.
 

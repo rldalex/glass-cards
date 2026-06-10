@@ -4,7 +4,7 @@ import { t } from '@glass-cards/i18n';
 import { bus } from '@glass-cards/event-bus';
 import type { HomeAssistant, BackendService } from '@glass-cards/base-card';
 import { getAreaEntities } from '@glass-cards/base-card';
-import { DOMAIN_COLORS } from '@glass-cards/ui-core';
+import { DOMAIN_COLORS, openIconPortal } from '@glass-cards/ui-core';
 import { ROOM_CARDS, normalizeRoomCardId, staticTag, staticHtml } from '@glass-cards/base-card';
 import type { SceneEntry } from '../types';
 import { DEFAULT_CARD_ORDER, IMPLEMENTED_CARDS, CARD_ICONS, getCardMeta } from '../types';
@@ -132,12 +132,10 @@ export class ConfigRoomDetail extends LitElement {
   private _availableHumidityEntities: { id: string; name: string }[] = [];
   private _availablePresenceEntities: { id: string; name: string }[] = [];
 
-  // Per-button dropdown / icon portal state (entity + service pickers use glass-dropdown internally)
+  // Per-button dropdown / icon portal state (entity + service pickers use
+  // glass-dropdown; the icon picker is the shared glass-icon-portal primitive)
   @state() private _btnIconPortalIdx: number | null = null;
-  @state() private _btnIconSearch = '';
   @state() private _btnAdvancedOpen = new Set<number>();
-  private _btnIconList: string[] = [];
-  private _btnIconLoading = false;
   private _entityCache: { hassRef: unknown; query: string; result: { id: string; name: string }[] } | null = null;
   private _serviceCache: { hassRef: unknown; domain: string; query: string; result: string[] } | null = null;
 
@@ -167,34 +165,14 @@ export class ConfigRoomDetail extends LitElement {
     }
   }
 
-  override connectedCallback(): void {
-    super.connectedCallback();
-    document.addEventListener('keydown', this._onDocKeyDown);
-  }
-
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     this._saveScheduler.flush();
     this._removeIconPortal();
     this._btnIconPortalIdx = null;
-    document.removeEventListener('keydown', this._onDocKeyDown);
   }
 
   private _lastIconTriggerEl: HTMLElement | null = null;
-
-  private _onDocKeyDown = (e: KeyboardEvent): void => {
-    if (e.key !== 'Escape') return;
-    // Esc closes the icon portal (dropdowns handle their own Escape internally)
-    if (this._btnIconPortalIdx !== null) {
-      this._btnIconPortalIdx = null;
-      this._removeIconPortal();
-      // WCAG 2.4.3: restore focus to the trigger that opened the portal
-      if (this._lastIconTriggerEl) {
-        try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
-        this._lastIconTriggerEl = null;
-      }
-    }
-  };
 
   // ── Load ──
 
@@ -733,175 +711,37 @@ export class ConfigRoomDetail extends LitElement {
     `;
   }
 
-  private async _openButtonIconPortal(idx: number): Promise<void> {
-    this._btnIconSearch = '';
-    this._btnIconPortalIdx = idx;
-    this._renderIconPortal();
-    if (this._btnIconList.length === 0 && !this._btnIconLoading) {
-      this._btnIconLoading = true;
-      let picker: (HTMLElement & { hass: unknown }) | null = null;
-      try {
-        picker = document.createElement('ha-icon-picker') as HTMLElement & { hass: unknown };
-        picker.hass = this.hass;
-        picker.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
-        document.body.appendChild(picker);
-        await new Promise((r) => setTimeout(r, 50));
-        const gp = picker.shadowRoot?.querySelector('ha-generic-picker') as HTMLElement & { getItems(): Promise<{ id: string }[]> } | null;
-        if (gp?.getItems) {
-          const items = await gp.getItems();
-          if (items?.length) this._btnIconList = items.map((i) => i.id);
-        }
-      } catch { /* ignore */ } finally {
-        this._btnIconLoading = false;
-        // Always cleanup the probe element, even if it was orphaned by disconnect
-        if (picker && picker.parentNode === document.body) {
-          document.body.removeChild(picker);
-        }
-        // Skip portal re-render if the component was disconnected mid-await (avoids orphan portal leak)
-        if (this.isConnected && this._btnIconPortalIdx !== null) this._renderIconPortal();
-      }
-    }
-  }
+  private _closeIconPortal: (() => void) | null = null;
 
-  private _btnIconPortalEl: HTMLDivElement | null = null;
-  private _portalClickHandler: ((e: MouseEvent) => void) | null = null;
-
-  private _renderIconPortal(): void {
-    if (this._btnIconPortalIdx === null) { this._removeIconPortal(); return; }
-    const idx = this._btnIconPortalIdx;
+  private _openButtonIconPortal(idx: number): void {
     const currentBtn = this._buttons[idx];
-    if (!currentBtn) { this._removeIconPortal(); return; }
-    const currentIcon = currentBtn.icon;
-    const query = this._btnIconSearch.toLowerCase().trim();
-    const icons = query
-      ? this._btnIconList.filter((i) => i.toLowerCase().includes(query)).slice(0, 120)
-      : this._btnIconList.slice(0, 120);
-
-    const close = () => {
-      this._btnIconPortalIdx = null;
-      this._removeIconPortal();
-      if (this._lastIconTriggerEl) {
-        try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
-        this._lastIconTriggerEl = null;
-      }
-    };
-    const select = (icon: string) => { this._updateButton(idx, 'icon', icon); close(); };
-    const onSearch = (val: string) => {
-      const inputEl = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
-      const selStart = inputEl?.selectionStart ?? null;
-      const selEnd = inputEl?.selectionEnd ?? null;
-      this._btnIconSearch = val;
-      this._renderIconPortal();
-      if (selStart !== null) {
-        const newInput = this._btnIconPortalEl?.querySelector('input.icon-portal-search') as HTMLInputElement | null;
-        if (newInput) {
-          try { newInput.setSelectionRange(selStart, selEnd ?? selStart); } catch { /* ignore */ }
+    if (!currentBtn) return;
+    this._btnIconPortalIdx = idx;
+    this._closeIconPortal = openIconPortal({
+      hass: this.hass,
+      value: currentBtn.icon,
+      allowNone: true,
+      headerText: t('config.room_button_icon_pick'),
+      emptyText: t('config.title_no_icons_found'),
+      onSelect: (icon) => {
+        if (this._btnIconPortalIdx !== null) this._updateButton(this._btnIconPortalIdx, 'icon', icon);
+      },
+      onClose: () => {
+        this._btnIconPortalIdx = null;
+        this._closeIconPortal = null;
+        // WCAG 2.4.3 fallback — the primitive restores focus to the deepest
+        // active element; keep the explicit trigger ref for light-DOM hosts
+        if (this._lastIconTriggerEl?.isConnected) {
+          try { this._lastIconTriggerEl.focus(); } catch { /* ignore */ }
         }
-      }
-    };
-
-    if (!this._btnIconPortalEl) {
-      this._btnIconPortalEl = document.createElement('div');
-      this._portalClickHandler = (e: MouseEvent) => {
-        if (e.target === this._btnIconPortalEl) close();
-      };
-      this._btnIconPortalEl.addEventListener('click', this._portalClickHandler);
-      document.body.appendChild(this._btnIconPortalEl);
-    }
-
-    this._btnIconPortalEl.replaceChildren();
-    this._btnIconPortalEl.setAttribute('role', 'dialog');
-    this._btnIconPortalEl.setAttribute('aria-modal', 'true');
-    this._btnIconPortalEl.setAttribute('aria-label', t('config.room_button_icon_pick'));
-    Object.assign(this._btnIconPortalEl.style, {
-      position: 'fixed', inset: '0', zIndex: '10000',
-      background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1.5rem',
+        this._lastIconTriggerEl = null;
+      },
     });
-
-    const popup = document.createElement('div');
-    Object.assign(popup.style, {
-      width: '100%', maxWidth: '25rem', maxHeight: '70vh',
-      display: 'flex', flexDirection: 'column',
-      borderRadius: '22px',
-      background: 'linear-gradient(135deg, #1a2233 0%, #141c2a 50%, #172030 100%)',
-      boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      overflow: 'hidden',
-    });
-
-    const header = document.createElement('div');
-    Object.assign(header.style, { padding: '0.875rem 1rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.625rem', borderBottom: '1px solid rgba(255,255,255,0.06)' });
-    const titleEl = document.createElement('span');
-    Object.assign(titleEl.style, { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.45)' });
-    titleEl.textContent = t('config.room_button_icon_pick');
-    const searchInput = document.createElement('input');
-    searchInput.className = 'icon-portal-search';
-    Object.assign(searchInput.style, { width: '100%', padding: '0.5rem 0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.88)', fontSize: '13px', outline: 'none', boxSizing: 'border-box' });
-    searchInput.placeholder = 'mdi:...';
-    searchInput.value = this._btnIconSearch;
-    searchInput.addEventListener('input', () => onSearch(searchInput.value));
-    header.appendChild(titleEl);
-    header.appendChild(searchInput);
-    popup.appendChild(header);
-
-    const gridWrap = document.createElement('div');
-    Object.assign(gridWrap.style, { overflow: 'auto', flex: '1', padding: '0.5rem', scrollbarWidth: 'none' });
-    const grid = document.createElement('div');
-    Object.assign(grid.style, { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' });
-
-    const noIconBtn = this._createBtnIconCell('mdi:cancel', currentIcon === '', 0.4);
-    noIconBtn.addEventListener('click', () => select(''));
-    grid.appendChild(noIconBtn);
-
-    for (const icon of icons) {
-      const btnEl = this._createBtnIconCell(icon, icon === currentIcon, 1);
-      btnEl.addEventListener('click', () => select(icon));
-      grid.appendChild(btnEl);
-    }
-
-    if (icons.length === 0 && this._btnIconSearch) {
-      const empty = document.createElement('div');
-      Object.assign(empty.style, { gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '13px' });
-      empty.textContent = t('config.title_no_icons_found');
-      grid.appendChild(empty);
-    }
-
-    gridWrap.appendChild(grid);
-    popup.appendChild(gridWrap);
-    this._btnIconPortalEl.appendChild(popup);
-    // Only focus the search on initial open or when no portal element currently has focus.
-    // Prevents IME composition break and mobile keyboard flicker on keystroke re-renders.
-    if (!this._btnIconPortalEl.contains(document.activeElement)) {
-      searchInput.focus();
-    }
-  }
-
-  private _createBtnIconCell(icon: string, selected: boolean, opacity: number): HTMLButtonElement {
-    const btn = document.createElement('button');
-    Object.assign(btn.style, {
-      width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '8px', border: selected ? '1px solid rgba(129,140,248,0.5)' : '1px solid transparent',
-      background: selected ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.03)',
-      color: selected ? 'rgb(129,140,248)' : `rgba(255,255,255,${opacity})`,
-      cursor: 'pointer', padding: '0', outline: 'none',
-    });
-    const iconEl = document.createElement('ha-icon') as HTMLElement & { icon: string };
-    iconEl.icon = icon;
-    btn.appendChild(iconEl);
-    return btn;
   }
 
   private _removeIconPortal(): void {
-    if (this._btnIconPortalEl) {
-      if (this._portalClickHandler) {
-        this._btnIconPortalEl.removeEventListener('click', this._portalClickHandler);
-        this._portalClickHandler = null;
-      }
-      this._btnIconPortalEl.remove();
-      this._btnIconPortalEl = null;
-    }
+    this._closeIconPortal?.();
+    this._closeIconPortal = null;
   }
 
   private _pickEntity(idx: number, entityId: string): void {
