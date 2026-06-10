@@ -95,22 +95,13 @@ export class ConfigTabClimate extends BaseConfigTab {
     }
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          climate_card?: { show_header: boolean; display_mode: string; dashboard_display_mode: string; dashboard_entities: string[] };
-        }>('get_config');
-        if (result?.climate_card) this.loadFromConfig(result.climate_card);
-      } catch { /* ignore */ }
-      if (this._climateRoom) {
-        await this._loadRoomClimates();
-      } else {
-        this._dashboardLoaded = false;
-        await this._loadDashboardClimates();
-      }
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    if (this._climateRoom) {
+      await this._loadRoomClimates();
+    } else {
+      this._dashboardLoaded = false;
+      await this._loadDashboardClimates();
+    }
   }
 
   // — Dashboard climate loading —

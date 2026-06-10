@@ -96,24 +96,8 @@ export class ConfigTabCamera extends BaseConfigTab {
     bus.emit('camera-carousel-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          camera_carousel?: {
-            show_header?: boolean;
-            entity_order?: string[];
-            hidden_entities?: string[];
-            auto_cycle?: boolean;
-            cycle_interval?: number;
-            entity_aspect_ratios?: Record<string, CameraAspectRatio>;
-          };
-        }>('get_config');
-        if (result?.camera_carousel) this.loadFromConfig(result.camera_carousel);
-      } catch { /* ignore */ }
-      await this._loadRoomCameras();
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    await this._loadRoomCameras();
   }
 
   // — Room loading —

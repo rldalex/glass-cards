@@ -101,19 +101,8 @@ export class ConfigTabLight extends BaseConfigTab {
     bus.emit('light-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          light_card: { show_header: boolean };
-        }>('get_config');
-        if (result?.light_card) this.loadFromConfig(result.light_card);
-      } catch { /* ignore */ }
-      if (this._lightRoom) {
-        await this._loadRoomLights();
-      }
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    if (this._lightRoom) await this._loadRoomLights();
   }
 
   /** Called when tab becomes active and no room is selected yet. */

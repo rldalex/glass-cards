@@ -2,11 +2,11 @@ import { css, html, nothing, LitElement, type PropertyValues, type TemplateResul
 import { property, state } from 'lit/decorators.js';
 import { glassTokens, hostMixin, glassMixin, bounceMixin } from '@glass-cards/ui-core';
 import { setLanguage, getLanguage, t, type TranslationKey } from '@glass-cards/i18n';
-import { BackendService, type HomeAssistant } from '@glass-cards/base-card';
+import { BackendService, GLASS_CARDS, type HomeAssistant } from '@glass-cards/base-card';
 import { bus } from '@glass-cards/event-bus';
 import { configPanelStyles } from './styles';
 import { createSaveScheduler } from './utils/save-scheduler';
-import type { RoomEntry, DragState } from './types';
+import type { RoomEntry } from './types';
 
 // Per-area promise chains serializing room-entity saves across all tab
 // instances of this bundle (bounded by the number of areas).
@@ -21,7 +21,6 @@ export abstract class BaseConfigTab extends LitElement {
   @property({ attribute: false }) backend?: BackendService;
   @property({ attribute: false }) rooms: RoomEntry[] = [];
   @property({ attribute: false }) emptyRooms: { areaId: string; name: string; icon: string }[] = [];
-  @property({ attribute: false }) dragState: DragState = { dragIdx: null, dropIdx: null, dragContext: 'rooms', dragModeSrcIdx: null };
   @property() areaId?: string;
 
   /** Config slice from parent — when set, calls loadFromConfig() automatically. */
@@ -91,6 +90,28 @@ export abstract class BaseConfigTab extends LitElement {
 
   /** Called by parent after loadConfig() with this tab's config slice. */
   abstract loadFromConfig(config: Record<string, unknown>): void;
+
+  /** Reload this tab's config slice from the backend (reset buttons,
+   *  cross-tab refresh). The slice key resolves from the card registry via
+   *  this element's tag — tabs only override _reloadExtras() for follow-up
+   *  loads (room entities, dashboard lists). */
+  async reload(): Promise<void> {
+    if (!this.backend) return;
+    await this._withLoading(async () => {
+      const def = GLASS_CARDS.find((c) => c.panelTag === this.localName);
+      if (def) {
+        try {
+          const result = await this.backend!.send<Record<string, unknown>>('get_config');
+          const slice = result?.[def.configKey];
+          if (slice) this.loadFromConfig(slice as Record<string, unknown>);
+        } catch { /* backend unavailable — keep current state */ }
+      }
+      await this._reloadExtras();
+    });
+  }
+
+  /** Per-tab follow-up loads after the config slice (default: none). */
+  protected async _reloadExtras(): Promise<void> { /* no-op */ }
 
   /** Called by parent before save — returns the payload for the WS command. */
   abstract collectSaveData(): Record<string, unknown>;

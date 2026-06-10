@@ -9,7 +9,6 @@ import {
 } from '@glass-cards/base-card';
 import {
   type RoomEntry,
-  type DragContext,
 } from './types';
 
 import { type NavState, DEFAULT_NAV, pushNav, replaceNav, readCurrentNav, readNavFromHistory, navEquals } from './nav-state.js';
@@ -41,7 +40,6 @@ import './views/wizard.js';
 
 // Extracted modules
 import * as P from './persistence';
-import * as DD from './drag-drop';
 
 
 // — Component —
@@ -65,54 +63,16 @@ export class GlassConfigPanel extends LitElement {
   // Navbar config — room ordering, visibility, auto_sort
   _navbarConfig: Record<string, unknown> = {};
 
-  // Popup config — managed by ConfigTabPopup
-  _popupConfig: Record<string, unknown> = {};
-
-  // Weather config — managed by ConfigTabWeather
-  _weatherConfig: Record<string, unknown> = {};
-
-  // Title card config — managed by ConfigTabTitle
-  _titleConfig: Record<string, unknown> = {};
-
-  // Light card config — managed by ConfigTabLight
-  _lightConfig: Record<string, unknown> = {};
-
-  // Cover card config — managed by ConfigTabCover
-  _coverConfig: Record<string, unknown> = {};
-
-  // Fan card config — managed by ConfigTabFan
-  _fanConfig: Record<string, unknown> = {};
-
-  // Climate card config — managed by ConfigTabClimate
-  _climateConfig: Record<string, unknown> = {};
-
-  // Presence config — managed by ConfigTabPresence
-  _presenceConfig: Record<string, unknown> = {};
-
-  // Media config — managed by ConfigTabMedia
-  _mediaConfig: Record<string, unknown> = {};
-
-  // Spotify config — managed by ConfigTabSpotify
-  _spotifyConfig: Record<string, unknown> = {};
-
-  // Camera carousel config — managed by ConfigTabCamera
-  _cameraConfig: Record<string, unknown> = {};
-
-  // Dashboard config — managed by ConfigTabDashboard
+  // Combined per-card config slices (keyed by registry configKey) passed to
+  // the dashboard view, which routes each slice to its tab. The tabs own
+  // their state from there — the panel never keeps per-card copies.
   _dashboardConfig: Record<string, unknown> = {};
-
-  // Drag state
-  @state() _dragIdx: number | null = null;
-  @state() _dropIdx: number | null = null;
-  @state() _dragContext: DragContext = 'rooms';
-  @state() _dragModeSrcIdx: number | null = null;
 
   _backend?: BackendService;
   _loaded = false;
   _loading = false;
   _configReady = false;
   _wizardCompleted = true; // default true, overridden by loadConfig
-  _suppressAutoSave = false;
   _toastTimeout?: ReturnType<typeof setTimeout>;
   @state() _toastError = false;
 
@@ -191,10 +151,7 @@ export class GlassConfigPanel extends LitElement {
       }
       return;
     }
-    if (this._suppressAutoSave) { this._suppressAutoSave = false; return; }
   }
-
-  _beginSuppressAutoSave() { this._suppressAutoSave = true; }
 
   private _onRoomsChanged = (e: Event) => {
     const detail = (e as CustomEvent<{ rooms: RoomEntry[] }>).detail;
@@ -252,42 +209,9 @@ export class GlassConfigPanel extends LitElement {
     window.dispatchEvent(new Event('location-changed'));
   }
 
-  // ─── Persistence delegates ───
+  // ─── Persistence ───
 
   async _loadConfig() { return P.loadConfig(this); }
-  async _loadRoomLights() {
-    const lightTab = this.shadowRoot?.querySelector('config-tab-light') as import('./tabs/light').ConfigTabLight | null;
-    if (lightTab) lightTab.reload();
-  }
-  async _loadCoverConfig() {
-    const coverTab = this.shadowRoot?.querySelector('config-tab-cover') as import('./tabs/cover').ConfigTabCover | null;
-    if (coverTab) coverTab.reload();
-  }
-  async _loadFanConfig() { const fanTab = this.shadowRoot?.querySelector('config-tab-fan') as import('./tabs/fan').ConfigTabFan | null; if (fanTab) fanTab.reload(); }
-  async _loadClimateConfig() { const climateTab = this.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.reload(); }
-  async _loadMediaConfig() { const mediaTab = this.shadowRoot?.querySelector('config-tab-media') as import('./tabs/media').ConfigTabMedia | null; if (mediaTab) mediaTab.reload(); }
-  async _loadDashboardConfig() {
-    // Dashboard view manages its own state from configData prop
-  }
-  async _loadPresenceConfig() { const presenceTab = this.shadowRoot?.querySelector('config-tab-presence') as import('./tabs/presence').ConfigTabPresence | null; if (presenceTab) presenceTab.reload(); }
-  async _loadCameraCarouselConfig() { const cameraTab = this.shadowRoot?.querySelector('config-tab-camera') as import('./tabs/camera-carousel').ConfigTabCamera | null; if (cameraTab) cameraTab.reload(); }
-  async _loadWeatherConfig() { return P.loadWeatherConfig(this); }
-  async _loadSpotifyConfig() { const spotifyTab = this.shadowRoot?.querySelector('config-tab-spotify') as import('./tabs/spotify').ConfigTabSpotify | null; if (spotifyTab) spotifyTab.reload(); }
-  async _loadTitleConfig() { const titleTab = this.shadowRoot?.querySelector('config-tab-title') as import('./tabs/title').ConfigTabTitle | null; if (titleTab) titleTab.reload(); }
-  async _reset() { return P.resetConfig(this); }
-  async _saveClimate() { const climateTab = this.shadowRoot?.querySelector('config-tab-climate') as import('./tabs/climate').ConfigTabClimate | null; if (climateTab) climateTab.save(); }
-  async _saveDashboard() {
-    // Dashboard view manages its own save
-  }
-  async _checkSpotifyStatus() { /* Spotify status is now checked internally by ConfigTabSpotify */ }
-
-  // ─── Drag & Drop delegates ───
-
-  _onDragStart(idx: number, context: 'rooms' | 'lights' | 'covers' | 'fans' | 'dashboard_covers' | 'dashboard_cards' | 'speakers' | 'title_sources' | 'title_modes' | 'camera_order', srcIdx?: number) { DD.onDragStart(this, idx, context, srcIdx); }
-  _onDragOver(idx: number, e: DragEvent, srcIdx?: number) { DD.onDragOver(this, idx, e, srcIdx); }
-  _onDragLeave() { DD.onDragLeave(this); }
-  _onDropGeneric(idx: number, e: DragEvent) { DD.onDropGeneric(this, idx, e); }
-  _onDragEnd() { DD.onDragEnd(this); }
 
   // ─── Toast ───
 

@@ -62,20 +62,11 @@ export class ConfigTabMedia extends BaseConfigTab {
     bus.emit('media-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          media_card: { show_header: boolean; extra_entities: Record<string, string[]>; hidden_entities: string[] };
-        }>('get_config');
-        if (result?.media_card) this.loadFromConfig(result.media_card);
-      } catch { /* ignore */ }
-      if (!this.areaId) {
-        this._dashboardLoaded = false;
-        this._loadDashboardMediaPlayers();
-      }
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    if (!this.areaId) {
+      this._dashboardLoaded = false;
+      this._loadDashboardMediaPlayers();
+    }
   }
 
   // — Dashboard media players —

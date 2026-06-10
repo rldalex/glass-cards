@@ -62,25 +62,6 @@ export class ConfigTabPresence extends BaseConfigTab {
     bus.emit('presence-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          presence_card?: {
-            show_header?: boolean;
-            person_entities?: string[];
-            smartphone_sensors?: Record<string, string>;
-            notify_services?: Record<string, string>;
-            driving_sensors?: Record<string, string>;
-            sleep_sensors?: Record<string, string>;
-          };
-        }>('get_config');
-        if (result?.presence_card) this.loadFromConfig(result.presence_card);
-      } catch { /* ignore */ }
-    });
-  }
-
   // — Helper: available entities —
 
   private static readonly SMARTPHONE_HINTS = ['phone', 'mobile', 'smartphone', 'tablet', 'iphone', 'galaxy', 'pixel', 'oneplus'];

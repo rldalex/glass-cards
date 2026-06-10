@@ -1,7 +1,7 @@
 import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { state } from 'lit/decorators.js';
 import { t } from '@glass-cards/i18n';
-import { resolveEntityAreaId } from '@glass-cards/base-card';
+import { resolveEntityAreaId, ROOM_CARD_ORDER } from '@glass-cards/base-card';
 import { openIconPortal } from '@glass-cards/ui-core';
 import { BaseConfigTab } from '../base-tab';
 import { CARD_ICONS, getCardMeta } from '../types';
@@ -17,8 +17,8 @@ export interface EntityAreaEntry {
   icon: string | null;
 }
 
-/** Domains handled by Glass Cards controllable cards (in prod only). */
-const CONTROLLABLE_DOMAINS = ['light', 'cover', 'climate', 'fan', 'media_player', 'camera'];
+/** Domains handled by Glass Cards room cards — derived from the registry. */
+const CONTROLLABLE_DOMAINS: readonly string[] = ROOM_CARD_ORDER;
 
 // — Helpers —
 

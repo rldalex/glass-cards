@@ -68,17 +68,8 @@ export class ConfigTabFan extends BaseConfigTab {
     bus.emit('fan-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          fan_card?: { show_header: boolean };
-        }>('get_config');
-        if (result?.fan_card) this.loadFromConfig(result.fan_card);
-      } catch { /* ignore */ }
-      await this._loadRoomFans();
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    await this._loadRoomFans();
   }
 
   // — Room loading —

@@ -101,18 +101,9 @@ export class ConfigTabCover extends BaseConfigTab {
     bus.emit('cover-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          cover_card?: { show_header: boolean; dashboard_entities: string[]; dashboard_compact?: boolean; dashboard_entity_layouts?: Record<string, string>; presets: number[]; entity_presets?: Record<string, number[]> };
-        }>('get_config');
-        if (result?.cover_card) this.loadFromConfig(result.cover_card);
-      } catch { /* ignore */ }
-      this._coverEntityPresetInput = {};
-      await this._loadRoomCovers();
-    });
+  protected override async _reloadExtras(): Promise<void> {
+    this._coverEntityPresetInput = {};
+    await this._loadRoomCovers();
   }
 
   // — Room loading —

@@ -127,20 +127,13 @@ export class ConfigTabTitle extends BaseConfigTab {
     bus.emit('title-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
+  override async reload(): Promise<void> {
+    // Close any open editor/portal before swapping the underlying data
     this._iconPopupModeIdx = null;
     this._periodIconPopupIdx = null;
     this._removeIconPortal();
     this._titleEditingSourceIdx = null;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
-        }>('get_config');
-        if (result?.title_card) this.loadFromConfig(result.title_card);
-      } catch { /* ignore */ }
-    });
+    await super.reload();
   }
 
   // — Local drag & drop —

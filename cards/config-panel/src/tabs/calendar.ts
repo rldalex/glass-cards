@@ -43,18 +43,6 @@ export class ConfigTabCalendar extends BaseConfigTab {
     bus.emit('calendar-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          calendar_card?: { show_header: boolean; hidden_entities: string[] };
-        }>('get_config');
-        if (result?.calendar_card) this.loadFromConfig(result.calendar_card);
-      } catch { /* ignore */ }
-    });
-  }
-
   private _toggleCalendar(entityId: string): void {
     const set = new Set(this._calendarHiddenEntities);
     if (set.has(entityId)) set.delete(entityId);

@@ -64,18 +64,6 @@ export class ConfigTabSpotify extends BaseConfigTab {
     bus.emit('spotify-config-changed', undefined);
   }
 
-  async reload(): Promise<void> {
-    if (!this.backend) return;
-    await this._withLoading(async () => {
-      try {
-        const result = await this.backend!.send<{
-          spotify_card: { show_header: boolean; entity_id: string; sort_order: string; max_items_per_section: number; visible_speakers?: string[] };
-        }>('get_config');
-        if (result?.spotify_card) this.loadFromConfig(result.spotify_card);
-      } catch { /* ignore */ }
-    });
-  }
-
   // — Spotify status check —
 
   private _spotifyStatusRetry?: ReturnType<typeof setTimeout>;
