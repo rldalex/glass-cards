@@ -168,3 +168,36 @@ export function numericState(hass: HomeAssistant, entityId: string | undefined, 
   const value = parseFloat(entityState(hass, entityId, ''));
   return Number.isFinite(value) ? value : fallback;
 }
+
+/** Duration state in HOURS (consumables time-left). HA integrations report
+ *  raw native units (Roborock exposes consumables in SECONDS) — reading the
+ *  state as-is silently shows absurd, frozen-looking values. Convert using the
+ *  sensor's own unit_of_measurement; unit-less states are assumed hours. */
+export function numericStateInHours(hass: HomeAssistant, entityId: string | undefined, fallback = 0): number {
+  if (!entityId || !hass?.states?.[entityId]) return fallback;
+  const st = hass.states[entityId];
+  const value = parseFloat(st.state);
+  if (!Number.isFinite(value)) return fallback;
+  const unit = (st.attributes?.unit_of_measurement as string | undefined)?.toLowerCase();
+  switch (unit) {
+    case 's': case 'sec': case 'seconds': case 'secondes': return value / 3600;
+    case 'min': case 'minutes': return value / 60;
+    case 'd': case 'days': case 'j': case 'jours': return value * 24;
+    default: return value; // 'h' or unit-less
+  }
+}
+
+/** Duration state in MINUTES (drying time left, cleaning duration). Unit-less states are assumed to already be minutes. */
+export function numericStateInMinutes(hass: HomeAssistant, entityId: string | undefined, fallback = 0): number {
+  if (!entityId || !hass?.states?.[entityId]) return fallback;
+  const st = hass.states[entityId];
+  const value = parseFloat(st.state);
+  if (!Number.isFinite(value)) return fallback;
+  const unit = (st.attributes?.unit_of_measurement as string | undefined)?.toLowerCase();
+  switch (unit) {
+    case 's': case 'sec': case 'seconds': case 'secondes': return value / 60;
+    case 'h': case 'hr': case 'hours': case 'heures': return value * 60;
+    case 'd': case 'days': case 'j': case 'jours': return value * 1440;
+    default: return value; // 'min' or unit-less
+  }
+}

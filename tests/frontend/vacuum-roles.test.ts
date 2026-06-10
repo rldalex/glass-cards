@@ -4,6 +4,7 @@ import {
 } from '../../cards/vacuum-card/src/roles';
 import {
   deriveVacuumPrefix, discoverVacuumCompanions, entityState, isBinaryOn, numericState,
+  numericStateInHours, numericStateInMinutes,
   type VacuumCompanions,
 } from '../../cards/vacuum-card/src/companions';
 
@@ -99,5 +100,40 @@ describe('state accessors', () => {
     expect(isBinaryOn(hass, undefined)).toBe(false);
     expect(numericState(hass, 'sensor.a')).toBe(42.5);
     expect(numericState(hass, 'binary_sensor.b', 7)).toBe(7);
+  });
+});
+
+describe('numericStateInHours / numericStateInMinutes', () => {
+  function hassWithUnit(state: string, unit?: string) {
+    return {
+      states: {
+        'sensor.x': { entity_id: 'sensor.x', state, attributes: unit ? { unit_of_measurement: unit } : {} },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+  }
+
+  it('converts Roborock-style seconds to hours', () => {
+    expect(numericStateInHours(hassWithUnit('374400', 's'), 'sensor.x')).toBeCloseTo(104);
+    expect(numericStateInHours(hassWithUnit('120', 'min'), 'sensor.x')).toBe(2);
+    expect(numericStateInHours(hassWithUnit('2', 'd'), 'sensor.x')).toBe(48);
+  });
+
+  it('passes through hours and unit-less states', () => {
+    expect(numericStateInHours(hassWithUnit('104', 'h'), 'sensor.x')).toBe(104);
+    expect(numericStateInHours(hassWithUnit('104'), 'sensor.x')).toBe(104);
+  });
+
+  it('converts to minutes with the same unit table', () => {
+    expect(numericStateInMinutes(hassWithUnit('900', 's'), 'sensor.x')).toBe(15);
+    expect(numericStateInMinutes(hassWithUnit('1.5', 'h'), 'sensor.x')).toBe(90);
+    expect(numericStateInMinutes(hassWithUnit('25', 'min'), 'sensor.x')).toBe(25);
+    expect(numericStateInMinutes(hassWithUnit('25'), 'sensor.x')).toBe(25);
+  });
+
+  it('falls back on unparseable or missing states', () => {
+    expect(numericStateInHours(hassWithUnit('unknown', 's'), 'sensor.x', 9)).toBe(9);
+    expect(numericStateInMinutes(hassWithUnit('12', 's'), 'sensor.missing', 9)).toBe(9);
+    expect(numericStateInHours(hassWithUnit('12', 's'), undefined, 9)).toBe(9);
   });
 });

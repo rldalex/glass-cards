@@ -22,6 +22,8 @@ import {
   entityState,
   isBinaryOn,
   numericState,
+  numericStateInHours,
+  numericStateInMinutes,
   type VacuumCompanions,
 } from './companions';
 import { FAN_SPEED_LABELS, MOP_INTENSITY_LABELS, MOP_PATTERN_LABELS, labelOf, humanizeRoomSlug } from './labels';
@@ -282,7 +284,7 @@ export class GlassVacuumCard extends BaseCard {
     ];
     for (const key of consoKeys) {
       if (!this._isStateReady(key)) continue;
-      const hours = numericState(this.hass!, key, NaN);
+      const hours = numericStateInHours(this.hass!, key, NaN);
       if (!Number.isFinite(hours)) continue;
       if (hours < 50) hasWarning = true;
     }
@@ -685,7 +687,8 @@ export class GlassVacuumCard extends BaseCard {
 
   private _renderLavage(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
     if (!companions) return nothing;
-    const hasMop = companions.mopIntensity || companions.mopPattern || companions.mopAttached;
+    const hasMop = companions.mopIntensity || companions.mopPattern || companions.mopAttached
+      || companions.tankAttached || companions.waterShortage;
     if (!hasMop) return nothing;
 
     const intensityState = this.hass!.states[companions.mopIntensity ?? ''];
@@ -726,23 +729,25 @@ export class GlassVacuumCard extends BaseCard {
               </div>
             `
           : nothing}
-        <div class="status-row">
-          ${this._renderBadge(
-            isBinaryOn(this.hass!, companions.mopAttached)
-              ? { label: t('vacuum.mop_attached'), variant: 'success', icon: 'mdi:check-circle' }
-              : { label: t('vacuum.mop_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
-          )}
-          ${this._renderBadge(
-            isBinaryOn(this.hass!, companions.tankAttached)
-              ? { label: t('vacuum.tank_ok'), variant: 'success', icon: 'mdi:check-circle' }
-              : { label: t('vacuum.tank_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
-          )}
-          ${this._renderBadge(
-            isBinaryOn(this.hass!, companions.waterShortage)
-              ? { label: t('vacuum.water_short'), variant: 'alert', icon: 'mdi:water-off' }
-              : { label: t('vacuum.water_ok'), variant: 'success', icon: 'mdi:water' },
-          )}
-        </div>
+        ${companions.mopAttached || companions.tankAttached || companions.waterShortage ? html`
+          <div class="status-row">
+            ${companions.mopAttached ? this._renderBadge(
+              isBinaryOn(this.hass!, companions.mopAttached)
+                ? { label: t('vacuum.mop_attached'), variant: 'success', icon: 'mdi:check-circle' }
+                : { label: t('vacuum.mop_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
+            ) : nothing}
+            ${companions.tankAttached ? this._renderBadge(
+              isBinaryOn(this.hass!, companions.tankAttached)
+                ? { label: t('vacuum.tank_ok'), variant: 'success', icon: 'mdi:check-circle' }
+                : { label: t('vacuum.tank_missing'), variant: 'alert', icon: 'mdi:alert-circle-outline' },
+            ) : nothing}
+            ${companions.waterShortage ? this._renderBadge(
+              isBinaryOn(this.hass!, companions.waterShortage)
+                ? { label: t('vacuum.water_short'), variant: 'alert', icon: 'mdi:water-off' }
+                : { label: t('vacuum.water_ok'), variant: 'success', icon: 'mdi:water' },
+            ) : nothing}
+          </div>
+        ` : nothing}
       </div>
     `;
   }
@@ -759,37 +764,51 @@ export class GlassVacuumCard extends BaseCard {
   private _renderDock(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
     if (!companions) return nothing;
     type DockVariant = 'success' | 'alert' | 'warning' | 'info' | 'idle';
-    const cells: { icon: string; label: string; variant: DockVariant }[] = [
-      {
+    // Only render the cells whose companion is actually mapped (auto-detected
+    // or overridden in the config panel). An unmapped companion used to render
+    // its default branch — "réservoir vide", "eau sale OK"... — frozen forever,
+    // which reads as a sensor that never updates.
+    const cells: { icon: string; label: string; variant: DockVariant }[] = [];
+    if (companions.charging) {
+      cells.push({
         icon: 'mdi:battery-charging',
         label: isBinaryOn(this.hass!, companions.charging) ? t('vacuum.dock_charging') : t('vacuum.dock_idle'),
         variant: isBinaryOn(this.hass!, companions.charging) ? 'success' : 'idle',
-      },
-      {
+      });
+    }
+    if (companions.dockDrying) {
+      cells.push({
         icon: 'mdi:hair-dryer-outline',
         label: isBinaryOn(this.hass!, companions.dockDrying)
           ? t('vacuum.dock_drying_label', {
-              minutes: Math.round(numericState(this.hass!, companions.dockDryingTimeLeft, 0)),
+              minutes: Math.round(numericStateInMinutes(this.hass!, companions.dockDryingTimeLeft, 0)),
             })
           : t('vacuum.dock_drying_idle'),
         variant: isBinaryOn(this.hass!, companions.dockDrying) ? 'info' : 'idle',
-      },
-      {
+      });
+    }
+    if (companions.dirtyWaterBox) {
+      cells.push({
         icon: 'mdi:water-pump',
         label: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? t('vacuum.dirty_full') : t('vacuum.dirty_ok'),
         variant: isBinaryOn(this.hass!, companions.dirtyWaterBox) ? 'alert' : 'success',
-      },
-      {
+      });
+    }
+    if (companions.cleanWaterBox) {
+      cells.push({
         icon: 'mdi:water',
         label: isBinaryOn(this.hass!, companions.cleanWaterBox) ? t('vacuum.clean_ok') : t('vacuum.clean_empty'),
         variant: isBinaryOn(this.hass!, companions.cleanWaterBox) ? 'success' : 'alert',
-      },
-      {
+      });
+    }
+    if (companions.cleaningFluid) {
+      cells.push({
         icon: 'mdi:bottle-tonic-outline',
         label: isBinaryOn(this.hass!, companions.cleaningFluid) ? t('vacuum.fluid_ok') : t('vacuum.fluid_empty'),
         variant: isBinaryOn(this.hass!, companions.cleaningFluid) ? 'success' : 'warning',
-      },
-    ];
+      });
+    }
+    if (cells.length === 0) return nothing;
     const variantColor: Record<DockVariant, string> = {
       success: 'var(--c-success)',
       alert: 'var(--c-alert)',
@@ -828,7 +847,7 @@ export class GlassVacuumCard extends BaseCard {
       <div class="fold-section">
         <glass-section-title label=${t('vacuum.section_consumables')}></glass-section-title>
         ${items.map((i) => {
-          const hours = numericState(this.hass!, i.key, 0);
+          const hours = numericStateInHours(this.hass!, i.key, 0);
           let fillColor: 'success' | 'warning' | 'alert' = 'success';
           if (hours < 20) fillColor = 'alert';
           else if (hours < 50) fillColor = 'warning';
@@ -855,8 +874,14 @@ export class GlassVacuumCard extends BaseCard {
 
   private _renderStats(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
     if (!companions) return nothing;
+    // Each row only renders when its companions are mapped — an unmapped stat
+    // used to show "0 min / 0 m²" frozen forever.
+    const hasSession = !!(companions.lastEnd || companions.durationCurrent || companions.areaCurrent);
+    const hasTotals = !!(companions.totalCleanings || companions.areaTotal);
+    if (!hasSession && !hasTotals) return nothing;
+
     const lastEnd = entityState(this.hass!, companions.lastEnd, '');
-    const dur = numericState(this.hass!, companions.durationCurrent, 0);
+    const dur = numericStateInMinutes(this.hass!, companions.durationCurrent, 0);
     const area = numericState(this.hass!, companions.areaCurrent, 0);
     const totalCount = Math.round(numericState(this.hass!, companions.totalCleanings, 0));
     const totalArea = Math.round(numericState(this.hass!, companions.areaTotal, 0));
@@ -868,10 +893,14 @@ export class GlassVacuumCard extends BaseCard {
     return html`
       <div class="fold-section">
         <glass-section-title label=${t('vacuum.section_stats')}></glass-section-title>
-        <div class="stats-row">${t('vacuum.stats_last_session', { when, duration, area: areaLabel })}</div>
-        <div class="stats-row stats-totals">
-          ${t('vacuum.stats_totals', { count: totalCount, area: `${totalArea} m²` })}
-        </div>
+        ${hasSession ? html`
+          <div class="stats-row">${t('vacuum.stats_last_session', { when, duration, area: areaLabel })}</div>
+        ` : nothing}
+        ${hasTotals ? html`
+          <div class="stats-row stats-totals">
+            ${t('vacuum.stats_totals', { count: totalCount, area: `${totalArea} m²` })}
+          </div>
+        ` : nothing}
       </div>
     `;
   }
