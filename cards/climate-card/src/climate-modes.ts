@@ -126,7 +126,7 @@ export function renderHvacModes(
           const label = HVAC_I18N[mode] ? t(HVAC_I18N[mode] as Parameters<typeof t>[0]) : mode;
           return html`
             <button
-              class="mode-tile mode-${mode.replace('_', '-')} ${active ? 'active' : ''}"
+              class="mode-tile mode-${mode.replace(/_/g, '-')} ${active ? 'active' : ''}"
               @click=${() => onSetMode(mode)}
               aria-label=${label}
               aria-pressed=${active ? 'true' : 'false'}

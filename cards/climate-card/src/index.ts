@@ -90,7 +90,6 @@ export class GlassClimateCard extends BaseCard {
   private _climateConfigLoaded = false;
   private _roomConfig: RoomClimateConfig | null = null;
   private _roomConfigLoaded = false;
-  private _roomConfigLoading = false;
   private _lastLoadedAreaId?: string;
   private _backend?: BackendService;
   private _cachedClimateIds?: string[];
@@ -194,7 +193,10 @@ export class GlassClimateCard extends BaseCard {
     if (this.hass && !this._climateConfigLoaded) this._loadConfig();
 
     if (this.areaId && this.hass) {
-      if (this._lastLoadedAreaId !== this.areaId) this._resetForNewArea();
+      if (this._lastLoadedAreaId !== this.areaId) {
+        this._lastLoadedAreaId = this.areaId;
+        this._resetForNewArea();
+      }
       if (!this._roomConfigLoaded) this._loadRoomConfig();
     }
 
@@ -214,6 +216,26 @@ export class GlassClimateCard extends BaseCard {
       this._cachedClimateIds = undefined;
       this._cachedClimatesFingerprint = '';
       this._dashboardHiddenLoaded = false;
+    }
+
+    // Clear stale pending temp/humidity values once HA state catches up
+    if (changedProps.has('hass') && this._pendingTemps.size > 0) {
+      let changed = false;
+      for (const [key, pending] of this._pendingTemps) {
+        const isHumidity = key.startsWith('humidity_');
+        const entityId = key.slice(isHumidity ? 'humidity_'.length : 'temp_'.length);
+        const entity = this.hass?.states[entityId];
+        if (!entity) continue;
+        const haVal = isHumidity
+          ? (entity.attributes.humidity as number | undefined)
+          : (entity.attributes.temperature as number | undefined);
+        const tolerance = isHumidity ? 2 : ((entity.attributes.target_temp_step as number) || 0.5);
+        if (haVal != null && Math.abs(haVal - pending) <= tolerance) {
+          this._pendingTemps.delete(key);
+          changed = true;
+        }
+      }
+      if (changed) this.requestUpdate();
     }
 
     // Update thermal canvas for normal mode
@@ -257,28 +279,26 @@ export class GlassClimateCard extends BaseCard {
       this._configReady = true;
       this.requestUpdate();
     } catch {
+      // Unblock the render but retry the load on the next hass tick.
       this._configReady = true;
+      this._climateConfigLoaded = false;
     }
   }
 
   private async _loadRoomConfig(): Promise<void> {
-    if (!this.hass || !this.areaId || this._roomConfigLoaded || this._roomConfigLoading) return;
-    this._roomConfigLoading = true;
-    this._lastLoadedAreaId = this.areaId;
+    if (!this.hass || !this.areaId || this._roomConfigLoaded) return;
+    this._roomConfigLoaded = true;
+    const areaId = this.areaId;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
-      const result = await this._backend.send<RoomClimateConfig | null>('get_room', { area_id: this.areaId });
-      if (this.areaId === this._lastLoadedAreaId) {
-        this._roomConfig = result;
-        this._roomConfigLoaded = true;
-        this._cachedClimateIds = undefined;
-        this._cachedClimatesFingerprint = '';
-        this.requestUpdate();
-      }
+      const result = await this._backend.send<RoomClimateConfig | null>('get_room', { area_id: areaId });
+      if (this.areaId !== areaId) return;
+      this._roomConfig = result;
+      this._cachedClimateIds = undefined;
+      this._cachedClimatesFingerprint = '';
+      this.requestUpdate();
     } catch {
-      // ignore
-    } finally {
-      this._roomConfigLoading = false;
+      if (this.areaId === areaId) this._roomConfigLoaded = false;
     }
   }
 
@@ -300,7 +320,8 @@ export class GlassClimateCard extends BaseCard {
   private async _loadDashboardHidden(): Promise<void> {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    const capturedAreaIds = this.visibleAreaIds;
+    const areas = capturedAreaIds?.length ? capturedAreaIds : Object.keys(this.hass.areas ?? {});
     if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
@@ -309,6 +330,7 @@ export class GlassClimateCard extends BaseCard {
       const results = await Promise.all(
         areas.map((aId) => backend.send<{ hidden_entities: string[] } | null>('get_room', { area_id: aId })),
       );
+      if (this.visibleAreaIds !== capturedAreaIds) return;
       for (const result of results) {
         if (result?.hidden_entities) {
           for (const id of result.hidden_entities) hidden.add(id);
@@ -319,14 +341,13 @@ export class GlassClimateCard extends BaseCard {
       this._cachedClimatesFingerprint = '';
       this.requestUpdate();
     } catch {
-      // Backend not available
+      if (this.visibleAreaIds === capturedAreaIds) this._dashboardHiddenLoaded = false;
     }
   }
 
   private _resetForNewArea(): void {
     this._roomConfig = null;
     this._roomConfigLoaded = false;
-    this._roomConfigLoading = false;
     this._expanded = null;
     this._selectedEntity = null;
     this._foldOpen = false;
@@ -377,7 +398,7 @@ export class GlassClimateCard extends BaseCard {
       const ids: string[] = [];
       for (const aId of areas) {
         for (const e of getAreaEntities(aId, this.hass.entities, this.hass.devices)) {
-          if (e.entity_id.startsWith('climate.') && !this._dashboardHiddenEntities.has(e.entity_id)) ids.push(e.entity_id);
+          if (e.entity_id.startsWith('climate.') && !this._dashboardHiddenEntities.has(e.entity_id) && isEntityVisibleNow(e.entity_id, this._schedules)) ids.push(e.entity_id);
         }
       }
       return ids;
@@ -464,7 +485,8 @@ export class GlassClimateCard extends BaseCard {
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
       this._safeCallService('climate', 'set_temperature', { temperature: temp }, { entity_id: entityId });
-      this._pendingTemps.delete(`temp_${entityId}`);
+      // The pending value stays until HA confirms; the stale-clear in
+      // updated() drops it, avoiding a visual bounce to the old value.
     }, 400));
   }
 
@@ -492,7 +514,6 @@ export class GlassClimateCard extends BaseCard {
     this._throttleTimers.set(key, setTimeout(() => {
       this._throttleTimers.delete(key);
       this._safeCallService('climate', 'set_humidity', { humidity }, { entity_id: entityId });
-      this._pendingTemps.delete(`humidity_${entityId}`);
     }, 400));
   }
 
@@ -745,7 +766,13 @@ export class GlassClimateCard extends BaseCard {
         >
           <ha-icon class=${pulseClass} .icon=${icon}></ha-icon>
         </glass-icon-button>
-        <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'}>
+        <button class="cl-expand-area" type="button" aria-expanded=${isExpanded ? 'true' : 'false'}
+          @click=${(e: MouseEvent) => {
+            // detail === 0 → synthetic click from Enter/Space; pointer taps are
+            // handled by the row gesture (tap = toggle, long-press = expand).
+            if (e.detail === 0 && !unavailable) this._expanded = isExpanded ? null : entityId;
+          }}
+        >
           <div class="cl-info">
             <div class="cl-name">${name}</div>
             <div class="cl-sub">
@@ -766,9 +793,9 @@ export class GlassClimateCard extends BaseCard {
   }
 
   private _renderListFold(entityId: string, entity: HassEntity): TemplateResult | typeof nothing {
+    // Always render the fold (even for unavailable entities, where expand is
+    // blocked upstream) so the 0fr->1fr grid transition has a node to animate.
     const isExpanded = this._expanded === entityId;
-    if (isEntityUnavailable(entity.state)) return nothing;
-
     const hvacAction = this._getHvacAction(entity);
     const sepColor = hvacAction === 'cooling' ? 'cool' : '';
 
@@ -832,7 +859,7 @@ export class GlassClimateCard extends BaseCard {
           <div class="temp-display-value ${colorClass}">${target.toFixed(1)}<span class="unit">${unit}</span></div>
           ${currentTemp != null ? html`
             <div class="temp-display-current">
-              <ha-icon .icon=${'mdi:thermometer'} style="--mdc-icon-size:13px;display:flex;align-items:center;justify-content:center;"></ha-icon>
+              <span style="--mdc-icon-size:13px;display:inline-flex;align-items:center;justify-content:center;"><ha-icon .icon=${'mdi:thermometer'}></ha-icon></span>
               <span>${t('climate.current_label')} ${currentTemp.toFixed(1)}${unit}</span>
             </div>
           ` : nothing}
