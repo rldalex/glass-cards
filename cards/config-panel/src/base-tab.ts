@@ -8,6 +8,10 @@ import { configPanelStyles } from './styles';
 import { createSaveScheduler } from './utils/save-scheduler';
 import type { RoomEntry, DragState } from './types';
 
+// Per-area promise chains serializing room-entity saves across all tab
+// instances of this bundle (bounded by the number of areas).
+const roomSaveQueues = new Map<string, Promise<void>>();
+
 /**
  * Abstract base class for config panel tab components.
  * Each tab extends this and implements loadFromConfig/collectSaveData/render.
@@ -79,7 +83,9 @@ export abstract class BaseConfigTab extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._saveScheduler.cancel();
+    // Flush, don't cancel: an edit made <800ms before closing the panel
+    // would otherwise be silently lost.
+    this._saveScheduler.flush();
     this._teardownDropdownListener();
   }
 
@@ -213,7 +219,27 @@ export abstract class BaseConfigTab extends LitElement {
 
   // — Room entity save helper —
 
-  protected async _saveRoomEntities(
+  /** Serialize the read-merge-write per room: two tabs (e.g. light + cover)
+   *  saving the same area in overlapping debounce windows would otherwise
+   *  read the same get_room snapshot and the second set_room would drop the
+   *  first one's entities (classic lost update). Errors propagate to the
+   *  caller (toast) without breaking the chain. */
+  protected _saveRoomEntities(
+    areaId: string,
+    cardEntityIds: Set<string>,
+    hiddenIds: string[],
+    orderedIds: string[],
+    layouts?: Record<string, string>,
+  ): Promise<void> {
+    const prev = roomSaveQueues.get(areaId) ?? Promise.resolve();
+    const run = prev.then(() =>
+      this._doSaveRoomEntities(areaId, cardEntityIds, hiddenIds, orderedIds, layouts),
+    );
+    roomSaveQueues.set(areaId, run.catch(() => { /* keep the chain alive */ }));
+    return run;
+  }
+
+  private async _doSaveRoomEntities(
     areaId: string,
     cardEntityIds: Set<string>,
     hiddenIds: string[],

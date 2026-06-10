@@ -29,7 +29,7 @@ export class ConfigRoomList extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._saveScheduler.cancel();
+    this._saveScheduler.flush();
   }
 
   private async _loadConfig(): Promise<void> {

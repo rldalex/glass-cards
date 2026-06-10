@@ -168,7 +168,7 @@ export class ConfigRoomDetail extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._saveScheduler.cancel();
+    this._saveScheduler.flush();
     this._removeIconPortal();
     this._btnIconPortalIdx = null;
     document.removeEventListener('keydown', this._onDocKeyDown);
