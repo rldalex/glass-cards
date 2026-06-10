@@ -600,7 +600,7 @@ export class GlassLightCard extends BaseCard {
 
   protected _collapseExpanded(): void {
     if (this._expandedEntity !== null) this._expandedEntity = null;
-    if (this._colorPickerEntity !== null) { this._colorPickerEntity = null; this._colorPickerPos = null; }
+    if (this._colorPickerEntity !== null) this._closeColorPicker();
   }
 
   connectedCallback() {
@@ -663,7 +663,7 @@ export class GlassLightCard extends BaseCard {
       this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this.requestUpdate();
     } catch {
-      // Backend not available
+      this._roomConfigLoaded = false;
     }
   }
 
@@ -693,19 +693,23 @@ export class GlassLightCard extends BaseCard {
         this._showHeader = result.light_card.show_header ?? true;
       }
     } catch {
-      // Backend not available
+      this._lightConfigLoaded = false;
     }
   }
 
   private async _loadDashboardHidden() {
     if (!this.hass || this._dashboardHiddenLoaded || !this._isDashboardMode) return;
     this._dashboardHiddenLoaded = true;
-    const areas = this.visibleAreaIds?.length ? this.visibleAreaIds : Object.keys(this.hass.areas ?? {});
+    // Snapshot the prop reference: if visibleAreaIds changes mid-loop a new
+    // load is triggered and this stale one must not overwrite its result.
+    const capturedAreaIds = this.visibleAreaIds;
+    const areas = capturedAreaIds?.length ? capturedAreaIds : Object.keys(this.hass.areas ?? {});
     if (areas.length === 0) return;
     try {
       if (!this._backend) this._backend = new BackendService(this.hass);
       const hidden = new Set<string>();
       for (const aId of areas) {
+        if (this.visibleAreaIds !== capturedAreaIds) return;
         const result = await this._backend.send<{
           hidden_entities: string[];
         } | null>('get_room', { area_id: aId });
@@ -713,12 +717,13 @@ export class GlassLightCard extends BaseCard {
           for (const id of result.hidden_entities) hidden.add(id);
         }
       }
+      if (this.visibleAreaIds !== capturedAreaIds) return;
       this._dashboardHiddenEntities = hidden;
       this._cachedLightIds = undefined; this._lightsFingerprint = '';
       this._dashboardTotalCache = undefined;
       this.requestUpdate();
     } catch {
-      // Backend not available
+      this._dashboardHiddenLoaded = false;
     }
   }
 
@@ -1104,6 +1109,12 @@ export class GlassLightCard extends BaseCard {
     this._cancelWheelDrag?.();
     this._cancelWheelDrag = undefined;
     this._wheelCanvas = null;
+    if (this._colorPickerEntity) {
+      const cpKey = `cp:${this._colorPickerEntity}`;
+      const timer = this._throttleTimers.get(cpKey);
+      if (timer !== undefined) clearTimeout(timer);
+      this._throttleTimers.delete(cpKey);
+    }
     this._colorPickerEntity = null;
     this._colorPickerRgb = null;
     this._colorPickerPos = null;
@@ -1281,6 +1292,11 @@ export class GlassLightCard extends BaseCard {
           class="light-expand-btn"
           aria-label="${info.isOn ? t('light.expand_aria', { name: info.name }) : info.name}"
           aria-expanded=${info.isOn ? (this._expandedEntity === info.entityId ? 'true' : 'false') : nothing}
+          @click=${(e: MouseEvent) => {
+            // detail === 0 → synthetic click from Enter/Space; pointer taps are
+            // handled by the row gesture (tap = toggle, long-press = expand).
+            if (e.detail === 0) this._expandFold(info.entityId, info.isOn, info);
+          }}
         >
           <div class="light-info">
             <div class="light-name">${info.name}</div>
