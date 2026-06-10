@@ -69,6 +69,16 @@ const DEFAULT_TEMP_HIGH = 24.0;
 const DEFAULT_TEMP_LOW = 17.0;
 const DEFAULT_HUMIDITY_THRESHOLD = 65;
 
+/** Backend config retry cadence while the loading overlay is visible. */
+const CONFIG_RETRY_MS = 2_000;
+/** Slower background cadence once the overlay deadline expired. */
+const CONFIG_RETRY_BG_MS = 10_000;
+/** Max time the blocking overlay may cover HA. Past this, the overlay is
+ *  removed and retries continue in the background: a permanently broken
+ *  backend must not make the whole HA UI unusable (the overlay sits above
+ *  every HA dialog/toast at z-index 99999). */
+const OVERLAY_DEADLINE_MS = 15_000;
+
 interface NavItem {
   areaId: string;
   name: string;
@@ -139,6 +149,8 @@ export class GlassNavbarCard extends BaseCard {
   private _sidebarStyleEl: HTMLStyleElement | null = null;
   private _loadingOverlay: HTMLElement | null = null;
   private _removeOverlayTimer?: ReturnType<typeof setTimeout>;
+  private _overlayDeadlineTimer?: ReturnType<typeof setTimeout>;
+  private _overlayExpired = false;
   private _headerRetryTimer?: ReturnType<typeof setTimeout>;
   private _sidebarRetryTimer?: ReturnType<typeof setTimeout>;
   private _configRetryTimer?: ReturnType<typeof setTimeout>;
@@ -534,6 +546,8 @@ export class GlassNavbarCard extends BaseCard {
     this._removeSidebarStyle();
     if (this._loadingOverlay) { this._loadingOverlay.remove(); this._loadingOverlay = null; }
     if (this._removeOverlayTimer) { clearTimeout(this._removeOverlayTimer); this._removeOverlayTimer = undefined; }
+    this._clearOverlayDeadline();
+    this._overlayExpired = false;
     if (this._headerRetryTimer) { clearTimeout(this._headerRetryTimer); this._headerRetryTimer = undefined; }
     if (this._sidebarRetryTimer) { clearTimeout(this._sidebarRetryTimer); this._sidebarRetryTimer = undefined; }
     if (this._configRetryTimer) { clearTimeout(this._configRetryTimer); this._configRetryTimer = undefined; }
@@ -737,21 +751,35 @@ export class GlassNavbarCard extends BaseCard {
       this._aggregateState();
     } catch {
       // Backend not available — retry after delay
-      this._configLoading = false;
       if (this.isConnected) {
-        this._showLoadingOverlay();
-        this._configRetryTimer = setTimeout(() => {
-          this._configRetryTimer = undefined;
-          if (!this.isConnected) return;
-          this._configLoaded = false;
-          this._loadBackendConfig();
-        }, 2000);
+        if (!this._overlayExpired) this._showLoadingOverlay();
+        this._scheduleConfigRetry();
       }
       return;
     } finally {
       this._configLoading = false;
     }
     this._removeLoadingOverlay();
+    this._clearOverlayDeadline();
+    this._overlayExpired = false;
+  }
+
+  private _scheduleConfigRetry(): void {
+    if (this._configRetryTimer) clearTimeout(this._configRetryTimer);
+    const delay = this._overlayExpired ? CONFIG_RETRY_BG_MS : CONFIG_RETRY_MS;
+    this._configRetryTimer = setTimeout(() => {
+      this._configRetryTimer = undefined;
+      if (!this.isConnected) return;
+      // hass momentarily missing or a load already in flight — keep the chain
+      // alive instead of silently dying (a dead chain used to leave the
+      // overlay up forever when hass was undefined at retry time).
+      if (!this.hass || this._configLoading) {
+        this._scheduleConfigRetry();
+        return;
+      }
+      this._configLoaded = false;
+      this._loadBackendConfig();
+    }, delay);
   }
 
   private async _loadDashboardConfig(): Promise<void> {
@@ -874,6 +902,14 @@ export class GlassNavbarCard extends BaseCard {
 
   private _showLoadingOverlay(): void {
     if (this._loadingOverlay) return;
+    // Escape hatch: never block HA past the deadline — remove the overlay and
+    // let retries continue quietly in the background (navbar simply absent).
+    this._clearOverlayDeadline();
+    this._overlayDeadlineTimer = setTimeout(() => {
+      this._overlayDeadlineTimer = undefined;
+      this._overlayExpired = true;
+      this._removeLoadingOverlay();
+    }, OVERLAY_DEADLINE_MS);
     const el = document.createElement('div');
     el.id = 'glass-cards-loading';
     el.style.cssText = `
@@ -899,6 +935,13 @@ export class GlassNavbarCard extends BaseCard {
 
     document.body.appendChild(el);
     this._loadingOverlay = el;
+  }
+
+  private _clearOverlayDeadline(): void {
+    if (this._overlayDeadlineTimer) {
+      clearTimeout(this._overlayDeadlineTimer);
+      this._overlayDeadlineTimer = undefined;
+    }
   }
 
   private _removeLoadingOverlay(): void {
