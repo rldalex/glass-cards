@@ -1,4 +1,4 @@
-import { html, css, nothing, type PropertyValues, type TemplateResult } from 'lit';
+import { html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
@@ -8,140 +8,31 @@ import {
   isEntityVisibleNow,
   fireHaptic,
   type EntityScheduleMap,
-  type HassEntity,
 } from '@glass-cards/base-card';
 import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
+import {
+  FanFeature,
+  PRESET_MODE_ICONS,
+  presetLabelKey,
+  pctToStep,
+  stepToPct,
+  stepToPctDisplay,
+  snapPct,
+  spinDuration,
+  buildFanInfo,
+  hasControls,
+  buildLayout,
+  type FanInfo,
+  type FanBackendConfig,
+  type RoomFanConfig,
+} from './fan-utils';
+import { fanCardStyles } from './styles';
 import './editor';
 
-// — Feature bitmask (HA FanEntityFeature) —
-
-const FanFeature = {
-  SET_SPEED: 1,
-  OSCILLATE: 2,
-  DIRECTION: 4,
-  PRESET_MODE: 8,
-  TURN_OFF: 16,
-  TURN_ON: 32,
-} as const;
-
-// — Types —
-
-interface FanInfo {
-  entity: HassEntity;
-  entityId: string;
-  name: string;
-  icon: string;
-  isCeiling: boolean;
-  isOn: boolean;
-  percentage: number;
-  speedCount: number;
-  direction: string | null;
-  oscillating: boolean;
-  presetMode: string | null;
-  presetModes: string[];
-  supportedFeatures: number;
-  lightEntityId: string | null;
-  isSimple: boolean;
-}
-
-interface FanBackendConfig {
-  show_header: boolean;
-}
-
-interface RoomFanConfig {
-  hidden_entities: string[];
-  entity_order: string[];
-  entity_layouts: Record<string, string>;
-}
-
-// — Preset mode icons —
-
-const PRESET_MODE_ICONS: Record<string, string> = {
-  auto: 'mdi:autorenew',
-  eco: 'mdi:leaf',
-  night: 'mdi:weather-night',
-  nuit: 'mdi:weather-night',
-  comfort: 'mdi:sofa',
-  confort: 'mdi:sofa',
-  silent: 'mdi:volume-off',
-  silence: 'mdi:volume-off',
-  turbo: 'mdi:lightning-bolt',
-};
-
-// — Helpers —
-
-function pctToStep(pct: number, speedCount: number): number {
-  if (pct <= 0) return 0;
-  return Math.max(1, Math.min(speedCount, Math.round(pct / (100 / speedCount))));
-}
-
-function stepToPct(step: number, speedCount: number): number {
-  if (step <= 0) return 0;
-  return (step / speedCount) * 100;
-}
-
-function stepToPctDisplay(step: number, speedCount: number): number {
-  return Math.round(stepToPct(step, speedCount));
-}
-
-function snapPct(pct: number, speedCount: number): number {
-  return stepToPct(pctToStep(pct, speedCount), speedCount);
-}
-
-function spinDuration(pct: number): string {
-  if (pct <= 0) return '3s';
-  if (pct <= 20) return '4s';
-  if (pct <= 40) return '2.5s';
-  if (pct <= 60) return '1.6s';
-  if (pct <= 80) return '1.1s';
-  return '0.7s';
-}
-
-function isCeilingFan(entityId: string, entity: HassEntity): boolean {
-  const dc = entity.attributes.device_class as string | undefined;
-  if (dc === 'ceiling') return true;
-  const lower = entityId.toLowerCase();
-  return lower.includes('ceiling') || lower.includes('plafond') || lower.includes('plafonnier');
-}
-
-function findCeilingLight(fanEntityId: string, hass: { states: Record<string, HassEntity>; devices?: Record<string, { id: string }>; entities?: Record<string, { entity_id: string; device_id?: string | null }> }): string | null {
-  const suffix = fanEntityId.replace('fan.', '');
-  // Naming convention: fan.X → light.X or light.X_light
-  const candidates = [`light.${suffix}`, `light.${suffix}_light`];
-  for (const c of candidates) {
-    if (hass.states[c]) return c;
-  }
-  // Device match: find light entity on same device
-  if (hass.entities) {
-    const fanEntry = hass.entities[fanEntityId];
-    if (fanEntry?.device_id) {
-      for (const [eid, entry] of Object.entries(hass.entities)) {
-        if (eid.startsWith('light.') && entry.device_id === fanEntry.device_id && hass.states[eid]) {
-          return eid;
-        }
-      }
-    }
-  }
-  return null;
-}
-
-// — Preset mode i18n key map —
-const PRESET_I18N: Record<string, string> = {
-  auto: 'fan.preset_auto',
-  eco: 'fan.preset_eco',
-  night: 'fan.preset_night',
-  nuit: 'fan.preset_night',
-  comfort: 'fan.preset_comfort',
-  confort: 'fan.preset_comfort',
-  silent: 'fan.preset_silent',
-  silence: 'fan.preset_silent',
-  turbo: 'fan.preset_turbo',
-};
-
 function presetLabel(mode: string): string {
-  const key = PRESET_I18N[mode.toLowerCase()];
-  if (key) return t(key as Parameters<typeof t>[0]);
+  const key = presetLabelKey(mode);
+  if (key) return t(key);
   return mode.charAt(0).toUpperCase() + mode.slice(1);
 }
 
@@ -181,258 +72,7 @@ class GlassFanCard extends BaseCard {
     return !this.areaId;
   }
 
-  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
-    :host {
-      width: 100%;
-      max-width: 31.25rem;
-      margin: 0 auto;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    /* ── Card Header ── */
-    .card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 0.375rem; margin-bottom: 0.375rem; min-height: 1.375rem;
-    }
-    .card-header-left { display: flex; align-items: center; gap: 0.5rem; }
-    .card-title {
-      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--t4);
-    }
-    .card-count {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
-      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
-      transition: background var(--t-med), color var(--t-med);
-    }
-    .card-count.some { background: rgba(var(--rgb-accent),0.15); color: var(--c-accent); }
-    .card-count.none { background: var(--s2); color: var(--t3); }
-    .card-count.all  { background: rgba(var(--rgb-accent),0.2); color: var(--c-accent); }
-
-    /* ── Card Body ── */
-    .fan-card { position: relative; padding: 0.125rem 0.875rem; }
-    .card-inner {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    }
-
-    .tint {
-      transition: opacity var(--t-slow), background var(--t-slow);
-    }
-
-    /* ── Fan Row ── */
-    .fan-row {
-      display: flex; align-items: center; gap: 0.625rem;
-      grid-column: 1 / -1;
-      padding: 0.5rem 0.25rem; position: relative;
-      transition: background var(--t-fast); border-radius: var(--radius-md);
-    }
-    .fan-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
-    .fan-row.compact-right { padding-left: 0.625rem; }
-    .fan-row.compact-right::before {
-      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
-      background: linear-gradient(to bottom, transparent, rgba(var(--rgb-white),0.08) 30%, rgba(var(--rgb-white),0.08) 70%, transparent);
-    }
-    /* No row-level hover: sub-buttons (icon-toggle + expand) carry their own. */
-    @media (pointer: coarse) {
-      .fan-row:active { animation: bounce 0.3s ease; }
-    }
-
-    /* ── Spinning animation (applies to the icon inside <glass-icon-button>) ── */
-    @keyframes spin-fan {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes spin-fan-reverse {
-      from { transform: rotate(360deg); }
-      to { transform: rotate(0deg); }
-    }
-    .fan-row.on glass-icon-button ha-icon.spinning {
-      animation: spin-fan var(--spin-duration, 2s) linear infinite;
-      will-change: transform;
-    }
-    .fan-row.on glass-icon-button ha-icon.spinning.reverse {
-      animation: spin-fan-reverse var(--spin-duration, 2s) linear infinite;
-      will-change: transform;
-    }
-
-    /* ── Expand Button ── */
-    .fan-expand-btn {
-      flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 0.625rem;
-      background: none; border: none; padding: 0;
-      font-family: inherit; cursor: pointer; outline: none;
-      text-align: left; color: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .fan-expand-btn:focus-visible {
-      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
-      border-radius: var(--radius-sm);
-    }
-
-    /* ── Fan Info ── */
-    .fan-info { flex: 1; min-width: 0; }
-    .fan-name {
-      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .fan-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
-    .fan-speed-text {
-      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
-      transition: color var(--t-med);
-    }
-    .fan-row.on .fan-speed-text { color: rgba(var(--rgb-accent),0.55); }
-
-    .fan-direction {
-      font-size: var(--fz-sm); font-weight: 400; color: var(--t4);
-      display: flex; align-items: center; gap: 0.1875rem;
-    }
-    .fan-direction ha-icon {
-      --mdc-icon-size: 0.6875rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .fan-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
-    }
-    .fan-row.on .fan-dot {
-      background: var(--c-accent); box-shadow: 0 0 8px rgba(var(--rgb-accent),0.4);
-    }
-
-    /* Unavailable badge inline (replaces dot) */
-    .fan-expand-btn .unavailable-badge {
-      position: static;
-      flex-shrink: 0;
-      --mdc-icon-size: 0.75rem;
-      color: var(--c-warning);
-    }
-
-    /* ── Fold separator ── */
-    .fold-sep {
-      grid-column: 1 / -1;
-      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(var(--rgb-accent),0.2), transparent);
-      opacity: 0; transition: opacity var(--t-layout);
-    }
-    /* In a compact pair, anchor the separator under the opened fan only. */
-    .fold-sep.fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
-    .fold-sep.fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
-    .fold-sep.visible { opacity: 1; }
-
-    /* ── Controls fold ── */
-    .ctrl-fold {
-      grid-column: 1 / -1;
-      display: grid; grid-template-rows: 0fr;
-      transition: grid-template-rows var(--t-layout);
-      pointer-events: none;
-    }
-    .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
-    .ctrl-fold-inner {
-      overflow: hidden;
-      opacity: 0; transition: opacity var(--t-fast);
-    }
-    .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
-
-    .ctrl-panel {
-      padding: 0.375rem 0 0.25rem;
-      display: flex; flex-direction: column; gap: 0.75rem;
-    }
-    /* ── Fold sections (Vitesse / Mode / Direction / Oscillation) ── */
-    .fan-section {
-      display: flex; flex-direction: column; gap: 0.4375rem;
-    }
-
-    /* ── Speed steps ── */
-    .speed-steps { display: flex; gap: 0.25rem; }
-    .speed-step {
-      flex: 1; height: 2.25rem; border-radius: var(--radius-md);
-      background: var(--s1); border: 1px solid var(--b1);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-family: inherit; font-size: var(--fz-base); font-weight: 700; color: var(--t3);
-      cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast); outline: none; padding: 0.125rem 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .speed-step:hover { background: var(--s3); border-color: var(--b2); color: var(--t2); }
-    }
-    .speed-step:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: -2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .speed-step:active { transform: scale(0.96); }
-    }
-    @media (pointer: coarse) {
-      .speed-step:active { animation: bounce 0.3s ease; }
-    }
-    .speed-step.active {
-      background: rgba(var(--rgb-accent),0.1); border-color: rgba(var(--rgb-accent),0.15);
-      color: var(--c-accent);
-    }
-    .speed-step-pct {
-      font-size: var(--fz-xxs); font-weight: 600; color: var(--t4);
-      letter-spacing: 0.3px; margin-top: 0.0625rem;
-    }
-    .speed-step.active .speed-step-pct { color: rgba(var(--rgb-accent),0.55); }
-
-    /* ── Slider ── */
-    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
-    .slider-icon {
-      display: flex; align-items: center; justify-content: center;
-      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
-    }
-    .slider-icon ha-icon {
-      --mdc-icon-size: var(--icon-md);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3);
-    }
-    glass-slider { flex: 1; }
-
-    /* ── Mode chips ── */
-    .mode-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-
-    /* ── Direction toggle ── */
-    .direction-row { display: flex; align-items: center; gap: 0.625rem; }
-    .direction-label {
-      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 0.375rem;
-    }
-    .direction-label ha-icon {
-      --mdc-icon-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0.6;
-    }
-    .direction-btns { display: flex; gap: 0.25rem; }
-
-    /* ── Oscillation toggle ── */
-    .osc-row { display: flex; align-items: center; gap: 0.625rem; }
-    .osc-label {
-      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 0.375rem;
-    }
-    .osc-label ha-icon {
-      --mdc-icon-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0.6;
-    }
-
-    /* ── Ceiling light row ── */
-    .ceiling-light-row {
-      display: flex; align-items: center; gap: 0.625rem; padding: 0.375rem 0;
-    }
-    .ceiling-light-label {
-      font-size: var(--fz-base); font-weight: 600; color: var(--t2); flex: 1;
-      display: flex; align-items: center; gap: 0.375rem;
-    }
-    .ceiling-light-label ha-icon {
-      --mdc-icon-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0.6;
-    }
-
-    /* ── Separator ── */
-    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
-
-  `];
+  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, fanCardStyles];
 
   // — Lifecycle —
 
@@ -719,8 +359,8 @@ class GlassFanCard extends BaseCard {
     const result = ids
       .map((id) => {
         const entity = this.hass?.states[id];
-        if (!entity) return null;
-        return this._buildFanInfo(id, entity);
+        if (!entity || !this.hass) return null;
+        return buildFanInfo(id, entity, this.hass);
       })
       .filter((f): f is FanInfo => f !== null);
 
@@ -731,51 +371,6 @@ class GlassFanCard extends BaseCard {
       this._cachedFansResult = result;
     }
     return this._cachedFansResult;
-  }
-
-  private _buildFanInfo(entityId: string, entity: HassEntity): FanInfo {
-    const attrs = entity.attributes;
-    const isOn = entity.state === 'on';
-    const percentage = (attrs.percentage as number) ?? 0;
-    const pctStep = attrs.percentage_step as number | undefined;
-    const rawCount = attrs.speed_count as number | undefined;
-    const speedCount = rawCount ?? (pctStep && pctStep > 0 ? Math.round(100 / pctStep) : 3);
-    const direction = (attrs.direction as string) || null;
-    const oscillating = (attrs.oscillating as boolean) || false;
-    const presetMode = (attrs.preset_mode as string) || null;
-    const presetModes = (attrs.preset_modes as string[]) || [];
-    const supportedFeatures = (attrs.supported_features as number) || 0;
-    const ceiling = isCeilingFan(entityId, entity);
-
-    const registryIcon = this.hass?.entities[entityId]?.icon;
-    const attrIcon = attrs.icon as string | undefined;
-    const icon = registryIcon || attrIcon || (ceiling ? 'mdi:ceiling-fan' : 'mdi:fan');
-
-    const lightEntityId = ceiling && this.hass ? findCeilingLight(entityId, this.hass) : null;
-
-    // Simple fan = speed only, no preset/direction/oscillation/ceiling light
-    const hasPreset = !!(supportedFeatures & FanFeature.PRESET_MODE) && presetModes.length > 0;
-    const hasDirection = !!(supportedFeatures & FanFeature.DIRECTION);
-    const hasOscillate = !!(supportedFeatures & FanFeature.OSCILLATE);
-    const isSimple = !hasPreset && !hasDirection && !hasOscillate && !lightEntityId;
-
-    return {
-      entity,
-      entityId,
-      name: (attrs.friendly_name as string) || entityId.split('.')[1] || entityId,
-      icon,
-      isCeiling: ceiling,
-      isOn,
-      percentage: isOn ? percentage : 0,
-      speedCount,
-      direction,
-      oscillating,
-      presetMode: isOn ? presetMode : null,
-      presetModes,
-      supportedFeatures,
-      lightEntityId,
-      isSimple,
-    };
   }
 
   // — Actions —
@@ -871,11 +466,6 @@ class GlassFanCard extends BaseCard {
     const lightEntity = this.hass.states[fan.lightEntityId];
     const service = lightEntity?.state === 'on' ? 'turn_off' : 'turn_on';
     this._safeCallService('light', service, {}, { entity_id: fan.lightEntityId });
-  }
-
-  private _hasControls(fan: FanInfo): boolean {
-    const sf = fan.supportedFeatures;
-    return !!(sf & FanFeature.SET_SPEED) || !!(sf & FanFeature.PRESET_MODE) || !!(sf & FanFeature.DIRECTION) || !!(sf & FanFeature.OSCILLATE) || !!fan.lightEntityId;
   }
 
   private _toggleExpand(fan: FanInfo): void {
@@ -975,7 +565,9 @@ class GlassFanCard extends BaseCard {
       <div class="glass fan-card">
         <div class="tint" style="background:radial-gradient(ellipse at 30% 30%, var(--c-accent), transparent 70%);opacity:${total > 0 ? (onCount / total * 0.18).toFixed(3) : '0'};"></div>
         <div class="card-inner">
-          ${this._isDashboardMode ? this._renderDashboardGrid(fans) : this._renderGrid(fans)}
+          ${this._isDashboardMode
+            ? this._renderLayout(fans, () => true)
+            : this._renderLayout(fans, (fan) => this._isCompact(fan))}
         </div>
       </div>
     `;
@@ -1010,49 +602,17 @@ class GlassFanCard extends BaseCard {
     return this._getEntityLayout(fan.entityId) === 'compact';
   }
 
-  private _renderGrid(fans: FanInfo[]) {
+  private _renderLayout(fans: FanInfo[], isCompact: (fan: FanInfo) => boolean) {
     const results: unknown[] = [];
-    let i = 0;
-    while (i < fans.length) {
-      const fan = fans[i];
-      if (this._isCompact(fan)) {
-        const next = i + 1 < fans.length && this._isCompact(fans[i + 1]) ? fans[i + 1] : null;
-        if (next) {
-          results.push(this._renderFanRow(fan, true, false));
-          results.push(this._renderFanRow(next, true, true));
-          results.push(this._renderControlFold(fan, 'left'));
-          results.push(this._renderControlFold(next, 'right'));
-          i += 2;
-        } else {
-          results.push(this._renderFanRow(fan, false, false));
-          results.push(this._renderControlFold(fan, 'full'));
-          i++;
-        }
+    for (const item of buildLayout(fans, isCompact)) {
+      if (item.kind === 'pair') {
+        results.push(this._renderFanRow(item.left, true, false));
+        results.push(this._renderFanRow(item.right, true, true));
+        results.push(this._renderControlFold(item.left, 'left'));
+        results.push(this._renderControlFold(item.right, 'right'));
       } else {
-        results.push(this._renderFanRow(fan, false, false));
-        results.push(this._renderControlFold(fan, 'full'));
-        i++;
-      }
-    }
-    return results;
-  }
-
-  private _renderDashboardGrid(fans: FanInfo[]) {
-    const results: unknown[] = [];
-    let i = 0;
-    while (i < fans.length) {
-      const left = fans[i];
-      const right = i + 1 < fans.length ? fans[i + 1] : null;
-      if (right) {
-        results.push(this._renderFanRow(left, true, false));
-        results.push(this._renderFanRow(right, true, true));
-        results.push(this._renderControlFold(left, 'left'));
-        results.push(this._renderControlFold(right, 'right'));
-        i += 2;
-      } else {
-        results.push(this._renderFanRow(left, false, false));
-        results.push(this._renderControlFold(left, 'full'));
-        i++;
+        results.push(this._renderFanRow(item.item, false, false));
+        results.push(this._renderControlFold(item.item, 'full'));
       }
     }
     return results;
@@ -1064,9 +624,9 @@ class GlassFanCard extends BaseCard {
     const isExpanded = this._expandedEntity === fan.entityId;
 
     // Speed text — simple fans without controls show on/off, others show step info
-    const hasControls = this._hasControls(fan);
+    const fanHasControls = hasControls(fan);
     let speedText: string;
-    if (!hasControls) {
+    if (!fanHasControls) {
       speedText = fan.isOn ? t('common.on') : t('fan.off');
     } else if (fan.isOn || speedDrag !== undefined) {
       speedText = `${displayPct}%`;
@@ -1081,7 +641,7 @@ class GlassFanCard extends BaseCard {
     const gesture = this._bindGesture({
       onTap: () => this._toggleFan(fan),
       // Long-press expands controls only when the fan actually has some.
-      onLongPress: hasControls ? () => this._toggleExpand(fan) : undefined,
+      onLongPress: fanHasControls ? () => this._toggleExpand(fan) : undefined,
       exclude: 'glass-icon-button',
     });
 
@@ -1110,13 +670,13 @@ class GlassFanCard extends BaseCard {
         </glass-icon-button>
         <button
           class="fan-expand-btn"
-          aria-expanded=${hasControls ? (isExpanded ? 'true' : 'false') : nothing}
-          aria-label=${hasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
+          aria-expanded=${fanHasControls ? (isExpanded ? 'true' : 'false') : nothing}
+          aria-label=${fanHasControls ? t('fan.expand_aria', { name: fan.name }) : t('fan.toggle_aria', { name: fan.name })}
           @click=${(e: MouseEvent) => {
             // detail === 0 → synthetic click from Enter/Space; pointer taps are
             // handled by the row gesture (tap = toggle, long-press = expand).
             if (e.detail !== 0) return;
-            if (hasControls) this._toggleExpand(fan);
+            if (fanHasControls) this._toggleExpand(fan);
             else this._toggleFan(fan);
           }}
         >
@@ -1142,7 +702,7 @@ class GlassFanCard extends BaseCard {
 
   private _renderControlFold(fan: FanInfo, position: 'full' | 'left' | 'right' = 'full'): TemplateResult | typeof nothing {
     // Simple on/off fans have no controls → no fold at all.
-    if (!this._hasControls(fan)) return nothing;
+    if (!hasControls(fan)) return nothing;
     const isExpanded = this._expandedEntity === fan.entityId;
     return html`
       <div class="fold-sep fold-sep-${position} ${isExpanded ? 'visible' : ''}"></div>
