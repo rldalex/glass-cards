@@ -4,6 +4,8 @@ import {
   BaseCard,
   BackendService,
   getAreaEntities,
+  isEntityVisibleNow,
+  type EntityScheduleMap,
   type HassEntity,
   type EntityRegistryEntry,
 } from '@glass-cards/base-card';
@@ -509,8 +511,9 @@ class GlassCameraCarouselCard extends BaseCard {
   private _camConfig: CameraBackendConfig | null = null;
   private _roomConfig: CameraRoomConfig | null = null;
   private _configLoaded = false;
-  private _configLoading = false;
-  private _roomConfigLoading = false;
+  private _roomConfigLoaded = false;
+  private _schedules: EntityScheduleMap | null = null;
+  private _schedulesLoaded = false;
   private _loadVersion = 0;
   private _lastAreaId: string | undefined;
 
@@ -541,11 +544,16 @@ class GlassCameraCarouselCard extends BaseCard {
     this._listen('room-config-changed', (payload) => {
       if (this.areaId && payload.areaId === this.areaId) {
         this._roomConfig = null;
+        this._roomConfigLoaded = false;
         this._cachedCamerasKey = '';
         this._loadRoomConfig();
       }
     });
     this._listen('dashboard-config-changed', () => this.requestUpdate());
+    this._listen('schedule-changed', () => {
+      this._schedulesLoaded = false;
+      this._loadSchedules();
+    });
     // Refresh stream overlay timestamp every 60s
     this._timestampTimer = setInterval(() => this.requestUpdate(), 60_000);
   }
@@ -553,6 +561,12 @@ class GlassCameraCarouselCard extends BaseCard {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._backend = undefined;
+    this._configLoaded = false;
+    this._roomConfigLoaded = false;
+    this._schedulesLoaded = false;
+    // Streams manually started by the user stop on unmount; do not auto-restart
+    // them on the next mount.
+    this._liveIds = new Set();
     this._clearCycleTimer();
     this._clearTimestampTimer();
     this._clearRingTimer();
@@ -606,8 +620,14 @@ class GlassCameraCarouselCard extends BaseCard {
     super.updated(changedProps);
 
     if (changedProps.has('hass') && this.hass) {
-      if (!this._backend || this._backend.connection !== this.hass.connection) {
-        this._backend = new BackendService(this.hass);
+      // Invalidate backend on WS reconnect and reload everything.
+      if (this._backend && this._backend.connection !== this.hass.connection) {
+        this._backend = undefined;
+        this._configLoaded = false;
+        this._roomConfigLoaded = false;
+        this._schedulesLoaded = false;
+        this._roomConfig = null;
+        this._cachedCamerasKey = '';
       }
     }
 
@@ -617,23 +637,28 @@ class GlassCameraCarouselCard extends BaseCard {
       this._cachedCamerasKey = '';
       this._configLoaded = false;
       this._roomConfig = null;
+      this._roomConfigLoaded = false;
       this._liveIds = new Set();
       this._reolinkCamCache.clear();
     }
 
-    if (!this._configLoaded && !this._configLoading) {
+    if (this.hass && !this._configLoaded) {
       this._loadConfig();
     }
-    if (this.areaId && !this._roomConfig && !this._roomConfigLoading) {
+    if (this.hass && !this._schedulesLoaded) {
+      this._loadSchedules();
+    }
+    if (this.hass && this.areaId && !this._roomConfigLoaded) {
       this._loadRoomConfig();
     }
   }
 
   private async _loadConfig() {
-    if (!this._backend || this._configLoading) return;
-    this._configLoading = true;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     const version = ++this._loadVersion;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const resp = await this._backend.send<{ camera_carousel: CameraBackendConfig }>('get_config');
       if (version !== this._loadVersion) return;
       this._camConfig = {
@@ -644,21 +669,34 @@ class GlassCameraCarouselCard extends BaseCard {
         cycle_interval: resp.camera_carousel?.cycle_interval ?? 10,
         entity_aspect_ratios: resp.camera_carousel?.entity_aspect_ratios ?? {},
       };
-      this._configLoaded = true;
       this._setupCycleTimer();
       this.requestUpdate();
     } catch {
-      // silent — will retry on next update
-    } finally {
-      this._configLoading = false;
+      // Retry on the next hass tick.
+      if (version === this._loadVersion) this._configLoaded = false;
+    }
+  }
+
+  private async _loadSchedules() {
+    if (!this.hass || this._schedulesLoaded) return;
+    this._schedulesLoaded = true;
+    try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
+      const result = await this._backend.send<EntityScheduleMap>('get_schedules');
+      this._schedules = result;
+      this._cachedCamerasKey = '';
+      this.requestUpdate();
+    } catch {
+      this._schedulesLoaded = false;
     }
   }
 
   private async _loadRoomConfig() {
-    if (!this._backend || !this.areaId || this._roomConfigLoading) return;
-    this._roomConfigLoading = true;
+    if (!this.hass || !this.areaId || this._roomConfigLoaded) return;
+    this._roomConfigLoaded = true;
     const targetArea = this.areaId;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const resp = await this._backend.send<{ hidden_entities?: string[]; entity_order?: string[] } | null>(
         'get_room', { area_id: targetArea },
       );
@@ -670,9 +708,7 @@ class GlassCameraCarouselCard extends BaseCard {
       this._cachedCamerasKey = '';
       this.requestUpdate();
     } catch {
-      // silent
-    } finally {
-      this._roomConfigLoading = false;
+      if (this.areaId === targetArea) this._roomConfigLoaded = false;
     }
   }
 
@@ -691,12 +727,12 @@ class GlassCameraCarouselCard extends BaseCard {
       ids = Object.keys(this.hass.states).filter((eid) => eid.startsWith('camera.'));
     }
 
-    // Filter out hidden entities (global + per-room)
+    // Filter out hidden entities (global + per-room) and schedule-hidden ones
     const hiddenSet = new Set(this._camConfig?.hidden_entities ?? []);
     if (this.areaId && this._roomConfig) {
       for (const id of this._roomConfig.hidden_entities ?? []) hiddenSet.add(id);
     }
-    if (hiddenSet.size) ids = ids.filter((eid) => !hiddenSet.has(eid));
+    ids = ids.filter((eid) => !hiddenSet.has(eid) && isEntityVisibleNow(eid, this._schedules));
 
     // Dedupe multiple streams per device (Reolink Fluent/Clear/Balanced/Snapshots).
     ids = dedupeCamerasPerDevice(ids, this.hass.entities);
@@ -704,7 +740,7 @@ class GlassCameraCarouselCard extends BaseCard {
     // Cheap fingerprint: skip expensive sort if camera set + alert states unchanged
     const cheapKey = ids.length + ':' + ids.map((eid) => {
       const s = this.hass?.states[eid];
-      return s ? `${eid}:${s.last_changed}` : eid;
+      return s ? `${eid}:${s.last_updated}` : eid;
     }).join(',');
     if (cheapKey === this._cachedCamerasKey) return this._cachedCameraIds;
 
@@ -1109,6 +1145,9 @@ class GlassCameraCarouselCard extends BaseCard {
       ` : nothing}
       <div class="cam-wrap ${this._foldOpen ? 'fold-open' : ''} ${this._heroPulseClass(currentCam)}">
         <div class="carousel-hero ${this._aspectClass(currentCam)} ${this.previewFullscreen ? 'fs-preview' : ''} ${this._isFullscreen ? 'fs-active' : ''}"
+          role=${this._isFullscreen ? 'dialog' : nothing}
+          aria-modal=${this._isFullscreen ? 'true' : nothing}
+          aria-label=${this._isFullscreen ? (currentCam?.name ?? t('camera.fullscreen_aria')) : nothing}
           @pointerdown=${(e: PointerEvent) => { heroGesture.pointerdown(e); this._onPointerDown(e); }}
           @pointermove=${(e: PointerEvent) => { heroGesture.pointermove(e); this._onPointerMove(e); }}
           @pointerup=${(e: PointerEvent) => { heroGesture.pointerup(e); this._onPointerUp(e); }}
@@ -1233,7 +1272,8 @@ class GlassCameraCarouselCard extends BaseCard {
               class="cam-stream"
             ></ha-camera-stream>
           ` : cam.entityPicture && cam.isOn ? html`
-            <img class="cam-thumbnail" src="${cam.entityPicture}" alt="${cam.name}" />
+            <img class="cam-thumbnail" src="${cam.entityPicture}" alt="${cam.name}"
+              @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           ` : nothing}
           ${cam.isOn ? html`
             <div class="stream-overlay-top">
@@ -1464,6 +1504,8 @@ class GlassCameraCarouselCard extends BaseCard {
 
   private _renderActions(cam: CameraInfo): TemplateResult {
     if (!cam.isOn) {
+      // Only offer turn_on to cameras that actually support ON_OFF.
+      if (!(cam.features & F.ON_OFF)) return html``;
       return html`
         <div class="carousel-actions">
           <glass-icon-button
