@@ -40,7 +40,6 @@ export class ConfigTabLight extends BaseConfigTab {
   @state() _dropIdx: number | null = null;
 
   // Internal flags
-  private _suppressAutoSave = false;
   _mounted = false;
 
   protected static override _AUTO_SAVE_KEYS = new Set([
@@ -63,11 +62,7 @@ export class ConfigTabLight extends BaseConfigTab {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._lightRoom = this.areaId;
-      void this._loadRoomLights();
-    }
-    if (this._suppressAutoSave) {
-      this._suppressAutoSave = false;
-      return;
+      void this._withLoading(() => this._loadRoomLights());
     }
     this._checkAutoSave(changedProps);
   }
@@ -108,29 +103,30 @@ export class ConfigTabLight extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        light_card: { show_header: boolean };
-      }>('get_config');
-      if (result?.light_card) this.loadFromConfig(result.light_card);
-    } catch { /* ignore */ }
-    if (this._lightRoom) {
-      await this._loadRoomLights();
-    }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          light_card: { show_header: boolean };
+        }>('get_config');
+        if (result?.light_card) this.loadFromConfig(result.light_card);
+      } catch { /* ignore */ }
+      if (this._lightRoom) {
+        await this._loadRoomLights();
+      }
+    });
   }
 
   /** Called when tab becomes active and no room is selected yet. */
   initRoom(): void {
     if (!this._lightRoom && this.rooms.length > 0) {
       this._lightRoom = this.rooms[0].areaId;
-      this._loadRoomLights();
+      void this._withLoading(() => this._loadRoomLights());
     }
   }
 
   // — Room lights loading —
 
   private async _loadRoomLights(): Promise<void> {
-    this._suppressAutoSave = true;
     if (!this.hass || !this._lightRoom) {
       this._lights = [];
       return;

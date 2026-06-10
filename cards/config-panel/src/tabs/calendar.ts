@@ -45,12 +45,14 @@ export class ConfigTabCalendar extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        calendar_card?: { show_header: boolean; hidden_entities: string[] };
-      }>('get_config');
-      if (result?.calendar_card) this.loadFromConfig(result.calendar_card);
-    } catch { /* ignore */ }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          calendar_card?: { show_header: boolean; hidden_entities: string[] };
+        }>('get_config');
+        if (result?.calendar_card) this.loadFromConfig(result.calendar_card);
+      } catch { /* ignore */ }
+    });
   }
 
   private _toggleCalendar(entityId: string): void {

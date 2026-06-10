@@ -46,7 +46,7 @@ export class ConfigTabCamera extends BaseConfigTab {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._cameraRoom = this.areaId;
-      void this._loadRoomCameras();
+      void this._withLoading(() => this._loadRoomCameras());
     }
     this._checkAutoSave(changedProps);
   }
@@ -100,20 +100,22 @@ export class ConfigTabCamera extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        camera_carousel?: {
-          show_header?: boolean;
-          entity_order?: string[];
-          hidden_entities?: string[];
-          auto_cycle?: boolean;
-          cycle_interval?: number;
-          entity_aspect_ratios?: Record<string, CameraAspectRatio>;
-        };
-      }>('get_config');
-      if (result?.camera_carousel) this.loadFromConfig(result.camera_carousel);
-    } catch { /* ignore */ }
-    await this._loadRoomCameras();
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          camera_carousel?: {
+            show_header?: boolean;
+            entity_order?: string[];
+            hidden_entities?: string[];
+            auto_cycle?: boolean;
+            cycle_interval?: number;
+            entity_aspect_ratios?: Record<string, CameraAspectRatio>;
+          };
+        }>('get_config');
+        if (result?.camera_carousel) this.loadFromConfig(result.camera_carousel);
+      } catch { /* ignore */ }
+      await this._loadRoomCameras();
+    });
   }
 
   // — Room loading —

@@ -33,7 +33,7 @@ export class ConfigTabFan extends BaseConfigTab {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._fanRoom = this.areaId;
-      void this._loadRoomFans();
+      void this._withLoading(() => this._loadRoomFans());
     }
     this._checkAutoSave(changedProps);
   }
@@ -70,13 +70,15 @@ export class ConfigTabFan extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        fan_card?: { show_header: boolean };
-      }>('get_config');
-      if (result?.fan_card) this.loadFromConfig(result.fan_card);
-    } catch { /* ignore */ }
-    await this._loadRoomFans();
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          fan_card?: { show_header: boolean };
+        }>('get_config');
+        if (result?.fan_card) this.loadFromConfig(result.fan_card);
+      } catch { /* ignore */ }
+      await this._loadRoomFans();
+    });
   }
 
   // — Room loading —

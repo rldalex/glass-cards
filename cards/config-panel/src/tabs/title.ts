@@ -97,6 +97,20 @@ export class ConfigTabTitle extends BaseConfigTab {
       label: s.label || '',
       modes: (s.modes || []).map((m) => ({ id: m.id || '', label: m.label || '', icon: m.icon || '', color: m.color || 'neutral' })),
     }));
+    // Bootstrap HA options missing from the stored list HERE, under the
+    // _loading window — doing it from the render path mutated an auto-save
+    // key mid-render and fired a phantom save on first open.
+    if (this._titlePeriodEntity && this.hass) {
+      const haOptions = (this.hass.states[this._titlePeriodEntity]?.attributes?.options as string[] | undefined) ?? [];
+      const known = new Set(this._titlePeriodOptions.map((o) => o.id));
+      const missing = haOptions.filter((id) => !known.has(id));
+      if (missing.length > 0) {
+        this._titlePeriodOptions = [
+          ...this._titlePeriodOptions,
+          ...missing.map((id) => ({ id, label: id, icon: '', color: 'neutral' })),
+        ];
+      }
+    }
   }
 
   collectSaveData(): Record<string, unknown> {
@@ -124,12 +138,14 @@ export class ConfigTabTitle extends BaseConfigTab {
     this._periodIconPopupIdx = null;
     this._removeIconPortal();
     this._titleEditingSourceIdx = null;
-    try {
-      const result = await this.backend.send<{
-        title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
-      }>('get_config');
-      if (result?.title_card) this.loadFromConfig(result.title_card);
-    } catch { /* ignore */ }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          title_card: { title: string; sources: { source_type: string; entity: string; label: string; modes: { id: string; label: string; icon: string; color: string }[] }[]; period_entity: string; period_options: { id: string; label: string; icon: string; color: string }[] };
+        }>('get_config');
+        if (result?.title_card) this.loadFromConfig(result.title_card);
+      } catch { /* ignore */ }
+    });
   }
 
   // — Local drag & drop —
@@ -726,16 +742,8 @@ export class ConfigTabTitle extends BaseConfigTab {
       `;
     }
 
-    // Ensure every HA option has an entry in _titlePeriodOptions (one-time bootstrap)
-    const optionsMap = new Map(this._titlePeriodOptions.map((o) => [o.id, o]));
-    const missing = haOptions.filter((id) => !optionsMap.has(id));
-    if (missing.length > 0) {
-      this._titlePeriodOptions = [
-        ...this._titlePeriodOptions,
-        ...missing.map((id) => ({ id, label: id, icon: '', color: 'neutral' })),
-      ];
-    }
-
+    // Options are bootstrapped in loadFromConfig/_setTitlePeriodEntity —
+    // never mutate state from the render path (phantom auto-save).
     const currentState = periodEntity?.state ?? '';
 
     return html`

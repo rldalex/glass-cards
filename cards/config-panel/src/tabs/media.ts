@@ -27,11 +27,11 @@ export class ConfigTabMedia extends BaseConfigTab {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._mediaRoom = this.areaId;
-      this._loadRoomMediaPlayers();
+      void this._withLoading(() => this._loadRoomMediaPlayers());
     }
     if (!this.areaId && !this._dashboardLoaded && this.hass && this.backend) {
       this._dashboardLoaded = true;
-      this._loadDashboardMediaPlayers();
+      void this._withLoading(() => this._loadDashboardMediaPlayers());
     }
     this._checkAutoSave(changedProps);
   }
@@ -64,16 +64,18 @@ export class ConfigTabMedia extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        media_card: { show_header: boolean; extra_entities: Record<string, string[]>; hidden_entities: string[] };
-      }>('get_config');
-      if (result?.media_card) this.loadFromConfig(result.media_card);
-    } catch { /* ignore */ }
-    if (!this.areaId) {
-      this._dashboardLoaded = false;
-      this._loadDashboardMediaPlayers();
-    }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          media_card: { show_header: boolean; extra_entities: Record<string, string[]>; hidden_entities: string[] };
+        }>('get_config');
+        if (result?.media_card) this.loadFromConfig(result.media_card);
+      } catch { /* ignore */ }
+      if (!this.areaId) {
+        this._dashboardLoaded = false;
+        this._loadDashboardMediaPlayers();
+      }
+    });
   }
 
   // — Dashboard media players —

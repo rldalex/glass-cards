@@ -34,11 +34,11 @@ export class ConfigTabClimate extends BaseConfigTab {
     super.updated(changedProps);
     if (changedProps.has('areaId') && this.areaId) {
       this._climateRoom = this.areaId;
-      void this._loadRoomClimates();
+      void this._withLoading(() => this._loadRoomClimates());
     }
     if (!this.areaId && !this._dashboardLoaded && this.hass && this.backend) {
       this._dashboardLoaded = true;
-      void this._loadDashboardClimates();
+      void this._withLoading(() => this._loadDashboardClimates());
     }
     this._checkAutoSave(changedProps);
   }
@@ -99,18 +99,20 @@ export class ConfigTabClimate extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        climate_card?: { show_header: boolean; display_mode: string; dashboard_display_mode: string; dashboard_entities: string[] };
-      }>('get_config');
-      if (result?.climate_card) this.loadFromConfig(result.climate_card);
-    } catch { /* ignore */ }
-    if (this._climateRoom) {
-      await this._loadRoomClimates();
-    } else {
-      this._dashboardLoaded = false;
-      await this._loadDashboardClimates();
-    }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          climate_card?: { show_header: boolean; display_mode: string; dashboard_display_mode: string; dashboard_entities: string[] };
+        }>('get_config');
+        if (result?.climate_card) this.loadFromConfig(result.climate_card);
+      } catch { /* ignore */ }
+      if (this._climateRoom) {
+        await this._loadRoomClimates();
+      } else {
+        this._dashboardLoaded = false;
+        await this._loadDashboardClimates();
+      }
+    });
   }
 
   // — Dashboard climate loading —

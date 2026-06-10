@@ -26,10 +26,13 @@ export abstract class BaseConfigTab extends LitElement {
     const old = this._configData;
     this._configData = val;
     if (val && val !== old) {
+      this._loadingDepth++;
       this._loading = true;
       this.loadFromConfig(val);
-      // Reset after Lit's microtask update cycle so _checkAutoSave sees the flag
-      this.updateComplete.then(() => { this._loading = false; });
+      // Release after Lit's microtask update cycle so _checkAutoSave sees the flag
+      this.updateComplete.then(() => {
+        if (--this._loadingDepth === 0) this._loading = false;
+      });
     }
   }
   get configData(): Record<string, unknown> { return this._configData; }
@@ -37,6 +40,25 @@ export abstract class BaseConfigTab extends LitElement {
 
   protected _initializedForArea: string | null = null;
   protected _loading = false;
+  // Counter, not a boolean: concurrent loads (configData + room loader) must
+  // not release each other's auto-save suppression window early.
+  private _loadingDepth = 0;
+
+  /** Run an async loader with auto-save suppressed. Every @state written by
+   *  the loader lands while _loading is true, including the final update
+   *  (awaited via updateComplete), so _checkAutoSave never mistakes loaded
+   *  data for a user edit — the source of phantom saves/toasts on every
+   *  room-section open. */
+  protected async _withLoading(fn: () => Promise<void> | void): Promise<void> {
+    this._loadingDepth++;
+    this._loading = true;
+    try {
+      await fn();
+    } finally {
+      await this.updateComplete;
+      if (--this._loadingDepth === 0) this._loading = false;
+    }
+  }
 
   private _saveScheduler = createSaveScheduler();
 

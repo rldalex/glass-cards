@@ -103,12 +103,14 @@ export class ConfigTabVacuum extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        vacuum_card?: Record<string, unknown>;
-      }>('get_config');
-      if (result?.vacuum_card) this.loadFromConfig(result.vacuum_card);
-    } catch { /* ignore */ }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          vacuum_card?: Record<string, unknown>;
+        }>('get_config');
+        if (result?.vacuum_card) this.loadFromConfig(result.vacuum_card);
+      } catch { /* ignore */ }
+    });
   }
 
   // — Helpers —

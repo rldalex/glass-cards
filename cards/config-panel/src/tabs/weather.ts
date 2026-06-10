@@ -67,12 +67,14 @@ export class ConfigTabWeather extends BaseConfigTab {
 
   async reload(): Promise<void> {
     if (!this.backend) return;
-    try {
-      const result = await this.backend.send<{
-        weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean; show_header: boolean };
-      }>('get_config');
-      if (result?.weather) this.loadFromConfig(result.weather);
-    } catch { /* ignore */ }
+    await this._withLoading(async () => {
+      try {
+        const result = await this.backend!.send<{
+          weather: { entity_id: string; hidden_metrics: string[]; show_daily: boolean; show_hourly: boolean; show_header: boolean };
+        }>('get_config');
+        if (result?.weather) this.loadFromConfig(result.weather);
+      } catch { /* ignore */ }
+    });
   }
 
   // — Actions —
