@@ -69,6 +69,7 @@ export class GlassRoomPopup extends LitElement {
   private _autoCloseTimeout?: ReturnType<typeof setTimeout>;
   private _popupAutoClose = 0;
   private _globalConfigLoaded = false;
+  private _globalConfigLoading = false;
   private _lockedHaMain: HTMLElement | null = null;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -302,16 +303,27 @@ export class GlassRoomPopup extends LitElement {
   protected updated(changedProps: PropertyValues) {
     super.updated(changedProps);
     if (changedProps.has('hass') && this.hass) {
-      // Invalidate backend on WS reconnect
-      if (this._backend && this._backend.connection !== this.hass.connection) {
-        this._backend = undefined;
-        this._roomConfigs.clear();
-        this._loadingRooms.clear();
-      }
+      // Backend/connection invalidation lives in _ensureBackend() (use time),
+      // not here: shouldUpdate skips hass ticks while the popup is closed, so
+      // this hook never runs for a reconnect that happens with the popup shut.
       if (this.hass.language && setLanguage(this.hass.language)) {
         this._lang = getLanguage();
       }
     }
+  }
+
+  /** (Re)create the backend service if the WS connection was rebuilt, and
+   *  purge the caches tied to the old connection. Called by the loaders at
+   *  use time so it also covers reconnects that happen while closed. */
+  private _ensureBackend(): BackendService | null {
+    if (!this.hass) return null;
+    if (!this._backend || this._backend.connection !== this.hass.connection) {
+      this._backend = new BackendService(this.hass);
+      this._roomConfigs.clear();
+      this._loadingRooms.clear();
+      this._globalConfigLoaded = false;
+    }
+    return this._backend;
   }
 
   private _listen<K extends keyof GlassEventMap>(
@@ -576,19 +588,26 @@ export class GlassRoomPopup extends LitElement {
   }
 
   private async _loadGlobalConfig() {
-    if (this._globalConfigLoaded || !this.hass) return;
-    this._globalConfigLoaded = true;
+    // ensure BEFORE the guards: a rebuilt connection resets _globalConfigLoaded
+    const backend = this._ensureBackend();
+    if (!backend || this._globalConfigLoaded || this._globalConfigLoading) return;
+    this._globalConfigLoading = true;
     try {
-      if (!this._backend) this._backend = new BackendService(this.hass);
-      const result = await this._backend.send<{ navbar?: { popup_auto_close?: number } }>('get_config');
+      const result = await backend.send<{ navbar?: { popup_auto_close?: number } }>('get_config');
       this._popupAutoClose = result?.navbar?.popup_auto_close ?? 0;
+      this._globalConfigLoaded = true;
     } catch {
+      // Transient WS failure — keep the default and retry on next open
       this._popupAutoClose = 0;
+    } finally {
+      this._globalConfigLoading = false;
     }
   }
 
   private async _loadRoomConfig(areaId: string) {
-    if (!this.hass) return;
+    // ensure BEFORE the cache check: a rebuilt connection purges _roomConfigs
+    const backend = this._ensureBackend();
+    if (!backend) return;
     if (this._roomConfigs.has(areaId)) {
       // Config already cached (even if null) — trigger peek + auto-close
       if (this._open && this._areaId === areaId) {
@@ -600,13 +619,14 @@ export class GlassRoomPopup extends LitElement {
     if (this._loadingRooms.has(areaId)) return;
     this._loadingRooms.add(areaId);
     try {
-      if (!this._backend) this._backend = new BackendService(this.hass);
-      const result = await this._backend.send<RoomConfig | null>('get_room', { area_id: areaId });
+      const result = await backend.send<RoomConfig | null>('get_room', { area_id: areaId });
       this._roomConfigs.set(areaId, result);
       if (this._areaId === areaId) this.requestUpdate();
     } catch {
-      // Backend not available — cache null to avoid retrying
-      this._roomConfigs.set(areaId, null);
+      // Transient WS failure (e.g. in-flight loss on app resume) — leave the
+      // cache empty so the next open retries; a permanent null here would
+      // hide the room's buttons/order/icon until the next config change.
+      // _loadingRooms already throttles concurrent attempts.
     } finally {
       this._loadingRooms.delete(areaId);
     }
