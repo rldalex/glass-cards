@@ -63,13 +63,16 @@ const SERVICE_PRIORITY = [
   'trigger', 'lock', 'alarm_arm_home', 'open', 'close',
 ];
 
-function pickDefaultServiceForDomain(
+export function pickDefaultServiceForDomain(
   domain: string,
   services: Record<string, unknown> | undefined,
 ): string {
   if (!domain) return '';
   const available = services ? Object.keys(services) : [];
-  if (available.length === 0) return '';
+  // Domain exposes no services of its own (sensor, person, ...): fall back to
+  // the universal HA core service. `<domain>.toggle` would be INVALID for most
+  // of these and the button would error on every tap.
+  if (available.length === 0) return 'homeassistant.toggle';
   for (const action of SERVICE_PRIORITY) {
     if (available.includes(action)) return `${domain}.${action}`;
   }
@@ -79,6 +82,10 @@ function pickDefaultServiceForDomain(
   const safe = available.find((s) => !SKIP_FIRST.includes(s));
   return `${domain}.${safe ?? available[0]}`;
 }
+
+/** Universal HA core services — valid for any entity_id; appended to the
+ *  service picker so every entity has at least these actions available. */
+const UNIVERSAL_SERVICES = ['homeassistant.toggle', 'homeassistant.turn_on', 'homeassistant.turn_off'];
 
 interface SectionDef {
   /** Entity domain — also what room card_order persists. */
@@ -591,10 +598,12 @@ export class ConfigRoomDetail extends LitElement {
         && this._serviceCache.domain === domain && this._serviceCache.query === q) {
       return this._serviceCache.result;
     }
+    // No slice cap: glass-dropdown's internal search filters this list, so we
+    // must pass every service (e.g. the `script` domain has one service per
+    // script and easily exceeds any arbitrary cap).
     const result = Object.keys(this.hass.services[domain])
       .filter((s) => !q || s.includes(q))
-      .sort()
-      .slice(0, 40);
+      .sort();
     this._serviceCache = { hassRef: this.hass.services, domain, query: q, result };
     return result;
   }
@@ -610,10 +619,17 @@ export class ConfigRoomDetail extends LitElement {
       icon: (this.hass?.states?.[item.id]?.attributes?.icon as string) || DOMAIN_ICONS[item.id.split('.')[0]] || 'mdi:cube-outline',
     }));
     const serviceItems = entityDomain
-      ? this._filterServices(entityDomain, '').map((s) => {
-          const full = `${entityDomain}.${s}`;
-          return { value: full, label: full };
-        })
+      ? [
+          ...this._filterServices(entityDomain, '').map((s) => {
+            const full = `${entityDomain}.${s}`;
+            return { value: full, label: full };
+          }),
+          // Universal core services — any entity can be actioned even when its
+          // domain exposes no services of its own (or none that fits).
+          ...(entityDomain === 'homeassistant'
+            ? []
+            : UNIVERSAL_SERVICES.map((full) => ({ value: full, label: full }))),
+        ]
       : [];
     // btn.icon === '' is the explicit "Aucune icône" pick (also the backend default for
     // a brand-new button). Distinguish "user cleared an entity-bound button" (show the
@@ -627,7 +643,6 @@ export class ConfigRoomDetail extends LitElement {
     const entityTriggerIcon = triggerEntityIcon || (entityDomain && DOMAIN_ICONS[entityDomain]) || 'mdi:cube-outline';
     const serviceFallback = entityDomain
       ? pickDefaultServiceForDomain(entityDomain, this.hass?.services?.[entityDomain])
-        || `${entityDomain}.toggle`
       : t('config.room_button_service_disabled');
 
     return html`
@@ -760,9 +775,10 @@ export class ConfigRoomDetail extends LitElement {
     this._buttons = this._buttons.map((b, i) => {
       if (i !== idx) return b;
 
-      // Reset service if the current one's domain doesn't match the new entity (stale cross-domain).
+      // Reset service if the current one's domain doesn't match the new entity
+      // (stale cross-domain). homeassistant.* services are universal — keep them.
       const currentServiceDomain = b.service ? b.service.split('.')[0] : '';
-      const keepService = !!b.service && currentServiceDomain === domain;
+      const keepService = !!b.service && (currentServiceDomain === domain || currentServiceDomain === 'homeassistant');
 
       // Strip area_id / device_id if a specific entity is now targeted (ambiguity guard).
       let nextData: Record<string, unknown> = { entity_id: entityId };
@@ -792,13 +808,10 @@ export class ConfigRoomDetail extends LitElement {
         : (b.icon || entityIcon || DOMAIN_ICONS[domain] || '');
 
       // Service resolution: prefer the user's existing service if its domain
-      // matches the new entity. Otherwise use the picker, but never leave the
-      // service blank — a blank service would be filtered out at save time and
-      // the button would silently vanish on the next reload. `${domain}.toggle`
-      // is the same optimistic fallback the UI placeholder already shows.
-      const nextService = keepService
-        ? b.service
-        : (defaultServiceName || `${domain}.toggle`);
+      // matches the new entity. Otherwise use the picker default — never blank
+      // (a blank service would be filtered out at save time and the button
+      // would silently vanish on the next reload).
+      const nextService = keepService ? b.service : defaultServiceName;
 
       return {
         icon: nextIcon,

@@ -18,6 +18,7 @@ interface HassLike {
 const TOGGABLE_DOMAINS = new Set([
   'light', 'switch', 'fan', 'cover', 'climate', 'lock', 'media_player',
   'humidifier', 'valve', 'siren', 'input_boolean', 'water_heater',
+  'vacuum', 'lawn_mower', 'alarm_control_panel',
 ]);
 
 /** Fallback MDI icon per domain when neither user nor entity provide one. */
@@ -43,12 +44,13 @@ const DOMAIN_FALLBACK_ICON: Record<string, string> = {
  * - One-shot domains (script/scene/button/...): renders at a fixed mid intensity
  *   in the domain's colour at all times.
  * - Tap: fires `callService` immediately, switches to a spinner, and resolves
- *   on the next observed state-change of the target entity (or after 1.5s).
+ *   on the WS ack or the next observed state-change of the target entity
+ *   (whichever comes first; 1.5s safety timeout for degraded connections).
  * - No `:hover` at all — affordance is the `idle-on` saturation + `:active`
  *   scale-down on press.
  *
  * @fires glass-action-invoke — { service: string, data: Record<string, unknown> } — fired before callService
- * @fires glass-action-result — { success: boolean, reason: 'state-changed' | 'timeout' | 'error' }
+ * @fires glass-action-result — { success: boolean, reason: 'state-changed' | 'ack' | 'timeout' | 'error' }
  */
 export class GlassActionButton extends LitElement {
   @property({ attribute: false }) hass?: HassLike;
@@ -114,6 +116,12 @@ export class GlassActionButton extends LitElement {
         return state !== 'off';
       case 'media_player':
         return state === 'playing' || state === 'paused' || state === 'on';
+      case 'vacuum':
+        return state === 'cleaning' || state === 'returning';
+      case 'lawn_mower':
+        return state === 'mowing' || state === 'returning';
+      case 'alarm_control_panel':
+        return state.startsWith('armed') || state === 'arming' || state === 'triggered';
       default:
         return null;
     }
@@ -136,9 +144,14 @@ export class GlassActionButton extends LitElement {
 
   protected render(): TemplateResult | typeof nothing {
     if (!this.service) return nothing;
-    const domain = this._resolveDomain();
-    if (!domain) return nothing;
+    const serviceDomain = this._resolveDomain();
+    if (!serviceDomain) return nothing;
     const entityId = this._resolveEntityId();
+    // Visuals (colour, on/off reflection, icon fallback) follow the TARGET
+    // entity's domain when one is set — universal services like
+    // homeassistant.toggle must still render as the light/cover/... they act
+    // on. The service domain only matters for the actual call.
+    const domain = entityId ? entityId.split('.')[0] : serviceDomain;
     const entityState = entityId ? this.hass?.states?.[entityId] : undefined;
     const isToggable = TOGGABLE_DOMAINS.has(domain);
     const onOff = isToggable ? this._isEntityOn(domain, entityState?.state) : null;
@@ -149,7 +162,9 @@ export class GlassActionButton extends LitElement {
     const aria = this.label || friendlyName || `Action ${domain}`;
 
     const dataPhase = this._phase;
-    const dataState = unavailable ? 'unavailable' : onOff === true ? 'on' : 'off';
+    // 'action' = one-shot domain (script/scene/button/...) with no ON/OFF to
+    // reflect — rendered at fixed mid intensity in the domain colour.
+    const dataState = unavailable ? 'unavailable' : onOff === true ? 'on' : onOff === false ? 'off' : 'action';
 
     return html`
       <button
@@ -200,19 +215,23 @@ export class GlassActionButton extends LitElement {
     this._stateAtTap = entityId ? (hass.states[entityId]?.state ?? null) : null;
     this._phase = 'pending';
 
-    // 1.5s safety net — one-shot services (script.turn_on) and services
-    // without observable state changes resolve here as 'timeout' success.
+    // 1.5s safety net — only reached if neither the WS ack nor a state change
+    // arrives (degraded connection); resolves as 'timeout' success.
     this._pendingTimer = setTimeout(() => this._resolveSuccess('timeout'), 1500);
 
-    // Fire-and-forget: we do NOT await the WS round trip. The state-change
-    // observer in updated() (Task 3) is the honest signal for togglables.
+    // The callService promise resolves when HA has executed the call — the
+    // honest "done" signal for one-shot services. A state-change observed in
+    // updated() may resolve even earlier for togglables. Whichever comes
+    // first wins; the spinner only lasts the actual round trip.
     const safeData = (this.data && typeof this.data === 'object' && !Array.isArray(this.data))
       ? this.data
       : {};
-    hass.callService(domain, action, safeData).catch((_err) => this._resolveError());
+    hass.callService(domain, action, safeData)
+      .then(() => this._resolveSuccess('ack'))
+      .catch((_err) => this._resolveError());
   };
 
-  private _resolveSuccess(reason: 'state-changed' | 'timeout'): void {
+  private _resolveSuccess(reason: 'state-changed' | 'ack' | 'timeout'): void {
     if (this._phase !== 'pending') return;
     if (this._pendingTimer) { clearTimeout(this._pendingTimer); this._pendingTimer = null; }
     this.dispatchEvent(new CustomEvent('glass-action-result', {
@@ -309,6 +328,14 @@ export class GlassActionButton extends LitElement {
         box-shadow: 0 0 12px rgba(var(--_d-rgb), 0.25);
       }
       button[data-state='on'] ha-icon { opacity: 1; }
+
+      /* One-shot domains (script/scene/button/...) — fixed mid intensity in
+         the domain colour: clearly actionable, never reads as "off". */
+      button[data-state='action'] {
+        background: rgba(var(--_d-rgb), 0.1);
+        border-color: rgba(var(--_d-rgb), 0.25);
+      }
+      button[data-state='action'] ha-icon { opacity: 0.9; }
 
       button[data-state='unavailable'] {
         border-color: var(--c-alert);

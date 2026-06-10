@@ -165,46 +165,51 @@ class PrimitivesShowcase extends LitElement {
       'cover.chambre':            { state: 'open', attributes: { friendly_name: 'Volet chambre' } },
       'script.morning_routine':   { state: 'off',  attributes: { friendly_name: 'Routine matin' } },
       'vacuum.roborock':          { state: 'unavailable', attributes: { friendly_name: 'Roborock' } },
+      'vacuum.saros':             { state: 'cleaning', attributes: { friendly_name: 'Saros' } },
+      'sensor.salon_temp':        { state: '21.5', attributes: { friendly_name: 'Température Salon' } },
     },
     callService: async (domain: string, service: string, data?: Record<string, unknown>) => {
-      // Mock toggle/turn_on/turn_off semantics so the showcase can demo the
-      // pending → state-changed resolution path. Mutate after a 300ms simulated
-      // round trip so we can SEE the spinner before the flash.
+      // Simulate a 300ms WS round trip BEFORE resolving: the promise ack is
+      // what resolves the button's pending phase in prod, so the showcase
+      // must keep the promise open long enough to SEE the spinner.
       const entityId = typeof data?.entity_id === 'string' ? data.entity_id : '';
       if (!entityId) return;
-      setTimeout(() => {
-        const cur = this._mockHass.states[entityId as keyof typeof this._mockHass.states];
-        if (!cur) return;
-        let next = cur.state;
-        if (service === 'toggle') {
-          if (domain === 'cover' || domain === 'valve') {
-            next = cur.state === 'open' ? 'closed' : 'open';
-          } else if (domain === 'lock') {
-            next = cur.state === 'unlocked' ? 'locked' : 'unlocked';
-          } else if (domain === 'climate') {
-            next = cur.state === 'off' ? 'heat' : 'off';
-          } else if (domain === 'media_player') {
-            next = cur.state === 'playing' ? 'paused' : 'playing';
-          } else {
-            next = cur.state === 'on' ? 'off' : 'on';
-          }
-        } else if (service === 'turn_on') {
-          next = 'on';
-        } else if (service === 'turn_off') {
-          next = 'off';
+      await new Promise((r) => setTimeout(r, 300));
+      const cur = this._mockHass.states[entityId as keyof typeof this._mockHass.states];
+      if (!cur) return;
+      let next = cur.state;
+      if (service === 'toggle') {
+        if (domain === 'cover' || domain === 'valve') {
+          next = cur.state === 'open' ? 'closed' : 'open';
+        } else if (domain === 'lock') {
+          next = cur.state === 'unlocked' ? 'locked' : 'unlocked';
+        } else if (domain === 'climate') {
+          next = cur.state === 'off' ? 'heat' : 'off';
+        } else if (domain === 'media_player') {
+          next = cur.state === 'playing' ? 'paused' : 'playing';
+        } else {
+          next = cur.state === 'on' ? 'off' : 'on';
         }
-        if (next === cur.state) return;
-        // Re-assign _mockHass to a NEW object so Lit's strict-equality
-        // hasChanged() detects the change on the child's .hass property.
-        this._mockHass = {
-          ...this._mockHass,
-          states: {
-            ...this._mockHass.states,
-            [entityId]: { ...cur, state: next },
-          },
-        };
-        this.requestUpdate();
-      }, 300);
+      } else if (service === 'turn_on') {
+        next = 'on';
+      } else if (service === 'turn_off') {
+        next = 'off';
+      } else if (domain === 'vacuum') {
+        if (service === 'start') next = 'cleaning';
+        else if (service === 'pause') next = 'paused';
+        else if (service === 'return_to_base') next = 'returning';
+      }
+      if (next === cur.state) return;
+      // Re-assign _mockHass to a NEW object so Lit's strict-equality
+      // hasChanged() detects the change on the child's .hass property.
+      this._mockHass = {
+        ...this._mockHass,
+        states: {
+          ...this._mockHass.states,
+          [entityId]: { ...cur, state: next },
+        },
+      };
+      this.requestUpdate();
     },
   };
 
@@ -617,8 +622,10 @@ class PrimitivesShowcase extends LitElement {
       <h2>glass-action-button</h2>
       <div class="sub">
         Single-tap action button. Reflects entity ON/OFF state for togglable
-        domains (light/switch/cover/...) with the domain colour. One-shot
-        domains (script/scene/button) render at fixed mid intensity. No hover.
+        domains (light/switch/cover/vacuum/lawn_mower/alarm/...) with the
+        domain colour. One-shot domains (script/scene/button/sensor…) render at
+        fixed mid intensity (<code>data-state="action"</code>). Pending spinner
+        resolves on WS ack or observed state-change (1.5s safety timeout). No hover.
       </div>
       <div class="row">
         <span class="label">light off</span>
@@ -660,6 +667,24 @@ class PrimitivesShowcase extends LitElement {
           service="script.morning_routine"
           .data=${{ entity_id: 'script.morning_routine' }}
           label="Routine matin"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">vacuum cleaning (on)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="vacuum.return_to_base"
+          .data=${{ entity_id: 'vacuum.saros' }}
+          label="Base"
+        ></glass-action-button>
+      </div>
+      <div class="row">
+        <span class="label">universal service (any entity)</span>
+        <glass-action-button
+          .hass=${this._mockHass}
+          service="homeassistant.toggle"
+          .data=${{ entity_id: 'sensor.salon_temp' }}
+          label="Capteur"
         ></glass-action-button>
       </div>
       <div class="row">

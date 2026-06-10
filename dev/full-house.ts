@@ -274,14 +274,30 @@ const SPOTIFY_PLAYLISTS = [
 // ───────────────────────── Service handler ─────────────────────────
 
 function handleService(states: Record<string, HassEntity>, domain: string, service: string, data: Record<string, unknown> | undefined, target: { entity_id?: string | string[] } | undefined): void {
-  const ids = ([] as string[]).concat(target?.entity_id ?? []);
+  // Real HA accepts entity_id both as target AND inside service data (legacy
+  // style, used by glass-action-button) — honor both like core does.
+  const dataIds = ([] as string[]).concat((data?.entity_id as string | string[] | undefined) ?? []);
+  const ids = [...new Set(([] as string[]).concat(target?.entity_id ?? []).concat(dataIds))];
   for (const id of ids) {
     const cur = states[id];
     if (!cur) continue;
     const attrs = { ...cur.attributes };
     let next = cur.state;
 
-    if (domain === 'light') {
+    // homeassistant.* universal services act on any entity (real HA semantics)
+    if (domain === 'homeassistant') {
+      switch (service) {
+        case 'turn_on': next = cur.state === 'closed' ? 'open' : 'on'; break;
+        case 'turn_off': next = cur.state === 'open' ? 'closed' : 'off'; break;
+        case 'toggle':
+          next = cur.state === 'on' ? 'off'
+            : cur.state === 'off' ? 'on'
+            : cur.state === 'open' ? 'closed'
+            : cur.state === 'closed' ? 'open'
+            : cur.state;
+          break;
+      }
+    } else if (domain === 'light') {
       switch (service) {
         case 'turn_on':
           next = 'on';
@@ -356,6 +372,13 @@ function handleService(states: Record<string, HassEntity>, domain: string, servi
         case 'turn_on': next = 'on'; break;
         case 'turn_off': next = 'off'; break;
         case 'toggle': next = cur.state === 'on' ? 'off' : 'on'; break;
+      }
+    } else if (domain === 'vacuum') {
+      switch (service) {
+        case 'start': next = 'cleaning'; break;
+        case 'pause': next = 'paused'; break;
+        case 'stop': next = 'idle'; break;
+        case 'return_to_base': next = 'returning'; break;
       }
     } else if (domain === 'input_select') {
       if (service === 'select_option' && data?.option) next = data.option as string;

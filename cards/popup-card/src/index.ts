@@ -97,7 +97,25 @@ export class GlassRoomPopup extends LitElement {
     if (!oldHass || !this.hass || !this._areaId) return true;
     const areaEntities = getAreaEntities(this._areaId, this.hass.entities, this.hass.devices);
     const newHass = this.hass;
-    return areaEntities.some((e) => oldHass.states[e.entity_id] !== newHass.states[e.entity_id]);
+    if (areaEntities.some((e) => oldHass.states[e.entity_id] !== newHass.states[e.entity_id])) return true;
+    // Action buttons may target entities OUTSIDE the area (the picker offers
+    // every HA entity). Without this check their on/off reflection freezes at
+    // open time and the pending spinner only resolves via the safety timeout.
+    return this._buttonEntityIds().some((id) => oldHass.states[id] !== newHass.states[id]);
+  }
+
+  /** Entity ids referenced by the active room's action buttons (from `data.entity_id`). */
+  private _buttonEntityIds(): string[] {
+    if (!this._areaId) return [];
+    const buttons = this._roomConfigs.get(this._areaId)?.buttons;
+    if (!buttons) return [];
+    const ids: string[] = [];
+    for (const b of buttons) {
+      const v = b.data?.entity_id;
+      if (typeof v === 'string') ids.push(v);
+      else if (Array.isArray(v)) for (const id of v) if (typeof id === 'string') ids.push(id);
+    }
+    return ids;
   }
 
   static styles = [
