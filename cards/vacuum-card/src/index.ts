@@ -36,11 +36,11 @@ function relativeTime(isoString: string): string {
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return '';
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 60) return 'à l\'instant';
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
-  if (diff < 172800) return 'hier';
-  return `il y a ${Math.floor(diff / 86400)} jours`;
+  if (diff < 60) return t('vacuum.time_just_now');
+  if (diff < 3600) return t('vacuum.time_minutes_ago', { n: Math.floor(diff / 60) });
+  if (diff < 86400) return t('vacuum.time_hours_ago', { n: Math.floor(diff / 3600) });
+  if (diff < 172800) return t('vacuum.time_yesterday');
+  return t('vacuum.time_days_ago', { n: Math.floor(diff / 86400) });
 }
 
 function normalize(s: string): string {
@@ -115,10 +115,12 @@ export class GlassVacuumCard extends BaseCard {
           roomButtonsOrder: vc.room_buttons_order ?? [],
           roomButtonsExtra: vc.room_buttons_extra ?? [],
         };
+        this._companionsCacheKey = null;
         this.requestUpdate();
       }
     } catch {
-      // Backend not available
+      // Retry on the next hass tick.
+      this._vacuumConfigLoaded = false;
     }
   }
 
@@ -144,8 +146,8 @@ export class GlassVacuumCard extends BaseCard {
     this._optimisticRoom = null;
     this._backend = undefined;
     this._vacuumConfigLoaded = false;
-    this._configEntity = '';
-    this._overrides = emptyVacuumOverrides();
+    // _configEntity/_overrides are kept so a quick remount renders the last
+    // known config instead of flashing the defaults while the reload runs.
   }
 
   static styles = [
@@ -321,19 +323,35 @@ export class GlassVacuumCard extends BaseCard {
         padding: 0.4375rem 0.875rem;
         border-radius: var(--radius-xl);
         min-height: 3.25rem;
+        background: none;
+        border: none;
+        font-size: inherit;
         color: var(--t1);
         cursor: pointer;
         text-align: left;
         font-family: inherit;
+        outline: none;
         -webkit-tap-highlight-color: transparent;
+      }
+      .compact:focus-visible {
+        outline: 2px solid rgba(var(--rgb-white),0.25);
+        outline-offset: 2px;
+      }
+      .compact .unavailable-badge {
+        position: static;
+        flex-shrink: 0;
+        --mdc-icon-size: 1rem;
+        color: var(--c-warning);
       }
       .ctrl-fold {
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows var(--t-layout);
+        pointer-events: none;
       }
       .ctrl-fold.open {
         grid-template-rows: 1fr;
+        pointer-events: auto;
       }
       .ctrl-fold-inner {
         overflow: hidden;
@@ -513,11 +531,22 @@ export class GlassVacuumCard extends BaseCard {
     return this.hass!.states[entityId] ?? null;
   }
 
+  // Companion discovery scans all hass.states; memoize it per hass tick
+  // (render calls it several times per pass).
+  private _companionsCache: VacuumCompanions | null = null;
+  private _companionsCacheKey: unknown = null;
+
   private _companions(): VacuumCompanions | null {
     const entityId = this._resolveEntityId();
     if (!entityId) return null;
+    const cacheKey = this.hass!.states;
+    if (this._companionsCacheKey === cacheKey && this._companionsCache?.vacuumEntityId === entityId) {
+      return this._companionsCache;
+    }
     const auto = discoverVacuumCompanions(this.hass!, entityId);
-    return applyVacuumOverrides(auto, this._overrides);
+    this._companionsCache = applyVacuumOverrides(auto, this._overrides);
+    this._companionsCacheKey = cacheKey;
+    return this._companionsCache;
   }
 
   private _statusLabel(): string {
@@ -544,8 +573,12 @@ export class GlassVacuumCard extends BaseCard {
 
   private _batteryLevel(): number {
     const companions = this._companions();
-    if (!companions) return 0;
-    return numericState(this.hass!, companions.battery, 0);
+    if (companions?.battery && this._isStateReady(companions.battery)) {
+      return numericState(this.hass!, companions.battery, 0);
+    }
+    // No battery companion sensor: fall back to the native vacuum attribute.
+    const vacuum = this._vacuumEntity();
+    return (vacuum?.attributes.battery_level as number | undefined) ?? 0;
   }
 
   private _batteryIcon(level: number, charging: boolean): string {
@@ -817,15 +850,13 @@ export class GlassVacuumCard extends BaseCard {
     const compactAria = alertLevel
       ? `${t('vacuum.title')} — ${alertLevel === 'alert' ? t('vacuum.alert_aria') : t('vacuum.warning_aria')}`
       : t('vacuum.title');
+    const isUnavailable = isEntityUnavailable(vacuum.state);
     const gesture = this._bindGesture({
       onTap: this._toggleOpen,
-      onLongPress: this._toggleOpen,
     });
     return html`
-      <div
+      <button
         class="compact ${open ? 'open' : ''}"
-        role="button"
-        tabindex="0"
         aria-expanded=${open ? 'true' : 'false'}
         aria-label=${compactAria}
         @pointerdown=${gesture.pointerdown}
@@ -833,17 +864,24 @@ export class GlassVacuumCard extends BaseCard {
         @pointermove=${gesture.pointermove}
         @pointercancel=${gesture.pointercancel}
         @contextmenu=${gesture.contextmenu}
+        @click=${(e: MouseEvent) => {
+          // detail === 0 → synthetic click from Enter/Space; pointer taps are
+          // handled by the gesture binding above.
+          if (e.detail === 0) this._toggleOpen();
+        }}
       >
         <ha-icon class="vacuum-icon" .icon=${'mdi:robot-vacuum-variant'}></ha-icon>
         <div class="status-info" aria-live="polite">
           <span class="vacuum-name">${friendlyName}</span>
           <span class="status-text">${statusLabel}</span>
         </div>
-        <div class=${battClass} aria-label=${batteryAria} style=${battStyle}>
-          <ha-icon .icon=${battIcon}></ha-icon>
-          <span>${battery}%</span>
-        </div>
-      </div>
+        ${isUnavailable
+          ? html`<span class="unavailable-badge"><ha-icon .icon=${'mdi:alert-circle-outline'}></ha-icon></span>`
+          : html`<div class=${battClass} aria-label=${batteryAria} style=${battStyle}>
+              <ha-icon .icon=${battIcon}></ha-icon>
+              <span>${battery}%</span>
+            </div>`}
+      </button>
     `;
   }
   private _renderRoomChips(companions: VacuumCompanions | null): TemplateResult | typeof nothing {
@@ -864,7 +902,7 @@ export class GlassVacuumCard extends BaseCard {
                   active-color="cool"
                   ?active=${isCurrent}
                   aria-label=${t('vacuum.clean_room_aria', { room: label })}
-                  aria-pressed=${isCurrent}
+                  aria-pressed=${isCurrent ? 'true' : 'false'}
                   @click=${() => this._onRoomChipTap(entityId, slug)}
                 >${label}</glass-chip>
               `;
@@ -902,19 +940,24 @@ export class GlassVacuumCard extends BaseCard {
     const canStop = (features & 8) !== 0;
     const canLocate = (features & 512) !== 0;
     const canReturn = (features & 16) !== 0;
+    // START (8192) or legacy TURN_ON (1); PAUSE (4)
+    const canStart = (features & 8192) !== 0 || (features & 1) !== 0;
+    const canPause = (features & 4) !== 0;
 
     const showingStopConfirm = this._pendingAction === 'stop';
     const isPlaying = this._isPlaying(vacuum.state);
 
     return html`
       <div class="transport">
-        <glass-icon-button
-          active
-          active-color="cool"
-          .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}
-          aria-label=${isPlaying ? t('vacuum.transport_pause') : t('vacuum.transport_start')}
-          @click=${isPlaying ? this._vacuumPause : this._vacuumStart}
-        ></glass-icon-button>
+        ${(isPlaying ? canPause : canStart) ? html`
+          <glass-icon-button
+            active
+            active-color="cool"
+            .icon=${isPlaying ? 'mdi:pause' : 'mdi:play'}
+            aria-label=${isPlaying ? t('vacuum.transport_pause') : t('vacuum.transport_start')}
+            @click=${isPlaying ? this._vacuumPause : this._vacuumStart}
+          ></glass-icon-button>
+        ` : nothing}
         ${canStop
           ? showingStopConfirm
             ? html`

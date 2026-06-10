@@ -324,7 +324,12 @@
     "conso_sensors": "Sensors",
     "conso_strainer": "Dock strainer",
     "stats_last_session": "{when} · {duration} · {area}",
-    "stats_totals": "{count} cleanings · {area} total"
+    "stats_totals": "{count} cleanings · {area} total",
+    "time_just_now": "just now",
+    "time_minutes_ago": "{n} min ago",
+    "time_hours_ago": "{n} h ago",
+    "time_yesterday": "yesterday",
+    "time_days_ago": "{n} days ago"
   },
   "spotify": {
     "title": "Spotify",
