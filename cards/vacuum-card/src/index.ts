@@ -537,13 +537,14 @@ export class GlassVacuumCard extends BaseCard {
   private _companionsCacheKey: unknown = null;
 
   private _companions(): VacuumCompanions | null {
+    if (!this.hass) return null;
     const entityId = this._resolveEntityId();
     if (!entityId) return null;
-    const cacheKey = this.hass!.states;
+    const cacheKey = this.hass.states;
     if (this._companionsCacheKey === cacheKey && this._companionsCache?.vacuumEntityId === entityId) {
       return this._companionsCache;
     }
-    const auto = discoverVacuumCompanions(this.hass!, entityId);
+    const auto = discoverVacuumCompanions(this.hass, entityId);
     this._companionsCache = applyVacuumOverrides(auto, this._overrides);
     this._companionsCacheKey = cacheKey;
     return this._companionsCache;
