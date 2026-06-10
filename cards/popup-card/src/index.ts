@@ -67,6 +67,8 @@ export class GlassRoomPopup extends LitElement {
   private _currentRoomIndex?: number;
   private _pendingSwipe?: { areaId: string; originRect?: DOMRect; roomIndex?: number };
   private _autoCloseTimeout?: ReturnType<typeof setTimeout>;
+  private _restoreFocusEl: HTMLElement | null = null;
+  private _boundFocusIn = this._onDocumentFocusIn.bind(this);
   private _popupAutoClose = 0;
   private _globalConfigLoaded = false;
   private _globalConfigLoading = false;
@@ -136,6 +138,11 @@ export class GlassRoomPopup extends LitElement {
       }
       .dialog::-webkit-scrollbar {
         display: none;
+      }
+      /* Container receives focus on open (APG modal pattern) — a ring on the
+         whole dialog is noise; inner controls keep their own focus styles. */
+      .dialog:focus {
+        outline: none;
       }
       :host([open]) .dialog {
         transform: translateX(-50%) scale(1);
@@ -416,6 +423,8 @@ export class GlassRoomPopup extends LitElement {
     this._pendingSwipe = undefined;
     this._currentRoomIndex = undefined;
     document.removeEventListener('keydown', this._boundKeydown);
+    document.removeEventListener('focusin', this._boundFocusIn);
+    this._restoreFocusEl = null;
   }
 
   protected _collapseExpanded(): void {
@@ -505,9 +514,17 @@ export class GlassRoomPopup extends LitElement {
     this._loadRoomConfig(payload.areaId);
     this._pendingRaf = requestAnimationFrame(() => {
       this._pendingRaf = undefined;
+      const wasClosed = !this._open;
       this._open = true;
       this.setAttribute('open', '');
       this._lockScroll(true);
+      if (wasClosed) {
+        // Capture the invoker BEFORE moving focus, then move focus into the
+        // dialog container (APG: container focus for rich/structured content)
+        this._restoreFocusEl = this._deepActiveElement();
+        document.addEventListener('focusin', this._boundFocusIn);
+        this.updateComplete.then(() => this._focusDialog());
+      }
     });
   }
 
@@ -554,6 +571,11 @@ export class GlassRoomPopup extends LitElement {
     this._open = false;
     this.removeAttribute('open');
     this._lockScroll(false);
+    // Return focus to the invoking element (APG); skip if it disappeared
+    document.removeEventListener('focusin', this._boundFocusIn);
+    const restore = this._restoreFocusEl;
+    this._restoreFocusEl = null;
+    if (restore?.isConnected) restore.focus({ preventScroll: true });
     this._closeTimeout = setTimeout(() => {
       this._areaId = null;
       this._closeTimeout = undefined;
@@ -564,6 +586,37 @@ export class GlassRoomPopup extends LitElement {
     if (e.key === 'Escape' && this._open) {
       bus.emit('popup-close', undefined);
     }
+  }
+
+  // — Focus management (APG modal dialog pattern) —
+
+  /** The really-focused element, descending through nested shadow roots. */
+  private _deepActiveElement(): HTMLElement | null {
+    let active: Element | null = document.activeElement;
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+    return active as HTMLElement | null;
+  }
+
+  private _focusDialog(): void {
+    const dialog = this.renderRoot.querySelector('.dialog') as HTMLElement | null;
+    dialog?.focus({ preventScroll: true });
+  }
+
+  /** Focus containment while open. A selector-based trap cannot see into the
+   *  glass primitives' shadow roots, so instead we watch focusin at the
+   *  document level and pull focus back to the dialog container whenever it
+   *  lands outside the popup. HA dialogs opened from popup content (e.g. the
+   *  camera card's more-info) are exempt — they must keep their own focus. */
+  private _onDocumentFocusIn(e: FocusEvent): void {
+    if (!this._open) return;
+    const path = e.composedPath();
+    if (path.includes(this)) return;
+    for (const node of path) {
+      const el = node as HTMLElement;
+      if (typeof el.localName === 'string' && el.localName.includes('dialog')) return;
+      if (el.getAttribute?.('role') === 'dialog') return;
+    }
+    this._focusDialog();
   }
 
   private _lockScroll(lock: boolean) {
@@ -795,7 +848,7 @@ export class GlassRoomPopup extends LitElement {
 
     return html`
       <div class="overlay" @click=${this._onOverlayClick}></div>
-      <div class="dialog glass glass-float" role="dialog" aria-modal="true" aria-label=${meta.name}>
+      <div class="dialog glass glass-float" role="dialog" aria-modal="true" aria-label=${meta.name} tabindex="-1">
         <div class="dialog-inner ${this._swipeClass}">
         <div class="header">
           <div class="header-left">
