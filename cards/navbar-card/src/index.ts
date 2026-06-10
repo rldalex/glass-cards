@@ -749,6 +749,10 @@ export class GlassNavbarCard extends BaseCard {
       this._lastAreaKeys = '';
       this._rebuildStructure();
       this._aggregateState();
+      // Explicit sync: the guard in _syncDashboardCards skipped every call
+      // made before _configReady, and a payload without a dashboard section
+      // would otherwise never re-trigger it via _enabledCards.
+      this.updateComplete.then(() => this._syncDashboardCards());
     } catch {
       // Backend not available — retry after delay
       if (this.isConnected) {
@@ -1284,6 +1288,10 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _syncDashboardCards(): void {
+    // Wait for the real enabled list: mounting the default (['weather'])
+    // before get_config resolves makes the weather card flash on first load
+    // when the user actually disabled it.
+    if (!this._configReady) return;
     const container = this.renderRoot.querySelector('.dashboard-cards') as HTMLElement | null;
     if (!container) return;
 
