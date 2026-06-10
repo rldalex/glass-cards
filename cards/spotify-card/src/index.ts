@@ -152,7 +152,6 @@ class GlassSpotifyCard extends BaseCard {
   };
   private _backend: BackendService | undefined;
   private _configLoaded = false;
-  private _configLoadingInProgress = false;
   private _loadVersion = 0;
   private _radioQueueVersion = 0;
   private _debounceTimer = 0;
@@ -303,8 +302,9 @@ class GlassSpotifyCard extends BaseCard {
     .sp-fold {
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows var(--t-layout);
+      pointer-events: none;
     }
-    .sp-fold.open { grid-template-rows: 1fr; }
+    .sp-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
     .sp-fold-inner {
       overflow: hidden; opacity: 0; min-height: 0;
       transition: opacity var(--t-fast) 0s;
@@ -427,11 +427,20 @@ class GlassSpotifyCard extends BaseCard {
     /* Result row */
     .result-row {
       display: flex; align-items: center; gap: 0.625rem;
-      padding: 0.375rem 0.5rem 0.375rem 0.25rem; cursor: pointer; position: relative;
+      padding: 0.375rem 0.5rem 0.375rem 0.25rem; position: relative;
       transition: background var(--t-fast), transform var(--t-fast); border-radius: var(--radius-md);
-      flex-shrink: 0; background: none; border: none; width: 100%; box-sizing: border-box;
+      flex-shrink: 0; width: 100%; box-sizing: border-box;
+    }
+    .result-main {
+      display: flex; align-items: center; gap: 0.625rem;
+      flex: 1; min-width: 0; cursor: pointer;
+      background: none; border: none; padding: 0; margin: 0;
       font-family: inherit; text-align: left; color: inherit; outline: none;
       -webkit-tap-highlight-color: transparent;
+    }
+    .result-main:focus-visible {
+      outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px;
+      border-radius: var(--radius-sm);
     }
     @media (hover: hover) and (pointer: fine) {
       .result-row:hover { background: var(--s1); transform: translateX(2px); }
@@ -1108,7 +1117,8 @@ class GlassSpotifyCard extends BaseCard {
     if (this._progressTimer) { clearInterval(this._progressTimer); this._progressTimer = 0; }
     this._backend = undefined;
     this._configLoaded = false;
-    this._configLoadingInProgress = false;
+    // Invalidate in-flight loads so they cannot write after a quick remount.
+    ++this._loadVersion;
     window.removeEventListener('keydown', this._onPickerKeydown);
   }
 
@@ -1125,8 +1135,7 @@ class GlassSpotifyCard extends BaseCard {
         this._backend = undefined;
         this._configLoaded = false;
       }
-      if (!this._configLoaded && !this._configLoadingInProgress) {
-        this._backend = new BackendService(this.hass);
+      if (!this._configLoaded) {
         this._loadConfig();
       }
       this._syncProgressTimer();
@@ -1155,10 +1164,11 @@ class GlassSpotifyCard extends BaseCard {
   // — Config loading —
 
   private async _loadConfig(): Promise<void> {
-    if (!this._backend || this._configLoadingInProgress) return;
-    this._configLoadingInProgress = true;
+    if (!this.hass || this._configLoaded) return;
+    this._configLoaded = true;
     const version = ++this._loadVersion;
     try {
+      if (!this._backend) this._backend = new BackendService(this.hass);
       const result = await this._backend.send<{
         spotify_card: SpotifyBackendConfig;
       }>('get_config');
@@ -1166,15 +1176,13 @@ class GlassSpotifyCard extends BaseCard {
       if (result?.spotify_card) {
         this._spotifyConfig = result.spotify_card;
       }
-      this._configLoaded = true;
       await this._checkSpotifyStatus();
       if (version !== this._loadVersion) return;
       if (this._spotifyConfigured) this._loadLibrary();
       this.requestUpdate();
     } catch {
-      // swallow
-    } finally {
-      if (version === this._loadVersion) this._configLoadingInProgress = false;
+      // Retry on the next hass tick.
+      if (version === this._loadVersion) this._configLoaded = false;
     }
   }
 
@@ -1191,7 +1199,7 @@ class GlassSpotifyCard extends BaseCard {
   // — Library data loading —
 
   private async _loadLibrary(): Promise<void> {
-    if (!this._backend) return;
+    if (!this._backend || this._libraryLoading) return;
     this._libraryLoading = true;
     this._error = null;
     const limit = this._spotifyConfig.max_items_per_section;
@@ -1319,7 +1327,9 @@ class GlassSpotifyCard extends BaseCard {
         { category, content_id: id, limit: 20, offset: 0, sort_order: this._spotifyConfig.sort_order },
       );
       const items = result?.items ?? [];
-      if (!this._drilldown) return;
+      // Bail out if the drilldown was closed or replaced by another one
+      // while the request was in flight.
+      if (!this._drilldown || this._drilldown.id !== id) return;
       this._drilldown = {
         ...this._drilldown,
         items,
@@ -1331,7 +1341,7 @@ class GlassSpotifyCard extends BaseCard {
       if (ddTrackIds.length) this._checkSavedStatus(ddTrackIds);
     } catch (e) {
       this._handleApiError(e);
-      if (this._drilldown) this._drilldown = { ...this._drilldown, loading: false };
+      if (this._drilldown && this._drilldown.id === id) this._drilldown = { ...this._drilldown, loading: false };
     }
   }
 
@@ -1815,7 +1825,7 @@ class GlassSpotifyCard extends BaseCard {
       <div class="np-bar" role="region" aria-label=${t('spotify.now_playing_aria')}>
         <div class="np-art">
           ${playback.art
-            ? html`<img src=${playback.art} alt="" loading="lazy" />`
+            ? html`<img src=${playback.art} alt="" loading="lazy" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />`
             : html`<ha-icon .icon=${'mdi:music-note'}></ha-icon>`}
         </div>
         <div class="np-meta">
@@ -1962,7 +1972,7 @@ class GlassSpotifyCard extends BaseCard {
       >
         <div class="playlist-art">
           ${img
-            ? html`<img src=${img} alt="" loading="lazy" />`
+            ? html`<img src=${img} alt="" loading="lazy" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />`
             : html`<div class="playlist-art-fallback"><ha-icon .icon=${'mdi:playlist-music'}></ha-icon></div>`}
           <div class="playlist-art-overlay" aria-hidden="true"></div>
           <div class="playlist-art-play"><ha-icon .icon=${'mdi:play'}></ha-icon></div>
@@ -1981,29 +1991,29 @@ class GlassSpotifyCard extends BaseCard {
     const uri = item.uri ?? `spotify:${item.type ?? type}:${item.id}`;
     const playing = this._isNowPlaying(uri);
     return html`
-      <div
-        class="result-row ${playing ? 'now-playing' : ''}"
-        role="button"
-        tabindex="0"
-        @click=${() => {
-          if (type === 'playlist') this._openDrilldown('playlist', item.id, item.name, getImage(item, 300), item.owner?.display_name);
-          else if (type === 'album') this._openDrilldown('album', item.id, item.name, getImage(item, 300), getArtistNames(item));
-          else this._openPicker(item);
-        }}
-        @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
-      >
-        <div class="result-art ${isRound ? 'round' : ''}">
-          ${img
-            ? html`<img src=${img} alt="" loading="lazy" />`
-            : html`<ha-icon .icon=${typeIcon(type)}></ha-icon>`}
-        </div>
-        <div class="result-info">
-          <div class="result-title">${item.name}</div>
-          <div class="result-meta">
-            <span class="result-type-badge">${t(typeBadgeKey(type) as Parameters<typeof t>[0])}</span>
-            <span>${artist}</span>
+      <div class="result-row ${playing ? 'now-playing' : ''}">
+        <button
+          class="result-main"
+          aria-label=${item.name}
+          @click=${() => {
+            if (type === 'playlist') this._openDrilldown('playlist', item.id, item.name, getImage(item, 300), item.owner?.display_name);
+            else if (type === 'album') this._openDrilldown('album', item.id, item.name, getImage(item, 300), getArtistNames(item));
+            else this._openPicker(item);
+          }}
+        >
+          <div class="result-art ${isRound ? 'round' : ''}">
+            ${img
+              ? html`<img src=${img} alt="" loading="lazy" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />`
+              : html`<ha-icon .icon=${typeIcon(type)}></ha-icon>`}
           </div>
-        </div>
+          <div class="result-info">
+            <div class="result-title">${item.name}</div>
+            <div class="result-meta">
+              <span class="result-type-badge">${t(typeBadgeKey(type) as Parameters<typeof t>[0])}</span>
+              <span>${artist}</span>
+            </div>
+          </div>
+        </button>
         ${(type === 'track' || type === 'episode') && item.id ? html`
           <glass-icon-button
             class="heart-btn"
@@ -2143,7 +2153,7 @@ class GlassSpotifyCard extends BaseCard {
           ></glass-icon-button>
           <div class="drilldown-hero-art">
             ${dd.image
-              ? html`<img src=${dd.image} alt="" loading="lazy" />`
+              ? html`<img src=${dd.image} alt="" loading="lazy" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />`
               : html`<ha-icon .icon=${dd.type === 'album' ? 'mdi:album' : 'mdi:playlist-music'}></ha-icon>`}
           </div>
           <div class="drilldown-hero-info">
@@ -2227,7 +2237,7 @@ class GlassSpotifyCard extends BaseCard {
           <div class="picker-hero">
             <div class="picker-hero-art">
               ${img
-                ? html`<img src=${img} alt="" />`
+                ? html`<img src=${img} alt="" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }} />`
                 : html`<ha-icon .icon=${typeIcon(item.type ?? 'track')}></ha-icon>`}
             </div>
             <div class="picker-hero-info">
