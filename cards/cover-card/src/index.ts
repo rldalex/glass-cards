@@ -1,4 +1,4 @@
-import { html, css, nothing, type PropertyValues } from 'lit';
+import { html, nothing, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import {
   BaseCard,
@@ -7,111 +7,15 @@ import {
   isEntityVisibleNow,
   fireHaptic,
   type EntityScheduleMap,
-  type HassEntity,
 } from '@glass-cards/base-card';
 import './editor';
 import { glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, isEntityUnavailable } from '@glass-cards/ui-core';
 import { t } from '@glass-cards/i18n';
-
-// — Feature bitmask (HA CoverEntityFeature) —
-
-const F = {
-  OPEN: 1,
-  CLOSE: 2,
-  SET_POSITION: 4,
-  STOP: 8,
-  OPEN_TILT: 16,
-  CLOSE_TILT: 32,
-  STOP_TILT: 64,
-  SET_TILT_POSITION: 128,
-} as const;
-
-// — Device class icon map [open, closed] —
-
-const DC_ICONS: Record<string, [string, string]> = {
-  shutter:  ['mdi:window-shutter-open',  'mdi:window-shutter'],
-  blind:    ['mdi:blinds-open',          'mdi:blinds'],
-  curtain:  ['mdi:curtains',             'mdi:curtains-closed'],
-  garage:   ['mdi:garage-open',          'mdi:garage'],
-  gate:     ['mdi:gate-open',            'mdi:gate'],
-  door:     ['mdi:door-open',            'mdi:door-closed'],
-  awning:   ['mdi:awning-outline',       'mdi:awning-outline'],
-  shade:    ['mdi:roller-shade-open',    'mdi:roller-shade'],
-  window:   ['mdi:window-open',          'mdi:window-closed'],
-  damper:   ['mdi:valve-open',           'mdi:valve'],
-};
-
-// — Transport icons per device_class category —
-
-interface TransportInfo {
-  open: string;
-  close: string;
-  stop: string | null;
-}
-
-const TRANSPORT: Record<string, TransportInfo> = {
-  vertical: { open: 'mdi:arrow-up',       close: 'mdi:arrow-down',      stop: 'mdi:stop' },
-  garage:   { open: 'mdi:garage-open',     close: 'mdi:garage',          stop: 'mdi:stop' },
-  gate:     { open: 'mdi:gate-open',       close: 'mdi:gate',            stop: 'mdi:stop' },
-  door:     { open: 'mdi:door-open',       close: 'mdi:door-closed',     stop: null },
-  damper:   { open: 'mdi:valve-open',      close: 'mdi:valve',           stop: null },
-  window:   { open: 'mdi:window-open',     close: 'mdi:window-closed',   stop: null },
-};
-
-// — Helpers —
-
-function coverIcon(dc: string, isOpen: boolean): string {
-  const pair = DC_ICONS[dc] || DC_ICONS.shutter;
-  return pair[isOpen ? 0 : 1];
-}
-
-function getTransport(dc: string): TransportInfo {
-  if (['shutter', 'blind', 'shade', 'curtain', 'awning'].includes(dc)) return TRANSPORT.vertical;
-  return TRANSPORT[dc] || TRANSPORT.vertical;
-}
-
-function stateText(state: string): string {
-  switch (state) {
-    case 'open': return t('cover.open');
-    case 'closed': return t('cover.closed');
-    case 'opening': return t('cover.opening');
-    case 'closing': return t('cover.closing');
-    default: return state;
-  }
-}
-
-// — Cover info interface —
-
-interface CoverInfo {
-  entity: HassEntity;
-  entityId: string;
-  name: string;
-  isOpen: boolean;
-  position: number | null;
-  tiltPosition: number | null;
-  deviceClass: string;
-  features: number;
-}
-
-function buildCoverInfo(entityId: string, entity: HassEntity): CoverInfo {
-  const attrs = entity.attributes;
-  const dc = (attrs.device_class as string) || 'shutter';
-  const features = (attrs.supported_features as number) || 0;
-  const pos = attrs.current_position as number | undefined;
-  const tilt = attrs.current_tilt_position as number | undefined;
-  const isOpen = entity.state === 'open' || entity.state === 'opening';
-
-  return {
-    entity,
-    entityId,
-    name: (attrs.friendly_name as string) || entityId.split('.')[1] || entityId,
-    isOpen,
-    position: pos ?? null,
-    tiltPosition: tilt ?? null,
-    deviceClass: dc,
-    features,
-  };
-}
+import {
+  type CoverInfo,
+  F, coverIcon, getTransport, stateLabelKey, buildCoverInfo, buildPresets, buildLayout,
+} from './cover-utils';
+import { coverCardStyles } from './styles';
 
 // — Backend config —
 
@@ -160,170 +64,7 @@ class GlassCoverCard extends BaseCard {
   private _coversCache: CoverInfo[] | null = null;
   private _coversCacheKey = '';
 
-  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, css`
-    :host {
-      width: 100%;
-      max-width: 31.25rem;
-      margin: 0 auto;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .cover-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 0.375rem;
-      margin-bottom: 0.375rem; min-height: 1.375rem;
-    }
-    .cover-header-left { display: flex; align-items: center; gap: 0.5rem; }
-    .cover-title {
-      font-size: var(--fz-xs); font-weight: 700; text-transform: uppercase;
-      letter-spacing: 1.5px; color: var(--t4);
-    }
-    .cover-count {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 0.875rem; height: 0.875rem; padding: 0 0.25rem;
-      border-radius: var(--radius-full); font-size: var(--fz-xs); font-weight: 600;
-      transition: background var(--t-med), color var(--t-med);
-    }
-    .cover-count.some { background: rgba(var(--rgb-purple),0.15); color: var(--cv-color, #a78bfa); }
-    .cover-count.none { background: var(--s2); color: var(--t3); }
-    .cover-count.all  { background: rgba(var(--rgb-purple),0.2); color: var(--cv-color, #a78bfa); }
-
-    .cover-card { position: relative; padding: 0.125rem 0.875rem; }
-    .card-inner {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    }
-
-    /* Tint */
-    .tint {
-      position: absolute; inset: 0; border-radius: inherit;
-      pointer-events: none; z-index: 0;
-      transition: opacity var(--t-slow), background var(--t-slow);
-    }
-
-    /* ── Row ── */
-    .cv-row {
-      display: flex; align-items: center; gap: 0.625rem;
-      grid-column: 1 / -1;
-      padding: 0.5rem 0.25rem; position: relative;
-      border-radius: var(--radius-md);
-      transition: background var(--t-fast);
-    }
-    .cv-row.compact { grid-column: span 1; min-width: 0; overflow: hidden; }
-    .cv-row.compact-right { padding-left: 0.625rem; }
-    .cv-row.compact-right::before {
-      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 0.0625rem;
-      background: linear-gradient(180deg, transparent, var(--b2), transparent);
-    }
-    /* No row-level hover: sub-buttons (icon-toggle + expand) carry their own. */
-    @media (pointer: coarse) {
-      .cv-row:active { animation: bounce 0.3s ease; }
-    }
-
-
-    .cv-expand-btn {
-      flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 0.625rem;
-      background: none; border: none; padding: 0;
-      font-family: inherit; cursor: pointer; outline: none;
-      text-align: left;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cv-expand-btn:focus-visible { outline: 2px solid rgba(var(--rgb-white),0.25); outline-offset: 2px; border-radius: var(--radius-sm); }
-
-    /* Cover icon button — handled by <glass-icon-button>. Only override the
-       active tint to match the entity colour token used elsewhere. */
-
-    .cv-info { flex: 1; min-width: 0; }
-    .cv-name {
-      font-size: var(--fz-md); font-weight: 600; color: var(--t1); line-height: 1.2;
-      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-    }
-    .cv-sub { display: flex; align-items: center; gap: 0.3125rem; margin-top: 0.125rem; }
-    .cv-state-text {
-      font-size: var(--fz-sm); font-weight: 500; color: var(--t3);
-      transition: color var(--t-med);
-    }
-    .cv-row.open .cv-state-text { color: rgba(var(--rgb-purple),0.6); }
-    .cv-position {
-      font-size: var(--fz-lg); font-weight: 700; color: var(--t3);
-      font-variant-numeric: tabular-nums; flex-shrink: 0;
-      transition: color var(--t-med);
-    }
-    .cv-position .unit { font-size: var(--fz-sm); font-weight: 500; }
-    .cv-row.open .cv-position { color: var(--cv-color, #a78bfa); }
-
-    .cv-dot {
-      width: 0.375rem; height: 0.375rem; border-radius: 50%; flex-shrink: 0;
-      background: var(--t4); transition: background var(--t-med), box-shadow var(--t-med);
-    }
-    .cv-row.open .cv-dot {
-      background: var(--cv-color, #a78bfa); box-shadow: 0 0 8px rgba(var(--rgb-purple),0.4);
-    }
-
-    /* Unavailable badge inline (replaces dot) */
-    .cv-expand-btn .unavailable-badge {
-      position: static;
-      flex-shrink: 0;
-      --mdc-icon-size: 0.75rem;
-      color: var(--c-warning);
-    }
-
-    /* ── Fold ── */
-    .fold-sep-left  { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-right: auto; }
-    .fold-sep-right { grid-column: 1 / -1; width: calc(50% - 0.75rem); margin-left: auto; }
-    .fold-sep {
-      grid-column: 1 / -1;
-      height: 0.0625rem; margin: 0 0.75rem; overflow: hidden;
-      background: linear-gradient(90deg, transparent, rgba(var(--rgb-purple),0.25), transparent);
-      opacity: 0; transition: opacity var(--t-layout);
-    }
-    .fold-sep.visible { opacity: 1; }
-
-    .ctrl-fold {
-      grid-column: 1 / -1;
-      display: grid; grid-template-rows: 0fr;
-      transition: grid-template-rows var(--t-layout);
-      pointer-events: none;
-    }
-    .ctrl-fold.open { grid-template-rows: 1fr; pointer-events: auto; }
-    .ctrl-fold-inner {
-      overflow: hidden; opacity: 0;
-      transition: opacity var(--t-fast);
-    }
-    .ctrl-fold.open .ctrl-fold-inner { opacity: 1; transition-delay: 0.1s; }
-
-    .ctrl-panel {
-      padding: 0.375rem 0 0.25rem;
-      display: flex; flex-direction: column; gap: 0.75rem;
-    }
-    /* ── Fold sections (Position / Inclinaison / Préréglages) ── */
-    .cover-section { display: flex; flex-direction: column; gap: 0.4375rem; }
-
-    /* Transport */
-    .transport-row {
-      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
-    }
-
-    /* Slider */
-    .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
-    .slider-icon {
-      display: flex; align-items: center; justify-content: center;
-      width: 1.75rem; height: 1.75rem; flex-shrink: 0;
-    }
-    .slider-icon ha-icon {
-      --mdc-icon-size: var(--icon-md);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--t3);
-    }
-    glass-slider { flex: 1; }
-
-    /* Presets */
-    .preset-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
-
-    .ctrl-sep { height: 0.0625rem; background: var(--b1); margin: 0.125rem 0; }
-  `];
+  static styles = [glassTokens, hostMixin, glassMixin, foldMixin, marqueeMixin, bounceMixin, unavailableMixin, coverCardStyles];
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -638,6 +379,11 @@ class GlassCoverCard extends BaseCard {
     this._expanded = this._expanded === entityId ? null : entityId;
   }
 
+  private _stateText(state: string): string {
+    const key = stateLabelKey(state);
+    return key ? t(key) : state;
+  }
+
   // — Render —
 
   protected render() {
@@ -674,7 +420,9 @@ class GlassCoverCard extends BaseCard {
           ${covers.length === 0 ? html`
             <div style="padding:16px;text-align:center;font-size:var(--fz-base);color:var(--t4);grid-column:1/-1;">${t('config.cover_no_covers')}</div>
           ` : nothing}
-          ${!this.areaId ? this._renderDashboardGrid(covers) : this._renderGrid(covers)}
+          ${!this.areaId
+            ? this._renderLayout(covers, (cv) => this._getDashboardLayout(cv.entityId) === 'compact')
+            : this._renderLayout(covers, (cv) => this._isCompact(cv))}
         </div>
       </div>
     `;
@@ -690,33 +438,6 @@ class GlassCoverCard extends BaseCard {
     return this._getEntityLayout(cv.entityId) === 'compact';
   }
 
-  private _renderGrid(covers: CoverInfo[]) {
-    const results: unknown[] = [];
-    let i = 0;
-    while (i < covers.length) {
-      const cv = covers[i];
-      if (this._isCompact(cv)) {
-        const next = i + 1 < covers.length && this._isCompact(covers[i + 1]) ? covers[i + 1] : null;
-        if (next) {
-          results.push(this._renderCoverRow(cv, true, false));
-          results.push(this._renderCoverRow(next, true, true));
-          results.push(this._renderControlFold(cv, 'left'));
-          results.push(this._renderControlFold(next, 'right'));
-          i += 2;
-        } else {
-          results.push(this._renderCoverRow(cv, false, false));
-          results.push(this._renderControlFold(cv, 'full'));
-          i++;
-        }
-      } else {
-        results.push(this._renderCoverRow(cv, false, false));
-        results.push(this._renderControlFold(cv, 'full'));
-        i++;
-      }
-    }
-    return results;
-  }
-
   private _getDashboardLayout(entityId: string): 'full' | 'compact' {
     const layouts = this._coverConfig.dashboard_entity_layouts;
     if (layouts && layouts[entityId]) return layouts[entityId] as 'full' | 'compact';
@@ -724,28 +445,18 @@ class GlassCoverCard extends BaseCard {
     return this._coverConfig.dashboard_compact !== false ? 'compact' : 'full';
   }
 
-  private _renderDashboardGrid(covers: CoverInfo[]) {
+  /** Shared by room and dashboard mode — only the compact predicate differs. */
+  private _renderLayout(covers: CoverInfo[], isCompact: (cv: CoverInfo) => boolean) {
     const results: unknown[] = [];
-    let i = 0;
-    while (i < covers.length) {
-      const cv = covers[i];
-      if (this._getDashboardLayout(cv.entityId) === 'compact') {
-        const next = i + 1 < covers.length && this._getDashboardLayout(covers[i + 1].entityId) === 'compact' ? covers[i + 1] : null;
-        if (next) {
-          results.push(this._renderCoverRow(cv, true, false));
-          results.push(this._renderCoverRow(next, true, true));
-          results.push(this._renderControlFold(cv, 'left'));
-          results.push(this._renderControlFold(next, 'right'));
-          i += 2;
-        } else {
-          results.push(this._renderCoverRow(cv, false, false));
-          results.push(this._renderControlFold(cv, 'full'));
-          i++;
-        }
+    for (const item of buildLayout(covers, isCompact)) {
+      if (item.kind === 'pair') {
+        results.push(this._renderCoverRow(item.left, true, false));
+        results.push(this._renderCoverRow(item.right, true, true));
+        results.push(this._renderControlFold(item.left, 'left'));
+        results.push(this._renderControlFold(item.right, 'right'));
       } else {
-        results.push(this._renderCoverRow(cv, false, false));
-        results.push(this._renderControlFold(cv, 'full'));
-        i++;
+        results.push(this._renderCoverRow(item.item, false, false));
+        results.push(this._renderControlFold(item.item, 'full'));
       }
     }
     return results;
@@ -792,7 +503,7 @@ class GlassCoverCard extends BaseCard {
           <div class="cv-info">
             <div class="cv-name">${cv.name}</div>
             <div class="cv-sub">
-              <span class="cv-state-text">${stateText(cv.entity.state)}</span>
+              <span class="cv-state-text">${this._stateText(cv.entity.state)}</span>
             </div>
           </div>
           ${cv.position !== null ? html`
@@ -825,31 +536,8 @@ class GlassCoverCard extends BaseCard {
     const hasTilt = !!(sf & F.SET_TILT_POSITION);
 
     // Presets: per-entity overrides take priority over hardcoded defaults
-    const presets: { label: string; icon: string; position: number }[] = [];
-    if (hasPosition) {
-      const entityPresets = this._coverConfig.entity_presets[cv.entityId];
-      const configPresets = entityPresets && entityPresets.length > 0
-        ? entityPresets
-        : [0, 25, 50, 75, 100];
-      for (const p of configPresets) {
-        const isOpen = p >= 50;
-        const label = p === 0
-          ? t('cover.preset_closed')
-          : p === 100
-            ? t('cover.preset_open')
-            : `${p}%`;
-        presets.push({
-          label,
-          icon: coverIcon(cv.deviceClass, isOpen),
-          position: p,
-        });
-      }
-    } else {
-      presets.push(
-        { label: t('cover.preset_closed'), icon: coverIcon(cv.deviceClass, false), position: 0 },
-        { label: t('cover.preset_open'), icon: coverIcon(cv.deviceClass, true), position: 100 },
-      );
-    }
+    const presets = buildPresets(cv.deviceClass, sf, this._coverConfig.entity_presets?.[cv.entityId])
+      .map((p) => ({ ...p, label: p.labelKey ? t(p.labelKey) : `${p.position}%` }));
 
     return html`
       <div class="ctrl-panel">
