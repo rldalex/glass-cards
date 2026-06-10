@@ -758,16 +758,14 @@ export class GlassNavbarCard extends BaseCard {
       if (result?.dashboard) {
         this._enabledCards = result.dashboard.enabled_cards;
         this._cardOrder = this._mergeCardOrder(result.dashboard.card_order);
-        const hideHeader = result.dashboard.hide_header ?? false;
-        const hideSidebar = result.dashboard.hide_sidebar ?? false;
-        if (hideHeader !== this._hideHeader) {
-          this._hideHeader = hideHeader;
-          this._applyHideHeader();
-        }
-        if (hideSidebar !== this._hideSidebar) {
-          this._hideSidebar = hideSidebar;
-          this._applyHideSidebar();
-        }
+        // Always re-apply (not only on value change): hui-root may have been
+        // recreated since the last apply, destroying the injected styles.
+        // _injectHeaderStyle/_injectSidebarStyle are cheap no-ops when the
+        // style element is still connected.
+        this._hideHeader = result.dashboard.hide_header ?? false;
+        this._hideSidebar = result.dashboard.hide_sidebar ?? false;
+        this._applyHideHeader();
+        this._applyHideSidebar();
       }
     } catch {
       // Backend not available — keep defaults
@@ -777,6 +775,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _applyHideHeader(retries = 10): void {
+    if (this._headerRetryTimer) { clearTimeout(this._headerRetryTimer); this._headerRetryTimer = undefined; }
     if (this._hideHeader) {
       if (!this._injectHeaderStyle() && retries > 0 && this.isConnected) {
         this._headerRetryTimer = setTimeout(() => this._applyHideHeader(retries - 1), 500);
@@ -787,7 +786,10 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _injectHeaderStyle(): boolean {
-    if (this._headerStyleEl) return true; // Already injected
+    // isConnected guards against a stale ref: HA recreating hui-root (view
+    // change, reconnect, edit mode) destroys the injected <style> with it.
+    if (this._headerStyleEl?.isConnected) return true;
+    this._headerStyleEl = null;
     const huiRoot = this._findHuiRoot();
     if (!huiRoot) return false;
     const style = document.createElement('style');
@@ -812,6 +814,7 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _applyHideSidebar(retries = 10): void {
+    if (this._sidebarRetryTimer) { clearTimeout(this._sidebarRetryTimer); this._sidebarRetryTimer = undefined; }
     if (this._hideSidebar) {
       if (!this._injectSidebarStyle() && retries > 0 && this.isConnected) {
         this._sidebarRetryTimer = setTimeout(() => this._applyHideSidebar(retries - 1), 500);
@@ -822,7 +825,8 @@ export class GlassNavbarCard extends BaseCard {
   }
 
   private _injectSidebarStyle(): boolean {
-    if (this._sidebarStyleEl) return true;
+    if (this._sidebarStyleEl?.isConnected) return true;
+    this._sidebarStyleEl = null;
     const drawerShadow = this._findDrawerShadow();
     if (!drawerShadow) return false;
     const style = document.createElement('style');

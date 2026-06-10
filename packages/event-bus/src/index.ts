@@ -52,7 +52,17 @@ class EventBus {
 
   emit<K extends keyof GlassEventMap>(event: K, payload: GlassEventMap[K]): void {
     const set = this.listeners.get(event);
-    if (set) for (const cb of [...set]) cb(payload);
+    if (!set) return;
+    // Isolate listeners: one throwing callback must not block the others
+    // nor propagate back into the emitter (e.g. a card crash breaking the
+    // navbar click handler).
+    for (const cb of [...set]) {
+      try {
+        cb(payload);
+      } catch (err) {
+        console.error(`[glass-cards] bus listener error on "${event}"`, err);
+      }
+    }
   }
 }
 

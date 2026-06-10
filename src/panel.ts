@@ -15,3 +15,5 @@ import '../cards/presence-card/src/index';
 import '../cards/spotify-card/src/index';
 import '../cards/camera-carousel/src/index';
 import '../cards/title-card/src/index';
+import '../cards/calendar-card/src/index';
+import '../cards/vacuum-card/src/index';

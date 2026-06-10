@@ -123,6 +123,9 @@ export abstract class BaseCard extends LitElement {
   // Override in multi-entity cards to compare relevant entity states
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!changedProps.has('hass')) return true;
+    // Another prop changed in the same batch — never swallow its render
+    // (Lit clears changedProps after a skipped update, the change would be lost)
+    if (changedProps.size > 1) return true;
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
     if (!oldHass) return true;
     // Detect language change
@@ -263,6 +266,8 @@ export abstract class BaseCard extends LitElement {
       cb.onSwipe(dx < 0 ? 'left' : 'right');
       return;
     }
+    // Horizontal drag that didn't qualify as a swipe (too slow) — not a tap
+    if (Math.abs(dx) > 15) return;
     // Tap
     cb.onTap?.();
   }

@@ -723,7 +723,9 @@ export class GlassRoomPopup extends LitElement {
     this.hass?.callService('scene', 'turn_on', {}, { entity_id: entityId });
   }
 
-  private static readonly DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera', 'vacuum'];
+  // Keep in sync with _renderDomainCard — only domains that actually render
+  // in the popup belong here ('vacuum' has no room mode yet).
+  private static readonly DEFAULT_CARD_ORDER = ['light', 'media_player', 'climate', 'fan', 'cover', 'camera'];
 
   private _getVisibleCards(domains: string[]): string[] {
     const roomCfg = this._areaId ? this._roomConfigs.get(this._areaId) : undefined;

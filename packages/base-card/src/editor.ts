@@ -60,7 +60,7 @@ export class GlassCardEditor extends LitElement {
     return html`
       <div class="redirect">
         <p>
-          <ha-icon icon="mdi:cog"></ha-icon>
+          <ha-icon .icon=${'mdi:cog'}></ha-icon>
           ${t('editor.redirect_message')}
         </p>
         <p>
